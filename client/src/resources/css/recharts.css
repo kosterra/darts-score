@@ -1,0 +1,11 @@
+.modal.modal-graph-container {
+    width: auto;
+}
+
+.modal-graph-container .modal-content {
+    padding: 0;
+}
+
+.recharts-wrapper {
+    margin: 20px 5px;
+}

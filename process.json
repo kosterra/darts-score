@@ -1,0 +1,13 @@
+{
+    "apps" : [{
+        "name":"client",
+        "cwd":"./client",
+        "script": "npm",
+        "args" : "start"
+    },{
+        "name":"server",
+        "cwd":"./server",
+        "script": "npm",
+        "args" : "start"
+    }]
+  }

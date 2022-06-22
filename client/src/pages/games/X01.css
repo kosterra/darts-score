@@ -1,0 +1,49 @@
+.game-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .modus-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0 auto 25px auto;
+    padding: 15px;
+    background-color: var(--light-grey-transparent);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  
+  .modus-info .best-of-legs {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modus-info .best-of-legs > span {
+    margin: 4px 0;
+  }
+  
+  .modus-info .modus-in-out {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 10px 0 0 0;
+  }
+  
+  .score-boards {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  
+  .statistics-board {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+}
