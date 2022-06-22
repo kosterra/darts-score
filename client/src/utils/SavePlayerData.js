@@ -2,62 +2,64 @@ import dataService from '../services/DataService';
 
 const { getSinglePlayerData } = dataService;
 
-const savePlayersData = (matchData, playerWinner) => {
+const savePlayersData = async (matchData, playerWinner) => {
   let date = new Date();
 
-  matchData.players.forEach(player => {
+  for (const player of matchData.players) {
+    console.log('save player')
     let playerData = {...matchData.matchPlayerInfo[player]};
 
-    getSinglePlayerData(player).then(playerDataLS => {
-      playerData.date = date;
-      playerData.players = matchData.players;
-      playerData.playerWinner = playerWinner;
-      playerData.gameType = matchData.gameType;
-      playerData.matchLegsInfos = matchData.allLegsThrows;
+    const playerDataLS = await getSinglePlayerData(player);
+    playerData.date = date;
+    playerData.players = matchData.players;
+    playerData.playerWinner = playerWinner;
+    playerData.gameType = matchData.gameType;
+    playerData.matchLegsInfos = matchData.allLegsThrows;
   
-      playerDataLS.matches.push(playerData);
-      playerDataLS.nbrOfMatches++;
-      player === playerWinner && matchData.players.length > 1 && playerDataLS.matchesWon++;
-      matchData.players.length === 1 && playerDataLS.soloGames++;
+    playerDataLS.matches.push(playerData);
+    playerDataLS.nbrOfMatches++;
+    player === playerWinner && matchData.players.length > 1 && playerDataLS.matchesWon++;
+    matchData.players.length === 1 && playerDataLS.soloGames++;
   
-      playerDataLS.averages.overall = getNewAverage(
-        playerDataLS.averages.overall,
-        playerDataLS.totalThrow.rounds,
-        playerData.averages.overall,
-        playerData.totalThrow.rounds
-      );
-      playerDataLS.averages.begMidGame = getNewAverage(
-        playerDataLS.averages.begMidGame,
-        playerDataLS.totalThrowBegMidGame.rounds,
-        playerData.averages.begMidGame,
-        playerData.totalThrowBegMidGame.rounds
-      );
-      playerDataLS.averages.endGame = getNewAverage(
-        playerDataLS.averages.endGame,
-        playerDataLS.totalThrowEndGame.rounds,
-        playerData.averages.endGame,
-        playerData.totalThrowEndGame.rounds
-      );
-  
-      playerDataLS.totalThrow.darts += playerData.totalThrow.darts;
-      playerDataLS.totalThrow.rounds += playerData.totalThrow.rounds;
-  
-      playerDataLS.totalThrowEndGame.darts += playerData.totalThrowEndGame.darts;
-      playerDataLS.totalThrowEndGame.rounds += playerData.totalThrowEndGame.rounds;
-  
-      playerDataLS.totalThrowBegMidGame.darts += playerData.totalThrowBegMidGame.darts;
-      playerDataLS.totalThrowBegMidGame.rounds += playerData.totalThrowBegMidGame.rounds;
-  
-      playerDataLS.bestThreeDarts = Math.max(playerDataLS.bestThreeDarts, playerData.bestThreeDarts);
-  
-      playerDataLS.doubleOut = updateDataObject( playerData , playerDataLS, 'doubleOut' );
-      playerDataLS.hit = updateDataObject( playerData , playerDataLS, 'hit' );
-      playerDataLS.scoreRanges = updateDataObject( playerData , playerDataLS, 'scoreRanges' );
-      playerDataLS.checkoutScores = updateDataObject( playerData , playerDataLS, 'checkoutScores' );
+    playerDataLS.averages.overall = getNewAverage(
+      playerDataLS.averages.overall,
+      playerDataLS.totalThrow.rounds,
+      playerData.averages.overall,
+      playerData.totalThrow.rounds
+    );
 
-      dataService.updatePlayer(player, playerDataLS)
-		})    
-  })
+    playerDataLS.averages.begMidGame = getNewAverage(
+      playerDataLS.averages.begMidGame,
+      playerDataLS.totalThrowBegMidGame.rounds,
+      playerData.averages.begMidGame,
+      playerData.totalThrowBegMidGame.rounds
+    );
+
+    playerDataLS.averages.endGame = getNewAverage(
+      playerDataLS.averages.endGame,
+      playerDataLS.totalThrowEndGame.rounds,
+      playerData.averages.endGame,
+      playerData.totalThrowEndGame.rounds
+    );
+  
+    playerDataLS.totalThrow.darts += playerData.totalThrow.darts;
+    playerDataLS.totalThrow.rounds += playerData.totalThrow.rounds;
+  
+    playerDataLS.totalThrowEndGame.darts += playerData.totalThrowEndGame.darts;
+    playerDataLS.totalThrowEndGame.rounds += playerData.totalThrowEndGame.rounds;
+  
+    playerDataLS.totalThrowBegMidGame.darts += playerData.totalThrowBegMidGame.darts;
+    playerDataLS.totalThrowBegMidGame.rounds += playerData.totalThrowBegMidGame.rounds;
+  
+    playerDataLS.bestThreeDarts = Math.max(playerDataLS.bestThreeDarts, playerData.bestThreeDarts);
+  
+    playerDataLS.doubleOut = updateDataObject( playerData , playerDataLS, 'doubleOut' );
+    playerDataLS.hit = updateDataObject( playerData , playerDataLS, 'hit' );
+    playerDataLS.scoreRanges = updateDataObject( playerData , playerDataLS, 'scoreRanges' );
+    playerDataLS.checkoutScores = updateDataObject( playerData , playerDataLS, 'checkoutScores' );
+      
+    await dataService.updatePlayer(player, playerDataLS)
+  }
 }
 
 const updateDataObject = (objToTransfer, objToUpdate, dataName) => {
