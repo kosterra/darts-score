@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 
-import GameContext from '../../context/gameContext/gameContext';
+import GameContext from '../../utils/GameContext';
 
 import './X01ScoreBoard.css'
 

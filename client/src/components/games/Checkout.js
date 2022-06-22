@@ -1,6 +1,6 @@
 import React from 'react';
 
-import checkout from '../utils/checkout';
+import checkout from '../../utils/Checkout';
 
 import './Checkout.css';
 

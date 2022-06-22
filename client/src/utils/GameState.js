@@ -1,6 +1,6 @@
 import React, { useReducer } from 'react';
-import GameContext from './gameContext';
-import gameReducer from './gameReducer';
+import GameContext from './GameContext';
+import gameReducer from './GameReducer';
 import {
   INIT_NEW_GAME,
   RESET_GAME,
@@ -29,10 +29,10 @@ import {
   RETURN_PREV_PLAYER,
   THROW_ERROR,
   RESET_ERROR
-} from '../types';
+} from './Types';
 
-import dataModels from '../../models/dataModels';
-import returnToPreviousPlayer from './util/returnToPreviousPlayer';
+import dataModels from '../models/DataModels';
+import returnToPreviousPlayer from './ReturnToPreviousPlayer';
 
 
 const GameState = props => {

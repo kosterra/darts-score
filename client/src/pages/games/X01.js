@@ -1,7 +1,7 @@
 import React, { Fragment, useContext } from 'react';
 import { Link } from 'react-router-dom';
 
-import GameContext from '../../context/gameContext/gameContext';
+import GameContext from '../../utils/GameContext';
 import PageErrorMessage from '../../components/shared/UIElement/PageErrorMessage';
 import Spinner from '../../components/shared/UIElement/Spinner';
 import X01ScoreBoard from '../../components/games/X01ScoreBoard';

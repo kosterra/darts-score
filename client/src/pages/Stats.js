@@ -8,7 +8,7 @@ import ChartComponent from '../components/shared/charts/ChartComponent';
 import PageErrorMessage from '../components/shared/UIElement/PageErrorMessage';
 import Spinner from '../components/shared/UIElement/Spinner';
 import dataService from '../services/DataService';
-import getChartData from '../components/shared/charts/utils/getChartDataMethods';
+import getChartData from '../components/utils/GetChartDataMethods';
 
 import './Stats.css';
 

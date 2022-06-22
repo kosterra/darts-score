@@ -26,7 +26,7 @@ import {
   RETURN_PREV_PLAYER,
   THROW_ERROR,
   RESET_ERROR
-} from '../types';
+} from './Types';
 
 const gameReducer = (state, action) => {
   switch (action.type) {

@@ -1,4 +1,4 @@
-import dataService from '../../services/DataService';
+import dataService from '../services/DataService';
 
 const { getSinglePlayerData } = dataService;
 

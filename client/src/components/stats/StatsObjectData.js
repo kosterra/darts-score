@@ -1,6 +1,6 @@
 import React from 'react';
 
-import sortObjectData from './utils/sortObjectData';
+import sortObjectData from '../../utils/SortObjectData';
 
 import './StatsObjectData.css';
 
