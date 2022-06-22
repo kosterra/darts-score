@@ -2,7 +2,7 @@ import React, { Fragment, useContext, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import Input from '../shared/form/Input';
-import inputsValues from '../utils/NewGameInputsValues';
+import inputValues from './X01InputValues';
 import PageErrorMessage from '../shared/UIElement/PageErrorMessage';
 import Modal from '../shared/UIElement/Modal';
 import Spinner from '../shared/UIElement/Spinner';
@@ -13,7 +13,7 @@ import GameContext from '../../utils/GameContext';
 const X01Config = () => {
 	const navigate = useNavigate()
 	const gameContext = useContext(GameContext);
-	const { gameTypeValues, setOptionsValues, legOptionsValues, numberOfPlayers } = inputsValues;
+	const { gameTypeValues, setOptionsValues, legOptionsValues, numberOfPlayers } = inputValues;
 	const [ playersNames, setPlayersNames ] = useState([])
 	const [ showAddPlayer, setShowAddPlayer ] = useState(false);
 	const [ newPlayerName, setNewPlayerName ] = useState('');
