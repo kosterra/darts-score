@@ -18,11 +18,11 @@
 }
 
 .dartboard-img .zero {
-    fill: var(--light-grey-transparent);
+    fill: $light-grey-transparent;
 }
 
 .dartboard-img .filler {
-    fill: var(--dark-grey-transparent);
+    fill: $dark-grey-transparent;
 }
   
 .dartboard-img .item:hover {
@@ -30,28 +30,28 @@
 }
   
 .dartboard-img .single.even {
-    fill: var(--light-grey-transparent);
+    fill: $light-grey-transparent;
 }
   
 .dartboard-img .double.even, .triple.even, .double-bull {
-    fill: var(--red);
+    fill: $red;
 }
   
 .dartboard-img .single.odd {
-    fill: var(--beige);
+    fill: $beige;
 }
   
 .dartboard-img .double.odd, .triple.odd, .single-bull {
-    fill: var(--dark-green);
+    fill: $dark-green;
 }
   
 .dartboard-img .number {
-    fill: var(--white);
+    fill: $white;
     font-weight: 400;
     text-anchor: middle;
     font-size: 1.6em;
 }
   
 .dartboard-img .hit, .hit-pulse {
-    fill: var(--blue);
+    fill: $blue;
 }

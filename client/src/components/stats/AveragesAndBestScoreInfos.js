@@ -1,7 +1,5 @@
 import React from 'react';
 
-import './AveragesAndBestScoreInfos.css'
-
 const AveragesAndBestScoreInfos = props => {
   const {averages, bestThreeDarts, getChart} = props;
   

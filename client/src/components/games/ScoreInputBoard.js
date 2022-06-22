@@ -11,8 +11,6 @@ import DartBoard from './DartBoard';
 import dataModels from '../../models/DataModels';
 import checkout from '../../utils/Checkout';
 
-import './ScoreInputBoard.css';
-
 const ScoreInputBoard = props => {
     const navigate = useNavigate();
     const {

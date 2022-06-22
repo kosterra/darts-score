@@ -8,8 +8,6 @@ import X01ScoreBoard from '../../components/games/X01ScoreBoard';
 import X01StatisticsBoard from '../../components/games/X01StatisticsBoard';
 import ScoreInputBoard from '../../components/games/ScoreInputBoard';
 
-import './X01.css'
-
 const X01Game = () => {
   const { match, loading } = useContext(GameContext);
 

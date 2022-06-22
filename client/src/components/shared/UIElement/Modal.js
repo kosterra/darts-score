@@ -1,9 +1,6 @@
 import React, { Fragment } from 'react';
 import ReactDom from 'react-dom';
 
-import './Modal.css';
-
-
 const Modal = props => { 
   let modalMainElement;
 

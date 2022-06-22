@@ -1,8 +1,8 @@
 .score-board {
     padding: 0 48px;
-    border-top: 1px dotted var(--light-grey);
-    border-bottom: 1px dotted var(--light-grey);
-    border-right: 1px dotted var(--light-grey);
+    border-top: 1px dotted $light-grey;
+    border-bottom: 1px dotted $light-grey;
+    border-right: 1px dotted $light-grey;
 }
 
 .score-board:first-child {
@@ -63,11 +63,11 @@
 }
 
 .player-name-icon.active-start-leg {
-    color: var(--blue);
+    color: $blue;
 }
 
 .player-name-icon.active-throwing {
-    color: var(--light-green);
+    color: $light-green;
 }
 
 .legs-container, .sets-container {

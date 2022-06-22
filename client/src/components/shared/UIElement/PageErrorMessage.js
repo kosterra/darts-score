@@ -1,7 +1,5 @@
 import React from 'react';
 
-import './PageErrorMessage.css';
-
 const PageErrorMessage = props => {
   const {title, message} = props
   return (

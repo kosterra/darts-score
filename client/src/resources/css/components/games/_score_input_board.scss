@@ -64,7 +64,7 @@
 }
 
 .score-enter-input .delete-dart-input {
-    color: var(--red);
+    color: $red;
     cursor: pointer;
 }
 
@@ -75,11 +75,11 @@
 }
 
 .score-enter-buttons-undo {
-    background-color: var(--red)
+    background-color: $red;
 }
 
 .score-enter-buttons-undo:hover {
-    background-color: var(--light-red)
+    background-color: $light-red;
 }
 
 /* Game victory */
@@ -100,7 +100,7 @@
 }
 
 .game-victory-message i {
-    color: var(--gold);
+    color: $gold;
 }
 
 .game-victory-buttons {

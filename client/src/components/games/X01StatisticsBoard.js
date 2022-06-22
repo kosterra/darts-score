@@ -1,7 +1,5 @@
 import React from 'react';
 
-import './X01StatisticsBoard.css';
-
 const X01StatisticsBoard = props => {
   const { averages, bestThreeDarts, scoreRanges, doubleOut, checkoutScores } = props.infos
   const player = props.player

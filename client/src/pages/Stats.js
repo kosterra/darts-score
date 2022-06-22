@@ -10,8 +10,6 @@ import Spinner from '../components/shared/UIElement/Spinner';
 import dataService from '../services/DataService';
 import getChartData from '../components/utils/GetChartDataMethods';
 
-import './Stats.css';
-
 const Stats = () => {
   const {getAllPlayersName, getSinglePlayerData} = dataService;
   const [form, setForm] = useState({playerName: undefined});

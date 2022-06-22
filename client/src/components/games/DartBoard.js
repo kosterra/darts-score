@@ -1,6 +1,4 @@
 import React, { useContext, createRef } from 'react';
-
-import './DartBoard.css';
 import GameContext from '../../utils/GameContext';
 
 const DartBoard = () => {

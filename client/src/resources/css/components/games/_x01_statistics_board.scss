@@ -4,9 +4,9 @@
     justify-content: center;
     padding: 15px 5px;
     width: 25%;
-    border-top: 1px solid var(--light-grey);
-    border-bottom: 1px solid var(--light-grey);
-    border-right: 1px solid var(--light-grey);
+    border-top: 1px solid $light-grey;
+    border-bottom: 1px solid $light-grey;
+    border-right: 1px solid $light-grey;
 }
 
 .statistics-board-wrapper:last-child {
@@ -20,7 +20,7 @@
     gap: 15px;
     width: 45%;
     padding: 0 15px;
-    border-right: 1px dotted var(--light-grey)
+    border-right: 1px dotted $light-grey;
 }
 
 .statistics-block {
@@ -47,7 +47,7 @@
 }
 
 .statistics-entry .label, .statistics-entry .value, .points-entry .item {
-    color: var(--very-light-grey);
+    color: $very-light-grey;
 }
 
 /* Score Course */
@@ -73,13 +73,13 @@
     font-size: 14px;
     width: 100%;
     justify-content: space-between;
-    color: var(--very-light-grey);
+    color: $very-light-grey;
 }
 
 .points-entry .label.item {
     font-size: 12px;
     font-weight: 600;
-    color: var(--white);
+    color: $white;
 }
 
 .points-entry .per-dart.item {
@@ -96,5 +96,5 @@
     align-self: flex-end;
     display: flex;
     font-weight: 800;
-    color: var(--white);
+    color: $white;
 }

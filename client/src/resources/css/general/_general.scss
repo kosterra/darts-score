@@ -1,22 +1,22 @@
 body {
-    background: url("../../resources/img/background.jpg") no-repeat center center fixed; 
+    background: url("../../resources/img/background.jpg") no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
     background-size: cover; /* Resize the background image to cover the entire container */
-    font-family: 'Exo', sans-serif;
+    font-family: $primary-font;
     font-size: 12px;
     font-style: normal;
     font-variant: normal;
     font-weight: 400;
     margin: 0;
-    color: var(--white)
+    color: $white;
 }
 
 #root {
-    background-color: var(--dark-grey-transparent);
     min-height: 100vh;
+    background-color: $dark-grey-transparent;
 }
 
 .main-container {
@@ -33,7 +33,7 @@ body {
     width: 100%;
     align-items: center;
     justify-content: center;
-    background-color: var(--dark-green);
+    background-color: $dark-green;
 }
 
 .title {
@@ -41,15 +41,15 @@ body {
     font-size: 1.6rem;
     font-weight: 600;
     margin: 14px 0;
-    color: var(--white);
+    color: $white;
 }
 
 .content-container {
-    background-color: var(--dark-grey);
+    background-color: $dark-grey;
     text-align: center;
     margin: auto;
     padding: 36px;
-    color: var(--white);
+    color: $white;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -64,7 +64,7 @@ body {
     font-size: 1.2rem;
     font-weight: 500;
     margin-bottom: 15px;
-    color: var(--white)
+    color: $white
 }
 
 .section-container {
@@ -73,7 +73,7 @@ body {
     align-items: center;
     margin: 35px auto 25px auto;
     gap: 35px;
-    background-color: var(--dark-grey-transparent);
+    background-color: $dark-grey-transparent;
     padding: 25px;
     border-radius: 5px;
 }

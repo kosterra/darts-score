@@ -2,8 +2,6 @@ import React from 'react';
 
 import checkout from '../../utils/Checkout';
 
-import './Checkout.css';
-
 const Checkout = props => {
   const { score } = props
 

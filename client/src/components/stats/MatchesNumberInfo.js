@@ -1,7 +1,5 @@
 import React from 'react';
 
-import './MatchesNumberInfo.css'
-
 const MatchesNumberInfo = props => {
   const { nbrOfMatches, matchesWon, soloGames, getChart } = props;
   return (

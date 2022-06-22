@@ -1,8 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-
 import GameContext from '../../utils/GameContext';
-
-import './X01ScoreBoard.css'
 
 const X01ScoreBoard = props => {
     const { player, infos } = props

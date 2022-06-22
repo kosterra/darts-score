@@ -10,8 +10,6 @@ import dataService from '../../services/DataService';
 import dataModels from '../../models/DataModels';
 import GameContext from '../../utils/GameContext';
 
-import './X01Config.css';
-
 const X01Config = () => {
 	const navigate = useNavigate()
 	const gameContext = useContext(GameContext);
