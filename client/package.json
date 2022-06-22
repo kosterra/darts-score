@@ -2,7 +2,7 @@
   "name": "darts-score-client",
   "description": "WebUI for darts-score Application",
   "version": "1.0.0",
-  "private": true,
+  "license": "GPLv3",
   "proxy": "http://localhost:3001",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
