@@ -1,0 +1,90 @@
+.score-board {
+    padding: 0 48px;
+    border-top: 1px dotted $light-grey;
+    border-bottom: 1px dotted $light-grey;
+    border-right: 1px dotted $light-grey;
+}
+
+.score-board:first-child {
+    border-left: none;
+}
+
+.score-board:last-child {
+    border-right: none;
+}
+
+/* Points and Legs / Sets info */
+.points-legs-sets-won {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 15px 5px;
+}
+
+.score-board:nth-child(even) .points-legs-sets-won {
+    flex-direction: row-reverse;
+    justify-content: start;
+}
+
+.points-container {
+    padding: 0 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+}
+
+.points-container .points {
+    font-size: 75px;
+    font-weight: 600;
+}
+
+.points-container .player {
+    font-size: 20px;
+    font-weight: 400;
+    text-align: center;
+    padding-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.points-container .player .player-icons {
+    display: flex;
+    gap: 8px;
+}
+
+.player-name-icon {
+    font-size: 14px;
+}
+
+.player-name-icon.active-start-leg {
+    color: $blue;
+}
+
+.player-name-icon.active-throwing {
+    color: $light-green;
+}
+
+.legs-container, .sets-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.legs-container .legs, .sets-container .sets {
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    padding-top: 15px;
+}
+
+.legs-container .value, .sets-container .value {
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    padding-top: 15px;
+}

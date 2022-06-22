@@ -5,8 +5,6 @@ import MainHeader from './MainHeader';
 import NavLinks from './NavLinks';
 import logo from '../../../resources/img/logo.svg';
 
-import './MainNavigation.css';
-
 const MainNavigation = () => {
   return (
     <MainHeader>

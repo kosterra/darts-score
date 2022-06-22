@@ -1,7 +1,5 @@
 import React, { useContext, createRef } from 'react';
-
-import './DartBoard.css';
-import GameContext from '../../context/gameContext/gameContext';
+import GameContext from '../../utils/GameContext';
 
 const DartBoard = () => {
   const { match, updateCurrentThrowDartBoard, throwError, getCurrentThrowScore} = useContext(GameContext);

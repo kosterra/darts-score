@@ -1,0 +1,95 @@
+.modal-background {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    position: fixed;
+    min-width: 100vw;
+    min-height: 100vh;
+    background-color: $dark-grey-transparent;
+  }
+  
+  .modal {
+    background-color: $light-grey;
+    width: 400px;
+    text-align: center;
+  }
+  
+  .modal-header {
+    background-color: $dark-green;
+    font-size: 1.2rem;
+    font-weight: 800;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-header * {
+    color: $white;
+  }
+  
+  .modal-content {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+  
+  .modal-content input {
+    background-color: $dark-grey-transparent;
+    border: 1px solid $very-light-grey;
+  }
+  
+  .modal-content.add-player-content {
+    width: 100%;
+    gap: 10px;
+  }
+  
+  .modal-footer {
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-footer * {
+    margin: 6px;
+  }
+  
+  .modal-btn {
+    background-color: $dark-green;
+    color: $white;
+    border: none;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .modal-game-infos-text {
+    display: block;
+    width: 90%;
+    margin: auto;
+    text-align: center;
+    color: $red;
+  }
+  
+  .modal-game-infos-text p {
+    margin-bottom: 12px;
+    line-height: 18px;
+    font-size: 0.9rem;
+  }
+  
+  /* Graph */
+  
+  .modal-graph-cont {
+    width: 800px !important;
+  }
+  
+  .modal-content .recharts-wrapper {
+    margin: auto;
+  }

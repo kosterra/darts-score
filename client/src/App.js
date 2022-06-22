@@ -7,7 +7,7 @@ import X01Game from './pages/games/X01'
 import Stats from './pages/Stats';
 import About from './pages/About';
 
-import GameState from './context/gameContext/GameState';
+import GameState from './utils/GameState';
 
 function App() {
 

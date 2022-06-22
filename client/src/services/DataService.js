@@ -1,4 +1,4 @@
-import dataModels from '../models/dataModels';
+import dataModels from '../models/DataModels';
 
 // Public methods to export
 const createPlayer = async function(name) {

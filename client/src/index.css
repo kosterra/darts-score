@@ -1,11 +1,1 @@
-@import 'resources/css/variables.css';
-@import 'resources/css/reset_default.css';
-
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-@import url('https://use.fontawesome.com/releases/v5.6.3/css/all.css');
-
-@import 'resources/css/general.css';
-@import 'resources/css/elements.css';
-@import 'resources/css/recharts.css';
+@import url("resources/css/main.css");

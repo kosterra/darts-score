@@ -16,12 +16,16 @@
     "recharts": "^2.1.10",
     "request": "^2.88.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "node-sass": "^7.0.1"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build-css": "node-sass ./src/resources/css/main.scss ./src/resources/css/main.css",
+    "watch-css": "npm run build-css && npm run build-css -- -w"
   },
   "eslintConfig": {
     "extends": [

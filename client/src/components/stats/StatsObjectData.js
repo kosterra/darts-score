@@ -1,8 +1,5 @@
 import React from 'react';
-
-import sortObjectData from './utils/sortObjectData';
-
-import './StatsObjectData.css';
+import sortObjectData from '../../utils/SortObjectData';
 
 const StatsObjectData = props => {
   const { title, object, statName, totalThrow } = props;

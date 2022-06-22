@@ -1,0 +1,111 @@
+.score-input-board {
+    display: flex;
+    margin: 25px auto;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 50%;
+}
+
+/* Dartboard */
+.score-input-board-left-column {
+    display: flex;
+    width: 60%;
+}
+
+/* Manual score input */
+.score-input-board-right-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 35px 0;
+    gap: 35px;
+    width: 40%;
+}
+
+.score-enter-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.score-enter-form-title {
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-enter-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.score-enter-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.score-enter-input {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.score-enter-input .label {
+    margin-top: 1px;
+    font-size: 1rem;
+    width: 25px;
+}
+
+.score-enter-input .delete-dart-input {
+    color: $red;
+    cursor: pointer;
+}
+
+.score-enter-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.score-enter-buttons-undo {
+    background-color: $red;
+}
+
+.score-enter-buttons-undo:hover {
+    background-color: $light-red;
+}
+
+/* Game victory */
+.game-victory-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 25px auto;
+}
+
+.game-victory-message {
+    font-size: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+.game-victory-message i {
+    color: $gold;
+}
+
+.game-victory-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px auto;
+}

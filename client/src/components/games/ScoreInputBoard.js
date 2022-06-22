@@ -1,17 +1,15 @@
 import React, { useContext, useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import GameContext from '../../context/gameContext/gameContext';
+import GameContext from '../../utils/GameContext';
 import Checkout from './Checkout';
 import Input from '../shared/form/Input';
 import Spinner from '../shared/UIElement/Spinner';
 import Modal from '../shared/UIElement/Modal';
-import savePlayersData from '../utils/savePlayerData';
+import savePlayersData from '../../utils/SavePlayerData';
 import DartBoard from './DartBoard';
-import dataModels from '../../models/dataModels';
-import checkout from '../utils/checkout';
-
-import './ScoreInputBoard.css';
+import dataModels from '../../models/DataModels';
+import checkout from '../../utils/Checkout';
 
 const ScoreInputBoard = props => {
     const navigate = useNavigate();

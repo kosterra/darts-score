@@ -1,6 +1,4 @@
 import React from 'react';
-
-import './Spinner.css';
 import spinner from './spinner.gif';
 
 const Spinner = props => {

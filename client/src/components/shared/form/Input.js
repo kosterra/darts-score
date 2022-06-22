@@ -1,7 +1,5 @@
 import React, { Fragment } from 'react';
 
-import './Input.css';
-
 const Input = props => {
 	// input checkbox, text, number,
 	let element;

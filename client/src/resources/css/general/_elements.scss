@@ -1,0 +1,68 @@
+// Buttons
+button {
+    background-color: $dark-green;
+    color: $white;
+    padding: 6px 8px;
+    margin: 5px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    &.outline {
+        background-color: $dark-grey-transparent;
+        border: 2px solid $dark-green;
+    }
+
+    &:hover {
+        background-color: $light-green;
+    }
+}
+
+// Input
+input {
+    color: $white;
+    height: 25px;
+    background-color: $light-grey-transparent;
+    border: none;
+    margin: 0 5px;
+    border-radius: 5px;
+}
+
+// Select
+select {
+    background-color: $light-grey-transparent;
+    color: $white;
+    padding: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Exo', sans-serif;
+    border-radius: 3px;
+
+    option {
+        background-color: $light-grey-transparent;
+    }
+}
+
+// Links
+a {
+    &.button-link {
+        background-color: $dark-green;
+        color: $white;
+        border: none;
+        border-radius: 3px;
+        color: $white;
+        padding: 6px 8px;
+        margin: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+}

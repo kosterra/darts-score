@@ -4,8 +4,6 @@ import MatchesNumberInfo from './MatchesNumberInfo';
 import AveragesAndBestScoreInfos from './AveragesAndBestScoreInfos';
 import StatsObjectData from './StatsObjectData';
 
-import './StatsContainer.css';
-
 const StatsContainer = props => {
   const {
     nbrOfMatches,
