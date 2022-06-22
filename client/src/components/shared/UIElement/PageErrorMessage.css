@@ -1,0 +1,39 @@
+.page-error {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.page-error-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 12px 0;
+}
+
+.page-error-message {
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 18px 0;
+}
+
+.page-error-buttons {
+  display: flex;
+  justify-content: center;
+  margin: 30px
+}
+
+.page-error-button.outline {
+  background-color: var(--dark-grey-transparent);
+  border: 2px solid var(--dark-green);
+}
+
+.page-error-button:hover {
+  background-color: var(--light-green);
+}
+
+.page-error-button-danger {
+  background-color: var(--red);
+}
+
+.page-error-button-danger:hover {
+  background-color: var(--light-red);
+}

@@ -1,0 +1,10 @@
+version: "3.4"
+
+services:
+  darts_score:
+    image: darts-score:latest
+    container_name: darts_score
+    restart: always
+    ports:
+      - 4000:3000
+      - 4001:3001

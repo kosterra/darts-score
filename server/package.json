@@ -1,0 +1,19 @@
+{
+  "name": "darts-score-server",
+  "version": "1.0.0",
+  "description": "API for darts-score Application",
+  "main": "index.js",
+  "keywords": [],
+  "author": "Ralph Koster",
+  "license": "ISC",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.1",
+    "cookie-parser": "^1.4.6",
+    "morgan": "^1.10.0",
+    "serve-favicon": "^2.5.0"
+  }
+}

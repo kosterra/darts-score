@@ -1,0 +1,14 @@
+.main-navigation-logo-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.main-navigation-logo .logo-img {
+  height: 50px;
+}
+
+.main-navigation-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
