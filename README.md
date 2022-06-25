@@ -1,7 +1,8 @@
 # Darts Score
 Darts scoring application including a React frontend and an API with express.
-
 The application is using a file-based storage to save historical data.
+
+![darts score screenshot](/readme/readme_img_1.png)
 
 **Stack:** 
 * Front End with: HTML, CSS, Javascript ES6, React.
