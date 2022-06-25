@@ -24,7 +24,7 @@ const Input = props => {
 	
 	if(props.element === 'select') {
 		element = (
-			<div className="select-input-cont">
+			<div className="select-input-container">
 				<select id={props.id} name={props.name} value={props.value} onChange={props.onChange} className="select-input" required>
 					{props.children}
 				</select>
@@ -34,7 +34,9 @@ const Input = props => {
 
 	return (
 		<Fragment>
-			<label htmlFor={props.htmlFor} className={props.classNameLabel}>{props.label}</label>
+			{props.label &&
+				<label htmlFor={props.htmlFor} className={props.classNameLabel}>{props.label}</label>
+			}
 			{element}
 		</Fragment>
 	)

@@ -2,7 +2,7 @@ import React, { Fragment, useContext, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import Input from '../shared/form/Input';
-import inputValues from './X01InputValues';
+import x01ConfigOptions from './X01ConfigOptions';
 import PageErrorMessage from '../shared/UIElement/PageErrorMessage';
 import Modal from '../shared/UIElement/Modal';
 import Spinner from '../shared/UIElement/Spinner';
@@ -13,7 +13,17 @@ import GameContext from '../../utils/GameContext';
 const X01Config = () => {
 	const navigate = useNavigate()
 	const gameContext = useContext(GameContext);
-	const { gameTypeValues, setOptionsValues, legOptionsValues, numberOfPlayers } = inputValues;
+	const {
+		gameScoreOptions,
+		setLegModeOptions,
+		ftSetNumberOptions,
+		ftLegNumberOptions,
+		boSetNumberOptions,
+		boLegNumberOptions,
+		legInOptions,
+		legOutOptions,
+		numberOfPlayerOptions
+	} = x01ConfigOptions;
 	const [ playersNames, setPlayersNames ] = useState([])
 	const [ showAddPlayer, setShowAddPlayer ] = useState(false);
 	const [ newPlayerName, setNewPlayerName ] = useState('');
@@ -21,8 +31,12 @@ const X01Config = () => {
 	const [ error, setError ] = useState(null);
 	const [ gameForm, setGameForm ] = useState({
 		gameType: 501,
-		sets: 3,
-		legs: 4,
+		setMode: 'Best of',
+		legMode: 'Best of',
+		numberOfSets: 3,
+		numberOfLegs: 4,
+		legInMode: 'Straight In',
+		legOutMode: 'Double Out',
 		numberOfPlayers: 2,
 		players: ['','']
 	});
@@ -57,8 +71,15 @@ const X01Config = () => {
 	}, [createPlayerSuccessMsg])
 
 	const handleChange = e => {
-		if(e.target.name === 'numberOfPlayers') {
-			setGameForm({...gameForm, numberOfPlayers: Number(e.target.value) , players: Array(Number(e.target.value)).fill('')})
+		if (e.target.name === 'numberOfPlayers') {
+			setGameForm({...gameForm,
+				numberOfPlayers: Number(e.target.value),
+				players: Array(Number(e.target.value)).fill(''),
+				setMode: e.target.value > 2 ? 'First to' : gameForm.setMode,
+				legMode: e.target.value > 2 ? 'First to' : gameForm.legMode
+			})
+		} else if (['setMode', 'legMode', 'legInMode', 'legOutMode'].includes(e.target.name)) {
+			setGameForm({...gameForm, [e.target.name]: e.target.value});
 		} else {
 			setGameForm({...gameForm, [e.target.name]: Number(e.target.value)});
 		}
@@ -187,10 +208,10 @@ const X01Config = () => {
 				</div>
 				<form className="content-container" onSubmit={onStartGame}>
 					<div className="options-container">
-						<div className="game-type-cont">
+						<div className="game-type-container">
 							<label className="section-title">Game Type</label>
 							<div className="inputs-radio-container">
-								{gameTypeValues.map((value) => (
+								{gameScoreOptions.map((value) => (
 									<Input
 										key={`game-type-${value}`}
 										id={value}
@@ -210,23 +231,108 @@ const X01Config = () => {
 							</div>
 						</div>
 
+						<div className="in-out-mode-container">
+							<div className="inputs-radio-container">
+								{legInOptions.map((value) => (
+									<Input
+										key={`leg-in-mode-${value}`}
+										id={value}
+										element="input"
+										type="radio"
+										name="legInMode"
+										value={value}
+										htmlFor={value}
+										label={value}
+										checked={gameForm.legInMode === value}
+										onChange={handleChange}
+										classNameLabel={`label-radio-clickable ${value === gameForm.legInMode && "label-radio-btn-selected"}`}
+										classNameInput={"isHidden"}
+										required
+									/>
+								))}
+							</div>
+							<div className="inputs-radio-container">
+								{legOutOptions.map((value) => (
+									<Input
+										key={`leg-out-mode-${value}`}
+										id={value}
+										element="input"
+										type="radio"
+										name="legOutMode"
+										value={value}
+										htmlFor={value}
+										label={value}
+										checked={gameForm.legOutMode === value}
+										onChange={handleChange}
+										classNameLabel={`label-radio-clickable ${value === gameForm.legOutMode && "label-radio-btn-selected"}`}
+										classNameInput={"isHidden"}
+										required
+									/>
+								))}
+							</div>
+						</div>
+
 						<div className="sets-legs-container">
 							<div className="item-container">
 								<div className="element-container">
-									<Input id="sets" element="select" name="sets" htmlFor="sets" label="First to" value={gameForm.sets} onChange={handleChange}>
-										{setOptionsValues.map((value) => (
-											<option key={`set-option-${value}`} value={value}>
-												{value} set{value > 1 && 's'}
-											</option>
-										))}
-									</Input>
-									<Input id="legs" element="select" name="legs" htmlFor="legs" value={gameForm.legs} onChange={handleChange}>
-										{legOptionsValues.map((value) => (
-											<option key={`leg-option-${value}`} value={value}>
-												{value} leg{value > 1 && 's'}
-											</option>
-										))}
-									</Input>
+									<div className="sets-legs-settings-container sets-settings-container">
+										<span>Sets</span>
+										<div className="settings-elements sets-settings">
+											{gameForm.numberOfPlayers > 2 &&
+												<span>First to</span>
+											}
+											{gameForm.numberOfPlayers <= 2 &&
+												<Input id="setMode" element="select" name="setMode" htmlFor="setMode" value={gameForm.setMode} onChange={handleChange}>
+													{setLegModeOptions.map((value) => (
+														<option key={`set-mode-option-${value}`} value={value}>
+															{value}
+														</option>
+													))}
+												</Input>
+											}
+											<Input id="numberOfSets" element="select" name="numberOfSets" htmlFor="numberOfSets" value={gameForm.numberOfSets} onChange={handleChange}>
+												{gameForm.setMode === 'First to' && ftSetNumberOptions.map((value) => (
+													<option key={`set-option-${value}`} value={value}>
+														{value} set{value > 1 && 's'}
+													</option>
+												))}
+												{gameForm.setMode === 'Best of' &&  boSetNumberOptions.map((value) => (
+													<option key={`set-option-${value}`} value={value}>
+														{value} set{value > 1 && 's'}
+													</option>
+												))}
+											</Input>
+										</div>
+									</div>
+									<div className="sets-legs-settings-container legs-settings-container">
+										<span>Legs</span>
+										<div className="settings-elements legs-settings">
+											{gameForm.numberOfPlayers > 2 &&
+												<span>First to</span>
+											}
+											{gameForm.numberOfPlayers <= 2 &&
+												<Input id="legMode" element="select" name="legMode" htmlFor="legMode" value={gameForm.legMode} onChange={handleChange}>
+													{setLegModeOptions.map((value) => (
+														<option key={`leg-mode-option-${value}`} value={value}>
+															{value}
+														</option>
+													))}
+												</Input>
+											}
+											<Input id="numberOfLegs" element="select" name="numberOfLegs" htmlFor="numberOfLegs" value={gameForm.numberOfLegs} onChange={handleChange}>
+												{gameForm.legMode === 'First to' &&  ftLegNumberOptions.map((value) => (
+													<option key={`leg-option-${value}`} value={value}>
+														{value} leg{value > 1 && 's'}
+													</option>
+												))}
+												{gameForm.legMode === 'Best of' &&  boLegNumberOptions.map((value) => (
+													<option key={`leg-option-${value}`} value={value}>
+														{value} leg{value > 1 && 's'}
+													</option>
+												))}
+											</Input>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -235,7 +341,7 @@ const X01Config = () => {
 					<div className="start-game-form-number-of-players">
 						<label className="section-title">Number of Players</label>
 						<div className="inputs-radio-container">
-							{numberOfPlayers.map((value) => (
+							{numberOfPlayerOptions.map((value) => (
 								<Input
 									key={`player-nbr-${value}`}
 									id={value}
@@ -256,7 +362,6 @@ const X01Config = () => {
 					</div>
 					
 					<div className="select-player-container">
-						<label className="section-title">Select Players</label>
 						<div className="select-player-wrapper">
 							<div className="item-container">
 							{gameForm.players.map((player, i) => {
@@ -270,11 +375,11 @@ const X01Config = () => {
 												value={gameForm.players[i]} 
 												onChange={e => updatePlayer(e.target.value ,i)}>
 												<option value={''} disabled hidden>Select Player</option>
-											{playersNames && playersNames.map((existingPlayer) => (
-												<option key={`player-name-${existingPlayer}`} value={existingPlayer}>
-													{existingPlayer}
-												</option>
-											))}
+												{playersNames && playersNames.map((existingPlayer) => (
+													<option key={`player-name-${existingPlayer}`} value={existingPlayer}>
+														{existingPlayer}
+													</option>
+												))}
 											</Input>
 									</div>
 								)

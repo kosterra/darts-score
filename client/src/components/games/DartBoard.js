@@ -19,7 +19,7 @@ const DartBoard = () => {
       return
     }
 
-    updateCurrentThrowDartBoard(e.target.id);
+    updateCurrentThrowDartBoard(newCurrentScore, e.target.id);
   }
 
   return (

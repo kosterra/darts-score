@@ -27,21 +27,21 @@ const X01ScoreBoard = props => {
 	}, [])
 
 	useEffect(() => {
-    let totalScore = getCurrentThrowScore();
+        let totalScore = getCurrentThrowScore();
 
-    let currentPlayer = match.players[match.currentPlayerTurn];
-    let currentPlayerScore = match.matchPlayerInfo[currentPlayer].score;
+        let currentPlayer = match.players[match.currentPlayerTurn];
+        let currentPlayerScore = match.matchPlayerInfo[currentPlayer].score;
 
-    let newCurrentScore = currentPlayerScore - totalScore;
-    setScore(newCurrentScore);
+        let newCurrentScore = currentPlayerScore - totalScore;
+        setScore(newCurrentScore);
 
     // eslint-disable-next-line
 	},[ match.currentThrow ]);
 
 	useEffect(() => {
-    setTimeout(() => {
-      resetError();
-    }, 12000);
+        setTimeout(() => {
+        resetError();
+        }, 12000);
     // eslint-disable-next-line
 	},[ error ]);
 
@@ -64,21 +64,57 @@ const X01ScoreBoard = props => {
                         )}
                     </div>
                 </div>
+
                 <div className="legs-container">
                     <div className="legs">
                         LEGS
                     </div>
-                    <div className="value">
-                        {match.matchPlayerInfo[player].currentSetLegWon}
-                    </div>
+                    {match.legMode === 'Best of' &&
+                        <div className="value">
+                            {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                <i key={`leg-filled-${i}`} className="fas fa-circle"></i>
+                            ))}
+                            {[...Array(Math.round(match.numberOfLegs / 2) - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
+                            ))}
+                        </div>
+                    }
+                    {match.legMode === 'First to' &&
+                        <div className="value">
+                            {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                <i key={`set-filled-${i}`} className="fas fa-circle"></i>
+                            ))}
+                            {[...Array(match.numberOfLegs - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
+                            ))}
+                        </div>
+                    }
                 </div>
+
                 <div className="sets-container">
                     <div className="sets">
                         SETS
                     </div>
-                    <div className="value">
-                        {match.matchPlayerInfo[player].setWon}
-                    </div>
+                    {match.setMode === 'Best of' &&
+                        <div className="value">
+                            {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                <i key={`set-filled-${i}`} className="fas fa-circle"></i>
+                            ))}
+                            {[...Array(Math.round(match.numberOfSets / 2) - match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
+                            ))}
+                        </div>
+                    }
+                    {match.setMode === 'First to' &&
+                        <div className="value">
+                            {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                <i key={`set-filled-${i}`} className="fas fa-circle"></i>
+                            ))}
+                            {[...Array(match.numberOfSets - match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
+                            ))}
+                        </div>
+                    }
                 </div>
             </div>
         </div>

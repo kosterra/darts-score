@@ -62,14 +62,27 @@ const GameState = props => {
     payload: {...dataModels.matchModel}
   })
 
-  const updateCurrentThrowManual = (value, index) => {
+  const updateCurrentThrowManual = (score, value, index) => {
+    if (state.match.gameType === score && value !== '' && validateDartValue(value)) {
+        if (state.match.legInMode === 'Double In') {
+          let startedInDouble = dartIsDouble(value);
+          if (!startedInDouble) {
+            value = '0'
+          }
+        } else if (state.match.legInMode === 'Master In') {
+          let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
+          if (!startedInMaster) {
+            value = '0';
+          }
+        }
+    }
+
     const newCurrentThrow = state.match.currentThrow.map((dart, i) => {
-      if(i === index) {
+      if (i === index) {
         dart = value;
       }
       return dart
     });
-
     
     dispatch({
       type: UPDATE_CURRENT_THROW,
@@ -77,15 +90,30 @@ const GameState = props => {
     })
   }
 
-  const updateCurrentThrowDartBoard = value => {
+  const updateCurrentThrowDartBoard = (score, value) => {
     const newCurrentThrow = [...state.match.currentThrow];
 
-    for(let i = 0; i< newCurrentThrow.length; i++) {
-      if(newCurrentThrow[i] === '') {
-        newCurrentThrow[i] = value;
+    for(let index = 0; index < newCurrentThrow.length; index++) {
+      if (state.match.gameType === score && validateDartValue(value)) {
+          if (state.match.legInMode === 'Double In') {
+            let startedInDouble = dartIsDouble(value);
+            if (!startedInDouble) {
+              value = '0'
+            }
+          } else if (state.match.legInMode === 'Master In') {
+            let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
+            if (!startedInMaster) {
+              value = '0';
+            }
+          }
+      }
+
+      if (newCurrentThrow[index] === '') {
+        newCurrentThrow[index] = value;
         break;
       }
     }
+
     dispatch({
       type: UPDATE_CURRENT_THROW,
       payload: newCurrentThrow
@@ -125,15 +153,14 @@ const GameState = props => {
     if (currentScore === 1 || currentScore < 0) {
       playerBustedUpdateState()
 
-    } else if(currentScore === 0) {
-      let finishedInDouble = lastDartIsDouble();
-      if(finishedInDouble) {
+    } else if (currentScore === 0) {
+      if (state.match.legOutMode === 'Straight Out') {
         saveCurrentLegThrows(currentLegThrows)
         saveCheckoutScore();
         playerUpdateStat(currentScore);
         hasWonSet = checkIfHasWonSet();
         if (hasWonSet) {
-          hasWonMatch = checkIfHasWinMatch();
+          hasWonMatch = checkIfHasWonMatch();
           incrementSetWon();
           resetPlayersLegs();
         } else {
@@ -141,8 +168,46 @@ const GameState = props => {
         }
         hasWonLeg = true;
         resetCurrentLegThrows();
-      } else {
-        playerBustedUpdateState()
+      } else if (state.match.legOutMode === 'Double Out') {
+        let finishedInDouble = lastDartIsDouble();
+        
+        if (finishedInDouble) {
+          saveCurrentLegThrows(currentLegThrows)
+          saveCheckoutScore();
+          playerUpdateStat(currentScore);
+          hasWonSet = checkIfHasWonSet();
+          if (hasWonSet) {
+            hasWonMatch = checkIfHasWonMatch();
+            incrementSetWon();
+            resetPlayersLegs();
+          } else {
+            incrementLegWon();
+          }
+          hasWonLeg = true;
+          resetCurrentLegThrows();
+        } else {
+          playerBustedUpdateState()
+        }
+      } else if (state.match.legOutMode === 'Master Out') {
+        let finishedInMaster = lastDartIsDouble() || lastDartIsTriple();
+        
+        if (finishedInMaster) {
+          saveCurrentLegThrows(currentLegThrows)
+          saveCheckoutScore();
+          playerUpdateStat(currentScore);
+          hasWonSet = checkIfHasWonSet();
+          if (hasWonSet) {
+            hasWonMatch = checkIfHasWonMatch();
+            incrementSetWon();
+            resetPlayersLegs();
+          } else {
+            incrementLegWon();
+          }
+          hasWonLeg = true;
+          resetCurrentLegThrows();
+        } else {
+          playerBustedUpdateState()
+        }
       }
     } else {
       playerUpdateStat(currentScore);
@@ -209,26 +274,70 @@ const GameState = props => {
     return true
   }
 
+  const dartIsDouble = (value) => {
+    if(/^d/i.test(value)) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  const dartIsTriple = (value) => {
+    if(/^t/i.test(value)) {
+      return true
+    } else {
+      return false
+    }
+  }
+
   const lastDartIsDouble = () => {
     let values = state.match.currentThrow;
 
-    if(values[2].trim() === '' && values[1].trim() === '') {
+    if (values[2].trim() === '' && values[1].trim() === '') {
       
-      if(/^d/i.test(values[0])) {
-
-        return true
-      } else {
-        return false
-      }
-    } 
-    if(values[2].trim() === '') {
-      if(/^d/i.test(values[1])) {
+      if (/^d/i.test(values[0])) {
         return true
       } else {
         return false
       }
     }
-    if(/^d/i.test(values[2])) {
+
+    if (values[2].trim() === '') {
+      if (/^d/i.test(values[1])) {
+        return true
+      } else {
+        return false
+      }
+    }
+    
+    if (/^d/i.test(values[2])) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  const lastDartIsTriple = () => {
+    let values = state.match.currentThrow;
+
+    if (values[2].trim() === '' && values[1].trim() === '') {
+      
+      if (/^t/i.test(values[0])) {
+        return true
+      } else {
+        return false
+      }
+    }
+
+    if (values[2].trim() === '') {
+      if (/^t/i.test(values[1])) {
+        return true
+      } else {
+        return false
+      }
+    }
+
+    if (/^t/i.test(values[2])) {
       return true
     } else {
       return false
@@ -548,18 +657,18 @@ const GameState = props => {
   const checkIfHasWonSet = () => {
     let playerName = state.match.players[state.match.currentPlayerTurn];
     let currentLegWon = state.match.matchPlayerInfo[playerName].currentSetLegWon;
-    let legsBySet = state.match.legs;
-    if(currentLegWon + 1 === legsBySet) {
+    let legsBySet = state.match.legMode === 'Best of' ? Math.round(state.match.numberOfLegs / 2) : state.match.numberOfLegs;
+    if (currentLegWon + 1 === legsBySet) {
       return true;
     }
     return false;
   }
 
-  const checkIfHasWinMatch = () => {
+  const checkIfHasWonMatch = () => {
     let playerName = state.match.players[state.match.currentPlayerTurn];
     let currentSetWon = state.match.matchPlayerInfo[playerName].setWon;
-    let setsToWin = state.match.sets;
-    if(currentSetWon + 1 === setsToWin) {
+    let setsToWin = state.match.setMode === 'Best of' ? Math.round(state.match.numberOfSets / 2) : state.match.numberOfSets;
+    if (currentSetWon + 1 === setsToWin) {
       return true;
     }
     return false;
