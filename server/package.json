@@ -1,6 +1,6 @@
 {
   "name": "darts-score-server",
-  "version": "1.0.0",
+  "version": "1.0.1-beta",
   "description": "API for darts-score Application",
   "main": "index.js",
   "keywords": [],

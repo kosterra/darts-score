@@ -26,7 +26,7 @@ const About = () => {
 				</div>
 				<div className="version-container">
 					<span className="section-title">Version</span>
-					<span>1.0.0</span>
+					<span>1.0.1-beta</span>
 				</div>
 				<span className="contact">
 					<a className="contact-link button-link" href="mailto:rkoster@gmx.ch">

@@ -1,7 +1,7 @@
 {
   "name": "darts-score-client",
   "description": "WebUI for darts-score Application",
-  "version": "1.0.0",
+  "version": "1.0.1-beta",
   "license": "GPLv3",
   "proxy": "http://localhost:3001",
   "dependencies": {
