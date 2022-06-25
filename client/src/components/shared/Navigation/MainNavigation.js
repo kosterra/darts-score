@@ -14,7 +14,7 @@ const MainNavigation = () => {
             <img alt="darts score logo" src={logo} className="logo-img" />
           </Link>
         </div>
-        <h1 className="main-navigation-title"><Link to="/">Darts Scoring</Link></h1>
+        <h1 className="main-navigation-title"><Link to="/">Darts Score</Link></h1>
       </div>
       <nav>
         <NavLinks />
