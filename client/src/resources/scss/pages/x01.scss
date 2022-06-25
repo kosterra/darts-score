@@ -10,29 +10,38 @@
     justify-content: center;
     flex-direction: column;
     margin: 0 auto 25px auto;
-    padding: 15px;
+    padding: 8px 25px;
     background-color: $light-grey-transparent;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     font-size: 16px;
     font-weight: 800;
-}
-  
-.modus-info .best-of-legs {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-  
-.modus-info .best-of-legs > span {
-    margin: 4px 0;
-}
-  
-.modus-info .modus-in-out {
-    font-size: 14px;
-    font-weight: 500;
-    margin: 10px 0 0 0;
+
+    .best-of-legs {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        
+        .match-mode {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .sets-and-legs {
+            font-size: 1rem;
+        }
+
+        .modus-in-out {
+            margin-top: 8px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        span {
+            margin: 4px 0;
+        }
+    }
 }
   
 .score-boards {

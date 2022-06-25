@@ -6,7 +6,6 @@ const savePlayersData = async (matchData, playerWinner) => {
   let date = new Date();
 
   for (const player of matchData.players) {
-    console.log('save player')
     let playerData = {...matchData.matchPlayerInfo[player]};
 
     const playerDataLS = await getSinglePlayerData(player);

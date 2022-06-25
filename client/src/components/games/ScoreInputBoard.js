@@ -73,7 +73,7 @@ const ScoreInputBoard = props => {
 
 	const onChange = (e) => {
 		let throwIndex = Number(e.target.name.split('-')[1]) - 1;
-		updateCurrentThrowManual(e.target.value, throwIndex);
+        updateCurrentThrowManual(score, e.target.value, throwIndex);
 	};
 
     const onSubmit = (e) => {
@@ -182,7 +182,7 @@ const ScoreInputBoard = props => {
                                             onChange={onChange}
                                             classNameLabel="label"
                                         />
-                                        <i onClick={() => updateCurrentThrowManual('', 0)} className="fas fa-minus-circle delete-dart-input"></i>
+                                        <i onClick={() => updateCurrentThrowManual(score, '', 0)} className="fas fa-minus-circle delete-dart-input"></i>
                                     </Fragment>
                                 </div>
                                 <div className="score-enter-input">
@@ -201,7 +201,7 @@ const ScoreInputBoard = props => {
                                                 onChange={onChange}
                                                 classNameLabel="label"
                                             />
-                                            <i onClick={() => updateCurrentThrowManual('', 1)} className="fas fa-minus-circle delete-dart-input"></i>
+                                            <i onClick={() => updateCurrentThrowManual(score, '', 1)} className="fas fa-minus-circle delete-dart-input"></i>
                                         </Fragment>
                                     )}
                                 </div>
@@ -219,7 +219,7 @@ const ScoreInputBoard = props => {
                                                 onChange={onChange}
                                                 classNameLabel="label"
                                             />
-                                            <i onClick={() => updateCurrentThrowManual('', 2)} className="fas fa-minus-circle delete-dart-input"></i>
+                                            <i onClick={() => updateCurrentThrowManual(score, '', 2)} className="fas fa-minus-circle delete-dart-input"></i>
                                         </Fragment>
                                     )}
                                 </div>

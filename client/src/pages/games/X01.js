@@ -31,8 +31,8 @@ const X01Game = () => {
       <div className="game-content">
         <div className="modus-info">
           <div className="best-of-legs">
-            <span>Best of</span>
-            <span>{match.sets} Sets / {match.legs} Legs</span>
+            <span className="sets-and-legs">{match.setMode} {match.numberOfSets} Set{match.numberOfSets > 1 && 's'} - {match.legMode} {match.numberOfLegs} Leg{match.numberOfLegs > 1 && 's'}</span>
+            <span className="modus-in-out">{match.legInMode} / {match.legOutMode}</span>
           </div>
         </div>
         <div className="score-boards">

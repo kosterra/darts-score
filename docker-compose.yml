@@ -8,3 +8,11 @@ services:
     ports:
       - 4000:3000
       - 4001:3001
+    volumes:
+      - type: volume
+        source: darts_score
+        target: /app/data
+
+volumes:
+  darts_score:
+    name: darts_score
