@@ -14,6 +14,10 @@ The application is using a file-based storage to save historical data.
  * Visualisation of player statistics.
  * Instant update of the best possible finishes after each throw.
 
+**Supported game types**
+This moment, there is only x01 (101, 301, 501, 701, 1001) game type supported. It is planned to support more game types in the future.
+Support for the implementation of more features is gladly accepted.
+
 ## Installation
 For local development, run the client and server as follows:
 
