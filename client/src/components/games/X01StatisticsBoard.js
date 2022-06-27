@@ -96,6 +96,7 @@ const X01StatisticsBoard = props => {
                 </div>
             </div>
         </div>
+        {currentLegThrows.filter(e => e.playerName === player).length > 0 && 
         <div className="score-course">
             <h3 className="title">Per Round Score</h3>
             <div className="points-entry" key="initial">
@@ -117,6 +118,7 @@ const X01StatisticsBoard = props => {
                 </div>
             ))}
         </div>
+        }
     </div>
   )
 }

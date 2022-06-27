@@ -1,3 +1,6 @@
+// ==========================
+//       Desktop Styles
+// ==========================
 .statistics-board-wrapper {
     display: inline-flex;
     align-items: center;
@@ -7,94 +10,122 @@
     border-top: 1px solid $light-grey;
     border-bottom: 1px solid $light-grey;
     border-right: 1px solid $light-grey;
+
+    &:last-child {
+        border-right: none;
+    }
+
+    /* Game Statistics*/
+    .game-statistics {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 45%;
+        padding: 0 15px;
+        border-right: 1px dotted $light-grey;
+
+        .statistics-block {
+            margin-bottom: 10px;
+
+            .title {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+            }
+
+            .statistics-entry {
+                display: flex;
+                width: 100%;
+                align-items: center;
+                justify-content: space-between;
+                padding: 5px 0;
+                font-size: 0.8rem;
+
+                .label, .value {
+                    color: $very-light-grey;
+                }
+
+                .bottom-space {
+                    margin-bottom: 15px;
+                }
+            }
+        }
+    }
+
+    /* Score Course */
+    .score-course {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 55%;
+        padding: 0 15px;
+        align-self: flex-start;
+
+        .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .points-entry {
+            display: flex;
+            gap: 15px;
+            align-items: baseline;
+            font-size: 14px;
+            width: 100%;
+            justify-content: space-between;
+            color: $very-light-grey;
+
+            .item {
+                color: $very-light-grey;
+            }
+
+            .label.item {
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: $white;
+            }
+
+            .per-dart.item {
+                font-size: 0.7rem;
+                font-style: italic;
+            }
+
+            .per-round.item {
+                font-size: 0.7rem;
+                font-weight: 800;
+            }
+
+            .score-left.item {
+                font-size: 1rem;
+                align-self: flex-end;
+                display: flex;
+                font-weight: 800;
+                color: $white;
+            }
+        }
+    }
 }
 
-.statistics-board-wrapper:last-child {
-    border-right: none;
-}
-
-/* Game Statistics*/
-.game-statistics {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 45%;
-    padding: 0 15px;
-    border-right: 1px dotted $light-grey;
-}
-
-.statistics-block {
-    margin-bottom: 10px;
-}
-
-.statistics-block .title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 16px;
-}
-
-.statistics-entry {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    padding: 5px 0;
-    font-size: 0.8rem;
-}
-
-.statistics-entry.bottom-space {
-    margin-bottom: 15px;
-}
-
-.statistics-entry .label, .statistics-entry .value, .points-entry .item {
-    color: $very-light-grey;
-}
-
-/* Score Course */
-.score-course {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 55%;
-    padding: 0 15px;
-    align-self: flex-start;
-}
-
-.score-course .title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 5px;
-}
-
-.score-course .points-entry {
-    display: flex;
-    gap: 15px;
-    align-items: baseline;
-    font-size: 14px;
-    width: 100%;
-    justify-content: space-between;
-    color: $very-light-grey;
-}
-
-.points-entry .label.item {
-    font-size: 12px;
-    font-weight: 600;
-    color: $white;
-}
-
-.points-entry .per-dart.item {
-    font-size: 10px;
-    font-style: italic;
-}
-
-.points-entry .per-round.item {
-    font-size: 10px;
-    font-weight: 800;
-}
-
-.points-entry .score-left.item {
-    align-self: flex-end;
-    display: flex;
-    font-weight: 800;
-    color: $white;
+// ==========================
+//       Mobile Styles
+// ==========================
+@media only screen and (max-width: 600px) {
+    .statistics-board-wrapper {
+        flex-direction: column;
+        width: 50%;
+        border-bottom: none;
+    
+        /* Game Statistics*/
+        .game-statistics {
+            width: 100%;
+            border-right: 0;
+            margin-bottom: 15px;
+        }
+    
+        /* Score Course */
+        .score-course {
+            width: 100%;
+        }
+    }
 }

@@ -1,17 +1,24 @@
-/* Global */
+// ==========================
+//       Desktop Styles
+// ==========================
+.content-container {
 
-.in-out-mode-container {
-  display: flex;
-  flex-direction: row;
-  gap: 5px;
-  margin-top: 16px;
-
-  .inputs-radio-container * {
-    font-size: 0.6rem;
-    font-weight: 500;
+  .options-container {
+    width: 100%;
+  
+    .in-out-mode-container {
+      display: flex;
+      flex-direction: row;
+      gap: 5px;
+      margin-top: 16px;
+    
+      .inputs-radio-container * {
+        font-size: 0.6rem;
+        font-weight: 500;
+      }
+    }
   }
 }
-  
   
 .label-radio-clickable {
   background-color: $light-grey;
@@ -160,4 +167,37 @@
   
 .error-container * {
   color: $white;
+}
+
+
+// ==========================
+//       Mobile Styles
+// ==========================
+@media only screen and (max-width: 600px) {
+  .content-container {
+    .options-container {
+      width: 100%;
+      
+      .in-out-mode-container {
+        display: flex;
+        flex-direction: column;
+      }
+  
+      .sets-legs-container {
+        .item-container {
+          margin: 0 auto;
+  
+          .element-container {
+            .sets-legs-settings-container {
+              width: auto;
+            }
+          }
+        }
+      }
+    }
+
+    .select-player-container {
+      width: 60%;
+    }
+  }
 }

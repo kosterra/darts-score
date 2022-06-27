@@ -65,56 +65,58 @@ const X01ScoreBoard = props => {
                     </div>
                 </div>
 
-                <div className="legs-container">
-                    <div className="legs">
-                        LEGS
+                <div className="legs-sets-wrapper">
+                    <div className="legs-sets-container legs-container">
+                        <div className="legs-sets legs">
+                            LEGS
+                        </div>
+                        {match.legMode === 'Best of' &&
+                            <div className="value">
+                                {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                    <i key={`leg-filled-${i}`} className="fas fa-circle"></i>
+                                ))}
+                                {[...Array(Math.round(match.numberOfLegs / 2) - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                    <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
+                                ))}
+                            </div>
+                        }
+                        {match.legMode === 'First to' &&
+                            <div className="value">
+                                {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                    <i key={`set-filled-${i}`} className="fas fa-circle"></i>
+                                ))}
+                                {[...Array(match.numberOfLegs - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                    <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
+                                ))}
+                            </div>
+                        }
                     </div>
-                    {match.legMode === 'Best of' &&
-                        <div className="value">
-                            {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
-                                <i key={`leg-filled-${i}`} className="fas fa-circle"></i>
-                            ))}
-                            {[...Array(Math.round(match.numberOfLegs / 2) - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
-                                <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
-                            ))}
+                
+                    <div className="legs-sets-container sets-container">
+                        <div className="legs-sets sets">
+                            SETS
                         </div>
-                    }
-                    {match.legMode === 'First to' &&
-                        <div className="value">
-                            {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
-                                <i key={`set-filled-${i}`} className="fas fa-circle"></i>
-                            ))}
-                            {[...Array(match.numberOfLegs - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
-                                <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
-                            ))}
-                        </div>
-                    }
-                </div>
-
-                <div className="sets-container">
-                    <div className="sets">
-                        SETS
+                        {match.setMode === 'Best of' &&
+                            <div className="value">
+                                {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                    <i key={`set-filled-${i}`} className="fas fa-circle"></i>
+                                ))}
+                                {[...Array(Math.round(match.numberOfSets / 2) - match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                    <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
+                                ))}
+                            </div>
+                        }
+                        {match.setMode === 'First to' &&
+                            <div className="value">
+                                {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                    <i key={`set-filled-${i}`} className="fas fa-circle"></i>
+                                ))}
+                                {[...Array(match.numberOfSets - match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                    <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
+                                ))}
+                            </div>
+                        }
                     </div>
-                    {match.setMode === 'Best of' &&
-                        <div className="value">
-                            {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
-                                <i key={`set-filled-${i}`} className="fas fa-circle"></i>
-                            ))}
-                            {[...Array(Math.round(match.numberOfSets / 2) - match.matchPlayerInfo[player].setWon)].map((e, i) => (
-                                <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
-                            ))}
-                        </div>
-                    }
-                    {match.setMode === 'First to' &&
-                        <div className="value">
-                            {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
-                                <i key={`set-filled-${i}`} className="fas fa-circle"></i>
-                            ))}
-                            {[...Array(match.numberOfSets - match.matchPlayerInfo[player].setWon)].map((e, i) => (
-                                <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
-                            ))}
-                        </div>
-                    }
                 </div>
             </div>
         </div>

@@ -1,20 +1,36 @@
+// ==========================
+//       Desktop Styles
+// ==========================
 .stats-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 25px;
-    margin: 25px;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  margin: 25px;
+
   .statistics-objects-container {
     display: flex;
     align-items: flex-start;
+    flex-wrap: wrap;
     justify-content: center;
     width: 100%;
+
+    .match-statistics {
+      width: 100%;
+      justify-content: space-around;
+    }
   }
+}
+
+// ==========================
+//       Mobile Styles
+// ==========================
+@media only screen and (max-width: 600px) {
+  .stats-page {
   
-  .match-statistics {
-    width: 100%;
-    justify-content: space-around;
-  }  
+    .statistics-objects-container {
+      justify-content: space-around;
+    }
+  }
+}
