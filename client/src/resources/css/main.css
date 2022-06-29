@@ -71,8 +71,10 @@ html {
   color: #fff;
 }
 html #root {
-  min-height: 100vh;
   background-color: rgba(43, 43, 43, 0.8274509804);
+  padding-bottom: 10px;
+  min-height: 100vh;
+  height: 100%;
 }
 html #root .main-container {
   display: flex;

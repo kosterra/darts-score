@@ -17,8 +17,10 @@ html {
     color: $white;
 
     #root {
-        min-height: 100vh;
         background-color: $dark-grey-transparent;
+        padding-bottom: 10px;
+        min-height: 100vh;
+        height: 100%;
 
         .main-container {
             display: flex;
