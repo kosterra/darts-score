@@ -1,3 +1,6 @@
+// ==========================
+//       Desktop Styles
+// ==========================
 .dartboard {
     width: 100%;
     display: flex;
@@ -6,52 +9,61 @@
     flex-direction: column;
     align-self: start;
     margin: 30px 0;
-}
-  
-.dartboard-img {
-    width: 30em;
-    height: 30em;
-}
-  
-.dartboard-img .out {
-    fill: none;
+
+    .dartboard-img {
+        width: 30em;
+        height: 30em;
+
+        .out {
+            fill: none;
+        }
+
+        .zero {
+            fill: $light-grey-transparent;
+        }
+
+        .filler {
+            fill: $dark-grey-transparent;
+        }
+
+        .item:hover {
+            opacity: 0.6;
+        }
+
+        .single.even {
+            fill: $light-grey-transparent;
+        }
+
+        .double.even, .triple.even, .double-bull {
+            fill: $red;
+        }
+
+        .single.odd {
+            fill: $beige;
+        }
+
+        .double.odd, .triple.odd, .single-bull {
+            fill: $dark-green;
+        }
+
+        .number {
+            fill: $white;
+            font-weight: 400;
+            text-anchor: middle;
+            font-size: 1.6em;
+        }
+
+        .hit, .hit-pulse {
+            fill: $blue;
+        }
+    }
 }
 
-.dartboard-img .zero {
-    fill: $light-grey-transparent;
-}
-
-.dartboard-img .filler {
-    fill: $dark-grey-transparent;
-}
-  
-.dartboard-img .item:hover {
-    opacity: 0.6;
-}
-  
-.dartboard-img .single.even {
-    fill: $light-grey-transparent;
-}
-  
-.dartboard-img .double.even, .triple.even, .double-bull {
-    fill: $red;
-}
-  
-.dartboard-img .single.odd {
-    fill: $beige;
-}
-  
-.dartboard-img .double.odd, .triple.odd, .single-bull {
-    fill: $dark-green;
-}
-  
-.dartboard-img .number {
-    fill: $white;
-    font-weight: 400;
-    text-anchor: middle;
-    font-size: 1.6em;
-}
-  
-.dartboard-img .hit, .hit-pulse {
-    fill: $blue;
+// ==========================
+//       Mobile Styles
+// ==========================
+@media only screen and (max-width: 600px) {
+    .dartboard {
+        margin: 15px 0;
+    }
 }

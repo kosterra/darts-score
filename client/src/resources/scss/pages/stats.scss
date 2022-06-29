@@ -1,27 +1,27 @@
+// ==========================
+//       Mobile Styles
+// ==========================
 .main-container.statistics {
     width: 80%;
-}
 
-.stats-page-container {
-    width: 100%;
-    margin: auto;
-}
+    .stats-page-container {
+        width: 100%;
+        margin: auto;
 
-.stats-page-form {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 40px;
-}
+        .stats-page-form {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 40px;
 
-.stats-page-form > * {
-    margin: 6px;
-}
-
-.stats-page--form select {
-    width: 100%;
-    text-align: center;
+            select {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    }
 }
 
 .stat-hover:hover {
@@ -31,3 +31,8 @@
 .stat-hover:hover * {
     color: $dark-green;
 }
+
+// ==========================
+//       Mobile Styles
+// ==========================
+@media only screen and (max-width: 600px) {}

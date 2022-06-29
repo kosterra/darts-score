@@ -22,15 +22,13 @@ function App() {
 		<GameState>
 			<Router>
 				<MainNavigation />
-				<main>
-					<Routes>
-						<Route path="/" element={<X01Config/>} />
-						<Route path="/game" element={<X01Config/>} />
-						<Route path="/game/x01" element={<X01Game/>} />
-						<Route path="/stats" element={<Stats/>} />
-						<Route path="/about" element={<About/>} />
-					</Routes>
-				</main>
+				<Routes>
+					<Route path="/" element={<X01Config/>} />
+					<Route path="/game" element={<X01Config/>} />
+					<Route path="/game/x01" element={<X01Game/>} />
+					<Route path="/stats" element={<Stats/>} />
+					<Route path="/about" element={<About/>} />
+				</Routes>
 			</Router>
 		</GameState>
 	);
