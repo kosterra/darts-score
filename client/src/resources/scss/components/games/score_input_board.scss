@@ -3,7 +3,7 @@
 // ==========================
 .score-input-board {
     display: flex;
-    margin: 25px auto;
+    margin: 0 auto;
     flex-direction: row;
     justify-content: space-around;
     width: 50%;
@@ -135,6 +135,41 @@
             width: 100%;
             margin: 0;
             gap: 10px;
+
+            .score-enter-form {
+                width: 100%;
+                justify-content: center;
+                align-items: center;
+    
+                .score-enter-form-title {
+                    justify-content: center;
+                }
+                
+                .score-enter-wrapper {
+                    width: 100%;
+                    padding: 15px;
+    
+                    .score-enter-fields {
+                        flex-direction: row;
+    
+                        .score-enter-input {
+                            width: 30%;
+
+                            label {
+                                width: auto;
+                            }
+
+                            input {
+                                width: 80%;
+                            }
+                        }
+                    }
+
+                    .score-enter-buttons {
+                        justify-content: center;
+                    }
+                }
+            }
         }
     }
 }

@@ -31,7 +31,7 @@ const X01Game = () => {
       <div className="game-content">
         <div className="modus-info">
           <div className="best-of-legs">
-            <span className="sets-and-legs">{match.setMode} {match.numberOfSets} Set{match.numberOfSets > 1 && 's'} - {match.legMode} {match.numberOfLegs} Leg{match.numberOfLegs > 1 && 's'}</span>
+            <span className="sets-and-legs">{match.setMode} <strong>{match.numberOfSets}</strong> Set{match.numberOfSets > 1 && 's'} - {match.legMode} <strong>{match.numberOfLegs}</strong> Leg{match.numberOfLegs > 1 && 's'}</span>
             <span className="modus-in-out">{match.legInMode} / {match.legOutMode}</span>
           </div>
         </div>
@@ -48,6 +48,7 @@ const X01Game = () => {
                 player={player}
                 infos={infos}
                 currentLegThrows={match.currentLegThrows}
+                legOutMode={match.legOutMode}
               />
           ))}
         </div>
