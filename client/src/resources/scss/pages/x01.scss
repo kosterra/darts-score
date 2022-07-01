@@ -62,7 +62,10 @@
 // ==========================
 @media only screen and (max-width: 600px) {
     .game-content {
-    
+        .score-boards {
+            width: 100%;
+        }
+
         .modus-info {
             margin: 0 auto 15px auto;
         }
