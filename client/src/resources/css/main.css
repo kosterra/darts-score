@@ -251,13 +251,11 @@ a.button-link {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  margin: 0 auto 25px auto;
+  margin: 0 auto 10px auto;
   padding: 8px 25px;
   background-color: rgba(86, 86, 86, 0.6509803922);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
-  font-size: 16px;
-  font-weight: 800;
 }
 .game-content .modus-info .best-of-legs {
   display: flex;
@@ -267,10 +265,12 @@ a.button-link {
 }
 .game-content .modus-info .best-of-legs .match-mode {
   font-size: 0.8rem;
-  font-weight: 500;
 }
 .game-content .modus-info .best-of-legs .sets-and-legs {
   font-size: 1rem;
+}
+.game-content .modus-info .best-of-legs .sets-and-legs strong {
+  font-weight: 800;
 }
 .game-content .modus-info .best-of-legs .modus-in-out {
   margin-top: 8px;
@@ -283,7 +283,7 @@ a.button-link {
 .game-content .score-boards {
   display: flex;
   justify-content: center;
-  margin: 0 auto;
+  width: 100%;
 }
 .game-content .statistics-board {
   display: flex;
@@ -614,7 +614,7 @@ a.button-link {
 }
 .score-input-board {
   display: flex;
-  margin: 25px auto;
+  margin: 0 auto;
   flex-direction: row;
   justify-content: space-around;
   width: 50%;
@@ -751,12 +751,15 @@ a.button-link {
   .score-input-board .score-input-board-right-column .score-enter-form .score-enter-wrapper .score-enter-fields .score-enter-input input {
     width: 80%;
   }
+  .score-input-board .score-input-board-right-column .score-enter-form .score-enter-wrapper .score-enter-buttons {
+    justify-content: center;
+  }
 }
 .score-board {
-  padding: 0 48px;
   border-top: 1px dotted #565656;
   border-bottom: 1px dotted #565656;
   border-right: 1px dotted #565656;
+  width: 25%;
   /* Points and Legs / Sets info */
 }
 .score-board:first-child {
@@ -767,26 +770,24 @@ a.button-link {
 }
 .score-board:nth-child(even) .points-legs-sets-won {
   flex-direction: row-reverse;
-  justify-content: start;
 }
 .score-board .points-legs-sets-won {
   display: flex;
   flex-direction: row;
   gap: 30px;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-evenly;
   padding: 15px 5px;
 }
 .score-board .points-legs-sets-won .points-container {
-  padding: 0 25px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 200px;
+  width: 50%;
 }
 .score-board .points-legs-sets-won .points-container .points {
-  font-size: 6rem;
+  font-size: 5rem;
   font-weight: 600;
 }
 .score-board .points-legs-sets-won .points-container .player {
@@ -797,16 +798,24 @@ a.button-link {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   gap: 8px;
 }
-.score-board .points-legs-sets-won .points-container .player .player-name-icon {
+.score-board .points-legs-sets-won .points-container .player .player-icons {
+  gap: 5px;
+  display: flex;
+}
+.score-board .points-legs-sets-won .points-container .player .player-icons .player-name-icon {
   font-size: 14px;
 }
-.score-board .points-legs-sets-won .points-container .player .player-name-icon.active-start-leg {
+.score-board .points-legs-sets-won .points-container .player .player-icons .player-name-icon.active-start-leg {
   color: #41bef4;
 }
-.score-board .points-legs-sets-won .points-container .player .player-name-icon.active-throwing {
+.score-board .points-legs-sets-won .points-container .player .player-icons .player-name-icon.active-throwing {
   color: #6eb691;
+}
+.score-board .points-legs-sets-won .points-container .player .player-icons .player-name-icon.placeholder {
+  color: transparent;
 }
 .score-board .points-legs-sets-won .legs-sets-wrapper {
   display: flex;
@@ -822,7 +831,7 @@ a.button-link {
   font-size: 1.2rem;
   font-weight: 600;
   text-align: center;
-  padding-top: 15px;
+  padding-top: 10px;
 }
 .score-board .points-legs-sets-won .legs-sets-wrapper .legs-sets-container .value {
   display: flex;
@@ -831,10 +840,13 @@ a.button-link {
   font-size: 0.9rem;
   font-weight: 600;
   text-align: center;
-  padding-top: 15px;
+  padding-top: 10px;
 }
 .score-board .points-legs-sets-won .legs-sets-wrapper .legs-sets-container .value i {
   color: #d4c783;
+}
+.score-board .points-legs-sets-won .legs-sets-wrapper .legs-sets-container .value .text-value {
+  font-size: 1.2rem;
 }
 
 @media only screen and (max-width: 600px) {
@@ -854,7 +866,7 @@ a.button-link {
     flex-direction: row;
   }
   .score-board .points-legs-sets-won .points-container {
-    width: auto;
+    width: 60%;
     padding: 0;
   }
   .score-board .points-legs-sets-won .points-container .points {
@@ -881,6 +893,7 @@ a.button-link {
   }
   .score-board .points-legs-sets-won .legs-sets-wrapper {
     flex-direction: column;
+    gap: 0;
   }
   .score-board .points-legs-sets-won .legs-sets-wrapper .legs-sets-container {
     display: flex;

@@ -8,13 +8,11 @@
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        margin: 0 auto 25px auto;
+        margin: 0 auto 10px auto;
         padding: 8px 25px;
         background-color: $light-grey-transparent;
         border-bottom-left-radius: 20px;
         border-bottom-right-radius: 20px;
-        font-size: 16px;
-        font-weight: 800;
     
         .best-of-legs {
             display: flex;
@@ -24,11 +22,14 @@
             
             .match-mode {
                 font-size: 0.8rem;
-                font-weight: 500;
             }
     
             .sets-and-legs {
                 font-size: 1rem;
+
+                strong {
+                    font-weight: 800;
+                }
             }
     
             .modus-in-out {
@@ -46,7 +47,7 @@
     .score-boards {
         display: flex;
         justify-content: center;
-        margin: 0 auto;
+        width: 100%;
     }
 
     .statistics-board {
