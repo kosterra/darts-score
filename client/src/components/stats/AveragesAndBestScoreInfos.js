@@ -19,7 +19,7 @@ const AveragesAndBestScoreInfos = props => {
           <p className="statistics-label">End game</p>
           <p className="statistics-value">{Math.round(averages.endGame)}</p>
         </div>
-        <div className="statistics-item" onClick={() => getChart('bestThreeDarts', 'Best three darts score for each match', 'lineChart')}>
+        <div className="stat-hover statistics-item" onClick={() => getChart('bestThreeDarts', 'Best three darts score for each match', 'lineChart')}>
           <p className="statistics-label">Best three darts</p>
           <p className="statistics-value">{bestThreeDarts}</p>
         </div>

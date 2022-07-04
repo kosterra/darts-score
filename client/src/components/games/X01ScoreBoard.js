@@ -75,7 +75,7 @@ const X01ScoreBoard = props => {
                         <div className="legs-sets legs">
                             LEGS
                         </div>
-                        {match.numberOfLegs <= 4 && match.legMode === 'Best of' &&
+                        {match.numberOfLegs <= 5 && match.legMode === 'Best of' &&
                             <div className="value">
                                 {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
                                     <i key={`leg-filled-${i}`} className="fas fa-circle"></i>
@@ -95,7 +95,7 @@ const X01ScoreBoard = props => {
                                 ))}
                             </div>
                         }
-                        {match.numberOfLegs > 4 && 
+                        {((match.numberOfLegs > 4 && match.legMode === 'First to') || (match.numberOfLegs > 5 && match.legMode === 'Best of')) &&
                             <div className="value">
                                 <span className="text-value">{match.matchPlayerInfo[player].currentSetLegWon}</span>
                             </div>
@@ -106,7 +106,7 @@ const X01ScoreBoard = props => {
                         <div className="legs-sets sets">
                             SETS
                         </div>
-                        {match.numberOfSets <= 4 && match.setMode === 'Best of' &&
+                        {match.numberOfSets <= 5 && match.setMode === 'Best of' &&
                             <div className="value">
                                 {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
                                     <i key={`set-filled-${i}`} className="fas fa-circle"></i>
@@ -126,7 +126,7 @@ const X01ScoreBoard = props => {
                                 ))}
                             </div>
                         }
-                        {match.numberOfSets > 4 && 
+                        {((match.numberOfSets > 4 && match.setMode === 'First to') || (match.numberOfSets > 5 && match.setMode === 'Best of')) && 
                             <div className="value">
                                 <span className="text-value">{match.matchPlayerInfo[player].setWon}</span>
                             </div>

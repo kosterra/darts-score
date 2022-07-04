@@ -24,9 +24,17 @@ const StatsObjectData = props => {
       </div>
     )
   } else {
-    if(statName === 'scoreRanges') rowContent = scoreRangesSortedHighLow(object, totalThrow);
-    if(statName === 'checkoutScores') rowContent = checkoutScoresSortedHighLow(object);
-    if(statName === 'sectionHit') rowContent = sectionHitSortedByValueHightLow(object, totalThrow);
+    if(statName === 'scoreRanges') {
+      rowContent = scoreRangesSortedHighLow(object, totalThrow);
+    }
+    
+    if(statName === 'checkoutScores') {
+      rowContent = checkoutScoresSortedHighLow(object);
+    }
+
+    if(statName === 'sectionHit') {
+      rowContent = sectionHitSortedByValueHightLow(object, totalThrow);
+    }
 
     return (
       <div className="stats-object-container">
