@@ -4,6 +4,7 @@ const { getSinglePlayerData } = dataService;
 
 const savePlayersData = async (matchData, playerWinner) => {
   let date = new Date();
+  date = date.toLocaleString('de-CH');
 
   for (const player of matchData.players) {
     let playerData = {...matchData.matchPlayerInfo[player]};
