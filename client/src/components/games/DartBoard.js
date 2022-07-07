@@ -18,7 +18,7 @@ const DartBoard = () => {
       throwError("You can't throw any more dart", "throw-validation");
       return
     }
-
+    
     updateCurrentThrowDartBoard(newCurrentScore, e.target.id);
   }
 
@@ -36,9 +36,7 @@ const DartBoard = () => {
                         className="out"
                         cx="0"
                         cy="0"
-                        r="9999"
-                        label="0"
-                        value="0">
+                        r="9999">
                 </circle>
                 <circle id="0"
                         className="item zero"
@@ -52,25 +50,19 @@ const DartBoard = () => {
                         className="item filler"
                         cx="0"
                         cy="0"
-                        r="170"
-                        label="0"
-                        value="0">
+                        r="170">
                 </circle>
                 <circle id="S25"
                         className="item single-bull"
                         cx="0"
                         cy="0"
-                        r="41"
-                        label="SB"
-                        value="25">
+                        r="41">
                 </circle>
                 <circle id="D25"
                         className="item double-bull"
                         cx="0"
                         cy="0"
-                        r="16"
-                        label="db"
-                        value="50">
+                        r="16">
                 </circle>
                 <path d="M 83.95350895058671,13.296929528419623 A 85 85 0 0 0 83.95350895058671,-13.296929528419623 L 40.49522196440065,-6.413813066649466 A 41 41 0 0 1 40.49522196440065,6.413813066649466 Z"
                     id="S6"
@@ -395,66 +387,26 @@ const DartBoard = () => {
             </g>
 
             <g transform="translate(210, 210)">
-                <text className="number" x="185" y="8" label="0" value="0">
-                6
-                </text>
-                <text className="number" x="180" y="-48" label="0" value="0">
-                13
-                </text>
-                <text className="number" x="155" y="-102" label="0" value="0">
-                4
-                </text>
-                <text className="number" x="115" y="-145" label="0" value="0">
-                18
-                </text>
-                <text className="number" x="58" y="-172" label="0" value="0">
-                1
-                </text>
-                <text className="number" x="0" y="-182" label="0" value="0">
-                20
-                </text>
-                <text className="number" x="-60" y="-172" label="0" value="0">
-                5
-                </text>
-                <text className="number" x="-118" y="-145" label="0" value="0">
-                12
-                </text>
-                <text className="number" x="-155" y="-105" label="0" value="0">
-                9
-                </text>
-                <text className="number" x="-183" y="-52" label="0" value="0">
-                14
-                </text>
-                <text className="number" x="-190" y="8" label="0" value="0">
-                11
-                </text>
-                <text className="number" x="-180" y="66" label="0" value="0">
-                8
-                </text>
-                <text className="number" x="-157" y="118" label="0" value="0">
-                16
-                </text>
-                <text className="number" x="-112" y="160" label="0" value="0">
-                7
-                </text>
-                <text className="number" x="-60" y="188" label="0" value="0">
-                19
-                </text>
-                <text className="number" x="0" y="195" label="0" value="0">
-                3
-                </text>
-                <text className="number" x="58" y="188" label="0" value="0">
-                17
-                </text>
-                <text className="number" x="112" y="160" label="0" value="0">
-                2
-                </text>
-                <text className="number" x="157" y="118" label="0" value="0">
-                15
-                </text>
-                <text className="number" x="180" y="66" label="0" value="0">
-                10
-                </text>
+                <text id="0" className="number" x="185" y="8">6</text>
+                <text id="0" className="number" x="180" y="-48">13</text>
+                <text id="0" className="number" x="155" y="-102">4</text>
+                <text id="0" className="number" x="115" y="-145">18</text>
+                <text id="0" className="number" x="58" y="-172">1</text>
+                <text id="0" className="number" x="0" y="-182">20</text>
+                <text id="0" className="number" x="-60" y="-172">5</text>
+                <text id="0" className="number" x="-118" y="-145">12</text>
+                <text id="0" className="number" x="-155" y="-105">9</text>
+                <text id="0" className="number" x="-183" y="-52">14</text>
+                <text id="0" className="number" x="-190" y="8">11</text>
+                <text id="0" className="number" x="-180" y="66">8</text>
+                <text id="0" className="number" x="-157" y="118">16</text>
+                <text id="0" className="number" x="-112" y="160">7</text>
+                <text id="0" className="number" x="-60" y="188">19</text>
+                <text id="0" className="number" x="0" y="195">3</text>
+                <text id="0" className="number" x="58" y="188">17</text>
+                <text id="0" className="number" x="112" y="160">2</text>
+                <text id="0" className="number" x="157" y="118">15</text>
+                <text id="0" className="number" x="180" y="66">10</text>
             </g>
         </svg>
   </div>
