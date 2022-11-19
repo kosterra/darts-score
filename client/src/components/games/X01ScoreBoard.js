@@ -46,7 +46,7 @@ const X01ScoreBoard = props => {
 	},[ error ]);
 
     return (
-        <div className="score-board">
+        <div className={`score-board ${match.players.length === 2 ? "two-players" : ""}`}>
             <div className="points-legs-sets-won">
                 <div className="points-container">
                     <div className="points">
