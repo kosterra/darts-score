@@ -15,7 +15,7 @@
         border-right: none;
     }
 
-    &:nth-child(even) .points-legs-sets-won {
+    &.two-players:nth-child(even) .points-legs-sets-won {
         flex-direction: row-reverse;
     }
 
@@ -121,9 +121,8 @@
         padding: 0;
         width: 50%;
 
-        &:nth-child(even) .points-legs-sets-won {
+        &.two-players:nth-child(even) .points-legs-sets-won {
             flex-direction: row-reverse;
-            justify-content: space-evenly;
         }
     
         /* Points and Legs / Sets info */

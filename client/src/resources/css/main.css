@@ -768,7 +768,7 @@ a.button-link {
 .score-board:last-child {
   border-right: none;
 }
-.score-board:nth-child(even) .points-legs-sets-won {
+.score-board.two-players:nth-child(even) .points-legs-sets-won {
   flex-direction: row-reverse;
 }
 .score-board .points-legs-sets-won {
@@ -855,9 +855,8 @@ a.button-link {
     width: 50%;
     /* Points and Legs / Sets info */
   }
-  .score-board:nth-child(even) .points-legs-sets-won {
+  .score-board.two-players:nth-child(even) .points-legs-sets-won {
     flex-direction: row-reverse;
-    justify-content: space-evenly;
   }
   .score-board .points-legs-sets-won {
     width: 100%;
