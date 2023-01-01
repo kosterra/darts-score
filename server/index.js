@@ -1,34 +1,64 @@
+require("dotenv").config();
+
 const express = require("express");
 const fs = require('fs');
 const path = require('path');
 const favicon = require('serve-favicon');
-const logger = require('morgan');
 const cookieParser = require('cookie-parser');
-const bodyParser = require("body-parser");
+const cors = require("cors");
+const db = require("./app/models/db.model");
+const logger = require("./app/models/logger.model");
 
+const apiPort = process.env.API_PORT || 3001;
+const uiPort = process.env.UI_PORT || 3000;
 const dataPath = '../data/data.json';
-const PORT = process.env.PORT || 3001;
 
 const readData = () => JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 const writeData = data => fs.writeFileSync(dataPath, JSON.stringify(data));
 
 const app = express();
 
+var corsOptions = {
+    origin: "http://localhost:" + uiPort
+};
+
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-const log_format = process.env.NODE_ENV == 'development' ? 'dev' : 'tiny'
-app.use(logger(log_format));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors(corsOptions));
+
+// parse requests of content-type - application/json
+app.use(express.json());
+
+// parse requests of content-type - application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+
+logger.debug(db.url);
+
+db.mongoose
+  .connect(db.url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    logger.info("Connected to the database!");
+  })
+  .catch(err => {
+    logger.error("Cannot connect to the database!");
+    logger.error(err);
+    process.exit();
+  });
+
+require("./app/routes/tutorial.routes")(app);
+require("./app/routes/player.routes")(app);
 
 // API Endpoints
 app.get("/api/v1/data", (req, res) => {
-  if(!fs.existsSync(dataPath)) {
-    writeData({});
-  }
-  res.status(200).json(readData());
+    if(!fs.existsSync(dataPath)) {
+      writeData({});
+    }
+    res.status(200).json(readData());
 });
-
+  
 app.post("/api/v1/data", function(req, res) {
     writeData(req.body);
     res.status(200).json({});
@@ -71,7 +101,7 @@ app.use(function(err, req, res, next) {
 });
 
 // listen to port
-app.listen(PORT, () => {
-    console.log(`Server listening on ${PORT}`);
+app.listen(apiPort, () => {
+    logger.info(`Server listening on ${ apiPort }`);
 });
 

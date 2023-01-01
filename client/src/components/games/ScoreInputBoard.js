@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 
 import GameContext from '../../utils/GameContext';
 import Checkout from './Checkout';
-import Input from '../shared/form/Input';
-import Spinner from '../shared/UIElement/Spinner';
-import Modal from '../shared/UIElement/Modal';
+import Input from '../form/Input';
+import Spinner from '../UIElement/Spinner';
+import Modal from '../UIElement/Modal';
 import savePlayersData from '../../utils/SavePlayerData';
 import DartBoard from './DartBoard';
 import dataModels from '../../models/DataModels';

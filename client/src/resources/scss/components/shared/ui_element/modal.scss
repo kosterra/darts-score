@@ -7,11 +7,11 @@
     position: fixed;
     min-width: 100vw;
     min-height: 100vh;
-    background-color: $dark-grey-transparent;
+    background-color: $secondary-grey-transparent;
   }
   
   .modal {
-    background-color: $light-grey;
+    background-color: $primary-grey;
     width: 400px;
     text-align: center;
   }
@@ -40,8 +40,8 @@
   }
   
   .modal-content input {
-    background-color: $dark-grey-transparent;
-    border: 1px solid $very-light-grey;
+    background-color: $secondary-grey-transparent;
+    border: 1px solid $tertiary-grey;
   }
   
   .modal-content.add-player-content {

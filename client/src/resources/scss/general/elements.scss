@@ -1,3 +1,44 @@
+// Bootstrap Form
+.form-floating {
+    label {
+        color: $primary-grey;
+    }
+}
+
+// Bootstrap Toast
+.toast {
+    background-color: transparent;
+    border: none;
+
+    .toast-header {
+        background-color: $tertiary-grey-transparent;
+        color: $white;
+        border: none;
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+
+        i {
+            font-size: 1.3rem;
+            padding-right: 10px;
+
+            &.success {
+                color: $light-green;
+            }
+        
+            &.error {
+                color: $red;
+            }
+        }
+    }
+
+    .toast-body {
+        background-color: $primary-grey-transparent;
+        border: none;
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+    }
+}
+
 // Buttons
 button {
     background-color: $dark-green;
@@ -14,7 +55,7 @@ button {
     align-items: center;
 
     &.outline {
-        background-color: $dark-grey-transparent;
+        background-color: $secondary-grey-transparent;
         border: 2px solid $dark-green;
     }
 
@@ -23,30 +64,208 @@ button {
     }
 }
 
-// Input
-input {
+// Bootstrap buttons
+.btn {
+    border-radius: 2px;
     color: $white;
-    height: 25px;
-    background-color: $light-grey-transparent;
+    font-weight: 400;
+    font-size: 0.9rem;
     border: none;
-    margin: 0 5px;
-    border-radius: 5px;
+
+    &.btn-primary {
+        &:hover {
+            background-color: $light-green;
+            color: $white;
+        }
+    }
+}
+
+.btn-toolbar {
+    border: 1px solid $primary-grey;
+    border-radius: 4px;
+
+    .btn {
+        min-width: 5rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border: none;
+        border-radius: 16px;
+        margin: 0 6px;
+        padding: 4px 6px;
+        cursor: pointer;
+        color: $white;
+
+        &.btn-secondary {
+            &:hover {
+                background-color: $primary-grey;
+            }
+
+            &.btn-selected {
+                background-color: $dark-green;
+            }
+        }
+    }
+}
+
+// Bootstrap Modal
+.modal-dialog {
+    .modal-content {
+        background-color: $secondary-grey;
+        border-radius: 2px;
+        border: none;
+
+        .modal-header {
+            background-color: $dark-green;
+            border: none;
+            border-top-left-radius: 2px;
+            border-top-right-radius: 2px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid $tertiary-grey;
+        }
+    }
+}
+
+// Input
+input.form-control {
+    color: $white;
+    background-color: $tertiary-grey-transparent;
+    border: none;
+    border-radius: 2px;
+
+    &:focus {
+        background-color: $tertiary-grey-transparent;
+        color: $white;
+        border: 1px solid $primary-grey-transparent;
+        box-shadow: none;
+    }
+
+    &:not(active){
+        color:$white;
+     }
 }
 
 // Select
 select {
-    background-color: $light-grey-transparent;
+    background-color: $primary-grey-transparent;
     color: $white;
-    padding: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    font-family: 'Exo', sans-serif;
+    padding: 8px;
     border-radius: 3px;
+    border: none;
 
     option {
-        background-color: $light-grey-transparent;
+        background-color: $primary-grey-transparent;
+
+        &:hover {
+            background-color: $dark-green;
+        }
     }
 }
+
+// Bootstrap Dropdown
+.dropdown {
+    .dropdown-toggle {
+        min-width: 6rem;
+        border: none;
+        border-radius: 2px;
+        font-size: 0.9rem;
+
+        &::after {
+            display: none;
+        }
+    }
+
+    .dropdown-menu {
+        background-color: $tertiary-grey;
+        padding: 0.4rem;
+        border-radius: 2px;
+        border: none;
+
+        .dropdown-item {
+            margin: 0.3rem 0;
+
+            &.active {
+                background-color: $dark-green;
+            }
+        }
+    }
+}
+
+// Multiselect
+.multiselect {
+    height: 3rem;
+    font-size: 0.9rem;
+
+    .multiselect__control {
+        height: 3rem;
+        border: none;
+        border-radius: 2px;
+        background-color: $tertiary-grey-transparent;
+
+        &.multiselect__control--is-focused {
+            border: none;
+            box-shadow: none;
+        }
+
+        .multiselect__value-container {
+            .multiselect__input-container {
+                color: $white;
+            }
+        }
+
+        .multiselect__placeholder {
+            color: $primary-grey;
+        }
+
+        .multiselect__single-value {
+            color: $white;
+        }
+
+        .multiselect__indicator {
+            color: $primary-grey;
+
+            &.multiselect__clear-indicator {
+                color: $red;
+            }
+
+            &.multiselect__dropdown-indicator {
+                display: none;
+            }
+        }
+
+        .multiselect__indicator-separator {
+            display: none;
+        }
+    }
+
+    .multiselect__menu {
+        background-color: $tertiary-grey;
+        font-size: 0.9rem;
+
+        .multiselect__menu-list {
+            padding: 0.4rem;
+
+            .multiselect__option {
+                border-radius: 3px;
+                margin: 0.3rem 0;
+                color: #dee2e6;
+
+                &--is-selected {
+                    background-color: $dark-green;
+                }
+
+                &--is-focused {
+                    background-color: #ffffff26;
+                }
+            }
+        }
+    }
+}
+
+
 
 // Links
 a {
@@ -64,5 +283,40 @@ a {
         display: flex;
         gap: 8px;
         align-items: center;
+    }
+}
+
+// Selectable Card List
+.selectable-card-list {
+    .selectable-card {
+        text-decoration: none;
+        cursor: pointer;
+        border: 2px solid $secondary-grey;
+
+        &.selected {
+            border: 2px solid $blue;
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+        }
+
+        .card-body {
+            .card-text {
+                justify-content: center;
+                display: flex;
+                font-size: 0.9rem;
+
+                span {
+                    color: $primary-grey;
+                }
+            }
+        }
+
+        i {
+            position: absolute;
+            bottom: 0.2rem;
+            right: 0.2rem;
+        }
     }
 }

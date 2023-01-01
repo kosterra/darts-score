@@ -19,11 +19,11 @@
         }
 
         .zero {
-            fill: $light-grey-transparent;
+            fill: $primary-grey-transparent;
         }
 
         .filler {
-            fill: $dark-grey-transparent;
+            fill: $secondary-grey-transparent;
         }
 
         .item:hover {
@@ -31,7 +31,7 @@
         }
 
         .single.even {
-            fill: $light-grey-transparent;
+            fill: $primary-grey-transparent;
         }
 
         .double.even, .triple.even, .double-bull {

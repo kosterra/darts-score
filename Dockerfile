@@ -4,7 +4,6 @@ FROM node:alpine
 RUN npm install -g pm2@latest
 
 # Copy package json files for services
-
 COPY client/ /app/client/
 COPY server/ /app/server/
 

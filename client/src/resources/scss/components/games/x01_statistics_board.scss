@@ -7,9 +7,9 @@
     justify-content: center;
     padding: 15px 5px;
     width: 25%;
-    border-top: 1px solid $light-grey;
-    border-bottom: 1px solid $light-grey;
-    border-right: 1px solid $light-grey;
+    border-top: 1px solid $primary-grey;
+    border-bottom: 1px solid $primary-grey;
+    border-right: 1px solid $primary-grey;
 
     &:last-child {
         border-right: none;
@@ -22,7 +22,7 @@
         gap: 15px;
         width: 45%;
         padding: 0 15px;
-        border-right: 1px dotted $light-grey;
+        border-right: 1px dotted $primary-grey;
 
         .statistics-block {
             margin-bottom: 10px;
@@ -42,7 +42,7 @@
                 font-size: 0.8rem;
 
                 .label, .value {
-                    color: $very-light-grey;
+                    color: $tertiary-grey;
                 }
 
                 .bottom-space {
@@ -74,10 +74,10 @@
             font-size: 14px;
             width: 100%;
             justify-content: space-between;
-            color: $very-light-grey;
+            color: $tertiary-grey;
 
             .item {
-                color: $very-light-grey;
+                color: $tertiary-grey;
             }
 
             .label.item {

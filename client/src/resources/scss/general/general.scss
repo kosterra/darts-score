@@ -2,108 +2,118 @@
 //       Desktop Styles
 // ==========================
 html {
-    background: url("../img/background.jpg") no-repeat center center fixed;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
-    background-size: cover; /* Resize the background image to cover the entire container */
-    font-family: $primary-font;
-    font-size: 14px;
-    font-style: normal;
-    font-variant: normal;
-    font-weight: 400;
-    margin: 0;
-    color: $white;
+
+    body {
+        background: url("../../img/background.jpg");
+        background-attachment: fixed;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        font-family: $primary-font;
+        font-size: 16px;
+        font-style: normal;
+        font-variant: normal;
+        font-weight: 400;
+        margin: 0;
+        overflow-y: scroll;
+        color: $white;
+
+        &.modal-open {
+            overflow: inherit !important;
+            padding-right: 0 !important;
+        }
+    }
 
     #root {
-        background-color: $dark-grey-transparent;
+        background-color: #3836369e;
         padding-bottom: 10px;
         min-height: 100vh;
         height: 100%;
-
-        .main-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            margin: 20px auto;
-            width: 40%;
-        
-            .title-container {
-                display: flex;
-                width: 100%;
-                align-items: center;
-                justify-content: center;
-                background-color: $dark-green;
-                padding: 14px 0;
-            
-                .title {
-                    text-align: center;
-                    font-size: 1.6rem;
-                    font-weight: 600;
-                    color: $white;
-                }
-            }
-
-            .content-container {
-                background-color: $dark-grey;
-                text-align: center;
-                margin: auto;
-                padding: 36px;
-                color: $white;
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 25px;
-                font-size: 1rem;
-            }
-        }
+        //overflow: hidden;
     }
+
+
+    //     .main-container {
+    //         display: flex;
+    //         align-items: center;
+    //         justify-content: center;
+    //         flex-direction: column;
+    //         margin: 20px auto;
+    //         width: 40%;
+        
+    //         .title-container {
+    //             display: flex;
+    //             width: 100%;
+    //             align-items: center;
+    //             justify-content: center;
+    //             background-color: $dark-green;
+    //             padding: 14px 0;
+            
+    //             .title {
+    //                 text-align: center;
+    //                 font-size: 1.6rem;
+    //                 font-weight: 600;
+    //                 color: $white;
+    //             }
+    //         }
+
+    //         .content-container {
+    //             background-color: $secondary-grey;
+    //             text-align: center;
+    //             margin: auto;
+    //             padding: 36px;
+    //             color: $white;
+    //             width: 100%;
+    //             display: flex;
+    //             flex-direction: column;
+    //             align-items: center;
+    //             justify-content: center;
+    //             gap: 25px;
+    //             font-size: 1rem;
+    //         }
+    //     }
 }
 
-.section-title {
-    display: block;
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin-bottom: 15px;
-    color: $white
-}
+// .section-title {
+//     display: block;
+//     font-size: 1.2rem;
+//     font-weight: 500;
+//     margin-bottom: 15px;
+//     color: $white
+// }
 
-.section-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 10px auto 25px auto;
-    gap: 35px;
-    background-color: $dark-grey-transparent;
-    padding: 25px;
-    border-radius: 5px;
-}
+// .section-container {
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     margin: 10px auto 25px auto;
+//     gap: 35px;
+//     background-color: $secondary-grey-transparent;
+//     padding: 25px;
+//     border-radius: 5px;
+// }
 
-.display-none {
-    display: none;
-}
+// .display-none {
+//     display: none;
+// }
 
-.isHidden {
-    display: none;
-}
+// .isHidden {
+//     display: none;
+// }
 
 /* Statistics */
-.statistics-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-}
+// .statistics-item {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//     justify-content: center;
+//     gap: 15px;
+// }
 
-.statistics-value {
-    font-size: 1.4rem;
-    font-weight: 500;
-}
+// .statistics-value {
+//     font-size: 1.4rem;
+//     font-weight: 500;
+// }
 
 
 // ==========================
@@ -114,25 +124,25 @@ html {
 // ==========================
 //       Mobile Styles
 // ==========================
-@media only screen and (max-width: 600px) {
-    html {
-        font-size: 12px;
+// @media only screen and (max-width: 600px) {
+//     html {
+//         font-size: 12px;
 
-        #root {
+//         #root {
             
-            .main-container {
-                width: 100%;
-                margin: 5px 0;
+//             .main-container {
+//                 width: 100%;
+//                 margin: 5px 0;
 
-                .title-container {
-                    padding: 10px 0;
-                }
+//                 .title-container {
+//                     padding: 10px 0;
+//                 }
 
-                .content-container {
-                    background-color: transparent;
-                    padding: 36px 12px;
-                }
-            }
-        }
-    }
-}
+//                 .content-container {
+//                     background-color: transparent;
+//                     padding: 36px 12px;
+//                 }
+//             }
+//         }
+//     }
+// }

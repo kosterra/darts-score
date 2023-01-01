@@ -3,7 +3,21 @@
 @import 'variables/fonts';
 
 // Reset Default CSS
-@import 'general/reset_default';
+//@import 'general/reset_default';
+
+// Bootstrap
+$theme-colors: (
+    "primary": #528b6e,
+    "secondary": #565656,
+    "tertiary": #3836369e,
+    "light": #fff,
+    "info": #008080,
+    "warning": #e0e419,
+    "danger": #d95652,
+    "dark": #222121f8
+);
+
+@import "../../../node_modules/bootstrap/scss/bootstrap";
 
 // Fonts and Icons
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
@@ -14,29 +28,30 @@
 // General Imports
 @import 'general/general';
 @import 'general/elements';
-@import 'general/recharts';
+//@import 'general/recharts';
 
 // Pages
-@import 'pages/x01';
-@import 'pages/stats';
-@import 'pages/about';
+//@import 'pages/x01';
+//@import 'pages/stats';
+//@import 'pages/about';
 
 // Components
-@import 'components/game_config/x01_config';
+//@import 'components/navigation/navigation_bar';
+@import 'components/game_config/config_components/player.config';
 
-@import 'components/games/checkout';
-@import 'components/games/dart_board';
-@import 'components/games/score_input_board';
-@import 'components/games/x01_score_board';
-@import 'components/games/x01_statistics_board';
+//@import 'components/games/checkout';
+//@import 'components/games/dart_board';
+//@import 'components/games/score_input_board';
+//@import 'components/games/x01_score_board';
+//@import 'components/games/x01_statistics_board';
 
-@import 'components/stats/stats_container';
-@import 'components/stats/stats_object_data';
+//@import 'components/stats/stats_container';
+//@import 'components/stats/stats_object_data';
 
-@import 'components/shared/navigation/main_header';
-@import 'components/shared/navigation/nav_links';
-@import 'components/shared/navigation/main_navigation';
+//@import 'components/shared/navigation/main_header';
+//@import 'components/shared/navigation/nav_links';
+//@import 'components/shared/navigation/main_navigation';
 
-@import 'components/shared/ui_element/modal';
-@import 'components/shared/ui_element/page_error_message';
-@import 'components/shared/ui_element/spinner';
+//@import 'components/shared/ui_element/modal';
+//@import 'components/shared/ui_element/page_error_message';
+//@import 'components/shared/ui_element/spinner';

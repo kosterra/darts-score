@@ -1,11 +1,11 @@
 import React, { Fragment, useContext, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-import Input from '../shared/form/Input';
+import Input from '../form/Input';
 import x01ConfigOptions from './X01ConfigOptions';
-import PageErrorMessage from '../shared/UIElement/PageErrorMessage';
-import Modal from '../shared/UIElement/Modal';
-import Spinner from '../shared/UIElement/Spinner';
+import PageErrorMessage from '../UIElement/PageErrorMessage';
+import Modal from '../UIElement/Modal';
+import Spinner from '../UIElement/Spinner';
 import dataService from '../../services/DataService';
 import dataModels from '../../models/DataModels';
 import GameContext from '../../utils/GameContext';
