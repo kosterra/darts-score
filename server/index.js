@@ -1,7 +1,6 @@
 require("dotenv").config();
 
 const express = require("express");
-const fs = require('fs');
 const path = require('path');
 const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
@@ -11,10 +10,6 @@ const logger = require("./app/models/logger.model");
 
 const apiPort = process.env.API_PORT || 3001;
 const uiPort = process.env.UI_PORT || 3000;
-const dataPath = '../data/data.json';
-
-const readData = () => JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-const writeData = data => fs.writeFileSync(dataPath, JSON.stringify(data));
 
 const app = express();
 
@@ -48,21 +43,8 @@ db.mongoose
     process.exit();
   });
 
-require("./app/routes/tutorial.routes")(app);
 require("./app/routes/player.routes")(app);
-
-// API Endpoints
-app.get("/api/v1/data", (req, res) => {
-    if(!fs.existsSync(dataPath)) {
-      writeData({});
-    }
-    res.status(200).json(readData());
-});
-  
-app.post("/api/v1/data", function(req, res) {
-    writeData(req.body);
-    res.status(200).json({});
-});
+require("./app/routes/x01.routes")(app);
 
 // All other GET requests not handled before will return the static html page
 app.get('*', (req, res) => {
@@ -104,4 +86,3 @@ app.use(function(err, req, res, next) {
 app.listen(apiPort, () => {
     logger.info(`Server listening on ${ apiPort }`);
 });
-

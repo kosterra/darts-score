@@ -1,4 +1,5 @@
 import React, { Fragment, useState, useEffect } from 'react';
+import {toast} from 'react-toastify';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
@@ -10,26 +11,36 @@ import SelectableCardList from '../../elements/selectable.card.list';
 import PlayerConfigOptions from '../config_options/player.config.options';
 import PlayerForm from './player.form';
 
-const PlayerConfig = () => {
+const PlayerConfig = (props) => {
+    const {
+        numberOfPlayers,
+        selectedPlayers,
+        onNumberOfPlayersChange,
+        onSelectedPlayersChange
+    } = props
+
     const {numberOfPlayerOptions} = PlayerConfigOptions;
-    const [numberOfPlayerOption, setNumberOfPlayerOption] = useState(numberOfPlayerOptions.default);
-    const [selectedPlayers, setSelectedPlayers] = useState([])
+    
     const [players, setPlayers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-		loadPlayers();
+		loadPlayers('');
 	}, [])
 
-    const onPlayerAdd=()=>{
+    const onPlayerAdd=() => {
         loadPlayers('');
     }
 
-    const onUnselectPlayer=(id) => {
-        setSelectedPlayers(selectedPlayers.filter(i => i.id !== id));
+    const onSelectPlayer=(players) => {
+        onSelectedPlayersChange('players', players);
     }
 
-    const onSearchTermChange=(event)=>{
+    const onUnselectPlayer=(id) => {
+        onSelectedPlayersChange('players', selectedPlayers.filter(i => i.id !== id));
+    }
+
+    const onSearchTermChange=(event) => {
         setSearchTerm(event.target.value);
         loadPlayers(event.target.value);
     }
@@ -40,15 +51,8 @@ const PlayerConfig = () => {
             .then(data => {
                 setPlayers(data)
             }).catch(error => {
-                console.log("Failed to load players! " + error.message);
+                toast.error('Failed to load players. ' + error.message);
             });
-    }
-
-    const onNumberOfPlayerOptionChange = (event) => {
-        if (selectedPlayers.length > Number(event.currentTarget.value)) {
-            setSelectedPlayers(selectedPlayers.slice(0, Number(event.currentTarget.value)));
-        }
-        setNumberOfPlayerOption(event.currentTarget.value);
     }
 
 	return (
@@ -64,17 +68,17 @@ const PlayerConfig = () => {
                                 type="radio"
                                 name="number-of-players-options"
                                 value={option}
-                                className={`btn btn-secondary btn-sm text-light ${Number(numberOfPlayerOption) === option ? 'btn-selected' : ''}`}
-                                checked={Number(numberOfPlayerOption) === option}
-                                onChange={(e) => onNumberOfPlayerOptionChange(e)}>
+                                className={`btn btn-secondary btn-sm text-light ${Number(numberOfPlayers) === option ? 'btn-selected' : ''}`}
+                                checked={Number(numberOfPlayers) === option}
+                                onChange={(e) => onNumberOfPlayersChange('numberOfPlayers', e.currentTarget.value)}>
                                 {Number(option) === 1 ? 'Solo' : option}
                             </ToggleButton>
                         ))}
                     </div>
                     <div className="selected-players mb-4 d-flex justify-content-center">
                         <Row xs={1} md={4} className="w-75 d-flex justify-content-center">
-                            {[...Array(Number(numberOfPlayerOption))].map((x, idx) =>
-                                <Col className="col-md-4 w-25 d-flex justify-content-center">
+                            {[...Array(Number(numberOfPlayers))].map((x, idx) =>
+                                <Col key={idx} className="col-md-4 w-25 d-flex justify-content-center">
                                     <div className="selected-player-container">
                                         {selectedPlayers[idx] &&
                                             <Card className={`h-100 m-0 p-0 rounded-0 selectable-card bg-tertiary w-100`}>
@@ -123,8 +127,8 @@ const PlayerConfig = () => {
                         items={players}
                         selectedItems={selectedPlayers}
                         emptyText={'No Players found. Please create new Players first.'}
-                        maxSelectable={Number(numberOfPlayerOption)}
-                        setSelectedItems={setSelectedPlayers} />
+                        maxSelectable={Number(numberOfPlayers)}
+                        setSelectedItems={onSelectPlayer} />
                 </div>
             </div>
         </Fragment>

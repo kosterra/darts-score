@@ -1,5 +1,5 @@
 module.exports = app => {
-    const playerController = require("../controllers/player.controller.js");
+    const PlayerController = require("../controllers/player.controller.js");
     const { check, validationResult } = require("express-validator");
 
     const router = require("express").Router();
@@ -23,23 +23,23 @@ module.exports = app => {
           next();
         }
       },
-      playerController.create
+      PlayerController.create
     );
   
     // Retrieve all Players
-    router.get("/", playerController.findAll);
+    router.get("/", PlayerController.findAll);
   
     // Search Players
-    router.get("/search", playerController.findBySearchTerm);
+    router.get("/search", PlayerController.findBySearchTerm);
 
     // Retrieve a single Player with id
-    router.get("/:id", playerController.findOne);
+    router.get("/:id", PlayerController.findOne);
   
     // Update a Player with id
-    router.put("/:id", playerController.update);
+    router.put("/:id", PlayerController.update);
   
     // Delete a Player with id
-    router.delete("/:id", playerController.delete);
+    router.delete("/:id", PlayerController.delete);
   
     app.use("/api/players", router);
   };

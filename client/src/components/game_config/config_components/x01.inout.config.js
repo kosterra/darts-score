@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import SetsLegsConfigOptions from '../config_options/sets.legs.config.options';
 
-const X01InOutConfig = () => {
+const X01InOutConfig = (props) => {
+    const {
+        legInOption,
+        legOutOption,
+        onInOutChange,
+    } = props
+
     const { legInOptions, legOutOptions } = SetsLegsConfigOptions;
-    const [legInOption, setLegInOption] = useState(legInOptions.default);
-    const [legOutOption, setLegOutOption] = useState(legOutOptions.default);
 
 	return (
         <div className="p-2 container">
@@ -22,7 +26,7 @@ const X01InOutConfig = () => {
                             value={option}
                             className={`btn btn-secondary btn-sm text-light ${legInOption === option ? 'btn-selected' : ''}`}
                             checked={legInOption === option}
-                            onChange={(e) => setLegInOption(e.currentTarget.value)}
+                            onChange={(e) => onInOutChange('legInMode', e.currentTarget.value)}
                         >
                             {option}
                         </ToggleButton>
@@ -41,7 +45,7 @@ const X01InOutConfig = () => {
                             value={option}
                             className={`btn btn-secondary btn-sm text-light ${legOutOption === option ? 'btn-selected' : ''}`}
                             checked={legOutOption === option}
-                            onChange={(e) => setLegOutOption(e.currentTarget.value)}
+                            onChange={(e) => onInOutChange('legOutMode', e.currentTarget.value)}
                         >
                             {option}
                         </ToggleButton>

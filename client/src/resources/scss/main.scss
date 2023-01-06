@@ -1,21 +1,11 @@
 // Variables Imports
 @import 'variables/colors';
 @import 'variables/fonts';
+@import 'variables/bootstrap.scss';
+@import 'variables/toastify.scss';
 
 // Reset Default CSS
 //@import 'general/reset_default';
-
-// Bootstrap
-$theme-colors: (
-    "primary": #528b6e,
-    "secondary": #565656,
-    "tertiary": #3836369e,
-    "light": #fff,
-    "info": #008080,
-    "warning": #e0e419,
-    "danger": #d95652,
-    "dark": #222121f8
-);
 
 @import "../../../node_modules/bootstrap/scss/bootstrap";
 

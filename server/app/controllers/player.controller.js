@@ -1,6 +1,6 @@
 const logger = require("../models/logger.model");
 const db = require("../models/db.model");
-const Player = db.players;
+const Player = db.player;
 
 // Create and Save a new Player
 exports.create = (req, res) => {

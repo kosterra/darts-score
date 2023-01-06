@@ -1,57 +1,53 @@
-import React, { Fragment, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { Fragment, useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import {toast} from 'react-toastify';
 
-import GameContext from '../../utils/GameContext';
-import PageErrorMessage from '../../components/UIElement/PageErrorMessage';
-import Spinner from '../../components/UIElement/Spinner';
 import X01ScoreBoard from '../../components/games/X01ScoreBoard';
 import X01StatisticsBoard from '../../components/games/X01StatisticsBoard';
 import ScoreInputBoard from '../../components/games/ScoreInputBoard';
 
 const X01GamePage = () => {
-  const { match, loading } = useContext(GameContext);
+  const { id } = useParams();
+  const [game, setGame] = useState({});
 
-  if(loading.initGameLoading) {
-    return <Spinner spinnerContClassName={"spinner-cont-large"} spinnerImgClassName={"spinnerSmall"}/>
-  }
-  
-  if(!match.gameIsRunning) {
-    return (
-      <PageErrorMessage title={'Error'} message={'You need to initialise a new game'}>
-        <Link to='/' className="page-error-button button-link">
-          <i className="fas fa-plus"></i>
-          New game
-        </Link>
-      </PageErrorMessage>
-    )
-  }
+  useEffect(() => {
+    console.log(id);
+    fetch(process.env.REACT_APP_API_URL + 'games/x01/' + id)
+        .then(response => response.json())
+        .then(data => {
+            setGame(data);
+            console.log(data)
+        }).catch(error => {
+          toast.error('Failed to load the game. ' + error.message);
+        });
+	},[id])
 
   return (
     <Fragment>
-      <div className="game-content">
-        <div className="modus-info">
-          <div className="best-of-legs">
-            <span className="sets-and-legs">{match.setMode} <strong>{match.numberOfSets}</strong> Set{match.numberOfSets > 1 && 's'} - {match.legMode} <strong>{match.numberOfLegs}</strong> Leg{match.numberOfLegs > 1 && 's'}</span>
-            <span className="modus-in-out">{match.legInMode} / {match.legOutMode}</span>
+      <div className="game-content w-100">
+        <div className="modus-info d-flex justify-content-center">
+          <div className="best-of-legs d-flex flex-column align-items-center rounded-8 rounded-bottom bg-tertiary p-2">
+            <div className="sets-and-legs">{game.setMode} <strong>{game.numberOfSets}</strong> Set{game.numberOfSets > 1 && 's'} - {game.legMode} <strong>{game.numberOfLegs}</strong> Leg{game.numberOfLegs > 1 && 's'}</div>
+            <div className="modus-in-out">{game.legInMode} / {game.legOutMode}</div>
           </div>
         </div>
-        <div className="score-boards">
-            {Object.entries(match.matchPlayerInfo).map(([player, infos]) => (
+        {/* <div className="score-boards">
+            {Object.entries(game.matchPlayerInfo).map(([player, infos]) => (
               <X01ScoreBoard key={`player-board-${player}`} player={player} infos={infos} />
             ))}
-        </div>
+        </div>*/}
         <ScoreInputBoard />
-        <div className="statistics-board">
-          {Object.entries(match.matchPlayerInfo).map(([player, infos]) => (
+        {/* <div className="statistics-board">
+          {Object.entries(game.matchPlayerInfo).map(([player, infos]) => (
               <X01StatisticsBoard
                 key={`statistics-board-${player}`}
                 player={player}
                 infos={infos}
-                currentLegThrows={match.currentLegThrows}
-                legOutMode={match.legOutMode}
+                currentLegThrows={game.currentLegThrows}
+                legOutMode={game.legOutMode}
               />
           ))}
-        </div>
+        </div> */}
       </div>
     </Fragment>
   )

@@ -6,36 +6,20 @@
 }
 
 // Bootstrap Toast
-.toast {
-    background-color: transparent;
-    border: none;
-
-    .toast-header {
-        background-color: $tertiary-grey-transparent;
-        color: $white;
+.Toastify {
+    .Toastify__toast {
         border: none;
-        border-top-left-radius: 2px;
-        border-top-right-radius: 2px;
+        border-radius: 2px;
+        box-shadow: none;
+        font-size: 0.9rem;
 
-        i {
-            font-size: 1.3rem;
-            padding-right: 10px;
+        .Toastify__close-button {
+            padding: 2px;
 
-            &.success {
-                color: $light-green;
-            }
-        
-            &.error {
-                color: $red;
+            &:hover {
+                background-color: $tertiary-grey-transparent;
             }
         }
-    }
-
-    .toast-body {
-        background-color: $primary-grey-transparent;
-        border: none;
-        border-bottom-left-radius: 2px;
-        border-bottom-right-radius: 2px;
     }
 }
 

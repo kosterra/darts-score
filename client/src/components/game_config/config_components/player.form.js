@@ -1,24 +1,18 @@
-import React, { Fragment, useState } from 'react';
-
+import React, { useState } from 'react';
+import {toast} from 'react-toastify';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
-import Toast from 'react-bootstrap/Toast';
-import ToastContainer from 'react-bootstrap/ToastContainer';
 
 const PlayerForm = (props) => {
     const {onPlayerAdd} = props;
 
     const [showModal, setShowModal] = useState(false);
-    const [showSuccessToast, setShowSuccessToast] = useState(false);
-    const [showErrorToast, setShowErrorToast] = useState(false);
     const [validated, setValidated] = useState(false);
 
     const handleCloseModal = () => setShowModal(false);
     const handleShowModal = () => setShowModal(true);
-    const toggleShowSuccessToast = () => setShowSuccessToast(!showSuccessToast);
-    const toggleShowErrorToast = () => setShowErrorToast(!showErrorToast);
 
     const [values, setValues] = useState({
         firstname: "",
@@ -58,15 +52,14 @@ const PlayerForm = (props) => {
                 values.nickname = '';
     
                 if (!response.ok) {
-                    setShowErrorToast(true);
                     throw Error(response.statusText);
                 } else {
-                    setShowSuccessToast(true);
+                    toast.success('New Player created successfully.')
                     setValidated(false);
                     onPlayerAdd();
                 }
             }).catch(error => {
-                console.log("Failed to create a new player! " + error.message);
+                toast.error('Failed to create new Player. ' + error.message);
             });
         }
     }
@@ -140,36 +133,6 @@ const PlayerForm = (props) => {
                     </Modal.Footer>
                 </Form>
             </Modal>
-            <ToastContainer containerPosition="fixed" position="bottom-end">
-                <Toast
-                    className="m-1"
-                    animation="true"
-                    autohide="true"
-                    show={showSuccessToast}
-                    onClose={toggleShowSuccessToast}>
-                    <Toast.Header closeVariant="white">
-                        <i className="fas fa-check-circle success"></i>
-                        <strong className="me-auto">Success</strong>
-                    </Toast.Header>
-                    <Toast.Body>
-                        New Player created successfully.
-                    </Toast.Body>
-                </Toast>
-                <Toast
-                    className="m-1"
-                    animation="true"
-                    autohide="true"
-                    show={showErrorToast}
-                    onClose={toggleShowErrorToast}>
-                    <Toast.Header closeVariant="white">
-                        <i className="fas fa-exclamation-circle error"></i>
-                        <strong className="me-auto">Error</strong>
-                    </Toast.Header>
-                    <Toast.Body>
-                        Failed to create new Player. Please contact your system administrator.
-                    </Toast.Body>
-                </Toast>
-            </ToastContainer>
             <div className="d-flex justify-content-center">
                 <Button variant="primary" className="text-light m-0" onClick={handleShowModal}>
                     <i className="fas fa-user-plus px-2"></i>

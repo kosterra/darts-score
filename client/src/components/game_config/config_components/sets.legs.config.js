@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import SetsLegsConfigOptions from '../config_options/sets.legs.config.options';
 
-const SetsLegsConfig = () => {
+const SetsLegsConfig = (props) => {
+    const {
+            onSetsLegsChange,
+            setModeOption,
+            legModeOption,
+            numberOfSetsOption,
+            numberOfLegsOption
+        } = props
+
     const {
             setLegModeOptions,
             ftSetNumberOptions,
@@ -11,26 +19,6 @@ const SetsLegsConfig = () => {
             boSetNumberOptions,
             boLegNumberOptions
         } = SetsLegsConfigOptions;
-    const [setModeOption, setSetModeOption] = useState(setLegModeOptions.default);
-    const [legModeOption, setLegModeOption] = useState(setLegModeOptions.default);
-    const [numberOfSetsOption, setNumberOfSetsOption] = useState(boSetNumberOptions.default);
-    const [numberOfLegsOption, setNumberOfLegsOption] = useState(boLegNumberOptions.default);
-
-    const handleSetModeSelect=(e)=>{
-        setSetModeOption(e)
-    }
-
-    const handleNumberOfSetsSelect=(e)=>{
-        setNumberOfSetsOption(e)
-    }
-
-    const handleLegModeSelect=(e)=>{
-        setLegModeOption(e)
-    }
-
-    const handleNumberOfLegsSelect=(e)=>{
-        setNumberOfLegsOption(e)
-    }
 
 	return (
         <div className="p-2 container">
@@ -41,7 +29,7 @@ const SetsLegsConfig = () => {
                     </div>
                     <div className="row">
                         <div className="col">
-                            <Dropdown onSelect={handleSetModeSelect}>
+                            <Dropdown onSelect={(e) => onSetsLegsChange('setMode', e)}>
                                 <Dropdown.Toggle
                                     id="dropdown-basic"
                                     variant="tertiary"
@@ -68,7 +56,7 @@ const SetsLegsConfig = () => {
                                 title={numberOfSetsOption + (numberOfSetsOption <=1 ? ' set' : ' sets')}
                                 variant="tertiary"
                                 menuVariant="dark"
-                                onSelect={handleNumberOfSetsSelect}>
+                                onSelect={(e) => onSetsLegsChange('numberOfSets', e)}>
                                 {setModeOption === 'First to' && ftSetNumberOptions.values.map((option, idx) => (
                                     <Dropdown.Item
                                         key={idx}
@@ -99,7 +87,7 @@ const SetsLegsConfig = () => {
                     </div>
                     <div className="row">
                         <div className="col">
-                            <Dropdown onSelect={handleLegModeSelect}>
+                            <Dropdown onSelect={(e) => onSetsLegsChange('legMode', e)}>
                                 <Dropdown.Toggle
                                     id="dropdown-basic"
                                     variant="tertiary"
@@ -126,8 +114,7 @@ const SetsLegsConfig = () => {
                                 title={numberOfLegsOption + (numberOfLegsOption <=1 ? ' leg' : ' legs')}
                                 variant="tertiary"
                                 menuVariant="dark"
-                                onSelect={handleNumberOfLegsSelect}>
-                                
+                                onSelect={(e) => onSetsLegsChange('numberOfLegs', e)}>
                                 {legModeOption === 'First to' && ftLegNumberOptions.values.map((option, idx) => (
                                     <Dropdown.Item
                                         key={idx}
@@ -135,7 +122,7 @@ const SetsLegsConfig = () => {
                                         as="button"
                                         active={Number(numberOfLegsOption) === option}
                                         eventKey={option}>
-                                        {option} set{option > 1 && 's'}
+                                        {option} leg{option > 1 && 's'}
                                     </Dropdown.Item>
                                 ))}
                                 {legModeOption === 'Best of' &&  boLegNumberOptions.values.map((option, idx) => (

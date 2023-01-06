@@ -1,0 +1,27 @@
+// Bootstrap
+$theme-colors: (
+    "primary": #528b6e,
+    "secondary": #565656,
+    "tertiary": #3836369e,
+    "light": #fff,
+    "info": #008080,
+    "warning": #e0e419,
+    "danger": #d95652,
+    "dark": #222121f8
+);
+
+$border-widths: (
+  1: 1px,
+  2: 2px,
+  3: 3px,
+  4: 4px,
+  5: 5px,
+  6: 6px,
+  7: 7px,
+  8: 8px
+);
+
+$border-radius: .25rem;
+$border-radius-sm: .2rem;
+$border-radius-lg: .3rem;
+$border-radius-pill: 50rem;

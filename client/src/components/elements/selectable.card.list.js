@@ -45,11 +45,8 @@ const SelectableCardList = (props) => {
 
     const onSelectCard=(item) => {
         if (!selectedItems.includes(item)) {
-            console.log('select')
             if (selectedItems.length < maxSelectable) {
                 setSelectedItems([...selectedItems, item]);
-            } else {
-                console.log('No more items selectable. Maximum reached');
             }
         } else {
             setSelectedItems(selectedItems.filter(i => i.id !== item.id));
