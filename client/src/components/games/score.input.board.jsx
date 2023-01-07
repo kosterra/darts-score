@@ -1,20 +1,20 @@
 import React, { useContext, useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import GameContext from '../../utils/GameContext';
-import Checkout from './Checkout';
+import X01Context from '../../utils/x01.context';
+import Checkout from './checkout';
 import Input from '../form/Input';
 import Spinner from '../UIElement/Spinner';
 import Modal from '../UIElement/Modal';
-import savePlayersData from '../../utils/SavePlayerData';
-import DartBoard from './DartBoard';
-import dataModels from '../../models/DataModels';
-import checkout from '../../utils/Checkout';
+import SavePlayersData from '../../utils/save.player.data';
+import DartBoard from './dartboard';
+import X01Models from '../../models/x01.models';
+import checkout from '../../utils/checkout';
 
-const ScoreInputBoard = props => {
+const ScoreInputBoard = () => {
     const navigate = useNavigate();
     const {
-        match,
+        game,
         updateCurrentThrowManual,
         onClickValidateThrow,
         getCurrentThrowScore,
@@ -24,9 +24,9 @@ const ScoreInputBoard = props => {
         loading,
         error,
         resetError
-    } = useContext(GameContext);
+    } = useContext(X01Context);
 
-    const [ score, setScore ] = useState(match.matchPlayerInfo[match.players[match.currentPlayerTurn]].score);
+    const [ score, setScore ] = useState(game.matchPlayerInfo[game.players[game.currentPlayerTurn]].score);
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
@@ -46,23 +46,23 @@ const ScoreInputBoard = props => {
 	useEffect(() => {
     let totalScore = getCurrentThrowScore();
 
-    let currentPlayer = match.players[match.currentPlayerTurn];
-    let currentPlayerScore = match.matchPlayerInfo[currentPlayer].score;
+    let currentPlayer = game.players[game.currentPlayerTurn];
+    let currentPlayerScore = game.matchPlayerInfo[currentPlayer].score;
 
     let newCurrentScore = currentPlayerScore - totalScore;
     setScore(newCurrentScore);
 
     // eslint-disable-next-line
-	},[ match.currentThrow ]);
+	},[ game.currentThrow ]);
 	
 	useEffect(() => {
-		let currentPlayer = match.players[match.currentPlayerTurn];
-		if(match.hasWinner) {
-            savePlayersData(match, currentPlayer)
+		let currentPlayer = game.players[game.currentPlayerTurn];
+		if(game.hasWinner) {
+            savePlayersData(game, currentPlayer)
         }
 
 		// eslint-disable-next-line
-	}, [match.hasWinner])
+	}, [game.hasWinner])
 
 	useEffect(() => {
     setTimeout(() => {
@@ -92,7 +92,7 @@ const ScoreInputBoard = props => {
 	}
 
 	const onRestartGame = e => {
-        let newMatchSetup = {...match};
+        let newMatchSetup = {...game};
 
 		newMatchSetup.hasWinner = false;
 		newMatchSetup.startingPlayerLeg = 0;
@@ -134,10 +134,10 @@ const ScoreInputBoard = props => {
                 
             </Modal>
         )}
-        {match.hasWinner && (
+        {game.hasWinner && (
             <div className="game-victory-container">
                 <span className="game-victory-message">
-                    <span className="message">{match.players[match.currentPlayerTurn]} wins</span>
+                    <span className="message">{game.players[game.currentPlayerTurn]} wins</span>
                     <i className="fas fa-trophy" title="trophy"></i>
                 </span>
                 <div className="game-victory-buttons">
@@ -156,7 +156,7 @@ const ScoreInputBoard = props => {
                 </div>
             </div>
         )}
-        {!match.hasWinner && (
+        {!game.hasWinner && (
             <div className="score-input-board">
                 <div className="score-input-board-left-column">
                     <DartBoard />
@@ -177,7 +177,7 @@ const ScoreInputBoard = props => {
                                             name="dart-1"
                                             htmlFor="dart-1"
                                             label="D1"
-                                            value={match.currentThrow[0]}
+                                            value={game.currentThrow[0]}
                                             placeholder="Enter score"
                                             onChange={onChange}
                                             classNameLabel="label"
@@ -187,8 +187,8 @@ const ScoreInputBoard = props => {
                                 </div>
                                 <div className="score-enter-input">
                                     {((score !== 1 && score > 0) ||
-                                        match.currentThrow[1].trim() !== '' ||
-                                        (match.currentThrow[1].trim() === '' && match.currentThrow[2].trim() !== '')) && (
+                                        game.currentThrow[1].trim() !== '' ||
+                                        (game.currentThrow[1].trim() === '' && game.currentThrow[2].trim() !== '')) && (
                                         <Fragment>
                                             <Input
                                                 element="input"
@@ -196,7 +196,7 @@ const ScoreInputBoard = props => {
                                                 name="dart-2"
                                                 htmlFor="dart-2"
                                                 label="D2"
-                                                value={match.currentThrow[1]}
+                                                value={game.currentThrow[1]}
                                                 placeholder="Enter score"
                                                 onChange={onChange}
                                                 classNameLabel="label"
@@ -206,7 +206,7 @@ const ScoreInputBoard = props => {
                                     )}
                                 </div>
                                 <div className="score-enter-input">
-                                    {((score !== 1 && score > 0) || match.currentThrow[2].trim() !== '') && (
+                                    {((score !== 1 && score > 0) || game.currentThrow[2].trim() !== '') && (
                                         <Fragment>
                                             <Input
                                                 element="input"
@@ -214,7 +214,7 @@ const ScoreInputBoard = props => {
                                                 name="dart-3"
                                                 htmlFor="dart-3"
                                                 label="D3"
-                                                value={match.currentThrow[2]}
+                                                value={game.currentThrow[2]}
                                                 placeholder="Enter score"
                                                 onChange={onChange}
                                                 classNameLabel="label"
@@ -235,7 +235,7 @@ const ScoreInputBoard = props => {
                                         <i className="fas fa-paper-plane" title='Send'></i>
                                     </button>
                                 )}
-                                {match.currentLegThrows.length !== 0 && (
+                                {game.currentLegThrows.length !== 0 && (
                                     <button 
                                         onClick={onClickReturnToPreviousPlayer} 
                                         className="score-enter-buttons-undo" 

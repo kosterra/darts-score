@@ -1,8 +1,8 @@
 import React, { useContext, createRef } from 'react';
-import GameContext from '../../utils/GameContext';
+import X01Context from '../../utils/x01.context';
 
 const DartBoard = () => {
-  const { match, updateCurrentThrowDartBoard, throwError, getCurrentThrowScore} = useContext(GameContext);
+  const { match, updateCurrentThrowDartBoard, throwError, getCurrentThrowScore} = useContext(X01Context);
 
   const svgRef = createRef();
 

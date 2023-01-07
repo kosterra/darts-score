@@ -1,9 +1,9 @@
 import React from 'react';
-import sortObjectData from '../../utils/SortObjectData';
+import ObjectSorter from '../../utils/object.sorter';
 
 const StatsObjectData = props => {
   const { title, object, statName, totalThrow } = props;
-  const { doubleOutSortedHighToLow, scoreRangesSortedHighLow, checkoutScoresSortedHighLow, sectionHitSortedByValueHightLow } = sortObjectData;
+  const { doubleOutSortedHighToLow, scoreRangesSortedHighLow, checkoutScoresSortedHighLow, sectionHitSortedByValueHightLow } = ObjectSorter;
 
   let rowContent;
 

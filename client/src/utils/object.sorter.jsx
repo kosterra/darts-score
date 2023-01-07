@@ -51,7 +51,7 @@ const sectionHitSortedByValueHightLow = (object, totalThrow) => {
 
 
 
-const sortObjectData = {
+const ObjectSorter = {
   doubleOutSortedHighToLow,
   scoreRangesSortedHighLow,
   checkoutScoresSortedHighLow,
@@ -59,4 +59,4 @@ const sortObjectData = {
 }
 
 
-export default sortObjectData;
+export default ObjectSorter;

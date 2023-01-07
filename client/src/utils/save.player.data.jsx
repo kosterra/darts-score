@@ -2,7 +2,7 @@ import dataService from '../services/DataService';
 
 const { getSinglePlayerData } = dataService;
 
-const savePlayersData = async (matchData, playerWinner) => {
+const SavePlayersData = async (matchData, playerWinner) => {
   let date = new Date();
   date = date.toLocaleString('de-CH');
 
@@ -90,4 +90,4 @@ const getNewAverage = (currentAvg, currentTotalThrow, matchAvg, totalMatchThrow)
   return ((currentAvg * currentTotalThrow) + (matchAvg * totalMatchThrow)) / (currentTotalThrow + totalMatchThrow)
 }
 
-export default savePlayersData;
+export default SavePlayersData;

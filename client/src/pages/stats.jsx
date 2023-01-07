@@ -8,7 +8,7 @@ import ChartComponent from '../components/charts/ChartComponent';
 import PageErrorMessage from '../components/UIElement/PageErrorMessage';
 import Spinner from '../components/UIElement/Spinner';
 import dataService from '../services/DataService';
-import getChartData from '../utils/GetChartDataMethods';
+import ChartService from '../services/chart.service';
 
 const StatsPage = () => {
   const {getAllPlayersName, getSinglePlayerData} = dataService;
@@ -47,7 +47,7 @@ const StatsPage = () => {
   }
 
   const getChart = (statName, title, chartType) => {
-      let data = getChartData(statName, playerStats);
+      let data = ChartService(statName, playerStats);
       setChartData({title, data, chartType});
       setShowGraph(true);
   }

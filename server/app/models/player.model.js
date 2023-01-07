@@ -1,9 +1,36 @@
 module.exports = mongoose => {
+
     var schema = mongoose.Schema(
       {
         firstname: String,
         lastname: String,
-        nickname: String
+        nickname: String,
+        nbrOfMatches: Number,
+        matchesWon: Number,
+        soloGames: Number,
+        totalThrow: {
+          darts: Number,
+          rounds: Number
+        },
+        totalThrowEndGame: {
+          darts: Number,
+          rounds: Number
+        },
+        totalThrowBegMidGame: {
+          darts: Number,
+          rounds: Number
+        },
+        bestThreeDarts: Number,
+        hit: Object,
+        scoreRanges: Object,
+        averages: {
+          overall: Number,
+          begMidGame: Number,
+          endGame: Number, 
+        },
+        doubleOut: Object,
+        checkoutScores: Object,
+        matches: [{}]
       },
       { timestamps: true }
     );

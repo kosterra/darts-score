@@ -1,5 +1,4 @@
 import React, { Fragment, useState, useEffect } from 'react';
-import {toast} from 'react-toastify';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
@@ -10,6 +9,8 @@ import Button from 'react-bootstrap/Button';
 import SelectableCardList from '../../elements/selectable.card.list';
 import PlayerConfigOptions from '../config_options/player.config.options';
 import PlayerForm from './player.form';
+
+import PlayerService from '../../../services/player.service';
 
 const PlayerConfig = (props) => {
     const {
@@ -45,14 +46,9 @@ const PlayerConfig = (props) => {
         loadPlayers(event.target.value);
     }
 
-    const loadPlayers = (searchTerm) => {
-        fetch(process.env.REACT_APP_API_URL + 'players/search?search=' + (searchTerm ? searchTerm : ''))
-            .then(response => response.json())
-            .then(data => {
-                setPlayers(data)
-            }).catch(error => {
-                toast.error('Failed to load players. ' + error.message);
-            });
+    const loadPlayers = async searchTerm => {
+        let data = await PlayerService.loadPlayers(searchTerm);
+        setPlayers(data);
     }
 
 	return (

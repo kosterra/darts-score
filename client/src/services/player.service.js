@@ -1,48 +1,40 @@
-import playerModel from '../models/player.model';
+import {toast} from 'react-toastify';
 
 // Public methods to export
-const createPlayer = async function(name) {
-    fetch(playerUrl, {
+const createPlayer = (player) => {
+    return fetch(process.env.REACT_APP_API_URL + 'players', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'accept': 'application/json'
         },
-        body: JSON.stringify({
-            playerModel
-        })
+        body: JSON.stringify(player)
     }).then(response => {
         if (!response.ok) {
             throw Error(response.statusText);
+        } else {
+            toast.success('New Player created successfully.');
         }
+        return response.ok;
     }).catch(error => {
-        console.log("Failed to donate! " + error.message);
+        toast.error('Failed to create new Player. ' + error.message);
     });
 }
 
-const updatePlayer = async function(name, playerData) {
-    const data = await readData();
-    data[name] = playerData;
-    await writeData(data);
-}
-
-const getAllPlayers = async function() {
-    const data = await readData();
-    let playersName = Object.keys(data);
-    return playersName;
-}
-
-const getSinglePlayerData = async function(playerName) {
-    const data = await readData();
-    return data[playerName];
+const loadPlayers = (searchTerm) => {
+    return fetch(process.env.REACT_APP_API_URL + 'players/search?search=' + (searchTerm ? searchTerm : ''))
+        .then(response => response.json())
+        .then(data => {
+            return data;
+        }).catch(error => {
+            toast.error('Failed to load players. ' + error.message);
+        });
 }
 
 // Export methods
-const playerService = {
+const PlayerService = {
     createPlayer,
-    updatePlayer,
-    getAllPlayers,
-    getSinglePlayerData
+    loadPlayers
 }
 
-export default playerService
+export default PlayerService

@@ -1,9 +1,9 @@
-import dataModels from '../models/DataModels';
+import PlayerModel from '../models/player.model';
 
 // Public methods to export
 const createPlayer = async function(name) {
   const data = await readData();
-  data[name] = dataModels.playerModel;
+  data[name] = PlayerModel;
   data[name].name = name;
   await writeData(data);
 }

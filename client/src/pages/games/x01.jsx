@@ -1,26 +1,18 @@
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { Fragment, useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import {toast} from 'react-toastify';
 
-import X01ScoreBoard from '../../components/games/X01ScoreBoard';
-import X01StatisticsBoard from '../../components/games/X01StatisticsBoard';
-import ScoreInputBoard from '../../components/games/ScoreInputBoard';
+import X01Context from "../../utils/x01.context";
+
+import X01ScoreBoard from '../../components/games/x01.scoreboard';
+import X01StatisticsBoard from '../../components/games/x01.statisticsboard';
+import ScoreInputBoard from '../../components/games/score.input.board';
 
 const X01GamePage = () => {
-  const { id } = useParams();
-  const [game, setGame] = useState({});
 
-  useEffect(() => {
-    console.log(id);
-    fetch(process.env.REACT_APP_API_URL + 'games/x01/' + id)
-        .then(response => response.json())
-        .then(data => {
-            setGame(data);
-            console.log(data)
-        }).catch(error => {
-          toast.error('Failed to load the game. ' + error.message);
-        });
-	},[id])
+  const {
+      game
+  } = useContext(X01Context);
 
   return (
     <Fragment>

@@ -1,15 +1,26 @@
 module.exports = mongoose => {
+
     var schema = mongoose.Schema(
       {
-        score: Number,
+        gameIsRunning: Boolean,
+        isSoloGame: Boolean,
+        hasWinner: Boolean,
+        startingScore: Number,
+        setMode: String,
         legMode: String,
         legInMode: String,
         legOutMode: String,
-        setMode: String,
-        numberOfLegs: Number,
         numberOfSets: Number,
+        numberOfLegs: Number,
         numberOfPlayers: Number,
-        players: [String]
+        players: [String],
+        startingPlayerLeg: Number,
+        startingPlayerSet: Number,
+        currentPlayerTurn: Number,
+        currentThrow: [String],
+        currentLegThrows: [{}],
+        allLegsThrows: [{}],
+        matchPlayerModels: [{}]
       },
       { timestamps: true }
     );

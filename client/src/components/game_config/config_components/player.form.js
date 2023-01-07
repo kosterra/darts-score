@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import {toast} from 'react-toastify';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 
+import PlayerService from '../../../services/player.service';
+
+import PlayerModel from '../../../models/player.model';
+
 const PlayerForm = (props) => {
     const {onPlayerAdd} = props;
+
+    const initialState = PlayerModel;
 
     const [showModal, setShowModal] = useState(false);
     const [validated, setValidated] = useState(false);
@@ -14,60 +19,34 @@ const PlayerForm = (props) => {
     const handleCloseModal = () => setShowModal(false);
     const handleShowModal = () => setShowModal(true);
 
-    const [values, setValues] = useState({
-        firstname: "",
-        lastname: "",
-        nickname: ""
-    });
+    const [player, setPlayer] = useState(initialState);
 
     const handleChange = (event) => {
-        setValues((values) => ({
-            ...values,
+        setPlayer((player) => ({
+            ...player,
             [event.target.name]: event.target.value,
         }));
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         if (!validate()) {
             event.preventDefault();
             event.stopPropagation();
             setValidated(true);
         } else {
             setValidated(true);
-
-            fetch(process.env.REACT_APP_API_URL + 'players', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    firstname: values.firstname,
-                    lastname: values.lastname,
-                    nickname: values.nickname
-                })
-            }).then(response => {
-                values.firstname = '';
-                values.lastname = '';
-                values.nickname = '';
-    
-                if (!response.ok) {
-                    throw Error(response.statusText);
-                } else {
-                    toast.success('New Player created successfully.')
-                    setValidated(false);
-                    onPlayerAdd();
-                }
-            }).catch(error => {
-                toast.error('Failed to create new Player. ' + error.message);
-            });
+            if (await PlayerService.createPlayer(player)) {
+                setPlayer(initialState);
+                setValidated(false);
+                onPlayerAdd();
+            };
         }
     }
 
     const validate = () =>{
-        return values.firstname && values.firstname.length > 2 && values.firstname.length <= 25 &&
-                values.lastname && values.lastname.length > 2 && values.lastname.length <= 25 &&
-                values.nickname && values.nickname.length > 2 && values.nickname.length <= 25;
+        return player.firstname && player.firstname.length > 2 && player.firstname.length <= 25 &&
+            player.lastname && player.lastname.length > 2 && player.lastname.length <= 25 &&
+            player.nickname && player.nickname.length > 2 && player.nickname.length <= 25;
     }
 
     return (
@@ -90,7 +69,7 @@ const PlayerForm = (props) => {
                                     required
                                     type="text"
                                     placeholder="Firstname"
-                                    value={values.firstname}
+                                    value={player.firstname}
                                     onChange={handleChange}
                                     minLength={3}
                                     maxLength={25} />
@@ -102,7 +81,7 @@ const PlayerForm = (props) => {
                                     required
                                     type="text"
                                     placeholder="Lastname"
-                                    value={values.lastname}
+                                    value={player.lastname}
                                     onChange={handleChange}
                                     minLength={3}
                                     maxLength={25} />
@@ -114,7 +93,7 @@ const PlayerForm = (props) => {
                                     required
                                     type="text"
                                     placeholder="Nickname"
-                                    value={values.nickname}
+                                    value={player.nickname}
                                     onChange={handleChange}
                                     minLength={3}
                                     maxLength={25} />

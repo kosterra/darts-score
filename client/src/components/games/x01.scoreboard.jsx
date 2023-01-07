@@ -1,16 +1,16 @@
 import React, { useContext, useState, useEffect } from 'react';
-import GameContext from '../../utils/GameContext';
+import X01Context from '../../utils/x01.context';
 
-const X01ScoreBoard = props => {
+const X01ScoreBoard = (props) => {
     const { player, infos } = props
     const {
-        match,
+        game,
         getCurrentThrowScore,
         error,
         resetError
-    } = useContext(GameContext);
+    } = useContext(X01Context);
     
-    const [ score, setScore ] = useState(match.matchPlayerInfo[match.players[match.currentPlayerTurn]].score);
+    const [ score, setScore ] = useState(game.matchPlayerInfo[game.players[game.currentPlayerTurn]].score);
 
     useEffect(() => {
 		const clickEnterSubmitForm = (e) => {
@@ -29,14 +29,14 @@ const X01ScoreBoard = props => {
 	useEffect(() => {
         let totalScore = getCurrentThrowScore();
 
-        let currentPlayer = match.players[match.currentPlayerTurn];
-        let currentPlayerScore = match.matchPlayerInfo[currentPlayer].score;
+        let currentPlayer = game.players[game.currentPlayerTurn];
+        let currentPlayerScore = game.matchPlayerInfo[currentPlayer].score;
 
         let newCurrentScore = currentPlayerScore - totalScore;
         setScore(newCurrentScore);
 
     // eslint-disable-next-line
-	},[ match.currentThrow ]);
+	},[ game.currentThrow ]);
 
 	useEffect(() => {
         setTimeout(() => {
@@ -50,20 +50,20 @@ const X01ScoreBoard = props => {
             <div className="points-legs-sets-won">
                 <div className="points-container">
                     <div className="points">
-                        { match.players[match.currentPlayerTurn] === player ?
+                        { game.players[game.currentPlayerTurn] === player ?
                             score === 1 || score < 0 ? 'BUST' : score : infos.score
                         }
                     </div>
                     <div className="player">
                         <span className="player-name">{player}</span>
                         <div className="player-icons">
-                            { match.players[match.startingPlayerLeg] === player && (
+                            { game.players[game.startingPlayerLeg] === player && (
                                 <i className="fas fa-circle player-name-icon active-start-leg"></i>
                             )}
-                            { match.players[match.currentPlayerTurn] === player && (
+                            { game.players[game.currentPlayerTurn] === player && (
                                 <i className="fas fa-circle player-name-icon active-throwing"></i>
                             )}
-                            { match.players[match.startingPlayerLeg] !== player && match.players[match.currentPlayerTurn] !== player && (
+                            { game.players[game.startingPlayerLeg] !== player && game.players[game.currentPlayerTurn] !== player && (
                                 <i className="fas fa-circle player-name-icon placeholder"></i>
                             )}
                         </div>
@@ -75,29 +75,29 @@ const X01ScoreBoard = props => {
                         <div className="legs-sets legs">
                             LEGS
                         </div>
-                        {match.numberOfLegs <= 5 && match.legMode === 'Best of' &&
+                        {game.numberOfLegs <= 5 && game.legMode === 'Best of' &&
                             <div className="value">
-                                {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                {[...Array(game.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
                                     <i key={`leg-filled-${i}`} className="fas fa-circle"></i>
                                 ))}
-                                {[...Array(Math.round(match.numberOfLegs / 2) - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                {[...Array(Math.round(game.numberOfLegs / 2) - game.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
                                     <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
                                 ))}
                             </div>
                         }
-                        {match.numberOfLegs <= 4 && match.legMode === 'First to' &&
+                        {game.numberOfLegs <= 4 && game.legMode === 'First to' &&
                             <div className="value">
-                                {[...Array(match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                {[...Array(game.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
                                     <i key={`set-filled-${i}`} className="fas fa-circle"></i>
                                 ))}
-                                {[...Array(match.numberOfLegs - match.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
+                                {[...Array(game.numberOfLegs - game.matchPlayerInfo[player].currentSetLegWon)].map((e, i) => (
                                     <i key={`leg-unfilled-${i}`} className="far fa-circle"></i>
                                 ))}
                             </div>
                         }
-                        {((match.numberOfLegs > 4 && match.legMode === 'First to') || (match.numberOfLegs > 5 && match.legMode === 'Best of')) &&
+                        {((game.numberOfLegs > 4 && game.legMode === 'First to') || (game.numberOfLegs > 5 && game.legMode === 'Best of')) &&
                             <div className="value">
-                                <span className="text-value">{match.matchPlayerInfo[player].currentSetLegWon}</span>
+                                <span className="text-value">{game.matchPlayerInfo[player].currentSetLegWon}</span>
                             </div>
                         }
                     </div>
@@ -106,29 +106,29 @@ const X01ScoreBoard = props => {
                         <div className="legs-sets sets">
                             SETS
                         </div>
-                        {match.numberOfSets <= 5 && match.setMode === 'Best of' &&
+                        {game.numberOfSets <= 5 && game.setMode === 'Best of' &&
                             <div className="value">
-                                {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                {[...Array(game.matchPlayerInfo[player].setWon)].map((e, i) => (
                                     <i key={`set-filled-${i}`} className="fas fa-circle"></i>
                                 ))}
-                                {[...Array(Math.round(match.numberOfSets / 2) - match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                {[...Array(Math.round(game.numberOfSets / 2) - game.matchPlayerInfo[player].setWon)].map((e, i) => (
                                     <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
                                 ))}
                             </div>
                         }
-                        {match.numberOfSets <= 4 && match.setMode === 'First to' &&
+                        {game.numberOfSets <= 4 && game.setMode === 'First to' &&
                             <div className="value">
-                                {[...Array(match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                {[...Array(game.matchPlayerInfo[player].setWon)].map((e, i) => (
                                     <i key={`set-filled-${i}`} className="fas fa-circle"></i>
                                 ))}
-                                {[...Array(match.numberOfSets - match.matchPlayerInfo[player].setWon)].map((e, i) => (
+                                {[...Array(game.numberOfSets - game.matchPlayerInfo[player].setWon)].map((e, i) => (
                                     <i key={`set-unfilled-${i}`} className="far fa-circle"></i>
                                 ))}
                             </div>
                         }
-                        {((match.numberOfSets > 4 && match.setMode === 'First to') || (match.numberOfSets > 5 && match.setMode === 'Best of')) && 
+                        {((game.numberOfSets > 4 && game.setMode === 'First to') || (game.numberOfSets > 5 && game.setMode === 'Best of')) && 
                             <div className="value">
-                                <span className="text-value">{match.matchPlayerInfo[player].setWon}</span>
+                                <span className="text-value">{game.matchPlayerInfo[player].setWon}</span>
                             </div>
                         }
                     </div>
