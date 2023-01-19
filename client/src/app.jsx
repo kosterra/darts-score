@@ -1,15 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 import { NavigationBar } from './components/navigation/navigation.bar';
+
 import X01ConfigPage from './pages/config/x01';
 import X01GamePage from './pages/games/x01'
 import StatsPage from './pages/stats';
 import AboutPage from './pages/about';
 
-// Importing Sass with Bootstrap CSS
+import 'react-toastify/dist/ReactToastify.css';
 import './resources/scss/main.scss';
 
 function App() {

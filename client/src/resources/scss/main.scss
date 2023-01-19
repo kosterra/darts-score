@@ -18,6 +18,9 @@
 // General Imports
 @import 'general/general';
 @import 'general/elements';
+@import 'general/fonts.scss';
+@import 'general/borders.scss';
+@import 'general/margins.scss';
 //@import 'general/recharts';
 
 // Pages
@@ -30,7 +33,7 @@
 @import 'components/game_config/config_components/player.config';
 
 //@import 'components/games/checkout';
-//@import 'components/games/dart_board';
+@import 'components/games/dart_board';
 //@import 'components/games/score_input_board';
 //@import 'components/games/x01_score_board';
 //@import 'components/games/x01_statistics_board';

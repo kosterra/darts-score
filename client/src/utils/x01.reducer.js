@@ -24,12 +24,22 @@ import {
     CHANGE_STARTING_PLAYER_LEG,
     GAME_HAS_WINNER,
     RETURN_PREV_PLAYER,
-    THROW_ERROR,
-    RESET_ERROR
+    FETCH_GAME_SUCCESS,
+    FETCH_PLAYERS_SUCCESS
   } from './constants';
   
   const X01Reducer = (state, action) => {
     switch (action.type) {
+      case FETCH_GAME_SUCCESS: 
+        return {
+          ...state,
+          game: {...action.payload},
+        };
+      case FETCH_PLAYERS_SUCCESS: 
+        return {
+          ...state,
+          players: [...action.payload],
+        };
       case INIT_NEW_GAME:
         return {
           ...state,
@@ -82,10 +92,10 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName] : {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId] : {
+                ...state.game.playerModels[action.payload.playerId],
                 score: action.payload.score
               }
             }
@@ -96,11 +106,11 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
+            playerModels: {
+              ...state.game.playerModels,
               [action.payload] : {
-                ...state.game.matchPlayerInfo[action.payload],
-                score: state.game.gameType
+                ...state.game.playerModels[action.payload],
+                score: state.game.startingScore
               }
             }
           }
@@ -110,12 +120,12 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
                 averages: {
-                  ...state.game.matchPlayerInfo[action.payload.playerName].averages,
+                  ...state.game.playerModels[action.payload.playerId].averages,
                   overall: action.payload.newOverallAverage,
                   [action.payload.gamePeriod] : action.payload.newGamePeriodAvg
                 }
@@ -128,19 +138,19 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
                 totalThrow: {
-                  ...state.game.matchPlayerInfo[action.payload.playerName].totalThrow,
-                  darts: state.game.matchPlayerInfo[action.payload.playerName].totalThrow.darts + action.payload.dartNumber,
-                  rounds: state.game.matchPlayerInfo[action.payload.playerName].totalThrow.rounds + 1
+                  ...state.game.playerModels[action.payload.playerId].totalThrow,
+                  darts: state.game.playerModels[action.payload.playerId].totalThrow.darts + action.payload.dartNumber,
+                  rounds: state.game.playerModels[action.payload.playerId].totalThrow.rounds + 1
                 },
                 [action.payload.gamePeriod]: {
-                  ...state.game.matchPlayerInfo[action.payload.playerName][action.payload.gamePeriod],
-                  darts: state.game.matchPlayerInfo[action.payload.playerName][action.payload.gamePeriod].darts + action.payload.dartNumber,
-                  rounds: state.game.matchPlayerInfo[action.payload.playerName][action.payload.gamePeriod].rounds +1
+                  ...state.game.playerModels[action.payload.playerId][action.payload.gamePeriod],
+                  darts: state.game.playerModels[action.payload.playerId][action.payload.gamePeriod].darts + action.payload.dartNumber,
+                  rounds: state.game.playerModels[action.payload.playerId][action.payload.gamePeriod].rounds +1
                 }
               }
             }
@@ -151,10 +161,10 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
                 bestThreeDarts: action.payload.score,
               }
             }
@@ -165,10 +175,10 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
                 checkoutScores: action.payload.checkoutScores,
               }
             }
@@ -179,10 +189,10 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
                 hit: action.payload.hit,
               }
             }
@@ -194,10 +204,10 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
                 scoreRanges: action.payload.scoreRanges,
               }
             }
@@ -208,10 +218,10 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
                 doubleOut: action.payload.doubleOut,
               }
             }
@@ -222,11 +232,11 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
-                currentSetLegWon: state.game.matchPlayerInfo[action.payload.playerName].currentSetLegWon + 1,
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
+                currentSetLegWon: state.game.playerModels[action.payload.playerId].currentSetLegWon + 1,
               }
             }
           }
@@ -236,11 +246,11 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
-              [action.payload.playerName]: {
-                ...state.game.matchPlayerInfo[action.payload.playerName],
-                setWon: state.game.matchPlayerInfo[action.payload.playerName].setWon + 1,
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
+                setWon: state.game.playerModels[action.payload.playerId].setWon + 1,
               }
             }
           }
@@ -250,10 +260,10 @@ import {
           ...state,
           game: {
             ...state.game,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
+            playerModels: {
+              ...state.game.playerModels,
               [action.payload]: {
-                ...state.game.matchPlayerInfo[action.payload],
+                ...state.game.playerModels[action.payload],
                 currentSetLegWon: 0
               }
             }
@@ -292,10 +302,10 @@ import {
           game: {
             ...state.game,
             hasWinner: true,
-            matchPlayerInfo: {
-              ...state.game.matchPlayerInfo,
+            playerModels: {
+              ...state.game.playerModels,
               [action.payload]: {
-                ...state.game.matchPlayerInfo[action.payload],
+                ...state.game.playerModels[action.payload],
                 hasWongame: true
               }
             }
@@ -311,19 +321,6 @@ import {
           ...state,
           loading: {...state.loading, [action.payload.eventName]: action.payload.setTo}
         };
-      case THROW_ERROR:
-        return {
-          ...state,
-          error: {
-            message: action.payload.message,
-            errorFor: action.payload.errorFor
-          }
-        };
-        case RESET_ERROR: 
-          return {
-            ...state,
-            error: null
-          };
       default:
         return {
           ...state

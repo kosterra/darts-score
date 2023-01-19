@@ -1,0 +1,60 @@
+.border-dotted {
+    border: 1px dotted $white;
+}
+
+.border-dotted-top {
+    border-top: 1px dotted $white;
+}
+
+.border-dotted-bottom {
+    border-bottom: 1px dotted $white;
+}
+
+.border-dotted-start {
+    border-left: 1px dotted $white;
+}
+
+.border-dotted-end {
+    border-right: 1px dotted $white;
+}
+
+.border-dotted-grey {
+    border: 1px dotted $primary-grey;
+}
+
+.border-dotted-top-grey {
+    border-top: 1px dotted $primary-grey;
+}
+
+.border-dotted-bottom-grey {
+    border-bottom: 1px dotted $primary-grey;
+}
+
+.border-dotted-start-grey {
+    border-left: 1px dotted $primary-grey;
+}
+
+.border-dotted-end-grey {
+    border-right: 1px dotted $primary-grey;
+}
+
+// Border Radius
+.btr-8 {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.bbr-8 {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.btr-12 {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.bbr-12 {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}

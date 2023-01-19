@@ -23,11 +23,12 @@ const ReturnToPreviousPlayer = matchData => {
   return matchData;
 }
 
-const changeCurrentPlayer = matchData => {
-  if(matchData.currentPlayerTurn === 0) {
-    matchData.currentPlayerTurn = matchData.players.length -1;
+const changeCurrentPlayer = game => {
+  let index = game.playerModels.map(playerModel => playerModel.playerId).indexOf(game.currentPlayerTurn);
+  if (index === 0) {
+    game.currentPlayerTurn = game.players[game.players.length -1];
   } else {
-    matchData.currentPlayerTurn--;
+    game.currentPlayerTurn = game.players[index + 1];
   }
 }
 

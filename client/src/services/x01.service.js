@@ -1,4 +1,4 @@
-import {toast} from 'react-toastify';
+import { toast } from 'react-toastify';
 
 // Public methods to export
 const createX01 = (game) => {
@@ -39,4 +39,4 @@ const X01Service = {
     loadX01
 }
 
-export default X01Service
+export default X01Service;

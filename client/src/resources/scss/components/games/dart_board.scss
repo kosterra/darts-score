@@ -2,14 +2,6 @@
 //       Desktop Styles
 // ==========================
 .dartboard {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    align-self: start;
-    margin: 30px 0;
-
     .dartboard-img {
         width: 30em;
         height: 30em;
@@ -50,7 +42,7 @@
             fill: $white;
             font-weight: 400;
             text-anchor: middle;
-            font-size: 1.6em;
+            font-size: 1.2em;
         }
 
         .hit, .hit-pulse {

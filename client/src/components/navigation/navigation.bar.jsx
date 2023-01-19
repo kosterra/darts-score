@@ -5,7 +5,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import logo from '../../resources/img/logo.svg';
 
 export const NavigationBar = () => (
-    <Navbar bg="dark" variant="dark">
+    <Navbar bg="dark" variant="dark" className="p-0">
         <Container fluid={true}>
             <Navbar.Brand href="home">
                 <img

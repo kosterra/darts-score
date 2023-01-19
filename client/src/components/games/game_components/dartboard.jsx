@@ -1,21 +1,21 @@
 import React, { useContext, createRef } from 'react';
-import X01Context from '../../utils/x01.context';
+import X01Context from '../../../utils/x01.context';
+
+import { toast } from 'react-toastify';
 
 const DartBoard = () => {
-  const { match, updateCurrentThrowDartBoard, throwError, getCurrentThrowScore} = useContext(X01Context);
+  const { game, updateCurrentThrowDartBoard, getCurrentThrowScore} = useContext(X01Context);
 
   const svgRef = createRef();
 
   const onClick = e => {
     let totalScore = getCurrentThrowScore();
-
-    let currentPlayer = match.players[match.currentPlayerTurn];
-    let currentPlayerScore = match.matchPlayerInfo[currentPlayer].score ;
+    let currentPlayerScore = game.playerModels[game.currentPlayerTurn].score ;
 
     let newCurrentScore = currentPlayerScore - totalScore;
 
-    if(newCurrentScore <= 1) {
-      throwError("You can't throw any more dart", "throw-validation");
+    if (newCurrentScore <= 1) {
+      toast.error("You can't throw any more darts");
       return
     }
     
@@ -387,13 +387,13 @@ const DartBoard = () => {
             </g>
 
             <g transform="translate(210, 210)">
-                <text id="0" className="number" x="185" y="8">6</text>
+                <text id="0" className="number" x="189" y="8">6</text>
                 <text id="0" className="number" x="180" y="-48">13</text>
                 <text id="0" className="number" x="155" y="-102">4</text>
                 <text id="0" className="number" x="115" y="-145">18</text>
                 <text id="0" className="number" x="58" y="-172">1</text>
                 <text id="0" className="number" x="0" y="-182">20</text>
-                <text id="0" className="number" x="-60" y="-172">5</text>
+                <text id="0" className="number" x="-60" y="-174">5</text>
                 <text id="0" className="number" x="-118" y="-145">12</text>
                 <text id="0" className="number" x="-155" y="-105">9</text>
                 <text id="0" className="number" x="-183" y="-52">14</text>
@@ -402,7 +402,7 @@ const DartBoard = () => {
                 <text id="0" className="number" x="-157" y="118">16</text>
                 <text id="0" className="number" x="-112" y="160">7</text>
                 <text id="0" className="number" x="-60" y="188">19</text>
-                <text id="0" className="number" x="0" y="195">3</text>
+                <text id="0" className="number" x="0" y="198">3</text>
                 <text id="0" className="number" x="58" y="188">17</text>
                 <text id="0" className="number" x="112" y="160">2</text>
                 <text id="0" className="number" x="157" y="118">15</text>

@@ -23,45 +23,12 @@
     }
 }
 
-// Buttons
-button {
-    background-color: $dark-green;
-    color: $white;
-    padding: 6px 8px;
-    margin: 5px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    border-radius: 3px;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-
-    &.outline {
-        background-color: $secondary-grey-transparent;
-        border: 2px solid $dark-green;
-    }
-
-    &:hover {
-        background-color: $light-green;
-    }
-}
-
 // Bootstrap buttons
 .btn {
     border-radius: 2px;
     color: $white;
     font-weight: 400;
     font-size: 0.9rem;
-    border: none;
-
-    &.btn-primary {
-        &:hover {
-            background-color: $light-green;
-            color: $white;
-        }
-    }
 }
 
 .btn-toolbar {
@@ -78,16 +45,6 @@ button {
         padding: 4px 6px;
         cursor: pointer;
         color: $white;
-
-        &.btn-secondary {
-            &:hover {
-                background-color: $primary-grey;
-            }
-
-            &.btn-selected {
-                background-color: $dark-green;
-            }
-        }
     }
 }
 

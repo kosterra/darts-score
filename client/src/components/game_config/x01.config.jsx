@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import {toast} from 'react-toastify';
+import { toast } from 'react-toastify';
 import Button from 'react-bootstrap/Button';
 
 import X01ScoreConfig from './config_components/x01.score.config';
@@ -47,6 +47,15 @@ const X01Config = (props) => {
         } else {
             let playerIds = game.players.map((item) => item.id);
             game['players'] = playerIds;
+            game.currentPlayerTurn = game.players[0];
+            game.startingPlayerSet = game.players[0];
+            game.startingPlayerLeg = game.players[0];
+
+            game.players.forEach(player => {
+                let x01PlayerModel = {...X01Models.X01PlayerModel};
+                x01PlayerModel.score = Number(game.startingScore);
+                game.playerModels[player] = x01PlayerModel;
+            })
 
             let newGame = await X01Service.createX01(game)
             setGame(initialState);

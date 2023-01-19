@@ -3,7 +3,7 @@ import SetsLegsConfigOptions from "../components/game_config/config_options/sets
 import PlayerConfigOptions from "../components/game_config/config_options/player.config.options";
 
 const X01Model = {
-  gameIsRunning: false,
+  gameIsRunning: true,
   isSoloGame: false,
   hasWinner: false,
   startingScore: ScoreConfigOptions.gameScoreOptions.default,
@@ -15,17 +15,16 @@ const X01Model = {
   numberOfLegs: SetsLegsConfigOptions.boLegNumberOptions.default,
   numberOfPlayers: PlayerConfigOptions.numberOfPlayerOptions.default,
   players: [],
-  startingPlayerLeg: 0,
-  startingPlayerSet: 0,
-  currentPlayerTurn: 0,
+  startingPlayerLeg: '',
+  startingPlayerSet: '',
+  currentPlayerTurn: '',
   currentThrow: ['','',''], 
   currentLegThrows: [],
   allLegsThrows: [],
-  matchPlayerModels: []
+  playerModels: {}
 }
 
 const X01PlayerModel = {
-  playerId: '',
   hasWonMatch: false,
   score: null,
   setWon:0,
