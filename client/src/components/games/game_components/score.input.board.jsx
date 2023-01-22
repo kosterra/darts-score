@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import X01Context from '../../../utils/x01.context';
 import X01Models from '../../../models/x01.models';
+import X01Service from '../../../services/x01.service';
 import X01PlayerService from '../../../services/x01.player.service';
 
 import DartBoard from './dartboard';
@@ -36,6 +37,7 @@ const ScoreInputBoard = () => {
 
     const [ score, setScore ] = useState(game.startingScore);
     const [ showModal, setShowModal ] = useState(false);
+    const [ roundCount, setRoundCount ] = useState(0);
 
     useEffect(() => {
 		const clickEnterSubmitForm = (e) => {
@@ -68,6 +70,14 @@ const ScoreInputBoard = () => {
 		// eslint-disable-next-line
 	}, [game.hasWinner]);
 
+	useEffect(() => {
+		if (game.currentLegThrows.length > roundCount) {
+            setRoundCount(game.currentLegThrows.length);
+            X01Service.updateX01(game);
+        }
+		// eslint-disable-next-line
+	}, [game.currentLegThrows]);
+
 	const onChange = (e) => {
 		let throwIndex = Number(e.target.name.split('-')[1]) - 1;
         updateCurrentThrowManual(score, e.target.value, throwIndex);
@@ -75,7 +85,7 @@ const ScoreInputBoard = () => {
 
     const onSubmit = (e) => {
 		e.preventDefault();
-		onClickValidateThrow(score);
+        onClickValidateThrow(score);
 	};
 
 	const onNewGame = e => {
@@ -119,25 +129,15 @@ const ScoreInputBoard = () => {
                 <Modal.Title className="h6">How to manually add a dart score?</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <p>
-                    If you missed, simply enter 0.
-                </p>
-                <p>
-                    For any other scores add:
-                </p>
-                <p>
-                    "S" (for a single), "D" (for a double)<br />or "T" (for a treble) before your score.<br />So "D10" scores 20 points, "T20" scores 60 ...
-                </p>
-                <p>
-                    Note that:
-                </p>
-                <p>
-                    The inner BULLSEYE (50 points) = "D25"<br /> and the outer BULLSEYE (25 points) = "S25".
-                </p>
+                <p className="fs-7">If you missed, simply enter 0.</p>
+                <p className="fs-7">For any other scores add:</p>
+                <p className="fs-7">"S" (for a single), "D" (for a double)<br />or "T" (for a treble) before your score.<br />So "D10" scores 20 points, "T20" scores 60 ...</p>
+                <p className="fs-7"><strong>Note that:</strong></p>
+                <p className="fs-7">The inner BULLSEYE (50 points) = "D25"<br /> and the outer BULLSEYE (25 points) = "S25".</p>
             </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowModal(false)} className="p-2">
-                    <i className="fas fa-thumbs-up"></i>
+            <Modal.Footer className="p-1">
+                <Button variant="primary" onClick={() => setShowModal(false)} className="p-2">
+                    <i className="fas fa-thumbs-up px-1"></i>
                     Got It
                 </Button>
             </Modal.Footer>
@@ -167,20 +167,20 @@ const ScoreInputBoard = () => {
             </Container>
         )}
         {!game.hasWinner && (
-            <Container className="mt-4">
+            <Container fluid className="mt-4">
                 <Row className="gap-5 justify-content-center">
-                    <Col className="d-flex justify-content-end">
+                    <Col className="d-flex justify-content-end col-6">
                         <DartBoard />
                     </Col>
-                    <Col>
-                        <Form className="score-enter-form mt-4" onSubmit={onSubmit}>
-                            <div className="score-enter-form-title mb-2">
+                    <Col className="col-4">
+                        <Form className="mt-1" onSubmit={onSubmit}>
+                            <div className="mb-2">
                                 <span>Click the dartboard or enter score{` `}</span>
                                 <i onClick={() => setShowModal(true)} className="fas fa-question-circle" style={{cursor: "pointer"}}></i>
                             </div>
-                            <div className="score-enter-wrapper">
-                                <div className="score-enter-fields">
-                                    <div className="score-enter-input">
+                            <div>
+                                <div>
+                                    <div>
                                         <Fragment>
                                             <InputGroup className="mb-3 w-50">
                                                 <Form.Control
@@ -193,12 +193,12 @@ const ScoreInputBoard = () => {
                                                     maxLength={3}
                                                     />
                                                 <Button variant="danger" id="d1-input">
-                                                    <i onClick={() => updateCurrentThrowManual(score, '', 0)} className="fas fa-minus-circle delete-dart-input"></i>
+                                                    <i onClick={() => updateCurrentThrowManual(score, '', 0)} className="fas fa-minus-circle"></i>
                                                 </Button>
                                             </InputGroup>
                                         </Fragment>
                                     </div>
-                                    <div className="score-enter-input">
+                                    <div>
                                         {((score !== 1 && score > 0) ||
                                             game.currentThrow[1].trim() !== '' ||
                                             (game.currentThrow[1].trim() === '' && game.currentThrow[2].trim() !== '')) && (
@@ -220,7 +220,7 @@ const ScoreInputBoard = () => {
                                                 </Fragment>
                                         )}
                                     </div>
-                                    <div className="score-enter-input">
+                                    <div>
                                         {((score !== 1 && score > 0) || game.currentThrow[2].trim() !== '') && (
                                             <Fragment>
                                                 <InputGroup className="mb-3 w-50">
@@ -260,7 +260,7 @@ const ScoreInputBoard = () => {
                                     {game.currentLegThrows.length !== 0 && (
                                         <Button 
                                             onClick={onClickReturnToPreviousPlayer} 
-                                            className="bg-red"
+                                            variant="red"
                                             type="button"
                                         >
                                             <i className="fas fa-undo-alt" title='Undo'></i>

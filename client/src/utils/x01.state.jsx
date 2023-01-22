@@ -766,7 +766,6 @@ const X01State = props => {
             game: state.game,
             players: state.players,
             loading: state.loading,
-            error: state.error,
             initNewGame,
             resetGame,
             resetScores,

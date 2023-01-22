@@ -29,34 +29,32 @@ const X01Game = () => {
 
     return (
       <Fragment>
-        <div className="game-content w-100">
-            <div className="modus-info d-flex justify-content-center mb-4">
+        <div className="mx-4">
+            <div className="d-flex justify-content-center mb-4">
                 <div className="d-flex flex-column align-items-center bbr-12 bg-tertiary p-2">
                     <div className="fs-7">{game.setMode} <strong>{game.numberOfSets}</strong> Set{game.numberOfSets > 1 && 's'} - {game.legMode} <strong>{game.numberOfLegs}</strong> Leg{game.numberOfLegs > 1 && 's'}</div>
                     <div className="fs-9 pt-1">{game.legInMode} / {game.legOutMode}</div>
                 </div>
             </div>
-            <Container>
+            <Container fluid>
                 <Row className="justify-content-md-center">
                     {Object.entries(players).map(([idx, player]) => (
                         <Col key={`score-board-col-${idx}`} className={`col-3 border-dotted-top-grey border-dotted-bottom-grey ${Number(idx) < players.length - 1 ? 'border-dotted-end-grey' : ''}`}>
-                            <X01ScoreBoard key={`score-board-${idx}`} playerId={player.id} />
+                            <X01ScoreBoard key={`score-board-${idx}`} playerId={player.id} idx={idx} />
                         </Col>
                     ))}
                 </Row>
             </Container>
             <ScoreInputBoard />
-            {/* <div className="statistics-board">
-                {Object.entries(game.matchPlayerInfo).map(([player, infos]) => (
-                    <X01StatisticsBoard
-                    key={`statistics-board-${player}`}
-                    player={player}
-                    infos={infos}
-                    currentLegThrows={game.currentLegThrows}
-                    legOutMode={game.legOutMode}
-                    />
-                ))}
-            </div> */}
+            <Container fluid className="mt-4">
+                <Row className="justify-content-md-center">
+                    {Object.entries(players).map(([idx, player]) => (
+                        <Col key={`statistics-board-col-${idx}`} className={`col-3 border-dotted-top-grey border-dotted-bottom-grey ${Number(idx) < players.length - 1 ? 'border-dotted-end-grey' : ''}`}>
+                            <X01StatisticsBoard key={`statistics-board-${idx}`} playerId={player.id} />
+                        </Col>
+                    ))}
+                </Row>
+            </Container>
         </div>
       </Fragment>
     )

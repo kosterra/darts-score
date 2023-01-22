@@ -7,7 +7,7 @@ const updateGamePlayerModel = async (game, playerWinner) => {
   date = date.toLocaleString('de-CH');
 
   for (const player of game.players) {
-    let playerData = {...game.gamePlayerModels[player]};
+    let playerData = {...game.playerModels[player]};
 
     const playerDataLS = await getPlayer(player);
     playerData.date = date;

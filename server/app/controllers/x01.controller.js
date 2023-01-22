@@ -72,7 +72,7 @@ exports.update = (req, res) => {
 
   const id = req.params.id;
 
-  x01.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  X01.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
@@ -81,6 +81,7 @@ exports.update = (req, res) => {
       } else res.send({ message: "X01 game was updated successfully." });
     })
     .catch(err => {
+      logger.debug(err);
       res.status(500).send({
         message: "Error updating x01 game with id=" + id
       });

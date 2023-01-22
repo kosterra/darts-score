@@ -7,7 +7,7 @@ import Col from 'react-bootstrap/Col';
 import X01Context from '../../../utils/x01.context';
 
 const X01ScoreBoard = (props) => {
-    const { playerId } = props
+    const { playerId, idx } = props
     const {
         game,
         players,
@@ -43,7 +43,7 @@ const X01ScoreBoard = (props) => {
 
     return (
         <Container>
-            <Row className="justify-content-md-center pt-2 pb-2">
+            <Row className={`justify-content-md-center pt-2 pb-2 ${game.players.length === 2 && Number(idx) === 1 ? 'flex-row-reverse' : ''}`}>
                 <Col className="d-flex flex-column justify-content-center">
                     <Row className="align-items-center h-100">
                         <Col className="d-flex justify-content-center">
@@ -74,7 +74,7 @@ const X01ScoreBoard = (props) => {
                         </Col>
                     </Row>
                 </Col>
-                <Col>
+                <Col className="p-0">
                     <div className="d-flex align-items-center justify-content-center gap-3 h-100">
                         <div>
                             <div className="d-flex justify-content-center fw-600 mb-02">

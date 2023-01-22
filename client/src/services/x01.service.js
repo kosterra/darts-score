@@ -33,10 +33,29 @@ const loadX01 = (id) => {
         });
 }
 
+const updateX01 = (game) => {
+    return fetch(process.env.REACT_APP_API_URL + 'games/x01/' + game.id, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json'
+        },
+        body: JSON.stringify(game)
+    }).then(response => {
+        if (!response.ok) {
+            throw Error(response.statusText);
+        }
+        return response.ok;
+    }).catch(error => {
+        toast.error('Failed to update X01 game with id ' + game.id + '. ' + error.message);
+    });
+}
+
 // Export methods
 const X01Service = {
     createX01,
-    loadX01
+    loadX01,
+    updateX01
 }
 
 export default X01Service;
