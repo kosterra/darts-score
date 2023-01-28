@@ -1,4 +1,4 @@
-const ReturnToPreviousPlayer = matchData => {
+const X01ReturnToPreviousPlayer = matchData => {
   let prevThrowInfo = matchData.currentLegThrows.pop();
   let prevScore = getCurrentThrowScore(prevThrowInfo.darts);
 
@@ -151,4 +151,4 @@ const updateAverages = (playerData, darts) => {
 }
 
 
-export default ReturnToPreviousPlayer;
+export default X01ReturnToPreviousPlayer;

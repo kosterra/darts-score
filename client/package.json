@@ -15,11 +15,13 @@
     "react-scripts": "^5.0.1",
     "react-select": "^5.7.0",
     "react-toastify": "^9.1.1",
+    "react-loader-spinner": "^5.3.4",
     "bootstrap": "^5.2.3",
     "web-vitals": "^2.1.4",
     "recharts": "^2.1.16",
     "request": "^2.88.2",
-    "sass": "^1.57.1"
+    "sass": "^1.57.1",
+    "dayjs": "^1.11.7"
   },
   "devDependencies": {},
   "scripts": {

@@ -1,5 +1,3 @@
-import { toast } from 'react-toastify';
-
 // Public methods to export
 const createPlayer = (player) => {
     return fetch(process.env.REACT_APP_API_URL + 'players', {
@@ -12,32 +10,38 @@ const createPlayer = (player) => {
     }).then(response => {
         if (!response.ok) {
             throw Error(response.statusText);
-        } else {
-            toast.success('New Player created successfully.');
         }
         return response.ok;
     }).catch(error => {
-        toast.error('Failed to create new Player. ' + error.message);
+        throw Error(error);
     });
 }
 
 const getPlayer = (playerId) => {
     return fetch(process.env.REACT_APP_API_URL + 'players/' + playerId)
-        .then(response => response.json())
-        .then(data => {
+        .then(response => {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+            return response.json();
+        }).then(data => {
             return data;
         }).catch(error => {
-            toast.error('Failed to load player with id ' + playerId + '. ' + error.message);
+            throw Error(error);
         });
 }
 
 const loadPlayers = (searchTerm) => {
     return fetch(process.env.REACT_APP_API_URL + 'players/search?search=' + (searchTerm ? searchTerm : ''))
-        .then(response => response.json())
-        .then(data => {
+        .then(response => {
+            if (!response.ok) {
+                throw Error(response.statusText);
+            }
+            return response.json();
+        }).then(data => {
             return data;
         }).catch(error => {
-            toast.error('Failed to load players. ' + error.message);
+            throw Error(error);
         });
 }
 
@@ -52,12 +56,10 @@ const updatePlayer = (player) => {
     }).then(response => {
         if (!response.ok) {
             throw Error(response.statusText);
-        } else {
-            toast.success('Player updated successfully.');
         }
         return response.ok;
     }).catch(error => {
-        toast.error('Failed to update Player with id ' + player.id + '. ' + error.message);
+        throw Error(error);
     });
 }
 
@@ -67,12 +69,10 @@ const deletePlayer = (playerId) => {
     }).then(response => {
         if (!response.ok) {
             throw Error(response.statusText);
-        } else {
-            toast.success('Player successfully deleted.');
         }
         return response.ok;
     }).catch(error => {
-        toast.error('Failed to delete Player with id ' + playerId + '. ' + error.message);
+        throw Error(error);
     });
 }
 

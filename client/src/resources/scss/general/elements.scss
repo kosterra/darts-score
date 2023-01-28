@@ -49,6 +49,11 @@
         padding: 4px 6px;
         cursor: pointer;
         color: $white;
+
+        &.btn-selected {
+            background-color: $dark-green;
+
+        }
     }
 }
 

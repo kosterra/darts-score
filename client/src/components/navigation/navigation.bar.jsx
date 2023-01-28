@@ -7,7 +7,7 @@ import logo from '../../resources/img/logo.svg';
 export const NavigationBar = () => (
     <Navbar bg="dark" variant="dark" className="p-0">
         <Container fluid={true}>
-            <Navbar.Brand href="home">
+            <Navbar.Brand href="/">
                 <img
                     alt="darts score logo"
                     src={logo}

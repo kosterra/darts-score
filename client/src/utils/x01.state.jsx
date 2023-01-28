@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useReducer } from 'react';
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from 'react-toastify';
 
 import X01Context from './x01.context';
@@ -7,11 +7,10 @@ import X01Reducer from './x01.reducer';
 import {
   FETCH_GAME_SUCCESS,
   FETCH_PLAYERS_SUCCESS,
-  INIT_NEW_GAME,
-  RESET_GAME,
   SET_LOADING,
   UPDATE_CURRENT_THROW,
   RESET_CURRENT_THROW,
+  SAVE_ALL_SETS_THROWS,
   SAVE_CURRENT_LEG_THROWS,
   RESET_CURRENT_LEG_THROWS,
   PUSH_TO_CURRENT_LEG_THROWS,
@@ -24,9 +23,13 @@ import {
   UPDATE_SECTION_HIT,
   UPDATE_SCORE_RANGES,
   UPDATE_DOUBLE_OUT,
-  INCREMENT_LEG_WON,
+  INCREMENT_CURRENT_SET,
+  INCREMENT_CURRENT_SET_LEG,
+  INCREMENT_SETS_PLAYED,
+  INCREMENT_LEGS_WON,
+  INCREMENT_LEGS_PLAYED,
+  INCREMENT_SETS_WON,
   RESET_PLAYER_LEG,
-  INCREMENT_SET_WON,
   CHANGE_CURRENT_PLAYER,
   CHANGE_STARTING_PLAYER_SET,
   CHANGE_STARTING_PLAYER_LEG,
@@ -34,19 +37,20 @@ import {
   RETURN_PREV_PLAYER
 } from './constants';
 
-import X01Models from '../models/x01.models';
 import X01Service from '../services/x01.service';
-import ReturnToPreviousPlayer from './return.to.previous.player';
+import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
 
 const X01State = props => {
   const { id } = useParams();
 
+  const navigate = useNavigate();
+
   const initialState = {
     game: {},
     players: [],
     loading: {
-      initGameLoading: false,
+      initGameLoading: true,
       validateThrow: false
     }
   };
@@ -55,40 +59,39 @@ const X01State = props => {
 
   // fetch a x01 game from the API
   useEffect(() => {
+    setLoading('initGameLoading', true);
     async function fetchX01() {
-      let x01 = await X01Service.loadX01(id);
-      dispatch({type: FETCH_GAME_SUCCESS, payload: x01});
-      return x01;
+      try {
+        let x01 = await X01Service.loadX01(id);
+        dispatch({type: FETCH_GAME_SUCCESS, payload: x01});
+        return x01;
+      } catch (error) {
+        throw new Error(error);
+      }
     }
 
     async function fetchPlayers(game) {
-      let players = [];
-      await Promise.all(game.players.map(async (playerId) => {
-        let player = await PlayerService.getPlayer(playerId);
-        players.push(player);
-      }));
-      dispatch({type: FETCH_PLAYERS_SUCCESS, payload: players});
+      try {
+        let players = [];
+        await Promise.all(game.players.map(async (playerId) => {
+          let player = await PlayerService.getPlayer(playerId);
+          players.push(player);
+        }));
+        dispatch({type: FETCH_PLAYERS_SUCCESS, payload: players});
+      } catch (error) {
+        throw new Error(error);
+      }
     }
 
     fetchX01().then((game) => {
-      fetchPlayers(game);
+      fetchPlayers(game).then(() => {
+        setLoading('initGameLoading', false);
+      });
+    }).catch(error => {
+      toast.error('Failed to load X01 game. ' + error.message);
+      navigate("/", { replace: true });
     });
-  }, [id]);
-
-  const initNewGame = gameData => {
-    setLoading('initGameLoading', true);
-    const data = {...state.game, ...gameData}
-    dispatch({
-      type: INIT_NEW_GAME,
-      payload: data
-    })
-    setLoading('initGameLoading', false)
-  }
-
-  const resetGame = () => dispatch({
-    type: RESET_GAME,
-    payload: {...X01Models.GameModel}
-  })
+  }, [id, navigate]);
 
   const updateCurrentThrowManual = (score, value, index) => {
     if (state.game.gameType === score && value !== '' && validateDartValue(value)) {
@@ -151,18 +154,8 @@ const X01State = props => {
 
   const onClickValidateThrow = currentScore => {
     setLoading('validateThrow', true);
+
     let currentThrow = [...state.game.currentThrow];
-    let roundScore = getCurrentThrowScore();
-    let currentLegThrows = [...state.game.currentLegThrows,
-      { 
-        darts: currentThrow,
-        playerId: state.game.currentPlayerTurn,
-        roundScore: roundScore,
-        scoreLeft: currentScore
-      }];
-    let hasWonLeg = false;
-    let hasWonSet = false;
-    let hasWonMatch = false;
 
     for(let i = 0; i< currentThrow.length; i++) {
       if(!validateDartValue(currentThrow[i])) {
@@ -178,77 +171,56 @@ const X01State = props => {
       return
     };
 
-    if (currentScore === 1 || currentScore < 0) {
-      playerBustedUpdateState()
+    let roundScore = getCurrentThrowScore();
+    let currentLegThrows = [...state.game.currentLegThrows,
+      { 
+        darts: currentThrow,
+        playerId: state.game.currentPlayerTurn,
+        roundScore: roundScore,
+        scoreLeft: currentScore
+      }];
 
+    let hasBusted = checkIfHasBusted(currentScore)
+    let hasWonLeg = false;
+    let hasWonSet = false;
+    let hasWonGame = false;
+
+    if (hasBusted) {
+      playerBustedUpdateState();
     } else if (currentScore === 0) {
-      if (state.game.legOutMode === 'Straight Out') {
-        saveCurrentLegThrows(currentLegThrows)
-        saveCheckoutScore();
-        playerUpdateStat(currentScore);
-        hasWonSet = checkIfHasWonSet();
-        if (hasWonSet) {
-          hasWonMatch = checkIfHasWonMatch();
-          incrementSetWon();
-          resetPlayersLegs();
-        } else {
-          incrementLegWon();
-        }
-        hasWonLeg = true;
-        resetCurrentLegThrows();
-      } else if (state.game.legOutMode === 'Double Out') {
-        let finishedInDouble = lastDartIsDouble();
-        
-        if (finishedInDouble) {
-          saveCurrentLegThrows(currentLegThrows)
-          saveCheckoutScore();
-          playerUpdateStat(currentScore);
-          hasWonSet = checkIfHasWonSet();
-          if (hasWonSet) {
-            hasWonMatch = checkIfHasWonMatch();
-            incrementSetWon();
-            resetPlayersLegs();
-          } else {
-            incrementLegWon();
-          }
-          hasWonLeg = true;
-          resetCurrentLegThrows();
-        } else {
-          playerBustedUpdateState()
-        }
-      } else if (state.game.legOutMode === 'Master Out') {
-        let finishedInMaster = lastDartIsDouble() || lastDartIsTriple();
-        
-        if (finishedInMaster) {
-          saveCurrentLegThrows(currentLegThrows)
-          saveCheckoutScore();
-          playerUpdateStat(currentScore);
-          hasWonSet = checkIfHasWonSet();
-          if (hasWonSet) {
-            hasWonMatch = checkIfHasWonMatch();
-            incrementSetWon();
-            resetPlayersLegs();
-          } else {
-            incrementLegWon();
-          }
-          hasWonLeg = true;
-          resetCurrentLegThrows();
-        } else {
-          playerBustedUpdateState()
-        }
+      saveCurrentLegThrows(currentLegThrows)
+      saveCheckoutScore();
+      playerUpdateStat(currentScore);
+      
+      hasWonLeg = true;
+      incrementLegsPlayed();
+
+      hasWonSet = checkIfHasWonSet();
+      if (hasWonSet) {
+        hasWonGame = checkIfHasWonGame();
+        !hasWonGame && incrementCurrentSet();
+        incrementSetsPlayed();
+        incrementSetsWon();
+        resetPlayersLegs();
+      } else {
+        incrementCurrentSetLeg();
+        incrementLegsWon();
       }
+      saveAllSetsThrows(currentLegThrows);
+      resetCurrentLegThrows();
     } else {
       playerUpdateStat(currentScore);
     }
+    
     updateBestThreeDart();
     updateSectionHit();
     couldDoubleOut();
 
     !hasWonLeg && pushCurrentThrowToCurrentLegThrow();
     resetCurrentThrow();
-    hasWonLeg && resetScores();
+    hasWonLeg && !hasWonGame && resetScores();
 
-    if (hasWonMatch) {
+    if (hasWonGame) {
       gameHasWinner();
       setLoading('validateThrow', false);
       return
@@ -257,6 +229,20 @@ const X01State = props => {
     manageCurrentPlayerChange(hasWonLeg, hasWonSet);
 
     setLoading('validateThrow', false);
+  }
+
+  const checkIfHasBusted = (currentScore) => {
+    let hasBusted = currentScore < 0;
+
+    if (!hasBusted) {
+      if (state.game.legOutMode === 'Double Out') {
+        hasBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble());
+      } else if (state.game.legOutMode === 'Master Out') {
+        hasBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble() && !lastDartIsTriple());
+      }
+    }
+
+    return hasBusted;
   }
 
   const playerUpdateStat = (currentScore) => {
@@ -268,18 +254,23 @@ const X01State = props => {
   }
 
   const playerBustedUpdateState = () => {
-      calculateAverage(true);
-      incrementTotalThrow();
-      updateScoreRanges(true); 
+    calculateAverage(true);
+    incrementTotalThrow();
+    updateScoreRanges(true); 
   }
 
   const validateDartValue = dart => {
 
-    if(Number(dart) === 0 || dart === '') return true;
+    if(Number(dart) === 0 || dart === '') {
+      return true;
+    }
+
     if(/^[SDT]\d{1,2}$/i.test(dart) ) {
 
       let score = Number(dart.slice(1));
-      if((score >= 1 && score <= 20) || /[SD]25/i.test(dart)) return true;
+      if((score >= 1 && score <= 20) || /[SD]25/i.test(dart)) {
+        return true
+      };
       
     }
     return false;
@@ -297,9 +288,11 @@ const X01State = props => {
       return false;
     }
 
-    if(currentScore === 1 || currentScore === 0) return true;
+    if(currentScore === 1 || currentScore === 0) {
+      return true;
+    }
 
-    return true
+    return true;
   }
 
   const dartIsDouble = (value) => {
@@ -415,6 +408,19 @@ const X01State = props => {
     dispatch({
       type: SAVE_CURRENT_LEG_THROWS,
       payload: currentLegThrows
+    })
+  }
+
+  const saveAllSetsThrows = (currentLegThrows) => {
+    let allSetsThrows = state.game.allSetsThrows ? state.game.allSetsThrows : {};
+    if (!allSetsThrows[state.game.currentSet]) {
+      allSetsThrows[state.game.currentSet] = {};
+    }
+    allSetsThrows[state.game.currentSet][state.game.currentSetLeg] = currentLegThrows;
+
+    dispatch({
+      type: SAVE_ALL_SETS_THROWS,
+      payload: allSetsThrows
     })
   }
 
@@ -656,23 +662,47 @@ const X01State = props => {
     })
   }
 
-  const incrementLegWon = () => {
+  const incrementLegsPlayed = () => {
+    dispatch({
+      type: INCREMENT_LEGS_PLAYED,
+    })
+  }
+
+  const incrementLegsWon = () => {
     let playerId = state.game.currentPlayerTurn;
     dispatch({
-      type: INCREMENT_LEG_WON,
+      type: INCREMENT_LEGS_WON,
       payload: {
         playerId
       } 
     })
   }
 
-  const incrementSetWon = () => {
+  const incrementSetsPlayed = () => {
+    dispatch({
+      type: INCREMENT_SETS_PLAYED,
+    })
+  }
+
+  const incrementSetsWon = () => {
     let playerId = state.game.currentPlayerTurn;
     dispatch({
-      type: INCREMENT_SET_WON,
+      type: INCREMENT_SETS_WON,
       payload: {
         playerId
       } 
+    })
+  }
+
+  const incrementCurrentSet = () => {
+    dispatch({
+      type: INCREMENT_CURRENT_SET,
+    })
+  }
+
+  const incrementCurrentSetLeg = () => {
+    dispatch({
+      type: INCREMENT_CURRENT_SET_LEG,
     })
   }
 
@@ -687,7 +717,7 @@ const X01State = props => {
 
   const checkIfHasWonSet = () => {
     let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
-    let currentLegWon = playerModel.currentSetLegWon;
+    let currentLegWon = playerModel.currentSetLegsWon;
     let legsBySet = state.game.legMode === 'Best of' ? Math.round(state.game.numberOfLegs / 2) : state.game.numberOfLegs;
     if (currentLegWon + 1 === legsBySet) {
       return true;
@@ -695,11 +725,10 @@ const X01State = props => {
     return false;
   }
 
-  const checkIfHasWonMatch = () => {
+  const checkIfHasWonGame = () => {
     let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
-    let currentSetWon = playerModel.setWon;
     let setsToWin = state.game.setMode === 'Best of' ? Math.round(state.game.numberOfSets / 2) : state.game.numberOfSets;
-    if (currentSetWon + 1 === setsToWin) {
+    if (playerModel.setsWon + 1 === setsToWin) {
       return true;
     }
     return false;
@@ -744,7 +773,7 @@ const X01State = props => {
 
   const onClickReturnToPreviousPlayer = () => {
     if(!state.game.currentLegThrows.length) return;
-    let newMatchData = ReturnToPreviousPlayer(state.game);
+    let newMatchData = X01ReturnToPreviousPlayer(state.game);
     dispatch({
       type: RETURN_PREV_PLAYER,
       payload: newMatchData
@@ -766,8 +795,6 @@ const X01State = props => {
             game: state.game,
             players: state.players,
             loading: state.loading,
-            initNewGame,
-            resetGame,
             resetScores,
             onClickValidateThrow,
             updateCurrentThrowManual,

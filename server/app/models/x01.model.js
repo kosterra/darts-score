@@ -16,10 +16,14 @@ module.exports = mongoose => {
         startingPlayerLeg: String,
         startingPlayerSet: String,
         currentPlayerTurn: String,
+        setsPlayed: Number,
+        legsPlayed: Number,
+        currentSet: Number,
+        currentSetLeg: Number,
         currentThrow: [String],
         currentLegThrows: [{}],
-        allLegsThrows: [{}],
         players: [String],
+        allSetsThrows: mongoose.Schema.Types.Mixed,
         playerModels: mongoose.Schema.Types.Mixed
       },
       { timestamps: true }

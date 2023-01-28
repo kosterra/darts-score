@@ -18,17 +18,22 @@ const X01Model = {
   startingPlayerLeg: '',
   startingPlayerSet: '',
   currentPlayerTurn: '',
+  setsPlayed: 0,
+  legsPlayed: 0,
+  currentSet: 1,
+  currentSetLeg: 1,
   currentThrow: ['','',''], 
   currentLegThrows: [],
-  allLegsThrows: [],
+  allSetsThrows: {},
   playerModels: {}
 }
 
 const X01PlayerModel = {
-  hasWonMatch: false,
+  hasWonGame: false,
   score: null,
-  setWon:0,
-  currentSetLegWon: 0,
+  setsWon: 0,
+  legsWon: 0,
+  currentSetLegsWon: 0,
   totalThrow: {
     darts: 0,
     rounds: 0

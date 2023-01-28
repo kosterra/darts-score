@@ -12,7 +12,7 @@ import X01Models from '../../models/x01.models';
 import X01Service from '../../services/x01.service';
 
 
-const X01Config = (props) => {
+const X01Config = () => {
     const initialState = X01Models.X01Model;
 
     const [ game, setGame ] = useState(initialState);
@@ -46,6 +46,7 @@ const X01Config = (props) => {
             toast.error('You need to select ' + game.numberOfPlayers + ' players!');
         } else {
             let playerIds = game.players.map((item) => item.id);
+            game.isSoloGame = playerIds.length === 1;
             game['players'] = playerIds;
             game.currentPlayerTurn = game.players[0];
             game.startingPlayerSet = game.players[0];
@@ -58,7 +59,6 @@ const X01Config = (props) => {
             })
 
             let newGame = await X01Service.createX01(game)
-            setGame(initialState);
             navigate('/x01/' + newGame.id);
         }
     }

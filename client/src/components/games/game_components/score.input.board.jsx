@@ -1,10 +1,7 @@
 import React, { useContext, useState, useEffect, Fragment } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import X01Context from '../../../utils/x01.context';
-import X01Models from '../../../models/x01.models';
 import X01Service from '../../../services/x01.service';
-import X01PlayerService from '../../../services/x01.player.service';
 
 import DartBoard from './dartboard';
 import Checkout from './checkout';
@@ -21,23 +18,18 @@ import Button from 'react-bootstrap/Button';
 
 
 const ScoreInputBoard = () => {
-    const navigate = useNavigate();
-
     const {
         game,
-        players,
         updateCurrentThrowManual,
         onClickValidateThrow,
         getCurrentThrowScore,
         onClickReturnToPreviousPlayer,
-        resetGame,
-        initNewGame,
         loading
     } = useContext(X01Context);
 
     const [ score, setScore ] = useState(game.startingScore);
     const [ showModal, setShowModal ] = useState(false);
-    const [ roundCount, setRoundCount ] = useState(0);
+    const [ submit, setSubmit ] = useState(false);
 
     useEffect(() => {
 		const clickEnterSubmitForm = (e) => {
@@ -61,18 +53,10 @@ const ScoreInputBoard = () => {
 
         // eslint-disable-next-line
 	},[ game.currentThrow ]);
-	
-	useEffect(() => {
-		let currentPlayer = game.playerModels[game.currentPlayerTurn];
-		if (game.hasWinner) {
-            X01PlayerService.updateGamePlayerModel(game, currentPlayer.id)
-        }
-		// eslint-disable-next-line
-	}, [game.hasWinner]);
 
 	useEffect(() => {
-		if (game.currentLegThrows.length > roundCount) {
-            setRoundCount(game.currentLegThrows.length);
+		if (submit) {
+            setSubmit(false);
             X01Service.updateX01(game);
         }
 		// eslint-disable-next-line
@@ -86,85 +70,34 @@ const ScoreInputBoard = () => {
     const onSubmit = (e) => {
 		e.preventDefault();
         onClickValidateThrow(score);
-	};
-
-	const onNewGame = e => {
-		resetGame();
-		navigate("/", { replace: true });
-	};
-
-	const onFinishGame = e => {
-		resetGame();
-		navigate("/", { replace: true });
-	};
-
-	const onRestartGame = e => {
-        let newMatchSetup = {...game};
-
-		newMatchSetup.hasWinner = false;
-		newMatchSetup.startingPlayerLeg = game.players[0];
-		newMatchSetup.startingPlayerSet = game.players[0];
-		newMatchSetup.currentPlayerTurn = game.players[0];
-		newMatchSetup.allLegsThrows = [];
-
-		newMatchSetup.playerModels = {};
-		newMatchSetup.players.forEach(player => {
-			let x01PlayerModel = {...X01Models.X01PlayerModel};
-            x01PlayerModel.id = player;
-			x01PlayerModel.score = Number(newMatchSetup.gameType);
-			newMatchSetup.playerModels[player] = x01PlayerModel;
-		});
-
-		initNewGame(newMatchSetup);
+        setSubmit(true)
 	};
   
   return (
     <Fragment>
-        <Modal show={showModal}
-            onHide={() => setShowModal(false)}
-            fullscreen={false}
-            aria-labelledby="contained-modal-title-vcenter"
-            centered>
-            <Modal.Header closeButton closeVariant="white">
-                <Modal.Title className="h6">How to manually add a dart score?</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <p className="fs-7">If you missed, simply enter 0.</p>
-                <p className="fs-7">For any other scores add:</p>
-                <p className="fs-7">"S" (for a single), "D" (for a double)<br />or "T" (for a treble) before your score.<br />So "D10" scores 20 points, "T20" scores 60 ...</p>
-                <p className="fs-7"><strong>Note that:</strong></p>
-                <p className="fs-7">The inner BULLSEYE (50 points) = "D25"<br /> and the outer BULLSEYE (25 points) = "S25".</p>
-            </Modal.Body>
-            <Modal.Footer className="p-1">
-                <Button variant="primary" onClick={() => setShowModal(false)} className="p-2">
-                    <i className="fas fa-thumbs-up px-1"></i>
-                    Got It
-                </Button>
-            </Modal.Footer>
-        </Modal>
-        {game.hasWinner && (
-            <Container>
-                <Row>
-                    <Col className="d-flex flex-column justify-content-center align-items-center gap-2">
-                        <span className="h2 mt-3">{players.find((player) => player.id === game.currentPlayerTurn).nickname} wins</span>
-                        <span className="display-1 my-3 text-gold"><i className="fas fa-trophy" title="trophy"></i></span>
-                        <div className="d-grid gap-2 col-2 mx-auto">
-                            <Button onClick={onRestartGame} variant="primary">
-                                <i className="fas fa-sync-alt pe-2" title='Send'></i>
-                                PLAY AGAIN
-                            </Button>
-                            <Button onClick={onNewGame} variant="outline-primary">
-                                <i className="fas fa-plus pe-2" title='Send'></i>
-                                NEW GAME
-                            </Button>
-                            <Button onClick={onFinishGame} variant="outline-primary">
-                                <i className="fas fa-home pe-2" title='Send'></i>
-                                BACK HOME
-                            </Button>
-                        </div>
-                    </Col>
-                </Row>
-            </Container>
+        {!game.hasWinner && (
+            <Modal show={showModal}
+                onHide={() => setShowModal(false)}
+                fullscreen={false}
+                aria-labelledby="contained-modal-title-vcenter"
+                centered>
+                <Modal.Header closeButton closeVariant="white">
+                    <Modal.Title className="h6">How to manually add a dart score?</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p className="fs-7">If you missed, simply enter 0.</p>
+                    <p className="fs-7">For any other scores add:</p>
+                    <p className="fs-7">"S" (for a single), "D" (for a double)<br />or "T" (for a treble) before your score.<br />So "D10" scores 20 points, "T20" scores 60 ...</p>
+                    <p className="fs-7"><strong>Note that:</strong></p>
+                    <p className="fs-7">The inner BULLSEYE (50 points) = "D25"<br /> and the outer BULLSEYE (25 points) = "S25".</p>
+                </Modal.Body>
+                <Modal.Footer className="p-1">
+                    <Button variant="primary" onClick={() => setShowModal(false)} className="p-2">
+                        <i className="fas fa-thumbs-up px-1"></i>
+                        Got It
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         )}
         {!game.hasWinner && (
             <Container fluid className="mt-4">

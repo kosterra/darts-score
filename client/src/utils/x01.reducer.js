@@ -1,10 +1,9 @@
-import { 
-    INIT_NEW_GAME,
-    RESET_GAME,
+import {
     SET_LOADING,
     UPDATE_CURRENT_THROW,
     PUSH_TO_CURRENT_LEG_THROWS,
     RESET_CURRENT_THROW,
+    SAVE_ALL_SETS_THROWS,
     SAVE_CURRENT_LEG_THROWS,
     RESET_CURRENT_LEG_THROWS,
     UPDATE_PLAYER_SCORE,
@@ -16,8 +15,12 @@ import {
     UPDATE_SECTION_HIT,
     UPDATE_SCORE_RANGES,
     UPDATE_DOUBLE_OUT,
-    INCREMENT_LEG_WON,
-    INCREMENT_SET_WON,
+    INCREMENT_CURRENT_SET,
+    INCREMENT_CURRENT_SET_LEG,
+    INCREMENT_SETS_PLAYED,
+    INCREMENT_LEGS_WON,
+    INCREMENT_LEGS_PLAYED,
+    INCREMENT_SETS_WON,
     RESET_PLAYER_LEG,
     CHANGE_CURRENT_PLAYER,
     CHANGE_STARTING_PLAYER_SET,
@@ -40,16 +43,6 @@ import {
           ...state,
           players: [...action.payload],
         };
-      case INIT_NEW_GAME:
-        return {
-          ...state,
-          game: {...action.payload},
-        };
-      case RESET_GAME: 
-        return {
-          ...state,
-          game: {...action.payload},
-        };
       case UPDATE_CURRENT_THROW:
         return {
           ...state,
@@ -71,12 +64,23 @@ import {
             currentThrow: ['','','']
           }
         };
+      case SAVE_ALL_SETS_THROWS:
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            allSetsThrows: action.payload
+          }
+        };
       case SAVE_CURRENT_LEG_THROWS:
         return {
           ...state,
           game: {
             ...state.game,
-            allLegsThrows: [...state.game.allLegsThrows, action.payload]
+            allSetsThrows: {
+              ...state.game.allSetsThrows,
+              [state.game.currentSet] : [action.payload]
+            }
           }
         };
       case RESET_CURRENT_LEG_THROWS:
@@ -227,7 +231,31 @@ import {
             }
           }
         };
-      case INCREMENT_LEG_WON: 
+      case INCREMENT_CURRENT_SET: 
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            currentSet: state.game.currentSet + 1
+          }
+        };
+      case INCREMENT_CURRENT_SET_LEG: 
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            currentSetLeg: state.game.currentSetLeg + 1
+          }
+        };
+      case INCREMENT_LEGS_PLAYED: 
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            legsPlayed: state.game.legsPlayed + 1
+          }
+        };
+      case INCREMENT_LEGS_WON: 
         return {
           ...state,
           game: {
@@ -236,12 +264,21 @@ import {
               ...state.game.playerModels,
               [action.payload.playerId]: {
                 ...state.game.playerModels[action.payload.playerId],
-                currentSetLegWon: state.game.playerModels[action.payload.playerId].currentSetLegWon + 1,
+                legsWon: state.game.playerModels[action.payload.playerId].legsWon + 1,
+                currentSetLegsWon: state.game.playerModels[action.payload.playerId].currentSetLegsWon + 1,
               }
             }
           }
         };
-      case INCREMENT_SET_WON: 
+      case INCREMENT_SETS_PLAYED: 
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            setsPlayed: state.game.setsPlayed + 1
+          }
+        };
+      case INCREMENT_SETS_WON: 
         return {
           ...state,
           game: {
@@ -250,7 +287,7 @@ import {
               ...state.game.playerModels,
               [action.payload.playerId]: {
                 ...state.game.playerModels[action.payload.playerId],
-                setWon: state.game.playerModels[action.payload.playerId].setWon + 1,
+                setsWon: state.game.playerModels[action.payload.playerId].setsWon + 1,
               }
             }
           }
@@ -260,11 +297,12 @@ import {
           ...state,
           game: {
             ...state.game,
+            currentSetLeg: 1,
             playerModels: {
               ...state.game.playerModels,
               [action.payload]: {
                 ...state.game.playerModels[action.payload],
-                currentSetLegWon: 0
+                currentSetLegsWon: 0
               }
             }
           }
@@ -301,12 +339,15 @@ import {
           ...state,
           game: {
             ...state.game,
+            gameIsRunning: false,
             hasWinner: true,
+            currentSet: 0,
+            currentSetLeg: 0,
             playerModels: {
               ...state.game.playerModels,
               [action.payload]: {
                 ...state.game.playerModels[action.payload],
-                hasWongame: true
+                hasWonGame: true
               }
             }
           }
