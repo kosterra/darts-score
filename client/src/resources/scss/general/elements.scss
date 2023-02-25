@@ -23,6 +23,23 @@
     }
 }
 
+// Bootstrap nav-items
+.nav-justified {
+
+    .nav-item {
+        padding: 0.4rem;
+
+        .nav-link {
+            background-color: $tertiary-grey;
+            color: $white;
+
+            &.active {
+                background-color: $dark-green;
+            }
+        }
+    }
+}
+
 // Bootstrap buttons
 .btn {
     border-radius: 2px;
@@ -77,6 +94,11 @@
             border-top: 1px solid $tertiary-grey;
         }
     }
+}
+
+// Bootstrap Progress Bar
+.progress {
+    height: 0.8rem;
 }
 
 // Input

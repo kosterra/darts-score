@@ -95,12 +95,12 @@ const X01StatisticsBoard = props => {
                         {[...Array(20)].map((x, i) =>
                             <div className="d-flex justify-content-between text-grey fs-9" key={i}>
                                 <span>Double {i+1}</span>
-                                <span>{game.playerModels[playerId].doubleOut && game.playerModels[playerId].doubleOut[String(i+1)] ? game.playerModels[playerId].doubleOut[String(i+1)].hit : 0} / {game.playerModels[playerId].doubleOut && game.playerModels[playerId].doubleOut[String(i+1)] ? game.playerModels[playerId].doubleOut[String(i+1)].total : 0}</span>
+                                <span>{((((game.playerModels[playerId].checkout || {}).sections || {})[i+1] || {}).hit || 0)} / {((((game.playerModels[playerId].checkout || {}).sections || {})[i+1] || {}).total || 0)}</span>
                             </div>
                         )}
                         <div className="d-flex justify-content-between text-grey fs-9" >
                             <span>BULLSEYE</span>
-                            <span>{game.playerModels[playerId].doubleOut && game.playerModels[playerId].doubleOut['25'] ? game.playerModels[playerId].doubleOut['25'].hit : 0} / {game.playerModels[playerId].doubleOut && game.playerModels[playerId].doubleOut['25'] ? game.playerModels[playerId].doubleOut['25'].total : 0}</span>
+                            <span>{((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).hit || 0)} / {((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).total || 0)}</span>
                         </div>
                     </div>
                 </Col>

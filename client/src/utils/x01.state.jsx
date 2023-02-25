@@ -17,12 +17,14 @@ import {
   UPDATE_PLAYER_SCORE,
   RESET_SCORES,
   UPDATE_AVERAGES,
-  INCREMENT_TOTAL_THROW,
+  UPDATE_TOTAL_THROW,
+  UPDATE_TOTAL_THROW_BEG_MID_GAME,
+  UPDATE_TOTAL_THROW_END_GAME,
   UPDATE_BEST_THREE_DARTS,
   UPDATE_CHECKOUT_SCORE,
   UPDATE_SECTION_HIT,
   UPDATE_SCORE_RANGES,
-  UPDATE_DOUBLE_OUT,
+  UPDATE_CHECKOUT,
   INCREMENT_CURRENT_SET,
   INCREMENT_CURRENT_SET_LEG,
   INCREMENT_SETS_PLAYED,
@@ -194,6 +196,7 @@ const X01State = props => {
       
       hasWonLeg = true;
       incrementLegsPlayed();
+      incrementLegsWon();
 
       hasWonSet = checkIfHasWonSet();
       if (hasWonSet) {
@@ -204,7 +207,6 @@ const X01State = props => {
         resetPlayersLegs();
       } else {
         incrementCurrentSetLeg();
-        incrementLegsWon();
       }
       saveAllSetsThrows(currentLegThrows);
       resetCurrentLegThrows();
@@ -214,7 +216,7 @@ const X01State = props => {
     
     updateBestThreeDart();
     updateSectionHit();
-    couldDoubleOut();
+    couldCheckout();
 
     !hasWonLeg && pushCurrentThrowToCurrentLegThrow();
     resetCurrentThrow();
@@ -246,16 +248,20 @@ const X01State = props => {
   }
 
   const playerUpdateStat = (currentScore) => {
+    updateTotalThrow();
+    updateTotalThrowBegMidGame();
+    updateTotalThrowEndGame();
     calculateAverage();
-    incrementTotalThrow();
     updateScoreRanges(); 
     updatePlayerScore(currentScore);
 
   }
 
   const playerBustedUpdateState = () => {
+    updateTotalThrow();
+    updateTotalThrowBegMidGame();
+    updateTotalThrowEndGame();
     calculateAverage(true);
-    incrementTotalThrow();
     updateScoreRanges(true); 
   }
 
@@ -369,14 +375,14 @@ const X01State = props => {
     let totalScore = [...state.game.currentThrow].reduce((total, dart) => {
       let dartIsValid = validateDartValue(dart);
 
-      if(!dartIsValid) return total += 0;
+      if (!dartIsValid) return total += 0;
 
-      if(Number(dart) === 0 || dart === '') return total +=0;
+      if (Number(dart) === 0 || dart === '') return total +=0;
 
       let score = Number(dart.slice(1));
-        if((score >=1 && score <=20) || /[SD]25/i.test(dart)) {
-          if(/t/i.test(dart[0])) score *= 3;
-          if(/d/i.test(dart[0])) score *= 2;
+        if ((score >=1 && score <=20) || /[SD]25/i.test(dart)) {
+          if (/t/i.test(dart[0])) score *= 3;
+          if (/d/i.test(dart[0])) score *= 2;
           return total +=score;
 
         }
@@ -431,35 +437,92 @@ const X01State = props => {
   const calculateAverage = (isBusted = false) => {
     let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
     let playerId = state.game.currentPlayerTurn;
-    let totalRounds = playerModel.totalThrow.rounds
-    let overallAverage = playerModel.averages.overall;
+    
+    let averages = playerModel.averages;
+
+    if (!averages.hasOwnProperty('game')) {
+      averages['game'] = {
+        overall: 0,
+        begMidGame: 0,
+        endGame: 0
+      };
+    }
+
+    if (!averages.hasOwnProperty('set-' + state.game.currentSet)) {
+      averages['set-' + state.game.currentSet] = {
+        overall: 0,
+        begMidSet: 0,
+        endSet: 0
+      };
+    }
+    
+    if (!averages['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg)) {
+      averages['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {
+        overall: 0,
+        begMidLeg: 0,
+        endLeg: 0
+      };
+    }
 
     let totalCurrentScore = isBusted ? 0 : getCurrentThrowScore();
+    let gameOverallAvg = playerModel.averages.game.overall;
+    let setOverallAvg = playerModel.averages['set-' + state.game.currentSet].overall;
+    let legOverallAvg = playerModel.averages['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].overall;
+    let totalRoundsGame = playerModel.totalThrow.game.rounds - 1;
+    let totalRoundsSet = playerModel.totalThrow['set-' + state.game.currentSet].rounds - 1;
+    let totalRoundsLeg = playerModel.totalThrow['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].rounds - 1;
 
-    let newOverallAverage = (overallAverage * totalRounds + totalCurrentScore) / (totalRounds +1);
+    averages.game.overall = (gameOverallAvg * totalRoundsGame + totalCurrentScore) / (totalRoundsGame + 1);
+    averages['set-' + state.game.currentSet].overall = (setOverallAvg  * totalRoundsSet + totalCurrentScore) / (totalRoundsSet + 1);
+    averages['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].overall = (legOverallAvg * totalRoundsLeg + totalCurrentScore) / (totalRoundsLeg + 1);
 
     let gamePeriod = playerModel.score > 140 ? 'begMidGame' : 'endGame';
-    let newGamePeriodAvg;
  
     if (gamePeriod === 'begMidGame') {
-      let totalRoundsBegMid = playerModel.totalThrowBegMidGame.rounds;
-      let begMidGameAvg = playerModel.averages.begMidGame;
+      // New average for the game
+      let totalRoundsGameBegMid = playerModel.totalThrowBegMidGame.game.rounds - 1;
+      let begMidGameAvg = playerModel.averages.game.begMidGame;
 
-      newGamePeriodAvg = (begMidGameAvg * totalRoundsBegMid + totalCurrentScore) / (totalRoundsBegMid + 1);
+      averages.game.begMidGame = (begMidGameAvg * totalRoundsGameBegMid + totalCurrentScore) / (totalRoundsGameBegMid + 1);
+
+      // New average for the current set
+      let totalRoundsSetBegMid = playerModel.totalThrowBegMidGame['set-' + state.game.currentSet].rounds - 1;
+      let begMidSetAvg = playerModel.averages['set-' + state.game.currentSet].begMidSet;
+
+      averages['set-' + state.game.currentSet].begMidSet = (begMidSetAvg * totalRoundsSetBegMid + totalCurrentScore) / (totalRoundsSetBegMid + 1);
+
+      // New average for the current leg
+
+      let totalRoundsLegBegMid = playerModel.totalThrowBegMidGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].rounds - 1;
+      let begMidLegAvg = playerModel.averages['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].begMidLeg;
+
+      averages['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].begMidLeg = (begMidLegAvg * totalRoundsLegBegMid + totalCurrentScore) / (totalRoundsLegBegMid + 1);
     } else {
-      let totalRoundsEnd = playerModel.totalThrowEndGame.rounds;
-      let endGameAvg = playerModel.averages.endGame;
+      // New average for the game
+      let totalRoundsGameEnd = playerModel.totalThrowEndGame.game.rounds - 1;
+      let endGameAvg = playerModel.averages.game.endGame;
 
-      newGamePeriodAvg = (endGameAvg * totalRoundsEnd + totalCurrentScore) / (totalRoundsEnd + 1);
-    } 
+      averages.game.endGame = (endGameAvg * totalRoundsGameEnd + totalCurrentScore) / (totalRoundsGameEnd + 1);
+
+      // New average for the current set
+      let totalRoundsSetEnd = playerModel.totalThrowEndGame['set-' + state.game.currentSet].rounds - 1;
+      let endSetAvg = playerModel.averages['set-' + state.game.currentSet].endSet;
+
+      averages['set-' + state.game.currentSet].endSet = (endSetAvg * totalRoundsSetEnd + totalCurrentScore) / (totalRoundsSetEnd + 1);
+
+      // New average for the current leg
+
+      let totalRoundsLegEnd = playerModel.totalThrowEndGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].rounds - 1;
+      let endLegAvg = playerModel.averages['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].endLeg;
+
+      averages['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].endLeg = (endLegAvg * totalRoundsLegEnd + totalCurrentScore) / (totalRoundsLegEnd + 1);
+    }
 
     dispatch({
       type: UPDATE_AVERAGES,
       payload: {
         playerId,
-        newOverallAverage,
-        gamePeriod,
-        newGamePeriodAvg
+        averages
       }
     });
   }
@@ -484,19 +547,142 @@ const X01State = props => {
     })
   }
 
-  const incrementTotalThrow = () => {
+  const updateTotalThrow = () => {
     let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
-    let playerId = state.game.currentPlayerTurn;
+    let totalThrow = playerModel.totalThrow;
     let dartNumber = state.game.currentThrow.filter(dart => dart.trim() !== '').length;
-    let gamePeriod = playerModel.score > 140 ? 'totalThrowBegMidGame' : 'totalThrowEndGame';
+
+    if (!totalThrow.hasOwnProperty('game')) {
+      totalThrow['game'] = {
+        darts: 0,
+        rounds: 0
+      };
+    }
+
+    if (!totalThrow.hasOwnProperty('set-' + state.game.currentSet)) {
+      totalThrow['set-' + state.game.currentSet] = {
+        darts: 0,
+        rounds: 0
+      };
+    }
+    
+    if (!totalThrow['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg)) {
+      totalThrow['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {
+        darts: 0,
+        rounds: 0
+      };
+    }
+
+    totalThrow.game.darts += dartNumber;
+    totalThrow.game.rounds++;
+    totalThrow['set-' + state.game.currentSet].darts += dartNumber;
+    totalThrow['set-' + state.game.currentSet].rounds++;
+    totalThrow['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].darts += dartNumber;
+    totalThrow['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].rounds++;
+
+    let playerId = state.game.currentPlayerTurn;
+
     dispatch({
-      type: INCREMENT_TOTAL_THROW,
+      type: UPDATE_TOTAL_THROW,
       payload: {
         playerId,
-        dartNumber,
-        gamePeriod
+        totalThrow
       }
     })
+  }
+
+  const updateTotalThrowBegMidGame = () => {
+    let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
+
+    if (playerModel.score > 140) {
+      let totalThrowBegMidGame = playerModel.totalThrowBegMidGame;
+      let dartNumber = state.game.currentThrow.filter(dart => dart.trim() !== '').length;
+  
+      if (!totalThrowBegMidGame.hasOwnProperty('game')) {
+        totalThrowBegMidGame['game'] = {
+          darts: 0,
+          rounds: 0
+        };
+      }
+  
+      if (!totalThrowBegMidGame.hasOwnProperty('set-' + state.game.currentSet)) {
+        totalThrowBegMidGame['set-' + state.game.currentSet] = {
+          darts: 0,
+          rounds: 0
+        };
+      }
+      
+      if (!totalThrowBegMidGame['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg)) {
+        totalThrowBegMidGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {
+          darts: 0,
+          rounds: 0
+        };
+      }
+  
+      totalThrowBegMidGame.game.darts += dartNumber;
+      totalThrowBegMidGame.game.rounds++;
+      totalThrowBegMidGame['set-' + state.game.currentSet].darts += dartNumber;
+      totalThrowBegMidGame['set-' + state.game.currentSet].rounds++;
+      totalThrowBegMidGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].darts += dartNumber;
+      totalThrowBegMidGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].rounds++;
+  
+      let playerId = state.game.currentPlayerTurn;
+  
+      dispatch({
+        type: UPDATE_TOTAL_THROW_BEG_MID_GAME,
+        payload: {
+          playerId,
+          totalThrowBegMidGame
+        }
+      })
+    }
+  }
+
+  const updateTotalThrowEndGame = () => {
+    let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
+
+    if (playerModel.score <= 140) {
+      let totalThrowEndGame = playerModel.totalThrowEndGame;
+      let dartNumber = state.game.currentThrow.filter(dart => dart.trim() !== '').length;
+  
+      if (!totalThrowEndGame.hasOwnProperty('game')) {
+        totalThrowEndGame['game'] = {
+          darts: 0,
+          rounds: 0
+        };
+      }
+  
+      if (!totalThrowEndGame.hasOwnProperty('set-' + state.game.currentSet)) {
+        totalThrowEndGame['set-' + state.game.currentSet] = {
+          darts: 0,
+          rounds: 0
+        };
+      }
+      
+      if (!totalThrowEndGame['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg)) {
+        totalThrowEndGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {
+          darts: 0,
+          rounds: 0
+        };
+      }
+  
+      totalThrowEndGame.game.darts += dartNumber;
+      totalThrowEndGame.game.rounds++;
+      totalThrowEndGame['set-' + state.game.currentSet].darts += dartNumber;
+      totalThrowEndGame['set-' + state.game.currentSet].rounds++;
+      totalThrowEndGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].darts += dartNumber;
+      totalThrowEndGame['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].rounds++;
+  
+      let playerId = state.game.currentPlayerTurn;
+  
+      dispatch({
+        type: UPDATE_TOTAL_THROW_END_GAME,
+        payload: {
+          playerId,
+          totalThrowEndGame
+        }
+      })
+    }
   }
 
   const updateBestThreeDart = () => {
@@ -539,15 +725,15 @@ const X01State = props => {
     let hit = {...state.game.playerModels[state.game.currentPlayerTurn].hit};
 
     state.game.currentThrow.forEach(dart => {
-      if(dart.trim() !== '') {
-        if(Number(dart) === 0 ) {
-          if(hit.hasOwnProperty('Missed')) {
+      if (dart.trim() !== '') {
+        if (Number(dart) === 0 ) {
+          if (hit.hasOwnProperty('Missed')) {
             hit.Missed++;
           } else {
             hit.Missed = 1;
           }
         } else {
-          if(hit.hasOwnProperty(dart.toUpperCase())) {
+          if (hit.hasOwnProperty(dart.toUpperCase())) {
             hit[dart.toUpperCase()]++;
           } else {
             hit[dart.toUpperCase()] = 1;
@@ -571,14 +757,30 @@ const X01State = props => {
     let scoreRanges = {...state.game.playerModels[state.game.currentPlayerTurn].scoreRanges};
 
     function incrementRange(range) {
-      if(scoreRanges.hasOwnProperty(range)) {
-        scoreRanges[range]++
+      !scoreRanges.hasOwnProperty('game') && (scoreRanges['game'] = {});
+      !scoreRanges.hasOwnProperty('set-' + state.game.currentSet) && (scoreRanges['set-' + state.game.currentSet] = {});
+      !scoreRanges['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg) && (scoreRanges['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {});
+
+      if (scoreRanges['game'].hasOwnProperty(range)) {
+        scoreRanges['game'][range]++
       } else {
-        scoreRanges[range] = 1;
+        scoreRanges['game'][range] = 1;
+      }
+
+      if (scoreRanges['set-' + state.game.currentSet].hasOwnProperty(range)) {
+        scoreRanges['set-' + state.game.currentSet][range]++
+      } else {
+        scoreRanges['set-' + state.game.currentSet][range] = 1;
+      }
+
+      if (scoreRanges['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hasOwnProperty(range)) {
+        scoreRanges['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg][range]++
+      } else {
+        scoreRanges['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg][range] = 1;
       }
     }
 
-    if(busted) {
+    if (busted) {
       incrementRange('Busted');
     } else if (score === 0){
       incrementRange('ZERO');
@@ -613,17 +815,17 @@ const X01State = props => {
     })
   }
 
-  const couldDoubleOut = () => {
+  const couldCheckout = () => {
     let playerId = state.game.currentPlayerTurn;
     let darts = [...state.game.currentThrow].filter(dart => dart.trim() !== '');
-    let doubleOut = {...state.game.playerModels[state.game.currentPlayerTurn].doubleOut};
+    let checkout = {...state.game.playerModels[state.game.currentPlayerTurn].checkout};
     let currentScore = state.game.playerModels[state.game.currentPlayerTurn].score;
     let scoreCurrentThrow = 0;
     let newCurrentScore = currentScore - scoreCurrentThrow;
 
     darts.forEach(dart => {
       let dartScore;
-      if(Number(dart) === 0 ) {
+      if (Number(dart) === 0) {
         dartScore = 0;
       } else {
         let score = Number(dart.slice(1));
@@ -633,33 +835,114 @@ const X01State = props => {
     
       }
 
-      if((newCurrentScore <= 40 && newCurrentScore >= 2) || newCurrentScore === 50) {
-        if(newCurrentScore % 2 === 0) {
+      if (!checkout.hasOwnProperty('game')) {
+        checkout['game'] = {
+          total: 0,
+          miss: 0,
+          hit: 0
+        };
+      }
+
+      if (!checkout.hasOwnProperty('set-' + state.game.currentSet)) {
+        checkout['set-' + state.game.currentSet] = {
+          total: 0,
+          miss: 0,
+          hit: 0
+        };
+      }
+      
+      if (!checkout['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg)) {
+        checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {
+          total: 0,
+          miss: 0,
+          hit: 0
+        };
+      }
+      
+      if (state.game.legOutMode === 'Double Out' && couldCheckoutInDouble(newCurrentScore)) {
           let possibleDoubleOut = newCurrentScore / 2;
-          let hasDoubleOut = newCurrentScore - dartScore === 0 && /d/i.test(dart[0]);
-          if(doubleOut.hasOwnProperty(possibleDoubleOut)) {
-            doubleOut[possibleDoubleOut].total++;
-            !hasDoubleOut && doubleOut[possibleDoubleOut].miss++
-            hasDoubleOut && doubleOut[possibleDoubleOut].hit++
+          let hasDouble = newCurrentScore - dartScore === 0 && /d/i.test(dart[0]);
+
+
+          if (!checkout.hasOwnProperty('sections')) {
+            checkout['sections'] = {
+              total: 0,
+              miss: 0,
+              hit: 0
+            };
+          }
+
+          if (checkout['sections'].hasOwnProperty(possibleDoubleOut)) {
+            checkout['sections'][possibleDoubleOut].total++;
+            !hasDouble && checkout['sections'][possibleDoubleOut].miss++
+            hasDouble && checkout['sections'][possibleDoubleOut].hit++
           } else {
-            doubleOut[possibleDoubleOut] = {
+            checkout['sections'][possibleDoubleOut] = {
               total: 1,
-              miss: !hasDoubleOut ? 1 : 0,
-              hit: hasDoubleOut ? 1 : 0,
+              miss: !hasDouble ? 1 : 0,
+              hit: hasDouble ? 1 : 0,
             }
           }
-        }
+
+          // Game checkout quote
+          checkout['game'].total++;
+          !hasDouble && checkout['game'].miss++;
+          hasDouble && checkout['game'].hit++;
+          checkout['set-' + state.game.currentSet].total++;
+
+          // Per set checkout quote 
+          !hasDouble && checkout['set-' + state.game.currentSet].miss++;
+          hasDouble && checkout['set-' + state.game.currentSet].hit++;
+          checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].total++;
+
+          // Per leg checkout quote
+          !hasDouble && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].miss++;
+          hasDouble && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hit++;
+      } else if (state.game.legOutMode === 'Master Out'
+                    && (couldCheckoutInDouble(newCurrentScore) || couldCheckoutInTriple(newCurrentScore))) {
+          let hasMaster = newCurrentScore - dartScore === 0 && (/d/i.test(dart[0]) || /t/i.test(dart[0]));
+
+          checkout['game'].total++;
+          !hasMaster && checkout['game'].miss++;
+          hasMaster && checkout['game'].hit++;
+          checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].total++;
+          !hasMaster && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].miss++;
+          hasMaster && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hit++;
+      } else if (state.game.legOutMode === 'Straight Out'
+                    && (couldCheckoutInSingle(newCurrentScore)
+                    || couldCheckoutInDouble(newCurrentScore)
+                    || couldCheckoutInTriple(newCurrentScore))) {
+          let hasCheckout = newCurrentScore - dartScore === 0
+          checkout['game'].total++;
+          !hasCheckout && checkout['game'].miss++;
+          hasCheckout && checkout['game'].hit++;
+          checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].total++;
+          !hasCheckout && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].miss++;
+          hasCheckout && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hit++;
       }
+
+      dispatch({
+        type: UPDATE_CHECKOUT,
+        payload: {
+          playerId,
+          checkout
+        }
+      })
+
       newCurrentScore -= dartScore;
     });
+  }
 
-    dispatch({
-      type: UPDATE_DOUBLE_OUT,
-      payload: {
-        playerId,
-        doubleOut
-      }
-    })
+  const couldCheckoutInSingle = (score) => {
+    return score <= 20 && score >= 1;
+  }
+
+  const couldCheckoutInDouble = (score) => {
+    return (score <= 40 && score >= 2 && score % 2 === 0) || score === 50;
+  }
+
+  const couldCheckoutInTriple = (score) => {
+    return score <= 60 && score >= 3 && score % 3 === 0;
   }
 
   const incrementLegsPlayed = () => {
@@ -669,11 +952,16 @@ const X01State = props => {
   }
 
   const incrementLegsWon = () => {
+    let legsWon = {...state.game.playerModels[state.game.currentPlayerTurn].legsWon};
+    legsWon.game++;
+    legsWon['set-' + state.game.currentSet] = legsWon['set-' + state.game.currentSet] ? legsWon['set-' + state.game.currentSet] + 1 : 1;
+
     let playerId = state.game.currentPlayerTurn;
     dispatch({
       type: INCREMENT_LEGS_WON,
       payload: {
-        playerId
+        playerId,
+        legsWon
       } 
     })
   }

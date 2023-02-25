@@ -9,12 +9,14 @@ import {
     UPDATE_PLAYER_SCORE,
     RESET_SCORES,
     UPDATE_AVERAGES,
-    INCREMENT_TOTAL_THROW,
+    UPDATE_TOTAL_THROW,
+    UPDATE_TOTAL_THROW_BEG_MID_GAME,
+    UPDATE_TOTAL_THROW_END_GAME,
     UPDATE_BEST_THREE_DARTS,
     UPDATE_CHECKOUT_SCORE,
     UPDATE_SECTION_HIT,
     UPDATE_SCORE_RANGES,
-    UPDATE_DOUBLE_OUT,
+    UPDATE_CHECKOUT,
     INCREMENT_CURRENT_SET,
     INCREMENT_CURRENT_SET_LEG,
     INCREMENT_SETS_PLAYED,
@@ -128,16 +130,12 @@ import {
               ...state.game.playerModels,
               [action.payload.playerId]: {
                 ...state.game.playerModels[action.payload.playerId],
-                averages: {
-                  ...state.game.playerModels[action.payload.playerId].averages,
-                  overall: action.payload.newOverallAverage,
-                  [action.payload.gamePeriod] : action.payload.newGamePeriodAvg
-                }
+                averages: action.payload.averages
               }
             }
           }
         };
-      case INCREMENT_TOTAL_THROW:
+      case UPDATE_TOTAL_THROW:
         return {
           ...state,
           game: {
@@ -146,16 +144,35 @@ import {
               ...state.game.playerModels,
               [action.payload.playerId]: {
                 ...state.game.playerModels[action.payload.playerId],
-                totalThrow: {
-                  ...state.game.playerModels[action.payload.playerId].totalThrow,
-                  darts: state.game.playerModels[action.payload.playerId].totalThrow.darts + action.payload.dartNumber,
-                  rounds: state.game.playerModels[action.payload.playerId].totalThrow.rounds + 1
-                },
-                [action.payload.gamePeriod]: {
-                  ...state.game.playerModels[action.payload.playerId][action.payload.gamePeriod],
-                  darts: state.game.playerModels[action.payload.playerId][action.payload.gamePeriod].darts + action.payload.dartNumber,
-                  rounds: state.game.playerModels[action.payload.playerId][action.payload.gamePeriod].rounds +1
-                }
+                totalThrow: action.payload.totalThrow
+              }
+            }
+          }
+        };
+      case UPDATE_TOTAL_THROW_BEG_MID_GAME:
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
+                totalThrowBegMidGame: action.payload.totalThrowBegMidGame
+              }
+            }
+          }
+        };
+      case UPDATE_TOTAL_THROW_END_GAME:
+        return {
+          ...state,
+          game: {
+            ...state.game,
+            playerModels: {
+              ...state.game.playerModels,
+              [action.payload.playerId]: {
+                ...state.game.playerModels[action.payload.playerId],
+                totalThrowEndGame: action.payload.totalThrowEndGame
               }
             }
           }
@@ -217,7 +234,7 @@ import {
             }
           }
         };
-      case UPDATE_DOUBLE_OUT:
+      case UPDATE_CHECKOUT:
         return {
           ...state,
           game: {
@@ -226,7 +243,7 @@ import {
               ...state.game.playerModels,
               [action.payload.playerId]: {
                 ...state.game.playerModels[action.payload.playerId],
-                doubleOut: action.payload.doubleOut,
+                checkout: action.payload.checkout,
               }
             }
           }
@@ -264,7 +281,7 @@ import {
               ...state.game.playerModels,
               [action.payload.playerId]: {
                 ...state.game.playerModels[action.payload.playerId],
-                legsWon: state.game.playerModels[action.payload.playerId].legsWon + 1,
+                legsWon: action.payload.legsWon,
                 currentSetLegsWon: state.game.playerModels[action.payload.playerId].currentSetLegsWon + 1,
               }
             }

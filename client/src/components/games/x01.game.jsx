@@ -35,21 +35,28 @@ const X01Game = () => {
 	};
 
 	const onRestartGame = async () => {
-        let newMatchSetup = {...game};
-
-		newMatchSetup.hasWinner = false;
-		newMatchSetup.startingPlayerLeg = game.players[0];
-		newMatchSetup.startingPlayerSet = game.players[0];
-		newMatchSetup.currentPlayerTurn = game.players[0];
-
-		newMatchSetup.playerModels = {};
-		newMatchSetup.players.forEach(player => {
+        let newMatchSetup = {...X01Models.X01Model};
+        newMatchSetup.isSoloGame = game.players.length === 1;
+        newMatchSetup.startingScore = game.startingScore;
+        newMatchSetup.setMode = game.setMode;
+        newMatchSetup.legMode = game.legMode;
+        newMatchSetup.legInMode = game.legInMode;
+        newMatchSetup.legOutMode = game.legOutMode;
+        newMatchSetup.numberOfSets = game.numberOfSets;
+        newMatchSetup.numberOfLegs = game.numberOfLegs;
+        newMatchSetup.numberOfPlayers = game.players.length;
+        newMatchSetup.startingPlayerLeg = game.players[0];
+        newMatchSetup.startingPlayerSet = game.players[0];
+        newMatchSetup.currentPlayerTurn = game.players[0];
+        newMatchSetup.players = game.players;
+        newMatchSetup.playerModels = {};
+		game.players.forEach(player => {
 			let x01PlayerModel = {...X01Models.X01PlayerModel};
-			x01PlayerModel.score = Number(newMatchSetup.gameType);
+			x01PlayerModel.score = Number(game.startingScore);
 			newMatchSetup.playerModels[player] = x01PlayerModel;
 		});
 
-		let newGame = await X01Service.createX01(game)
+		let newGame = await X01Service.createX01(newMatchSetup)
         navigate('/x01/' + newGame.id);
 	};
 
@@ -118,7 +125,7 @@ const X01Game = () => {
                 </Container>
             )}
             <ScoreInputBoard />
-            {!game.hasWinner && (
+            {/* {!game.hasWinner && (
                 <Container fluid className="mt-4">
                     <Row className="justify-content-md-center">
                         {Object.entries(players).map(([idx, player]) => (
@@ -128,7 +135,7 @@ const X01Game = () => {
                         ))}
                     </Row>
                 </Container>
-            )}
+            )} */}
         </div>
       </Fragment>
     )

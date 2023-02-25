@@ -32,32 +32,49 @@ const X01PlayerModel = {
   hasWonGame: false,
   score: null,
   setsWon: 0,
-  legsWon: 0,
+  legsWon: {
+    game: 0
+  },
   currentSetLegsWon: 0,
   totalThrow: {
-    darts: 0,
-    rounds: 0
+    game: {
+      darts: 0,
+      rounds: 0
+    }
   },
   totalThrowEndGame: {
-    darts: 0,
-    rounds: 0
+    game: {
+      darts: 0,
+      rounds: 0
+    }
   },
   totalThrowBegMidGame: {
-    darts: 0,
-    rounds: 0
+    game: {
+      darts: 0,
+      rounds: 0
+    }
   },
-  bestThreeDarts: 0,
-  hit: {
-    // empty object that will fill up as the game goes, the number displayed is the number of time it hit a section (ex: T20: 5)
+  bestThreeDarts: {
+    game: 0
   },
-  scoreRanges: {}, // model "0-19": 5, 20-39: 3...
+  hit: {},
+  scoreRanges: {},
   averages: {
-    overall: 0,
-    begMidGame: 0,
-    endGame: 0, // 140 and below
+    game: {
+      overall: 0,
+      begMidGame: 0,
+      endGame: 0, // 140 and below
+    }
   },
-  doubleOut: {}, //model     D1: {miss: 5, hit: 1}
-  checkoutScores: {}, // save the starting score at beg of a throw that ended up in a finish
+  checkout: {
+    game: {
+      hit: 0,
+      miss: 0,
+      total: 0
+    },
+    sections: {}
+  },
+  checkoutScores: {}
 }
 
 const X01Models = {

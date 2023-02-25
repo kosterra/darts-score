@@ -6,27 +6,46 @@ const PlayerModel = {
     matchesWon: 0,
     soloGames: 0,
     totalThrow: {
-      darts: 0,
-      rounds: 0
+      overall: {
+        darts: 0,
+        rounds: 0
+      }
     },
     totalThrowEndGame: {
-      darts: 0,
-      rounds: 0
+      overall: {
+        darts: 0,
+        rounds: 0
+      }
     },
     totalThrowBegMidGame: {
-      darts: 0,
-      rounds: 0
+      overall: {
+        darts: 0,
+        rounds: 0
+      }
     },
-    bestThreeDarts: 0,
+    bestThreeDarts: {
+      overall: 0
+    },
     hit: {},
     scoreRanges: {}, 
     averages: {
-      overall: 0,
-      begMidGame: 0,
-      endGame: 0, 
+      overall: {
+        overall: 0,
+        begMidGame: 0,
+        endGame: 0
+      }
     },
-    doubleOut: {},
-    checkoutScores: {},
+    checkout: {
+      overall: {
+        hit: 0,
+        miss: 0,
+        total: 0
+      },
+      sections: {}
+    },
+    checkoutScores: {
+      overall: {}
+    },
     matches: []
   }
 

@@ -23,12 +23,8 @@ module.exports = mongoose => {
         bestThreeDarts: Number,
         hit: Object,
         scoreRanges: Object,
-        averages: {
-          overall: Number,
-          begMidGame: Number,
-          endGame: Number, 
-        },
-        doubleOut: Object,
+        averages: Object,
+        checkout: Object,
         checkoutScores: Object,
         matches: [{}]
       },

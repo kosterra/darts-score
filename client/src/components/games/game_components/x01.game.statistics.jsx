@@ -1,13 +1,14 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 
 import X01Context from '../../../utils/x01.context';
 
+import Avatar from 'react-avatar';
 import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import ProgressBar from 'react-bootstrap/ProgressBar';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import ComparisonBar from '../../elements/comparison.bar';
 
 const X01GameStatistics = () => {
     const {
@@ -17,114 +18,135 @@ const X01GameStatistics = () => {
 
     return (
         <Container className="w-50 mb-4">
-                { players && players.length > 0 &&
-                    <span className="h2 mt-3">{players.find((player) => player.id === game.currentPlayerTurn).nickname} wins</span>
-                }
-                <span className="display-1 my-3 text-gold"><i className="fas fa-trophy" title="trophy"></i></span>
-                            
-                <Tabs
-                    defaultActiveKey="overall"
-                    id="justify-tab-example"
-                    className="mb-3"
-                    justify
-                >
-                    <Tab eventKey="overall" title="Overall">
-                        <div>bli</div>
-                    </Tab>
-                    <Tab eventKey="set-1" title="Set 1">
-                        <div>bla</div>
-                    </Tab>
-                    <Tab eventKey="set-2" title="Set 2">
-                        <div>blupp</div>
-                    </Tab>
-                    <Tab eventKey="set-3" title="Set 3">
-                        <div>blupp</div>
-                    </Tab>
-                    <Tab eventKey="set-4" title="Set 4">
-                        <div>blupp</div>
-                    </Tab>
-                    <Tab eventKey="set-5" title="Set 5">
-                        <div>blupp</div>
-                    </Tab>
-                </Tabs>
+            <Row className="mb-3">
+                <Col className="d-flex justify-content-center align-items-center">
+                    <div className="d-flex flex-column justify-content-center">
+                        <Avatar name="Ralph Koster" size="80" round={true} color="#565656" textSizeRatio={0.2} className="align-self-center"/>
+                        <div className="mt-2 align-self-center fs-5 fw-500">Hoorli</div>
+                        <div className="align-self-center fs-6">Ralph Koster</div>
+                    </div>
+                </Col>
+                <Col className="d-flex justify-content-center align-items-start">
+                    <div className="d-flex flex-column justify-content-center">
+                        <div className="align-self-center fs-8 fw-400 text-secondary">25.02.2023 20:19</div>
+                        <div className="align-self-center fs-1 fw-400">4 - 3</div>
+                        <div className="align-self-center fs-8 fw-400">Beendet</div>
+                    </div>
+                </Col>
+                <Col className="d-flex justify-content-center align-items-center">
+                    <div className="d-flex flex-column justify-content-center">
+                        <Avatar name="Jan Koster" size="75" round={true} color="#565656" textSizeRatio={1.75} className="align-self-center"/>
+                        <div className="mt-2 align-self-center fs-5 fw-500">Häns</div>
+                        <div className="align-self-center fs-6">Jan Koster</div>
+                    </div>
+                </Col>
+            </Row>
+            <Tabs
+                defaultActiveKey="overall"
+                variant="pills"
+                className="mb-3"
+                justify
+            >
+                <Tab eventKey="overall" title="Overall">
+                    <ComparisonBar
+                        title="Won Legs"
+                        barLValue={game.playerModels[game.players[0]].legsWon.game}
+                        barRValue={game.playerModels[game.players[1]].legsWon.game} />
+                    <ComparisonBar
+                        title="180s"
+                        barLValue={game.playerModels[game.players[0]].scoreRanges['game'].hasOwnProperty('180') ? game.playerModels[game.players[0]].scoreRanges['game']['180'] : 0}
+                        barRValue={game.playerModels[game.players[1]].scoreRanges['game'].hasOwnProperty('180') ? game.playerModels[game.players[1]].scoreRanges['game']['180'] : 0}
+                    />
+                    <ComparisonBar
+                        title="140+"
+                        barLValue={
+                            (game.playerModels[game.players[0]].scoreRanges['game'].hasOwnProperty("140-159") ? game.playerModels[game.players[0]].scoreRanges['game']['140-159'] : 0) +
+                            (game.playerModels[game.players[0]].scoreRanges['game'].hasOwnProperty("160-179") ? game.playerModels[game.players[0]].scoreRanges['game']['160-179'] : 0)
+                        }
+                        barRValue={
+                            (game.playerModels[game.players[1]].scoreRanges['game'].hasOwnProperty("140-159") ? game.playerModels[game.players[1]].scoreRanges['game']['140-159'] : 0) +
+                            (game.playerModels[game.players[1]].scoreRanges['game'].hasOwnProperty("160-179") ? game.playerModels[game.players[1]].scoreRanges['game']['160-179'] : 0)
+                        }
+                    />
+                    <ComparisonBar
+                        title="100+"
+                        barLValue={
+                            (game.playerModels[game.players[0]].scoreRanges['game'].hasOwnProperty("100-119") ? game.playerModels[game.players[0]].scoreRanges['game']['100-119'] : 0) +
+                            (game.playerModels[game.players[0]].scoreRanges['game'].hasOwnProperty("120-139") ? game.playerModels[game.players[0]].scoreRanges['game']['120-139'] : 0)
+                        }
+                        barRValue={
+                            (game.playerModels[game.players[1]].scoreRanges['game'].hasOwnProperty("100-119") ? game.playerModels[game.players[1]].scoreRanges['game']['100-119'] : 0) +
+                            (game.playerModels[game.players[1]].scoreRanges['game'].hasOwnProperty("120-139") ? game.playerModels[game.players[1]].scoreRanges['game']['120-139'] : 0)
+                        }
+                    />
+                    <ComparisonBar
+                        title="Average"
+                        barLValue={Math.round(game.playerModels[game.players[0]].averages.game.begMidGame)}
+                        barRValue={Math.round(game.playerModels[game.players[1]].averages.game.begMidGame)}
+                    />
+                    <ComparisonBar
+                        title="Checkouts"
+                        unit="%"
+                        barLValue={Math.round((100 / game.playerModels[game.players[0]].checkout['game'].total) * game.playerModels[game.players[0]].checkout['game'].hit)}
+                        barRValue={Math.round((100 / game.playerModels[game.players[1]].checkout['game'].total) * game.playerModels[game.players[1]].checkout['game'].hit)}
+                        barLSubvalue={'(' + game.playerModels[game.players[0]].checkout['game'].hit + '/' + game.playerModels[game.players[0]].checkout['game'].total + ')'}
+                        barRSubvalue={'(' + game.playerModels[game.players[1]].checkout['game'].hit + '/' + game.playerModels[game.players[1]].checkout['game'].total + ')'}
+                    />
+                </Tab>
 
-            <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <span className="ms-1 fs-8 text-grey">{game.playerModels[game.players[0]].setsWon}</span>
-                    <span className="fs-7">Won Sets</span>
-                    <span className="me-1 fs-8 text-grey">{game.playerModels[game.players[1]].setsWon}</span>
-                </div>
-                <ProgressBar className="border-0 radius-0">
-                    <ProgressBar className="border-0 radius-0" variant="primary" now={66} key={1}/>
-                    <ProgressBar className="border-0 radius-0" variant="secondary" now={34} key={2} />
-                </ProgressBar>
-            </div>
-            <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <span className="ms-1 fs-8 text-grey">{game.playerModels[game.players[0]].setsWon}</span>
-                    <span className="fs-7">Won Legs</span>
-                    <span className="me-1 fs-8 text-grey">{game.playerModels[game.players[1]].setsWon}</span>
-                </div>
-                <ProgressBar className="border-0 radius-0">
-                    <ProgressBar className="border-0 radius-0" variant="primary" now={66} key={1}/>
-                    <ProgressBar className="border-0 radius-0" variant="secondary" now={34} key={2} />
-                </ProgressBar>
-            </div>
-            <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <span className="ms-1 fs-8 text-grey">{game.playerModels[game.players[0]].scoreRanges['180']}</span>
-                    <span className="fs-7">180s</span>
-                    <span className="me-1 fs-8 text-grey">{game.playerModels[game.players[1]].scoreRanges['180']}</span>
-                </div>
-                <ProgressBar className="border-0 radius-0">
-                    <ProgressBar className="border-0 radius-0" variant="primary" now={66} key={1}/>
-                    <ProgressBar className="border-0 radius-0" variant="secondary" now={34} key={2} />
-                </ProgressBar>
-            </div>
-            <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <span className="ms-1 fs-8 text-grey">{game.playerModels[game.players[0]].scoreRanges['140-159']}</span>
-                    <span className="fs-7">140+</span>
-                    <span className="me-1 fs-8 text-grey">{game.playerModels[game.players[1]].scoreRanges['140-159']}</span>
-                </div>
-                <ProgressBar className="border-0 radius-0">
-                    <ProgressBar className="border-0 radius-0" variant="primary" now={66} key={1}/>
-                    <ProgressBar className="border-0 radius-0" variant="secondary" now={34} key={2} />
-                </ProgressBar>
-            </div>
-            <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <span className="ms-1 fs-8 text-grey">{game.playerModels[game.players[0]].scoreRanges['180']}</span>
-                    <span className="fs-7">100+</span>
-                    <span className="me-1 fs-8 text-grey">{game.playerModels[game.players[1]].scoreRanges['180']}</span>
-                </div>
-                <ProgressBar className="border-0 radius-0">
-                    <ProgressBar className="border-0 radius-0" variant="primary" now={66} key={1}/>
-                    <ProgressBar className="border-0 radius-0" variant="secondary" now={34} key={2} />
-                </ProgressBar>
-            </div>
-            <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <span className="ms-1 fs-8 text-grey">{game.playerModels[game.players[0]].averages['begMidGame']}</span>
-                    <span className="fs-7">Average</span>
-                    <span className="me-1 fs-8 text-grey">{game.playerModels[game.players[1]].averages['begMidGame']}</span>
-                </div>
-                <ProgressBar className="border-0 radius-0">
-                    <ProgressBar className="border-0 radius-0" variant="primary" now={66} key={1}/>
-                    <ProgressBar className="border-0 radius-0" variant="secondary" now={34} key={2} />
-                </ProgressBar>
-            </div>
-            <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-baseline">
-                    <span className="ms-1 fs-8 text-grey">{game.playerModels[game.players[0]].setsWon}</span>
-                    <span className="fs-7">Checkouts</span>
-                    <span className="me-1 fs-8 text-grey">{game.playerModels[game.players[1]].setsWon}</span>
-                </div>
-                <ProgressBar className="border-0 radius-0">
-                    <ProgressBar className="border-0 radius-0" variant="primary" now={66} key={1}/>
-                    <ProgressBar className="border-0 radius-0" variant="secondary" now={34} key={2} />
-                </ProgressBar>
-            </div>
+                {[...Array(game.setsPlayed)].map((e, i) => (
+                    <Tab
+                        key={`set-tab-${i}`}
+                        eventKey={`set-${i}`}
+                        title={`Set ${i+1}`}>
+
+                        <ComparisonBar
+                            title="Won Legs"
+                            barLValue={game.playerModels[game.players[0]].legsWon.hasOwnProperty('set-' + (i+1)) ? game.playerModels[game.players[0]].legsWon['set-' + (i+1)] : 0}
+                            barRValue={game.playerModels[game.players[1]].legsWon.hasOwnProperty('set-' + (i+1)) ? game.playerModels[game.players[1]].legsWon['set-' + (i+1)] : 0} />
+                        <ComparisonBar
+                            title="180s"
+                            barLValue={game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)].hasOwnProperty('180') ? game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)]['180'] : 0}
+                            barRValue={game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)].hasOwnProperty('180') ? game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)]['180'] : 0}
+                        />
+                        <ComparisonBar
+                            title="140+"
+                            barLValue={
+                                (game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)].hasOwnProperty("140-159") ? game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)]['140-159'] : 0) +
+                                (game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)].hasOwnProperty("160-179") ? game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)]['160-179'] : 0)
+                            }
+                            barRValue={
+                                (game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)].hasOwnProperty("140-159") ? game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)]['140-159'] : 0) +
+                                (game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)].hasOwnProperty("160-179") ? game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)]['160-179'] : 0)
+                            }
+                        />
+                        <ComparisonBar
+                            title="100+"
+                            barLValue={
+                                (game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)].hasOwnProperty("100-119") ? game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)]['100-119'] : 0) +
+                                (game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)].hasOwnProperty("120-139") ? game.playerModels[game.players[0]].scoreRanges['set-' + (i+1)]['120-139'] : 0)
+                            }
+                            barRValue={
+                                (game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)].hasOwnProperty("100-119") ? game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)]['100-119'] : 0) +
+                                (game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)].hasOwnProperty("120-139") ? game.playerModels[game.players[1]].scoreRanges['set-' + (i+1)]['120-139'] : 0)
+                            }
+                        />
+                        <ComparisonBar
+                            title="Average"
+                            barLValue={Math.round(game.playerModels[game.players[0]].averages['set-' + (i+1)].begMidSet)}
+                            barRValue={Math.round(game.playerModels[game.players[1]].averages['set-' + (i+1)].begMidSet)}
+                        />
+                        <ComparisonBar
+                            title="Checkouts"
+                            unit="%"
+                            barLValue={Math.round((100 / game.playerModels[game.players[0]].checkout['set-' + (i+1)].total) * game.playerModels[game.players[0]].checkout['set-' + (i+1)].hit)}
+                            barRValue={Math.round((100 / game.playerModels[game.players[1]].checkout['set-' + (i+1)].total) * game.playerModels[game.players[1]].checkout['set-' + (i+1)].hit)}
+                            barLSubvalue={'(' + game.playerModels[game.players[0]].checkout['set-' + (i+1)].hit + '/' + game.playerModels[game.players[0]].checkout['set-' + (i+1)].total + ')'}
+                            barRSubvalue={'(' + game.playerModels[game.players[1]].checkout['set-' + (i+1)].hit + '/' + game.playerModels[game.players[1]].checkout['set-' + (i+1)].total + ')'}
+                        />
+                    </Tab>
+                ))}
+            </Tabs>
         </Container>
     )
 }
