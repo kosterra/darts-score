@@ -125,17 +125,17 @@ const X01Game = () => {
                 </Container>
             )}
             <ScoreInputBoard />
-            {/* {!game.hasWinner && (
+            {!game.hasWinner && (
                 <Container fluid className="mt-4">
                     <Row className="justify-content-md-center">
-                        {Object.entries(players).map(([idx, player]) => (
+                        {game.players.length > 0 && game.players.map((playerId, idx) => (
                             <Col key={`statistics-board-col-${idx}`} className={`col-3 border-dotted-top-grey border-dotted-bottom-grey ${Number(idx) < players.length - 1 ? 'border-dotted-end-grey' : ''}`}>
-                                <X01StatisticsBoard key={`statistics-board-${idx}`} playerId={player.id} />
+                                <X01StatisticsBoard key={`statistics-board-${idx}`} playerId={playerId} />
                             </Col>
                         ))}
                     </Row>
                 </Container>
-            )} */}
+            )}
         </div>
       </Fragment>
     )

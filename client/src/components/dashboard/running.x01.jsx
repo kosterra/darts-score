@@ -37,7 +37,7 @@ const RunningX01Games = () => {
                     <Card.Body className="m-0 p-0 border-0 rounded-0 bg-tertiary">
                         <Card.Title className="bg-primary p-2 mb-0 text-light text-center span">
                             <div className="fs-6 fw-600">X01</div>
-                            <div className="fs-8 mt-1">Current Running</div>
+                            <div className="fs-8 mt-1">Currently Running</div>
                         </Card.Title>
                         <Card.Text as="div" className="p-2 text-light">
                             <ListGroup variant="flush">

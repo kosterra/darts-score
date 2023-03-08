@@ -4,7 +4,6 @@ import X01Service from '../../services/x01.service';
 import PlayerService from '../../services/player.service';
 
 import dayjs from "dayjs";
-import slice from "lodash";
 
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
@@ -19,7 +18,6 @@ const FinishedX01Games = () => {
     const [players, setPlayers] = useState([]);
 
     const initialX01Games = x01Games.slice(0, index);
-    console.log(initialX01Games);
 
     const loadFinishedX01Games = async () => {
         let data = await X01Service.loadFinishedX01Games();

@@ -1,34 +1,34 @@
-const X01ReturnToPreviousPlayer = matchData => {
-  let prevThrowInfo = matchData.currentLegThrows.pop();
+const X01ReturnToPreviousPlayer = game => {
+  let prevThrowInfo = game.currentLegThrows.pop();
   let prevScore = getCurrentThrowScore(prevThrowInfo.darts);
 
-  changeCurrentPlayer(matchData);
-  matchData.currentThrow = prevThrowInfo.darts;
-  matchData.matchPlayerInfo[prevThrowInfo.playerName].score += prevScore;
-  updateAverages(matchData.matchPlayerInfo[prevThrowInfo.playerName], prevThrowInfo.darts);
+  changeCurrentPlayer(game);
+  game.currentThrow = prevThrowInfo.darts;
+  game.playerModels[prevThrowInfo.playerId].score += prevScore;
+  updateAverages(game, prevThrowInfo.playerId, prevThrowInfo.darts);
   updateTotalThrow(
-    matchData.matchPlayerInfo[prevThrowInfo.playerName], 
-    prevThrowInfo.darts.length, 
-    matchData.matchPlayerInfo[prevThrowInfo.playerName].score
+    game,
+    prevThrowInfo.playerId, 
+    prevThrowInfo.darts.length
   );
   
-  updateHit(matchData.matchPlayerInfo[prevThrowInfo.playerName], prevThrowInfo.darts);
-  updateScoreRange(matchData.matchPlayerInfo[prevThrowInfo.playerName], prevScore);
-  updateBestThreeDarts(prevThrowInfo.playerName, matchData);
+  updateHit(game.playerModels[prevThrowInfo.playerId], prevThrowInfo.darts);
+  updateScoreRange(game, prevThrowInfo.playerId, prevScore);
+  updateBestThreeDarts(game, prevThrowInfo.playerId);
 
-  if(matchData.matchPlayerInfo[prevThrowInfo.playerName].score - prevScore <= 50) {
-    updateDoubleOut(matchData.matchPlayerInfo[prevThrowInfo.playerName], prevThrowInfo.darts);
+  if (game.playerModels[prevThrowInfo.playerId].score - prevScore <= 50) {
+    updateCheckout(game, prevThrowInfo.playerId, Object.assign({}, prevThrowInfo.darts));
   }
 
-  return matchData;
+  return game;
 }
 
 const changeCurrentPlayer = game => {
-  let index = game.playerModels.map(playerModel => playerModel.playerId).indexOf(game.currentPlayerTurn);
+  let index = game.players.indexOf(game.currentPlayerTurn);
   if (index === 0) {
-    game.currentPlayerTurn = game.players[game.players.length -1];
+    game.currentPlayerTurn = game.players[game.players.length - 1];
   } else {
-    game.currentPlayerTurn = game.players[index + 1];
+    game.currentPlayerTurn = game.players[index - 1];
   }
 }
 
@@ -47,105 +47,226 @@ const getCurrentThrowScore = darts => {
   return  totalScore;
 }
 
-const updateTotalThrow = (playerData, dartsNbr, score) => {
+const updateTotalThrow = (game, playerId, dartsNbr) => {
+  let score = game.playerModels[playerId].score;
   let gamePeriod = score > 140 ? 'begMidGame' : 'endGame';
 
-  playerData.totalThrow.rounds--;
-  playerData.totalThrow.darts -= dartsNbr;
+  let totalThrow = game.playerModels[playerId].totalThrow;
+  totalThrow.game.rounds--;
+  totalThrow.game.darts -= dartsNbr;
+  totalThrow['set-' + game.currentSet].rounds--;
+  totalThrow['set-' + game.currentSet].darts -= dartsNbr;
+  totalThrow['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds--;
+  totalThrow['set-' + game.currentSet]['leg-' + game.currentSetLeg].darts -= dartsNbr;
+  game.playerModels[playerId].totalThrow = totalThrow;
 
-  if(gamePeriod === 'begMidGame') {
-    playerData.totalThrowBegMidGame.rounds--;
-    playerData.totalThrowBegMidGame.darts -= dartsNbr;
-  } 
-  if(gamePeriod === 'endGame') {
-    playerData.totalThrowEndGame.rounds--;
-    playerData.totalThrowEndGame.darts -= dartsNbr;
+  if (gamePeriod === 'begMidGame') {
+    let totalThrowBegMidGame = game.playerModels[playerId].totalThrowBegMidGame;
+    totalThrowBegMidGame.game.rounds--;
+    totalThrowBegMidGame.game.darts -= dartsNbr;
+    totalThrowBegMidGame['set-' + game.currentSet].rounds--;
+    totalThrowBegMidGame['set-' + game.currentSet].darts -= dartsNbr;
+    totalThrowBegMidGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds--;
+    totalThrowBegMidGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].darts -= dartsNbr;
+    game.playerModels[playerId].totalThrowBegMidGame = totalThrowBegMidGame;
+
+  }
+
+  if (gamePeriod === 'endGame') {
+    let totalThrowEndGame = game.playerModels[playerId].totalThrowEndGame;
+    totalThrowEndGame.game.rounds--;
+    totalThrowEndGame.game.darts -= dartsNbr;
+    totalThrowEndGame['set-' + game.currentSet].rounds--;
+    totalThrowEndGame['set-' + game.currentSet].darts -= dartsNbr;
+    totalThrowEndGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds--;
+    totalThrowEndGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].darts -= dartsNbr;
+    game.playerModels[playerId].totalThrowEndGame = totalThrowEndGame;
   }
 }
 
-const updateHit = (playerData, darts) => {
+const updateHit = (playerModel, darts) => {
   darts.forEach(dart => {
-    if(Number(dart) === 0)  dart = 'Missed';
-    playerData.hit[dart] > 0 && playerData.hit[dart]--;
-    playerData.hit[dart] === 0 && delete playerData.hit[dart];
+    if (Number(dart) === 0)  dart = 'Missed';
+    playerModel.hit[dart] > 0 && playerModel.hit[dart]--;
+    playerModel.hit[dart] === 0 && delete playerModel.hit[dart];
   })
 }
 
-const updateScoreRange = (playerData, score) => {
-  let ranges = Object.keys(playerData.scoreRanges);
+const updateScoreRange = (game, playerId, score) => {
+  let scoreRanges = game.playerModels[playerId].scoreRanges
 
-  if(score === 0 || score === 180) {
-    score === 0 && playerData.scoreRanges['ZERO']--;
-    score === 180 && playerData.scoreRanges['180']--;
-    playerData.scoreRanges['ZERO'] === 0 && delete playerData.scoreRanges['ZERO'];
-    playerData.scoreRanges['180'] === 0 && delete playerData.scoreRanges['180'];
+  if (score === 0 || score === 180) {
+    score === 0 && scoreRanges.game['ZERO']--;
+    score === 0 && scoreRanges['set-' + game.currentSet]['ZERO']--;
+    score === 0 && scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]['ZERO']--;
+    score === 180 && scoreRanges.game['180']--;
+    score === 180 && scoreRanges['set-' + game.currentSet]['180']--;
+    score === 180 && scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]['180']--;
+    
+    scoreRanges.game['ZERO'] === 0 && delete scoreRanges.game['ZERO'];
+    scoreRanges['set-' + game.currentSet]['ZERO'] === 0 && delete scoreRanges['set-' + game.currentSet]['ZERO'];
+    scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]['ZERO'] === 0 && delete scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]['ZERO'];
+    scoreRanges.game['180'] === 0 && delete scoreRanges.game['180'];
+    scoreRanges['set-' + game.currentSet]['180'] === 0 && delete scoreRanges['set-' + game.currentSet]['180'];
+    scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]['180'] === 0 && delete scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]['180'];
   } else {
-    for(let i =0; i< ranges.length; i++) {
-      let rangeArr = ranges[i].split('-');
-      if(score >= rangeArr[0] && score <= rangeArr[1]) {
-        playerData.scoreRanges[ranges[i]]--;
-        playerData.scoreRanges[ranges[i]] === 0 && delete playerData.scoreRanges[ranges[i]];
+    let rangesGame = Object.keys(scoreRanges.game);
+    let rangesSet = Object.keys(scoreRanges['set-' + game.currentSet]);
+    let rangesLeg = Object.keys(scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]);
+
+    for (let i = 0; i < rangesGame.length; i++) {
+      let rangeArr = rangesGame[i].split('-');
+      if (score >= rangeArr[0] && score <= rangeArr[1]) {
+        scoreRanges.game[rangesGame[i]]--;
+        scoreRanges.game[rangesGame[i]] === 0 && delete scoreRanges.game[rangesGame[i]];
+      }
+    }
+
+    for (let i = 0; i < rangesSet.length; i++) {
+      let rangeArr = rangesSet[i].split('-');
+      if (score >= rangeArr[0] && score <= rangeArr[1]) {
+        scoreRanges['set-' + game.currentSet][rangesSet[i]]--;
+        scoreRanges['set-' + game.currentSet][rangesSet[i]] === 0 && delete scoreRanges['set-' + game.currentSet][rangesSet[i]];
+      }
+    }
+
+    for (let i = 0; i < rangesLeg.length; i++) {
+      let rangeArr = rangesLeg[i].split('-');
+      if (score >= rangeArr[0] && score <= rangeArr[1]) {
+        scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg][rangesLeg[i]]--;
+        scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg][rangesLeg[i]] === 0 && delete scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg][rangesLeg[i]];
       }
     }
   }
+
+  game.playerModels[playerId].scoreRanges = scoreRanges;
 }
 
-const updateBestThreeDarts = (playerName, matchData) => {
-  matchData.matchPlayerInfo[playerName].bestThreeDarts = 0;
-  matchData.currentLegThrows.forEach(round => {
-    if(round.playerName === playerName) {
-      let currentScore = matchData.matchPlayerInfo[playerName].bestThreeDarts;
-      matchData.matchPlayerInfo[playerName].bestThreeDarts = Math.max(currentScore, getCurrentThrowScore(round.darts));
+const updateBestThreeDarts = (game, playerId) => {
+  let bestThreeDarts = game.playerModels[playerId].bestThreeDarts;
+
+  bestThreeDarts.game.value = 0;
+  bestThreeDarts['set-' + game.currentSet].value = 0;
+  bestThreeDarts['set-' + game.currentSet]['leg-' + game.currentSetLeg].value = 0;
+
+  game.currentLegThrows.forEach(round => {
+    if (round.playerId === playerId) {
+      let currentBestScoreGame = bestThreeDarts.game.value;
+      let currentBestScoreSet = bestThreeDarts['set-' + game.currentSet].value;
+      let currentBestScoreLeg = bestThreeDarts['set-' + game.currentSet]['leg-' + game.currentSetLeg].value;
+
+      bestThreeDarts.game.value = Math.max(currentBestScoreGame, getCurrentThrowScore(round.darts));
+      bestThreeDarts['set-' + game.currentSet].value = Math.max(currentBestScoreSet, getCurrentThrowScore(round.darts));
+      bestThreeDarts['set-' + game.currentSet]['leg-' + game.currentSetLeg].value = Math.max(currentBestScoreLeg, getCurrentThrowScore(round.darts));
     }
   });
 
-  matchData.allLegsThrows.forEach(leg => {
-    leg.forEach(round => {
-      if(round.playerName === playerName) {
-        let currentScore = matchData.matchPlayerInfo[playerName].bestThreeDarts;
-        matchData.matchPlayerInfo[playerName].bestThreeDarts = Math.max(currentScore, getCurrentThrowScore(round.darts));
+  let allSetsThrows = game.allSetsThrows;
+
+  if (allSetsThrows) {
+    for (let s = 1; s <= game.currentSet; s++) {
+      for (let l = 1; l <= game.legsPlayed; l++) {
+        let leg = ((allSetsThrows['set-' + s] || {})['leg-' + l] || []);
+        leg.forEach(round => {
+          if (round.playerId && round.playerId === playerId) {
+            let bestScoreGame = Math.max(round.roundScore || 0, bestThreeDarts.game.value);
+            bestThreeDarts.game.value = Math.max(bestScoreGame, getCurrentThrowScore(round.darts));
+
+            if (game.currentSet === s) {
+              let bestScoreSet = Math.max(round.roundScore || 0, bestThreeDarts['set-' + s].value);
+              bestThreeDarts['set-' + s].value = Math.max(bestScoreSet, getCurrentThrowScore(round.darts));
+
+              if (game.currentSetLeg === l) {
+                let bestScoreLeg = Math.max(round.roundScore || 0, bestThreeDarts['set-' + s]['leg-' + l].value);
+                bestThreeDarts['set-' + s]['leg-' + l].value = Math.max(bestScoreLeg, getCurrentThrowScore(round.darts));
+              }
+            }
+          }
+        });
       }
-    });
-  })
+    }
+  }
+  game.playerModels[playerId].bestThreeDarts = bestThreeDarts;
 }
 
-const updateDoubleOut = (playerData, darts) => {
-  let prevScore = playerData.score - getCurrentThrowScore(darts);
+const updateCheckout = (game, playerId, darts) => {
+  let checkout = game.playerModels[playerId].checkout;
+  let prevScore = game.playerModels[playerId].score - getCurrentThrowScore(darts);
 
   darts.reverse().forEach(dart => {
     let dartArr = [dart]
     prevScore =  prevScore + getCurrentThrowScore(dartArr);
-    if((prevScore % 2 === 0 && prevScore <= 40) || prevScore === 50) {
-      playerData.doubleOut[prevScore / 2].miss--;
-      playerData.doubleOut[prevScore / 2].total--;
-      playerData.doubleOut[prevScore / 2].total === 0 && delete playerData.doubleOut[prevScore / 2];
+    if ((prevScore % 2 === 0 && prevScore <= 40) || prevScore === 50) {
+      checkout['game'].miss--;
+      checkout['game'].total--;
+      checkout['set-' + game.currentSet].miss--;
+      checkout['set-' + game.currentSet].total--;
+      checkout['set-' + game.currentSet]['leg-' + game.currentSetLeg].miss--;
+      checkout['set-' + game.currentSet]['leg-' + game.currentSetLeg].total--;
+      checkout['sections'][prevScore / 2].miss--;
+      checkout['sections'][prevScore / 2].total--;
+      checkout['sections'][prevScore / 2].total === 0 && delete checkout['sections'][prevScore / 2];
     }
-  })
+  });
+
+  game.playerModels[playerId].checkout = checkout;
 }
 
-const updateAverages = (playerData, darts) => {
-  if(playerData.totalThrow.rounds === 1) {
-    playerData.averages = {
-      overall: 0,
-      begMidGame: 0,
-      endGame: 0,
+const updateAverages = (game, playerId, darts) => {
+  let playerModel = game.playerModels[playerId]
+
+  if (playerModel.totalThrow.game.rounds === 1) {
+    playerModel.averages = {
+      game: {
+        overall: 0,
+        begMidGame: 0,
+        endGame: 0,
+      }
     }
   } else {
-    let totalScore = playerData.averages.overall * playerData.totalThrow.rounds;
     let score = getCurrentThrowScore(darts);
 
-    playerData.averages.overall = (totalScore - score) / (playerData.totalThrow.rounds - 1);
+    let gameOverallAvg = playerModel.averages.game.overall;
+    let setOverallAvg = playerModel.averages['set-' + game.currentSet].overall;
+    let legOverallAvg = playerModel.averages['set-' + game.currentSet]['leg-' + game.currentSetLeg].overall;
+    let totalRoundsGame = playerModel.totalThrow.game.rounds;
+    let totalRoundsSet = playerModel.totalThrow['set-' + game.currentSet].rounds;
+    let totalRoundsLeg = playerModel.totalThrow['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds;
 
-    if(playerData.score > 140 ) {
-      let totalScoreBegMid = playerData.averages.begMidGame * playerData.totalThrowBegMidGame.rounds;
-      playerData.averages.begMidGame = (totalScoreBegMid - score) / (playerData.totalThrowBegMidGame.rounds - 1);
+    let totalGameScore = gameOverallAvg * totalRoundsGame;
+    let totalSetScore = setOverallAvg * totalRoundsSet;
+    let totalLegScore = legOverallAvg * totalRoundsLeg;
+
+    playerModel.averages.game.overall = (totalGameScore - score) / (totalRoundsGame - 1);
+    playerModel.averages['set-' + game.currentSet].overall = (totalSetScore - score) / (totalRoundsSet - 1);
+    playerModel.averages['set-' + game.currentSet]['leg-' + game.currentSetLeg].overall = (totalLegScore - score) / (totalRoundsLeg - 1);
+
+    let gamePeriod = playerModel.score > 140 ? 'begMidGame' : 'endGame';
+ 
+    if (gamePeriod === 'begMidGame') {
+      // New average for the game
+      let totalScoreBegMidGame = playerModel.averages.game.begMidGame * playerModel.totalThrowBegMidGame.game.rounds;
+      playerModel.averages.game.begMidGame = (totalScoreBegMidGame - score) / (playerModel.totalThrowBegMidGame.game.rounds - 1);
+
+      // New average for the current set
+      let totalScoreBegMidSet = playerModel.averages['set-' + game.currentSet].begMidSet * playerModel.totalThrowBegMidGame['set-' + game.currentSet].rounds;
+      playerModel.averages['set-' + game.currentSet].begMidSet = (totalScoreBegMidSet - score) / (playerModel.totalThrowBegMidGame['set-' + game.currentSet].rounds - 1);
+      
+      // New average for the current leg
+      let totalScoreBegMidLeg = playerModel.averages['set-' + game.currentSet]['leg-' + game.currentSetLeg].begMidLeg * playerModel.totalThrowBegMidGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds;
+      playerModel.averages['set-' + game.currentSet]['leg-' + game.currentSetLeg].begMidLeg = (totalScoreBegMidLeg - score) / (playerModel.totalThrowBegMidGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds - 1);
     } else {
-      if(playerData.totalThrowEndGame.rounds === 1) {
-        playerData.averages.endGame = 0;
-      } else {
-        let totalScoreEnd = playerData.averages.endGame * playerData.totalThrowEndGame.rounds;
-        playerData.averages.endGame = (totalScoreEnd - score) / (playerData.totalThrowEndGame.rounds - 1);
-      }
+      // New average for the game
+      let totalScoreEndGame = playerModel.averages.game.endGame * playerModel.totalThrowEndGame.game.rounds;
+      playerModel.averages.game.endGame = (totalScoreEndGame - score) / (playerModel.totalThrowEndGame.game.rounds - 1);
+
+      // New average for the current set
+      let totalScoreEndSet = playerModel.averages['set-' + game.currentSet].endSet * playerModel.totalThrowEndGame['set-' + game.currentSet].rounds;
+      playerModel.averages['set-' + game.currentSet].endSet = (totalScoreEndSet - score) / (playerModel.totalThrowEndGame['set-' + game.currentSet].rounds - 1);
+      
+      // New average for the current leg
+      let totalScoreEndLeg = playerModel.averages['set-' + game.currentSet]['leg-' + game.currentSetLeg].endLeg * playerModel.totalThrowEndGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds;
+      playerModel.averages['set-' + game.currentSet]['leg-' + game.currentSetLeg].endLeg = (totalScoreEndLeg - score) / (playerModel.totalThrowEndGame['set-' + game.currentSet]['leg-' + game.currentSetLeg].rounds - 1);
     }
   }
 }

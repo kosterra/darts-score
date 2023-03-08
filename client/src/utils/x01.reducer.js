@@ -186,7 +186,7 @@ import {
               ...state.game.playerModels,
               [action.payload.playerId]: {
                 ...state.game.playerModels[action.payload.playerId],
-                bestThreeDarts: action.payload.score,
+                bestThreeDarts: action.payload.bestThreeDarts
               }
             }
           }

@@ -60,17 +60,35 @@ const ScoreInputBoard = () => {
             X01Service.updateX01(game);
         }
 		// eslint-disable-next-line
-	}, [game.currentLegThrows]);
+	}, [ game.currentPlayerTurn, game.hasWinner ]);
+
+    const handlers = {
+        submitThrows: handleSubmitThrows,
+        submitReturn: handleSubmitReturn,
+    }
+    
+    const submitHandler = (e) => {
+        const { id } = e.nativeEvent.submitter;
+        handlers[id](e);
+    };
+    
+    function handleSubmitThrows(e) {
+        e.preventDefault();
+        onClickValidateThrow(score);
+        setSubmit(true);
+        e.target.reset();
+    }
+    
+    function handleSubmitReturn(e) {
+        e.preventDefault();
+        onClickReturnToPreviousPlayer();
+        setSubmit(true);
+        e.target.reset();
+    }
 
 	const onChange = (e) => {
 		let throwIndex = Number(e.target.name.split('-')[1]) - 1;
         updateCurrentThrowManual(score, e.target.value, throwIndex);
-	};
-
-    const onSubmit = (e) => {
-		e.preventDefault();
-        onClickValidateThrow(score);
-        setSubmit(true)
 	};
   
   return (
@@ -106,7 +124,7 @@ const ScoreInputBoard = () => {
                         <DartBoard />
                     </Col>
                     <Col className="col-4">
-                        <Form className="mt-1" onSubmit={onSubmit}>
+                        <Form className="mt-1" onSubmit={submitHandler}>
                             <div className="mb-2">
                                 <span>Click the dartboard or enter score{` `}</span>
                                 <i onClick={() => setShowModal(true)} className="fas fa-question-circle" style={{cursor: "pointer"}}></i>
@@ -186,15 +204,18 @@ const ScoreInputBoard = () => {
                                             <span className="visually-hidden">Loading...</span>
                                         </Button>
                                     ) : (
-                                        <Button id="submit-throws" type="submit">
+                                        <Button
+                                            id="submitThrows"
+                                            type="submit"
+                                        >
                                             <i className="fas fa-paper-plane" title='Send'></i>
                                         </Button>
                                     )}
                                     {game.currentLegThrows.length !== 0 && (
-                                        <Button 
-                                            onClick={onClickReturnToPreviousPlayer} 
+                                        <Button
+                                            id="submitReturn"
                                             variant="red"
-                                            type="button"
+                                            type="submit"
                                         >
                                             <i className="fas fa-undo-alt" title='Undo'></i>
                                         </Button>

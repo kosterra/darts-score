@@ -55,7 +55,9 @@ const X01PlayerModel = {
     }
   },
   bestThreeDarts: {
-    game: 0
+    game: {
+      value: 0
+    }
   },
   hit: {},
   scoreRanges: {},
@@ -74,7 +76,9 @@ const X01PlayerModel = {
     },
     sections: {}
   },
-  checkoutScores: {}
+  checkoutScores: {
+    game: {}
+  }
 }
 
 const X01Models = {

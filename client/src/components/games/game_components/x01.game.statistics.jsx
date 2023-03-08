@@ -21,9 +21,19 @@ const X01GameStatistics = () => {
             <Row className="mb-3">
                 <Col className="d-flex justify-content-center align-items-center">
                     <div className="d-flex flex-column justify-content-center">
-                        <Avatar name="Ralph Koster" size="80" round={true} color="#565656" textSizeRatio={0.2} className="align-self-center"/>
-                        <div className="mt-2 align-self-center fs-5 fw-500">Hoorli</div>
-                        <div className="align-self-center fs-6">Ralph Koster</div>
+                        <Avatar
+                            name={`${players.find(player => player.id === game.players[0]).firstname} ${players.find(player => player.id === game.players[0]).lastname}`}
+                            size="80" round={true}
+                            color="#565656"
+                            textSizeRatio={0.2}
+                            className="align-self-center"
+                        />
+                        <div className="mt-2 align-self-center fs-5 fw-500">
+                            {players.find(player => player.id === game.players[0]).nickname}
+                        </div>
+                        <div className="align-self-center fs-7 fw-600">
+                            {players.find(player => player.id === game.players[0]).firstname} {players.find(player => player.id === game.players[0]).lastname}
+                        </div>
                     </div>
                 </Col>
                 <Col className="d-flex justify-content-center align-items-start">
@@ -35,9 +45,19 @@ const X01GameStatistics = () => {
                 </Col>
                 <Col className="d-flex justify-content-center align-items-center">
                     <div className="d-flex flex-column justify-content-center">
-                        <Avatar name="Jan Koster" size="75" round={true} color="#565656" textSizeRatio={1.75} className="align-self-center"/>
-                        <div className="mt-2 align-self-center fs-5 fw-500">Häns</div>
-                        <div className="align-self-center fs-6">Jan Koster</div>
+                        <Avatar
+                            name={`${players.find(player => player.id === game.players[1]).firstname} ${players.find(player => player.id === game.players[1]).lastname}`}
+                            size="80" round={true}
+                            color="#565656"
+                            textSizeRatio={0.2}
+                            className="align-self-center"
+                        />
+                        <div className="mt-2 align-self-center fs-5 fw-500">
+                            {players.find(player => player.id === game.players[1]).nickname}
+                        </div>
+                        <div className="align-self-center fs-7 fw-600">
+                            {players.find(player => player.id === game.players[1]).firstname} {players.find(player => player.id === game.players[1]).lastname}
+                        </div>
                     </div>
                 </Col>
             </Row>

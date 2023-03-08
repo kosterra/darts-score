@@ -419,10 +419,10 @@ const X01State = props => {
 
   const saveAllSetsThrows = (currentLegThrows) => {
     let allSetsThrows = state.game.allSetsThrows ? state.game.allSetsThrows : {};
-    if (!allSetsThrows[state.game.currentSet]) {
-      allSetsThrows[state.game.currentSet] = {};
+    if (!allSetsThrows.hasOwnProperty("set-" + state.game.currentSet)) {
+      allSetsThrows["set-" + state.game.currentSet] = {};
     }
-    allSetsThrows[state.game.currentSet][state.game.currentSetLeg] = currentLegThrows;
+    allSetsThrows["set-" + state.game.currentSet]["leg-" + state.game.currentSetLeg] = currentLegThrows;
 
     dispatch({
       type: SAVE_ALL_SETS_THROWS,
@@ -687,17 +687,46 @@ const X01State = props => {
 
   const updateBestThreeDart = () => {
     let score = getCurrentThrowScore();
-    let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
+    let bestThreeDarts = state.game.playerModels[state.game.currentPlayerTurn].bestThreeDarts;
     let playerId = state.game.currentPlayerTurn;
-    if(score > playerModel.bestThreeDarts) {
-      dispatch({
-        type: UPDATE_BEST_THREE_DARTS,
-        payload: {
-          playerId,
-          score
-        }
-      })
+
+    if (!bestThreeDarts.hasOwnProperty('game')) {
+      bestThreeDarts['game'] = {
+        value: 0
+      };
     }
+
+    if (!bestThreeDarts.hasOwnProperty('set-' + state.game.currentSet)) {
+      bestThreeDarts['set-' + state.game.currentSet] = {
+        value: 0
+      };
+    }
+    
+    if (!bestThreeDarts['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg)) {
+      bestThreeDarts['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {
+        value: 0
+      };
+    }
+
+    if (score > bestThreeDarts.game.value) {
+      bestThreeDarts.game.value = score;
+    }
+
+    if (score > bestThreeDarts['set-' + state.game.currentSet].value) {
+      bestThreeDarts['set-' + state.game.currentSet].value = score;
+    }
+
+    if (score > bestThreeDarts['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].value) {
+      bestThreeDarts['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].value = score;
+    }
+
+    dispatch({
+      type: UPDATE_BEST_THREE_DARTS,
+      payload: {
+        playerId,
+        bestThreeDarts
+      }
+    })
   }
 
   const saveCheckoutScore = () => {
@@ -705,11 +734,26 @@ const X01State = props => {
     let playerId = state.game.currentPlayerTurn;
     let checkoutScores = {...state.game.playerModels[state.game.currentPlayerTurn].checkoutScores};
 
-    if(checkoutScores.hasOwnProperty(score)) {
-      checkoutScores[score]++;
-    } else {
-      checkoutScores[score] = 1;
+    if (!checkoutScores.hasOwnProperty('game')) {
+      checkoutScores['game'] = {};
     }
+
+    if (!checkoutScores.hasOwnProperty('set-' + state.game.currentSet)) {
+      checkoutScores['set-' + state.game.currentSet] = {};
+    }
+    
+    if (!checkoutScores['set-' + state.game.currentSet].hasOwnProperty('leg-' + state.game.currentSetLeg)) {
+      checkoutScores['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg] = {};
+    }
+
+    checkoutScores['game'].hasOwnProperty(score) ?
+            checkoutScores['game'][score]++ : checkoutScores['game'][score] = 1;
+
+    checkoutScores['set-' + state.game.currentSet].hasOwnProperty(score) ?
+            checkoutScores['set-' + state.game.currentSet][score]++ : checkoutScores['set-' + state.game.currentSet][score] = 1;
+    
+    checkoutScores['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hasOwnProperty(score) ?
+            checkoutScores['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg][score]++ : checkoutScores['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg][score] = 1;
 
     dispatch({
       type: UPDATE_CHECKOUT_SCORE,
@@ -1060,8 +1104,11 @@ const X01State = props => {
   }
 
   const onClickReturnToPreviousPlayer = () => {
-    if(!state.game.currentLegThrows.length) return;
+    if (!state.game.currentLegThrows.length) {
+      return
+    };
     let newMatchData = X01ReturnToPreviousPlayer(state.game);
+    
     dispatch({
       type: RETURN_PREV_PLAYER,
       payload: newMatchData
