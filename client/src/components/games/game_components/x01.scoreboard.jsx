@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 
+import Avatar from 'react-avatar';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -49,13 +50,19 @@ const X01ScoreBoard = (props) => {
                         <Row className="align-items-center h-100">
                             <Col className="d-flex justify-content-center">
                                 <div>
-                                    <div className="d-flex justify-content-center display-3 fw-600">
-                                        { game.currentPlayerTurn === playerId ?
-                                            score === 1 || score < 0 ? 'BUST' : score : playerModel.score
-                                        }
+                                    <div className="d-flex justify-content-center display-3 fw-600 mb-2">
+                                        <Avatar
+                                            name={ player.firstname + ' ' + player.lastname }
+                                            src={ player.profileImg }
+                                            size="80"
+                                            round={ true }
+                                            color="#565656"
+                                            textSizeRatio={ 0.2 }
+                                            className="align-self-center"
+                                        />
                                     </div>
                                     <div className="d-flex justify-content-center">
-                                        <span className="fs-5 fw-600">{player.nickname}</span>
+                                        <span className="fs-5 fw-600">{ player.nickname }</span>
                                     </div>
                                     <div className="d-flex justify-content-center">
                                         <span className="fs-7">{player.firstname + ' ' + player.lastname}</span>
@@ -76,7 +83,14 @@ const X01ScoreBoard = (props) => {
                         </Row>
                     </Col>
                     <Col className="p-0">
-                        <div className="d-flex align-items-center justify-content-center gap-3 h-100">
+                        <div className="d-flex justify-content-center align-items-center h-50">
+                            <div className="display-3 fw-600 mt-3" >
+                                { game.currentPlayerTurn === playerId ?
+                                    score === 1 || score < 0 ? 'BUST' : score : playerModel.score
+                                }
+                            </div>
+                        </div>
+                        <div className="d-flex align-items-center justify-content-center gap-3 h-50">
                             <div>
                                 <div className="d-flex justify-content-center fw-600 mb-02">
                                     LEGS

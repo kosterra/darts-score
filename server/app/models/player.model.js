@@ -5,28 +5,7 @@ module.exports = mongoose => {
         firstname: String,
         lastname: String,
         nickname: String,
-        nbrOfMatches: Number,
-        matchesWon: Number,
-        soloGames: Number,
-        totalThrow: {
-          darts: Number,
-          rounds: Number
-        },
-        totalThrowEndGame: {
-          darts: Number,
-          rounds: Number
-        },
-        totalThrowBegMidGame: {
-          darts: Number,
-          rounds: Number
-        },
-        bestThreeDarts: Number,
-        hit: Object,
-        scoreRanges: Object,
-        averages: Object,
-        checkout: Object,
-        checkoutScores: Object,
-        matches: [{}]
+        profileImg: String
       },
       { timestamps: true }
     );

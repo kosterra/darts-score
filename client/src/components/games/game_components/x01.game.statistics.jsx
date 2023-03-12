@@ -10,6 +10,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import ComparisonBar from '../../elements/comparison.bar';
 
+import dayjs from "dayjs";
+
 const X01GameStatistics = () => {
     const {
         game,
@@ -18,45 +20,55 @@ const X01GameStatistics = () => {
 
     return (
         <Container className="w-50 mb-4">
-            <Row className="mb-3">
+            <Row className="mb-3 p-3 border-dotted-top-grey border-dotted-bottom-grey">
                 <Col className="d-flex justify-content-center align-items-center">
                     <div className="d-flex flex-column justify-content-center">
                         <Avatar
                             name={`${players.find(player => player.id === game.players[0]).firstname} ${players.find(player => player.id === game.players[0]).lastname}`}
-                            size="80" round={true}
+                            src={ `${players.find(player => player.id === game.players[0]).profileImg}` }
+                            size="80"
+                            round={true}
                             color="#565656"
                             textSizeRatio={0.2}
                             className="align-self-center"
                         />
-                        <div className="mt-2 align-self-center fs-5 fw-500">
+                        <div className="mt-2 align-self-center fs-7 fw-600">
                             {players.find(player => player.id === game.players[0]).nickname}
                         </div>
-                        <div className="align-self-center fs-7 fw-600">
+                        <div className="align-self-center fs-7 fw-500">
                             {players.find(player => player.id === game.players[0]).firstname} {players.find(player => player.id === game.players[0]).lastname}
                         </div>
                     </div>
                 </Col>
-                <Col className="d-flex justify-content-center align-items-start">
+                <Col className="d-flex justify-content-center align-items-center">
                     <div className="d-flex flex-column justify-content-center">
-                        <div className="align-self-center fs-8 fw-400 text-secondary">25.02.2023 20:19</div>
-                        <div className="align-self-center fs-1 fw-400">4 - 3</div>
-                        <div className="align-self-center fs-8 fw-400">Beendet</div>
+                        <div className="align-self-center fs-8 fw-400 text-white">
+                            { dayjs(game.createdAt).format("DD.MM.YYYY HH:mm") }
+                        </div>
+                        <div className="align-self-center fs-1 fw-400">
+                            { game.playerModels[game.players[0]].setsWon + ' - ' + game.playerModels[game.players[1]].setsWon }
+                        </div>
+                        <div className="align-self-center fs-8 fw-400">
+                            { game.gameIsRunning ? 'Running' : 'Finished' }
+                        </div>
                     </div>
                 </Col>
                 <Col className="d-flex justify-content-center align-items-center">
                     <div className="d-flex flex-column justify-content-center">
                         <Avatar
                             name={`${players.find(player => player.id === game.players[1]).firstname} ${players.find(player => player.id === game.players[1]).lastname}`}
-                            size="80" round={true}
+                            src={ `${players.find(player => player.id === game.players[1]).profileImg}` }
+                            size="80"
+                            round={true}
                             color="#565656"
                             textSizeRatio={0.2}
                             className="align-self-center"
                         />
-                        <div className="mt-2 align-self-center fs-5 fw-500">
-                            {players.find(player => player.id === game.players[1]).nickname}
+                        <div className="mt-2 align-self-center fs-7 fw-600">
+                            { players.find(player => player.id === game.players[1]).nickname }
                         </div>
-                        <div className="align-self-center fs-7 fw-600">
-                            {players.find(player => player.id === game.players[1]).firstname} {players.find(player => player.id === game.players[1]).lastname}
+                        <div className="align-self-center fs-7 fw-500">
+                            { players.find(player => player.id === game.players[1]).firstname } { players.find(player => player.id === game.players[1]).lastname }
                         </div>
                     </div>
                 </Col>
@@ -65,7 +77,6 @@ const X01GameStatistics = () => {
                 defaultActiveKey="overall"
                 variant="pills"
                 className="mb-3"
-                justify
             >
                 <Tab eventKey="overall" title="Overall">
                     <ComparisonBar

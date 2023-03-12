@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
+import ImageUploader from '../../elements/image.uploader';
 
 import PlayerService from '../../../services/player.service';
 
@@ -20,6 +22,23 @@ const PlayerForm = (props) => {
     const handleShowModal = () => setShowModal(true);
 
     const [player, setPlayer] = useState(initialState);
+    const [previewUrl, setPreviewUrl] = useState("");
+
+    const onFileChange = (file) => {
+        setPreviewUrl(URL.createObjectURL(file));
+        setPlayer((player) => ({
+            ...player,
+            profileImg: file
+        }));
+    }
+
+    const onFileDelete = (file) => {
+        setPreviewUrl("");
+        setPlayer((player) => ({
+            ...player,
+            profileImg: ''
+        }));
+    }
 
     const handleChange = (event) => {
         setPlayer((player) => ({
@@ -35,11 +54,16 @@ const PlayerForm = (props) => {
             setValidated(true);
         } else {
             setValidated(true);
-            if (await PlayerService.createPlayer(player)) {
-                setPlayer(initialState);
-                setValidated(false);
-                onPlayerAdd();
-            };
+            try {
+                if (await PlayerService.createPlayer(player)) {
+                    setPlayer(initialState);
+                    setPreviewUrl("");
+                    setValidated(false);
+                    onPlayerAdd();
+                };
+            } catch (error) {
+                toast.error('Failed to create new player: ' + error);
+            }
         }
     }
 
@@ -51,54 +75,60 @@ const PlayerForm = (props) => {
 
     return (
         <div className="m-2 mb-4 justify-content-md-center align-items-center">
-            <Modal show={showModal}
-                onHide={handleCloseModal}
-                fullscreen={false}
+            <Modal show={ showModal }
+                onHide={ handleCloseModal }
+                fullscreen={ false }
                 aria-labelledby="contained-modal-title-vcenter"
                 centered>
                 <Form
                     noValidate
-                    validated={validated}>
+                    validated={ validated }>
                     <Modal.Header closeButton closeVariant="white">
                         <Modal.Title className="h6">Add New Player</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                            <FloatingLabel controlId="floatingFirstname" label="Firstname" className="mb-3">
-                                <Form.Control
-                                    name="firstname"
-                                    required
-                                    type="text"
-                                    placeholder="Firstname"
-                                    value={player.firstname}
-                                    onChange={handleChange}
-                                    minLength={3}
-                                    maxLength={25} />
-                                <Form.Control.Feedback type="invalid">Between 3 and 25 characters required</Form.Control.Feedback>
-                            </FloatingLabel>
-                            <FloatingLabel controlId="floatingLastname" label="Lastname" className="mb-3">
-                                <Form.Control
-                                    name="lastname"
-                                    required
-                                    type="text"
-                                    placeholder="Lastname"
-                                    value={player.lastname}
-                                    onChange={handleChange}
-                                    minLength={3}
-                                    maxLength={25} />
-                                <Form.Control.Feedback type="invalid">Between 3 and 25 characters required</Form.Control.Feedback>
-                            </FloatingLabel>
-                            <FloatingLabel controlId="floatingNickname" label="Nickname" className="mb-3">
-                                <Form.Control
-                                    name="nickname"
-                                    required
-                                    type="text"
-                                    placeholder="Nickname"
-                                    value={player.nickname}
-                                    onChange={handleChange}
-                                    minLength={3}
-                                    maxLength={25} />
-                                <Form.Control.Feedback type="invalid">Between 3 and 25 characters required</Form.Control.Feedback>
-                            </FloatingLabel>
+                        <ImageUploader
+                            name={ player.firstname + ' ' + player.lastname }
+                            previewUrl={ previewUrl }
+                            onFileChange={ onFileChange }
+                            onFileDelete={ onFileDelete }
+                        />
+                        <FloatingLabel controlId="floatingFirstname" label="Firstname" className="mt-3 mb-3">
+                            <Form.Control
+                                name="firstname"
+                                required
+                                type="text"
+                                placeholder="Firstname"
+                                value={player.firstname}
+                                onChange={handleChange}
+                                minLength={3}
+                                maxLength={25} />
+                            <Form.Control.Feedback type="invalid">Between 3 and 25 characters required</Form.Control.Feedback>
+                        </FloatingLabel>
+                        <FloatingLabel controlId="floatingLastname" label="Lastname" className="mb-3">
+                            <Form.Control
+                                name="lastname"
+                                required
+                                type="text"
+                                placeholder="Lastname"
+                                value={player.lastname}
+                                onChange={handleChange}
+                                minLength={3}
+                                maxLength={25} />
+                            <Form.Control.Feedback type="invalid">Between 3 and 25 characters required</Form.Control.Feedback>
+                        </FloatingLabel>
+                        <FloatingLabel controlId="floatingNickname" label="Nickname" className="mb-3">
+                            <Form.Control
+                                name="nickname"
+                                required
+                                type="text"
+                                placeholder="Nickname"
+                                value={player.nickname}
+                                onChange={handleChange}
+                                minLength={3}
+                                maxLength={25} />
+                            <Form.Control.Feedback type="invalid">Between 3 and 25 characters required</Form.Control.Feedback>
+                        </FloatingLabel>
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={handleCloseModal} className="p-2">

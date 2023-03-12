@@ -1,14 +1,26 @@
+const {
+  IMG_DIR
+} = process.env;
+
 const logger = require("../models/logger.model");
 const db = require("../models/db.model");
+
 const Player = db.player;
 
+const DIR = '/players';
+
 // Create and Save a new Player
-exports.create = (req, res) => {
+exports.create = (req, res, next) => {
+  logger.debug('create player');
+
+  const url = req.protocol + '://' + req.get('host')
+      
   // Create a Player
   const player = new Player({
     firstname: req.body.firstname,
     lastname: req.body.lastname,
-    nickname: req.body.nickname
+    nickname: req.body.nickname,
+    profileImg: req.file ? url + IMG_DIR + DIR + '/' + req.file.filename : ''
   });
 
   // Save Player in the database
@@ -78,6 +90,7 @@ exports.update = (req, res) => {
       } else res.send({ message: "Player was updated successfully." });
     })
     .catch(err => {
+      logger.error(err);
       res.status(500).send({
         message: "Error updating Player with id=" + id
       });
@@ -122,9 +135,9 @@ exports.findBySearchTerm = (req, res) => {
   }).then(data => {
     res.send(data);
   }).catch(err => {
+    logger.error(err);
     res.status(500).send({
-      message:
-        err.message || "Some error occurred while retrieving players."
+      message: "Could not find player by search term " + searchTerm
     });
   });
 }

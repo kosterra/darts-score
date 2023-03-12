@@ -1,4 +1,5 @@
 import React from 'react';
+import Avatar from 'react-avatar';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -23,7 +24,17 @@ const SelectableCard = (props) => {
                         {item.nickname}
                     </Card.Title>
                     <Card.Text as="div" className="p-2 text-light">
-                        <span>{item.firstname + ' ' + item.lastname}</span>
+                        <div className="d-flex flex-column justify-content-center align-items-center">
+                            <Avatar
+                                name={item.firstname + ' ' + item.lastname}
+                                src={item.profileImg}
+                                size="80" round={true}
+                                color="#565656"
+                                textSizeRatio={0.2}
+                                className="align-self-center"
+                            />
+                            <span className="mt-1 text-secondary">{item.firstname + ' ' + item.lastname}</span>
+                        </div>
                     </Card.Text>
                 </Card.Body>
                 { isSelected &&

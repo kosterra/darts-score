@@ -16,22 +16,22 @@ const ComparisonBar = (props) => {
         <div className={`mt-2 ${barLValue === 0 && barRValue === 0 ? 'd-none' : ''}`}>
             <div className="d-flex justify-content-between align-items-baseline">
                 <span className="d-flex flex-column">
-                    <span className="me-1 fs-8 text-grey">{barLValue} {unit}</span>
-                    { barLSubvalue && 
+                    <span className="me-1 fs-8 text-grey">{ isNaN(barLValue) ? 0 : barLValue } {unit}</span>
+                    { barLSubvalue &&
                         <span className="me-1 fs-9 text-grey">{barLSubvalue}</span>
                     }
                 </span>
                 <span className="d-flex align-self-end fs-7">{title}</span>
                 <span className="d-flex flex-column">
-                    <span className="me-1 fs-8 text-grey text-end">{barRValue} {unit}</span>
-                    { barRSubvalue && 
+                    <span className="me-1 fs-8 text-grey text-end">{ isNaN(barRValue) ? 0 : barRValue } {unit}</span>
+                    { barRSubvalue &&
                         <span className="me-1 fs-9 text-grey text-end">{barRSubvalue}</span>
                     }
                 </span>
             </div>
             <ProgressBar className="border-0 radius-0 bg-transparent">
-                <ProgressBar className="border-0 radius-0" variant="primary" now={barLValue} max={barLValue + barRValue <= 100 ? barLValue + barRValue : 100} key={1}/>
-                <ProgressBar className="border-0 radius-0" variant="secondary" now={barRValue} max={barLValue + barRValue <= 100 ? barLValue + barRValue : 100} key={2} />
+                <ProgressBar className="border-0 radius-0" variant="primary" now={ isNaN(barLValue) ? 0 : barLValue } max={barLValue + barRValue <= 100 ? barLValue + barRValue : 100} key={1}/>
+                <ProgressBar className="border-0 radius-0" variant="secondary" now={ isNaN(barRValue) ? 0 : barRValue } max={barLValue + barRValue <= 100 ? barLValue + barRValue : 100} key={2} />
             </ProgressBar>
         </div>
     )

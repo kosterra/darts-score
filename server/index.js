@@ -4,6 +4,7 @@ const express = require("express");
 const path = require('path');
 const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const cors = require("cors");
 const db = require("./app/models/db.model");
 const logger = require("./app/models/logger.model");
@@ -21,11 +22,8 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(cookieParser());
 app.use(cors(corsOptions));
 
-// parse requests of content-type - application/json
-app.use(express.json());
-
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+app.use(bodyParser.json({ limit: "30mb", extended: true }));
 
 logger.debug(db.url);
 
@@ -45,6 +43,7 @@ db.mongoose
 
 require("./app/routes/player.routes")(app);
 require("./app/routes/x01.routes")(app);
+require("./app/routes/player.img.routes")(app);
 
 // All other GET requests not handled before will return the static html page
 app.get('*', (req, res) => {

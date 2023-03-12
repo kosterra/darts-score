@@ -1,13 +1,14 @@
 // Public methods to export
 const createPlayer = (player) => {
+    var formData = new FormData();
+    Object.keys(player).forEach(key => formData.append(key, player[key]));
+
     return fetch(process.env.REACT_APP_API_URL + 'players', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'accept': 'application/json'
-        },
-        body: JSON.stringify(player)
+        body: formData
     }).then(response => {
+        console.log(response);
+        console.log(response.ok);
         if (!response.ok) {
             throw Error(response.statusText);
         }

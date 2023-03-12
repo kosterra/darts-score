@@ -23,8 +23,8 @@
     }
 }
 
-// Bootstrap nav-items
-.nav-justified {
+// Bootstrap nav-pills
+.nav-pills {
 
     .nav-item {
         padding: 0.4rem;
@@ -278,10 +278,6 @@ a {
                 justify-content: center;
                 display: flex;
                 font-size: 0.9rem;
-
-                span {
-                    color: $primary-grey;
-                }
             }
         }
 
@@ -289,6 +285,24 @@ a {
             position: absolute;
             bottom: 0.2rem;
             right: 0.2rem;
+        }
+    }
+}
+
+// Fileuploader
+.file-upload {
+    .delete-file {
+        cursor: pointer;
+        position: absolute;
+        top: 7rem;
+        right: 12rem;
+    }
+
+    .drop-zone {
+        cursor: pointer;
+    
+        &.is-dragging, &:hover {
+            background-color: $tertiary-grey;
         }
     }
 }
