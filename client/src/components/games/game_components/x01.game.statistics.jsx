@@ -1,6 +1,4 @@
-import React, { useContext } from 'react';
-
-import X01Context from '../../../utils/x01.context';
+import React from 'react';
 
 import Avatar from 'react-avatar';
 import Container from 'react-bootstrap/Container';
@@ -12,11 +10,11 @@ import ComparisonBar from '../../elements/comparison.bar';
 
 import dayjs from "dayjs";
 
-const X01GameStatistics = () => {
+const X01GameStatistics = props => {
     const {
         game,
         players
-    } = useContext(X01Context);
+    } = props;
 
     return (
         <Container className="w-50 mb-4">

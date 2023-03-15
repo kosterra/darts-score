@@ -135,16 +135,6 @@ const X01StatisticsBoard = props => {
                         {[...Array(20)].map((x, i) => ((game.playerModels[playerId].checkout || {}).sections || {})[i+1] ? (
                                 <div key={i+1} className="d-flex justify-content-between text-grey fs-9">
                                     <span className="col-10">Double {i+1}</span>
-                                    {/* <span className="d-flex justify-content-between col-2 text-center">
-                                        <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})[i+1] || {}).hit || 0)}</span>
-                                        <span className="col-4 text-center"> / </span>
-                                        <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})[i+1] || {}).total || 0)}</span>
-                                    </span>
-                                    <span className="d-flex justify-content-between col-2 text-center">
-                                        <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})[i+1] || {}).hit || 0)}</span>
-                                        <span className="col-4 text-center"> / </span>
-                                        <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})[i+1] || {}).total || 0)}</span>
-                                    </span> */}
                                     <span className="d-flex justify-content-between col-2 text-center">
                                         <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})[i+1] || {}).hit || 0)}</span>
                                         <span className="col-4 text-center"> / </span>
@@ -156,16 +146,6 @@ const X01StatisticsBoard = props => {
                         {((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).total || 0) > 0 &&
                             <div className="d-flex justify-content-between text-grey fs-9">
                                 <span className="col-10">BULLSEYE</span>
-                                {/* <span className="d-flex justify-content-between col-2 text-center">
-                                    <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).hit || 0)}</span>
-                                    <span className="col-4 text-center"> / </span>
-                                    <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).total || 0)}</span>
-                                </span>
-                                <span className="d-flex justify-content-between col-2 text-center">
-                                    <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).hit || 0)}</span>
-                                    <span className="col-4 text-center"> / </span>
-                                    <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).total || 0)}</span>
-                                </span> */}
                                 <span className="d-flex justify-content-between col-2 text-center">
                                     <span className="col-4 text-center">{((((game.playerModels[playerId].checkout || {}).sections || {})['25'] || {}).hit || 0)}</span>
                                     <span className="col-4 text-center"> / </span>

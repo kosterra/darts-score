@@ -105,7 +105,7 @@ const X01Game = () => {
                 <Container>
                     <Row>
                         <Col className="d-flex flex-column justify-content-center align-items-center gap-2">
-                            <X01GameStatistics />
+                            <X01GameStatistics game={game} players={players} />
                             <div className="d-grid gap-2 col-2 mx-auto">
                                 <Button onClick={onRestartGame} variant="primary">
                                     <i className="fas fa-sync-alt pe-2" title='Send'></i>
