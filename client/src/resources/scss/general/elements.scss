@@ -306,3 +306,34 @@ a {
         }
     }
 }
+
+// Navbar
+.navbar {
+    font-weight: 500;
+
+    .navbar-brand {
+        span {
+            margin-left: 1rem;
+        }
+    }
+
+    .navbar-nav {
+        font-size: 0.9rem;
+        gap: 10px;
+        margin: 0 1rem 0 0;
+
+        .dropdown-menu {
+            padding: 0;
+
+            .dropdown-item {
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin: 0;
+
+                &:active {
+                    background-color: $dark-green;
+                }
+            }
+        }
+    }
+}

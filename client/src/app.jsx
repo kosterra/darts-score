@@ -26,6 +26,7 @@ function App() {
 				<Route path="/cricket" element={<X01GamePage/>} />
 				<Route path="/stats" element={<StatsPage/>} />
 				<Route path="/about" element={<AboutPage/>} />
+				<Route path="/admin" element={<AboutPage/>} />
 			</Routes>
 			<ToastContainer 
 				position="bottom-right"

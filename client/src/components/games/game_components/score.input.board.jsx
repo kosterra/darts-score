@@ -4,7 +4,7 @@ import X01Context from '../../../utils/x01.context';
 import X01Service from '../../../services/x01.service';
 
 import DartBoard from './dartboard';
-import Checkout from './checkout';
+import Checkout from './x01.checkout';
 import checkout from '../../../utils/checkout';
 
 import Container from 'react-bootstrap/Container';
