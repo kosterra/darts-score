@@ -1,0 +1,10 @@
+**/node_modules
+**/npm-debug.log
+build
+
+
+client/node_modules
+client/resources/scss
+server/node_modules
+
+.env
