@@ -21,7 +21,7 @@ jobs:
         run: |
           echo "name: ${{ steps.package.outputs.name }}"
           echo "version: ${{ steps.package.outputs.version }}"
-      - name: Create release
+      - name: Create tag
         uses: rickstaa/action-create-tag@v1
         with:
           tag: ${{ steps.package.outputs.version }}

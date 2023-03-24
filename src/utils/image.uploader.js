@@ -1,6 +1,6 @@
 const {
     IMG_DIR
-} = process.env;
+} = process.env || '/app/data/img';
 
 const logger = require("../models/logger.model");
 const multer = require('multer');

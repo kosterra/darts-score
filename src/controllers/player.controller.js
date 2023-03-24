@@ -1,7 +1,3 @@
-const {
-  IMG_DIR
-} = process.env;
-
 const logger = require("../models/logger.model");
 const db = require("../models/db.model");
 

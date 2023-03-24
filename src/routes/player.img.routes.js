@@ -1,7 +1,7 @@
 module.exports = app => {
     const {
         IMG_DIR
-    } = process.env;
+    } = process.env || '/app/data/img';
 
     const router = require("express").Router();
     const logger = require("../models/logger.model");
