@@ -8,12 +8,15 @@ jobs:
   read_package_info:
     runs-on: ubuntu-latest
     steps:
-      - name: get-npm-version
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@main
-      - run: echo "version - ${{ steps.package-version.outputs.current-version }}"
+      - name: Get package info
+        id: package
+        uses: codex-team/action-nodejs-package-info@v1.1
+      - name: Get the output
+        run: |
+          echo "name: ${{ steps.package.outputs.name }}"
+          echo "version: ${{ steps.package.outputs.version }}"
 
-  release-on-pull-request:
+  create-release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions-ecosystem/action-push-tag@v1
@@ -30,10 +33,10 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/darts-score-api
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.package.outputs.name }}
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=raw,value=${{ steps.package-version.outputs.current-version }}
+            type=raw,value=${{ steps.package.outputs.version }}
             type=raw,value=latest
       - name: Checkout
         id: checkout
