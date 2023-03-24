@@ -28,7 +28,7 @@ jobs:
           message: '${{ steps.package.outputs.version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v2
         with:
           # list of Docker images to use as base name for tags
           images: |
