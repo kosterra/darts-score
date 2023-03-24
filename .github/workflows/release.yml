@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  read_package_info:
+  release_and_build_image:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -18,18 +18,11 @@ jobs:
         run: |
           echo "name: ${{ steps.package.outputs.name }}"
           echo "version: ${{ steps.package.outputs.version }}"
-
-  create-release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions-ecosystem/action-push-tag@v1
+      - name: Create release
+        uses: actions-ecosystem/action-push-tag@v1
         with:
           tag: ${{ steps.package.outputs.version }}
           message: '${{ steps.package.outputs.version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
-  
-  build-and-push-image:
-    runs-on: ubuntu-latest
-    steps:
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
