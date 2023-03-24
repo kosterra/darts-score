@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  release_and_build_image:
+  build_and_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,8 +19,9 @@ jobs:
           echo "name: ${{ steps.package.outputs.name }}"
           echo "version: ${{ steps.package.outputs.version }}"
       - name: Create release
-        uses: thejeff77/action-push-tag@v1.0.0
+        uses: rickstaa/action-create-tag@v1
         with:
+          tag_exists_error: false
           tag: ${{ steps.package.outputs.version }}
           message: '${{ steps.package.outputs.version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
       - name: Docker meta
