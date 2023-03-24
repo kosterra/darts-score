@@ -24,8 +24,8 @@ jobs:
     steps:
       - uses: actions-ecosystem/action-push-tag@v1
         with:
-          tag: ${{ steps.package-version.outputs.current-version }}
-          message: '${{ steps.package-version.outputs.current-version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
+          tag: ${{ steps.package.outputs.version }}
+          message: '${{ steps.package.outputs.version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
   
   build-and-push-image:
     runs-on: ubuntu-latest
