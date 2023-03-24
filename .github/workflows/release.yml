@@ -8,17 +8,18 @@ jobs:
   read_package_info:
     runs-on: ubuntu-latest
     steps:
-      - uses: jaywcjlove/github-action-package@main
-        name: package.json info
-      - run: echo "version - ${{ steps.read_package_info.outputs.version }}"
+      - name: get-npm-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
+      - run: echo "version - ${{ steps.package-version.outputs.current-version }}"
 
   release-on-pull-request:
     runs-on: ubuntu-latest
     steps:
       - uses: actions-ecosystem/action-push-tag@v1
         with:
-          tag: ${{ steps.read_package_info.outputs.version }}
-          message: '${{ steps.read_package_info.outputs.version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
+          tag: ${{ steps.package-version.outputs.current-version }}
+          message: '${{ steps.package-version.outputs.current-version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
   
   build-and-push-image:
     runs-on: ubuntu-latest
@@ -32,7 +33,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/darts-score-api
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=raw,value=${{ steps.read_package_info.outputs.version }}
+            type=raw,value=${{ steps.package-version.outputs.current-version }}
             type=raw,value=latest
       - name: Checkout
         id: checkout
