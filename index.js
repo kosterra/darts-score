@@ -1,5 +1,10 @@
 require("dotenv").config();
 
+const {
+    UI_HOST,
+    UI_PORT
+} = process.env;
+
 const express = require("express");
 const path = require('path');
 const favicon = require('serve-favicon');
@@ -9,12 +14,10 @@ const cors = require("cors");
 const db = require("./src/models/db.model");
 const logger = require("./src/models/logger.model");
 
-const uiPort = process.env.UI_PORT || 3000;
-
 const app = express();
 
 var corsOptions = {
-    origin: "http://localhost:" + uiPort
+    origin: "http://" + UI_HOST + ":" + UI_PORT
 };
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
