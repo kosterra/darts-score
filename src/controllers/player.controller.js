@@ -7,7 +7,7 @@ const db = require("../models/db.model");
 
 const Player = db.player;
 
-const DIR = '/players';
+const DIR = '/api/images/players/';
 
 // Create and Save a new Player
 exports.create = (req, res, next) => {
@@ -20,7 +20,7 @@ exports.create = (req, res, next) => {
     firstname: req.body.firstname,
     lastname: req.body.lastname,
     nickname: req.body.nickname,
-    profileImg: req.file ? url + IMG_DIR + DIR + '/' + req.file.filename : ''
+    profileImg: req.file ? url + DIR + req.file.filename : ''
   });
 
   // Save Player in the database

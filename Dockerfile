@@ -8,7 +8,8 @@ WORKDIR /app
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm install -g npm@9.6.2
+RUN npm ci --omit=dev
 
 # Bundle app source
 COPY . /app

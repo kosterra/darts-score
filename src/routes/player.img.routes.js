@@ -29,5 +29,5 @@ module.exports = app => {
         })
     });
   
-    app.use(IMG_DIR + '/players/', router);
+    app.use('/api/images/players/', router);
   };

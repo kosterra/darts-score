@@ -6,10 +6,9 @@ const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const cors = require("cors");
-const db = require("./app/models/db.model");
-const logger = require("./app/models/logger.model");
+const db = require("./src/models/db.model");
+const logger = require("./src/models/logger.model");
 
-const apiPort = process.env.API_PORT || 3001;
 const uiPort = process.env.UI_PORT || 3000;
 
 const app = express();
@@ -41,9 +40,9 @@ db.mongoose
     process.exit();
   });
 
-require("./app/routes/player.routes")(app);
-require("./app/routes/x01.routes")(app);
-require("./app/routes/player.img.routes")(app);
+require("./src/routes/player.routes")(app);
+require("./src/routes/x01.routes")(app);
+require("./src/routes/player.img.routes")(app);
 
 // All other GET requests not handled before will return the static html page
 app.get('*', (req, res) => {
@@ -82,6 +81,6 @@ app.use(function(err, req, res, next) {
 });
 
 // listen to port
-app.listen(apiPort, () => {
-    logger.info(`Server listening on ${ apiPort }`);
+app.listen(3001, () => {
+    logger.info(`Server listening on 3001`);
 });

@@ -3,8 +3,18 @@
 build
 
 
-client/node_modules
-client/resources/scss
-server/node_modules
+node_modules
+data
 
-.env
+# ignore all .env and .*ignore files
+.env*
+.*ignore
+
+# ignore .git and .cache folders
+.git
+.cache
+
+# ignore all markdown files (md) beside all README*.md other than README-secret.md
+*.md
+!README*.md
+README-secret.md
