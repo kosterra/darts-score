@@ -19,7 +19,7 @@ jobs:
           echo "name: ${{ steps.package.outputs.name }}"
           echo "version: ${{ steps.package.outputs.version }}"
       - name: Create release
-        uses: actions-ecosystem/action-push-tag@v1
+        uses: thejeff77/action-push-tag@v1.0.0
         with:
           tag: ${{ steps.package.outputs.version }}
           message: '${{ steps.package.outputs.version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
