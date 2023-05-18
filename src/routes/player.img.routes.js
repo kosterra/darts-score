@@ -5,7 +5,6 @@ module.exports = app => {
 
     const router = require("express").Router();
     const logger = require("../models/logger.model");
-    const path = require('path');
   
     // Get player profile img
     router.get("/:id", function (req, res, next) {

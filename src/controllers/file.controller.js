@@ -3,6 +3,8 @@ const {
 } = process.env || '/app/data/img';
 
 const logger = require("../models/logger.model");
+const db = require("../models/db.model");
+const Player = db.player;
 const multer = require('multer');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
@@ -34,7 +36,7 @@ const upload = multer({
     }
 }).single('profileImg');
 
-exports.upload = (req, res, next) => {
+exports.uploadProfileImage = (req, res, next) => {
     upload(req, res, function (err) {
         logger.debug('Upload profile image')
         
@@ -53,4 +55,28 @@ exports.upload = (req, res, next) => {
         }
         next();
     })
+};
+
+exports.deleteProfileImage = (req, res, next) => {
+    const id = req.params.id;
+
+    Player.findById(id).then(data => {
+      if (data && data.profileImg) {
+        const segments = data.profileImg.split('/');
+        const last = segments.pop() || segments.pop();
+        const path = './' + IMG_DIR + DIR + '/' + last;
+        logger.debug(path);
+        
+        fs.unlink(path, (err) => {
+            if (err) {
+                logger.error(err)
+            } else {
+                logger.info('Succsessfully deleted profile image for player ' + data.nickname);
+            }
+        });
+        next();
+      }
+    }).catch(err => {
+      res.status(500).send({ message: "Error retrieving Player with id=" + id });
+    });
 };

@@ -56,9 +56,11 @@ exports.findOne = (req, res) => {
 
   Player.findById(id)
     .then(data => {
-      if (!data)
+      if (!data) {
         res.status(404).send({ message: "Not found Player with id " + id });
-      else res.send(data);
+      } else {
+        res.send(data);
+      }
     })
     .catch(err => {
       res
@@ -75,6 +77,9 @@ exports.update = (req, res) => {
     });
   }
 
+  const url = req.protocol + '://' + req.get('host')  
+  req.body.profileImg = req.file ? url + DIR + req.file.filename : ''
+
   const id = req.params.id;
 
   Player.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
@@ -83,9 +88,10 @@ exports.update = (req, res) => {
         res.status(404).send({
           message: `Cannot update Player with id=${id}. Maybe Player was not found!`
         });
-      } else res.send({ message: "Player was updated successfully." });
-    })
-    .catch(err => {
+      } else {
+        res.send({ message: "Player was updated successfully." });
+      }
+    }).catch(err => {
       logger.error(err);
       res.status(500).send({
         message: "Error updating Player with id=" + id
