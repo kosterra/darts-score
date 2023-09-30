@@ -38,6 +38,7 @@ exports.findAll = (req, res) => {
       res.send(data);
     })
     .catch(err => {
+      logger.error('Failed to load all x01 games. ' + err);
       res.status(500).send({
         message:
           err.message || "Some error occurred while retrieving X01 games."
@@ -47,6 +48,7 @@ exports.findAll = (req, res) => {
 
 // Find a single X01 game with an id
 exports.findOne = (req, res) => {
+  logger.debug("x01 games find one called!");
   const id = req.params.id;
 
   X01.findById(id)
@@ -56,14 +58,15 @@ exports.findOne = (req, res) => {
       else res.send(data);
     })
     .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving X01 game with id=" + id });
+      logger.error('Error retrieving X01 game with id ' + id + ', ' + err);
+      res.status(500)
+        .send({ message: "Error retrieving X01 game with id " + id });
     });
 };
 
 // Update a X01 game by the id in the request
 exports.update = (req, res) => {
+  logger.debug("x01 games update called!");
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
@@ -90,6 +93,7 @@ exports.update = (req, res) => {
 
 // Delete a X01 game with the specified id in the request
 exports.delete = (req, res) => {
+  logger.debug("x01 games delete called!");
   const id = req.params.id;
 
   X01.findByIdAndRemove(id, { useFindAndModify: false })
