@@ -222,14 +222,15 @@ const getSectionHitsX01 = (x01Games, playerId, sectionHits) => {
     Object.keys((game.playerModels[playerId] || {}).hit || {}).map(key => {
       let field = key[0];
       let section = key.slice(1);
-      var item = sectionHits.find(item => item.section == section);
+      let hitCount = ((game.playerModels[playerId] || {}).hit || {})[key] || 0;
+      var item = sectionHits.find(item => item.section === section);
       
       if (item) {
-        item.hit++;
+        item.hit = item.hit + hitCount;
 
-        if (field === 'S') item.S++;
-        if (field === 'D') item.D++;
-        if (field === 'T') item.T++;
+        if (field === 'S') item.S = item.S + hitCount;
+        if (field === 'D') item.D = item.D + hitCount;
+        if (field === 'T') item.T = item.T + hitCount;
         
         var index = sectionHits.findIndex(item => item.section == section);
         sectionHits[index] = item;
