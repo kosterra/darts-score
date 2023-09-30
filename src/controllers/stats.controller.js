@@ -224,14 +224,16 @@ const getSectionHitsX01 = (x01Games, playerId, sectionHits) => {
       let section = key.slice(1);
       var item = sectionHits.find(item => item.section == section);
       
-      item.hit++;
+      if (item) {
+        item.hit++;
 
-      if (field === 'S') item.S++;
-      if (field === 'D') item.D++;
-      if (field === 'T') item.T++;
-      
-      var index = sectionHits.findIndex(item => item.section == section);
-      sectionHits[index] = item;
+        if (field === 'S') item.S++;
+        if (field === 'D') item.D++;
+        if (field === 'T') item.T++;
+        
+        var index = sectionHits.findIndex(item => item.section == section);
+        sectionHits[index] = item;
+      }
     })
   });
 
