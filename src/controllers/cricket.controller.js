@@ -4,7 +4,7 @@ const Cricket = db.cricket;
 
 // Create and Save a new Cricket game
 exports.create = (req, res) => {
-  logger.debug("create cricket game called!");
+  logger.debug("cricket games create called!");
 
   try {
     // Create a Cricket Game
@@ -47,6 +47,7 @@ exports.findAll = (req, res) => {
 
 // Find a single Cricket game with an id
 exports.findOne = (req, res) => {
+  logger.debug("cricket games find one called!");
   const id = req.params.id;
 
   Cricket.findById(id)
@@ -56,14 +57,15 @@ exports.findOne = (req, res) => {
       else res.send(data);
     })
     .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Cricket game with id=" + id });
+      logger.error('Error retrieving cricket game ' + id + ', ' + err);
+      res.status(500)
+        .send({ message: "Error retrieving cricket game with id " + id });
     });
 };
 
 // Update a Cricket game by the id in the request
 exports.update = (req, res) => {
+  logger.debug("cricket games update called!");
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
@@ -90,6 +92,8 @@ exports.update = (req, res) => {
 
 // Delete a Cricket game with the specified id in the request
 exports.delete = (req, res) => {
+  logger.debug("x01 games delete called!");
+
   const id = req.params.id;
 
   Cricket.findByIdAndRemove(id, { useFindAndModify: false })

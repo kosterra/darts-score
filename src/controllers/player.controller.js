@@ -7,7 +7,7 @@ const DIR = '/api/images/players/';
 
 // Create and Save a new Player
 exports.create = (req, res, next) => {
-  logger.debug('create player');
+  logger.debug('players create called');
 
   const url = req.protocol + '://' + req.get('host')
       
@@ -52,6 +52,7 @@ exports.findAll = (req, res) => {
 
 // Find a single Player with an id
 exports.findOne = (req, res) => {
+  logger.debug("players find one called!");
   const id = req.params.id;
 
   Player.findById(id)
@@ -63,14 +64,15 @@ exports.findOne = (req, res) => {
       }
     })
     .catch(err => {
-      res
-        .status(500)
+      logger.error('Error retrieving player ' + id + ', ' + err);
+      res.status(500)
         .send({ message: "Error retrieving Player with id=" + id });
     });
 };
 
 // Update a Player by the id in the request
 exports.update = (req, res) => {
+  logger.debug("players update called!");
   if (!req.body) {
     return res.status(400).send({
       message: "Data to update can not be empty!"
@@ -101,6 +103,7 @@ exports.update = (req, res) => {
 
 // Delete a Player with the specified id in the request
 exports.delete = (req, res) => {
+  logger.debug("players delete called!");
   const id = req.params.id;
 
   Player.findByIdAndRemove(id, { useFindAndModify: false })
@@ -124,6 +127,7 @@ exports.delete = (req, res) => {
 
 // Find by search term
 exports.findBySearchTerm = (req, res) => {
+  logger.debug("players search called!");
   const searchTerm = req.query.search ? req.query.search : '';
 
   logger.debug('Searching players by searchTerm: ' + searchTerm);

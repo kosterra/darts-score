@@ -44,6 +44,7 @@ db.mongoose
   });
 
 require("./src/routes/player.routes")(app);
+require("./src/routes/stats.routes")(app);
 require("./src/routes/x01.routes")(app);
 require("./src/routes/cricket.routes")(app);
 require("./src/routes/player.img.routes")(app);

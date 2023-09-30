@@ -37,6 +37,7 @@ const upload = multer({
 }).single('profileImg');
 
 exports.uploadProfileImage = (req, res, next) => {
+    logger.debug("profile image update called!");
     upload(req, res, function (err) {
         logger.debug('Upload profile image')
         
@@ -58,6 +59,7 @@ exports.uploadProfileImage = (req, res, next) => {
 };
 
 exports.deleteProfileImage = (req, res, next) => {
+    logger.debug("profile image delete called!");
     const id = req.params.id;
 
     Player.findById(id).then(data => {
