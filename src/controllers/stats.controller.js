@@ -19,7 +19,7 @@ exports.getPlayerStats = (req, res) => {
 
 async function calculatePlayerStats(playerId) {
   logger.debug('calculate player stats called');
-  const playerStats = playerStatsModel;
+  const playerStats = JSON.parse(JSON.stringify(playerStatsModel));
   playerStats.playerId = playerId;
 
   const x01Games = await findX01Games(playerId);
