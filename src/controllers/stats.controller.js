@@ -51,6 +51,8 @@ async function calculatePlayerStats(playerId) {
   playerStats.checkouts.highest = getHighestCheckoutX01(x01Games, playerId);
   playerStats.checkouts.rates = getCheckoutRatesX01(x01Games, playerId);
 
+  playerStats.scoreRanges = getScoreRangesX01(x01Games, playerId);
+
   playerStats.sectionHits = getSectionHitsX01(x01Games, playerId, playerStats.sectionHits);
 
   return playerStats;
@@ -226,23 +228,61 @@ const getCheckoutRatesX01 = (x01Games, playerId) => {
     Object.keys(((game.playerModels[playerId] || {}).checkout || {}).sections || {}).map(key => {
       if (excludes.indexOf(key) === -1) {
         var gameItem = (((game.playerModels[playerId] || {}).checkout || {}).sections || {})[key] || 0;
-        var item = checkoutRates.find(item => item.section === key);
+        var item = JSON.parse(JSON.stringify(checkoutItemModel));
+        item.section = key.toString();
         
-        if (!item) {
-          item = JSON.parse(JSON.stringify(checkoutItemModel));
-          item.section = key.toString();
+        const existingIndex = checkoutRates.findIndex(item => item.section === key);
+  
+        if (existingIndex >= 0) {
+          item = checkoutRates[existingIndex];
         }
-
+  
         item.hit = item.hit + gameItem.hit;
         item.miss = item.miss + gameItem.miss;
         item.rate = Math.round((100 * item.hit) / (item.hit + item.miss), 0);
-
-        checkoutRates.push(item);
+  
+        if (existingIndex >= 0) {
+          checkoutRates[existingIndex] = item;
+        } else {
+          checkoutRates.push(item);
+        }
       }
     })
   });
 
   return checkoutRates;
+}
+
+const getScoreRangesX01 = (x01Games, playerId) => {
+  let scoreRanges = [];
+  
+  x01Games.map(game => {
+    Object.keys(((game.playerModels[playerId] || {}).scoreRanges || {}).game || {}).map(key => {
+      var item = {};
+      const existingIndex = scoreRanges.findIndex(item => item.range === key);
+
+      if (existingIndex >= 0) {
+        item = scoreRanges[existingIndex];
+      }
+
+      item.range = key.toString();
+      item.count = (item.count ? item.count : 0) + (((game.playerModels[playerId] || {}).scoreRanges || {}).game || {})[key];
+
+      if (existingIndex >= 0) {
+        scoreRanges[existingIndex] = item;
+      } else {
+        scoreRanges.push(item);
+      }
+    })
+  });
+
+  scoreRanges.sort(function(a, b) {
+    var aValue = a.range.substring(0, a.range.indexOf('-') >= 0 ? a.range.indexOf('-') : a.range.length);
+    var bValue = b.range.substring(0, b.range.indexOf('-') >= 0 ? b.range.indexOf('-') : b.range.length);
+    return Number(aValue) - Number(bValue);
+  });
+
+  return scoreRanges;
 }
 
 const getSectionHitsX01 = (x01Games, playerId, sectionHits) => {

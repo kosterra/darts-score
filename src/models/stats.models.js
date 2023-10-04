@@ -29,6 +29,7 @@ const PlayerStatsModel = {
         highest: 0,
         rates: []
     },
+    scoreRanges: [],
     sectionHits: [
         {
             section: "20",
