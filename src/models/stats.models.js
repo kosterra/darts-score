@@ -26,7 +26,8 @@ const PlayerStatsModel = {
     checkouts: {
         hit: 0,
         total: 0,
-        highest: 0
+        highest: 0,
+        rates: []
     },
     sectionHits: [
         {
@@ -163,8 +164,16 @@ const PlayerStatsModel = {
             T: 0
         }
     ]
-}
+};
+
+const CheckoutItemModel = {
+    "section": "",
+    "hit": 0,
+    "miss": 0,
+    "rate": 0
+};
 
 module.exports = {
-    playerStatsModel: PlayerStatsModel
+    playerStatsModel: PlayerStatsModel,
+    checkoutItemModel: CheckoutItemModel
 };

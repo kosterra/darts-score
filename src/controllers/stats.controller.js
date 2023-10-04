@@ -4,7 +4,7 @@ const dayjs = require("dayjs");
 
 const X01 = db.x01;
 const Cricket = db.cricket;
-const { playerStatsModel } = require('../models/stats.models');
+const { playerStatsModel, checkoutItemModel } = require('../models/stats.models');
 
 // Find a single Player with an id
 exports.getPlayerStats = (req, res) => {
@@ -49,6 +49,7 @@ async function calculatePlayerStats(playerId) {
   playerStats.checkouts.hit = getCheckoutHitX01(x01Games, playerId);
   playerStats.checkouts.total = getCheckoutTotalX01(x01Games, playerId);
   playerStats.checkouts.highest = getHighestCheckoutX01(x01Games, playerId);
+  playerStats.checkouts.rates = getCheckoutRatesX01(x01Games, playerId);
 
   playerStats.sectionHits = getSectionHitsX01(x01Games, playerId, playerStats.sectionHits);
 
@@ -215,6 +216,33 @@ const getHighestCheckoutX01 = (x01Games, playerId) => {
   });
 
   return highestCheckout;
+}
+
+const getCheckoutRatesX01 = (x01Games, playerId) => {
+  let checkoutRates = [];
+  var excludes = ['total', 'miss', 'hit'];
+  
+  x01Games.map(game => {
+    Object.keys(((game.playerModels[playerId] || {}).checkout || {}).sections || {}).map(key => {
+      if (excludes.indexOf(key) === -1) {
+        var gameItem = (((game.playerModels[playerId] || {}).checkout || {}).sections || {})[key] || 0;
+        var item = checkoutRates.find(item => item.section === key);
+        
+        if (!item) {
+          item = JSON.parse(JSON.stringify(checkoutItemModel));
+          item.section = key.toString();
+        }
+
+        item.hit = item.hit + gameItem.hit;
+        item.miss = item.miss + gameItem.miss;
+        item.rate = Math.round((100 * item.hit) / (item.hit + item.miss), 0);
+
+        checkoutRates.push(item);
+      }
+    })
+  });
+
+  return checkoutRates;
 }
 
 const getSectionHitsX01 = (x01Games, playerId, sectionHits) => {
