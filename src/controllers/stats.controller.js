@@ -239,7 +239,8 @@ const getCheckoutRatesX01 = (x01Games, playerId) => {
   
         item.hit = item.hit + gameItem.hit;
         item.miss = item.miss + gameItem.miss;
-        item.rate = Math.round((100 * item.hit) / (item.hit + item.miss), 0);
+        item.total = item.hit + item.miss;
+        item.rate = Math.round((100 * item.hit) / item.total, 0);
   
         if (existingIndex >= 0) {
           checkoutRates[existingIndex] = item;
@@ -258,28 +259,36 @@ const getScoreRangesX01 = (x01Games, playerId) => {
   
   x01Games.map(game => {
     Object.keys(((game.playerModels[playerId] || {}).scoreRanges || {}).game || {}).map(key => {
-      var item = {};
-      const existingIndex = scoreRanges.findIndex(item => item.range === key);
+      if (key !== 'Busted') {
+        var newKey = key.substring(0, key.indexOf('-') >= 0 ? key.indexOf('-') : key.length);
+        newKey = newKey !== '180' && newKey !== 'ZERO' ? newKey + '+' : newKey;
+        var item = {};
+        const existingIndex = scoreRanges.findIndex(item => item.range === newKey);
 
-      if (existingIndex >= 0) {
-        item = scoreRanges[existingIndex];
-      }
+        if (existingIndex >= 0) {
+          item = scoreRanges[existingIndex];
+        }
 
-      item.range = key.toString();
-      item.count = (item.count ? item.count : 0) + (((game.playerModels[playerId] || {}).scoreRanges || {}).game || {})[key];
+        item.range = newKey.toString();
+        item.count = (item.count ? item.count : 0) + (((game.playerModels[playerId] || {}).scoreRanges || {}).game || {})[key];
 
-      if (existingIndex >= 0) {
-        scoreRanges[existingIndex] = item;
-      } else {
-        scoreRanges.push(item);
+        if (existingIndex >= 0) {
+          scoreRanges[existingIndex] = item;
+        } else {
+          scoreRanges.push(item);
+        }
       }
     })
   });
 
   scoreRanges.sort(function(a, b) {
-    var aValue = a.range.substring(0, a.range.indexOf('-') >= 0 ? a.range.indexOf('-') : a.range.length);
-    var bValue = b.range.substring(0, b.range.indexOf('-') >= 0 ? b.range.indexOf('-') : b.range.length);
-    return Number(aValue) - Number(bValue);
+    if (a.range === 'ZERO') {
+      return -1;
+    } else {
+      var aValue = a.range.substring(0, a.range.indexOf('+') >= 0 ? a.range.indexOf('+') : a.range.length);
+      var bValue = b.range.substring(0, b.range.indexOf('+') >= 0 ? b.range.indexOf('+') : b.range.length);
+      return Number(aValue) - Number(bValue);
+    }
   });
 
   return scoreRanges;

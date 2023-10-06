@@ -171,6 +171,7 @@ const CheckoutItemModel = {
     "section": "",
     "hit": 0,
     "miss": 0,
+    "total": 0,
     "rate": 0
 };
 
