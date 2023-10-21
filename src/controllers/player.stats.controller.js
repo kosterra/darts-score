@@ -4,9 +4,9 @@ const dayjs = require("dayjs");
 
 const X01 = db.x01;
 const Cricket = db.cricket;
-const { playerStatsModel, checkoutItemModel } = require('../models/stats.models');
+const { playerStatsModel, checkoutItemModel } = require('../models/player.stats.models');
 
-// Find a single Player with an id
+// Get statistics for a player by player id
 exports.getPlayerStats = (req, res) => {
   logger.debug("statistics get player stats called!");
   const id = req.params.id;
@@ -57,7 +57,6 @@ async function calculatePlayerStats(playerId) {
 
   return playerStats;
 }
-
 
 async function findX01Games(playerId) {
   logger.debug('find x01 games called');
@@ -260,16 +259,14 @@ const getScoreRangesX01 = (x01Games, playerId) => {
   x01Games.map(game => {
     Object.keys(((game.playerModels[playerId] || {}).scoreRanges || {}).game || {}).map(key => {
       if (key !== 'Busted') {
-        var newKey = key.substring(0, key.indexOf('-') >= 0 ? key.indexOf('-') : key.length);
-        newKey = newKey !== '180' && newKey !== 'ZERO' ? newKey + '+' : newKey;
         var item = {};
-        const existingIndex = scoreRanges.findIndex(item => item.range === newKey);
+        const existingIndex = scoreRanges.findIndex(item => item.range === key);
 
         if (existingIndex >= 0) {
           item = scoreRanges[existingIndex];
         }
 
-        item.range = newKey.toString();
+        item.range = key;
         item.count = (item.count ? item.count : 0) + (((game.playerModels[playerId] || {}).scoreRanges || {}).game || {})[key];
 
         if (existingIndex >= 0) {
@@ -285,8 +282,8 @@ const getScoreRangesX01 = (x01Games, playerId) => {
     if (a.range === 'ZERO') {
       return -1;
     } else {
-      var aValue = a.range.substring(0, a.range.indexOf('+') >= 0 ? a.range.indexOf('+') : a.range.length);
-      var bValue = b.range.substring(0, b.range.indexOf('+') >= 0 ? b.range.indexOf('+') : b.range.length);
+      var aValue = a.range.substring(0, a.range.indexOf('-') >= 0 ? a.range.indexOf('-') : a.range.length);
+      var bValue = b.range.substring(0, b.range.indexOf('-') >= 0 ? b.range.indexOf('-') : b.range.length);
       return Number(aValue) - Number(bValue);
     }
   });
