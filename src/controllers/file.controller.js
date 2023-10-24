@@ -13,11 +13,14 @@ const DIR = '/players';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
+        logger.debug(req);
+        logger.debug(file);
         const path = './' + IMG_DIR + DIR;
         fs.mkdirSync(path, { recursive: true })
         cb(null, path);
     },
     filename: (req, file, cb) => {
+        logger.debug(req);
         const fileName = file.originalname.toLowerCase().split(' ').join('-');
         logger.debug('Save profile image ' + fileName);
         cb(null, uuidv4() + '-' + fileName)
@@ -27,6 +30,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     fileFilter: (req, file, cb) => {
+        logger.debug(req);
         if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
             cb(null, true);
         } else {
@@ -79,6 +83,7 @@ exports.deleteProfileImage = (req, res, next) => {
         next();
       }
     }).catch(err => {
-      res.status(500).send({ message: "Error retrieving Player with id=" + id });
+        logger.error(err);
+        res.status(500).send({ message: "Error retrieving Player with id=" + id });
     });
 };

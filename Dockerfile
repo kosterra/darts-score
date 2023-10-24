@@ -1,19 +1,35 @@
-FROM node:alpine
+FROM node:21.0.0-alpine AS base
 
-# Create app directory
+# Create the app directory and set owner and permissions
+RUN mkdir -p /app
+RUN chown -R node:node /app && chmod -R 770 /app
 WORKDIR /app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+# Update NPM version
+RUN npm install -g npm@10.2.1
 
-RUN npm install -g npm@10.1.0
-RUN npm ci --omit=dev
-
-# Bundle app source
-COPY . /app
-
+# builds image for development
+FROM base AS development
+WORKDIR /app
+COPY --chown=node:node . ./
+USER node
+RUN npm install --loglevel warn
 EXPOSE 3001
+CMD ["npm", "run", "startdev"]
 
-CMD ["npm", "start"]
+# builds image for production
+FROM base AS production
+
+ARG NODE_ENV=production
+ENV NODE_ENV $NODE_ENV
+
+WORKDIR /app
+COPY --chown=node:node ./package.json ./package.json
+COPY --chown=node:node ./package-lock.json ./package-lock.json
+USER node
+RUN npm install --loglevel warn --omit=dev
+COPY --chown=node:node . ./
+RUN npm run build
+RUN rm -r $(ls -A | grep -v dist)
+EXPOSE 3001
+CMD ["node", "dist/bundle.js"]

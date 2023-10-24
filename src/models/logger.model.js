@@ -1,13 +1,20 @@
 const pino = require('pino');
 
 // Create a logging instance
-const logger = pino({
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+const logger = pino(
+  {
+    level: process.env.LOG_LEVEL || 'info',
     formatters: {
+        bindings: (bindings) => {
+          return { pid: bindings.pid, host: bindings.hostname };
+        },
         level: (label) => {
-          return { level: label };
+          return { severity: label.toUpperCase() };
         },
     },
-});
+    timestamp: pino.stdTimeFunctions.isoTime
+  },
+  //pino.destination(`${__dirname}/application.log`)
+);
   
 module.exports = logger

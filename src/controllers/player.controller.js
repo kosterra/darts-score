@@ -6,7 +6,7 @@ const Player = db.player;
 const DIR = '/api/images/players/';
 
 // Create and Save a new Player
-exports.create = (req, res, next) => {
+exports.create = (req, res) => {
   logger.debug('players create called');
 
   const url = req.protocol + '://' + req.get('host')
