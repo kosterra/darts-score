@@ -27,7 +27,7 @@ async function calculateX01Stats(gameId) {
   x01Stats.sectionHits = getPlayersSectionHitsX01(x01Game, x01Stats.sectionHits);
 
   return x01Stats;
-};
+}
 
 async function findX01Game(gameId) {
   logger.debug('find x01 game by id called');
@@ -40,7 +40,7 @@ async function findX01Game(gameId) {
   });
 
   return x01Game;
-};
+}
 
 const getPlayersAveragesX01 = (game) => {
   let averages = [];

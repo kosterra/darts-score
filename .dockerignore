@@ -5,10 +5,12 @@ build
 
 node_modules
 data
+dist
 
 # ignore all .env and .*ignore files
 .env*
 .*ignore
+mongo.env
 
 # ignore .git and .cache folders
 .git

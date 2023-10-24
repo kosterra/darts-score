@@ -1,0 +1,43 @@
+version: '3.4'
+services:
+  # darts_score:
+  #   container_name: darts_score_server
+  #   build:
+  #     context: .
+  #     target: development
+  #   ports:
+  #    - "3001:3001"
+  #   volumes:
+  #    - ./public:/app/public
+  #    - ./src:/app/src
+  #    - ./package.json:/app/package.json
+  #   env_file:
+  #     - ./.env
+  #   tty: true
+  #   environment:
+  #     NODE_ENV: "development"
+  darts_score:
+    image: darts_score:v2023.10.1
+    container_name: darts_score_server
+    ports:
+     - "3001:3001"
+    env_file:
+      - ./.env
+    tty: true
+    environment:
+      NODE_ENV: "development"
+      LOG_LEVEL: "debug"
+  mongo:
+    image: mongo
+    container_name: darts_score_mongo
+    restart: always
+    env_file:
+      - ./mongo.env
+    volumes:
+      - type: volume
+        source: darts_score_db
+        target: /data/db
+
+volumes:
+  darts_score_db:
+    name: darts_score_db

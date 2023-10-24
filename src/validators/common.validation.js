@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const logger = require("../models/logger.model");
 
 const commonValidation = async  (req, res, next)=>{
-    const error = validationResult(req).formatWith(({ msg }) => msg);;
+    const error = validationResult(req).formatWith(({ msg }) => msg);
     
     logger.debug(error);
 
