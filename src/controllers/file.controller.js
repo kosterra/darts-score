@@ -65,9 +65,10 @@ exports.uploadProfileImage = (req, res, next) => {
 exports.deleteProfileImage = (req, res, next) => {
     logger.debug("profile image delete called!");
     const id = req.params.id;
-
+    logger.debug(id)
     Player.findById(id).then(data => {
-      if (data && data.profileImg) {
+      logger.debug(data)
+      if (data && Boolean(data.profileImg)) {
         const segments = data.profileImg.split('/');
         const last = segments.pop() || segments.pop();
         const path = './' + IMG_DIR + DIR + '/' + last;
@@ -82,6 +83,7 @@ exports.deleteProfileImage = (req, res, next) => {
         });
         next();
       }
+      next();
     }).catch(err => {
         logger.error(err);
         res.status(500).send({ message: "Error retrieving Player with id=" + id });

@@ -103,8 +103,8 @@ exports.update = (req, res) => {
 
 // Delete a Player with the specified id in the request
 exports.delete = (req, res) => {
-  logger.debug("players delete called!");
   const id = req.params.id;
+  logger.debug("Delete player with id " + id);
 
   Player.findByIdAndRemove(id, { useFindAndModify: false })
     .then(data => {
