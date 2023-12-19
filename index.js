@@ -14,6 +14,8 @@ const cors = require("cors");
 const db = require("./src/models/db.model");
 const logger = require("./src/models/logger.model");
 
+logger.info('Using logger in level' + logger.level)
+
 const app = express();
 
 var corsOptions = {

@@ -3,7 +3,7 @@ const pino = require('pino');
 // Create a logging instance
 const logger = pino(
   {
-    level: process.env.LOG_LEVEL || 'info',
+    level: process.env.LOG_LEVEL || 'debug',
     formatters: {
         bindings: (bindings) => {
           return { pid: bindings.pid, host: bindings.hostname };

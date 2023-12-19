@@ -6,17 +6,19 @@ services:
       context: .
       target: development
     ports:
-     - "3001:3001"
+      - "3001:3001"
     volumes:
-     - ./data:/app/data
-     - ./public:/app/public
-     - ./src:/app/src
-     - ./package.json:/app/package.json
+      - ./data:/app/data
+      - ./public:/app/public
+      - ./src:/app/src
+      - ./package.json:/app/package.json
     env_file:
       - ./.env
     tty: true
     environment:
       NODE_ENV: "development"
+    depends_on:
+      - mongo
   # darts_score:
   #   image: darts_score:v2023.10.1
   #   container_name: darts_score_server
@@ -32,6 +34,8 @@ services:
     image: mongo
     container_name: darts_score_mongo
     restart: always
+    ports:
+      - 27017:27017
     env_file:
       - ./mongo.env
     volumes:
