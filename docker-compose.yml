@@ -20,16 +20,22 @@ services:
     depends_on:
       - mongo
   # darts_score:
-  #   image: darts_score:v2023.10.1
   #   container_name: darts_score_server
+  #   build:
+  #     context: .
+  #     target: production
   #   ports:
-  #    - "3001:3001"
+  #     - "3001:3001"
+  #   volumes:
+  #     - ./data:/app/data
   #   env_file:
   #     - ./.env
   #   tty: true
   #   environment:
-  #     NODE_ENV: "development"
-  #     LOG_LEVEL: "debug"
+  #     NODE_ENV: "production"
+  #     LOG_LEVEL: "info"
+  #   depends_on:
+  #     - mongo
   mongo:
     image: mongo
     container_name: darts_score_mongo

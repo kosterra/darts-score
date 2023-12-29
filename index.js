@@ -32,10 +32,7 @@ app.use(bodyParser.json({ limit: "30mb", extended: true }));
 logger.debug(db.url);
 
 db.mongoose
-  .connect(db.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+  .connect(db.url)
   .then(() => {
     logger.info("Connected to the database!");
   })
