@@ -13,6 +13,7 @@ const bodyParser = require('body-parser');
 const cors = require("cors");
 const db = require("./src/models/db.model");
 const logger = require("./src/models/logger.model");
+const rateLimit = require('express-rate-limit');
 
 logger.info('Using logger in level' + logger.level)
 
@@ -21,6 +22,15 @@ const app = express();
 var corsOptions = {
     origin: "http://" + UI_HOST + ":" + UI_PORT
 };
+
+// set up rate limiter: maximum of five requests per minute
+var limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // max 100 requests per windowMs
+});
+
+// apply rate limiter to all requests
+app.use(limiter);
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(cookieParser());
