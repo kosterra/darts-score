@@ -106,7 +106,7 @@ exports.delete = (req, res) => {
   const id = req.params.id;
   logger.debug("Delete player with id " + id);
 
-  Player.findByIdAndRemove(id, { useFindAndModify: false })
+  Player.findByIdAndDelete(id, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({

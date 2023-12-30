@@ -96,7 +96,7 @@ exports.delete = (req, res) => {
   logger.debug("x01 games delete called!");
   const id = req.params.id;
 
-  X01.findByIdAndRemove(id, { useFindAndModify: false })
+  X01.findByIdAndDelete(id, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
