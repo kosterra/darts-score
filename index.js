@@ -26,7 +26,7 @@ var corsOptions = {
 // set up rate limiter: maximum of five requests per minute
 var limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // max 100 requests per windowMs
+    max: 500000, // max 100000 requests per windowMs
 });
 
 // apply rate limiter to all requests
