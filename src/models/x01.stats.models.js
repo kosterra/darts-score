@@ -59,7 +59,7 @@ const X01StatsModel = {
             section: "5"
         }
     ],
-    checkoutRates: {},
+    checkouts: {},
     scoreRanges: [
         {
             range: "ZERO"

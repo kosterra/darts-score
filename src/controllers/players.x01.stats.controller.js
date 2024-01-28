@@ -3,7 +3,7 @@ const db = require("../models/db.model");
 const dayjs = require("dayjs");
 
 const X01 = db.x01;
-const { playersX01StatsModel, checkoutItemModel } = require("../models/players.x01.stats.models");
+const { playersX01StatsModel, checkoutItemModel, avgItemModel } = require("../models/players.x01.stats.models");
 
 exports.getPlayersX01Stats = (req, res) => {
   logger.debug("load x01 statistics for multiple players!");
@@ -41,12 +41,12 @@ async function calculateX01PlayersStats(body) {
     playersX01Stats.checkouts.hit['player' + (idx + 1)] = getCheckoutHitX01(x01Games, playerId)
     playersX01Stats.checkouts.total['player' + (idx + 1)] = getCheckoutTotalX01(x01Games, playerId)
     playersX01Stats.checkouts.highest['player' + (idx + 1)] = getHighestCheckoutX01(x01Games, playerId)
-    //playersX01Stats.checkouts.rates['player' + (idx + 1)] = getCheckoutRatesX01(x01Games, playerId)
-
-    //playersX01Stats.scoreRanges = getPlayersScoreRangesX01(x01Games, playersX01Stats.scoreRanges, playerId);
-
-    //playersX01Stats.sectionHits = getSectionHitsX01(x01Games, playerId, playersX01Stats.sectionHits)
   })
+
+  playersX01Stats.checkouts.rates = getPlayersCheckoutRatesX01(x01Games, body.playerIds)
+  playersX01Stats.avg.perGame = getPlayersAveragesPerGameX01(x01Games, body.playerIds)
+  playersX01Stats.scoreRanges = getPlayersScoreRangesX01(x01Games, playersX01Stats.scoreRanges, body.playerIds)
+  playersX01Stats.sectionHits = getPlayersSectionHitsX01(x01Games, playersX01Stats.sectionHits, body.playerIds)
 
   return playersX01Stats
 }
@@ -260,98 +260,130 @@ const getHighestCheckoutX01 = (x01Games, playerId) => {
   return highestCheckout;
 }
 
-const getCheckoutRatesX01 = (x01Games, playerId) => {
-  let checkoutRates = [];
-  var excludes = ['total', 'miss', 'hit'];
-  
-  x01Games.map(game => {
-    Object.keys(((game.playerModels[playerId] || {}).checkout || {}).sections || {}).map(key => {
-      if (excludes.indexOf(key) === -1) {
-        var gameItem = (((game.playerModels[playerId] || {}).checkout || {}).sections || {})[key] || 0;
-        var item = JSON.parse(JSON.stringify(checkoutItemModel));
-        item.section = key.toString();
-        
-        const existingIndex = checkoutRates.findIndex(item => item.section === key);
-  
-        if (existingIndex >= 0) {
-          item = checkoutRates[existingIndex];
-        }
-  
-        item.hit = item.hit + gameItem.hit;
-        item.miss = item.miss + gameItem.miss;
-        item.total = item.hit + item.miss;
-        item.rate = Math.round((100 * item.hit) / item.total, 0);
-  
-        if (existingIndex >= 0) {
-          checkoutRates[existingIndex] = item;
-        } else {
-          checkoutRates.push(item);
-        }
+const getPlayersAveragesPerGameX01 = (x01Games, playerIds) => {
+  let averages = [];
+  x01Games.map((game, gameIdx) => {
+    var item = {};
+    var label = gameIdx + 1;
+    var desc = game.startingScore + ' (' + dayjs(game.createdAt).format("DD.MM.YYYY") + ')';
+    const existingIndex = averages.findIndex(item => item.label === label);
+
+    if (existingIndex >= 0) {
+      item = averages[existingIndex];
+    } else {
+      item = JSON.parse(JSON.stringify(avgItemModel));
+      item.label = label;
+      item.desc = desc;
+    }
+
+    playerIds.map((playerId, playerIdx) => {
+      var playerModel = game.playerModels[playerId];
+
+      if (((playerModel || {}).averages || {}).game || {}) {
+        item['player' + (playerIdx + 1)] = ((((playerModel || {}).averages || {}).game || {}).begMidGame || 0).toFixed(1);
       }
     })
-  });
 
-  return checkoutRates;
+    if (existingIndex >= 0) {
+      averages[existingIndex] = item;
+    } else {
+      averages.push(item);
+    }
+  })
+
+  return averages;
 }
 
-const getScoreRangesX01 = (x01Games, playerId) => {
-  let scoreRanges = [];
-  
-  x01Games.map(game => {
-    Object.keys(((game.playerModels[playerId] || {}).scoreRanges || {}).game || {}).map(key => {
-      if (key !== 'Busted') {
-        var item = {};
-        const existingIndex = scoreRanges.findIndex(item => item.range === key);
+const getPlayersCheckoutRatesX01 = (x01Games, playerIds) => {
+  const checkoutHits = {};
+  var excludes = ['total', 'miss', 'hit'];
 
-        if (existingIndex >= 0) {
-          item = scoreRanges[existingIndex];
+  playerIds.map((playerId, idx) => {
+    var checkouts = [];
+
+    x01Games.map(game => {
+      var checkoutSections = (game.playerModels[playerId].checkout || {}).sections || {}
+
+      Object.entries(checkoutSections).forEach(([key, value]) => {
+        if (excludes.indexOf(key) === -1) {
+          const existingIndex = checkouts.findIndex(item => item.section === key);
+          var checkoutItem = {};
+
+          if (existingIndex >= 0) {
+            checkoutItem = checkouts[existingIndex];
+            checkoutItem.hit += value.hit;
+            checkoutItem.miss += value.miss;
+            checkoutItem.total += value.total;
+            checkoutItem.rate = ((100 * value.hit) / value.total).toFixed(1);
+            checkouts[existingIndex] = checkoutItem;
+          } else {
+            checkoutItem = JSON.parse(JSON.stringify(checkoutItemModel));
+            checkoutItem.section = key;
+            checkoutItem.hit = value.hit;
+            checkoutItem.miss = value.miss;
+            checkoutItem.total = value.total;
+            checkoutItem.rate = ((100 * checkoutItem.hit) / checkoutItem.total).toFixed(1);
+            checkouts.push(checkoutItem);
+          }
         }
+      });
+    });
 
-        item.range = key;
-        item.count = (item.count ? item.count : 0) + (((game.playerModels[playerId] || {}).scoreRanges || {}).game || {})[key];
+    checkoutHits['player' + (idx + 1)] = checkouts;
+  })
 
-        if (existingIndex >= 0) {
-          scoreRanges[existingIndex] = item;
-        } else {
-          scoreRanges.push(item);
+  return checkoutHits;
+}
+
+const getPlayersScoreRangesX01 = (x01Games, scoreRanges, playerIds) => {
+  playerIds.map((playerId, idx) => {
+    x01Games.map(game => {
+      var ranges = (game.playerModels[playerId].scoreRanges || {}).game || {};
+
+      scoreRanges.map((item) => {
+        if (!item['player' + (idx + 1) + 'Count']) {
+          item['player' + (idx + 1) + 'Count'] = 0;
         }
-      }
+        item['player' + (idx + 1) + 'Count'] += ranges[item.range] || 0;
+      })
     })
-  });
-
-  scoreRanges.sort(function(a, b) {
-    if (a.range === 'ZERO') {
-      return -1;
-    } else {
-      var aValue = a.range.substring(0, a.range.indexOf('-') >= 0 ? a.range.indexOf('-') : a.range.length);
-      var bValue = b.range.substring(0, b.range.indexOf('-') >= 0 ? b.range.indexOf('-') : b.range.length);
-      return Number(aValue) - Number(bValue);
-    }
-  });
+  })
 
   return scoreRanges;
 }
 
-const getSectionHitsX01 = (x01Games, playerId, sectionHits) => {
-  x01Games.map(game => {
-    Object.keys((game.playerModels[playerId] || {}).hit || {}).map(key => {
-      let field = key[0];
-      let section = key.slice(1);
-      let hitCount = ((game.playerModels[playerId] || {}).hit || {})[key] || 0;
-      var item = sectionHits.find(item => item.section === section);
-      
-      if (item) {
-        item.hit = item.hit + hitCount;
+const getPlayersSectionHitsX01 = (x01Games, sectionHits, playerIds) => {
+  playerIds.map((playerId, idx) => {
+    x01Games.map(game => {
+      var hits = game.playerModels[playerId].hit || {};
 
-        if (field === 'S') item.S = item.S + hitCount;
-        if (field === 'D') item.D = item.D + hitCount;
-        if (field === 'T') item.T = item.T + hitCount;
-        
-        var index = sectionHits.findIndex(item => item.section == section);
-        sectionHits[index] = item;
-      }
+      sectionHits.map((item) => {
+        var singles = hits['S' + item.section] || 0;
+        var doubles = hits['D' + item.section] || 0;
+        var triples = hits['T' + item.section] || 0;
+
+        if (!item['player' + (idx + 1) + 'Hit']) {
+          item['player' + (idx + 1) + 'Hit'] = 0;
+        }
+        item['player' + (idx + 1) + 'Hit'] += singles + doubles + triples;
+
+        if (!item['player' + (idx + 1) + 'S']) {
+          item['player' + (idx + 1) + 'S'] = 0;
+        }
+        item['player' + (idx + 1) + 'S'] += singles;
+
+        if (!item['player' + (idx + 1) + 'D']) {
+          item['player' + (idx + 1) + 'D'] = 0;
+        }
+        item['player' + (idx + 1) + 'D'] += doubles;
+
+        if (!item['player' + (idx + 1) + 'T']) {
+          item['player' + (idx + 1) + 'T'] = 0;
+        }
+        item['player' + (idx + 1) + 'T'] += triples;
+      })
     })
-  });
+  })
 
   return sectionHits;
 }
