@@ -314,7 +314,7 @@ const getPlayersCheckoutRatesX01 = (x01Games, playerIds) => {
             checkoutItem.hit += value.hit;
             checkoutItem.miss += value.miss;
             checkoutItem.total += value.total;
-            checkoutItem.rate = ((100 * value.hit) / value.total).toFixed(1);
+            checkoutItem.rate = ((100 * checkoutItem.hit) / checkoutItem.total).toFixed(1);
             checkouts[existingIndex] = checkoutItem;
           } else {
             checkoutItem = JSON.parse(JSON.stringify(checkoutItemModel));
@@ -322,7 +322,7 @@ const getPlayersCheckoutRatesX01 = (x01Games, playerIds) => {
             checkoutItem.hit = value.hit;
             checkoutItem.miss = value.miss;
             checkoutItem.total = value.total;
-            checkoutItem.rate = ((100 * checkoutItem.hit) / checkoutItem.total).toFixed(1);
+            checkoutItem.rate = ((100 * value.hit) / value.total).toFixed(1);
             checkouts.push(checkoutItem);
           }
         }
