@@ -15,7 +15,7 @@ const db = require("./src/models/db.model");
 const logger = require("./src/models/logger.model");
 const rateLimit = require('express-rate-limit');
 
-logger.info('Using logger in level' + logger.level)
+logger.info('Using logger in level ' + logger.level)
 
 const app = express();
 
@@ -64,7 +64,9 @@ app.get('*', (req, res) => {
 });
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
+    logger.debug(req);
+    logger.debug(res);
     let err = new Error('Not Found');
     err.status = 404;
     next(err);

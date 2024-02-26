@@ -10,6 +10,7 @@ services:
     volumes:
       - ./data:/app/data
       - ./public:/app/public
+      - ./index.js:/app/index.js
       - ./src:/app/src
       - ./package.json:/app/package.json
     env_file:
