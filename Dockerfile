@@ -21,7 +21,9 @@ FROM node:21.5.0-alpine AS development
 
 # Create the app directory and set owner and permissions
 RUN mkdir -p /app
+RUN mkdir -p /app/data
 RUN chown -R node:node /app && chmod -R 770 /app
+RUN chown -R node:node /app/data && chmod -R 770 /app/data
 WORKDIR /app
 
 COPY --chown=node:node --from=builder /app ./
@@ -39,7 +41,9 @@ FROM node:21.5.0-alpine AS production
 
 # Create the app directory and set owner and permissions
 RUN mkdir -p /app
+RUN mkdir -p /app/data
 RUN chown -R node:node /app && chmod -R 770 /app
+RUN chown -R node:node /app/data && chmod -R 770 /app/data
 WORKDIR /app
 
 COPY --chown=node:node --from=builder /app/dist ./dist
