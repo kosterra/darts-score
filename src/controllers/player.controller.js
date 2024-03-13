@@ -1,6 +1,6 @@
 const logger = require("../models/logger.model");
+const { createPlayerFilterQuery } = require('../utils/player.utils.js');
 const db = require("../models/db.model");
-
 const Player = db.player;
 
 const DIR = '/api/images/players/';
@@ -70,6 +70,47 @@ exports.findOne = (req, res) => {
     });
 };
 
+// Find by search term
+exports.findByIds = (req, res) => {
+  logger.debug("players find by ids called!");
+  let query = createPlayerFilterQuery(req.body);
+
+  Player.find(query)
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      logger.error('Failed to find players. ' + err);
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while filter players."
+      });
+    });
+}
+
+// Find by search term
+exports.findBySearchTerm = (req, res) => {
+  logger.debug("players search called!");
+  const searchTerm = req.query.search ? req.query.search : '';
+
+  logger.debug('Searching players by searchTerm: ' + searchTerm);
+
+  Player.find({
+    $or: [
+      { firstname: { $regex: searchTerm } },
+      { lastname: { $regex: searchTerm } },
+      { nickname: { $regex: searchTerm } }
+    ],
+  }).then(data => {
+    res.send(data);
+  }).catch(err => {
+    logger.error(err);
+    res.status(500).send({
+      message: "Could not find player by search term " + searchTerm
+    });
+  });
+}
+
 // Update a Player by the id in the request
 exports.update = (req, res) => {
   logger.debug("players update called!");
@@ -124,26 +165,3 @@ exports.delete = (req, res) => {
       });
     });
 };
-
-// Find by search term
-exports.findBySearchTerm = (req, res) => {
-  logger.debug("players search called!");
-  const searchTerm = req.query.search ? req.query.search : '';
-
-  logger.debug('Searching players by searchTerm: ' + searchTerm);
-
-  Player.find({
-    $or: [
-      {firstname: {$regex: searchTerm}},
-      {lastname: {$regex: searchTerm}},
-      {nickname: {$regex: searchTerm}}
-    ],
-  }).then(data => {
-    res.send(data);
-  }).catch(err => {
-    logger.error(err);
-    res.status(500).send({
-      message: "Could not find player by search term " + searchTerm
-    });
-  });
-}

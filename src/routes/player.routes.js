@@ -24,6 +24,9 @@ module.exports = app => {
   
     // Search Players
     router.get("/search", PlayerController.findBySearchTerm);
+    
+    // Find Players by Ids
+    router.post("/find", PlayerController.findByIds);
 
     // Retrieve a single Player with id
     router.get("/:id", PlayerController.findOne);

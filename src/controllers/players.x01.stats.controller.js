@@ -1,6 +1,7 @@
 const logger = require("../models/logger.model");
 const db = require("../models/db.model");
 const dayjs = require("dayjs");
+const { createGameFilterQuery } = require('../utils/game.utils.js');
 
 const X01 = db.x01;
 const { playersX01StatsModel, checkoutItemModel, avgItemModel } = require("../models/players.x01.stats.models");
@@ -53,7 +54,7 @@ async function calculateX01PlayersStats(body) {
 
 async function findX01Games(body) {
   logger.debug('find x01 games by filter body');
-  let query = createFilterQuery(body)
+  let query = createGameFilterQuery(body)
 
   let x01Games = await X01.find(query)
     .then(data => {
@@ -64,54 +65,6 @@ async function findX01Games(body) {
     });
 
   return x01Games;
-}
-
-const createFilterQuery = (body) => {
-  var query = {
-    gameIsRunning: false
-  };
-
-  // Filter include games with other players
-  if (body.hasOwnProperty('includeOthers') && body['includeOthers']) {
-    logger.debug(body['includeOthers'])
-    query.players = {
-      $all: body.playerIds,
-    };
-  } else {
-    query.players = {
-      $all: body.playerIds,
-      $size: body.playerIds.length
-    }
-  }
-
-  // Filter game date 1d, 1w, 1m, 1j and all time
-  if (body.hasOwnProperty('dateFilter') && body['dateFilter'] !== 'All') {
-
-    let startDate = dayjs().startOf('date').toDate();
-    let endDate = dayjs()
-
-    switch (body['dateFilter']) {
-      case '1 W':
-        startDate = dayjs().subtract(1, 'weeks').startOf('date').toDate()
-        break;
-      case '1 M':
-        startDate = dayjs().subtract(1, 'months').startOf('date').toDate()
-        break;
-      case '1 Y':
-        startDate = dayjs().subtract(1, 'years').startOf('date').toDate()
-        break;
-      default:
-    }
-
-    query.createdAt = {
-      $gte: startDate,
-      $lt: endDate
-    }
-  }
-
-  logger.debug(query)
-
-  return query
 }
 
 const calculateOverallX01Avg = (x01Games, playerId) => {

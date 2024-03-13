@@ -1,6 +1,7 @@
 const logger = require("../models/logger.model");
 const db = require("../models/db.model");
 const X01 = db.x01;
+const { createGameFilterQuery } = require('../utils/game.utils.js');
 
 // Create and Save a new X01 game
 exports.create = (req, res) => {
@@ -25,6 +26,24 @@ exports.create = (req, res) => {
   } catch(error) {
     logger.error(error);
   }
+};
+
+// Retrieve all X01 games from the database.
+exports.findByFilters = (req, res) => {
+  logger.debug("x01 games find by filters called!");
+  let query = createGameFilterQuery(req.body);
+
+  X01.find(query)
+    .then(data => {
+      res.send(data);
+    })
+    .catch(err => {
+      logger.error('Failed to find x01 games. ' + err);
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while filter X01 games."
+      });
+    });
 };
 
 // Retrieve all X01 games from the database.

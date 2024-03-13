@@ -25,6 +25,9 @@ module.exports = app => {
       X01Controller.create
     );
   
+    // Retrieve X01 games by filters
+    router.post("/find", X01Controller.findByFilters);
+  
     // Retrieve all X01 games
     router.get("/", X01Controller.findAll);
 
