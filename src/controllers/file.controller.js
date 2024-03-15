@@ -78,7 +78,7 @@ exports.deleteProfileImage = (req, res, next) => {
             if (err) {
                 logger.error(err)
             } else {
-                logger.info('Succsessfully deleted profile image for player ' + data.nickname);
+                logger.info('Successfully deleted profile image for player ' + data.nickname);
             }
         });
         next();
