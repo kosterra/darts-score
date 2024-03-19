@@ -1,4 +1,4 @@
-FROM node:21.5.0-alpine AS builder
+FROM node:21.7.1-alpine AS builder
 
 # Create the app directory and set owner and permissions
 RUN mkdir -p /app
@@ -17,7 +17,7 @@ RUN npm run build
 # ==================================
 #        Development Build
 # ==================================
-FROM node:21.5.0-alpine AS development
+FROM node:21.7.1-alpine AS development
 
 # Create the app directory and set owner and permissions
 RUN mkdir -p /app
@@ -37,7 +37,7 @@ CMD ["npm", "run", "test"]
 # ==================================
 #        Production Build
 # ==================================
-FROM node:21.5.0-alpine AS production
+FROM node:21.7.1-alpine AS production
 
 # Create the app directory and set owner and permissions
 RUN mkdir -p /app
