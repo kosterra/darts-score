@@ -1,8 +1,7 @@
 require("dotenv").config();
 
 const {
-    UI_HOST,
-    UI_PORT
+    UI_URL
 } = process.env;
 
 const express = require("express");
@@ -20,7 +19,7 @@ logger.info('Using logger in level ' + logger.level)
 const app = express();
 
 var corsOptions = {
-    origin: "http://" + UI_HOST + ":" + UI_PORT
+    origin: UI_URL
 };
 
 // set up rate limiter: maximum of five requests per minute
