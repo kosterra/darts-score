@@ -18,9 +18,21 @@ logger.info('Using logger in level ' + logger.level)
 
 const app = express();
 
-var corsOptions = {
-    origin: UI_URL
-};
+// set up cors
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin || origin === UI_URL) {
+            logger.debug(origin + ': CORS allowed');
+            callback(null, true);
+        } else {
+            logger.debug('CORS error: not allowed');
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    optionsSuccessStatus: 200
+}
+
+app.use(cors(corsOptions));
 
 // set up rate limiter: maximum of five requests per minute
 var limiter = rateLimit({
@@ -33,7 +45,6 @@ app.use(limiter);
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(cookieParser());
-app.use(cors(corsOptions));
 
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));

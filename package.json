@@ -1,7 +1,7 @@
 {
   "name": "darts-score-api",
   "description": "API for darts-score Application",
-  "version": "2024.4.0",
+  "version": "2024.4.1",
   "main": "index.js",
   "keywords": [
     "express",
