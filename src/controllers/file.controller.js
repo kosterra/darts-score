@@ -47,16 +47,8 @@ exports.uploadProfileImage = (req, res, next) => {
         
         if (err instanceof multer.MulterError) {
             logger.error('Error on profile image upload: ' + err);
-            return res.status(500).send({
-                message:
-                    err.message || "Some error occurred while uploading the profile image."
-            });
         } else if (err) {
             logger.error('Unkonwn error occured on profile image upload: ' + err);
-            return res.status(500).send({
-                message:
-                    err.message || "Some error occurred while uploading the profile image."
-            });
         }
         next();
     })
@@ -66,26 +58,30 @@ exports.deleteProfileImage = (req, res, next) => {
     logger.debug("profile image delete called!");
     const id = req.params.id;
     logger.debug(id)
-    Player.findById(id).then(data => {
-      logger.debug(data)
-      if (data && Boolean(data.profileImg)) {
-        const segments = data.profileImg.split('/');
-        const last = segments.pop() || segments.pop();
-        const path = './' + IMG_DIR + DIR + '/' + last;
-        logger.debug(path);
-        
-        fs.unlink(path, (err) => {
-            if (err) {
-                logger.error(err)
+    Player.findById(id)
+        .then(data => {
+            logger.debug(data)
+            if (data && Boolean(data.profileImg)) {
+                const segments = data.profileImg.split('/');
+                const last = segments.pop() || segments.pop();
+                const path = './' + IMG_DIR + DIR + '/' + last;
+                logger.debug(path);
+
+                fs.unlink(path, (err) => {
+                    if (err) {
+                        logger.error(err)
+                        // Handle cleanup here if needed
+                    } else {
+                        logger.info('Successfully deleted profile image for player ' + data.nickname);
+                    }
+                    next(); // Call next here
+                });
             } else {
-                logger.info('Successfully deleted profile image for player ' + data.nickname);
+                next(); // Call next here if no profile image found
             }
+        })
+        .catch(err => {
+            logger.error(err);
+            next(err); // Pass error to next middleware
         });
-        next();
-      }
-      next();
-    }).catch(err => {
-        logger.error(err);
-        res.status(500).send({ message: "Error retrieving Player with id=" + id });
-    });
 };

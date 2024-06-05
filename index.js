@@ -67,6 +67,7 @@ require("./src/routes/stats.routes")(app);
 require("./src/routes/x01.routes")(app);
 require("./src/routes/cricket.routes")(app);
 require("./src/routes/player.img.routes")(app);
+require("./src/routes/atc.routes")(app);
 
 // All other GET requests not handled before will return the static html page
 app.get('*', (req, res) => {

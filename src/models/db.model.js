@@ -9,5 +9,6 @@ db.url = dbConfig.url;
 db.player = require("./player.model.js")(mongoose);
 db.x01 = require("./x01.model.js")(mongoose);
 db.cricket = require("./cricket.model.js")(mongoose);
+db.atc = require("./atc.model.js")(mongoose);
 
 module.exports = db;

@@ -1,9 +1,8 @@
 const { validationResult } = require('express-validator');
 const logger = require("../models/logger.model");
 
-const commonValidation = async  (req, res, next)=>{
+const validate = async (req, res, next) => {
     const error = validationResult(req).formatWith(({ msg }) => msg);
-    
     logger.debug(error);
 
     if (!error.isEmpty()) {
@@ -14,5 +13,5 @@ const commonValidation = async  (req, res, next)=>{
 }
 
 module.exports = {
-    commonValidation
+    validate
 }

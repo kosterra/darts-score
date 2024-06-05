@@ -5,7 +5,7 @@ module.exports = app => {
 
     const router = require("express").Router();
     const logger = require("../models/logger.model");
-  
+
     // Get player profile img
     router.get("/:id", function (req, res, next) {
         var options = {
@@ -16,7 +16,7 @@ module.exports = app => {
                 'x-sent': true
             }
         }
-        
+
         var filename = req.params.id;
         res.sendFile('/players/' + filename, options, function (err) {
             if (err) {
@@ -27,6 +27,6 @@ module.exports = app => {
             }
         })
     });
-  
+
     app.use('/api/images/players/', router);
-  };
+};
