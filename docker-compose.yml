@@ -1,4 +1,3 @@
-version: '3.4'
 services:
   darts_score:
     container_name: darts_score_server

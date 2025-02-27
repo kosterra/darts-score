@@ -1,7 +1,7 @@
 {
   "name": "darts-score-api",
   "description": "API for darts-score Application",
-  "version": "2024.6.0",
+  "version": "2025.3.0",
   "main": "index.js",
   "keywords": [
     "express",
@@ -26,26 +26,26 @@
     "eslint-fix": "eslint ./ --fix"
   },
   "dependencies": {
-    "body-parser": "^1.20.2",
-    "cookie-parser": "^1.4.6",
+    "body-parser": "^1.20.3",
+    "cookie-parser": "^1.4.7",
     "copy-webpack-plugin": "^12.0.2",
     "cors": "^2.8.5",
-    "dayjs": "^1.11.10",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-validator": "^7.0.1",
-    "express-rate-limit": "^7.2.0",
-    "mongodb": "^6.5.0",
-    "mongoose": "^8.3.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "mongodb": "^6.13.1",
+    "mongoose": "^8.10.1",
     "multer": "^1.4.5-lts.1",
-    "pino": "^8.19.0",
+    "pino": "^9.6.0",
     "serve-favicon": "^2.5.0",
-    "uuid": "^9.0.1"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "nodemon": "^3.1.0",
-    "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4"
+    "eslint": "^9.21.0",
+    "nodemon": "^3.1.9",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
   }
 }
