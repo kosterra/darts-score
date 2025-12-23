@@ -1,4 +1,7 @@
 name: darts-score-api
+permissions:
+  contents: read
+  pull-requests: write
 
 on:
   push:
@@ -11,10 +14,9 @@ jobs:
     steps:
       - name: Checkout
         id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.DARTS_SCORE_PAT }}
       - name: Get package info
         id: package
         uses: codex-team/action-nodejs-package-info@v1.1
