@@ -41,12 +41,14 @@ RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/
 
 WORKDIR /ui
 
-COPY app-ui/package.json app-ui/package-lock.json ./
+# Vite writes its dep cache to node_modules/.vite, so everything must be owned by node
+RUN chown node:node /ui
+USER node
+
+COPY --chown=node:node app-ui/package.json app-ui/package-lock.json ./
 RUN npm ci --no-audit --no-fund --loglevel warn
 
-COPY app-ui/ ./
-
-USER node
+COPY --chown=node:node app-ui/ ./
 
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
