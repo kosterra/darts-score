@@ -51,6 +51,27 @@
         }
     }
     
+    // Dropdown menu of a primary SplitButton, coloured like the button itself
+    .p-tieredmenu.p-splitbutton-menu-primary {
+        background: $buttonBg;
+
+        .p-menuitem {
+            > .p-menuitem-content,
+            > .p-menuitem-content .p-menuitem-link,
+            > .p-menuitem-content .p-menuitem-link .p-menuitem-text,
+            > .p-menuitem-content .p-menuitem-link .p-menuitem-icon {
+                color: $buttonTextColor;
+            }
+
+            &:not(.p-highlight):not(.p-disabled) {
+                &.p-focus > .p-menuitem-content,
+                > .p-menuitem-content:hover {
+                    background: $buttonHoverBg;
+                }
+            }
+        }
+    }
+
     .p-carousel {
         .p-carousel-indicators .p-carousel-indicator.p-highlight button {
             background-color: $primaryColor;

@@ -158,6 +158,7 @@ const X01GameStats = () => {
                         onClick={() => onRestartGame()}
                         size="small"
                         severity="primary"
+                        menuClassName="p-splitbutton-menu-primary"
                         model={[
                             { label: 'Switch Players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
                             { label: 'Shuffle Players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
