@@ -1,53 +1,54 @@
 services:
-  darts_score:
+
+  # ---------------------------------------------------------------------------
+  # API Server
+  # ---------------------------------------------------------------------------
+  darts_score_api:
     container_name: darts_score_server
     build:
       context: .
-      target: development
+      target: development   # change to "production" for prod deployment
     ports:
       - "3001:3001"
     volumes:
+      # Development hot-reload mounts (remove for production target)
       - ./data:/app/data
-      - ./public:/app/public
-      - ./index.js:/app/index.js
-      - ./src:/app/src
-      - ./package.json:/app/package.json
+      - ./app-api/index.js:/app/index.js
+      - ./app-api/src:/app/src
     env_file:
       - ./.env
-    tty: true
     environment:
-      NODE_ENV: "development"
+      NODE_ENV: development
+    restart: unless-stopped
     depends_on:
-      - mongo
-  # darts_score:
-  #   container_name: darts_score_server
-  #   build:
-  #     context: .
-  #     target: production
-  #   ports:
-  #     - "3001:3001"
-  #   volumes:
-  #     - ./data:/app/data
-  #   env_file:
-  #     - ./.env
-  #   tty: true
-  #   environment:
-  #     NODE_ENV: "production"
-  #     LOG_LEVEL: "info"
-  #   depends_on:
-  #     - mongo
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/players"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # MongoDB
+  # ---------------------------------------------------------------------------
   mongo:
-    image: mongo
+    image: mongo:8.0
     container_name: darts_score_mongo
-    restart: always
+    restart: unless-stopped
     ports:
-      - 27017:27017
+      - "27017:27017"
     env_file:
       - ./mongo.env
     volumes:
-      - type: volume
-        source: darts_score_db
-        target: /data/db
+      - darts_score_db:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   darts_score_db:

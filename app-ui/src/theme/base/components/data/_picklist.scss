@@ -1,0 +1,81 @@
+.p-picklist {
+	background: $picklistBg;
+	border-radius: $borderRadius;
+	padding: 1rem;
+	width: 100%;
+
+	.p-picklist-buttons {
+		padding: $panelContentPadding;
+
+		.p-button {
+			margin-bottom: $inlineSpacing;
+		}
+	}
+
+	.p-picklist-header {
+		background: $picklistHeaderBg;
+		color: $panelHeaderTextColor;
+		border: $panelHeaderBorder;
+		padding: $panelHeaderPadding;
+		font-weight: $panelHeaderFontWeight;
+		border-bottom: 0 none;
+		border-top-right-radius: $borderRadius;
+		border-top-left-radius: $borderRadius;
+		text-align: center;
+	}
+
+	.p-picklist-list-wrapper {
+		background: $picklistListBg;
+		border-radius: $borderRadius;
+	}
+
+	.p-picklist-filter-container {
+		padding: $picklistPadding;
+		background: $picklistListBg;
+		border: $panelHeaderBorder;
+		border-bottom: 0 none;
+
+		.p-picklist-filter-input {
+			padding-right: nth($inputPadding, 2) + $primeIconFontSize;
+		}
+
+		.p-picklist-filter-icon {
+			right: nth($inputPadding, 2);
+			color: $inputIconColor;
+		}
+	}
+
+	.p-picklist-list {
+		border: $panelContentBorder;
+		color: $panelContentTextColor;
+		border-bottom-right-radius: $borderRadius;
+		border-bottom-left-radius: $borderRadius;
+		outline: 0 none;
+		padding: 0 0.4rem;
+		height: 30rem;
+
+		.p-picklist-item {
+			padding: $picklistItemPadding;
+			margin: $inputListItemMargin;
+			border: $inputListItemBorder;
+			color: $inputListItemTextColor;
+			background: $picklistItemBg;
+			transition: transform $transitionDuration, $listItemTransition;
+			border-top: 1px solid $shade800;
+
+			&:last-child {
+				border-bottom: 1px solid $shade800;
+			}
+
+			&:not(.p-highlight):hover {
+				background: $inputListItemHoverBg;
+				color: $inputListItemTextHoverColor;
+			}
+
+			&.p-highlight {
+				color: $highlightTextColor;
+				background: $highlightBg;
+			}
+		}
+	}
+}

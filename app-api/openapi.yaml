@@ -1,0 +1,1229 @@
+openapi: 3.1.0
+
+info:
+  title: darts-score API
+  description: REST API for the darts-score application. Manages players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+  version: 2026.10.0
+  license:
+    name: GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0.html
+
+servers:
+  - url: http://localhost:3001
+    description: Local development
+
+tags:
+  - name: Players
+    description: Player management
+  - name: Player Images
+    description: Serve player profile images
+  - name: X01
+    description: X01 game sessions
+  - name: Cricket
+    description: Cricket game sessions
+  - name: Elimination
+    description: Elimination game sessions
+  - name: ATC
+    description: Around-the-Clock training entries
+  - name: Statistics
+    description: Aggregated player and game statistics
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+paths:
+
+  # ---------- Players -------------------------------------------------------
+
+  /api/players:
+    get:
+      tags: [Players]
+      summary: List all players
+      responses:
+        '200':
+          description: Array of players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+
+    post:
+      tags: [Players]
+      summary: Create a player
+      description: Accepts `multipart/form-data`. The `profileImg` field is optional; if omitted the player is created without a profile image.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PlayerFormData'
+      responses:
+        '200':
+          description: Created player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/players/search:
+    get:
+      tags: [Players]
+      summary: Search players by name or nickname
+      parameters:
+        - name: searchTerm
+          in: query
+          description: Case-insensitive search across firstname, lastname and nickname
+          schema:
+            type: string
+          example: john
+      responses:
+        '200':
+          description: Matching players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+
+  /api/players/find:
+    post:
+      tags: [Players]
+      summary: Find players by IDs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [playerIds]
+              properties:
+                playerIds:
+                  type: array
+                  items:
+                    type: string
+                  example: ['64a1f...', '64a2e...']
+      responses:
+        '200':
+          description: Matched players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+
+  /api/players/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+
+    get:
+      tags: [Players]
+      summary: Get a single player
+      responses:
+        '200':
+          description: Player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Players]
+      summary: Update a player
+      description: Accepts `multipart/form-data`. If a new `profileImg` file is provided the existing image is deleted first. If `clearProfileImg=true` is sent without a new file the image is removed.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/PlayerFormData'
+                - type: object
+                  properties:
+                    clearProfileImg:
+                      type: string
+                      enum: ['true']
+                      description: Set to "true" to explicitly remove the current profile image
+      responses:
+        '200':
+          description: Update confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    delete:
+      tags: [Players]
+      summary: Delete a player
+      description: Deletes the player record and removes their profile image file.
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ---------- Player Images -------------------------------------------------
+
+  /api/images/players/{filename}:
+    get:
+      tags: [Player Images]
+      summary: Serve a player profile image
+      description: Returns the image file with a 7-day browser cache header. Responds with 404 if the file does not exist.
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 64f3a1b2-photo.jpg
+      responses:
+        '200':
+          description: Image file
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ---------- X01 -----------------------------------------------------------
+
+  /api/games/x01:
+    get:
+      tags: [X01]
+      summary: List all X01 games
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: Array of X01 games (newest first, max 100)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/X01Game'
+
+    post:
+      tags: [X01]
+      summary: Create an X01 game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/X01GameCreate'
+      responses:
+        '200':
+          description: Created X01 game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01Game'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/games/x01/find:
+    post:
+      tags: [X01]
+      summary: Filter X01 games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: Filtered X01 games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/X01Game'
+
+  /api/games/x01/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+
+    get:
+      tags: [X01]
+      summary: Get a single X01 game
+      responses:
+        '200':
+          description: X01 game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01Game'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [X01]
+      summary: Update an X01 game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/X01Game'
+      responses:
+        '200':
+          description: Update confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [X01]
+      summary: Delete an X01 game
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ---------- Cricket -------------------------------------------------------
+
+  /api/games/cricket:
+    get:
+      tags: [Cricket]
+      summary: List all Cricket games
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: Array of Cricket games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CricketGame'
+
+    post:
+      tags: [Cricket]
+      summary: Create a Cricket game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CricketGameCreate'
+      responses:
+        '200':
+          description: Created Cricket game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CricketGame'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/games/cricket/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+
+    get:
+      tags: [Cricket]
+      summary: Get a single Cricket game
+      responses:
+        '200':
+          description: Cricket game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CricketGame'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Cricket]
+      summary: Update a Cricket game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CricketGame'
+      responses:
+        '200':
+          description: Update confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Cricket]
+      summary: Delete a Cricket game
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ---------- Elimination ---------------------------------------------------
+
+  /api/games/elimination:
+    get:
+      tags: [Elimination]
+      summary: List all Elimination games
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: Array of Elimination games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EliminationGame'
+
+    post:
+      tags: [Elimination]
+      summary: Create an Elimination game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EliminationGameCreate'
+      responses:
+        '200':
+          description: Created Elimination game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EliminationGame'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/games/elimination/find:
+    post:
+      tags: [Elimination]
+      summary: Filter Elimination games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: Filtered Elimination games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EliminationGame'
+
+  /api/games/elimination/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+
+    get:
+      tags: [Elimination]
+      summary: Get a single Elimination game
+      responses:
+        '200':
+          description: Elimination game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EliminationGame'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Elimination]
+      summary: Update an Elimination game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EliminationGame'
+      responses:
+        '200':
+          description: Update confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Elimination]
+      summary: Delete an Elimination game
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ---------- ATC -----------------------------------------------------------
+
+  /api/training/atc:
+    get:
+      tags: [ATC]
+      summary: List ATC entries
+      parameters:
+        - name: mode
+          in: query
+          description: Filter by mode (case-insensitive substring match)
+          schema:
+            type: string
+          example: standard
+      responses:
+        '200':
+          description: Array of ATC entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ATCEntry'
+
+    post:
+      tags: [ATC]
+      summary: Create an ATC entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ATCEntryCreate'
+      responses:
+        '201':
+          description: Created ATC entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ATCEntry'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/training/atc/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+
+    delete:
+      tags: [ATC]
+      summary: Delete an ATC entry
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ---------- Statistics ----------------------------------------------------
+
+  /api/stats/player/{id}:
+    get:
+      tags: [Statistics]
+      summary: Get overall statistics for a player
+      description: Aggregates X01 and Cricket game data across all completed games for the given player.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Player statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerStats'
+
+  /api/stats/games/x01/{id}:
+    get:
+      tags: [Statistics]
+      summary: Get statistics for a single X01 game
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: X01 game statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01GameStats'
+
+  /api/stats/players/x01:
+    post:
+      tags: [Statistics]
+      summary: Get comparative X01 statistics for multiple players
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: Comparative X01 statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayersX01Stats'
+
+# ---------------------------------------------------------------------------
+# Components
+# ---------------------------------------------------------------------------
+components:
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: MongoDB ObjectId
+      schema:
+        type: string
+      example: 64a1f3b2c8e4d500123abc01
+
+    Limit:
+      name: limit
+      in: query
+      description: Maximum number of results to return (max 100)
+      schema:
+        type: integer
+        default: 100
+        minimum: 1
+        maximum: 100
+
+    Skip:
+      name: skip
+      in: query
+      description: Number of results to skip (for pagination)
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+          example:
+            message: Player not found.
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    msg:
+                      type: string
+                    path:
+                      type: string
+                    value:
+                      type: string
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+  schemas:
+
+    # ------ Common ----------------------------------------------------------
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: Player was updated successfully.
+
+    Timestamps:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    GameFilterBody:
+      type: object
+      required: [playerIds]
+      properties:
+        playerIds:
+          type: array
+          items:
+            type: string
+          description: Player IDs to match
+          example: ['64a1f...', '64a2e...']
+        includeOthers:
+          type: boolean
+          description: If true, include games that also have additional players beyond the listed IDs
+          default: false
+        dateFilter:
+          type: string
+          description: Restrict games to a time window
+          enum: ['All', '1 W', '1 M', '1 Y']
+          default: All
+
+    # ------ Player ----------------------------------------------------------
+
+    Player:
+      allOf:
+        - $ref: '#/components/schemas/Timestamps'
+        - type: object
+          properties:
+            id:
+              type: string
+              description: MongoDB ObjectId (mapped from _id)
+              example: 64a1f3b2c8e4d500123abc01
+            firstname:
+              type: string
+              example: John
+            lastname:
+              type: string
+              example: Doe
+            nickname:
+              type: string
+              example: Bullseye
+            profileImg:
+              type: string
+              description: Stored filename only. Construct the full URL as `{VITE_API_URL}/api/images/players/{profileImg}`.
+              example: 9c3e7a1d-photo.jpg
+
+    PlayerFormData:
+      type: object
+      required: [firstname, lastname, nickname]
+      properties:
+        firstname:
+          type: string
+          minLength: 3
+          maxLength: 25
+          example: John
+        lastname:
+          type: string
+          minLength: 3
+          maxLength: 25
+          example: Doe
+        nickname:
+          type: string
+          minLength: 3
+          maxLength: 25
+          example: Bullseye
+        profileImg:
+          type: string
+          format: binary
+          description: PNG or JPEG image file (optional)
+
+    # ------ X01 Game --------------------------------------------------------
+
+    X01GameCreate:
+      type: object
+      required: [startingScore, setMode, legMode, legInMode, legOutMode, numberOfPlayers, players]
+      properties:
+        startingScore:
+          type: integer
+          enum: [101, 170, 201, 301, 401, 501, 601, 701, 801, 901, 1001]
+          example: 501
+        setMode:
+          type: string
+          enum: ['Best of', 'First to']
+        legMode:
+          type: string
+          enum: ['Best of', 'First to']
+        legInMode:
+          type: string
+          enum: ['Straight In', 'Double In', 'Master In']
+        legOutMode:
+          type: string
+          enum: ['Straight Out', 'Double Out', 'Master Out']
+        numberOfSets:
+          type: integer
+          example: 1
+        numberOfLegs:
+          type: integer
+          example: 3
+        numberOfPlayers:
+          type: integer
+          enum: [1, 2, 3, 4]
+        players:
+          type: array
+          items:
+            type: string
+          description: Array of player IDs
+        isSoloGame:
+          type: boolean
+          default: false
+
+    X01Game:
+      allOf:
+        - $ref: '#/components/schemas/Timestamps'
+        - $ref: '#/components/schemas/X01GameCreate'
+        - type: object
+          properties:
+            id:
+              type: string
+            gameIsRunning:
+              type: boolean
+            hasWinner:
+              type: boolean
+            startingPlayerLeg:
+              type: string
+            startingPlayerSet:
+              type: string
+            currentPlayerTurn:
+              type: string
+            setsPlayed:
+              type: integer
+            legsPlayed:
+              type: integer
+            currentSet:
+              type: integer
+            currentSetLeg:
+              type: integer
+            currentThrow:
+              type: array
+              items:
+                type: string
+              description: Dart notations for the current round (e.g. "S20", "D10", "T5")
+            currentLegThrows:
+              type: array
+              items:
+                type: object
+            allSetsThrows:
+              type: object
+              description: Nested structure indexed by set/leg containing round throw history
+            playerModels:
+              type: object
+              description: Keyed by player ID; contains per-player scoring state, averages, checkout data, etc.
+
+    # ------ Cricket Game ----------------------------------------------------
+
+    CricketGameCreate:
+      type: object
+      required: [numberOfPlayers, players]
+      properties:
+        numberOfPlayers:
+          type: integer
+          enum: [1, 2, 3, 4]
+        players:
+          type: array
+          items:
+            type: string
+        isSoloGame:
+          type: boolean
+          default: false
+
+    CricketGame:
+      allOf:
+        - $ref: '#/components/schemas/Timestamps'
+        - $ref: '#/components/schemas/CricketGameCreate'
+        - type: object
+          properties:
+            id:
+              type: string
+            gameIsRunning:
+              type: boolean
+            hasWinner:
+              type: boolean
+            startingScore:
+              type: integer
+            currentPlayerTurn:
+              type: string
+            currentThrow:
+              type: array
+              items:
+                type: string
+            allThrows:
+              type: array
+              items:
+                type: object
+            playerModels:
+              type: object
+              description: Keyed by player ID; contains cricket section hit state and score
+
+    # ------ Elimination Game ------------------------------------------------
+
+    EliminationGameCreate:
+      type: object
+      required: [targetScore, gameInMode, gameOutMode, numberOfPlayers, players]
+      properties:
+        targetScore:
+          type: integer
+          example: 301
+        gameInMode:
+          type: string
+          enum: ['Straight In', 'Double In', 'Master In']
+        gameOutMode:
+          type: string
+          enum: ['Straight Out', 'Double Out', 'Master Out']
+        numberOfPlayers:
+          type: integer
+          enum: [1, 2, 3, 4]
+        players:
+          type: array
+          items:
+            type: string
+        isSoloGame:
+          type: boolean
+          default: false
+
+    EliminationGame:
+      allOf:
+        - $ref: '#/components/schemas/Timestamps'
+        - $ref: '#/components/schemas/EliminationGameCreate'
+        - type: object
+          properties:
+            id:
+              type: string
+            gameIsRunning:
+              type: boolean
+            hasWinner:
+              type: boolean
+            startingPlayer:
+              type: string
+            currentPlayerTurn:
+              type: string
+            currentThrow:
+              type: array
+              items:
+                type: string
+            allThrows:
+              type: array
+              items:
+                type: object
+            playerModels:
+              type: object
+              description: Keyed by player ID; contains score, elimination state, and throw history
+
+    # ------ ATC -------------------------------------------------------------
+
+    ATCEntryCreate:
+      type: object
+      required: [timeMs, mode]
+      properties:
+        timeMs:
+          type: integer
+          minimum: 1
+          description: Total time in milliseconds
+          example: 245310
+        hours:
+          type: integer
+          example: 0
+        minutes:
+          type: integer
+          example: 4
+        seconds:
+          type: integer
+          example: 5
+        milliseconds:
+          type: integer
+          example: 310
+        mode:
+          type: string
+          example: standard
+        player:
+          type: object
+          description: Embedded player snapshot at the time of the entry
+
+    ATCEntry:
+      allOf:
+        - $ref: '#/components/schemas/Timestamps'
+        - $ref: '#/components/schemas/ATCEntryCreate'
+        - type: object
+          properties:
+            id:
+              type: string
+
+    # ------ Statistics ------------------------------------------------------
+
+    SectionHit:
+      type: object
+      properties:
+        section:
+          type: string
+          example: '20'
+        hit:
+          type: integer
+        S:
+          type: integer
+          description: Single hits
+        D:
+          type: integer
+          description: Double hits
+        T:
+          type: integer
+          description: Triple hits
+
+    ScoreRange:
+      type: object
+      properties:
+        range:
+          type: string
+          example: '100-119'
+        count:
+          type: integer
+
+    CheckoutItem:
+      type: object
+      properties:
+        section:
+          type: string
+          example: '40'
+        hit:
+          type: integer
+        miss:
+          type: integer
+        total:
+          type: integer
+        rate:
+          type: number
+          description: Checkout percentage (0–100)
+
+    PlayerStats:
+      type: object
+      properties:
+        playerId:
+          type: string
+        playedGames:
+          type: object
+          properties:
+            total: { type: integer }
+            x01:   { type: integer }
+            cricket: { type: integer }
+        wonGames:
+          type: object
+          properties:
+            total: { type: integer }
+            x01:   { type: integer }
+            cricket: { type: integer }
+        avg:
+          type: object
+          properties:
+            overallX01:
+              type: number
+              description: Career three-dart average across all X01 games
+            dartsPerLegX01:
+              type: number
+              description: Average darts thrown per leg
+            perGameX01:
+              type: array
+              description: Per-game three-dart averages (last 10 games)
+              items:
+                type: object
+                properties:
+                  label: { type: integer }
+                  value: { type: number }
+                  desc:  { type: string }
+        throwedDarts:
+          type: object
+          properties:
+            x01: { type: integer }
+        throwedPoints:
+          type: object
+          properties:
+            x01: { type: integer }
+        num180s:
+          type: integer
+        num140plus:
+          type: integer
+        checkouts:
+          type: object
+          properties:
+            hit:     { type: integer }
+            total:   { type: integer }
+            highest: { type: integer }
+            rates:
+              type: array
+              items:
+                $ref: '#/components/schemas/CheckoutItem'
+        scoreRanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScoreRange'
+        sectionHits:
+          type: array
+          items:
+            $ref: '#/components/schemas/SectionHit'
+
+    X01GameStats:
+      type: object
+      properties:
+        avg:
+          type: array
+          description: Per-set/leg averages keyed by player index (player1, player2, …)
+          items:
+            type: object
+            properties:
+              label:   { type: string, example: 'S1/L1' }
+              desc:    { type: string, example: 'Set 1 - Leg 1' }
+              player1: { type: string }
+              player2: { type: string }
+        checkouts:
+          type: object
+          description: Checkout hit/miss data keyed by player index (player1, player2, …)
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/CheckoutItem'
+        scoreRanges:
+          type: array
+          items:
+            type: object
+            properties:
+              range:         { type: string }
+              player1Count:  { type: integer }
+              player2Count:  { type: integer }
+        sectionHits:
+          type: array
+          items:
+            type: object
+            properties:
+              section:      { type: string }
+              player1Hit:   { type: integer }
+              player1S:     { type: integer }
+              player1D:     { type: integer }
+              player1T:     { type: integer }
+              player2Hit:   { type: integer }
+              player2S:     { type: integer }
+              player2D:     { type: integer }
+              player2T:     { type: integer }
+
+    PlayersX01Stats:
+      type: object
+      properties:
+        playedGames:
+          type: integer
+        wonGames:
+          type: object
+          description: Keyed by player index (player1, player2, …)
+          additionalProperties:
+            type: integer
+        avg:
+          type: object
+          properties:
+            overall:
+              type: object
+              additionalProperties: { type: number }
+            dartsPerLeg:
+              type: object
+              additionalProperties: { type: number }
+            perGame:
+              type: array
+              items:
+                type: object
+                properties:
+                  label:   { type: integer }
+                  desc:    { type: string }
+                  player1: { type: string }
+                  player2: { type: string }
+        throwedDarts:
+          type: object
+          additionalProperties: { type: integer }
+        throwedPoints:
+          type: object
+          additionalProperties: { type: integer }
+        num180s:
+          type: object
+          additionalProperties: { type: integer }
+        num160plus:
+          type: object
+          additionalProperties: { type: integer }
+        num140plus:
+          type: object
+          additionalProperties: { type: integer }
+        checkouts:
+          type: object
+          properties:
+            hit:
+              type: object
+              additionalProperties: { type: integer }
+            total:
+              type: object
+              additionalProperties: { type: integer }
+            highest:
+              type: object
+              additionalProperties: { type: integer }
+            rates:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CheckoutItem'
+        scoreRanges:
+          type: array
+          items:
+            type: object
+            properties:
+              range: { type: string }
+        sectionHits:
+          type: array
+          items:
+            type: object
+            properties:
+              section: { type: string }

@@ -1,0 +1,10 @@
+// Fileuploader
+.file-upload {
+    .drop-zone {
+        cursor: pointer;
+    
+        &.is-dragging, &:hover {
+            background-color: $shade800;
+        }
+    }
+}

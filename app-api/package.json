@@ -1,0 +1,54 @@
+{
+  "name": "darts-score-api",
+  "description": "API for darts-score Application",
+  "version": "2026.10.0",
+  "type": "module",
+  "main": "index.js",
+  "keywords": [
+    "express",
+    "node",
+    "api"
+  ],
+  "author": "kosterra",
+  "license": "GPLv3",
+  "homepage": "https://github.com/kosterra/darts-score-api#readme",
+  "bugs": {
+    "url": "https://github.com/kosterra/darts-score-api/issues"
+  },
+  "repository": {
+    "url": "git+https://github.com/kosterra/darts-score-api"
+  },
+  "scripts": {
+    "start": "node ./index.js",
+    "dev": "nodemon index.js",
+    "build": "node build.js",
+    "start:prod": "node dist/bundle.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.19",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "js-yaml": "^5.4.3",
+    "mongodb": "^7.0.0",
+    "mongoose": "^9.0.2",
+    "multer": "^2.0.2",
+    "pino": "^10.1.0",
+    "serve-favicon": "^2.5.1",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.5",
+    "eslint": "^9.39.2",
+    "nodemon": "^3.1.11",
+    "vitest": "^3.2.4"
+  }
+}
