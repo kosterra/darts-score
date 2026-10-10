@@ -25,7 +25,7 @@ export const createGameController = (Model, gameName) => {
         logger.debug(`${label} findByFilters called`);
         try {
             const query = createGameFilterQuery(req.body);
-            const data = await Model.find(query).lean();
+            const data = await Model.find(query);
             res.json(data);
         } catch (err) {
             logger.error(err, `Failed to filter ${label} games`);
@@ -38,7 +38,7 @@ export const createGameController = (Model, gameName) => {
         const limit = Math.min(parseInt(req.query.limit) || DEFAULT_LIMIT, DEFAULT_LIMIT);
         const skip  = Math.max(parseInt(req.query.skip)  || 0, 0);
         try {
-            const data = await Model.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+            const data = await Model.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit);
             res.json(data);
         } catch (err) {
             logger.error(err, `Failed to load all ${label} games`);
@@ -50,7 +50,7 @@ export const createGameController = (Model, gameName) => {
         logger.debug(`${label} findOne called`);
         const { id } = req.params;
         try {
-            const data = await Model.findById(id).lean();
+            const data = await Model.findById(id);
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             res.json(data);
         } catch (err) {
