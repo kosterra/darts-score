@@ -61,6 +61,21 @@ const getCurrentThrowScore = (throwArr: string[] = []): number => {
     }, 0);
 };
 
+// Fisher-Yates shuffle that never returns the players in their current order
+const shufflePlayers = (players: string[]): string[] => {
+    const shuffled = [...players];
+    if (new Set(players).size < 2) return shuffled;
+
+    do {
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+    } while (shuffled.every((player, i) => player === players[i]));
+
+    return shuffled;
+};
+
 export {
     validateDartValue,
     dartIsDouble,
@@ -70,4 +85,5 @@ export {
     changeCurrentPlayer,
     cricketGetCurrentScore,
     getCurrentThrowScore,
+    shufflePlayers,
 };
