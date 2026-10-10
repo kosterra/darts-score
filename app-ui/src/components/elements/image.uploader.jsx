@@ -3,6 +3,8 @@ import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { FaTrash } from "react-icons/fa";
 
+import ImageCropper from './image.cropper';
+
 const ImageUploader = (props) => {
 
     const {
@@ -13,6 +15,8 @@ const ImageUploader = (props) => {
     } = props;
 
     const [isDragging, setIsDragging] = useState(false);
+    // file picked by the user that still has to be cropped
+    const [cropFile, setCropFile] = useState(null);
     const fileInput = useRef(null);
 
     const handleOnDragOver = event => {
@@ -31,7 +35,7 @@ const ImageUploader = (props) => {
         event.stopPropagation();
         //let's grab the image file
         let imageFile = event.dataTransfer.files[0];
-        onFileChange(imageFile);
+        if (imageFile?.type.startsWith('image/')) setCropFile(imageFile);
         setIsDragging(false);
     }
 
@@ -42,7 +46,24 @@ const ImageUploader = (props) => {
 
     const handleOnFileChange = event => {
         event.preventDefault();
-        onFileChange(event.target.files[0]);
+        if (event.target.files[0]) setCropFile(event.target.files[0]);
+        // allow picking the same file again
+        event.target.value = '';
+    }
+
+    const handleOnCrop = croppedFile => {
+        setCropFile(null);
+        onFileChange(croppedFile);
+    }
+
+    if (cropFile) {
+        return (
+            <ImageCropper
+                file={cropFile}
+                onCrop={handleOnCrop}
+                onCancel={() => setCropFile(null)}
+            />
+        );
     }
 
     return (
