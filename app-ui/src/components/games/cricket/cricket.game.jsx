@@ -8,6 +8,7 @@ import { MdReplay } from "react-icons/md";
 import CricketContext from '../../../utils/cricket.context';
 import CricketModels from '../../../models/cricket.models';
 import CricketService from '../../../services/cricket.service';
+import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import CricketScoreBoard from './cricket.scoreboard';
 import CricketScoreInputBoard from './cricket.score.input.board';
 import PageLoader from '../../elements/page.loader';
@@ -28,7 +29,7 @@ const CricketGame = () => {
         if (switchPlayers) {
             newMatchSetup.players = game.players.slice().reverse();
         } else if (shufflePlayers) {
-            newMatchSetup.players = game.players.slice().sort(() => Math.random() - 0.5);
+            newMatchSetup.players = shuffle(game.players);
         } else {
             newMatchSetup.players = [...game.players];
         }
@@ -79,7 +80,7 @@ const CricketGame = () => {
                             <SplitButton
                                 label="PLAY AGAIN"
                                 icon={<MdReplay className="me-2 fs-5" />}
-                                onClick={onRestartGame}
+                                onClick={() => onRestartGame()}
                                 size="small"
                                 severity="primary"
                                 model={[

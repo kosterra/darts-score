@@ -7,6 +7,7 @@ import {
     lastDartIsTriple,
     getCurrentThrowScore,
     cricketGetCurrentScore,
+    shufflePlayers,
 } from './game.utils';
 
 describe('validateDartValue', () => {
@@ -133,5 +134,26 @@ describe('cricketGetCurrentScore', () => {
     it('returns 0 when all sections have ≤3 hits', () => {
         const sectionHit = { 20: 3, 19: 2 };
         expect(cricketGetCurrentScore(['S20', '', ''], 0, sectionHit)).toBe(0);
+    });
+});
+
+describe('shufflePlayers', () => {
+    it('keeps the same players', () => {
+        const players = ['a', 'b', 'c', 'd'];
+        expect(shufflePlayers(players).sort()).toEqual(players);
+    });
+    it('always changes the order', () => {
+        const players = ['a', 'b', 'c'];
+        for (let i = 0; i < 200; i++) {
+            expect(shufflePlayers(players)).not.toEqual(players);
+        }
+    });
+    it('does not mutate the input', () => {
+        const players = ['a', 'b', 'c'];
+        shufflePlayers(players);
+        expect(players).toEqual(['a', 'b', 'c']);
+    });
+    it('returns a single player unchanged', () => {
+        expect(shufflePlayers(['a'])).toEqual(['a']);
     });
 });

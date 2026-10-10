@@ -43,6 +43,8 @@ jobs:
         with:
           tag: ${{ steps.package.outputs.version }}
           message: 'Release ${{ steps.package.outputs.version }}'
+          # Move the tag to this commit if it already exists
+          force_push_tag: true
 
       - name: Docker meta
         id: meta
