@@ -13,6 +13,7 @@ import StatsService from '../../../services/stats.service';
 import PlayerService from '../../../services/player.service';
 import X01Models from '../../../models/x01.models';
 import X01Service from '../../../services/x01.service';
+import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import X01StatsScoreBoard from './x01.stats.scoreboard';
 import X01StatsScoreBoardMultiple from './x01.stats.scoreboard.multiple';
 import X01StatsTab from './x01.stats.tab';
@@ -73,7 +74,7 @@ const X01GameStats = () => {
 
         let newPlayers = [...game.players];
         if (switchPlayers) newPlayers.reverse();
-        if (shufflePlayers) newPlayers.sort(() => Math.random() - 0.5);
+        else if (shufflePlayers) newPlayers = shuffle(newPlayers);
         newMatchSetup.players = newPlayers;
 
         const startingPlayer = newPlayers[0];
@@ -154,7 +155,7 @@ const X01GameStats = () => {
                     <SplitButton
                         label="PLAY AGAIN"
                         icon={<MdReplay className="me-2 fs-5" />}
-                        onClick={onRestartGame}
+                        onClick={() => onRestartGame()}
                         size="small"
                         severity="primary"
                         model={[
