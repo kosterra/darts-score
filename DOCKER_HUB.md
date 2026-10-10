@@ -63,6 +63,10 @@ services:
     restart: unless-stopped
     env_file:
       - mongo.env
+    environment:
+      # mongod < 8.0.35 refuses to start on Ubuntu 7.0.0-x kernels (SERVER-131779).
+      # Remove once mongo:8.0 resolves to >= 8.0.35.
+      GLIBC_TUNABLES: glibc.pthread.rseq=1
     volumes:
       - darts_score_db:/data/db
     healthcheck:
