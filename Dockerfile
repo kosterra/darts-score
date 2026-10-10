@@ -1,58 +1,76 @@
-FROM node:23.8.0-alpine AS builder
+# syntax=docker/dockerfile:1
 
-# Create the app directory and set owner and permissions
-RUN mkdir -p /app
-RUN chown -R node:node /app && chmod -R 770 /app
-WORKDIR /app
+# ---------------------------------------------------------------------------
+# Stage 1 – UI Builder: install deps and compile the Vite bundle
+# ---------------------------------------------------------------------------
+FROM node:24-slim AS ui-builder
 
-# Update NPM version
-RUN npm install -g npm@11.1.0
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-COPY ./package.json ./package.json
-COPY ./package-lock.json ./package-lock.json
-RUN npm install --loglevel warn
-COPY . ./
+WORKDIR /ui
+
+COPY app-ui/package.json app-ui/package-lock.json ./
+RUN npm ci --no-audit --no-fund --loglevel warn
+
+COPY app-ui/ ./
 RUN npm run build
 
-# ==================================
-#        Development Build
-# ==================================
-FROM node:23.8.0-alpine AS development
 
-# Create the app directory and set owner and permissions
-RUN mkdir -p /app
-RUN mkdir -p /app/data
-RUN chown -R node:node /app && chmod -R 770 /app
-RUN chown -R node:node /app/data && chmod -R 770 /app/data
+# ---------------------------------------------------------------------------
+# Stage 2 – API Builder: install deps and compile the esbuild bundle
+# ---------------------------------------------------------------------------
+FROM node:24-slim AS builder
+
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY app-api/package.json app-api/package-lock.json ./
+RUN npm ci --no-audit --no-fund --loglevel warn
+
+COPY app-api/ ./
+RUN npm run build
+
+
+# ---------------------------------------------------------------------------
+# Stage 3 – Development: hot-reload with nodemon, full source mounted
+# ---------------------------------------------------------------------------
+FROM node:24-slim AS development
+
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app/data \
+    && chown -R node:node /app \
+    && chmod -R 770 /app
+
 WORKDIR /app
 
 COPY --chown=node:node --from=builder /app ./
+COPY --chown=node:node --from=ui-builder /ui/dist ./public/ui
 
 USER node
 
-EXPOSE 3000
-CMD ["npm", "run", "test"]
+EXPOSE 3001
+CMD ["npm", "run", "dev"]
 
 
-# ==================================
-#        Production Build
-# ==================================
-FROM node:23.8.0-alpine AS production
+# ---------------------------------------------------------------------------
+# Stage 4 – Production: compiled API bundle + React static files
+# ---------------------------------------------------------------------------
+FROM node:24-slim AS production
 
-# Create the app directory and set owner and permissions
-RUN mkdir -p /app
-RUN mkdir -p /app/data
-RUN chown -R node:node /app && chmod -R 770 /app
-RUN chown -R node:node /app/data && chmod -R 770 /app/data
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app/data \
+    && chown -R node:node /app \
+    && chmod -R 770 /app
+
 WORKDIR /app
 
+# API bundle + public assets + openapi spec (all placed in dist/ by build.js)
 COPY --chown=node:node --from=builder /app/dist ./dist
-COPY --chown=node:node --from=builder /app/package.json ./package.json
-COPY --chown=node:node --from=builder /app/package-lock.json ./package-lock.json
-COPY --chown=node:node --from=builder /app/LICENSE ./LICENSE
-COPY --chown=node:node --from=builder /app/*.md ./
+# React UI static build
+COPY --chown=node:node --from=ui-builder /ui/dist ./dist/public/ui
 
 USER node
 
-EXPOSE 3000
-CMD ["npm", "run", "prod"]
+EXPOSE 3001
+CMD ["node", "dist/bundle.js"]

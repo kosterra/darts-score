@@ -1,0 +1,52 @@
+.p-card {
+    background: $cardBackgroundColor;
+    color: $panelContentTextColor;
+    box-shadow: $cardShadow;
+    border-radius: $borderRadius;
+
+    &.timeline-card {
+        .p-card-body {
+            padding: 0.2rem;
+        }
+
+        .p-card-title {
+            padding-top: 0.2rem;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .p-card-subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .p-card-content {
+            padding: 0.2rem 0;
+        }
+    }
+
+    .p-card-body {
+        padding: $cardBodyPadding;
+    }
+
+    .p-card-title {
+        font-size: $cardTitleFontSize;
+        font-weight: $cardTitleFontWeight;
+        margin-bottom: $inlineSpacing;
+    }
+
+    .p-card-subtitle {
+        font-size: $cardSubTitleFontSize;
+        font-weight: $cardSubTitleFontWeight;
+        margin-bottom: $inlineSpacing;
+        color: $cardSubTitleColor;
+    }
+
+    .p-card-content {
+        padding: $cardContentPadding;
+    }
+
+    .p-card-footer {
+        padding: $cardFooterPadding;
+    }
+}

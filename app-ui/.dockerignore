@@ -1,0 +1,21 @@
+**/node_modules
+**/npm-debug.log
+dist
+
+# ignore all .env and .*ignore files
+.env*
+!.env.production
+.*ignore
+
+# ignore .git and .cache folders
+.git
+.github
+.cache
+
+# ignore all markdown files (md) beside all README*.md other than README-secret.md
+*.md
+!README*.md
+README-secret.md
+
+# ignore local docker-compose file
+docker-compose.yml

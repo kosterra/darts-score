@@ -1,0 +1,70 @@
+@use "sass:map";
+
+// ==========================
+//       Desktop Styles
+// ==========================
+$dartboard-opacity: 0.4;
+
+.dartboard-img {
+    width: 100%;
+    max-width: 30em;
+    max-height: 30em;
+
+    .out {
+        fill: none;
+    }
+
+    .zero {
+        fill: $shade801;
+    }
+
+    .filler {
+        fill: $shade800;
+        opacity: 0.6;
+    }
+
+    .item:hover {
+        opacity: 0.5;
+    }
+
+    .single.even {
+        fill: $shade800;
+
+        &:hover {
+            opacity: 0.2;
+        }
+        //opacity: $dartboard-opacity;
+    }
+
+    .double.even, .triple.even, .double-bull {
+        fill: $red;
+    }
+
+    .single.odd {
+        fill: map.get($colors, "beige");
+    }
+
+    .double.odd, .triple.odd, .single-bull {
+        fill: $green;
+    }
+
+    .number {
+        fill: $shade500;
+        font-weight: 600;
+        text-anchor: middle;
+        font-size: 1rem;
+    }
+
+    .hit, .hit-pulse {
+        fill: $blue;
+    }
+}
+
+// ==========================
+//       Mobile Styles
+// ==========================
+@media only screen and (max-width: 600px) {
+    .dartboard-img {
+        margin: 15px 0;
+    }
+}

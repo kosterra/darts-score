@@ -1,0 +1,121 @@
+@use "sass:map";
+
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "bootstrap/scss/functions";
+
+// 2. Include any default variable overrides here
+$red: map.get($colors,"red");
+$blue: map.get($colors,"blue");
+$beige: map.get($colors,"beige");
+$gold: map.get($colors,"gold");
+$silver: map.get($colors,"silver");
+$bronze: map.get($colors,"bronze");
+$yellow: map.get($colors,"yellow");
+$green: map.get($colors,"green");
+
+$primary:       $primaryColor;
+$secondary:     $shade900;
+$tertiary:      $shade800;
+$success:       $green;
+$info:          $blue;
+$warning:       $yellow;
+$danger:        $red;
+
+$border-color:  $shade600;
+
+$font-family-monospace: verdana, sans-serif;
+
+// 3. Include remainder of required Bootstrap stylesheets
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+
+// 4. Include any default map overrides here
+$custom-colors: (
+    "beige": $beige,
+    "blue": $blue,
+    "gold": $gold,
+    "silver": $silver,
+    "bronze": $bronze,
+    "purple": $purple,
+    "orange": $orange,
+    "shade100": $shade100,
+    "shade200": $shade200,
+    "shade300": $shade300,
+    "shade400": $shade400,
+    "shade500": $shade500,
+    "shade600": $shade600,
+    "shade700": $shade700,
+    "shade701": $shade701,
+    "shade800": $shade800,
+    "shade801": $shade801,
+    "shade900": $shade900,
+    "shade901": $shade901,
+    "red": $red
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+// Font sizes
+$custom-font-sizes: (
+  7: 0.9rem,
+  8: 0.8rem,
+  9: 0.7rem
+);
+
+$font-sizes: map-merge($font-sizes, $custom-font-sizes);
+
+// Positions
+$position-values: (
+  0: 0,
+  5: 5%,
+  10: 10%,
+  15: 15%,
+  20: 20%,
+  25: 25%,
+  30: 30%,
+  35: 35%,
+  40: 40%,
+  45: 45%,
+  50: 50%,
+  55: 55%,
+  60: 60%,
+  65: 65%,
+  70: 70%,
+  75: 75%,
+  80: 80%,
+  85: 85%,
+  90: 90%,
+  95: 95%,
+  100: 100%
+);
+
+// 5. Include remainder of required parts
+@import "bootstrap/scss/maps";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/root";
+
+// 6. Optionally include any other parts as needed
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/helpers";
+
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/forms";
+
+// 7. Optionally include utilities API last to generate classes based on the Sass map in `_utilities.scss`
+$utilities: map-merge( 
+  $utilities, ("width": map-merge( 
+    map-get( $utilities, "width"), ( responsive: true ),),
+  )
+);
+
+$utilities: map-merge( 
+  $utilities, ("border-end": map-merge( 
+    map-get( $utilities, "border-end"), ( responsive: true ),),
+  )
+);
+
+@import "bootstrap/scss/utilities/api";
+

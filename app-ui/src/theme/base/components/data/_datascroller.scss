@@ -1,0 +1,58 @@
+.p-datascroller {
+    .p-paginator-top {
+        border-width: $tableTopPaginatorBorderWidth;
+        border-radius: $borderRadius;
+    }
+
+    .p-paginator-bottom {
+        border-width: $tableBottomPaginatorBorderWidth;
+        border-radius: $borderRadius;
+    }
+
+    .p-datascroller-header {
+        background: $tableHeaderBg;
+        color: $tableHeaderTextColor;
+        border: $tableHeaderBorder;
+        border-width: $tableHeaderBorderWidth;
+        padding: $tableHeaderPadding;
+        font-weight: $tableHeaderFontWeight;
+    }
+
+    .p-datascroller-content {
+        color: $tableBodyRowTextColor;
+        border: $dataViewContentBorder;
+        padding: 0 !important;
+
+        .p-datascroller-list {
+            > li {
+                font-size: 0.9rem;
+                text-align: center;
+                background-color: $datascrollerListItemBg;
+                border-radius: $borderRadius;
+                padding: 0.8rem;
+                margin: 0 0 0.8rem 0;
+            }
+        }
+    }
+
+    &.p-datascroller-inline {
+        .p-datascroller-list {
+            > li {
+                border: $dataViewListItemBorder;
+                border-width: $dataViewListItemBorderWidth;
+                font-size: 0.4rem !important;
+            }
+        }
+    }
+
+    .p-datascroller-footer {
+        //background: $tableFooterBg;
+        color: $tableFooterTextColor;
+        //border: $tableFooterBorder;
+        //border-width: $tableFooterBorderWidth;
+        padding: $tableFooterPadding;
+        font-weight: $tableFooterFontWeight;
+        border-bottom-left-radius: $borderRadius;
+        border-bottom-right-radius: $borderRadius;
+    }
+}

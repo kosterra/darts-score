@@ -1,0 +1,55 @@
+.p-dataview {
+	.p-paginator-top {
+		border-width: $tableTopPaginatorBorderWidth;
+		border-radius: $borderRadius;
+	}
+
+	.p-paginator-bottom {
+		border-width: $tableBottomPaginatorBorderWidth;
+		border-radius: $borderRadius;
+	}
+
+	.p-dataview-header {
+		background: $tableHeaderBg;
+		color: $tableHeaderTextColor;
+		border: $tableHeaderBorder;
+		border-width: $tableHeaderBorderWidth;
+		padding: $tableHeaderPadding;
+		font-weight: $tableHeaderFontWeight;
+		border-top-left-radius: $borderRadius;
+		border-top-right-radius: $borderRadius;
+	}
+
+	.p-dataview-content {
+		background: $tableBodyRowBg;
+		color: $tableBodyRowTextColor;
+		border: $dataViewContentBorder;
+		padding: $dataViewContentPadding;
+	}
+
+	.p-dataview-footer {
+		background: $tableFooterBg;
+		color: $tableFooterTextColor;
+		border: $tableFooterBorder;
+		border-width: $tableFooterBorderWidth;
+		padding: $tableFooterPadding;
+		font-weight: $tableFooterFontWeight;
+		border-bottom-left-radius: $borderRadius;
+		border-bottom-right-radius: $borderRadius;
+	}
+
+	.p-dataview-loading-icon {
+		font-size: $loadingIconFontSize;
+
+		&.p-icon {
+			width: $loadingIconFontSize;
+			height: $loadingIconFontSize;
+		}
+	}
+
+	.p-dataview-emptymessage {
+		font-size: 1rem;
+		font-weight: 500;
+		padding: 15px 32px;
+	}
+}

@@ -1,0 +1,16 @@
+{
+  "short_name": "Darts Score",
+  "name": "Darts Score",
+  "description": "Darts scoring app with X01, Cricket and Elimination game modes",
+  "icons": [
+    {
+      "src": "./logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#022b2b",
+  "background_color": "#022b2b"
+}
