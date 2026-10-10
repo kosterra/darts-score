@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import cors         from 'cors';
 import rateLimit    from 'express-rate-limit';
 import swaggerUi    from 'swagger-ui-express';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { load as loadYaml } from 'js-yaml';
 import db           from './src/models/db.model.js';
 import logger       from './src/models/logger.model.js';
@@ -64,10 +64,13 @@ app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.json({ limit: '30mb' }));
 
 // ---------------------------------------------------------------------------
-// React UI — serve static build; SPA fallback handled after API routes
+// React UI — serve static build; SPA fallback handled after API routes.
+// Without a UI build (dev: the UI runs on the Vite dev server) the root serves
+// Swagger UI instead and unknown paths redirect there.
 // ---------------------------------------------------------------------------
 const UI_DIST = path.join(import.meta.dirname, 'public', 'ui');
-app.use(express.static(UI_DIST));
+const HAS_UI  = existsSync(path.join(UI_DIST, 'index.html'));
+if (HAS_UI) app.use(express.static(UI_DIST));
 
 // ---------------------------------------------------------------------------
 // Database
@@ -81,10 +84,14 @@ db.mongoose
     });
 
 // ---------------------------------------------------------------------------
-// Swagger UI — served at /api-docs
+// Swagger UI — served at /api-docs, and at the root when there is no UI build
 // ---------------------------------------------------------------------------
 app.use('/api-docs', swaggerUi.serve);
 app.get('/api-docs', swaggerUi.setup(swaggerDocument));
+if (!HAS_UI) {
+    app.use('/', swaggerUi.serve);
+    app.get('/', swaggerUi.setup(swaggerDocument));
+}
 
 // ---------------------------------------------------------------------------
 // Routes
@@ -98,9 +105,11 @@ imgRoutes(app);
 atcRoutes(app);
 
 // ---------------------------------------------------------------------------
-// SPA fallback — serve index.html for all non-API routes (client-side routing)
+// SPA fallback — serve index.html for all non-API routes (client-side routing);
+// without a UI build, redirect them to the Swagger UI at the root
 // ---------------------------------------------------------------------------
 app.use((req, res) => {
+    if (!HAS_UI) return res.redirect('/');
     const indexHtml = path.join(UI_DIST, 'index.html');
     res.sendFile(indexHtml, (err) => {
         if (err) res.status(404).json({ message: 'Not found' });
