@@ -1,0 +1,62 @@
+services:
+
+  # ---------------------------------------------------------------------------
+  # MongoDB
+  # ---------------------------------------------------------------------------
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    env_file:
+      - ./mongo.env
+    volumes:
+      - darts_score_db:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # API — nodemon restarts on any source change
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      target: development
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./app-api:/app
+      - /app/node_modules
+      - ./data:/app/data
+    env_file:
+      - ./.env
+    environment:
+      NODE_ENV: development
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # UI — Vite HMR, proxies /api to the api service
+  # ---------------------------------------------------------------------------
+  ui:
+    build:
+      context: .
+      target: ui-development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app-ui:/ui
+      - /ui/node_modules
+    environment:
+      API_PROXY_TARGET: http://api:3001
+    restart: unless-stopped
+    depends_on:
+      - api
+
+volumes:
+  darts_score_db:
+    name: darts_score_db

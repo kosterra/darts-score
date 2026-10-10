@@ -33,7 +33,27 @@ RUN npm run build
 
 
 # ---------------------------------------------------------------------------
-# Stage 3 – Development: hot-reload with nodemon, full source mounted
+# Stage 3 – UI Development: Vite HMR dev server
+# ---------------------------------------------------------------------------
+FROM node:24-slim AS ui-development
+
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ui
+
+COPY app-ui/package.json app-ui/package-lock.json ./
+RUN npm ci --no-audit --no-fund --loglevel warn
+
+COPY app-ui/ ./
+
+USER node
+
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+
+
+# ---------------------------------------------------------------------------
+# Stage 4 – API Development: hot-reload with nodemon, full source mounted
 # ---------------------------------------------------------------------------
 FROM node:24-slim AS development
 
@@ -54,7 +74,7 @@ CMD ["npm", "run", "dev"]
 
 
 # ---------------------------------------------------------------------------
-# Stage 4 – Production: compiled API bundle + React static files
+# Stage 5 – Production: compiled API bundle + React static files
 # ---------------------------------------------------------------------------
 FROM node:24-slim AS production
 
