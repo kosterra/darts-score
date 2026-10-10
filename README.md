@@ -1,4 +1,4 @@
-# darts-score-api
+# darts-score
 
 REST API **and** React UI for the [darts-score](https://github.com/kosterra/darts-score-sample) application. Built with **Express 5**, **Mongoose 9**, and **Node.js 24**. Serves the React frontend, player management, game data (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics — all from a single container.
 
@@ -11,8 +11,10 @@ REST API **and** React UI for the [darts-score](https://github.com/kosterra/dart
 - [Configuration](#configuration)
 - [Getting Started](#getting-started)
   - [Local development (no Docker)](#local-development-no-docker)
-  - [Docker Compose (recommended)](#docker-compose-recommended)
+  - [Docker Compose — development (recommended)](#docker-compose--development-recommended)
+  - [Docker Compose — production-like](#docker-compose--production-like)
   - [Production](#production)
+- [Versioning](#versioning)
 - [Available Scripts](#available-scripts)
 - [API Endpoints](#api-endpoints)
 - [Image Upload](#image-upload)
@@ -35,28 +37,30 @@ REST API **and** React UI for the [darts-score](https://github.com/kosterra/dart
 
 ```
 darts-score/
+├── package.json             # Canonical app version (private, not published)
 ├── app-api/                 # Express API source
 │   ├── src/
-│   │   ├── config/      # Database connection config
-│   │   ├── controllers/ # Route handlers (player, game, stats, file)
-│   │   ├── models/      # Mongoose schemas + logger
-│   │   ├── routes/      # Express router definitions
-│   │   ├── utils/       # Filter query helpers, validation middleware
-│   │   └── validators/  # express-validator rule sets
-│   ├── public/          # API static assets (favicon)
-│   ├── openapi.yaml     # OpenAPI 3.1 specification
-│   ├── index.js         # Application entry point
-│   ├── build.js         # esbuild production bundler
+│   │   ├── config/          # Database connection config
+│   │   ├── controllers/     # Route handlers (player, game, stats, file)
+│   │   ├── models/          # Mongoose schemas + logger
+│   │   ├── routes/          # Express router definitions
+│   │   ├── utils/           # Filter query helpers, validation middleware
+│   │   └── validators/      # express-validator rule sets
+│   ├── public/              # API static assets (favicon)
+│   ├── openapi.yaml         # OpenAPI 3.1 specification
+│   ├── index.js             # Application entry point
+│   ├── build.js             # esbuild production bundler
 │   └── package.json
 ├── app-ui/                  # React UI source (Vite + React)
-│   ├── src/             # UI components, services, utils
-│   ├── public/          # UI static assets
+│   ├── src/                 # UI components, services, utils
+│   ├── public/              # UI static assets
 │   ├── index.html
 │   ├── vite.config.ts
 │   └── package.json
-├── data/                # Runtime image storage (created on first upload)
+├── data/                    # Runtime image storage (created on first upload)
 ├── Dockerfile
-└── docker-compose.yml
+├── docker-compose.yml       # Production-like: API + MongoDB (2 containers)
+└── docker-compose.dev.yml   # Development: API + UI + MongoDB, all with hot-reload
 ```
 
 ---
@@ -66,14 +70,21 @@ darts-score/
 Copy the sample environment files and adjust the values:
 
 ```bash
+# For Docker Compose (both compose files read these)
 cp .env.sample .env
 cp mongo.env.sample mongo.env
+
+# For running the API locally (outside Docker)
+cp .env.sample app-api/.env   # then change DB_HOST to localhost
+
+# For running the UI locally (outside Docker)
+cp app-ui/.env.sample app-ui/.env
 ```
 
-**.env**
+**.env** *(used by Docker Compose — `DB_HOST` must match the MongoDB service name)*
 
 ```dotenv
-DB_HOST=darts_score_mongo   # MongoDB hostname or IP
+DB_HOST=darts_score_mongo   # MongoDB service name in Docker network
 DB_USER=admin
 DB_PASSWORD=yourpassword
 DB_NAME=darts_score
@@ -85,6 +96,28 @@ IMG_DIR=data/img              # Directory where uploaded images are stored
 
 NODE_ENV=development          # development | production
 PORT=3001                     # Optional, defaults to 3001
+```
+
+**app-api/.env** *(used when running `npm run dev` directly — `DB_HOST` must be `localhost`)*
+
+```dotenv
+DB_HOST=localhost
+DB_USER=admin
+DB_PASSWORD=yourpassword
+DB_NAME=darts_score
+DB_PORT=27017
+
+UI_URL=http://localhost:3000
+
+IMG_DIR=data/img
+
+NODE_ENV=development
+```
+
+**app-ui/.env** *(used by the Vite dev server)*
+
+```dotenv
+VITE_API_URL=http://localhost:3001
 ```
 
 **mongo.env** *(only needed when running MongoDB via Docker Compose)*
@@ -101,12 +134,12 @@ MONGO_INITDB_DATABASE=darts_score
 
 ### Local development (no Docker)
 
-Requires a running MongoDB instance reachable at the address configured in `.env`.
+Requires a running MongoDB instance reachable at the address configured in `app-api/.env`.
 
 ```bash
 cd app-api
 npm install
-npm run dev        # starts with nodemon (hot-reload)
+npm run dev        # starts with nodemon (hot-reload) on http://localhost:3001
 ```
 
 For the UI with hot-reload, run in a second terminal:
@@ -118,27 +151,39 @@ npm run dev        # Vite dev server on http://localhost:3000
                    # /api requests are proxied to localhost:3001
 ```
 
-The API is available at `http://localhost:3001`. The React UI is served by Vite at `http://localhost:3000` during development. In production (Docker), both are served from `http://localhost:3001`. The Swagger UI is at `http://localhost:3001/api-docs`.
+### Docker Compose — development (recommended)
 
-### Docker Compose (recommended)
-
-Starts the API + UI server and a MongoDB instance together (2 containers total). The `development` target mounts the source directory so code changes trigger an automatic reload via nodemon.
+Starts **MongoDB + API + UI** in three containers. All three reload automatically when you change any source file — nodemon for the API, Vite HMR for the UI.
 
 ```bash
 cp .env.sample .env
 cp mongo.env.sample mongo.env
 # edit both files with your passwords
 
-docker compose up
+docker compose -f docker-compose.dev.yml up --build
 ```
 
-The React UI and API are both served from `http://localhost:3001`. The Swagger UI is at `http://localhost:3001/api-docs`.
+| Service | URL |
+|---------|-----|
+| React UI (Vite HMR) | `http://localhost:3000` |
+| API | `http://localhost:3001` |
+| Swagger UI | `http://localhost:3001/api-docs` |
 
 To rebuild after dependency changes:
 
 ```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+### Docker Compose — production-like
+
+Starts the combined API + UI server (React served as static files by Express) and MongoDB. Uses the `development` Dockerfile target with nodemon.
+
+```bash
 docker compose up --build
 ```
+
+Both the React UI and API are served from `http://localhost:3001`. The Swagger UI is at `http://localhost:3001/api-docs`.
 
 ### Production
 
@@ -147,15 +192,23 @@ See the [darts-score-sample](https://github.com/kosterra/darts-score-sample) rep
 To build and run the production image manually:
 
 ```bash
-docker build --target production -t darts-score-api .
-docker run -p 3001:3001 --env-file .env darts-score-api
+docker build --target production -t darts-score .
+docker run -p 3001:3001 --env-file .env darts-score
 ```
+
+---
+
+## Versioning
+
+The application version is maintained in the **root `package.json`** and is the single source of truth for Docker image tags. Both `app-api/package.json` and `app-ui/package.json` carry `"version": "0.0.0"` to signal they are not independently published.
+
+To release a new version, bump the version in the root `package.json` and push to `main`. The CI workflow reads the version from there and tags the Docker image accordingly.
 
 ---
 
 ## Available Scripts
 
-Run from the `app-api/` directory:
+**API** — run from `app-api/`:
 
 | Command | Description |
 |---------|-------------|
@@ -167,6 +220,18 @@ Run from the `app-api/` directory:
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run lint` | Check code style (ESLint) |
 | `npm run lint:fix` | Auto-fix lint issues |
+
+**UI** — run from `app-ui/`:
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server with HMR on port 3000 |
+| `npm run build` | Build production bundle → `dist/` |
+| `npm run preview` | Preview production build on port 3000 |
+| `npm test` | Run unit tests (Vitest) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run lint` | Check code style (ESLint) |
+| `npm run typecheck` | TypeScript type check (no emit) |
 
 ---
 

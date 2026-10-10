@@ -1,0 +1,11 @@
+{
+  "name": "darts-score",
+  "description": "Darts Score Application",
+  "version": "2026.10.0",
+  "private": true,
+  "license": "GPLv3",
+  "author": "kosterra",
+  "repository": {
+    "url": "git+https://github.com/kosterra/darts-score"
+  }
+}
