@@ -1,5 +1,4 @@
 import { Fragment } from 'react';
-import logo from '/logo.svg';
 
 const SidebarHeader = (props) => {
   const {
@@ -11,7 +10,7 @@ const SidebarHeader = (props) => {
       <div className="d-flex justify-content-center align-items-center">
         <img
           alt="darts score logo"
-          src={logo}
+          src="/logo.svg"
           width="60"
           height="60"
           className="d-inline-block"
