@@ -51,6 +51,53 @@
         }
     }
     
+    // Switches: this PrimeReact version marks the checked state with p-highlight
+    // and expects the layout rules below, which the base theme predates
+    .p-inputswitch {
+        position: relative;
+        display: inline-block;
+        flex-shrink: 0;
+
+        .p-inputswitch-input {
+            appearance: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .p-inputswitch-slider {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+
+            &:before {
+                position: absolute;
+                content: '';
+                top: 50%;
+            }
+        }
+
+        &.p-highlight .p-inputswitch-slider {
+            background: $inputSwitchSliderOnBg;
+
+            &:before {
+                background: $inputSwitchHandleOnBg;
+                transform: translateX($inputSwitchHandleWidth);
+            }
+        }
+
+        &.p-disabled .p-inputswitch-input {
+            cursor: default;
+        }
+    }
+
     // Player pictures: fill the circle without distortion, in a fixed set of sizes
     .p-avatar {
         flex-shrink: 0;

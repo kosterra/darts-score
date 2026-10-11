@@ -6,7 +6,11 @@ const loadClubs = () => requestJSON(API_URL);
 
 const createClub = (name) => requestJSON(API_URL, { method: 'POST', body: { name } });
 
-const renameClub = (clubId, name) => requestJSON(`${API_URL}/${clubId}`, { method: 'PUT', body: { name } });
+/**
+ * Saves a club's name and what it shows on the public start page:
+ * { name, isPublic, publicLiveGames, publicResults }.
+ */
+const updateClub = (clubId, settings) => requestJSON(`${API_URL}/${clubId}`, { method: 'PUT', body: settings });
 
 const deleteClub = (clubId) => requestJSON(`${API_URL}/${clubId}`, { method: 'DELETE' });
 
@@ -40,7 +44,7 @@ const ClubService = {
     removeAdmin,
     loadClubs,
     createClub,
-    renameClub,
+    updateClub,
     deleteClub,
     findPlayerOfUser,
     addCurrentUserAsPlayer

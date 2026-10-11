@@ -75,6 +75,15 @@ const PlayersList = (props) => {
         loadPlayers('');
     };
 
+    const onTogglePublic = async (player) => {
+        try {
+            await PlayerService.setPublicProfile(player.id, !player.publicProfile);
+            loadPlayers(searchTerm);
+        } catch (error) {
+            toast.current.show({ severity: 'error', summary: 'Public nickname', detail: error.message, life: 4000 });
+        }
+    };
+
     const onMakeMember = async (player) => {
         try {
             await PlayerService.makeMember(player.id);
@@ -141,7 +150,18 @@ const PlayersList = (props) => {
                                 />
                                 {player.guest
                                 ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
-                                : <PlayerLogin player={player} onChange={onPlayerEdit} />
+                                : <>
+                                    <PlayerLogin player={player} onChange={onPlayerEdit} />
+                                    <Button
+                                        type="button"
+                                        icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
+                                        severity={player.publicProfile ? 'primary' : 'secondary'}
+                                        aria-label={player.publicProfile ? `Hide the nickname of ${player.nickname} on the public page` : `Show the nickname of ${player.nickname} on the public page`}
+                                        tooltip={player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
+                                        tooltipOptions={{ position: 'top' }}
+                                        onClick={() => onTogglePublic(player)}
+                                    />
+                                </>
                             }
                                 {rawActive &&
                                     <JSONViewer data={player} header="Player _RAW Data" />
@@ -187,7 +207,18 @@ const PlayersList = (props) => {
                             />
                             {player.guest
                                 ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
-                                : <PlayerLogin player={player} onChange={onPlayerEdit} />
+                                : <>
+                                    <PlayerLogin player={player} onChange={onPlayerEdit} />
+                                    <Button
+                                        type="button"
+                                        icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
+                                        severity={player.publicProfile ? 'primary' : 'secondary'}
+                                        aria-label={player.publicProfile ? `Hide the nickname of ${player.nickname} on the public page` : `Show the nickname of ${player.nickname} on the public page`}
+                                        tooltip={player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
+                                        tooltipOptions={{ position: 'top' }}
+                                        onClick={() => onTogglePublic(player)}
+                                    />
+                                </>
                             }
                             {rawActive &&
                                 <JSONViewer data={player} header="Player _RAW Data" />

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import { InputSwitch } from 'primereact/inputswitch';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
@@ -19,7 +20,8 @@ const ClubsPage = () => {
     const { clubs, activeClub, isGlobalAdmin, refreshClubs, selectClub } = useAuth();
 
     const [newName, setNewName] = useState('');
-    const [renaming, setRenaming] = useState(null); // { id, name } of the club being renamed
+    // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults }
+    const [editing, setEditing] = useState(null);
     const [adminsOfClubId, setAdminsOfClubId] = useState(null); // club whose admins dialog is open
 
     const showError = (summary, error) =>
@@ -39,16 +41,32 @@ const ClubsPage = () => {
         }
     };
 
-    const onRename = async (event) => {
+    const onSaveSettings = async (event) => {
         event.preventDefault();
         try {
-            await ClubService.renameClub(renaming.id, renaming.name);
-            setRenaming(null);
+            const { id, ...settings } = editing;
+            await ClubService.updateClub(id, settings);
+            setEditing(null);
             await refreshClubs();
         } catch (error) {
-            showError('Rename club', error);
+            showError('Club settings', error);
         }
     };
+
+    const settingSwitch = (field, label, hint, disabled = false) => (
+        <div className="d-flex justify-content-between align-items-center gap-3">
+            <label htmlFor={`club-${field}`} className="d-flex flex-column">
+                <span className={disabled ? 'text-faint' : 'text-default'}>{label}</span>
+                <span className="text-faint fs-8">{hint}</span>
+            </label>
+            <InputSwitch
+                inputId={`club-${field}`}
+                checked={editing[field]}
+                disabled={disabled}
+                onChange={(e) => setEditing({ ...editing, [field]: e.value })}
+            />
+        </div>
+    );
 
     const onDelete = async (club) => {
         try {
@@ -99,9 +117,10 @@ const ClubsPage = () => {
                             <div className="col-12 col-md-6 col-xl-4" key={club.id}>
                                 <Panel className="panel-brighter-bg no-header h-100">
                                     <div className="d-flex flex-column gap-2 p-2">
-                                        <div className="d-flex justify-content-between align-items-start gap-2">
+                                        <div className="d-flex flex-column gap-2">
                                             <span className="text-default fw-semibold fs-5 text-break">{club.name}</span>
-                                            <div className="d-flex gap-2">
+                                            <div className="d-flex flex-wrap gap-2">
+                                                <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
                                                 <Tag value={club.role === CLUB_ROLES.ADMIN ? 'Admin' : 'Player'} severity={club.role === CLUB_ROLES.ADMIN ? 'warning' : 'info'} />
                                                 {activeClub?.id === club.id && <Tag value="Active" severity="success" />}
                                             </div>
@@ -124,10 +143,16 @@ const ClubsPage = () => {
                                                 onClick={() => setAdminsOfClubId(club.id)}
                                             />
                                             <Button
-                                                icon="pi pi-pencil"
+                                                icon="pi pi-cog"
                                                 severity="secondary"
-                                                aria-label={`Rename ${club.name}`}
-                                                onClick={() => setRenaming({ id: club.id, name: club.name })}
+                                                aria-label={`Settings of ${club.name}`}
+                                                onClick={() => setEditing({
+                                                    id: club.id,
+                                                    name: club.name,
+                                                    isPublic: !!club.isPublic,
+                                                    publicLiveGames: club.publicLiveGames !== false,
+                                                    publicResults: club.publicResults !== false
+                                                })}
                                             />
                                             <DeletePopup
                                                 data={club}
@@ -145,21 +170,26 @@ const ClubsPage = () => {
                 </div>
             </Panel>
 
-            <Dialog header="Rename Club" visible={!!renaming} blockScroll onHide={() => setRenaming(null)} draggable={false}>
-                {renaming &&
-                    <form onSubmit={onRename} className="d-flex flex-column gap-4 pt-2">
+            <Dialog header="Club Settings" visible={!!editing} blockScroll onHide={() => setEditing(null)} draggable={false} className="m-4" style={{ width: '34rem', maxWidth: '100%' }}>
+                {editing &&
+                    <form onSubmit={onSaveSettings} className="d-flex flex-column gap-4 pt-2">
                         <InputText
                             id="club-rename"
-                            value={renaming.name}
-                            onChange={(e) => setRenaming({ ...renaming, name: e.target.value })}
+                            value={editing.name}
+                            onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                             aria-label="Club name"
                             minLength={3}
                             maxLength={50}
                             required
-                            autoFocus
                         />
+                        {settingSwitch('isPublic', 'Public club', 'Listed by name on the public start page. Private clubs are not visible to anyone outside.')}
+                        {settingSwitch('publicLiveGames', 'Show running games', 'Live scores of games in progress appear on the public start page.', !editing.isPublic)}
+                        {settingSwitch('publicResults', 'Show results', 'Finished games appear under the latest results.', !editing.isPublic)}
+                        <span className="text-faint fs-8">
+                            Players are shown without their name unless their nickname is set to public, by an admin on the players page or by the players themselves in their profile.
+                        </span>
                         <div className="d-flex justify-content-end gap-3">
-                            <Button type="button" label="Cancel" severity="secondary" size="small" onClick={() => setRenaming(null)} />
+                            <Button type="button" label="Cancel" severity="secondary" size="small" onClick={() => setEditing(null)} />
                             <Button type="submit" label="Save" icon="pi pi-save" size="small" />
                         </div>
                     </form>

@@ -24,6 +24,7 @@ const AdminPage = lazy(() => import('./components/admin/_admin.page'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
 const LoginPage = lazy(() => import('./components/auth/login.page'));
+const LandingPage = lazy(() => import('./components/landing/_landing.page'));
 const RegisterPage = lazy(() => import('./components/auth/register.page'));
 const ForgotPasswordPage = lazy(() => import('./components/auth/forgot.password.page'));
 const ResetPasswordPage = lazy(() => import('./components/auth/reset.password.page'));
@@ -49,6 +50,7 @@ function AppContent() {
         return (
             <Suspense fallback={<PageLoader />}>
                 <Routes>
+                    <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />

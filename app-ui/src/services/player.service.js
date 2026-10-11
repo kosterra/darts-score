@@ -130,7 +130,15 @@ const createGuest = (name) =>
 const makeMember = (playerId) =>
     requestJSON(`${API_URL}players/${playerId}/member`, { method: 'PUT' });
 
+/**
+ * Shows or hides a player's nickname on the public start page. The club
+ * defaults to the active one.
+ */
+const setPublicProfile = (playerId, publicProfile, clubId) =>
+    requestJSON(`${API_URL}players/${playerId}/visibility`, { method: 'PUT', body: { publicProfile }, clubId });
+
 const PlayerService = {
+    setPublicProfile,
     createGuest,
     makeMember,
     giveLogin,

@@ -21,6 +21,8 @@ security:
   - sessionCookie: []
 
 tags:
+  - name: Public
+    description: What visitors see without a login
   - name: Auth
     description: Registration, login and the logged-in user's profile
   - name: Clubs
@@ -57,6 +59,18 @@ paths:
       responses:
         '200':
           description: The server is running
+
+  # ---------- Public -------------------------------------------------------
+
+  /api/public/overview:
+    get:
+      tags: [Public]
+      summary: Data of the public start page - totals, public clubs, their running games and latest results
+      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public.
+      security: []
+      responses:
+        '200':
+          description: OK
 
   # ---------- Auth ----------------------------------------------------------
 
@@ -215,7 +229,7 @@ paths:
       - $ref: '#/components/parameters/Id'
     put:
       tags: [Clubs]
-      summary: Rename a club
+      summary: Change a club's name and public visibility settings
       requestBody:
         required: true
         content:
@@ -342,6 +356,25 @@ paths:
       responses:
         '200':
           description: Login removed
+
+  /api/players/{id}/visibility:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Players]
+      summary: Show or hide a player's nickname on the public start page (club admins, or the player themselves)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [publicProfile]
+              properties:
+                publicProfile: { type: boolean }
+      responses:
+        '200':
+          description: Setting saved
 
   /api/players/guest:
     post:
@@ -1120,6 +1153,9 @@ components:
       required: [name]
       properties:
         name: { type: string, minLength: 3, maxLength: 50 }
+        isPublic: { type: boolean, description: List the club on the public start page }
+        publicLiveGames: { type: boolean, description: Show running games of a public club }
+        publicResults: { type: boolean, description: Show finished games of a public club }
 
     RoleInput:
       type: object

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
+import { InputSwitch } from 'primereact/inputswitch';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Panel } from 'primereact/panel';
@@ -8,6 +9,7 @@ import { Toast } from 'primereact/toast';
 
 import AuthService from '../../services/auth.service';
 import ClubService from '../../services/club.service';
+import PlayerService from '../../services/player.service';
 import { ROLE_LABELS, CLUB_ROLES } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
 
@@ -81,6 +83,15 @@ const ProfilePage = () => {
         }
     };
 
+    const onTogglePublic = async (club, publicProfile) => {
+        try {
+            const player = await PlayerService.setPublicProfile(playerByClub[club.id].id, publicProfile, club.id);
+            setPlayerByClub({ ...playerByClub, [club.id]: player });
+        } catch (error) {
+            showError('Public nickname', error);
+        }
+    };
+
     const passwordField = (id, label, field, autoComplete) => (
         <span className="p-float-label w-100">
             <Password
@@ -141,7 +152,7 @@ const ProfilePage = () => {
                     <Panel header="Your clubs">
                         <div className="p-3">
                             <p className="text-subtle fs-7">
-                                In clubs you manage you can add yourself as a player, so you can be picked for games like anyone else.
+                                In clubs you manage you can add yourself as a player, so you can be picked for games like anyone else. Your nickname only appears on the public start page if you switch it on, and only for public clubs.
                             </p>
                             {ownClubs.length === 0 &&
                                 <span className="text-subtle">You are not in a club yet.</span>
@@ -153,7 +164,19 @@ const ProfilePage = () => {
                                     </div>
                                     <div className="col-12 col-md-8">
                                         {playerByClub[club.id]
-                                            ? <span className="text-subtle">You play as <span className="text-default fw-semibold">{playerByClub[club.id].nickname}</span></span>
+                                            ? (
+                                                <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                                    <span className="text-subtle">You play as <span className="text-default fw-semibold">{playerByClub[club.id].nickname}</span></span>
+                                                    <span className="d-flex align-items-center gap-2">
+                                                        <label htmlFor={`profile-public-${club.id}`} className="text-subtle fs-7">Show my nickname on the public page</label>
+                                                        <InputSwitch
+                                                            inputId={`profile-public-${club.id}`}
+                                                            checked={!!playerByClub[club.id].publicProfile}
+                                                            onChange={(e) => onTogglePublic(club, e.value)}
+                                                        />
+                                                    </span>
+                                                </div>
+                                            )
                                             : (
                                                 <form onSubmit={(e) => onAddAsPlayer(e, club)} className="d-flex flex-wrap gap-2">
                                                     <InputText

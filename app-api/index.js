@@ -26,6 +26,7 @@ import atcRoutes       from './src/routes/atc.routes.js';
 import authRoutes      from './src/routes/auth.routes.js';
 import clubRoutes      from './src/routes/club.routes.js';
 import userRoutes      from './src/routes/user.routes.js';
+import publicRoutes    from './src/routes/public.routes.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
@@ -109,6 +110,7 @@ if (!HAS_UI) {
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 authRoutes(app);
+publicRoutes(app);
 
 // Everything else under /api needs a logged-in user ...
 app.use('/api', requireAuth);

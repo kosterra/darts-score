@@ -72,6 +72,10 @@ export const update = async (req, res) => {
     const club = await loadManagedClub(req, res);
     if (!club) return;
     club.name = req.body.name;
+    // Visibility settings are optional, so a plain rename leaves them alone
+    for (const setting of ['isPublic', 'publicLiveGames', 'publicResults']) {
+        if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
+    }
     await club.save();
     res.json(await withAdmins(club));
 };

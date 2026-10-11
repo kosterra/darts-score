@@ -119,6 +119,16 @@ The app requires a login. Every person has one account; players, games, training
 - **Guest** — anyone in a club can add a guest while setting up a game. A guest plays in that game only: they are not a club member, are not offered for later games and do not appear in the players list for picking. Club admins see guests under *Admin → Players* and can turn one into a regular player.
 - **Global admin** — sees and manages every club and all users. The first global admin is created on startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when no global admin exists yet; changing these variables later does not touch existing accounts. Further global admins are promoted under *Admin → Users*.
 
+### Public start page and privacy
+
+Visitors who are not logged in see a public start page: what the app offers, overall numbers (clubs, players, games played), and the running games and latest results of public clubs. It refreshes every 15 seconds.
+
+Nothing is public by default:
+
+- **Clubs are private** until an admin switches *Public club* on in the club settings. A public club is listed by name; its admins also choose whether running games and results are shown.
+- **Players are shown without their name** ("Hidden player") unless their nickname is set to public: by a club admin on the players page (eye button), or by players with a login on their profile page. Guests are never shown by name.
+- Player pictures, real names and email addresses are never part of the public page.
+
 With SMTP configured, users can reset a forgotten password from the login page, and new admins and players are invited by mail to choose their own password. Without it, the inviting admin sets an initial password. The dev Docker Compose setup includes [Mailpit](https://mailpit.axllent.org/), which catches all mails at `http://localhost:8025`.
 
 ### Upgrading and database migrations

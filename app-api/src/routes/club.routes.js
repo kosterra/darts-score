@@ -16,7 +16,13 @@ export default (app) => {
 
     router.get('/', ClubController.findAll);
     router.post('/', clubValidator, validate, ClubController.create);
-    router.put('/:id', clubValidator, validate, ClubController.update);
+    router.put('/:id',
+        clubValidator,
+        ['isPublic', 'publicLiveGames', 'publicResults'].map(setting =>
+            body(setting).optional().isBoolean({ strict: true }).withMessage(`${setting} must be true or false.`)),
+        validate,
+        ClubController.update
+    );
     router.delete('/:id', ClubController.remove);
 
     // Club admins: names and password are only needed when the email has no account yet

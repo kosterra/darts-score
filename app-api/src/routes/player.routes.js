@@ -83,6 +83,13 @@ export default (app) => {
     // Delete a player and their image
     router.delete('/:id', requireClubAdmin, PlayerController.remove);
 
+    // Show or hide a player's nickname on the public start page (admins, or the player themselves)
+    router.put('/:id/visibility',
+        body('publicProfile').isBoolean({ strict: true }).withMessage('publicProfile must be true or false.'),
+        validate,
+        PlayerController.setVisibility
+    );
+
     // Give a player a login (or take it away again)
     router.put('/:id/account',
         requireClubAdmin,

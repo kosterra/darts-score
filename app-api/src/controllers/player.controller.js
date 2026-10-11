@@ -209,3 +209,22 @@ export const removeLogin = async (req, res) => {
     await player.save();
     res.send(player.toJSON());
 };
+
+/**
+ * Decides whether a player's nickname may appear on the public start page.
+ * Club admins decide for everyone, players with a login for themselves.
+ */
+export const setVisibility = async (req, res) => {
+    logger.debug('players set visibility called');
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+
+    const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+        return res.status(403).send({ message: 'Only club admins can change this for other players.' });
+    }
+
+    player.publicProfile = req.body.publicProfile;
+    await player.save();
+    res.send((await toClient([player], req))[0]);
+};

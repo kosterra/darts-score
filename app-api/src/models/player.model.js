@@ -6,6 +6,9 @@ export default (mongoose) => {
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
       club:       { type: mongoose.Schema.Types.ObjectId, ref: 'club', index: true },
+      // Whether the nickname may be shown on the public start page; otherwise
+      // the player appears there without a name
+      publicProfile: { type: Boolean, default: false },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
       guest:      { type: Boolean, default: false },
