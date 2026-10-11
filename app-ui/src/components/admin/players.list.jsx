@@ -113,9 +113,7 @@ const PlayersList = (props) => {
                                         label={resolvePlayerInitials(player.firstname, player.lastname)}
                                         image={resolvePlayerImg(player.profileImg)}
                                         shape="circle"
-                                        size="xlarge"
-                                        style={{ maxWidth: '5.2rem', maxHeight: '5.2rem' }}
-                                        className="bg-shade700 mx-3"
+                                        className="avatar-lg bg-shade700 mx-3"
                                     />
                                     <div className="d-flex flex-column justify-content-start align-items-start">
                                         <span className="text-shade100 fw-semibold fs-5">{player.nickname}</span>
@@ -159,9 +157,7 @@ const PlayersList = (props) => {
                                 label={resolvePlayerInitials(player.firstname, player.lastname)}
                                 image={resolvePlayerImg(player.profileImg)}
                                 shape="circle"
-                                size="xlarge"
-                                style={{ maxWidth: '6rem', maxHeight: '6rem' }}
-                                className="bg-shade700 mt-4"
+                                className="avatar-xl bg-shade700 mt-4"
                             />
                             <span className="text-shade100 fw-semibold fs-5 mt-4">{player.nickname}</span>
                             <span className="text-shade600 fw-semibold fs-6 mb-4">{player.firstname + ' ' + player.lastname}</span>

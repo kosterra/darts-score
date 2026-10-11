@@ -51,6 +51,33 @@
         }
     }
     
+    // Player pictures: fill the circle without distortion, in a fixed set of sizes
+    .p-avatar {
+        flex-shrink: 0;
+
+        img {
+            object-fit: cover;
+        }
+
+        &.avatar-sm { width: 2.5rem; height: 2.5rem; font-size: 1rem; }
+        &.avatar-md { width: 3.5rem; height: 3.5rem; font-size: 1.4rem; }
+        &.avatar-lg { width: 6rem; height: 6rem; font-size: 2.4rem; }
+        &.avatar-xl { width: 8rem; height: 8rem; font-size: 3.2rem; }
+
+        // up to avatar-lg, but shrinks with its column (scoreboards)
+        &.avatar-fluid {
+            flex-shrink: 1;
+            align-self: center;
+            width: 100%;
+            max-width: 6rem;
+            height: auto;
+            min-height: 0;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            font-size: 2rem;
+        }
+    }
+
     // Dropdown menu of a primary SplitButton, coloured like the button itself
     .p-tieredmenu.p-splitbutton-menu-primary {
         background: $buttonBg;

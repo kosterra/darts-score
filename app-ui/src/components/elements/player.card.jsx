@@ -15,8 +15,7 @@ const PlayerCard = (props) => {
                         label={player ? (player.firstname + ' ' + player.lastname).split(" ").map((n) => n[0]).join("") : 'N/A'}
                         image={player ? resolvePlayerImg(player.profileImg) : ''}
                         shape="circle"
-                        size="xlarge"
-                        style={{ width: '6rem', height: '6rem' }}
+                        className="avatar-lg"
                     />
                     <span className="mt-3 text-center text-shade500 fw-semibold">
                         {player ? player.firstname + ' ' + player.lastname : 'No Player selected'}

@@ -47,8 +47,7 @@ const ATCEntryList = (props) => {
                                 label={(entry.player || {}).firstname || 'N' + ' ' + ((entry.player || {}).lastname || 'A').split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg((entry.player || {}).profileImg)}
                                 shape="circle"
-                                size="large"
-                                className="bg-shade700 m-2 me-4"
+                                className="avatar-md bg-shade700 m-2 me-4"
                             />
                             <div className="d-flex flex-column justify-content-start align-items-start">
                                 <span className="text-shade100 fw-semibold fs-6">{(entry.player || {}).nickname || 'N / A'}</span>

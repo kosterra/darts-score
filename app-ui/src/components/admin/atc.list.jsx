@@ -105,9 +105,7 @@ const ATCEntryAdminList = (props) => {
                                         label={(entry.player || {}).firstname || 'N' + ' ' + ((entry.player || {}).lastname || 'A').split(" ").map((n) => n[0]).join("")}
                                         image={resolvePlayerImg((entry.player || {}).profileImg)}
                                         shape="circle"
-                                        size="xlarge"
-                                        style={{ width: '5.2rem', height: '5.2rem' }}
-                                        className="bg-shade700 mx-3"
+                                        className="avatar-lg bg-shade700 mx-3"
                                     />
                                     <div className="d-flex flex-column justify-content-start align-items-start">
                                         <span className="text-shade100 fw-semibold fs-5">{(entry.player || {}).nickname || 'N / A'}</span>
@@ -157,9 +155,7 @@ const ATCEntryAdminList = (props) => {
                                 label={(entry.player || {}).firstname || 'N' + ' ' + ((entry.player || {}).lastname || 'A').split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg((entry.player || {}).profileImg)}
                                 shape="circle"
-                                size="xlarge"
-                                style={{ width: '6rem', height: '6rem' }}
-                                className="bg-shade700 mt-4"
+                                className="avatar-lg bg-shade700 mt-4"
                             />
                             <span className="text-shade100 fw-semibold fs-5 mt-4">{(entry.player || {}).nickname || 'N / A'}</span>
                             <span className="text-shade600 fw-semibold fs-6 mb-4">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>

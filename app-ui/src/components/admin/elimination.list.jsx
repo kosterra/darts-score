@@ -128,8 +128,7 @@ const EliminationList = (props) => {
                                 label={(((players || []).find(player => player.id === playerId) || {}).firstname + ' ' + ((players || []).find(player => player.id === playerId) || {}).lastname).split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg(((players || []).find(player => player.id === playerId) || {}).profileImg)}
                                 shape="circle"
-                                size="small"
-                                className="bg-shade700 m-2 me-4"
+                                className="avatar-sm bg-shade700 m-2 me-4"
                             />
                             {((players || []).find(player => player.id === playerId) || {}).nickname || 'N / A'}
                             {game.playerModels[playerId].hasWonGame &&

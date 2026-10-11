@@ -35,8 +35,7 @@ const GamesTimeline = (props) => {
                             label={(((player || {}).firstname || 'N') + ' ' + ((player || {}).lastname || 'A')).split(" ").map((n) => n[0]).join("")}
                             image={resolvePlayerImg((player || {}).profileImg)}
                             shape="circle"
-                            size="large"
-                            className="bg-shade700"
+                            className="avatar-md bg-shade700"
                         />
                         <span className="position-absolute top-75 start-80 translate-middle">
                             <FaTrophy className="fs-5 text-gold mt-2" />

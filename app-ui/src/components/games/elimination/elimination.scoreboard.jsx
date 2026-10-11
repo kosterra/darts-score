@@ -41,9 +41,7 @@ const EliminationScoreBoard = ({ playerId, idx }) => {
                                 label={resolvePlayerInitials(player.firstname, player.lastname)}
                                 image={resolvePlayerImg(player.profileImg)}
                                 shape="circle"
-                                size="xlarge"
-                                style={{ maxWidth: '5.2rem', maxHeight: '5.2rem' }}
-                                className="w-100 h-100 ratio ratio-1x1"
+                                className="avatar-fluid"
                             />
                         </div>
                         <div className="col-7 col-md-8 col-xxl-12 d-flex flex-column justify-content-center align-items-center">

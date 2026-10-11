@@ -40,7 +40,7 @@ const PlayerConfig = (props) => {
         return (
             <div className="row px-2">
                 <div className="col-4 d-flex flex-column justify-content-center align-items-center">
-                    <Avatar image={resolvePlayerImg(player.profileImg)} size="large" shape="circle" />
+                    <Avatar image={resolvePlayerImg(player.profileImg)} shape="circle" className="avatar-md" />
                 </div>
                 <div className="col-8 d-flex flex-column justify-content-center align-items-start">
                     <span className="fs-7 fw-semibold">{player.nickname}</span>

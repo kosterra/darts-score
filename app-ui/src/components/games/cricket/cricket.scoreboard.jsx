@@ -62,9 +62,7 @@ const CricketScoreBoard = ({ playerId, idx }) => {
                         label={resolvePlayerInitials(player.firstname, player.lastname)}
                         image={resolvePlayerImg(player.profileImg)}
                         shape="circle"
-                        size="xlarge"
-                        style={{ maxWidth: '5.2rem', maxHeight: '5.2rem' }}
-                        className="w-100 h-100 ratio ratio-1x1"
+                        className="avatar-fluid"
                     />
                     <div className="text-center mt-2">
                         <div className="fs-6 text-shade100 fw-semibold">{player.nickname}</div>

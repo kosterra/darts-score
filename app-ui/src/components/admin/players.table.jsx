@@ -55,9 +55,7 @@ const PlayersTable = (props) => {
                     label={resolvePlayerInitials(player.firstname, player.lastname)}
                     image={resolvePlayerImg(player.profileImg)}
                     shape="circle"
-                    size="xlarge"
-                    style={{ maxWidth: '5.2rem', maxHeight: '5.2rem' }}
-                    className="ratio ratio-1x1"
+                    className="avatar-lg"
                 />
             </div>
         );

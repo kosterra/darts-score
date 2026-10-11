@@ -15,9 +15,7 @@ const X01StatsScoreBoardPlayer = ({ player = {}, hasWonGame = false }) => {
                         label={initials}
                         image={resolvePlayerImg(profileImg)}
                         shape="circle"
-                        size="xlarge"
-                        style={{ width: '6rem', height: '6rem' }}
-                        className="bg-shade700 mx-3"
+                        className="avatar-lg bg-shade700 mx-3"
                     />
                     {hasWonGame && (
                         <span className="position-absolute top-80 start-85 translate-middle">

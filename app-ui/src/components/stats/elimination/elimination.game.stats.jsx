@@ -79,7 +79,7 @@ const EliminationGameStats = () => {
                                         label={resolvePlayerInitials(player.firstname, player.lastname)}
                                         image={resolvePlayerImg(player.profileImg)}
                                         shape="circle"
-                                        size="large"
+                                        className="avatar-md"
                                     />
                                     <div>
                                         <div className="text-shade100 fw-semibold">{player.nickname}</div>
