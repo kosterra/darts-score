@@ -149,13 +149,14 @@ const PlayersList = (props) => {
                                     updatePlayer={player}
                                 />
                                 {player.guest
-                                ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
+                                ? <Button type="button" icon="pi pi-user-plus" severity="secondary" className="flex-shrink-0" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
                                 : <>
                                     <PlayerLogin player={player} onChange={onPlayerEdit} />
                                     <Button
                                         type="button"
                                         icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
                                         severity={player.publicProfile ? 'primary' : 'secondary'}
+                                        className="flex-shrink-0"
                                         aria-label={player.publicProfile ? `Hide the nickname of ${player.nickname} on the public page` : `Show the nickname of ${player.nickname} on the public page`}
                                         tooltip={player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
                                         tooltipOptions={{ position: 'top' }}
@@ -206,13 +207,14 @@ const PlayersList = (props) => {
                                 updatePlayer={player}
                             />
                             {player.guest
-                                ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
+                                ? <Button type="button" icon="pi pi-user-plus" severity="secondary" className="flex-shrink-0" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
                                 : <>
                                     <PlayerLogin player={player} onChange={onPlayerEdit} />
                                     <Button
                                         type="button"
                                         icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
                                         severity={player.publicProfile ? 'primary' : 'secondary'}
+                                        className="flex-shrink-0"
                                         aria-label={player.publicProfile ? `Hide the nickname of ${player.nickname} on the public page` : `Show the nickname of ${player.nickname} on the public page`}
                                         tooltip={player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
                                         tooltipOptions={{ position: 'top' }}
