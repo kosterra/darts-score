@@ -104,5 +104,8 @@ dist
 # TernJS port file
 .tern-port
 
-data# Backup files
+# Runtime data (uploaded player images)
+data/
+
+# Backup files
 *.bak
