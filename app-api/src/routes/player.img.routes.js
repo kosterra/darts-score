@@ -13,8 +13,8 @@ export default (app) => {
             root: path.join(IMG_DIR, 'players'),
             dotfiles: 'deny',
             headers: {
-                // Cache images for 7 days in the browser
-                'Cache-Control': 'public, max-age=604800, immutable',
+                // Cache images for 7 days in the browser only (they need a login)
+                'Cache-Control': 'private, max-age=604800, immutable',
             }
         };
 

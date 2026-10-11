@@ -6,7 +6,7 @@ const ATC = db.atc;
 export const create = async (req, res) => {
     logger.debug('ATC create called');
     try {
-        const atc = new ATC(req.body);
+        const atc = new ATC({ ...req.body, club: req.club._id });
         const data = await atc.save();
         res.status(201).json(data);
     } catch (err) {
@@ -21,6 +21,7 @@ export const findByQuery = async (req, res) => {
         const condition = req.query.mode
             ? { mode: { $regex: new RegExp(req.query.mode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } }
             : {};
+        condition.club = req.club._id;
         const data = await ATC.find(condition);
         res.json(data);
     } catch (err) {
@@ -33,7 +34,7 @@ export const del = async (req, res) => {
     logger.debug('ATC delete called');
     const { id } = req.params;
     try {
-        const data = await ATC.findByIdAndDelete(id);
+        const data = db.mongoose.isValidObjectId(id) ? await ATC.findOneAndDelete({ _id: id, club: req.club._id }) : null;
         if (!data) return res.status(404).json({ message: `ATC entry not found (id=${id}).` });
         res.json({ message: 'ATC entry deleted successfully.' });
     } catch (err) {

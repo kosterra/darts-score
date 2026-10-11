@@ -12,6 +12,7 @@ import SidebarStats from './sidebar.stats';
 import SidebarTraining from './sidebar.training';
 import SidebarMisc from './sidebar.misc';
 import SidebarDashboard from './sidebar.dashboard';
+import SidebarAccount from './sidebar.account';
 
 
 const NavigationSidebar = () => {
@@ -65,6 +66,7 @@ const NavigationSidebar = () => {
                     <SidebarTraining collapsed={ collapsed } />
                     <SidebarStats collapsed={collapsed} />
                     <SidebarAdmin collapsed={collapsed} />
+                    <SidebarAccount collapsed={collapsed} />
                     <SidebarMisc />
                 </div>
             </Sidebar>

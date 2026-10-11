@@ -6,10 +6,12 @@ import { Avatar } from 'primereact/avatar';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Panel } from 'primereact/panel';
+import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import PlayerService from '../../services/player.service';
 import PlayerForm from '../elements/player.form';
+import PlayerLogin from '../elements/player.login';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
@@ -73,6 +75,15 @@ const PlayersList = (props) => {
         loadPlayers('');
     };
 
+    const onMakeMember = async (player) => {
+        try {
+            await PlayerService.makeMember(player.id);
+            loadPlayers('');
+        } catch (error) {
+            toast.current.show({ severity: 'error', summary: 'Make club member', detail: error.message, life: 4000 });
+        }
+    };
+
     const onPlayerDelete = async (player) => {
         if (await PlayerService.deletePlayer(player.id)) {
             toast.current.show(
@@ -97,7 +108,7 @@ const PlayersList = (props) => {
     };
 
     const loadPlayers = async (searchTerm) => {
-        let data = await PlayerService.searchPlayers(searchTerm);
+        let data = await PlayerService.searchPlayers(searchTerm, { includeGuests: true });
         setPlayers(data);
     };
 
@@ -116,7 +127,7 @@ const PlayersList = (props) => {
                                         className="avatar-lg bg-surface-high mx-3"
                                     />
                                     <div className="d-flex flex-column justify-content-start align-items-start">
-                                        <span className="text-default fw-semibold fs-5">{player.nickname}</span>
+                                        <span className="text-default fw-semibold fs-5">{player.nickname}{player.guest && <Tag value="Guest" severity="info" className="ms-2" />}</span>
                                         <span className="text-faint fw-semibold fs-6">{player.firstname + ' ' + player.lastname}</span>
                                     </div>
                                 </div>
@@ -128,6 +139,10 @@ const PlayersList = (props) => {
                                     edit={true}
                                     updatePlayer={player}
                                 />
+                                {player.guest
+                                ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
+                                : <PlayerLogin player={player} onChange={onPlayerEdit} />
+                            }
                                 {rawActive &&
                                     <JSONViewer data={player} header="Player _RAW Data" />
                                 }
@@ -159,7 +174,7 @@ const PlayersList = (props) => {
                                 shape="circle"
                                 className="avatar-xl bg-surface-high mt-4"
                             />
-                            <span className="text-default fw-semibold fs-5 mt-4">{player.nickname}</span>
+                            <span className="text-default fw-semibold fs-5 mt-4">{player.nickname}{player.guest && <Tag value="Guest" severity="info" className="ms-2" />}</span>
                             <span className="text-faint fw-semibold fs-6 mb-4">{player.firstname + ' ' + player.lastname}</span>
                         </div>
                     </div>
@@ -170,6 +185,10 @@ const PlayersList = (props) => {
                                 edit={true}
                                 updatePlayer={player}
                             />
+                            {player.guest
+                                ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
+                                : <PlayerLogin player={player} onChange={onPlayerEdit} />
+                            }
                             {rawActive &&
                                 <JSONViewer data={player} header="Player _RAW Data" />
                             }

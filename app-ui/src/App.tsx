@@ -1,9 +1,11 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 
 import NavigationSidebar from './components/navigation/navigation.sidebar';
 import PageLoader from './components/elements/page.loader';
+import AuthState from './utils/auth.state';
+import { useAuth } from './utils/auth.context';
 
 const Dashboard = lazy(() => import('./components/dashboard/_dashboard.page'));
 const X01ConfigPage = lazy(() => import('./components/game_config/x01/_x01.config.page'));
@@ -19,44 +21,92 @@ const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
+const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
+const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
+const LoginPage = lazy(() => import('./components/auth/login.page'));
+const RegisterPage = lazy(() => import('./components/auth/register.page'));
+const ForgotPasswordPage = lazy(() => import('./components/auth/forgot.password.page'));
+const ResetPasswordPage = lazy(() => import('./components/auth/reset.password.page'));
 
 import 'primeicons/primeicons.css';
 import "./theme/dark/green/theme.scss";
+
+// Pages that work without a selected club
+const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/admin/users'];
+
+function AppContent() {
+    const { user, activeClub, loading } = useAuth();
+    const { pathname } = useLocation();
+
+    if (loading) return <PageLoader />;
+
+    // Links from reset and invitation mails work whoever is logged in on this device
+    if (pathname === '/reset-password') {
+        return <Suspense fallback={<PageLoader />}><ResetPasswordPage /></Suspense>;
+    }
+
+    if (!user) {
+        return (
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="*" element={<Navigate replace to="/login" />} />
+                </Routes>
+            </Suspense>
+        );
+    }
+
+    // Without a club there is nothing to play with yet: send the user to create one
+    if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
+        return <Navigate replace to="/clubs" />;
+    }
+
+    return (
+        <div className="d-flex mb-5 mb-md-0">
+            <NavigationSidebar />
+            {/* Keyed by club so every page reloads its data after switching clubs */}
+            <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
+            <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/x01" element={<X01ConfigPage />} />
+                <Route path="/x01/:id" element={<X01GamePage />} />
+                <Route path="/cricket" element={<CricketConfigPage />} />
+                <Route path="/cricket/:id" element={<CricketGamePage />} />
+                <Route path="/elimination" element={<EliminationConfigPage />} />
+                <Route path="/elimination/:id" element={<EliminationGamePage />} />
+                <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
+                <Route path="/stats/:id" element={<StatsPage />} />
+                <Route path="/stats/games/:id" element={<StatsPage />} />
+                <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
+                <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
+                <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
+                <Route path="/training" element={<TrainingPage />} />
+                <Route path="/training/atc" element={<TrainingPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/clubs" element={<ClubsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
+                <Route path="/admin/:id" element={<AdminPage />} />
+                <Route path="/admin/games/:id" element={<AdminPage />} />
+                <Route path="/admin/training/:id" element={<AdminPage />} />
+                <Route path="*" element={<Navigate replace to="/" />} />
+            </Routes>
+            </Suspense>
+        </div>
+    );
+}
 
 function App() {
 
     return (
         <PrimeReactProvider>
-            <Router>
-                <div className="d-flex mb-5 mb-md-0">
-                    <NavigationSidebar />
-                    <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/x01" element={<X01ConfigPage />} />
-                        <Route path="/x01/:id" element={<X01GamePage />} />
-                        <Route path="/cricket" element={<CricketConfigPage />} />
-                        <Route path="/cricket/:id" element={<CricketGamePage />} />
-                        <Route path="/elimination" element={<EliminationConfigPage />} />
-                        <Route path="/elimination/:id" element={<EliminationGamePage />} />
-                        <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
-                        <Route path="/stats/:id" element={<StatsPage />} />
-                        <Route path="/stats/games/:id" element={<StatsPage />} />
-                        <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
-                        <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
-                        <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
-                        <Route path="/training" element={<TrainingPage />} />
-                        <Route path="/training/atc" element={<TrainingPage />} />
-                        <Route path="/about" element={<AboutPage />} />
-                        <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
-                        <Route path="/admin/:id" element={<AdminPage />} />
-                        <Route path="/admin/games/:id" element={<AdminPage />} />
-                        <Route path="/admin/training/:id" element={<AdminPage />} />
-                        <Route path="*" element={<Navigate replace to="/" />} />
-                    </Routes>
-                    </Suspense>
-                </div>
-            </Router>
+            <AuthState>
+                <Router>
+                    <AppContent />
+                </Router>
+            </AuthState>
         </PrimeReactProvider>
     );
 }

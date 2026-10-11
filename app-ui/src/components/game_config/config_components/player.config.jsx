@@ -5,10 +5,13 @@ import { Avatar } from 'primereact/avatar';
 
 import PlayerConfigOptions from '../config_options/player.config.options';
 import PlayerForm from '../../elements/player.form';
+import GuestForm from '../../elements/guest.form';
 import PlayerService from '../../../services/player.service';
 import { resolvePlayerImg } from '../../../utils/image.utils';
+import { useAuth } from '../../../utils/auth.context';
 
 const PlayerConfig = (props) => {
+    const { isClubAdmin } = useAuth();
     const {
         numberOfPlayersOption,
         selectedPlayers,
@@ -27,13 +30,24 @@ const PlayerConfig = (props) => {
         loadPlayers('');
     }
 
+    // A new guest goes straight into the game while there is room, otherwise into the available list
+    const onGuestAdd = (guest) => {
+        if (selectedPlayers.length < numberOfPlayersOption) {
+            onSelectedPlayersChange('players', [...selectedPlayers, guest]);
+        } else {
+            setPlayers([...players, guest]);
+        }
+    }
+
     const loadPlayers = async searchTerm => {
         let data = await PlayerService.searchPlayers(searchTerm);
-        setPlayers(data);
+        // players already picked for the game stay out of the available list
+        setPlayers(data.filter(player => !selectedPlayers.some(selected => selected.id === player.id)));
     };
 
     useEffect(() => {
         loadPlayers('');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const playerItemTemplate = (player) => {
@@ -71,8 +85,9 @@ const PlayerConfig = (props) => {
                 <span className="col-4 p-0 d-flex justify-content-center align-items-center">
                     <p className="text-faint fs-6">{'Select ' + numberOfPlayersOption + ' player' + (numberOfPlayersOption > 1 ? 's' : '')}</p>
                 </span>
-                <div className="col-4 p-0 d-flex justify-content-end mb-2">
-                    <PlayerForm onPlayerAdd={onPlayerAdd} />
+                <div className="col-4 p-0 d-flex justify-content-end align-items-center gap-2 mb-2">
+                    <GuestForm onGuestAdd={onGuestAdd} />
+                    {isClubAdmin && <PlayerForm onPlayerAdd={onPlayerAdd} />}
                 </div>
             </div>
             <div className="col-12 p-0 mb-3">

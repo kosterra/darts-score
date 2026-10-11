@@ -96,7 +96,44 @@ IMG_DIR=data/img              # Directory where uploaded images are stored
 
 NODE_ENV=development          # development | production
 PORT=3001                     # Optional, defaults to 3001
+
+SESSION_SECRET=long-random-string   # Signs the login cookie; changing it logs everybody out
+ADMIN_EMAIL=admin@example.com       # First global admin, created on startup if none exists
+ADMIN_PASSWORD=at-least-8-chars
+
+# Email: password reset and club admin invitations (off without SMTP_HOST)
+APP_URL=https://darts.example.com   # Public address of the app, used for links in mails
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=Darts Score <no-reply@example.com>
 ```
+
+### Accounts, clubs and roles
+
+The app requires a login. Every person has one account; players, games, training entries and statistics belong to a **club**. What an account may do is decided per club, so the same person can be a player in one club and an admin of another:
+
+- **Club admin** — manages the club: its players, games and other admins. Anyone can register on the login page and create their own clubs; a club can have several admins (*Clubs → Admins*). An admin can add themselves as a player on the profile page.
+- **Player** — a club's players exist without an account. A club admin can give a player a login (*Admin → Players → key button*); the player can then start games and trainings in that club on their own and edit their own player entry, but not manage other players or delete anything.
+- **Guest** — anyone in a club can add a guest while setting up a game. A guest plays in that game only: they are not a club member, are not offered for later games and do not appear in the players list for picking. Club admins see guests under *Admin → Players* and can turn one into a regular player.
+- **Global admin** — sees and manages every club and all users. The first global admin is created on startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when no global admin exists yet; changing these variables later does not touch existing accounts. Further global admins are promoted under *Admin → Users*.
+
+With SMTP configured, users can reset a forgotten password from the login page, and new admins and players are invited by mail to choose their own password. Without it, the inviting admin sets an initial password. The dev Docker Compose setup includes [Mailpit](https://mailpit.axllent.org/), which catches all mails at `http://localhost:8025`.
+
+### Upgrading and database migrations
+
+Database changes are applied automatically when the server starts. Each migration runs once, in order, and is recorded in the `migrations` collection; a migration that was interrupted is simply run again on the next start.
+
+Upgrading from a version without accounts and clubs:
+
+1. Back up the database first, e.g. `docker exec <mongo-container> mongodump --archive --gzip -u <user> -p <password> --authenticationDatabase admin > backup.gz`.
+2. Set `SESSION_SECRET`, `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`.
+3. Start the new version. Existing players, games and training entries are moved into a "Default Club" managed by the global admin; rename it and add further admins in the app.
+
+If `ADMIN_EMAIL` / `ADMIN_PASSWORD` are missing, the server still starts but logs an error and the existing data stays hidden; set them and restart to complete the migration.
+
+API requests are authenticated by a signed, HTTP-only session cookie. Requests for players, games, training entries and statistics name the club in an `X-Club-Id` header.
 
 **app-api/.env** *(used when running `npm run dev` directly — `DB_HOST` must be `localhost`)*
 

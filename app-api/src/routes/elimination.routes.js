@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { validate } from '../utils/validation.js';
+import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { validateEliminationCreate, validatePlayerIds } from '../validators/game.validators.js';
 import controller from '../controllers/elimination.controller.js';
 
@@ -11,7 +12,7 @@ export default (app) => {
     router.get('/',                                           controller.findAll);
     router.get('/:id',                                        controller.findOne);
     router.put('/:id',  validateEliminationCreate, validate, controller.update);
-    router.delete('/:id',                                     controller.delete);
+    router.delete('/:id', requireClubAdmin,                 controller.delete);
 
     app.use('/api/games/elimination', router);
 };

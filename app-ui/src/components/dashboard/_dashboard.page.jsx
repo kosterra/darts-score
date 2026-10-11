@@ -47,7 +47,7 @@ const Dashboard = () => {
 	}
 
 	const loadPlayers = async () => {
-		let data = await PlayerService.searchPlayers('');
+		let data = await PlayerService.searchPlayers('', { includeGuests: true });
 		setPlayers(data);
 	}
 

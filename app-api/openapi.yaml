@@ -2,7 +2,12 @@ openapi: 3.1.0
 
 info:
   title: darts-score API
-  description: REST API for the darts-score application. Manages players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+  description: |
+    REST API for the darts-score application. Manages accounts, clubs, players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+
+    **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all further requests.
+
+    **Clubs:** players, games, training entries and statistics belong to a club. Requests under `/api/players`, `/api/games`, `/api/training` and `/api/stats` must name the club in an `X-Club-Id` header. The user must be an admin of that club, a player of it with a login, or a global admin. Players can read, play games and record trainings; creating, editing and deleting players and deleting games or training entries is for club admins.
   version: 2026.10.0
   license:
     name: GPLv3
@@ -12,7 +17,16 @@ servers:
   - url: http://localhost:3001
     description: Local development
 
+security:
+  - sessionCookie: []
+
 tags:
+  - name: Auth
+    description: Registration, login and the logged-in user's profile
+  - name: Clubs
+    description: Clubs of the logged-in user (all clubs for a global admin)
+  - name: Users
+    description: User administration (global admin only)
   - name: Players
     description: Player management
   - name: Player Images
@@ -33,7 +47,344 @@ tags:
 # ---------------------------------------------------------------------------
 paths:
 
+  # ---------- Health --------------------------------------------------------
+
+  /api/health:
+    get:
+      tags: [Auth]
+      summary: Liveness probe
+      security: []
+      responses:
+        '200':
+          description: The server is running
+
+  # ---------- Auth ----------------------------------------------------------
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register an account and log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: Account created; session cookie set
+        '409':
+          description: Email already registered
+        '422':
+          description: Validation failed
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Logged in; session cookie set
+        '401':
+          description: Email or password is wrong
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out
+      security: []
+      responses:
+        '200':
+          description: Session cookie cleared
+
+  /api/auth/config:
+    get:
+      tags: [Auth]
+      summary: Whether the server can send mails (password reset, invitations)
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /api/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Mail a password reset link
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailInput'
+      responses:
+        '200':
+          description: Always the same answer, whether or not the account exists
+        '503':
+          description: Email sending is not set up
+
+  /api/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Set a new password with the token from a reset or invitation mail and log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetInput'
+      responses:
+        '200':
+          description: Password set; session cookie set
+        '400':
+          description: Link invalid or expired
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: The logged-in user
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Not logged in
+    put:
+      tags: [Auth]
+      summary: Update own name and email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: Email already registered
+
+  /api/auth/password:
+    put:
+      tags: [Auth]
+      summary: Change own password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordInput'
+      responses:
+        '200':
+          description: Password changed; other sessions are logged out
+        '403':
+          description: Current password is wrong
+
+  # ---------- Clubs ---------------------------------------------------------
+
+  /api/clubs:
+    get:
+      tags: [Clubs]
+      summary: Clubs the user is an admin or a player of, with that role (all clubs for a global admin)
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [Clubs]
+      summary: Create a club with the logged-in user as its admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubInput'
+      responses:
+        '201':
+          description: Club created
+
+  /api/clubs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Clubs]
+      summary: Rename a club
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubInput'
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: No access to this club
+    delete:
+      tags: [Clubs]
+      summary: Delete a club and its games
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: The club still has players
+
+  /api/clubs/{id}/admins:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags: [Clubs]
+      summary: Add an admin; creates the account when the email is unknown
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubAdminInput'
+      responses:
+        '201':
+          description: Admin added
+        '409':
+          description: Already an admin of the club
+        '422':
+          description: Names or initial password missing for a new account
+
+  /api/clubs/{id}/admins/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags: [Clubs]
+      summary: Remove an admin from the club
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: A club needs at least one admin
+
+  # ---------- Users ---------------------------------------------------------
+
+  /api/users:
+    get:
+      tags: [Users]
+      summary: All users with their number of clubs
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Global admin rights required
+
+  /api/users/{id}/role:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Users]
+      summary: Change the role of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: You cannot change your own role
+
+  /api/users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: The user is the only admin of a club, or is yourself
+
   # ---------- Players -------------------------------------------------------
+
+  /api/players/{id}/account:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Players]
+      summary: Give a player a login (club admins only); creates the account when the email is unknown
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerLoginInput'
+      responses:
+        '200':
+          description: Player linked to the account
+        '409':
+          description: The account already plays in this club as another player
+        '422':
+          description: Initial password missing for a new account
+    delete:
+      tags: [Players]
+      summary: Take the login away from a player (club admins only); the account itself stays
+      responses:
+        '200':
+          description: Login removed
+
+  /api/players/guest:
+    post:
+      tags: [Players]
+      summary: Add a guest for a game (any member of the club); guests are left out of player lists unless includeGuests=true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 25 }
+      responses:
+        '201':
+          description: Guest created
+
+  /api/players/{id}/member:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Players]
+      summary: Turn a guest into a regular player of the club (club admins only)
+      responses:
+        '200':
+          description: The player is now a club member
+
+  /api/players/me:
+    post:
+      tags: [Players]
+      summary: Add the logged-in user as a player of the club
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NicknameInput'
+      responses:
+        '201':
+          description: Player created
+        '409':
+          description: Already a player of this club
 
   /api/players:
     get:
@@ -624,7 +975,21 @@ paths:
 # ---------------------------------------------------------------------------
 components:
 
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: ds_session
+
   parameters:
+    ClubId:
+      name: X-Club-Id
+      in: header
+      required: true
+      description: Club the request works in (required under /api/players, /api/games, /api/training and /api/stats)
+      schema:
+        type: string
+
     Id:
       name: id
       in: path
@@ -690,6 +1055,84 @@ components:
             $ref: '#/components/schemas/Message'
 
   schemas:
+    RegisterInput:
+      type: object
+      required: [email, password, firstname, lastname]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 128 }
+        firstname: { type: string, minLength: 2, maxLength: 25 }
+        lastname: { type: string, minLength: 2, maxLength: 25 }
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    ProfileInput:
+      type: object
+      required: [email, firstname, lastname]
+      properties:
+        email: { type: string, format: email }
+        firstname: { type: string }
+        lastname: { type: string }
+
+    PasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: { type: string }
+        newPassword: { type: string, minLength: 8, maxLength: 128 }
+
+    EmailInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+
+    ResetInput:
+      type: object
+      required: [token, password]
+      properties:
+        token: { type: string }
+        password: { type: string, minLength: 8, maxLength: 128 }
+
+    ClubAdminInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+        firstname: { type: string, description: Needed when the email has no account yet }
+        lastname: { type: string, description: Needed when the email has no account yet }
+        password: { type: string, minLength: 8, description: Initial password for a new account; without it an invitation is mailed }
+
+    PlayerLoginInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, description: Initial password for a new account; without it an invitation is mailed }
+
+    ClubInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 3, maxLength: 50 }
+
+    RoleInput:
+      type: object
+      required: [role]
+      properties:
+        role: { type: string, enum: [globalAdmin, user] }
+
+    NicknameInput:
+      type: object
+      required: [nickname]
+      properties:
+        nickname: { type: string, minLength: 3, maxLength: 25 }
+
 
     # ------ Common ----------------------------------------------------------
 

@@ -1,11 +1,9 @@
 import logger from '../models/logger.model.js';
-import db from '../models/db.model.js';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-const Player = db.player;
 const PLAYER_SUBDIR = '/players';
 
 const storage = multer.diskStorage({
@@ -53,23 +51,12 @@ const extractFilename = (profileImg) => {
     return profileImg;
 };
 
-export const deleteProfileImage = (req, res, next) => {
-    logger.debug('deleteProfileImage middleware called');
-    Player.findById(req.params.id)
-        .then(data => {
-            if (!data || !data.profileImg) return next();
-            const filename = extractFilename(data.profileImg);
-            if (!filename) return next();
-            const filePath = path.join('./', process.env.IMG_DIR, PLAYER_SUBDIR, filename);
-            logger.debug('Deleting profile image at: ' + filePath);
-            fs.unlink(filePath, (err) => {
-                if (err) logger.error('Failed to delete profile image file: ' + err.message);
-                else logger.info('Deleted profile image for player ' + data.nickname);
-                next();
-            });
-        })
-        .catch(err => {
-            logger.error('Error in deleteProfileImage middleware: ' + err);
-            next(err);
-        });
+export const removeProfileImageFile = (profileImg) => {
+    const filename = extractFilename(profileImg);
+    if (!filename) return;
+    const filePath = path.join('./', process.env.IMG_DIR, PLAYER_SUBDIR, path.basename(filename));
+    logger.debug('Deleting profile image at: ' + filePath);
+    fs.unlink(filePath, (err) => {
+        if (err) logger.error('Failed to delete profile image file: ' + err.message);
+    });
 };

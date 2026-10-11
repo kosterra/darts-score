@@ -96,7 +96,7 @@ const X01List = (props) => {
     };
 
     const loadPlayers = async () => {
-        let data = await PlayerService.searchPlayers();
+        let data = await PlayerService.searchPlayers('', { includeGuests: true });
         setPlayers(data);
     };
 

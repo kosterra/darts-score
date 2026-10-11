@@ -10,11 +10,17 @@ import {
 } from 'react-pro-sidebar';
 
 import {
-    FaUserPen
+    FaUserPen,
+    FaUsersGear
 } from "react-icons/fa6";
+
+import { useAuth } from '../../utils/auth.context';
 
 const SidebarAdmin = (props) => {
     const { collapsed } = props;
+    const { isGlobalAdmin, isClubAdmin } = useAuth();
+
+    if (!isClubAdmin && !isGlobalAdmin) return null;
 
     return (
         <Fragment>
@@ -27,9 +33,12 @@ const SidebarAdmin = (props) => {
                 </div>
             }
             <Menu>
+                {isClubAdmin &&
                 <MenuItem icon={<FaUserPen className="fs-6" />} component={<Link to="/admin/players" />} className="fs-8 fw-semibold">
                     Players
                 </MenuItem>
+                }
+                {isClubAdmin &&
                 <SubMenu
                     label="Games"
                     icon={<GiDart className="fs-6" />}
@@ -39,6 +48,8 @@ const SidebarAdmin = (props) => {
                     <MenuItem component={<Link to="/admin/games/cricket" />} className="fs-8 fw-semibold"> Cricket</MenuItem>
                     <MenuItem component={<Link to="/admin/games/elimination" />} className="fs-8 fw-semibold"> Elimination</MenuItem>
                 </SubMenu>
+                }
+                {isClubAdmin &&
                 <SubMenu
                     label="Training"
                     icon={<BsPersonFillCheck className="fs-6" />}
@@ -46,6 +57,12 @@ const SidebarAdmin = (props) => {
                 >
                     <MenuItem component={<Link to="/admin/training/atc" />} className="fs-8 fw-semibold"> Around the Clock</MenuItem>
                 </SubMenu>
+                }
+                {isGlobalAdmin &&
+                    <MenuItem icon={<FaUsersGear className="fs-6" />} component={<Link to="/admin/users" />} className="fs-8 fw-semibold">
+                        Users
+                    </MenuItem>
+                }
             </Menu>
         </Fragment>
     );
