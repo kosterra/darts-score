@@ -88,7 +88,7 @@ const ATCEntryAdminList = (props) => {
                     <div className="container-fluid overflow-hidden">
                         <div className="row mb-3">
                             <div className="d-flex justify-content-start align-items-center gap-3">
-                                <span className="fs-5 text-shade100 fw-semibold">
+                                <span className="fs-5 text-default fw-semibold">
                                     Around the clock
                                 </span>
                                 <Tag
@@ -105,11 +105,11 @@ const ATCEntryAdminList = (props) => {
                                         label={(entry.player || {}).firstname || 'N' + ' ' + ((entry.player || {}).lastname || 'A').split(" ").map((n) => n[0]).join("")}
                                         image={resolvePlayerImg((entry.player || {}).profileImg)}
                                         shape="circle"
-                                        className="avatar-lg bg-shade700 mx-3"
+                                        className="avatar-lg bg-surface-high mx-3"
                                     />
                                     <div className="d-flex flex-column justify-content-start align-items-start">
-                                        <span className="text-shade100 fw-semibold fs-5">{(entry.player || {}).nickname || 'N / A'}</span>
-                                        <span className="text-shade600 fw-semibold fs-6">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>
+                                        <span className="text-default fw-semibold fs-5">{(entry.player || {}).nickname || 'N / A'}</span>
+                                        <span className="text-faint fw-semibold fs-6">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -139,7 +139,7 @@ const ATCEntryAdminList = (props) => {
                 <Panel className="panel-brighter-bg no-header">
                     <div className="row mb-3">
                         <div className="d-flex justify-content-start align-items-center gap-3">
-                            <span className="fs-5 text-shade100 fw-semibold">
+                            <span className="fs-5 text-default fw-semibold">
                                 Around the clock
                             </span>
                             <Tag
@@ -155,10 +155,10 @@ const ATCEntryAdminList = (props) => {
                                 label={(entry.player || {}).firstname || 'N' + ' ' + ((entry.player || {}).lastname || 'A').split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg((entry.player || {}).profileImg)}
                                 shape="circle"
-                                className="avatar-lg bg-shade700 mt-4"
+                                className="avatar-lg bg-surface-high mt-4"
                             />
-                            <span className="text-shade100 fw-semibold fs-5 mt-4">{(entry.player || {}).nickname || 'N / A'}</span>
-                            <span className="text-shade600 fw-semibold fs-6 mb-4">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>
+                            <span className="text-default fw-semibold fs-5 mt-4">{(entry.player || {}).nickname || 'N / A'}</span>
+                            <span className="text-faint fw-semibold fs-6 mb-4">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>
                         </div>
                     </div>
                     <div className="row mt-2">

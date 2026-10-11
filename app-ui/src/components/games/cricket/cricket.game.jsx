@@ -53,8 +53,8 @@ const CricketGame = () => {
     return (
         <Fragment>
             <div className="d-flex justify-content-center mb-4">
-                <div className="d-flex flex-column align-items-center rounded-bottom-4 bg-shade701 p-2 px-4">
-                    <div className="text-shade100 fw-semibold fs-7">Cricket</div>
+                <div className="d-flex flex-column align-items-center rounded-bottom-4 bg-surface-translucent p-2 px-4">
+                    <div className="text-default fw-semibold fs-7">Cricket</div>
                 </div>
             </div>
 

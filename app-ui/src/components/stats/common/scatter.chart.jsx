@@ -17,15 +17,15 @@ const StatsScatterChart = ({ title, subtitle = '', data, players, xKey, yKey, zK
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="d-flex flex-column align-items-center bg-shade800">
-                    <span className="bg-primary text-shade100 text-center fw-semibold fs-7 p-2 w-100">
+                <div className="d-flex flex-column align-items-center bg-surface-raised">
+                    <span className="bg-primary text-default text-center fw-semibold fs-7 p-2 w-100">
                         {`${payload[0].payload.section}`}
                     </span>
                     <div className="d-flex flex-column align-items-center p-2">
-                        <span className="text-shade100 fs-8 fw-semibold pb-1">
+                        <span className="text-default fs-8 fw-semibold pb-1">
                             {`${payload[0].payload.rate + '%'}`}
                         </span>
-                        <span className="text-shade100 fs-9 fw-semibold">
+                        <span className="text-default fs-9 fw-semibold">
                             {`${'(' + payload[0].payload.hit + '/' + payload[0].payload.total + ')'}`}
                         </span>
                     </div>
@@ -66,7 +66,7 @@ const StatsScatterChart = ({ title, subtitle = '', data, players, xKey, yKey, zK
                             onMouseOut={handleMouseLeave}
                             verticalAlign='bottom'
                             formatter={(value, entry) => (
-                                <span className="fs-7 fw-semibold text-shade500">
+                                <span className="fs-7 fw-semibold text-faint">
                                     <i className="pi pi-circle-fill m-1" style={{ color: scatterProps[entry.dataKey] ? '#fff' : entry.payload.fill }}></i>
                                     {value}
                                 </span>

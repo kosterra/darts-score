@@ -89,7 +89,7 @@ const ATC = () => {
     return (
         <div className="container-fluid p-4">
             <div className="row d-flex">
-                <span className="fs-2 text-shade100 text-center mb-4">Around the clock</span>
+                <span className="fs-2 text-default text-center mb-4">Around the clock</span>
                 <Panel headerTemplate={headerTemplate} className="col-12 col-lg-7 col-xl-6 col-xxl-5 mt-4" >
                     <div className="d-flex flex-column justify-content-center align-items-center">
                         <div className="col-10 col-lg-8 mb-4">

@@ -80,7 +80,7 @@ const PlayerOverallStats = ({ playerStats = {} }) => {
 
     return (
         <div className="container overflow-hidden p-0 mt-4">
-            <span className="d-flex justify-content-center align-items-center text-shade100 fs-4 fw-semibold mt-4">
+            <span className="d-flex justify-content-center align-items-center text-default fs-4 fw-semibold mt-4">
                 Game Statistics
             </span>
             <div className="row gy-4 mt-4 d-flex space-between">

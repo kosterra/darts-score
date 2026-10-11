@@ -6,7 +6,7 @@ const getNested = (obj, path, fallback = 0) =>
     path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj) ?? fallback;
 
 const StatRow = ({ label, values }) => (
-    <div className="d-flex justify-content-between text-shade500 fs-9">
+    <div className="d-flex justify-content-between text-faint fs-9">
         <span className="col-4">{label}</span>
         {values.map((v, i) => (
             <span key={i} className="col-2 text-center">{v}</span>
@@ -27,7 +27,7 @@ const X01StatisticsBoard = ({ playerId }) => {
         <div className="container-fluid">
             <div className="row justify-content-md-center">
                 <div className="d-flex justify-content-center align-items-center">
-                    <span className="text-shade100 fs-6 fw-semibold text-center pb-2">{player?.nickname}</span>
+                    <span className="text-default fs-6 fw-semibold text-center pb-2">{player?.nickname}</span>
                 </div>
 
                 {/* === LEFT COLUMN === */}
@@ -117,19 +117,19 @@ const X01StatisticsBoard = ({ playerId }) => {
                         <AccordionTab header="Per Round Score">
                             <div className="container">
                                 <div className="row mb-1">
-                                    <span className="col-4 p-0 fs-8 text-shade100 fw-semibold">Initial</span>
-                                    <span className="col-8 p-0 fs-8 text-shade100 fw-semibold text-end">501</span>
+                                    <span className="col-4 p-0 fs-8 text-default fw-semibold">Initial</span>
+                                    <span className="col-8 p-0 fs-8 text-default fw-semibold text-end">501</span>
                                 </div>
                                 {game.currentLegThrows
                                     .filter(e => e.playerId === playerId)
                                     .map((t, i) => (
                                         <div key={i} className="row mb-1">
-                                            <span className="col-2 p-0 fs-8 text-shade100 fw-semibold">R{i + 1}</span>
+                                            <span className="col-2 p-0 fs-8 text-default fw-semibold">R{i + 1}</span>
                                             {t.darts.map((d, j) => (
-                                                <span key={j} className="col-2 p-0 fs-9 text-shade500 fst-italic text-end">{d}</span>
+                                                <span key={j} className="col-2 p-0 fs-9 text-faint fst-italic text-end">{d}</span>
                                             ))}
-                                            <span className="col-2 p-0 fs-9 text-shade500 fw-semibold text-end">{t.roundScore}</span>
-                                            <span className="col-2 p-0 fs-8 text-shade100 fw-semibold text-end">{t.scoreLeft}</span>
+                                            <span className="col-2 p-0 fs-9 text-faint fw-semibold text-end">{t.roundScore}</span>
+                                            <span className="col-2 p-0 fs-8 text-default fw-semibold text-end">{t.scoreLeft}</span>
                                         </div>
                                     ))}
                             </div>

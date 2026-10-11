@@ -40,22 +40,22 @@ const ATCEntryList = (props) => {
     const itemTemplate = (entry, index) => {
         return (
             <div className="col-12" key={entry.id}>
-                <div className={`row bg-shade800 m-3 p-3 ${hasBorder(entry.createdAt) ? 'border border-gold border-2' : ''}`}>
+                <div className={`row bg-surface-raised m-3 p-3 ${hasBorder(entry.createdAt) ? 'border border-gold border-2' : ''}`}>
                     <div className="col-3">
-                        <div className="d-flex align-items-center text-shade100 fs-7 fw-semibold">
+                        <div className="d-flex align-items-center text-default fs-7 fw-semibold">
                             <Avatar
                                 label={(entry.player || {}).firstname || 'N' + ' ' + ((entry.player || {}).lastname || 'A').split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg((entry.player || {}).profileImg)}
                                 shape="circle"
-                                className="avatar-md bg-shade700 m-2 me-4"
+                                className="avatar-md bg-surface-high m-2 me-4"
                             />
                             <div className="d-flex flex-column justify-content-start align-items-start">
-                                <span className="text-shade100 fw-semibold fs-6">{(entry.player || {}).nickname || 'N / A'}</span>
-                                <span className="text-shade600 fs-7">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>
+                                <span className="text-default fw-semibold fs-6">{(entry.player || {}).nickname || 'N / A'}</span>
+                                <span className="text-faint fs-7">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>
                             </div>
                         </div>
                         <div className="d-flex align-self-bottom justify-content-between align-items-end mt-4">
-                            <span className="fs-8 text-shade500">{dayjs(entry.createdAt).format("DD.MM.YYYY HH:mm")}</span>
+                            <span className="fs-8 text-faint">{dayjs(entry.createdAt).format("DD.MM.YYYY HH:mm")}</span>
                         </div>
                     </div>
                     <div className="col-6 d-flex align-items-center justify-content-center">
@@ -93,7 +93,7 @@ const ATCEntryList = (props) => {
     const emptyMessageTemplate = () => {
         return (
             <div>
-                <span className="text-shade400 fs-8 fw-normal">{emptyMessage}</span>
+                <span className="text-subtle fs-8 fw-normal">{emptyMessage}</span>
             </div>
         );
     };

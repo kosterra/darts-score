@@ -105,12 +105,12 @@ const PlayersTable = (props) => {
                             type="search" value={value || ''}
                             onChange={(e) => onGlobalFilterChange(e)}
                             placeholder="Global Search"
-                            className="bg-shade800"
+                            className="bg-surface-raised"
                         />
                     </span>
                 </div>
                 <div className="col-4 d-flex align-items-center justify-content-center">
-                    <span className="text-shade100 fs-5 fw-semibold">Players</span>
+                    <span className="text-default fs-5 fw-semibold">Players</span>
                 </div>
                 <div className="col-4 d-flex align-items-center justify-content-end">
                     <PlayerForm onPlayerAdd={onPlayerAdd} />

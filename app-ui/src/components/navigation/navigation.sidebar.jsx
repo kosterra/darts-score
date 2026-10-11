@@ -68,7 +68,7 @@ const NavigationSidebar = () => {
                     <SidebarMisc />
                 </div>
             </Sidebar>
-            <div className="navbar d-block d-md-none fixed-bottom bg-shade800 w-100 p-2 z-3">
+            <div className="navbar d-block d-md-none fixed-bottom bg-surface-raised w-100 p-2 z-3">
                 <Toolbar center={centerContent} />
             </div>
         </div>

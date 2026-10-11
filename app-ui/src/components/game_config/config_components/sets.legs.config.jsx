@@ -23,8 +23,8 @@ const SetsLegsConfig = (props) => {
         <div className="container">
             <div className="row">
                 <div className="col-12 col-xl-6">
-                    <p className="text-center text-shade500 fs-7 fw-semibold">Sets</p>
-                    <div className="row gap-1 border border-shade600 rounded m-0 py-3 mb-3">
+                    <p className="text-center text-faint fs-7 fw-semibold">Sets</p>
+                    <div className="row gap-1 border border-default rounded m-0 py-3 mb-3">
                         <div className="col">
                             <Dropdown
                                 value={setModeOption}
@@ -48,8 +48,8 @@ const SetsLegsConfig = (props) => {
                     </div>
                 </div>
                 <div className="col-12 col-xl-6">
-                    <p className="text-center text-shade500 fs-7 fw-semibold">Legs</p>
-                    <div className="row gap-1 border border-shade600 rounded m-0 py-3 mb-3">
+                    <p className="text-center text-faint fs-7 fw-semibold">Legs</p>
+                    <div className="row gap-1 border border-default rounded m-0 py-3 mb-3">
                         <div className="col">
                             <Dropdown
                                 value={legModeOption}

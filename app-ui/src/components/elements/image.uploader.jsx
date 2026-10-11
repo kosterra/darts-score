@@ -89,13 +89,13 @@ const ImageUploader = (props) => {
                 }
             </div>
             <div
-                className={`drop-zone m-3 p-4 border border-shade600 rounded-1 pe-auto ${isDragging ? 'is-dragging' : ''}`}
+                className={`drop-zone m-3 p-4 border border-default rounded-1 pe-auto ${isDragging ? 'is-dragging' : ''}`}
                 onDragOver={handleOnDragOver}
                 onDragLeave={handleOnDragLeave}
                 onDrop={handleOnDrop}
                 onClick={() => fileInput.current.click()}
             >
-                <span className="fs-7 text-shade600"><ins>Upload</ins> or Drag and drop image</span>
+                <span className="fs-7 text-faint"><ins>Upload</ins> or Drag and drop image</span>
                 <input
                     type="file"
                     accept="image/png, image/jpg, image/jpeg"

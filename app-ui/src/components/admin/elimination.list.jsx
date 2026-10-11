@@ -117,25 +117,25 @@ const EliminationList = (props) => {
                     <div className={`col-9`}>
                         {' '}
                     </div>
-                    <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-8 fw-semibold">
+                    <div className="col-3 d-flex align-items-center justify-content-center text-default fs-8 fw-semibold">
                         {game.gameIsRunning ? 'Score' : 'End Score'}
                     </div>
                 </div>
                 {players.length > 0 && game.players.map((playerId, idx) => (
                     <div className="row" key={idx}>
-                        <div className={`col-9 d-flex align-items-center text-shade100 fs-7 fw-semibold`}>
+                        <div className={`col-9 d-flex align-items-center text-default fs-7 fw-semibold`}>
                             <Avatar
                                 label={(((players || []).find(player => player.id === playerId) || {}).firstname + ' ' + ((players || []).find(player => player.id === playerId) || {}).lastname).split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg(((players || []).find(player => player.id === playerId) || {}).profileImg)}
                                 shape="circle"
-                                className="avatar-sm bg-shade700 m-2 me-4"
+                                className="avatar-sm bg-surface-high m-2 me-4"
                             />
                             {((players || []).find(player => player.id === playerId) || {}).nickname || 'N / A'}
                             {game.playerModels[playerId].hasWonGame &&
                                 <FaTrophy className="ms-2 text-gold fs-6" />
                             }
                         </div>
-                        <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                        <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                             {game.playerModels[playerId].score}
                         </div>
                     </div>
@@ -152,7 +152,7 @@ const EliminationList = (props) => {
                         <div className="row gy-4">
                             <div className="col-12 col-lg-4 d-flex flex-column gap-4">
                                 <div className="d-flex justify-content-start align-items-center gap-3">
-                                    <span className="fs-5 text-shade100 fw-semibold">
+                                    <span className="fs-5 text-default fw-semibold">
                                         Elimination Game
                                     </span>
                                     <Tag
@@ -162,7 +162,7 @@ const EliminationList = (props) => {
                                     />
                                 </div>
                                 <div>
-                                    <span className="fs-8 text-shade500">
+                                    <span className="fs-8 text-faint">
                                         {dayjs(game.createdAt).format("DD.MM.YYYY HH:mm")}
                                     </span>
                                 </div>
@@ -206,7 +206,7 @@ const EliminationList = (props) => {
                 <Panel className="panel-brighter-bg no-header">
                     <div className="row mb-3">
                         <div className="d-flex justify-content-start align-items-center gap-3">
-                            <span className="fs-5 text-shade100 fw-semibold">
+                            <span className="fs-5 text-default fw-semibold">
                                 Elimination Game
                             </span>
                             <Tag
@@ -223,7 +223,7 @@ const EliminationList = (props) => {
                     </div>
                     <div className="row mt-4">
                         <div className="col-12">
-                            <span className="fs-8 text-shade500">
+                            <span className="fs-8 text-faint">
                                 {dayjs(game.createdAt).format("DD.MM.YYYY HH:mm")}
                             </span>
                         </div>

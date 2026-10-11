@@ -31,7 +31,7 @@ const ComparisonBar = (props) => {
             {Object.values(data[0]).filter((value) => !isNaN(value) && value > 0).length > 0 &&
                 <div className="w-100">
                     <div className="col-12 d-flex justify-content-center align-items-center">
-                        <span className="fs-7 fw-semibold text-shade500">{data[0].name}</span>
+                        <span className="fs-7 fw-semibold text-faint">{data[0].name}</span>
                     </div>
                     <div className="col-12 d-flex justify-content-center align-items-center">
                         <ResponsiveContainer width="100%" height={45}>

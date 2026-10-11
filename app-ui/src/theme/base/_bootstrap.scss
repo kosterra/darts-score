@@ -21,7 +21,11 @@ $info:          $blue;
 $warning:       $yellow;
 $danger:        $red;
 
-$border-color:  $shade600;
+$border-color:  $borderDefaultColor;
+$border-radius: $borderRadius;
+$body-color:    $textDefaultColor;
+
+$font-family-sans-serif: $fontFamily;
 
 $font-family-monospace: verdana, sans-serif;
 
@@ -45,11 +49,8 @@ $custom-colors: (
     "shade500": $shade500,
     "shade600": $shade600,
     "shade700": $shade700,
-    "shade701": $shade701,
     "shade800": $shade800,
-    "shade801": $shade801,
     "shade900": $shade900,
-    "shade901": $shade901,
     "red": $red
 );
 
@@ -58,8 +59,8 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 // Font sizes
 $custom-font-sizes: (
   7: 0.9rem,
-  8: 0.8rem,
-  9: 0.7rem
+  8: 0.85rem,
+  9: 0.75rem
 );
 
 $font-sizes: map-merge($font-sizes, $custom-font-sizes);
@@ -119,3 +120,13 @@ $utilities: map-merge(
 
 @import "bootstrap/scss/utilities/api";
 
+
+// Semantic colour roles (see "Semantic roles" in the theme variables)
+.text-default { color: $textDefaultColor !important; }
+.text-subtle { color: $textSubtleColor !important; }
+.text-faint { color: $textFaintColor !important; }
+.bg-surface { background-color: $surfaceColor !important; }
+.bg-surface-raised { background-color: $surfaceRaisedColor !important; }
+.bg-surface-high { background-color: $surfaceHighColor !important; }
+.bg-surface-translucent { background-color: $surfaceTranslucentColor !important; }
+.border-default { border-color: $borderDefaultColor !important; }

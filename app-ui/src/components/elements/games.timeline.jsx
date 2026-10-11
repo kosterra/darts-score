@@ -35,7 +35,7 @@ const GamesTimeline = (props) => {
                             label={(((player || {}).firstname || 'N') + ' ' + ((player || {}).lastname || 'A')).split(" ").map((n) => n[0]).join("")}
                             image={resolvePlayerImg((player || {}).profileImg)}
                             shape="circle"
-                            className="avatar-md bg-shade700"
+                            className="avatar-md bg-surface-high"
                         />
                         <span className="position-absolute top-75 start-80 translate-middle">
                             <FaTrophy className="fs-5 text-gold mt-2" />
@@ -48,7 +48,7 @@ const GamesTimeline = (props) => {
 
     const oppositeContent = (game) => {
         return (
-            <small className="text-shade500 fs-8 fw-semibold">
+            <small className="text-faint fs-8 fw-semibold">
                 {dayjs(game.updatedAt).format("DD.MM.YYYY")}
             </small>
         );
@@ -59,7 +59,7 @@ const GamesTimeline = (props) => {
             { games && games.length > 0 &&
                 <Panel>
                     <div className="d-flex flex-column justify-content-center align-items-center">
-                        <span className="text-shade100 fs-4 fw-semibold mb-4 mt-4">
+                        <span className="text-default fs-4 fw-semibold mb-4 mt-4">
                             Timeline
                         </span>
                         <ScrollPanel style={{ height: '20rem' }} className="col-10">

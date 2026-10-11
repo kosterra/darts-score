@@ -40,7 +40,7 @@ const PlayersX01StatsComparisonBars = (props) => {
 
     return (
         <Panel>
-            <span className="d-flex justify-content-center align-items-center text-shade100 fs-4 fw-semibold mb-4 mt-4">
+            <span className="d-flex justify-content-center align-items-center text-default fs-4 fw-semibold mb-4 mt-4">
                 X01 Statistics
             </span>
 

@@ -81,7 +81,7 @@ const ImageCropper = ({ file, onCrop, onCancel }) => {
     return (
         <div className="d-flex flex-column justify-content-center align-items-center gap-3">
             <div
-                className="position-relative overflow-hidden rounded-1 bg-shade900"
+                className="position-relative overflow-hidden rounded-1 bg-surface"
                 style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE, cursor: 'move', touchAction: 'none' }}
                 onPointerDown={handleOnPointerDown}
                 onPointerMove={handleOnPointerMove}
@@ -114,7 +114,7 @@ const ImageCropper = ({ file, onCrop, onCancel }) => {
                 />
             </div>
             <div className="d-flex align-items-center gap-3" style={{ width: VIEWPORT_SIZE }}>
-                <i className="pi pi-search-minus text-shade400" />
+                <i className="pi pi-search-minus text-subtle" />
                 <Slider
                     value={zoom}
                     min={1}
@@ -125,9 +125,9 @@ const ImageCropper = ({ file, onCrop, onCancel }) => {
                     className="flex-grow-1"
                     aria-label="Zoom"
                 />
-                <i className="pi pi-search-plus text-shade400" />
+                <i className="pi pi-search-plus text-subtle" />
             </div>
-            <span className="fs-7 text-shade600">Drag the image to position it</span>
+            <span className="fs-7 text-faint">Drag the image to position it</span>
             <div className="d-flex gap-2 mb-3">
                 <Button type="button" label="Cancel" icon="pi pi-times" size="small" severity="secondary" onClick={onCancel} />
                 <Button type="button" label="Apply" icon="pi pi-check" size="small" onClick={handleOnApply} disabled={!imageSize} />

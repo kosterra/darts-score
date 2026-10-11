@@ -35,11 +35,23 @@ $shade400: #a3a3a3 !default;
 $shade500: #7a7a7a !default;
 $shade600: #5c5c5c !default;
 $shade700: #313131 !default;
-$shade701: #313131ad !default;
+$shade700Translucent: #313131ad !default;
 $shade800: #292929 !default;
-$shade801: #292929ad !default;
+$shade800Translucent: #292929ad !default;
 $shade900: #222121 !default;
-$shade901: #222121ad !default;
+$shade900Translucent: #222121ad !default;
+
+// Semantic roles — components use these (via the text-*/bg-surface*/border-default
+// classes or the CSS variables) instead of picking raw shades.
+// Text roles keep at least 4.5:1 contrast on every surface role.
+$textDefaultColor: $shade100 !default;
+$textSubtleColor: $shade300 !default;
+$textFaintColor: #9a9a9a !default;
+$surfaceColor: $shade900 !default;
+$surfaceRaisedColor: $shade800 !default;
+$surfaceHighColor: $shade700 !default;
+$surfaceTranslucentColor: $shade700Translucent !default;
+$borderDefaultColor: $shade600 !default;
 
 $hoverBg: rgba(255, 255, 255, 0.03) !default;
 
@@ -61,7 +73,7 @@ $primeIconFontSize: 1rem !default;
 $divider: 1px solid $shade600 !default;
 $inlineSpacing: 0.5rem !default; //spacing between inline elements
 $disabledOpacity: 0.4 !default; //opacity of a disabled item
-$maskBg: $shade901 !default; //modal mask bg color
+$maskBg: $shade900Translucent !default; //modal mask bg color
 $loadingIconFontSize: 2rem !default;
 $errorColor: $red !default;
 
@@ -70,7 +82,7 @@ $scaleSM: 0.875 !default;
 $scaleLG: 1.25 !default;
 
 //focus
-$focusOutlineColor: $shade701 !default;
+$focusOutlineColor: $shade700Translucent !default;
 $focusOutline: 0 none !default;
 $focusOutlineOffset: 0 !default;
 $focusShadow: 0 0 0 0.2rem $focusOutlineColor !default;
@@ -149,15 +161,16 @@ $buttonFontWeight: 500 !default;
 $buttonPadding: 0.8rem 0.8rem !default;
 $buttonIconOnlyWidth: 3rem !default;
 $buttonIconOnlyPadding: 0.75rem 0 !default;
-$buttonBg: $primaryColor !default;
+$buttonBg: $primaryDarkColor !default;
+$buttonAccentColor: $primaryColor !default; // text and border of outlined / text buttons
 $buttonTextColor: $primaryTextColor !default;
-$buttonBorder: 1px solid $primaryColor !default;
-$buttonHoverBg: $primaryLightColor !default;
+$buttonBorder: 1px solid $primaryDarkColor !default;
+$buttonHoverBg: $primaryColor !default;
 $buttonTextHoverColor: $primaryTextColor !default;
-$buttonHoverBorderColor: $primaryLightColor !default;
-$buttonActiveBg: $primaryLighterColor !default;
+$buttonHoverBorderColor: $primaryColor !default;
+$buttonActiveBg: $primaryLightColor !default;
 $buttonTextActiveColor: $primaryTextColor !default;
-$buttonActiveBorderColor: $primaryLighterColor !default;
+$buttonActiveBorderColor: $primaryLightColor !default;
 $raisedButtonShadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
 	0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !default;
 $roundedButtonBorderRadius: 2rem !default;
@@ -172,10 +185,10 @@ $plainButtonActiveBgColor: rgba(255, 255, 255, 0.16) !default;
 $secondaryButtonBg: $shade700 !default;
 $secondaryButtonTextColor: $shade000 !default;
 $secondaryButtonBorder: 1px solid $shade700 !default;
-$secondaryButtonHoverBg: $shade701 !default;
+$secondaryButtonHoverBg: $shade700Translucent !default;
 $secondaryButtonTextHoverColor: $secondaryButtonTextColor !default;
-$secondaryButtonHoverBorderColor: $shade701 !default;
-$secondaryButtonActiveBg: $shade701 !default;
+$secondaryButtonHoverBorderColor: $shade700Translucent !default;
+$secondaryButtonActiveBg: $shade700Translucent !default;
 $secondaryButtonTextActiveColor: $secondaryButtonTextColor !default;
 $secondaryButtonActiveBorderColor: #e2e8f0 !default;
 $secondaryButtonFocusShadow: none;
@@ -402,8 +415,8 @@ $panelFooterPadding: 0.75rem 1.25rem !default;
 //picklist
 $picklistBg: $shade800 !default;
 $picklistPadding: 0.8rem !default;
-$picklistHeaderBg: $shade701 !default;
-$picklistListBg: $shade901 !default;
+$picklistHeaderBg: $shade700Translucent !default;
+$picklistListBg: $shade900Translucent !default;
 $picklistItemPadding: 0.8rem 1rem !default;
 $picklistItemBg: $shade900 !default;
 
@@ -654,8 +667,8 @@ $sidebarMenuSubtitleColor: $shade600 !default;
 $sidebarMenuDividerColor: $shade600 !default;
 $sidebarContainerBg: $shade900 !default;
 $sidebarSubmenuContentBg: $shade700 !default;
-$sidebarMenuitemHoverBg: $shade701 !default;
-$sidebarSubmenuitemHoverBg: $shade801 !default;
+$sidebarMenuitemHoverBg: $shade700Translucent !default;
+$sidebarSubmenuitemHoverBg: $shade800Translucent !default;
 $sidebarExpandIconColor: $shade300 !default;
 
 //dialog
@@ -914,17 +927,24 @@ $toolbarPadding: $panelHeaderPadding !default;
 	--text-color-secondary: #{$shade100};
 	--primary-color: #{$primaryColor};
 	--primary-color-text: #{$primaryTextColor};
-	--surface-0: #111827;
-	--surface-50: #1f2937;
-	--surface-100: #374151;
-	--surface-200: #4b5563;
-	--surface-300: #6b7280;
-	--surface-400: #9ca3af;
-	--surface-500: #d1d5db;
-	--surface-600: #e5e7eb;
-	--surface-700: #f3f4f6;
-	--surface-800: #f9fafb;
-	--surface-900: #ffffff;
+	--surface-0: #{$shade900};
+	--surface-50: #{$shade800};
+	--surface-100: #{$shade700};
+	--surface-200: #{$shade600};
+	--surface-300: #{$shade500};
+	--surface-400: #{$shade400};
+	--surface-500: #{$shade300};
+	--surface-600: #{$shade200};
+	--surface-700: #{$shade100};
+	--surface-800: #{$shade50};
+	--surface-900: #{$shade000};
+	--text-default: #{$textDefaultColor};
+	--text-subtle: #{$textSubtleColor};
+	--text-faint: #{$textFaintColor};
+	--surface: #{$surfaceColor};
+	--surface-raised: #{$surfaceRaisedColor};
+	--surface-high: #{$surfaceHighColor};
+	--border-default: #{$borderDefaultColor};
 	--shade50: #{$shade50};
 	--shade100: #{$shade100};
 	--shade200: #{$shade200};
@@ -938,10 +958,10 @@ $toolbarPadding: $panelHeaderPadding !default;
 	--content-padding: #{$panelContentPadding};
 	--inline-spacing: #{$inlineSpacing};
 	--border-radius: #{$borderRadius};
-	--surface-ground: #111827;
-	--surface-section: #111827;
-	--surface-card: #1f2937;
-	--surface-overlay: #1f2937;
+	--surface-ground: #{$surfaceColor};
+	--surface-section: #{$surfaceColor};
+	--surface-card: #{$surfaceRaisedColor};
+	--surface-overlay: #{$surfaceRaisedColor};
 	--surface-border: rgba(255, 255, 255, 0.1);
 	--surface-hover: rgba(255, 255, 255, 0.03);
 	--focus-ring: #{$focusShadow};

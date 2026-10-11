@@ -119,34 +119,34 @@ const X01List = (props) => {
                     <div className={`${game.gameIsRunning ? "col-6" : "col-9"}`}>
                         {' '}
                     </div>
-                    <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                    <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                         Sets
                     </div>
                     {game.gameIsRunning &&
-                        <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                        <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                             Legs
                         </div>
                     }
                 </div>
                 {players.length > 0 && game.players.map((playerId, idx) => (
                     <div className="row" key={idx}>
-                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-shade100 fs-7 fw-semibold`}>
+                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-default fs-7 fw-semibold`}>
                             <Avatar
                                 label={(((players || []).find(player => player.id === playerId) || {}).firstname + ' ' + ((players || []).find(player => player.id === playerId) || {}).lastname).split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg(((players || []).find(player => player.id === playerId) || {}).profileImg)}
                                 shape="circle"
-                                className="avatar-sm bg-shade700 m-2 me-4"
+                                className="avatar-sm bg-surface-high m-2 me-4"
                             />
                             {((players || []).find(player => player.id === playerId) || {}).nickname || 'N / A'}
                             {game.playerModels[playerId].hasWonGame &&
                                 <FaTrophy className="ms-2 text-gold fs-6" />
                             }
                         </div>
-                        <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                        <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                             {game.playerModels[playerId].setsWon}
                         </div>
                         {game.gameIsRunning &&
-                            <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                            <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                                 {game.playerModels[playerId].currentSetLegsWon}
                             </div>
                         }
@@ -164,7 +164,7 @@ const X01List = (props) => {
                         <div className="row gy-4">
                             <div className="col-12 col-lg-4 d-flex flex-column gap-4">
                                 <div className="d-flex justify-content-start align-items-center gap-3">
-                                    <span className="display-6 fw-semibold text-shade100">
+                                    <span className="display-6 fw-semibold text-default">
                                         {game.startingScore}
                                     </span>
                                     <Tag
@@ -174,15 +174,15 @@ const X01List = (props) => {
                                     />
                                 </div>
                                 <div className="d-flex flex-column">
-                                    <span className="fs-7 text-shade500 fw-semibold">
+                                    <span className="fs-7 text-faint fw-semibold">
                                         {game.setMode} {game.numberOfSets} Set{game.numberOfSets > 1 && 's'} - {game.legMode} {game.numberOfLegs} Leg{game.numberOfLegs > 1 && 's'}
                                     </span>
-                                    <span className="fs-9 text-shade500 pt-1">
+                                    <span className="fs-9 text-faint pt-1">
                                         ({game.legInMode} / {game.legOutMode})
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="fs-8 text-shade500">
+                                    <span className="fs-8 text-faint">
                                         {dayjs(game.createdAt).format("DD.MM.YYYY HH:mm")}
                                     </span>
                                 </div>
@@ -226,7 +226,7 @@ const X01List = (props) => {
                 <Panel className="panel-brighter-bg no-header">
                     <div className="row mb-3">
                         <div className="col-12 d-flex justify-content-start align-items-center gap-3">
-                            <span className="display-6 fw-semibold text-shade100">
+                            <span className="display-6 fw-semibold text-default">
                                 {game.startingScore}
                             </span>
                             <Tag
@@ -238,10 +238,10 @@ const X01List = (props) => {
                     </div>
                     <div className="row mb-3">
                         <div className="col-12 d-flex flex-column">
-                            <span className="fs-7 text-shade500 fw-semibold">
+                            <span className="fs-7 text-faint fw-semibold">
                                 {game.setMode} {game.numberOfSets} Set{game.numberOfSets > 1 && 's'} - {game.legMode} {game.numberOfLegs} Leg{game.numberOfLegs > 1 && 's'}
                             </span>
-                            <span className="fs-9 text-shade500 pt-1">
+                            <span className="fs-9 text-faint pt-1">
                                 ({game.legInMode} / {game.legOutMode})
                             </span>
                         </div>
@@ -253,7 +253,7 @@ const X01List = (props) => {
                     </div>
                     <div className="row mt-4">
                         <div className="col-12">
-                            <span className="fs-8 text-shade500">
+                            <span className="fs-8 text-faint">
                                 {dayjs(game.createdAt).format("DD.MM.YYYY HH:mm")}
                             </span>
                         </div>

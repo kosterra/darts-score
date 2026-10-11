@@ -40,10 +40,10 @@ const EliminationGameStats = () => {
             {winner && (
                 <div className="row justify-content-center mb-4">
                     <div className="col-12 col-md-8 col-xl-6 text-center">
-                        <div className="rounded-3 bg-shade700 p-4 shadow">
-                            <div className="text-shade400 fs-7 mb-1">🏆 Winner</div>
-                            <div className="text-shade100 fs-3 fw-bold">{winner.nickname}</div>
-                            <div className="text-shade400 fs-7">{winner.firstname} {winner.lastname}</div>
+                        <div className="rounded-3 bg-surface-high p-4 shadow">
+                            <div className="text-subtle fs-7 mb-1">🏆 Winner</div>
+                            <div className="text-default fs-3 fw-bold">{winner.nickname}</div>
+                            <div className="text-subtle fs-7">{winner.firstname} {winner.lastname}</div>
                             <div className="mt-2">
                                 <Tag
                                     value={`Target: ${game.targetScore} · Out: ${game.gameOutMode}`}
@@ -72,7 +72,7 @@ const EliminationGameStats = () => {
 
                     return (
                         <div key={player.id} className="col-12 col-sm-6 col-xl-3">
-                            <div className={`rounded-3 p-3 shadow ${isWinner ? 'bg-shade600' : 'bg-shade700'}`}>
+                            <div className={`rounded-3 p-3 shadow ${isWinner ? 'bg-shade600' : 'bg-surface-high'}`}>
                                 {/* Player header */}
                                 <div className="d-flex align-items-center gap-3 mb-3">
                                     <Avatar
@@ -82,53 +82,53 @@ const EliminationGameStats = () => {
                                         className="avatar-md"
                                     />
                                     <div>
-                                        <div className="text-shade100 fw-semibold">{player.nickname}</div>
-                                        <div className="text-shade500 fs-8">{player.firstname} {player.lastname}</div>
+                                        <div className="text-default fw-semibold">{player.nickname}</div>
+                                        <div className="text-faint fs-8">{player.firstname} {player.lastname}</div>
                                         {isWinner && (
                                             <Tag value="Winner 🏆" severity="success" rounded className="mt-1 fs-9" />
                                         )}
                                     </div>
-                                    <div className="ms-auto text-shade400 fs-7">#{rank + 1}</div>
+                                    <div className="ms-auto text-subtle fs-7">#{rank + 1}</div>
                                 </div>
 
                                 {/* Stats */}
                                 <div className="d-flex flex-column gap-1 fs-7">
                                     <div className="d-flex justify-content-between">
-                                        <span className="text-shade400">Final Score</span>
-                                        <span className="text-shade100 fw-semibold">{finalScore}</span>
+                                        <span className="text-subtle">Final Score</span>
+                                        <span className="text-default fw-semibold">{finalScore}</span>
                                     </div>
                                     <div className="d-flex justify-content-between">
-                                        <span className="text-shade400">Darts Thrown</span>
-                                        <span className="text-shade100">{totalDarts}</span>
+                                        <span className="text-subtle">Darts Thrown</span>
+                                        <span className="text-default">{totalDarts}</span>
                                     </div>
                                     <div className="d-flex justify-content-between">
-                                        <span className="text-shade400">Rounds</span>
-                                        <span className="text-shade100">{totalRounds}</span>
+                                        <span className="text-subtle">Rounds</span>
+                                        <span className="text-default">{totalRounds}</span>
                                     </div>
                                     <div className="d-flex justify-content-between">
-                                        <span className="text-shade400">Avg / Dart</span>
-                                        <span className="text-shade100">{avgPerDart}</span>
+                                        <span className="text-subtle">Avg / Dart</span>
+                                        <span className="text-default">{avgPerDart}</span>
                                     </div>
                                     <div className="d-flex justify-content-between">
-                                        <span className="text-shade400">Avg / Round</span>
-                                        <span className="text-shade100">{avgPerRound}</span>
+                                        <span className="text-subtle">Avg / Round</span>
+                                        <span className="text-default">{avgPerRound}</span>
                                     </div>
                                     <div className="d-flex justify-content-between">
-                                        <span className="text-shade400">Best 3 Darts</span>
-                                        <span className="text-shade100">{best}</span>
+                                        <span className="text-subtle">Best 3 Darts</span>
+                                        <span className="text-default">{best}</span>
                                     </div>
                                 </div>
 
                                 {/* Score Ranges */}
                                 {model.scoreRanges && Object.keys(model.scoreRanges).length > 0 && (
-                                    <div className="mt-3 border-top border-shade600 pt-2">
-                                        <div className="text-shade500 fs-8 mb-1">Score Ranges</div>
+                                    <div className="mt-3 border-top border-default pt-2">
+                                        <div className="text-faint fs-8 mb-1">Score Ranges</div>
                                         {Object.entries(model.scoreRanges)
                                             .sort((a, b) => a[0].localeCompare(b[0]))
                                             .map(([range, count]) => (
                                                 <div key={range} className="d-flex justify-content-between fs-8">
-                                                    <span className="text-shade400">{range}</span>
-                                                    <span className="text-shade100">{count}x</span>
+                                                    <span className="text-subtle">{range}</span>
+                                                    <span className="text-default">{count}x</span>
                                                 </div>
                                             ))}
                                     </div>

@@ -18,13 +18,13 @@ const StatsBarChart = ({ title, subtitle = '', data, xLabel = '', yLabel = '', p
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload?.length) {
             return (
-                <div className="d-flex flex-column align-items-center bg-shade800">
-                    <span className="bg-primary text-shade100 text-center fw-semibold fs-7 p-2 w-100">
+                <div className="d-flex flex-column align-items-center bg-surface-raised">
+                    <span className="bg-primary text-default text-center fw-semibold fs-7 p-2 w-100">
                         {payload[0].payload?.range || ''}
                     </span>
                     <div className="d-flex flex-column align-items-center p-2">
                         {payload.map((p, idx) => (
-                            <span key={idx} className="text-shade100 fs-8 fw-semibold">
+                            <span key={idx} className="text-default fs-8 fw-semibold">
                                 {`${players.length > 1 ? p.name + ': ' : ''}${p.value ?? 0}`}
                             </span>
                         ))}
@@ -69,7 +69,7 @@ const StatsBarChart = ({ title, subtitle = '', data, xLabel = '', yLabel = '', p
                             onMouseOut={handleMouseLeave}
                             verticalAlign='bottom'
                             formatter={(value, entry) => (
-                                <span className="fs-7 fw-semibold text-shade500 pt-2">
+                                <span className="fs-7 fw-semibold text-faint pt-2">
                                     <i className="pi pi-circle-fill m-1" style={{ color: barProps[entry.dataKey] ? '#fff' : entry.payload.fill }}></i>
                                     {value}
                                 </span>

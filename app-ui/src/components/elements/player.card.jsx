@@ -17,7 +17,7 @@ const PlayerCard = (props) => {
                         shape="circle"
                         className="avatar-lg"
                     />
-                    <span className="mt-3 text-center text-shade500 fw-semibold">
+                    <span className="mt-3 text-center text-faint fw-semibold">
                         {player ? player.firstname + ' ' + player.lastname : 'No Player selected'}
                     </span>
                 </div>

@@ -44,7 +44,7 @@ const PlayerConfig = (props) => {
                 </div>
                 <div className="col-8 d-flex flex-column justify-content-center align-items-start">
                     <span className="fs-7 fw-semibold">{player.nickname}</span>
-                    <div className="fs-8 text-shade100">
+                    <div className="fs-8 text-default">
                         <span>{player.firstname + ' ' + player.lastname}</span>
                     </div>
                 </div>
@@ -54,9 +54,9 @@ const PlayerConfig = (props) => {
 
     return (
         <div className="container">
-            <p className="text-center text-shade500 fs-7 fw-semibold">Players</p>
+            <p className="text-center text-faint fs-7 fw-semibold">Players</p>
             <div className="row m-0">
-                <div className="col-12 border border-shade600 rounded m-0 mb-4 py-3">
+                <div className="col-12 border border-default rounded m-0 mb-4 py-3">
                     <SelectButton
                         value={numberOfPlayersOption}
                         onChange={(e) => onNumberOfPlayersChange('numberOfPlayers', e.value)}
@@ -69,7 +69,7 @@ const PlayerConfig = (props) => {
             <div className="row m-0">
                 <span className="col-4 p-0"></span>
                 <span className="col-4 p-0 d-flex justify-content-center align-items-center">
-                    <p className="text-shade500 fs-6">{'Select ' + numberOfPlayersOption + ' player' + (numberOfPlayersOption > 1 ? 's' : '')}</p>
+                    <p className="text-faint fs-6">{'Select ' + numberOfPlayersOption + ' player' + (numberOfPlayersOption > 1 ? 's' : '')}</p>
                 </span>
                 <div className="col-4 p-0 d-flex justify-content-end mb-2">
                     <PlayerForm onPlayerAdd={onPlayerAdd} />

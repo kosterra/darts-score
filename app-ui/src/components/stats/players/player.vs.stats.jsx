@@ -79,7 +79,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
 
     const centerContent = (
         <div className="d-flex flex-column align-items-center justify-content-center gap-4">
-            <span className="text-shade100 fs-8 fw-semibold">Date Range</span>
+            <span className="text-default fs-8 fw-semibold">Date Range</span>
             <SelectButton
                 value={dateFilterValue}
                 onChange={e => setDateFilterValue(e.value)}
@@ -92,7 +92,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
     const endContent = (
         <div className="d-flex align-items-center justify-content-center gap-2">
             <InputSwitch checked={includeOthersValue} onChange={e => setIncludeOthersValue(e.value)} />
-            <span className="text-shade100 fs-8 fw-semibold">Include Games with other players</span>
+            <span className="text-default fs-8 fw-semibold">Include Games with other players</span>
         </div>
     );
 
@@ -103,7 +103,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
                     <span className="col-4 d-flex justify-content-center align-items-center p-0">
                         <i className="pi pi-circle-fill fs-8" style={{ color: ChartConfigOptions.fillColors.values[i] }}></i>
                     </span>
-                    <span className="col-8 fs-7 text-shade500 fw-semibold p-0">{p?.nickname ?? 'N/A'}</span>
+                    <span className="col-8 fs-7 text-faint fw-semibold p-0">{p?.nickname ?? 'N/A'}</span>
                 </div>
             ))}
         </div>
@@ -121,7 +121,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
             {/* Player Selection */}
             <div className="row justify-content-center align-items-center">
                 <div className="col-12 col-md-10 col-lg-8">
-                    <div className="row justify-content-center align-items-center p-4 bg-shade900">
+                    <div className="row justify-content-center align-items-center p-4 bg-surface">
                         {Array.from({ length: playersCount }).map((_, idx) => (
                             <div key={idx} className="col-12 col-md-6 mt-4 mt-md-0">
                                 <div className="position-relative">
@@ -133,7 +133,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
                                                 size="small"
                                                 rounded
                                                 severity="danger"
-                                                className="text-shade100 fw-semibold me-4 mt-4"
+                                                className="text-default fw-semibold me-4 mt-4"
                                                 onClick={() => removePlayerCard(idx)}
                                             />
                                         </span>
@@ -149,7 +149,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
                                     size="large"
                                     rounded
                                     severity="secondary"
-                                    className="text-shade500 fw-semibold"
+                                    className="text-faint fw-semibold"
                                     onClick={incrementPlayersCount}
                                 />
                             </div>
@@ -163,7 +163,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
                 <>
                     {showStatsFilter && (
                         <div className="row justify-content-center align-items-center">
-                            <div className="col-12 col-md-10 col-lg-8 px-3 bg-shade900">
+                            <div className="col-12 col-md-10 col-lg-8 px-3 bg-surface">
                                 <Toolbar start={startContent} center={centerContent} end={endContent} className="m-4 p-4" />
                             </div>
                         </div>
@@ -181,7 +181,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
                                             <div className="col-12 col-lg-6 p-0">
                                                 <Panel className="h-100">
                                                     <div className="d-flex flex-column align-items-center">
-                                                        <span className="text-shade100 fs-4 fw-semibold mb-4 mt-4">Infos</span>
+                                                        <span className="text-default fs-4 fw-semibold mb-4 mt-4">Infos</span>
                                                         <div className="container overflow-hidden">
                                                             <div className="row gy-4 justify-content-center">
                                                                 <div className="col-12 col-sm-6 col-lg-4">
@@ -222,7 +222,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
 
                     {noGamesFound && (
                         <div className="d-flex justify-content-center mt-4">
-                            <span className="empty-text text-shade500">No games found. Check the filters.</span>
+                            <span className="empty-text text-faint">No games found. Check the filters.</span>
                         </div>
                     )}
                 </>
@@ -230,7 +230,7 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
 
             {!allPlayersSelected && (
                 <div className="d-flex justify-content-center mt-4">
-                    <span className="empty-text text-shade500">
+                    <span className="empty-text text-faint">
                         Please select {playersCount} players to compare statistics
                     </span>
                 </div>

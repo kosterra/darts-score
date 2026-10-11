@@ -92,7 +92,7 @@ const X01GameStats = () => {
     };
 
     const tabHeaderTemplate = ({ index, onClick }) => (
-        <div className="d-flex align-items-center text-shade500 gap-2 p-3 cursor-pointer" onClick={onClick}>
+        <div className="d-flex align-items-center text-faint gap-2 p-3 cursor-pointer" onClick={onClick}>
             <Badge size="large" severity="secondary" value={index === 0 ? 'A' : index} />
             <span className="fw-bold fs-6">{index === 0 ? 'Overall' : `Set`}</span>
         </div>

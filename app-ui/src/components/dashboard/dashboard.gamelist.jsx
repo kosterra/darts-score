@@ -39,34 +39,34 @@ const DashboardGameList = (props) => {
                     <div className={`${game.gameIsRunning ? "col-6" : "col-9"}`}>
                         {' '}
                     </div>
-                    <div className={`col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold`}>
+                    <div className={`col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold`}>
                         Sets
                     </div>
                     {game.gameIsRunning &&
-                        <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                        <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                             Legs
                         </div>
                     }
                 </div>
                 {players.length > 0 && game.players.map((playerId, idx) => (
                     <div className="row" key={idx}>
-                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-shade100 fs-7 fw-semibold`}>
+                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-default fs-7 fw-semibold`}>
                             <Avatar
                                 label={(((players || []).find(player => player.id === playerId) || {}).firstname + ' ' + ((players || []).find(player => player.id === playerId) || {}).lastname).split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg(((players || []).find(player => player.id === playerId) || {}).profileImg)}
                                 shape="circle"
-                                className="avatar-sm bg-shade700 m-2 me-4"
+                                className="avatar-sm bg-surface-high m-2 me-4"
                             />
                             {((players || []).find(player => player.id === playerId) || {}).nickname || 'N / A'}
                             {game.playerModels[playerId].hasWonGame &&
                                 <FaTrophy className="ms-2 text-gold fs-6" />
                             }
                         </div>
-                        <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                        <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                             {game.playerModels[playerId].setsWon}
                         </div>
                         {game.gameIsRunning &&
-                            <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                            <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                                 {game.playerModels[playerId].currentSetLegsWon}
                             </div>
                         }
@@ -83,25 +83,25 @@ const DashboardGameList = (props) => {
                     <div className={`${game.gameIsRunning ? "col-6" : "col-9"}`}>
                         {' '}
                     </div>
-                    <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-8 fw-semibold">
+                    <div className="col-3 d-flex align-items-center justify-content-center text-default fs-8 fw-semibold">
                         {game.gameIsRunning ? 'Score' : 'End Score'}
                     </div>
                 </div>
                 {players.length > 0 && game.players.map((playerId, idx) => (
                     <div className="row" key={idx}>
-                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-shade100 fs-7 fw-semibold`}>
+                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-default fs-7 fw-semibold`}>
                             <Avatar
                                 label={(((players || []).find(player => player.id === playerId) || {}).firstname + ' ' + ((players || []).find(player => player.id === playerId) || {}).lastname).split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg(((players || []).find(player => player.id === playerId) || {}).profileImg)}
                                 shape="circle"
-                                className="avatar-sm bg-shade700 m-2 me-4"
+                                className="avatar-sm bg-surface-high m-2 me-4"
                             />
                             {((players || []).find(player => player.id === playerId) || {}).nickname || 'N / A'}
                             {game.playerModels[playerId].hasWonGame &&
                                 <FaTrophy className="ms-2 text-gold fs-6" />
                             }
                         </div>
-                        <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                        <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                             {game.playerModels[playerId].score}
                         </div>
                     </div>
@@ -117,25 +117,25 @@ const DashboardGameList = (props) => {
                     <div className={`${game.gameIsRunning ? "col-6" : "col-9"}`}>
                         {' '}
                     </div>
-                    <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-8 fw-semibold">
+                    <div className="col-3 d-flex align-items-center justify-content-center text-default fs-8 fw-semibold">
                         {game.gameIsRunning ? 'Score' : 'End Score'}
                     </div>
                 </div>
                 {players.length > 0 && game.players.map((playerId, idx) => (
                     <div className="row" key={idx}>
-                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-shade100 fs-7 fw-semibold`}>
+                        <div className={`${game.gameIsRunning ? "col-6" : "col-9"} d-flex align-items-center text-default fs-7 fw-semibold`}>
                             <Avatar
                                 label={(((players || []).find(player => player.id === playerId) || {}).firstname + ' ' + ((players || []).find(player => player.id === playerId) || {}).lastname).split(" ").map((n) => n[0]).join("")}
                                 image={resolvePlayerImg(((players || []).find(player => player.id === playerId) || {}).profileImg)}
                                 shape="circle"
-                                className="avatar-sm bg-shade700 m-2 me-4"
+                                className="avatar-sm bg-surface-high m-2 me-4"
                             />
                             {((players || []).find(player => player.id === playerId) || {}).nickname || 'N / A'}
                             {game.playerModels[playerId].hasWonGame &&
                                 <FaTrophy className="ms-2 text-gold fs-6" />
                             }
                         </div>
-                        <div className="col-3 d-flex align-items-center justify-content-center text-shade100 fs-7 fw-semibold">
+                        <div className="col-3 d-flex align-items-center justify-content-center text-default fs-7 fw-semibold">
                             {game.playerModels[playerId].score}
                         </div>
                     </div>
@@ -159,7 +159,7 @@ const DashboardGameList = (props) => {
                     }
                 </div>
                 <div className="d-flex justify-content-between align-items-end mt-4">
-                    <span className="fs-9 text-shade500">{dayjs(game.createdAt).format("DD.MM.YYYY HH:mm")}</span>
+                    <span className="fs-9 text-faint">{dayjs(game.createdAt).format("DD.MM.YYYY HH:mm")}</span>
                     {!game.gameIsRunning &&
                         <a href={'/' + gamesType + '/' + game.id} rel="noopener noreferrer" className="p-button font-bold">
                             <FaChartBar title="Show Statistics" />
@@ -191,7 +191,7 @@ const DashboardGameList = (props) => {
     const emptyMessageTemplate = () => {
         return (
             <div>
-                <span className="text-shade400 fs-8 fw-normal">{emptyMessage}</span>
+                <span className="text-subtle fs-8 fw-normal">{emptyMessage}</span>
             </div>
         );
     };
