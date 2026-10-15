@@ -20,6 +20,8 @@ export default (app) => {
         clubValidator,
         ['isPublic', 'publicLiveGames', 'publicResults'].map(setting =>
             body(setting).optional().isBoolean({ strict: true }).withMessage(`${setting} must be true or false.`)),
+        body('dashboardWidgets').optional().isArray({ max: 40 }).withMessage('dashboardWidgets must be a list.'),
+        body('dashboardWidgets.*').isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
         validate,
         ClubController.update
     );

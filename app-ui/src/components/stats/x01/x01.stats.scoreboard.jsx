@@ -1,7 +1,7 @@
-import { Tag } from 'primereact/tag';
 import dayjs from 'dayjs';
 import X01StatsScoreBoardPlayer from './x01.stats.scoreboard.player';
 
+import GameStatusTag from '../../elements/game.status.tag';
 const X01StatsScoreBoard = ({ players, game }) => {
     const playerModels = game.playerModels;
 
@@ -9,8 +9,6 @@ const X01StatsScoreBoard = ({ players, game }) => {
     const player2 = players.find(p => p.id === game.players[1]);
 
     const setsScore = `${playerModels[game.players[0]].setsWon} - ${playerModels[game.players[1]].setsWon}`;
-    const gameStatus = game.gameIsRunning ? 'Running' : 'Finished';
-    const tagSeverity = game.gameIsRunning ? 'warning' : 'info';
     const formattedDate = dayjs(game.createdAt).format("DD.MM.YYYY HH:mm");
 
     return (
@@ -28,7 +26,7 @@ const X01StatsScoreBoard = ({ players, game }) => {
                 <div className="fs-8 fw-semibold text-faint">{formattedDate}</div>
                 <div className="text-default fs-1 fw-semibold">{setsScore}</div>
                 <div className="mt-3">
-                    <Tag severity={tagSeverity} value={gameStatus} rounded />
+                    <GameStatusTag running={game.gameIsRunning} />
                 </div>
             </div>
 

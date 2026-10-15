@@ -51,6 +51,16 @@
         }
     }
     
+    // Depth: panels and pictures lift off the page a little, like the badge medals
+    .p-panel {
+        border-radius: $borderRadius;
+        box-shadow: 0 0.75rem 1.75rem -0.75rem rgba(0, 0, 0, 0.75);
+    }
+
+    .p-avatar.p-avatar-circle {
+        box-shadow: 0 0 0 2px $surfaceColor, 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+    }
+
     // Switches: this PrimeReact version marks the checked state with p-highlight
     // and expects the layout rules below, which the base theme predates
     .p-inputswitch {

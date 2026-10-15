@@ -956,6 +956,52 @@ paths:
 
   # ---------- Statistics ----------------------------------------------------
 
+  /api/stats/club:
+    get:
+      tags: [Statistics]
+      summary: Club dashboard data - facts about the club, leaderboards over all finished games, recent and running games
+      responses:
+        '200':
+          description: OK
+
+  /api/stats/badges:
+    get:
+      tags: [Statistics]
+      summary: Badge overview of the club - every player with their number of badges and the latest ones
+      responses:
+        '200':
+          description: OK
+
+  /api/stats/badges/player/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Statistics]
+      summary: All badges for one player - earned ones with date and source, open ones with progress
+      responses:
+        '200':
+          description: OK
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/stats/badges/game/{type}/{id}:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [x01, cricket, elimination]
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Statistics]
+      summary: The badges each player earned in one game
+      responses:
+        '200':
+          description: OK
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/stats/player/{id}:
     get:
       tags: [Statistics]
@@ -1156,6 +1202,7 @@ components:
         isPublic: { type: boolean, description: List the club on the public start page }
         publicLiveGames: { type: boolean, description: Show running games of a public club }
         publicResults: { type: boolean, description: Show finished games of a public club }
+        dashboardWidgets: { type: array, items: { type: string }, description: Ids of the dashboard widgets to show, in order. An empty list means the default set }
 
     RoleInput:
       type: object

@@ -76,6 +76,7 @@ export const update = async (req, res) => {
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
     }
+    if (Array.isArray(req.body.dashboardWidgets)) club.dashboardWidgets = req.body.dashboardWidgets;
     await club.save();
     res.json(await withAdmins(club));
 };

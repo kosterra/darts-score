@@ -6,6 +6,20 @@ export default (mongoose) => {
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
       club:       { type: mongoose.Schema.Types.ObjectId, ref: 'club', index: true },
+      // Badges the player has collected, each with the game or training it was earned in
+      badges: [{
+        _id: false,
+        badge:      { type: String, required: true },
+        earnedAt:   { type: Date, required: true },
+        sourceType: String,
+        sourceId:   String,
+      }],
+      // Weeks played in a row, kept up to date with the badges
+      activity: {
+        lastWeek:       { type: Number, default: null },
+        weekStreak:     { type: Number, default: 0 },
+        bestWeekStreak: { type: Number, default: 0 },
+      },
       // Whether the nickname may be shown on the public start page; otherwise
       // the player appears there without a name
       publicProfile: { type: Boolean, default: false },

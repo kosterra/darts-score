@@ -1,5 +1,7 @@
-import { Tag } from 'primereact/tag';
 import { FaTrophy } from "react-icons/fa";
+
+import GameTypeTag from '../elements/game.type.tag';
+import GameStatusTag from '../elements/game.status.tag';
 
 /**
  * One running or finished game on the public start page.
@@ -12,7 +14,10 @@ const PublicGameCard = ({ game, live }) => {
                     <span className="text-default fw-semibold text-break">{game.club}</span>
                     <span className="text-faint fs-8">{game.format}</span>
                 </div>
-                <Tag value={live ? 'Live' : game.label} severity={live ? 'danger' : 'secondary'} />
+                <span className="d-flex flex-wrap justify-content-end gap-1 flex-shrink-0">
+                    <GameTypeTag type={game.type} />
+                    <GameStatusTag running={live} label="Live" />
+                </span>
             </div>
             <div className="d-flex flex-column gap-2">
                 {game.players.map((player, idx) => (

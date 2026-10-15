@@ -1,0 +1,112 @@
+// Club dashboard widgets
+
+.dashboard-widget {
+    // widgets in one row share its height, so their panels fill it
+    display: flex;
+    flex-direction: column;
+
+    .p-toggleable-content,
+    .p-panel-content {
+        flex-grow: 1;
+    }
+}
+
+.leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .leaderboard-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: $borderRadius;
+    }
+
+    // the leader stands out a little
+    .leaderboard-first {
+        background: $surfaceRaisedColor;
+    }
+
+    .leaderboard-rank {
+        width: 1.5rem;
+        flex-shrink: 0;
+        text-align: center;
+        color: $textFaintColor;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .leaderboard-name {
+        flex-grow: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .leaderboard-value {
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.timeline {
+    // the line the entries hang on
+    border-left: 2px solid $borderDefaultColor;
+    margin-left: 0.4rem !important;
+
+    .timeline-entry {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0 0.5rem 1.25rem;
+
+        // the dot on the line
+        &::before {
+            content: '';
+            position: absolute;
+            left: -0.45rem;
+            top: 50%;
+            width: 0.75rem;
+            height: 0.75rem;
+            margin-top: -0.375rem;
+            border-radius: 50%;
+            background: $primaryColor;
+            border: 2px solid $surfaceColor;
+        }
+
+        &.timeline-running::before {
+            background: map-get($colors, "red");
+        }
+    }
+
+    .timeline-time {
+        width: 2.75rem;
+        flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .timeline-body {
+        flex-grow: 1;
+        min-width: 0;
+    }
+}
+
+// Game types, each in its own colour. Orange and blue are taken by the game
+// status (running / finished), so types use green, gold and purple.
+.game-type-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1d1c1a;
+
+    &.game-type-x01 { background: #7ecca5; }
+    &.game-type-cricket { background: #d4c783; }
+    &.game-type-elimination { background: #b98be8; }
+}

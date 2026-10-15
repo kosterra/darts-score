@@ -27,6 +27,7 @@ import authRoutes      from './src/routes/auth.routes.js';
 import clubRoutes      from './src/routes/club.routes.js';
 import userRoutes      from './src/routes/user.routes.js';
 import publicRoutes    from './src/routes/public.routes.js';
+import badgeRoutes     from './src/routes/badge.routes.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
@@ -116,6 +117,7 @@ publicRoutes(app);
 app.use('/api', requireAuth);
 clubRoutes(app);
 userRoutes(app);
+badgeRoutes(app);
 
 // ... and players, games, training and statistics also need a selected club
 app.use(['/api/players', '/api/games', '/api/training', '/api/stats'], requireClub);

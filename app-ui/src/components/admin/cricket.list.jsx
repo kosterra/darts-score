@@ -7,7 +7,6 @@ import { SelectButton } from 'primereact/selectbutton';
 import { Dropdown } from 'primereact/dropdown';
 import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
-import { Tag } from 'primereact/tag';
 import { FaTrophy, FaChartColumn } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
 
@@ -19,6 +18,7 @@ import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import { resolvePlayerImg } from '../../utils/image.utils';
 
+import GameStatusTag from '../elements/game.status.tag';
 const CricketList = (props) => {
     const {
         deleteActive = false,
@@ -155,11 +155,7 @@ const CricketList = (props) => {
                                     <span className="fs-5 text-default fw-semibold">
                                         Cricket Game
                                     </span>
-                                    <Tag
-                                        severity={game.gameIsRunning ? 'warning' : 'info'}
-                                        value={game.gameIsRunning ? 'Running' : 'Finished'}
-                                        rounded
-                                    />
+                                    <GameStatusTag running={game.gameIsRunning} />
                                 </div>
                                 <div>
                                     <span className="fs-8 text-faint">
@@ -209,11 +205,7 @@ const CricketList = (props) => {
                             <span className="fs-5 text-default fw-semibold">
                                 Cricket Game
                             </span>
-                            <Tag
-                                severity={game.gameIsRunning ? 'warning' : 'info'}
-                                value={game.gameIsRunning ? 'Running' : 'Finished'}
-                                rounded
-                            />
+                            <GameStatusTag running={game.gameIsRunning} />
                         </div>
                     </div>
                     <div className="row pt-2">

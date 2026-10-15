@@ -1,132 +1,109 @@
-import { useState, useEffect } from 'react';
-import DashboardGameList from './dashboard.gamelist';
+import { useEffect, useMemo, useState } from 'react';
+import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
+import dayjs from 'dayjs';
 
-import X01Service from '../../services/x01.service';
-import CricketService from '../../services/cricket.service';
-import EliminationService from '../../services/elimination.service';
-import PlayerService from '../../services/player.service';
+import StatsService from '../../services/stats.service';
+import PageLoader from '../elements/page.loader';
+import { useAuth } from '../../utils/auth.context';
+import { resolveWidgets } from './dashboard.widgets';
+import DashboardCustomizeDialog from './dashboard.customize.dialog';
+import LeaderboardWidget from './widgets/leaderboard.widget';
+import TotalsWidget from './widgets/totals.widget';
+import RunningGamesWidget from './widgets/running.games.widget';
+import TimelineWidget from './widgets/timeline.widget';
 
+const formatDate = (date) => date ? dayjs(date).format('DD.MM.YYYY') : '–';
+
+/**
+ * The club dashboard: the club at a glance, followed by the widgets the club chose.
+ */
 const Dashboard = () => {
-	
-	const [runningX01Games, setRunningX01Games] = useState([]);
-	const [finishedX01Games, setFinishedX01Games] = useState([]);
-	const [runningCricketGames, setRunningCricketGames] = useState([]);
-	const [finishedCricketGames, setFinishedCricketGames] = useState([]);
-	const [runningEliminationGames, setRunningEliminationGames] = useState([]);
-	const [finishedEliminationGames, setFinishedEliminationGames] = useState([]);
-	const [players, setPlayers] = useState([]);
+    const { activeClub, isClubAdmin, refreshClubs } = useAuth();
 
-	const loadRunningX01Games = async () => {
-		let data = await X01Service.loadRunningX01Games();
-		setRunningX01Games(data);
-	}
+    const [stats, setStats] = useState(null);
+    const [failed, setFailed] = useState(false);
+    const [customizing, setCustomizing] = useState(false);
 
-	const loadRunningCricketGames = async () => {
-		let data = await CricketService.loadRunningCricketGames();
-		setRunningCricketGames(data);
-	}
+    useEffect(() => {
+        const load = async () => {
+            try {
+                setStats(await StatsService.loadClubStats());
+            } catch (error) {
+                console.error('Failed to load the club dashboard', error);
+                setFailed(true);
+            }
+        };
+        load();
+    }, []);
 
-	const loadRunningEliminationGames = async () => {
-		let data = await EliminationService.loadRunningEliminationGames();
-		setRunningEliminationGames(data);
-	}
+    const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
+    const widgets = resolveWidgets(activeClub?.dashboardWidgets);
 
-	const loadFinishedX01Games = async () => {
-		let data = await X01Service.loadFinishedX01Games();
-		setFinishedX01Games(data);
-	}
+    if (failed) {
+        return <div className="container-fluid p-4 text-subtle">The dashboard could not be loaded. Please reload the page.</div>;
+    }
+    if (!stats) return <PageLoader />;
 
-	const loadFinishedCricketGames = async () => {
-		let data = await CricketService.loadFinishedCricketGames();
-		setFinishedCricketGames(data);
-	}
+    const { club, totals } = stats;
+    const facts = [
+        ['Club since', formatDate(club.createdAt)],
+        ['Players', club.playerCount],
+        ['Admins', club.adminCount],
+        ['Games played', totals.gamesPlayed],
+        ['Last game', formatDate(totals.lastGameAt)],
+    ];
 
-	const loadFinishedEliminationGames = async () => {
-		let data = await EliminationService.loadFinishedEliminationGames();
-		setFinishedEliminationGames(data);
-	}
+    const renderWidget = (widget) => {
+        switch (widget.kind) {
+            case 'totals': return <TotalsWidget totals={totals} />;
+            case 'runningGames': return <RunningGamesWidget widget={widget} games={stats.runningGames} total={totals.running} players={players} />;
+            case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
+            case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;
+            default: return null;
+        }
+    };
 
-	const loadPlayers = async () => {
-		let data = await PlayerService.searchPlayers('', { includeGuests: true });
-		setPlayers(data);
-	}
+    return (
+        <div className="container-fluid p-4 border-0">
+            <header className="dashboard-header bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div className="d-flex flex-column gap-3" style={{ minWidth: 0 }}>
+                    <div className="d-flex flex-wrap align-items-center gap-3">
+                        <h1 className="fs-2 fw-semibold text-default m-0 text-break">{club.name}</h1>
+                        <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
+                    </div>
+                    <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                        {facts.map(([label, value]) => (
+                            <div key={label}>
+                                <dt className="text-faint fs-8 fw-normal">{label}</dt>
+                                <dd className="text-default fw-semibold m-0" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </div>
+                {isClubAdmin &&
+                    <Button label="Customize" icon="pi pi-sliders-h" size="small" onClick={() => setCustomizing(true)} />
+                }
+            </header>
 
-	useEffect(() => {
-		loadRunningX01Games();
-		loadFinishedX01Games();
-		loadRunningCricketGames();
-		loadFinishedCricketGames();
-		loadRunningEliminationGames();
-		loadFinishedEliminationGames();
-		loadPlayers();
-	}, []);
+            <div className="row g-4">
+                {widgets.map(widget => (
+                    <div className={widget.cols} key={widget.id}>
+                        {renderWidget(widget)}
+                    </div>
+                ))}
+            </div>
 
-	return (
-		<div className="container-fluid p-4 border-0">
-			<div className="row">
-				{runningX01Games && runningX01Games.length > 0 &&
-					<DashboardGameList
-						title="X01"
-						subtitle="Currently Running"
-						games={runningX01Games}
-						players={players}
-						gamesType="x01"
-						emptyMessage="Currently no running X01 games"
-					/>
-				}
-				{finishedX01Games && finishedX01Games.length > 0 &&
-					<DashboardGameList
-						title="X01"
-						subtitle="Recently Finished"
-						games={finishedX01Games}
-						players={players}
-						gamesType="x01"
-						emptyMessage="Not yet any X01 games played"
-					/>
-				}
-				{runningCricketGames && runningCricketGames.length > 0 &&
-					<DashboardGameList
-						title="Cricket"
-						subtitle="Currently Running"
-						games={runningCricketGames}
-						players={players}
-						gamesType="cricket"
-						emptyMessage="Currently no running Cricket games"
-					/>
-				}
-				{finishedCricketGames && finishedCricketGames.length > 0 &&
-					<DashboardGameList
-						title="Cricket"
-						subtitle="Recently Finished"
-						games={finishedCricketGames}
-						players={players}
-						gamesType="cricket"
-						emptyMessage="Not yet any Cricket games played"
-					/>
-				}
-				{runningEliminationGames && runningEliminationGames.length > 0 &&
-					<DashboardGameList
-						title="Elimination"
-						subtitle="Currently Running"
-						games={runningEliminationGames}
-						players={players}
-						gamesType="elimination"
-						emptyMessage="Currently no running Elimination games"
-					/>
-				}
-				{finishedEliminationGames && finishedEliminationGames.length > 0 &&
-					<DashboardGameList
-						title="Elimination"
-						subtitle="Recently Finished"
-						games={finishedEliminationGames}
-						players={players}
-						gamesType="elimination"
-						emptyMessage="Not yet any Elimination games played"
-					/>
-				}
-			</div>
-		</div>
-	);
+            {isClubAdmin &&
+                <DashboardCustomizeDialog
+                    club={activeClub}
+                    visible={customizing}
+                    onHide={() => setCustomizing(false)}
+                    onSaved={refreshClubs}
+                />
+            }
+        </div>
+    );
 };
 
 export default Dashboard;

@@ -14,7 +14,7 @@ const X01Game = () => {
 
     useEffect(() => {
         if (game?.hasWinner) {
-            navigate(`/stats/games/x01/${game.id}`, { replace: true });
+            navigate(`/stats/games/x01/${game.id}`, { replace: true, state: { justFinished: true } });
         }
     }, [game?.hasWinner, game?.id, navigate]);
 

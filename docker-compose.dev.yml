@@ -71,6 +71,8 @@ services:
     volumes:
       - ./app-ui:/ui
       - /ui/node_modules
+      # the app version shown on the About page
+      - ./package.json:/package.json:ro
     environment:
       API_PROXY_TARGET: http://api:3001
     restart: unless-stopped

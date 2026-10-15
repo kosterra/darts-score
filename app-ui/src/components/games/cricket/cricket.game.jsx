@@ -1,4 +1,4 @@
-import { Fragment, useContext } from 'react';
+import { Fragment, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { SplitButton } from 'primereact/splitbutton';
@@ -12,10 +12,26 @@ import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import CricketScoreBoard from './cricket.scoreboard';
 import CricketScoreInputBoard from './cricket.score.input.board';
 import PageLoader from '../../elements/page.loader';
+import GameBadges from '../../badges/game.badges';
 
 const CricketGame = () => {
     const navigate = useNavigate();
     const { game, players, loading } = useContext(CricketContext);
+
+    // Celebrate only a win that happens while this page is open, not a finished game opened later
+    const wasRunning = useRef(false);
+    const [justFinished, setJustFinished] = useState(false);
+
+    useEffect(() => {
+        if (loading.initGameLoading) return;
+        if (!game.hasWinner) {
+            wasRunning.current = true;
+            setJustFinished(false);
+        } else if (wasRunning.current) {
+            wasRunning.current = false;
+            setJustFinished(true);
+        }
+    }, [game.hasWinner, game.id, loading.initGameLoading]);
 
     const onNewGame = () => navigate("/cricket", { replace: true });
     const onFinishGame = () => navigate("/", { replace: true });
@@ -75,6 +91,17 @@ const CricketGame = () => {
 
             {game.hasWinner && (
                 <div className="container-fluid mt-4">
+                    <div className="row justify-content-center mb-4">
+                        <div className="col-12 col-md-10 col-lg-8">
+                            <GameBadges
+                                gameType="cricket"
+                                gameId={game.id}
+                                players={players}
+                                winner={players.find(player => game.playerModels?.[player.id]?.hasWonGame)}
+                                celebrate={justFinished}
+                            />
+                        </div>
+                    </div>
                     <div className="row">
                         <div className="col d-flex justify-content-center align-items-center gap-2">
                             <SplitButton

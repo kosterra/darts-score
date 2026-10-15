@@ -119,6 +119,21 @@ The app requires a login. Every person has one account; players, games, training
 - **Guest** — anyone in a club can add a guest while setting up a game. A guest plays in that game only: they are not a club member, are not offered for later games and do not appear in the players list for picking. Club admins see guests under *Admin → Players* and can turn one into a regular player.
 - **Global admin** — sees and manages every club and all users. The first global admin is created on startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when no global admin exists yet; changing these variables later does not touch existing accounts. Further global admins are promoted under *Admin → Users*.
 
+### Club dashboard
+
+After login the start page is the dashboard of the selected club: the club's name and key facts, followed by widgets. Available widgets are the club's numbers, running games, a timeline of recent games, and leaderboards (most wins, win rate, highest X01 average, most 180s, highest checkout, most games, wins per game type, most darts thrown). Club admins choose which widgets are shown and in which order with *Customize*; the choice is stored per club and applies to everyone in it.
+
+### Badges and celebrations
+
+Players collect badges for what they achieve, shown in five categories: *Milestones* (games played, weeks played in a row, darts thrown), *Winning* (wins, streaks, whitewashes, comebacks from two legs down, Cricket and Elimination wins, all-rounder), *Scoring* (180s, three 180s in one game, game average, bed and breakfast), *Finishing* (high finishes, bull finishes, the 170 big fish, the Shanghai finish, the nine-darter, the madhouse finish on double 1) and *Training* (Around the Clock sessions and personal records). Most come in several tiers (bronze, silver, gold and beyond). The badge pages also show each player's current and best weekly streak.
+
+Game status is shown the same way everywhere: orange for running games, blue for finished ones. Game types have their own colours: X01 green, Cricket gold, Elimination purple.
+
+- Badges are worked out automatically whenever a game is finished or a training is saved, from the player's whole history in the club. Guests and solo-game "wins" do not count.
+- *Statistics → Badges* shows every player's collection, with the progress towards the badges still open.
+- When a game is won, the winner is celebrated with an animation and the badges earned in that game; the game's statistics page keeps listing them. A new Around the Clock record is celebrated the same way.
+- On upgrade, badges already earned in past games are awarded by a migration, each dated to the game it was reached in.
+
 ### Public start page and privacy
 
 Visitors who are not logged in see a public start page: what the app offers, overall numbers (clubs, players, games played), and the running games and latest results of public clubs. It refreshes every 15 seconds.
@@ -139,7 +154,7 @@ Upgrading from a version without accounts and clubs:
 
 1. Back up the database first, e.g. `docker exec <mongo-container> mongodump --archive --gzip -u <user> -p <password> --authenticationDatabase admin > backup.gz`.
 2. Set `SESSION_SECRET`, `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`.
-3. Start the new version. Existing players, games and training entries are moved into a "Default Club" managed by the global admin; rename it and add further admins in the app.
+3. Start the new version. Existing players, games and training entries are moved into a "Default Club" managed by the global admin; rename it and add further admins in the app. The club is dated from the first game ever played, so the dashboard shows how long the club has really existed.
 
 If `ADMIN_EMAIL` / `ADMIN_PASSWORD` are missing, the server still starts but logs an error and the existing data stays hidden; set them and restart to complete the migration.
 

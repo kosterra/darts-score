@@ -7,6 +7,9 @@ export default (mongoose) => {
       isPublic:        { type: Boolean, default: false },
       publicLiveGames: { type: Boolean, default: true },
       publicResults:   { type: Boolean, default: true },
+      // Widgets on the club dashboard, in display order. Empty means the default set;
+      // the UI owns the list of available widgets.
+      dashboardWidgets: { type: [String], default: undefined },
       // Users who manage the club; always at least one
       admins: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }], index: true },
     },

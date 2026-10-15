@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { SplitButton } from 'primereact/splitbutton';
@@ -20,6 +20,7 @@ import X01StatsTab from './x01.stats.tab';
 import X01StatsCharts from './x01.stats.charts';
 import X01GameHeader from '../../games/x01/x01.game.header';
 import PageLoader from '../../elements/page.loader';
+import GameBadges from '../../badges/game.badges';
 
 const X01GameStats = () => {
     const { id } = useParams();
@@ -28,6 +29,13 @@ const X01GameStats = () => {
     const [game, setGame] = useState(null);
     const [players, setPlayers] = useState(null);
     const [gameStats, setGameStats] = useState({});
+    // set by the game page when this game was won a moment ago
+    const [justFinished] = useState(Boolean(useLocation().state?.justFinished));
+
+    useEffect(() => {
+        // forget the marker, so reloading the page does not celebrate again
+        if (justFinished) window.history.replaceState({ ...window.history.state, usr: null }, '');
+    }, [justFinished]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -117,6 +125,19 @@ const X01GameStats = () => {
                         ? <X01StatsScoreBoard players={players} game={game} />
                         : <X01StatsScoreBoardMultiple players={players} game={game} />
                     }
+                </div>
+            </div>
+
+            <div className="row d-flex justify-content-center align-items-center">
+                <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0">
+                    <GameBadges
+                        gameType="x01"
+                        gameId={game.id}
+                        players={players}
+                        winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
+                        celebrate={justFinished && game.hasWinner}
+                        className="mt-3"
+                    />
                 </div>
             </div>
 

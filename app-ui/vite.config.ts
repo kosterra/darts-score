@@ -1,6 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { existsSync, readFileSync } from 'fs'
+
+// The app's version lives in the repository's root package.json
+const rootPackage = path.resolve(import.meta.dirname, '../package.json')
+const appVersion = process.env.APP_VERSION
+  ?? (existsSync(rootPackage) ? JSON.parse(readFileSync(rootPackage, 'utf8')).version : 'dev')
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,6 +22,10 @@ export default defineConfig({
     },
   },
   plugins: [react()],
+  define: {
+    // read as import.meta.env.VITE_APP_VERSION
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+  },
   css: {
     preprocessorOptions: {
       scss: {

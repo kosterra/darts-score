@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { Tag } from 'primereact/tag';
 import { Avatar } from 'primereact/avatar';
 
 import PlayerService from '../../../services/player.service';
 import PageLoader from '../../elements/page.loader';
+import GameBadges from '../../badges/game.badges';
 import EliminationService from '../../../services/elimination.service';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 
@@ -12,6 +13,13 @@ const EliminationGameStats = () => {
     const { id } = useParams();
     const [game, setGame] = useState(null);
     const [players, setPlayers] = useState(null);
+    // set by the game page when this game was won a moment ago
+    const [justFinished] = useState(Boolean(useLocation().state?.justFinished));
+
+    useEffect(() => {
+        // forget the marker, so reloading the page does not celebrate again
+        if (justFinished) window.history.replaceState({ ...window.history.state, usr: null }, '');
+    }, [justFinished]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -55,6 +63,12 @@ const EliminationGameStats = () => {
                     </div>
                 </div>
             )}
+
+            <div className="row justify-content-center mb-4">
+                <div className="col-12 col-md-8 col-xl-6">
+                    <GameBadges gameType="elimination" gameId={game.id} players={players} winner={winner} celebrate={justFinished && !!winner} />
+                </div>
+            </div>
 
             {/* Per-player stats */}
             <div className="row justify-content-center g-3">

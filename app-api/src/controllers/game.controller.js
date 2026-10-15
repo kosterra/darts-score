@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { createGameFilterQuery } from '../utils/game.utils.js';
+import { syncGameBadges } from '../utils/badge.service.js';
 
 const DEFAULT_LIMIT = 100;
 
@@ -88,6 +89,8 @@ export const createGameController = (Model, gameName) => {
             const changes = { ...req.body, club: req.club._id };
             const data = validId(req) ? await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true }) : null;
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            // A finished game may have earned its players new badges
+            if (data.hasWinner) await syncGameBadges(req.club._id, data);
             res.json(data);
         } catch (err) {
             logger.error(err, `Failed to update ${label} game id=${id}`);

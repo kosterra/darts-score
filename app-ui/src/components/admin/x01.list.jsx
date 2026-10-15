@@ -7,7 +7,6 @@ import { SelectButton } from 'primereact/selectbutton';
 import { Dropdown } from 'primereact/dropdown';
 import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
-import { Tag } from 'primereact/tag';
 import { FaTrophy, FaChartColumn } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
 
@@ -19,6 +18,7 @@ import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import { resolvePlayerImg } from '../../utils/image.utils';
 
+import GameStatusTag from '../elements/game.status.tag';
 const X01List = (props) => {
     const {
         deleteActive = false,
@@ -167,11 +167,7 @@ const X01List = (props) => {
                                     <span className="display-6 fw-semibold text-default">
                                         {game.startingScore}
                                     </span>
-                                    <Tag
-                                        severity={game.gameIsRunning ? 'warning' : 'info'}
-                                        value={game.gameIsRunning ? 'Running' : 'Finished'}
-                                        rounded
-                                    />
+                                    <GameStatusTag running={game.gameIsRunning} />
                                 </div>
                                 <div className="d-flex flex-column">
                                     <span className="fs-7 text-faint fw-semibold">
@@ -229,11 +225,7 @@ const X01List = (props) => {
                             <span className="display-6 fw-semibold text-default">
                                 {game.startingScore}
                             </span>
-                            <Tag
-                                severity={game.gameIsRunning ? 'warning' : 'info'}
-                                value={game.gameIsRunning ? 'Running' : 'Finished'}
-                                rounded
-                            />
+                            <GameStatusTag running={game.gameIsRunning} />
                         </div>
                     </div>
                     <div className="row mb-3">

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { InputText } from 'primereact/inputtext';
@@ -17,7 +18,8 @@ const MIN_PASSWORD_LENGTH = 8;
 
 const ProfilePage = () => {
     const toast = useRef(null);
-    const { user, setUser, clubs, isGlobalAdmin, logout, refreshClubs } = useAuth();
+    const navigate = useNavigate();
+    const { user, setUser, clubs, isGlobalAdmin, logout, refreshClubs, selectClub } = useAuth();
 
     const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email });
     const [passwords, setPasswords] = useState({ current: '', next: '', repeat: '' });
@@ -81,6 +83,12 @@ const ProfilePage = () => {
         } catch (error) {
             showError('Add as player', error);
         }
+    };
+
+    // Badges belong to a club, so the app switches to it first
+    const onShowBadges = (club) => {
+        selectClub(club.id);
+        navigate(`/badges/${playerByClub[club.id].id}`);
     };
 
     const onTogglePublic = async (club, publicProfile) => {
@@ -166,7 +174,18 @@ const ProfilePage = () => {
                                         {playerByClub[club.id]
                                             ? (
                                                 <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                                                    <span className="text-subtle">You play as <span className="text-default fw-semibold">{playerByClub[club.id].nickname}</span></span>
+                                                    <span className="text-subtle">
+                                                        You play as <span className="text-default fw-semibold">{playerByClub[club.id].nickname}</span>
+                                                        <Button
+                                                            type="button"
+                                                            label="My badges"
+                                                            icon="pi pi-star"
+                                                            size="small"
+                                                            text
+                                                            className="ms-2"
+                                                            onClick={() => onShowBadges(club)}
+                                                        />
+                                                    </span>
                                                     <span className="d-flex align-items-center gap-2">
                                                         <label htmlFor={`profile-public-${club.id}`} className="text-subtle fs-7">Show my nickname on the public page</label>
                                                         <InputSwitch

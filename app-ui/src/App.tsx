@@ -22,6 +22,7 @@ const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
+const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
 const LoginPage = lazy(() => import('./components/auth/login.page'));
 const LandingPage = lazy(() => import('./components/landing/_landing.page'));
@@ -87,6 +88,8 @@ function AppContent() {
                 <Route path="/training" element={<TrainingPage />} />
                 <Route path="/training/atc" element={<TrainingPage />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/badges" element={<BadgesPage />} />
+                <Route path="/badges/:id" element={<BadgesPage />} />
                 <Route path="/clubs" element={<ClubsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin" element={<Navigate replace to="/admin/players" />} />

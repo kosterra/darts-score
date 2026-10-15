@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
-import { FaChartLine, FaTrophy } from "react-icons/fa6";
+import { FaChartLine, FaMedal, FaTrophy } from "react-icons/fa6";
 
 import {
     Menu,
@@ -39,6 +39,9 @@ const SidebarStats = (props) => {
                     <MenuItem component={<Link to="/stats/games/cricket" />} className="fs-8 fw-semibold"> Cricket</MenuItem>
                     <MenuItem component={<Link to="/stats/games/elimination" />} className="fs-8 fw-semibold"> Elimination</MenuItem>
                 </SubMenu>
+                <MenuItem icon={<FaMedal className="fs-6" />} component={<Link to="/badges" />} className="fs-8 fw-semibold">
+                    Badges
+                </MenuItem>
             </Menu>
         </Fragment>
     );

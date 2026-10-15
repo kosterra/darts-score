@@ -23,7 +23,7 @@ const EliminationGame = () => {
         }
 
         if (game.hasWinner) {
-            navigate(`/stats/games/elimination/${game.id}`, { replace: true });
+            navigate(`/stats/games/elimination/${game.id}`, { replace: true, state: { justFinished: true } });
         }
     }, [game.hasWinner, loading.initGameLoading, navigate, game.id]);
 

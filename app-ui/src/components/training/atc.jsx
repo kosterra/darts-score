@@ -9,11 +9,14 @@ import ATCService from "../../services/atc.service";
 import ATCEntryModel from "../../models/atc.model";
 import ATCModeConfig from './atc.mode.config';
 import ATCConfigOptions from './atc.config.options';
+import Celebration from '../badges/celebration';
 
 const ATC = () => {
     const [player, setPlayer] = useState({});
     const [mode, setMode] = useState(ATCConfigOptions.modeOptions.default);
     const [atcEntries, setATCEntries] = useState([]);
+    // what to celebrate after a training: { title, subtitle, player, badgeGroups }
+    const [celebration, setCelebration] = useState(null);
 
     useEffect(() => {
         loadATCEntries();
@@ -51,7 +54,16 @@ const ATC = () => {
         atcEntry.player = player;
 
         try {
-            if (await ATCService.createATCEntry(atcEntry)) {
+            const saved = await ATCService.createATCEntry(atcEntry);
+            if (saved) {
+                if (saved.isRecord || saved.newBadges?.length > 0) {
+                    setCelebration({
+                        title: saved.isRecord ? 'New record!' : 'New badge!',
+                        subtitle: saved.isRecord ? `A new personal best in ${mode}` : 'Training complete',
+                        player,
+                        badgeGroups: saved.newBadges?.length > 0 ? [{ player, badges: saved.newBadges }] : []
+                    });
+                }
                 toast.current.show(
                     {
                         severity: 'success',
@@ -113,6 +125,7 @@ const ATC = () => {
                     <ATCEntryList atcEntries={atcEntries} />
                 </div>
             </div>
+            {celebration && <Celebration {...celebration} onClose={() => setCelebration(null)} />}
             <Toast ref={toast} position="bottom-right" />
         </div>
     );

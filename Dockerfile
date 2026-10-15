@@ -13,6 +13,8 @@ COPY app-ui/package.json app-ui/package-lock.json ./
 RUN npm ci --no-audit --no-fund --loglevel warn
 
 COPY app-ui/ ./
+# the version shown in the app comes from the root package.json (read as ../package.json)
+COPY package.json /package.json
 RUN npm run build
 
 
@@ -49,6 +51,7 @@ COPY --chown=node:node app-ui/package.json app-ui/package-lock.json ./
 RUN npm ci --no-audit --no-fund --loglevel warn
 
 COPY --chown=node:node app-ui/ ./
+COPY package.json /package.json
 
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
