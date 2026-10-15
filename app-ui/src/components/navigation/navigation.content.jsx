@@ -247,7 +247,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onClose, onNavigate })
                     </div>
                 ))}
                 {/* About closes the menu, without a section of its own */}
-                <ul className="nav-bottom list-unstyled m-0">
+                <ul className="nav-bottom list-unstyled">
                     <li>
                         <NavLink to="/about" className={linkClass} title={collapsed ? 'About' : undefined} onClick={onNavigate}>
                             <FaCircleQuestion className="nav-icon" aria-hidden="true" />

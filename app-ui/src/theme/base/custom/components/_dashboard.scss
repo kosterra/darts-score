@@ -78,12 +78,13 @@
             height: 0.75rem;
             margin-top: -0.375rem;
             border-radius: 50%;
-            background: $primaryColor;
+            // the colours of the status tags: blue for finished, orange for running
+            background: $infoButtonBg;
             border: 2px solid $surfaceColor;
         }
 
         &.timeline-running::before {
-            background: map-get($colors, "red");
+            background: $warningButtonBg;
         }
     }
 

@@ -248,9 +248,10 @@ $navRailWidth: 4.75rem;
     }
 
     // About sits at the bottom, outside the sections
+    // About closes the menu below a plain rule, spaced like the rules of the section titles
     .nav-bottom {
-        margin-top: 0.75rem;
-        padding-top: 0.5rem;
+        margin: 1.8rem 0 0;
+        padding-top: 1rem;
         border-top: 1px solid $shade700;
     }
 
@@ -296,7 +297,8 @@ $navRailWidth: 4.75rem;
             display: none !important;
         }
 
-        .nav-section + .nav-section {
+        .nav-section + .nav-section,
+        .nav-bottom {
             margin-top: 0.5rem;
             padding-top: 0.5rem;
             border-top: 1px solid $shade700;
