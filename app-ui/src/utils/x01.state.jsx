@@ -1,9 +1,10 @@
-import { Fragment, useEffect, useRef, useReducer } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useReducer, useState } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { Toast } from 'primereact/toast';
 
 import X01Context from './x01.context';
 import X01Reducer from './x01.reducer';
+import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import X01Service from '../services/x01.service';
 import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
@@ -69,6 +70,9 @@ const X01State = props => {
     };
 
     const [state, dispatch] = useReducer(X01Reducer, initialState);
+    // { key, name } while the 180 celebration plays
+    const [oneEighty, setOneEighty] = useState(null);
+    const endOneEighty = useCallback(() => setOneEighty(null), []);
 
     // fetch a x01 game from the API
     useEffect(() => {
@@ -208,6 +212,10 @@ const X01State = props => {
         }];
 
         let hasBusted = checkIfScoreIsBusted(currentScore)
+        if (!hasBusted && roundScore === 180) {
+            const player = state.players.find(p => p.id === state.game.currentPlayerTurn);
+            setOneEighty({ key: Date.now(), name: player?.nickname ?? '' });
+        }
         let hasWonLeg = false;
         let hasWonSet = false;
         let hasWonGame = false;
@@ -1081,6 +1089,7 @@ const X01State = props => {
             >
                 {props.children}
             </X01Context.Provider>
+            <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>
     );

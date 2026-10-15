@@ -12,6 +12,7 @@ const CHANGELOG = [
             'Club dashboard with leaderboards, a timeline of recent games and widgets each club can arrange.',
             'Badges for milestones, wins, scoring, finishes and training, with a celebration when you win.',
             'Weekly streaks: see how many weeks in a row you have played.',
+            'A celebration for every 180 in X01 and Elimination, without holding up the next player.',
             'Forgot your password? Reset it by email.',
             'New side navigation with your profile at the bottom; on phones it opens as a drawer.',
             'Clubs can have a logo and a description.',
