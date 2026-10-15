@@ -26,6 +26,7 @@ import atcRoutes       from './src/routes/atc.routes.js';
 import authRoutes      from './src/routes/auth.routes.js';
 import clubRoutes      from './src/routes/club.routes.js';
 import userRoutes      from './src/routes/user.routes.js';
+import adminRoutes     from './src/routes/admin.routes.js';
 import publicRoutes    from './src/routes/public.routes.js';
 import badgeRoutes     from './src/routes/badge.routes.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
@@ -118,6 +119,7 @@ clubLogoRoutes(app);
 app.use('/api', requireAuth);
 clubRoutes(app);
 userRoutes(app);
+adminRoutes(app);
 badgeRoutes(app);
 
 // ... and players, games, training and statistics also need a selected club

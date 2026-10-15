@@ -127,9 +127,9 @@ MONGO_INITDB_DATABASE=darts_score
 | `SMTP_USER` / `SMTP_PASSWORD` | no | — | SMTP login, if the server needs one |
 | `SMTP_FROM` | no | `Darts Score <no-reply@darts-score.local>` | Sender of the mails |
 
-The app requires a login. Anyone can register and create clubs with their own players and games. A club can have several admins, and an admin can give players a login so they can play and train on their own. The global admin manages all clubs and users.
+The app requires a login. Anyone can register and create clubs with their own players and games. A club can have several admins, and an admin can give players a login so they can play and train on their own. The global admin looks after all clubs and users on the *Administration* page and is meant for that only; play with a normal account.
 
-**Upgrading:** database migrations run automatically on startup. Back up the database first, set `SESSION_SECRET`, `ADMIN_EMAIL` and `ADMIN_PASSWORD`, then start the new version: existing players and games are moved into a "Default Club" managed by the global admin.
+**Upgrading:** database migrations run automatically on startup. Back up the database first, set `SESSION_SECRET`, `ADMIN_EMAIL` and `ADMIN_PASSWORD`, then start the new version: existing players and games are moved into a "Default Club" looked after by the global admin. Then hand it over: give your own player a login with your personal email (*Club → Players*) and add that email as admin (*Admin → Administration*, Admins button of the club). From then on the club is run by your own account and the global admin is no longer one of its admins.
 
 ---
 

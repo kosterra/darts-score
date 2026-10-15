@@ -1,8 +1,8 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { CLUB_ROLES } from '../models/user.model.js';
+import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
-import { removeClubLogoFile } from './file.controller.js';
+import { removeClubLogoFile, removeProfileImageFile } from './file.controller.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 
 const Club = db.club;
@@ -30,15 +30,16 @@ const withAdmins = async (club) => {
 };
 
 /**
- * Clubs the logged-in user is an admin or a player of, each with that role;
- * a global admin gets every club. Each club carries its admins and number of
- * players. Players see who the admins are, but not their email addresses.
+ * Clubs the logged-in user is an admin or a player of, each with that role.
+ * This is the same for a global admin: they look after every club from the
+ * administration page, but only clubs they belong to are theirs to play in.
+ * Each club carries its admins and number of players. Players see who the
+ * admins are, but not their email addresses.
  */
 export const findAll = async (req, res) => {
     logger.debug('clubs find all called');
-    const globalAdmin = isGlobalAdmin(req.user);
-    const playerClubIds = globalAdmin ? [] : await Player.distinct('club', { user: req.user._id });
-    const filter = globalAdmin ? {} : { $or: [{ admins: req.user._id }, { _id: { $in: playerClubIds } }] };
+    const playerClubIds = await Player.distinct('club', { user: req.user._id });
+    const filter = { $or: [{ admins: req.user._id }, { _id: { $in: playerClubIds } }] };
     const clubs = await Club.find(filter).sort({ name: 1 }).populate('admins', ADMIN_FIELDS);
 
     const counts = await Player.aggregate([
@@ -48,7 +49,7 @@ export const findAll = async (req, res) => {
     const countByClub = new Map(counts.map(c => [String(c._id), c.count]));
 
     res.json(clubs.map(club => {
-        const isAdmin = globalAdmin || club.admins.some(admin => admin._id.equals(req.user._id));
+        const isAdmin = club.admins.some(admin => admin._id.equals(req.user._id));
         return {
             ...club.toJSON(),
             role: isAdmin ? CLUB_ROLES.ADMIN : CLUB_ROLES.PLAYER,
@@ -88,12 +89,13 @@ export const remove = async (req, res) => {
     const club = await loadManagedClub(req, res);
     if (!club) return;
 
-    if (await Player.exists({ club: club._id, guest: { $ne: true } })) {
+    // A global admin may remove a whole club at once, e.g. one created as spam
+    if (!isGlobalAdmin(req.user) && await Player.exists({ club: club._id, guest: { $ne: true } })) {
         return res.status(409).json({ message: 'Remove the players of this club before deleting it.' });
     }
 
+    const players = await Player.find({ club: club._id }, 'profileImg');
     await Promise.all([
-        // only guests of past games are left
         Player.deleteMany({ club: club._id }),
         db.x01.deleteMany({ club: club._id }),
         db.cricket.deleteMany({ club: club._id }),
@@ -102,6 +104,7 @@ export const remove = async (req, res) => {
     ]);
     await club.deleteOne();
     removeClubLogoFile(club.logo);
+    players.forEach(player => player.profileImg && removeProfileImageFile(player.profileImg));
     logger.info(`Club "${club.name}" deleted by ${req.user.email}`);
     res.json({ message: 'Club deleted.' });
 };
@@ -154,6 +157,12 @@ export const addAdmin = async (req, res) => {
     }
 
     club.admins.push(user._id);
+    // A global admin only looks after a club until it has an admin of its own,
+    // like the default club created when upgrading
+    if (user.role !== ROLES.GLOBAL_ADMIN) {
+        const globalAdmins = await db.user.find({ _id: { $in: club.admins }, role: ROLES.GLOBAL_ADMIN }, '_id');
+        globalAdmins.forEach(admin => club.admins.pull(admin._id));
+    }
     await club.save();
     logger.info(`${user.email} is now an admin of club "${club.name}" (added by ${req.user.email})`);
 

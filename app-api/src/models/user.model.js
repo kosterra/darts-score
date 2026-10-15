@@ -16,6 +16,8 @@ export default (mongoose) => {
       // Hash of the token from a "set your password" mail, and when it stops working
       resetTokenHash:    { type: String, default: null, index: true },
       resetTokenExpires: { type: Date, default: null },
+      // Shown to global admins, to spot accounts nobody uses
+      lastLoginAt:       { type: Date, default: null },
     },
     { timestamps: true }
   );

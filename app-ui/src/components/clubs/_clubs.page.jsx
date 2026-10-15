@@ -19,7 +19,7 @@ import { useAuth } from '../../utils/auth.context';
 const ClubsPage = () => {
     const toast = useRef(null);
     const navigate = useNavigate();
-    const { clubs, activeClub, isGlobalAdmin, refreshClubs, selectClub } = useAuth();
+    const { clubs, activeClub, refreshClubs, selectClub } = useAuth();
 
     const [newName, setNewName] = useState('');
     // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults }
@@ -88,7 +88,7 @@ const ClubsPage = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header={isGlobalAdmin ? 'All clubs' : 'Your clubs'}>
+            <Panel header="Your clubs">
                 <div className="container-fluid overflow-hidden">
                     <form onSubmit={onCreate} className="row gy-3 p-3 align-items-center">
                         <div className="col-12 col-md-6 col-xl-4">

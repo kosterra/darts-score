@@ -115,9 +115,9 @@ SMTP_FROM=Darts Score <no-reply@example.com>
 The app requires a login. Every person has one account; players, games, training entries and statistics belong to a **club**. What an account may do is decided per club, so the same person can be a player in one club and an admin of another:
 
 - **Club admin** — manages the club: its name, description and logo, its players, games and other admins. Anyone can register on the login page and create their own clubs; a club can have several admins (*Clubs → Admins*). An admin can add themselves as a player on the profile page.
-- **Player** — a club's players exist without an account. A club admin can give a player a login (*Admin → Players → key button*); the player can then start games and trainings in that club on their own and edit their own player entry, but not manage other players or delete anything.
-- **Guest** — anyone in a club can add a guest while setting up a game. A guest plays in that game only: they are not a club member, are not offered for later games and do not appear in the players list for picking. Club admins see guests under *Admin → Players* and can turn one into a regular player.
-- **Global admin** — sees and manages every club and all users. The first global admin is created on startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when no global admin exists yet; changing these variables later does not touch existing accounts. Further global admins are promoted under *Admin → Users*.
+- **Player** — a club's players exist without an account. A club admin can give a player a login (*Club → Players → key button*); the player can then start games and trainings in that club on their own and edit their own player entry, but not manage other players or delete anything.
+- **Guest** — anyone in a club can add a guest while setting up a game. A guest plays in that game only: they are not a club member, are not offered for later games and do not appear in the players list for picking. Club admins see guests under *Club → Players* and can turn one into a regular player.
+- **Global admin** — looks after the whole installation on the *Administration* page (in the *Admin* section of the menu): every club with its admins, players, games and last activity, all accounts with their clubs and last login, and the state of the system (version, mail, database size, migrations). A global admin can add or replace the admins of any club, delete clubs and accounts, and promote further global admins. Under *Admin → Players / Games / Trainings* a global admin sees these lists across clubs, after choosing one or more clubs, with the club of each entry, and can inspect and delete entries there. It is meant as an administration account, not for playing: use a separate, normal account to play and run your club. The first global admin is created on startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when no global admin exists yet; changing these variables later does not touch existing accounts.
 
 ### Club dashboard
 
@@ -154,7 +154,12 @@ Upgrading from a version without accounts and clubs:
 
 1. Back up the database first, e.g. `docker exec <mongo-container> mongodump --archive --gzip -u <user> -p <password> --authenticationDatabase admin > backup.gz`.
 2. Set `SESSION_SECRET`, `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`.
-3. Start the new version. Existing players, games and training entries are moved into a "Default Club" managed by the global admin; rename it and add further admins in the app. The club is dated from the first game ever played, so the dashboard shows how long the club has really existed.
+3. Start the new version. Existing players, games and training entries are moved into a "Default Club", looked after by the global admin until it has an admin of its own. The club is dated from the first game ever played, so the dashboard shows how long the club has really existed.
+4. Hand the club over, in each environment once:
+   - Log in as the global admin. Rename the club under *Clubs → Edit* (the global admin is still its admin, so it shows in the club switcher).
+   - Under *Club → Players*, give your own player a login with your personal email address (key button).
+   - Under *Admin → Administration*, add that email as admin with the Admins button of the club. As soon as a club has an admin of its own, the global admin is no longer one of its admins.
+   - Log in with your personal account: you play and run the club with it, and keep the global admin for the administration.
 
 If `ADMIN_EMAIL` / `ADMIN_PASSWORD` are missing, the server still starts but logs an error and the existing data stays hidden; set them and restart to complete the migration.
 

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
+import dayjs from 'dayjs';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
 import { Panel } from 'primereact/panel';
+import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
-import UserService, { ROLES, ROLE_LABELS } from '../../services/user.service';
+import UserService, { ROLES, ROLE_LABELS, CLUB_ROLES } from '../../services/user.service';
 import DeletePopup from '../elements/delete.popup';
 import { useAuth } from '../../utils/auth.context';
 
@@ -69,6 +71,18 @@ const UsersList = () => {
         />
     );
 
+    const clubsBody = (user) => user.clubs.length
+        ? (
+            <div className="d-flex flex-wrap gap-1">
+                {user.clubs.map(club => (
+                    <Tag key={club.id} value={`${club.name} · ${club.role === CLUB_ROLES.ADMIN ? 'Admin' : 'Player'}`} severity={club.role === CLUB_ROLES.ADMIN ? 'success' : 'secondary'} />
+                ))}
+            </div>
+        )
+        : <span className="text-faint fs-7">No club</span>;
+
+    const formatDate = (value) => value ? dayjs(value).format('DD.MM.YYYY') : 'Never';
+
     const actionBody = (user) => isSelf(user) ? null : (
         <div className="d-flex justify-content-end">
             <DeletePopup
@@ -86,8 +100,9 @@ const UsersList = () => {
                 <Column header="Name" body={nameBody} />
                 <Column field="email" header="Email" />
                 <Column header="Role" body={roleBody} />
-                <Column field="clubCount" header="Clubs" />
-                <Column header="Registered" body={(user) => new Date(user.createdAt).toLocaleDateString()} />
+                <Column header="Clubs" body={clubsBody} />
+                <Column header="Registered" body={(user) => formatDate(user.createdAt)} />
+                <Column header="Last login" body={(user) => formatDate(user.lastLoginAt)} />
                 <Column body={actionBody} />
             </DataTable>
             <Toast ref={toast} position="bottom-right" />

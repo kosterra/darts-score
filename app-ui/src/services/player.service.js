@@ -98,11 +98,11 @@ const updatePlayer = async (player) => {
     }
 };
 
-const deletePlayer = async (playerId) => {
+const deletePlayer = async (playerId, clubId) => {
     try {
         const response = await fetch(API_URL + 'players/' + playerId, {
             method: 'DELETE',
-            headers: getHeaders(false)
+            headers: getHeaders(false, clubId)
         });
         if (!response.ok) throw new Error(response.statusText);
         return response.ok;

@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaUsersGear, FaCircleQuestion, FaRightFromBracket, FaChevronDown, FaAnglesLeft, FaAnglesRight, FaXmark } from "react-icons/fa6";
+import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaCircleQuestion, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaAnglesLeft, FaAnglesRight, FaXmark } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -17,45 +17,46 @@ import ClubLogo from '../elements/club.logo';
 
 /**
  * The menu, built for the logged-in user. Everything under "Club" belongs to
- * the selected club; admin entries only show for club admins, user
- * administration only for global admins.
+ * the selected club (its players list only for the club's admins); "Admin"
+ * spans all clubs and is for global admins only.
  */
 const useSections = () => {
-    const { isClubAdmin, isGlobalAdmin } = useAuth();
-
-    const gameLinks = (prefix) => [
-        { label: 'X01', to: `${prefix}/x01` },
-        { label: 'Cricket', to: `${prefix}/cricket` },
-        { label: 'Elimination', to: `${prefix}/elimination` },
-    ];
+    const { activeClub, isClubAdmin, isGlobalAdmin } = useAuth();
+    // a global admin without a club of their own only looks after the app
+    const hasClub = !!activeClub;
 
     const sections = [
         {
             title: 'Club',
+            visible: hasClub,
             items: [
                 { label: 'Dashboard', icon: MdDashboard, to: '/', end: true },
+                { label: 'Players', icon: FaUserPen, to: '/players', visible: isClubAdmin },
                 { label: 'Player statistics', icon: FaChartLine, to: '/stats/players' },
-                { label: 'Games', icon: FaTrophy, children: gameLinks('/stats/games') },
+                { label: 'Games', icon: FaTrophy, to: '/games' },
+                { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
                 { label: 'Badges', icon: FaMedal, to: '/badges' },
             ],
         },
         {
             title: "Let's play darts",
+            visible: hasClub,
             items: [
                 { label: 'X01', icon: FaBullseye, to: '/x01', end: true },
                 { label: 'Cricket', icon: MdSportsCricket, to: '/cricket', end: true },
                 { label: 'Elimination', icon: BiTargetLock, to: '/elimination', end: true },
             ],
         },
-        { title: 'Training', items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
+        { title: 'Training', visible: hasClub, items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
         {
+            // for global admins: the lists across all clubs and the administration of the app
             title: 'Admin',
-            visible: isClubAdmin || isGlobalAdmin,
+            visible: isGlobalAdmin,
             items: [
-                { label: 'Players', icon: FaUserPen, to: '/admin/players', visible: isClubAdmin },
-                { label: 'Games', icon: GiDart, children: gameLinks('/admin/games'), visible: isClubAdmin },
-                { label: 'Training', icon: BsPersonFillCheck, children: [{ label: 'Around the Clock', to: '/admin/training/atc' }], visible: isClubAdmin },
-                { label: 'Users', icon: FaUsersGear, to: '/admin/users', visible: isGlobalAdmin },
+                { label: 'Players', icon: FaUserPen, to: '/admin/players' },
+                { label: 'Games', icon: GiDart, to: '/admin/games' },
+                { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
+                { label: 'Administration', icon: FaShieldHalved, to: '/administration' },
             ],
         },
     ];
@@ -139,7 +140,7 @@ const isInside = (item, pathname) =>
  */
 const NavigationContent = ({ collapsed = false, onToggle, onClose, onNavigate }) => {
     const { pathname } = useLocation();
-    const { user, isGlobalAdmin, logout } = useAuth();
+    const { user, activeClub, isGlobalAdmin, logout } = useAuth();
     const sections = useSections();
 
     // groups start open when they contain the current page
@@ -235,7 +236,8 @@ const NavigationContent = ({ collapsed = false, onToggle, onClose, onNavigate })
                 }
             </div>
 
-            <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
+            {/* a global admin without clubs has nothing to switch; they can still create or join one under Clubs */}
+            {(activeClub || !isGlobalAdmin) && <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />}
 
             <nav className="nav-sections" aria-label="Main">
                 {sections.map((section, index) => (

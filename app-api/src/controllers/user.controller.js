@@ -1,20 +1,35 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
+import { CLUB_ROLES } from '../models/user.model.js';
 
 const User = db.user;
 const Club = db.club;
 
+/**
+ * Every account, with the clubs it belongs to and its role in each.
+ */
 export const findAll = async (req, res) => {
     logger.debug('users find all called');
-    const users = await User.find({}).sort({ lastname: 1, firstname: 1 });
+    const [users, clubs, players] = await Promise.all([
+        User.find({}).sort({ lastname: 1, firstname: 1 }),
+        Club.find({}, 'name admins').lean(),
+        db.player.find({ user: { $ne: null } }, 'user club').lean(),
+    ]);
+    const clubNames = new Map(clubs.map(club => [String(club._id), club.name]));
 
-    const counts = await Club.aggregate([{ $unwind: '$admins' }, { $group: { _id: '$admins', count: { $sum: 1 } } }]);
-    const countByUser = new Map(counts.map(c => [String(c._id), c.count]));
+    const membershipsOf = (userId) => {
+        const id = String(userId);
+        const memberships = clubs
+            .filter(club => club.admins.some(admin => String(admin) === id))
+            .map(club => ({ id: club._id, name: club.name, role: CLUB_ROLES.ADMIN }));
+        players
+            .filter(player => String(player.user) === id && clubNames.has(String(player.club)))
+            .filter(player => !memberships.some(m => String(m.id) === String(player.club)))
+            .forEach(player => memberships.push({ id: player.club, name: clubNames.get(String(player.club)), role: CLUB_ROLES.PLAYER }));
+        return memberships.sort((a, b) => a.name.localeCompare(b.name));
+    };
 
-    res.json(users.map(user => ({
-        ...user.toJSON(),
-        clubCount: countByUser.get(String(user._id)) ?? 0,
-    })));
+    res.json(users.map(user => ({ ...user.toJSON(), clubs: membershipsOf(user._id) })));
 };
 
 export const updateRole = async (req, res) => {

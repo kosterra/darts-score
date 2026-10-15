@@ -16,6 +16,8 @@ const CHANGELOG = [
             'New side navigation with your profile at the bottom; on phones it opens as a drawer.',
             'Clubs can have a logo and a description.',
             'Player statistics and comparisons on one page: pick one or more players from the list.',
+            'Administration page for global admins: all clubs, users and the state of the app at a glance.',
+            'Players, games and trainings of your club as compact tables under Club: all games on one page with filters for type, status and player; admins can delete several games at once.',
             'New charts: average over time, form per month, scoring vs. finishing, a dartboard heatmap, favourite doubles, darts per leg, legs per game and Around the Clock progress.',
         ],
     },

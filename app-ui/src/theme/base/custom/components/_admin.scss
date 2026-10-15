@@ -1,0 +1,69 @@
+// Admin tables: players, games and training entries of a club
+
+.admin-table {
+    .p-datatable-tbody > tr > td {
+        vertical-align: middle;
+    }
+
+    // the sorted column is told by its arrow, not a block of colour
+    .p-datatable-thead > tr > th.p-highlight {
+        background: transparent;
+        color: $primaryColor;
+
+        .p-sortable-column-icon {
+            color: $primaryColor;
+        }
+    }
+}
+
+// Row actions are quiet icon buttons; only hovering shows what they do
+.row-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.25rem;
+
+    .p-button {
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: $textSubtleColor;
+        box-shadow: none;
+
+        &:enabled:hover,
+        &:focus-visible {
+            background: $surfaceHighColor;
+            color: $textDefaultColor;
+        }
+
+        &.p-button-danger:enabled:hover {
+            background: rgba($dangerButtonBg, 0.18);
+            color: lighten($dangerButtonBg, 15%);
+        }
+
+        // buttons without a severity mark the main action or a switched-on state,
+        // e.g. a player with a login or a public nickname
+        &:not(.p-button-secondary):not(.p-button-info):not(.p-button-danger) {
+            color: $primaryColor;
+        }
+    }
+
+    a.row-action-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: $borderRadius;
+        color: $textSubtleColor;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            background: $surfaceHighColor;
+            color: $textDefaultColor;
+        }
+    }
+}

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
@@ -20,7 +20,9 @@ const EliminationGameStats = lazy(() => import('./components/stats/elimination/e
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
+const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
+const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
@@ -33,11 +35,17 @@ const ResetPasswordPage = lazy(() => import('./components/auth/reset.password.pa
 import 'primeicons/primeicons.css';
 import "./theme/dark/green/theme.scss";
 
+// The old per-type game lists are one list with a type filter now
+function GameListRedirect() {
+    const { id } = useParams();
+    return <Navigate replace to={`/games?type=${id}`} />;
+}
+
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/admin/users'];
+const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/players', '/admin/games', '/admin/trainings'];
 
 function AppContent() {
-    const { user, activeClub, loading } = useAuth();
+    const { user, activeClub, isGlobalAdmin, loading } = useAuth();
     const { pathname } = useLocation();
 
     if (loading) return <PageLoader />;
@@ -61,9 +69,10 @@ function AppContent() {
         );
     }
 
-    // Without a club there is nothing to play with yet: send the user to create one
+    // Without a club there is nothing to play with yet: send the user to create one.
+    // A global admin without a club of their own looks after the app instead.
     if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
-        return <Navigate replace to="/clubs" />;
+        return <Navigate replace to={isGlobalAdmin ? '/administration' : '/clubs'} />;
     }
 
     return (
@@ -81,7 +90,10 @@ function AppContent() {
                 <Route path="/elimination/:id" element={<EliminationGamePage />} />
                 <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
                 <Route path="/stats/:id" element={<StatsPage />} />
-                <Route path="/stats/games/:id" element={<StatsPage />} />
+                <Route path="/stats/games/:id" element={<GameListRedirect />} />
+                <Route path="/players" element={<ClubListsPage list="players" />} />
+                <Route path="/games" element={<ClubListsPage list="games" />} />
+                <Route path="/trainings" element={<ClubListsPage list="trainings" />} />
                 <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
                 <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
                 <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
@@ -92,6 +104,7 @@ function AppContent() {
                 <Route path="/badges/:id" element={<BadgesPage />} />
                 <Route path="/clubs" element={<ClubsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/administration" element={<AdministrationPage />} />
                 <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
                 <Route path="/admin/:id" element={<AdminPage />} />
                 <Route path="/admin/games/:id" element={<AdminPage />} />

@@ -207,7 +207,7 @@ paths:
   /api/clubs:
     get:
       tags: [Clubs]
-      summary: Clubs the user is an admin or a player of, with that role (all clubs for a global admin)
+      summary: Clubs the user is an admin or a player of, with that role (global admins find every club under /api/admin/overview)
       responses:
         '200':
           description: OK
@@ -243,12 +243,12 @@ paths:
           description: No access to this club
     delete:
       tags: [Clubs]
-      summary: Delete a club and its games
+      summary: Delete a club and its games (a global admin also deletes its players)
       responses:
         '200':
           description: OK
         '409':
-          description: The club still has players
+          description: The club still has players (only for club admins)
 
   /api/clubs/{id}/logo:
     parameters:
@@ -331,10 +331,87 @@ paths:
 
   # ---------- Users ---------------------------------------------------------
 
+  /api/admin/overview:
+    get:
+      tags: [Users]
+      summary: Totals, every club with its admins and activity, and the state of the installation (global admins only)
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Global admin rights required
+
+  /api/admin/clubs:
+    get:
+      tags: [Users]
+      summary: Every club (id, name, logo), for the club filter of the admin lists (global admins only)
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Global admin rights required
+
+  /api/admin/players:
+    get:
+      tags: [Users]
+      summary: Players and guests of the clubs in ?clubs=id1,id2, each with its club (global admins only)
+      parameters:
+        - in: query
+          name: clubs
+          required: true
+          description: Comma-separated club ids, at least one
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: No or invalid clubs chosen
+        '403':
+          description: Global admin rights required
+
+  /api/admin/games:
+    get:
+      tags: [Users]
+      summary: X01, Cricket and Elimination games of the clubs in ?clubs=id1,id2, each with its type and club (global admins only)
+      parameters:
+        - in: query
+          name: clubs
+          required: true
+          description: Comma-separated club ids, at least one
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: No or invalid clubs chosen
+        '403':
+          description: Global admin rights required
+
+  /api/admin/trainings:
+    get:
+      tags: [Users]
+      summary: Around the Clock trainings of the clubs in ?clubs=id1,id2, each with its club (global admins only)
+      parameters:
+        - in: query
+          name: clubs
+          required: true
+          description: Comma-separated club ids, at least one
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: No or invalid clubs chosen
+        '403':
+          description: Global admin rights required
+
   /api/users:
     get:
       tags: [Users]
-      summary: All users with their number of clubs
+      summary: All users with the clubs they belong to, their role there and their last login
       responses:
         '200':
           description: OK
