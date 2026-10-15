@@ -3,6 +3,7 @@ import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as ClubController from '../controllers/club.controller.js';
 import { emailValidator, nameValidators, passwordValidator } from './auth.routes.js';
+import { uploadClubLogo } from '../controllers/file.controller.js';
 
 const clubValidator = [
     body('name')
@@ -20,12 +21,17 @@ export default (app) => {
         clubValidator,
         ['isPublic', 'publicLiveGames', 'publicResults'].map(setting =>
             body(setting).optional().isBoolean({ strict: true }).withMessage(`${setting} must be true or false.`)),
+        body('description').optional().isString().trim().isLength({ max: 500 }).withMessage('The description can have at most 500 characters.'),
         body('dashboardWidgets').optional().isArray({ max: 40 }).withMessage('dashboardWidgets must be a list.'),
         body('dashboardWidgets.*').isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
         validate,
         ClubController.update
     );
     router.delete('/:id', ClubController.remove);
+
+    // Club logo
+    router.put('/:id/logo', uploadClubLogo, ClubController.uploadLogo);
+    router.delete('/:id/logo', ClubController.removeLogo);
 
     // Club admins: names and password are only needed when the email has no account yet
     router.post('/:id/admins',

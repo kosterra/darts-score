@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { playerStatsModel, checkoutItemModel } from '../models/player.stats.models.js';
+import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress } from '../utils/chart.data.js';
 
 const X01 = db.x01;
 const Cricket = db.cricket;
@@ -55,6 +56,16 @@ async function calculatePlayerStats(playerId) {
     playerStats.scoreRanges = getScoreRangesX01(x01Games, playerId);
 
     playerStats.sectionHits = getSectionHitsX01(x01Games, playerId, playerStats.sectionHits);
+
+    // data for the trend, form, phase, darts-per-leg and training charts
+    playerStats.trend = averageTrend(x01Games, playerId);
+    playerStats.form = monthlyForm([
+        ...x01Games.map(game => ({ type: 'x01', game })),
+        ...cricketGames.map(game => ({ type: 'cricket', game })),
+    ], playerId);
+    playerStats.scoring = scoringVsFinishing(x01Games, playerId);
+    playerStats.dartsPerLeg = dartsPerLegDistribution(x01Games, playerId);
+    playerStats.training = trainingProgress(await db.atc.find({ 'player.id': playerId }).lean());
 
     return playerStats;
 }

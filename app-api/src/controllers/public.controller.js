@@ -93,7 +93,7 @@ const buildOverview = async () => {
 
     return {
         totals: { clubs, players: playerTotal, gamesPlayed: gameTotals.reduce((sum, count) => sum + count, 0) },
-        clubs: publicClubs.map(club => ({ name: club.name, playerCount: countByClub.get(String(club._id)) ?? 0 })),
+        clubs: publicClubs.map(club => ({ name: club.name, logo: club.logo || null, playerCount: countByClub.get(String(club._id)) ?? 0 })),
         liveGames: live.map(toSummary),
         results: results.map(toSummary),
     };

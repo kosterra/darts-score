@@ -1,7 +1,10 @@
 export default (mongoose) => {
   const schema = mongoose.Schema(
     {
-      name:   { type: String, required: true, trim: true },
+      name:        { type: String, required: true, trim: true },
+      description: { type: String, trim: true, default: '' },
+      // File name of the uploaded logo in IMG_DIR/clubs
+      logo:        { type: String, default: '' },
       // A public club is listed on the public start page. Its admins decide
       // whether running games and finished results are shown there too.
       isPublic:        { type: Boolean, default: false },

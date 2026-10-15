@@ -7,6 +7,7 @@ import { FaPeopleGroup, FaRegClock, FaBullseye, FaUserGroup } from "react-icons/
 
 import PublicService from '../../services/public.service';
 import PublicGameCard from './public.game.card';
+import ClubLogo from '../elements/club.logo';
 
 const REFRESH_MS = 15 * 1000;
 
@@ -161,7 +162,8 @@ const LandingPage = () => {
                         <h2 className="fs-3 fw-semibold text-default m-0">Public clubs</h2>
                         <div className="d-flex flex-wrap gap-2">
                             {clubs.map(club => (
-                                <span key={club.name} className="bg-surface-raised rounded-pill px-3 py-2 text-default">
+                                <span key={club.name} className="bg-surface-raised rounded-pill ps-1 pe-3 py-1 text-default d-inline-flex align-items-center gap-2">
+                                    <ClubLogo club={club} className="rounded-circle" />
                                     {club.name} <span className="text-faint fs-8">· {club.playerCount} {club.playerCount === 1 ? 'player' : 'players'}</span>
                                 </span>
                             ))}

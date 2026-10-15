@@ -51,6 +51,43 @@
         }
     }
     
+    // Checkboxes: like the switches, this PrimeReact version needs the native
+    // input hidden over the box and marks the checked state with p-highlight
+    .p-checkbox {
+        position: relative;
+        display: inline-flex;
+        flex-shrink: 0;
+
+        .p-checkbox-input {
+            appearance: none;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .p-checkbox-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &.p-highlight .p-checkbox-box {
+            background: $checkboxActiveBg;
+            border-color: $checkboxActiveBorderColor;
+            color: $checkboxIconActiveColor;
+        }
+
+        &.p-disabled .p-checkbox-input {
+            cursor: default;
+        }
+    }
+
     // Depth: panels and pictures lift off the page a little, like the badge medals
     .p-panel {
         border-radius: $borderRadius;

@@ -134,6 +134,8 @@ export const getClubStats = async (req, res) => {
         club: {
             id: String(club._id),
             name: club.name,
+            description: club.description ?? '',
+            logo: club.logo || null,
             createdAt: club.createdAt,
             isPublic: Boolean(club.isPublic),
             playerCount: members.length,

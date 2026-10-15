@@ -1,4 +1,4 @@
-import { requestJSON } from '../utils/service.utils';
+import { getHeaders, requestJSON } from '../utils/service.utils';
 
 const API_URL = '/api/clubs';
 
@@ -39,7 +39,23 @@ const addAdmin = (clubId, admin) =>
 const removeAdmin = (clubId, userId) =>
     requestJSON(`${API_URL}/${clubId}/admins/${userId}`, { method: 'DELETE' });
 
+/**
+ * Uploads a new logo for the club (a .png or .jpg file).
+ */
+const uploadLogo = async (clubId, file) => {
+    const formData = new FormData();
+    formData.append('logo', file);
+    const response = await fetch(`${API_URL}/${clubId}/logo`, { method: 'PUT', headers: getHeaders(false), body: formData });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.errors?.join(' ') || data.message || response.statusText);
+    return data;
+};
+
+const removeLogo = (clubId) => requestJSON(`${API_URL}/${clubId}/logo`, { method: 'DELETE' });
+
 const ClubService = {
+    uploadLogo,
+    removeLogo,
     addAdmin,
     removeAdmin,
     loadClubs,

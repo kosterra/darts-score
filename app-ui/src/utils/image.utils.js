@@ -42,3 +42,8 @@ export const getCropSourceRect = (offset, imageWidth, imageHeight, scale, viewpo
         size
     };
 };
+
+/**
+ * URL of a club's logo, or '' when the club has none.
+ */
+export const resolveClubLogo = (filename) => filename ? '/api/images/clubs/' + filename : '';

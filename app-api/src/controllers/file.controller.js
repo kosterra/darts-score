@@ -5,42 +5,43 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 const PLAYER_SUBDIR = '/players';
+const CLUB_SUBDIR = '/clubs';
+const ALLOWED_TYPES = ['image/png', 'image/jpg', 'image/jpeg'];
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = path.join('./', process.env.IMG_DIR, PLAYER_SUBDIR);
-        fs.mkdirSync(dir, { recursive: true });
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        const sanitised = file.originalname.toLowerCase().replace(/\s+/g, '-');
-        cb(null, uuidv4() + '-' + sanitised);
-    },
-});
+/**
+ * Middleware that stores one uploaded image of the given form field in a
+ * sub-folder of IMG_DIR. Upload problems are logged; the request goes on
+ * without a file.
+ */
+const createImageUpload = (subdir, field) => {
+    const upload = multer({
+        storage: multer.diskStorage({
+            destination: (req, file, cb) => {
+                const dir = path.join('./', process.env.IMG_DIR, subdir);
+                fs.mkdirSync(dir, { recursive: true });
+                cb(null, dir);
+            },
+            filename: (req, file, cb) => {
+                const sanitised = file.originalname.toLowerCase().replace(/\s+/g, '-');
+                cb(null, uuidv4() + '-' + sanitised);
+            },
+        }),
+        fileFilter: (req, file, cb) => {
+            if (ALLOWED_TYPES.includes(file.mimetype)) cb(null, true);
+            else cb(new Error('Only .png, .jpg and .jpeg formats are allowed!'));
+        },
+    }).single(field);
 
-const upload = multer({
-    storage,
-    fileFilter: (req, file, cb) => {
-        const allowed = ['image/png', 'image/jpg', 'image/jpeg'];
-        if (allowed.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only .png, .jpg and .jpeg formats are allowed!'));
-        }
-    },
-}).single('profileImg');
-
-export const uploadProfileImage = (req, res, next) => {
-    logger.debug('uploadProfileImage middleware called');
-    upload(req, res, (err) => {
-        if (err instanceof multer.MulterError) {
-            logger.error('Multer error on profile image upload: ' + err);
-        } else if (err) {
-            logger.error('Unknown error on profile image upload: ' + err);
-        }
-        next();
-    });
+    return (req, res, next) => {
+        upload(req, res, (err) => {
+            if (err) logger.error(`Upload of ${field} failed: ${err}`);
+            next();
+        });
+    };
 };
+
+export const uploadProfileImage = createImageUpload(PLAYER_SUBDIR, 'profileImg');
+export const uploadClubLogo = createImageUpload(CLUB_SUBDIR, 'logo');
 
 const extractFilename = (profileImg) => {
     if (!profileImg) return null;
@@ -51,12 +52,15 @@ const extractFilename = (profileImg) => {
     return profileImg;
 };
 
-export const removeProfileImageFile = (profileImg) => {
-    const filename = extractFilename(profileImg);
+const removeImageFile = (subdir, stored) => {
+    const filename = extractFilename(stored);
     if (!filename) return;
-    const filePath = path.join('./', process.env.IMG_DIR, PLAYER_SUBDIR, path.basename(filename));
-    logger.debug('Deleting profile image at: ' + filePath);
+    const filePath = path.join('./', process.env.IMG_DIR, subdir, path.basename(filename));
+    logger.debug('Deleting image at: ' + filePath);
     fs.unlink(filePath, (err) => {
-        if (err) logger.error('Failed to delete profile image file: ' + err.message);
+        if (err) logger.error('Failed to delete image file: ' + err.message);
     });
 };
+
+export const removeProfileImageFile = (profileImg) => removeImageFile(PLAYER_SUBDIR, profileImg);
+export const removeClubLogoFile = (logo) => removeImageFile(CLUB_SUBDIR, logo);

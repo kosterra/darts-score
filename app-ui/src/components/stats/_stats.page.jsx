@@ -1,7 +1,6 @@
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 
-import PlayerStats from './players/player.stats';
-import PlayerVSStats from './players/player.vs.stats';
+import PlayersStatisticsPage from './players/players.statistics.page';
 import X01List from '../admin/x01.list';
 import CricketList from '../admin/cricket.list';
 import EliminationList from '../admin/elimination.list';
@@ -13,13 +12,10 @@ const StatsPage = () => {
     function StatsContent() {
         switch (id) {
             case 'players':
-                return (
-                    <PlayerStats />
-                );
+                return <PlayersStatisticsPage />;
             case 'vs':
-                return (
-                    <PlayerVSStats />
-                );
+                // comparisons are part of the player statistics now
+                return <Navigate replace to="/stats/players" />;
             case 'x01':
                 return (
                     <X01List
@@ -48,11 +44,12 @@ const StatsPage = () => {
                     />
                 );
             default:
-                return (
-                    <PlayerStats />
-                );
+                return <PlayersStatisticsPage />;
         }
     }
+
+    // the player statistics bring their own layout (player list next to the statistics)
+    if (!['x01', 'cricket', 'elimination', 'vs'].includes(id)) return <PlayersStatisticsPage />;
 
     return (
         <div className="container-fluid p-4 bg-transparent border-0">

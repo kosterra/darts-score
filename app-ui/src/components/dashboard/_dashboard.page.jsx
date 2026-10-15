@@ -8,6 +8,7 @@ import PageLoader from '../elements/page.loader';
 import { useAuth } from '../../utils/auth.context';
 import { resolveWidgets } from './dashboard.widgets';
 import DashboardCustomizeDialog from './dashboard.customize.dialog';
+import ClubLogo from '../elements/club.logo';
 import LeaderboardWidget from './widgets/leaderboard.widget';
 import TotalsWidget from './widgets/totals.widget';
 import RunningGamesWidget from './widgets/running.games.widget';
@@ -67,11 +68,14 @@ const Dashboard = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <header className="dashboard-header bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div className="d-flex flex-column gap-3" style={{ minWidth: 0 }}>
+                <div className="d-flex flex-wrap align-items-start gap-4" style={{ minWidth: 0 }}>
+                <ClubLogo club={club} size="lg" />
+                <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 18rem' }}>
                     <div className="d-flex flex-wrap align-items-center gap-3">
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{club.name}</h1>
                         <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
                     </div>
+                    {club.description && <p className="text-subtle m-0" style={{ maxWidth: '60ch' }}>{club.description}</p>}
                     <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         {facts.map(([label, value]) => (
                             <div key={label}>
@@ -80,6 +84,7 @@ const Dashboard = () => {
                             </div>
                         ))}
                     </dl>
+                </div>
                 </div>
                 {isClubAdmin &&
                     <Button label="Customize" icon="pi pi-sliders-h" size="small" onClick={() => setCustomizing(true)} />

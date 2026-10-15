@@ -176,13 +176,13 @@ const number = (key) => Number(String(key).replace(/\D/g, '')) || 0;
  * visits { playerId, darts, scoreLeft }, from allSetsThrows:
  * { 'set-1': { 'leg-1': [visit, ...] } }.
  */
-const legsInOrder = (game) =>
+export const legsInOrder = (game) =>
     Object.entries(game.allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .flatMap(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg))
         .filter(Array.isArray);
 
-const thrownDarts = (darts) => (Array.isArray(darts) ? darts : []).filter(dart => dart !== '' && dart != null);
+export const thrownDarts = (darts) => (Array.isArray(darts) ? darts : []).filter(dart => dart !== '' && dart != null);
 
 const sameDarts = (darts, wanted) => {
     const thrown = thrownDarts(darts).filter(dart => dart !== '0').map(dart => dart.toUpperCase()).sort();

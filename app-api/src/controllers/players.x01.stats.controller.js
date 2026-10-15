@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { createGameFilterQuery } from '../utils/game.utils.js';
+import { averageTrend, scoringVsFinishing, dartsPerLegDistribution, DARTS_PER_LEG_BUCKETS } from '../utils/chart.data.js';
 import { playersX01StatsModel, checkoutItemModel, avgItemModel } from '../models/players.x01.stats.models.js';
 
 const X01 = db.x01;
@@ -50,6 +51,27 @@ async function calculateX01PlayersStats(body) {
     playersX01Stats.avg.perGame = getPlayersAveragesPerGameX01(x01Games, body.playerIds)
     playersX01Stats.scoreRanges = getPlayersScoreRangesX01(x01Games, playersX01Stats.scoreRanges, body.playerIds)
     playersX01Stats.sectionHits = getPlayersSectionHitsX01(x01Games, playersX01Stats.sectionHits, body.playerIds)
+
+    // per player: phase averages, darts per won 501 leg, and the average of every game with its date
+    playersX01Stats.scoring = {}
+    body.playerIds.forEach((playerId, idx) => {
+        playersX01Stats.scoring['player' + (idx + 1)] = scoringVsFinishing(x01Games, playerId)
+    })
+    playersX01Stats.dartsPerLeg = DARTS_PER_LEG_BUCKETS.map((bucket, index) => {
+        const entry = { bucket: bucket.label }
+        body.playerIds.forEach((playerId, idx) => {
+            entry['player' + (idx + 1)] = dartsPerLegDistribution(x01Games, playerId)[index].count
+        })
+        return entry
+    })
+    const trends = body.playerIds.map(playerId => new Map(averageTrend(x01Games, playerId).map(entry => [entry.gameId, entry])))
+    playersX01Stats.trend = [...x01Games]
+        .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt))
+        .map(game => {
+            const entry = { gameId: String(game._id), date: game.updatedAt }
+            trends.forEach((trend, idx) => { entry['player' + (idx + 1)] = trend.get(String(game._id))?.average ?? null })
+            return entry
+        })
 
     return playersX01Stats
 }

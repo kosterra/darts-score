@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
+import { removeClubLogoFile } from './file.controller.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 
 const Club = db.club;
@@ -72,6 +73,7 @@ export const update = async (req, res) => {
     const club = await loadManagedClub(req, res);
     if (!club) return;
     club.name = req.body.name;
+    if (typeof req.body.description === 'string') club.description = req.body.description;
     // Visibility settings are optional, so a plain rename leaves them alone
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
@@ -99,8 +101,39 @@ export const remove = async (req, res) => {
         db.atc.deleteMany({ club: club._id }),
     ]);
     await club.deleteOne();
+    removeClubLogoFile(club.logo);
     logger.info(`Club "${club.name}" deleted by ${req.user.email}`);
     res.json({ message: 'Club deleted.' });
+};
+
+/**
+ * Replaces the club's logo with the uploaded image.
+ */
+export const uploadLogo = async (req, res) => {
+    logger.debug('clubs upload logo called');
+    const club = await loadManagedClub(req, res);
+    if (!club) {
+        if (req.file) removeClubLogoFile(req.file.filename);
+        return;
+    }
+    if (!req.file) return res.status(422).json({ errors: ['Please choose a .png or .jpg image.'] });
+
+    const previous = club.logo;
+    club.logo = req.file.filename;
+    await club.save();
+    if (previous) removeClubLogoFile(previous);
+    res.json(await withAdmins(club));
+};
+
+export const removeLogo = async (req, res) => {
+    logger.debug('clubs remove logo called');
+    const club = await loadManagedClub(req, res);
+    if (!club) return;
+    const previous = club.logo;
+    club.logo = '';
+    await club.save();
+    if (previous) removeClubLogoFile(previous);
+    res.json(await withAdmins(club));
 };
 
 /**

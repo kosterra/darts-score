@@ -12,6 +12,8 @@ import ClubService from '../../services/club.service';
 import { CLUB_ROLES } from '../../services/user.service';
 import DeletePopup from '../elements/delete.popup';
 import ClubAdminsDialog from './club.admins.dialog';
+import ClubEditDialog from './club.edit.dialog';
+import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
 
 const ClubsPage = () => {
@@ -23,6 +25,7 @@ const ClubsPage = () => {
     // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults }
     const [editing, setEditing] = useState(null);
     const [adminsOfClubId, setAdminsOfClubId] = useState(null); // club whose admins dialog is open
+    const [editingClubId, setEditingClubId] = useState(null); // club whose name, description and logo are edited
 
     const showError = (summary, error) =>
         toast.current.show({ severity: 'error', summary, detail: error.message, life: 4000 });
@@ -117,14 +120,18 @@ const ClubsPage = () => {
                             <div className="col-12 col-md-6 col-xl-4" key={club.id}>
                                 <Panel className="panel-brighter-bg no-header h-100">
                                     <div className="d-flex flex-column gap-2 p-2">
-                                        <div className="d-flex flex-column gap-2">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <ClubLogo club={club} size="md" />
                                             <span className="text-default fw-semibold fs-5 text-break">{club.name}</span>
+                                        </div>
+                                        <div className="d-flex flex-column gap-2">
                                             <div className="d-flex flex-wrap gap-2">
                                                 <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
                                                 <Tag value={club.role === CLUB_ROLES.ADMIN ? 'Admin' : 'Player'} severity={club.role === CLUB_ROLES.ADMIN ? 'warning' : 'info'} />
                                                 {activeClub?.id === club.id && <Tag value="Active" severity="success" />}
                                             </div>
                                         </div>
+                                        {club.description && <span className="text-subtle fs-7 text-break">{club.description}</span>}
                                         <span className="text-subtle fs-7">
                                             {club.playerCount} {club.playerCount === 1 ? 'player' : 'players'}
                                         </span>
@@ -140,12 +147,24 @@ const ClubsPage = () => {
                                                 icon="pi pi-users"
                                                 severity="secondary"
                                                 aria-label={`Admins of ${club.name}`}
+                                                tooltip="Admins"
+                                                tooltipOptions={{ position: 'top' }}
                                                 onClick={() => setAdminsOfClubId(club.id)}
+                                            />
+                                            <Button
+                                                icon="pi pi-pencil"
+                                                severity="secondary"
+                                                aria-label={`Edit ${club.name}`}
+                                                tooltip="Edit club"
+                                                tooltipOptions={{ position: 'top' }}
+                                                onClick={() => setEditingClubId(club.id)}
                                             />
                                             <Button
                                                 icon="pi pi-cog"
                                                 severity="secondary"
                                                 aria-label={`Settings of ${club.name}`}
+                                                tooltip="Settings"
+                                                tooltipOptions={{ position: 'top' }}
                                                 onClick={() => setEditing({
                                                     id: club.id,
                                                     name: club.name,
@@ -170,18 +189,10 @@ const ClubsPage = () => {
                 </div>
             </Panel>
 
-            <Dialog header="Club Settings" visible={!!editing} blockScroll onHide={() => setEditing(null)} draggable={false} className="m-4" style={{ width: '34rem', maxWidth: '100%' }}>
+            <Dialog header={editing ? `Settings of ${editing.name}` : 'Club Settings'} visible={!!editing} blockScroll onHide={() => setEditing(null)} draggable={false} className="m-4" style={{ width: '34rem', maxWidth: '100%' }}>
                 {editing &&
                     <form onSubmit={onSaveSettings} className="d-flex flex-column gap-4 pt-2">
-                        <InputText
-                            id="club-rename"
-                            value={editing.name}
-                            onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                            aria-label="Club name"
-                            minLength={3}
-                            maxLength={50}
-                            required
-                        />
+                        <span className="text-default fw-semibold">Visibility</span>
                         {settingSwitch('isPublic', 'Public club', 'Listed by name on the public start page. Private clubs are not visible to anyone outside.')}
                         {settingSwitch('publicLiveGames', 'Show running games', 'Live scores of games in progress appear on the public start page.', !editing.isPublic)}
                         {settingSwitch('publicResults', 'Show results', 'Finished games appear under the latest results.', !editing.isPublic)}
@@ -195,6 +206,11 @@ const ClubsPage = () => {
                     </form>
                 }
             </Dialog>
+            <ClubEditDialog
+                club={clubs.find(club => club.id === editingClubId) ?? null}
+                onHide={() => setEditingClubId(null)}
+                onSaved={refreshClubs}
+            />
             <ClubAdminsDialog
                 club={clubs.find(club => club.id === adminsOfClubId) ?? null}
                 onHide={() => setAdminsOfClubId(null)}

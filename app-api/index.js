@@ -21,7 +21,7 @@ import statsRoutes     from './src/routes/stats.routes.js';
 import x01Routes       from './src/routes/x01.routes.js';
 import cricketRoutes   from './src/routes/cricket.routes.js';
 import elimRoutes      from './src/routes/elimination.routes.js';
-import imgRoutes       from './src/routes/player.img.routes.js';
+import { playerImageRoutes, clubLogoRoutes } from './src/routes/player.img.routes.js';
 import atcRoutes       from './src/routes/atc.routes.js';
 import authRoutes      from './src/routes/auth.routes.js';
 import clubRoutes      from './src/routes/club.routes.js';
@@ -112,6 +112,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 authRoutes(app);
 publicRoutes(app);
+clubLogoRoutes(app);
 
 // Everything else under /api needs a logged-in user ...
 app.use('/api', requireAuth);
@@ -126,7 +127,7 @@ statsRoutes(app);
 x01Routes(app);
 cricketRoutes(app);
 elimRoutes(app);
-imgRoutes(app);
+playerImageRoutes(app);
 atcRoutes(app);
 
 // ---------------------------------------------------------------------------

@@ -114,7 +114,7 @@ SMTP_FROM=Darts Score <no-reply@example.com>
 
 The app requires a login. Every person has one account; players, games, training entries and statistics belong to a **club**. What an account may do is decided per club, so the same person can be a player in one club and an admin of another:
 
-- **Club admin** — manages the club: its players, games and other admins. Anyone can register on the login page and create their own clubs; a club can have several admins (*Clubs → Admins*). An admin can add themselves as a player on the profile page.
+- **Club admin** — manages the club: its name, description and logo, its players, games and other admins. Anyone can register on the login page and create their own clubs; a club can have several admins (*Clubs → Admins*). An admin can add themselves as a player on the profile page.
 - **Player** — a club's players exist without an account. A club admin can give a player a login (*Admin → Players → key button*); the player can then start games and trainings in that club on their own and edit their own player entry, but not manage other players or delete anything.
 - **Guest** — anyone in a club can add a guest while setting up a game. A guest plays in that game only: they are not a club member, are not offered for later games and do not appear in the players list for picking. Club admins see guests under *Admin → Players* and can turn one into a regular player.
 - **Global admin** — sees and manages every club and all users. The first global admin is created on startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when no global admin exists yet; changing these variables later does not touch existing accounts. Further global admins are promoted under *Admin → Users*.

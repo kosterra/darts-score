@@ -250,6 +250,48 @@ paths:
         '409':
           description: The club still has players
 
+  /api/clubs/{id}/logo:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Clubs]
+      summary: Upload a new logo for the club (multipart field "logo", .png or .jpg)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                logo: { type: string, format: binary }
+      responses:
+        '200':
+          description: Logo saved
+        '422':
+          description: No valid image
+    delete:
+      tags: [Clubs]
+      summary: Remove the club's logo
+      responses:
+        '200':
+          description: Logo removed
+
+  /api/images/clubs/{filename}:
+    get:
+      tags: [Player Images]
+      summary: A club logo (no login needed, logos also show on the public page)
+      security: []
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: The image
+        '404':
+          description: Not found
+
   /api/clubs/{id}/admins:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -1199,6 +1241,7 @@ components:
       required: [name]
       properties:
         name: { type: string, minLength: 3, maxLength: 50 }
+        description: { type: string, maxLength: 500 }
         isPublic: { type: boolean, description: List the club on the public start page }
         publicLiveGames: { type: boolean, description: Show running games of a public club }
         publicResults: { type: boolean, description: Show finished games of a public club }

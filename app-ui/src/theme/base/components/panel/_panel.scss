@@ -1,7 +1,11 @@
 .p-panel {
     border-radius: $borderRadius;
+    // a panel stretched taller than its content (e.g. in a row of equal heights) stays filled
+    background: $panelContentBg;
 
     &.panel-brighter-bg {
+        background: $panelBrighterContentBg;
+
         .p-panel-content {
             background: $panelBrighterContentBg;
         }

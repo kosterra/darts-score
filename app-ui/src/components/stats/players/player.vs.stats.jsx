@@ -1,51 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Button } from 'primereact/button';
-import { Toolbar } from 'primereact/toolbar';
 import { InputSwitch } from 'primereact/inputswitch';
 import { SelectButton } from 'primereact/selectbutton';
 import { Panel } from 'primereact/panel';
 
-import PlayerSelect from '../../elements/player.select';
 import StatsService from '../../../services/stats.service';
 import X01Service from '../../../services/x01.service';
-import GamesTimeline from '../../elements/games.timeline';
 import PlayersX01StatsComparisonBars from './players.x01.stats.comparison.bars';
-import X01StatsCharts from '../x01/x01.stats.charts';
-import StatsCard from '../common/stats.card';
-import ChartConfigOptions from '../common/chart.config.options';
+import AverageTrendChart from '../charts/average.trend.chart';
+import HitsHeatmapChart from '../charts/hits.heatmap.chart';
+import DoublesChart from '../charts/doubles.chart';
+import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart, LegsPerGameChart } from '../charts/simple.bar.charts';
+import { sectionHitsOf } from '../charts/chart.theme';
+import StatTile from './stat.tile';
+import HeadToHeadTimeline from './head.to.head.timeline';
 
-const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X01' }) => {
-    const [playersCount, setPlayersCount] = useState(2);
-    const [players, setPlayers] = useState([]);
+/**
+ * Compares two or more players of the selected club.
+ */
+const PlayerVSStats = ({ players = [], showStatsFilter = true }) => {
     const [games, setGames] = useState([]);
     const [playerStats, setPlayerStats] = useState({});
-    const [gameTypeFilterValue, setGameTypeFilterValue] = useState(staticGameTypeFilterValue);
     const [includeOthersValue, setIncludeOthersValue] = useState(false);
     const [dateFilterValue, setDateFilterValue] = useState('All');
 
-    const gameTypeFilter = ['X01', 'Cricket'];
     const dateFilter = ['1 D', '1 W', '1 M', '1 Y', 'All'];
-
-    /** ─────────────────────────────
-     * Player Handling
-     * ───────────────────────────── */
-    const onSelectPlayer = (player, idx) => {
-        setPlayers(prev => {
-            const updated = [...prev];
-            updated[idx] = player;
-            return updated;
-        });
-    };
-
-    const onDeletePlayer = (idx) => {
-        setPlayers(prev => prev.filter((_, i) => i !== idx));
-    };
-
-    const incrementPlayersCount = () => setPlayersCount(prev => prev + 1);
-    const removePlayerCard = (idx) => {
-        setPlayersCount(prev => prev - 1);
-        onDeletePlayer(idx);
-    };
 
     /** ─────────────────────────────
      * Data Loading
@@ -54,187 +32,73 @@ const PlayerVSStats = ({ showStatsFilter = true, staticGameTypeFilterValue = 'X0
         const playerIds = players.map(p => p.id);
         const body = { playerIds, includeOthers: includeOthersValue, dateFilter: dateFilterValue };
 
-        if (gameTypeFilterValue === 'X01') {
-            const [x01Games, playersStats] = await Promise.all([
-                X01Service.findX01Games(body),
-                StatsService.loadX01PlayersStats(body),
-            ]);
-            setGames(x01Games);
-            setPlayerStats(playersStats);
-        }
+        const [x01Games, playersStats] = await Promise.all([
+            X01Service.findX01Games(body),
+            StatsService.loadX01PlayersStats(body),
+        ]);
+        setGames(x01Games);
+        setPlayerStats(playersStats);
     };
 
     useEffect(() => {
-        if (players.length === playersCount && players.every(Boolean)) {
-            loadX01Data();
-        }
-    }, [players, gameTypeFilterValue, includeOthersValue, dateFilterValue]);
-
-    /** ─────────────────────────────
-     * UI Content
-     * ───────────────────────────── */
-    const startContent = (
-        <SelectButton value={gameTypeFilterValue} onChange={e => setGameTypeFilterValue(e.value)} options={gameTypeFilter} />
-    );
-
-    const centerContent = (
-        <div className="d-flex flex-column align-items-center justify-content-center gap-4">
-            <span className="text-default fs-8 fw-semibold">Date Range</span>
-            <SelectButton
-                value={dateFilterValue}
-                onChange={e => setDateFilterValue(e.value)}
-                options={dateFilter}
-                className="p-selectbutton-pills min-pills-width"
-            />
-        </div>
-    );
-
-    const endContent = (
-        <div className="d-flex align-items-center justify-content-center gap-2">
-            <InputSwitch checked={includeOthersValue} onChange={e => setIncludeOthersValue(e.value)} />
-            <span className="text-default fs-8 fw-semibold">Include Games with other players</span>
-        </div>
-    );
-
-    const legendContent = (
-        <div>
-            {players.map((p, i) => (
-                <div className="row" key={i}>
-                    <span className="col-4 d-flex justify-content-center align-items-center p-0">
-                        <i className="pi pi-circle-fill fs-8" style={{ color: ChartConfigOptions.fillColors.values[i] }}></i>
-                    </span>
-                    <span className="col-8 fs-7 text-faint fw-semibold p-0">{p?.nickname ?? 'N/A'}</span>
-                </div>
-            ))}
-        </div>
-    );
+        if (players.length >= 2) loadX01Data();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [players, includeOthersValue, dateFilterValue]);
 
     /** ─────────────────────────────
      * Rendering
      * ───────────────────────────── */
-    const allPlayersSelected = players.filter(Boolean).length === playersCount;
-    const noGamesFound = allPlayersSelected && playerStats?.playedGames === 0;
     const hasGames = playerStats?.playedGames > 0;
 
     return (
-        <div className="container-fluid p-4 pt-0 border-0">
-            {/* Player Selection */}
-            <div className="row justify-content-center align-items-center">
-                <div className="col-12 col-md-10 col-lg-8">
-                    <div className="row justify-content-center align-items-center p-4 bg-surface">
-                        {Array.from({ length: playersCount }).map((_, idx) => (
-                            <div key={idx} className="col-12 col-md-6 mt-4 mt-md-0">
-                                <div className="position-relative">
-                                    <PlayerSelect idx={idx} onSelect={onSelectPlayer} onDelete={onDeletePlayer} />
-                                    {playersCount === idx + 1 && playersCount > 2 && (
-                                        <span className="position-absolute top-0 start-100 translate-middle">
-                                            <Button
-                                                icon="pi pi-times"
-                                                size="small"
-                                                rounded
-                                                severity="danger"
-                                                className="text-default fw-semibold me-4 mt-4"
-                                                onClick={() => removePlayerCard(idx)}
-                                            />
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-
-                        {playersCount < 4 && (
-                            <div className="col-12 col-md-6 mt-4 d-flex justify-content-center">
-                                <Button
-                                    icon="pi pi-plus"
-                                    size="large"
-                                    rounded
-                                    severity="secondary"
-                                    className="text-faint fw-semibold"
-                                    onClick={incrementPlayersCount}
-                                />
-                            </div>
-                        )}
+        <div className="d-flex flex-column gap-4">
+            {showStatsFilter &&
+                <div className="bg-surface-translucent rounded-2 p-3 d-flex flex-wrap align-items-center column-gap-4 row-gap-3">
+                    <div className="d-flex flex-wrap align-items-center gap-3">
+                        <span className="text-subtle fs-7">Period</span>
+                        <SelectButton
+                            value={dateFilterValue}
+                            onChange={e => e.value && setDateFilterValue(e.value)}
+                            options={dateFilter}
+                            className="p-selectbutton-pills min-pills-width"
+                            aria-label="Period"
+                        />
                     </div>
+                    <label htmlFor="compare-include-others" className="d-flex align-items-center gap-2 text-subtle fs-7">
+                        <InputSwitch inputId="compare-include-others" checked={includeOthersValue} onChange={e => setIncludeOthersValue(e.value)} />
+                        Include games with other players too
+                    </label>
                 </div>
-            </div>
+            }
 
-            {/* Stats + Charts */}
-            {allPlayersSelected && (
-                <>
-                    {showStatsFilter && (
-                        <div className="row justify-content-center align-items-center">
-                            <div className="col-12 col-md-10 col-lg-8 px-3 bg-surface">
-                                <Toolbar start={startContent} center={centerContent} end={endContent} className="m-4 p-4" />
-                            </div>
-                        </div>
-                    )}
-
-                    {hasGames && (
-                        <>
-                            <div className="row justify-content-center align-items-center">
-                                <div className="col-12 col-md-10 col-lg-8 p-0">
-                                    <Panel>
-                                        <div className="row">
-                                            <div className="col-12 col-lg-6 p-0">
-                                                <GamesTimeline games={games} players={players} />
-                                            </div>
-                                            <div className="col-12 col-lg-6 p-0">
-                                                <Panel className="h-100">
-                                                    <div className="d-flex flex-column align-items-center">
-                                                        <span className="text-default fs-4 fw-semibold mb-4 mt-4">Infos</span>
-                                                        <div className="container overflow-hidden">
-                                                            <div className="row gy-4 justify-content-center">
-                                                                <div className="col-12 col-sm-6 col-lg-4">
-                                                                    <StatsCard title="Played Games" value={games.length} className="panel-brighter-bg" />
-                                                                </div>
-                                                                <div className="col-12 col-sm-6 col-lg-4">
-                                                                    <StatsCard title="Legend" value={legendContent} className="panel-brighter-bg" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Panel>
-                                            </div>
-                                        </div>
-
-                                        <div className="row justify-content-center align-items-center">
-                                            <div className="col-12 p-0">
-                                                <PlayersX01StatsComparisonBars playersX01Stats={playerStats} />
-                                            </div>
-                                        </div>
-                                    </Panel>
+            {hasGames
+                ? (
+                    <>
+                        <Panel header="X01 head to head">
+                            <div className="row g-3 mb-3 align-items-center">
+                                <div className="col-12 col-md-3 col-xl-2">
+                                    <StatTile label="Games together" value={games.length} />
+                                </div>
+                                <div className="col-12 col-md-9 col-xl-10" style={{ minWidth: 0 }}>
+                                    <span className="text-faint fs-8">Latest winners</span>
+                                    <HeadToHeadTimeline games={games} players={players} />
                                 </div>
                             </div>
-
-                            <div className="row justify-content-center align-items-center">
-                                <div className="col-12 col-md-10 col-lg-8 p-0">
-                                    <X01StatsCharts
-                                        avg={playerStats?.avg?.perGame ?? []}
-                                        sectionHits={playerStats?.sectionHits ?? {}}
-                                        checkouts={playerStats?.checkouts?.rates ?? {}}
-                                        scoreRanges={playerStats?.scoreRanges ?? {}}
-                                        players={players}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {noGamesFound && (
-                        <div className="d-flex justify-content-center mt-4">
-                            <span className="empty-text text-faint">No games found. Check the filters.</span>
+                            <PlayersX01StatsComparisonBars playersX01Stats={playerStats} />
+                        </Panel>
+                        <div className="row g-4">
+                            <div className="col-12"><AverageTrendChart data={playerStats.trend ?? []} players={players} /></div>
+                            <div className="col-12 col-xl-6"><LegsPerGameChart games={games} players={players} /></div>
+                            <div className="col-12 col-xl-6"><ScoringFinishingChart scoring={players.map((_, i) => playerStats.scoring?.[`player${i + 1}`])} players={players} /></div>
+                            <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(playerStats.sectionHits ?? [], i))} players={players} /></div>
+                            <div className="col-12"><DoublesChart ratesByPlayer={players.map((_, i) => playerStats.checkouts?.rates?.[`player${i + 1}`] ?? [])} players={players} /></div>
+                            <div className="col-12 col-xl-6"><ScoreRangesChart data={playerStats.scoreRanges ?? []} players={players} /></div>
+                            <div className="col-12 col-xl-6"><DartsPerLegChart data={playerStats.dartsPerLeg ?? []} players={players} /></div>
                         </div>
-                    )}
-                </>
-            )}
-
-            {!allPlayersSelected && (
-                <div className="d-flex justify-content-center mt-4">
-                    <span className="empty-text text-faint">
-                        Please select {playersCount} players to compare statistics
-                    </span>
-                </div>
-            )}
+                    </>
+                )
+                : <p className="text-subtle m-0">These players have no finished X01 games together in this period. Try a longer period, or include games with other players.</p>
+            }
         </div>
     );
 };

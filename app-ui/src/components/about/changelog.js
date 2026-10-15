@@ -13,6 +13,10 @@ const CHANGELOG = [
             'Badges for milestones, wins, scoring, finishes and training, with a celebration when you win.',
             'Weekly streaks: see how many weeks in a row you have played.',
             'Forgot your password? Reset it by email.',
+            'New side navigation with your profile at the bottom; on phones it opens as a drawer.',
+            'Clubs can have a logo and a description.',
+            'Player statistics and comparisons on one page: pick one or more players from the list.',
+            'New charts: average over time, form per month, scoring vs. finishing, a dartboard heatmap, favourite doubles, darts per leg, legs per game and Around the Clock progress.',
         ],
     },
     {

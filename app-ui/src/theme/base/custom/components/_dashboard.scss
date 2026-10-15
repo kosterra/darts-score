@@ -5,7 +5,12 @@
     display: flex;
     flex-direction: column;
 
-    .p-toggleable-content,
+    .p-toggleable-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
     .p-panel-content {
         flex-grow: 1;
     }
@@ -109,4 +114,135 @@
     &.game-type-x01 { background: #7ecca5; }
     &.game-type-cricket { background: #d4c783; }
     &.game-type-elimination { background: #b98be8; }
+}
+
+// Player picker on the statistics page
+.players-picker {
+    @media (min-width: 992px) {
+        position: sticky;
+        top: 1rem;
+    }
+
+    .players-picker-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.6rem;
+        border-radius: $borderRadius;
+        cursor: pointer;
+        transition: background-color $transitionDuration;
+
+        &:hover {
+            background: $surfaceRaisedColor;
+        }
+
+        &.selected {
+            background: $surfaceHighColor;
+        }
+
+        &.disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+    }
+
+    .players-picker-colour {
+        flex-shrink: 0;
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 50%;
+    }
+}
+
+// In a comparison every player's picture has a ring in their chart colour
+.compare-avatar.p-avatar.p-avatar-circle {
+    box-shadow: 0 0 0 3px var(--compare-colour), 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+}
+
+// Latest games of a comparison: a horizontal line of winners
+.h2h-timeline {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.5rem 0.25rem 0.25rem;
+
+    // the line the stops sit on, through the dots
+    &::before {
+        content: '';
+        position: absolute;
+        left: 1rem;
+        right: 1rem;
+        top: 3.55rem;
+        height: 2px;
+        background: linear-gradient(to right, transparent, $shade600 8%, $shade600 92%, transparent);
+    }
+
+    .h2h-stop {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.45rem;
+        min-width: 3rem;
+        animation: h2h-in 0.4s ease-out both;
+    }
+
+    .h2h-winner.p-avatar {
+        width: 2.4rem;
+        height: 2.4rem;
+        font-size: 0.85rem;
+        box-shadow: 0 0 0 2px var(--winner-colour), 0 0.35rem 0.8rem -0.3rem rgba(0, 0, 0, 0.8);
+        transition: transform $transitionDuration;
+    }
+
+    .h2h-stop:hover .h2h-winner.p-avatar {
+        transform: translateY(-3px) scale(1.08);
+    }
+
+    .h2h-dot {
+        position: relative;
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 50%;
+        background: var(--winner-colour);
+        box-shadow: 0 0 0 3px $surfaceColor;
+    }
+
+    // the most recent game glows
+    .latest .h2h-winner.p-avatar {
+        width: 2.9rem;
+        height: 2.9rem;
+        margin-top: -0.25rem;
+        box-shadow: 0 0 0 3px var(--winner-colour), 0 0 16px -2px var(--winner-colour);
+    }
+
+    .h2h-date {
+        font-size: 0.7rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+}
+
+@keyframes h2h-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .h2h-timeline .h2h-stop { animation: none; }
+}
+
+// Charts: dartboard heatmap fields light up on hover
+.dartboard-heatmap {
+    display: block;
+    width: 100%;
+    height: auto;
+
+    path:hover,
+    circle:hover {
+        stroke: #efe6d0;
+        stroke-width: 1;
+    }
 }

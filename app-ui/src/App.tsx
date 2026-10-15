@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 
-import NavigationSidebar from './components/navigation/navigation.sidebar';
+import AppNavigation from './components/navigation/app.navigation';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
@@ -68,7 +68,7 @@ function AppContent() {
 
     return (
         <div className="d-flex mb-5 mb-md-0">
-            <NavigationSidebar />
+            <AppNavigation />
             {/* Keyed by club so every page reloads its data after switching clubs */}
             <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
             <Routes>

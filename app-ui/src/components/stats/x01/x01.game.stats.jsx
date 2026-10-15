@@ -17,7 +17,12 @@ import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import X01StatsScoreBoard from './x01.stats.scoreboard';
 import X01StatsScoreBoardMultiple from './x01.stats.scoreboard.multiple';
 import X01StatsTab from './x01.stats.tab';
-import X01StatsCharts from './x01.stats.charts';
+import AverageTrendChart from '../charts/average.trend.chart';
+import HitsHeatmapChart from '../charts/hits.heatmap.chart';
+import DoublesChart from '../charts/doubles.chart';
+import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart } from '../charts/simple.bar.charts';
+import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
+import { sectionHitsOf } from '../charts/chart.theme';
 import X01GameHeader from '../../games/x01/x01.game.header';
 import PageLoader from '../../elements/page.loader';
 import GameBadges from '../../badges/game.badges';
@@ -161,13 +166,23 @@ const X01GameStats = () => {
 
             <div className="row d-flex justify-content-center align-items-center mt-4">
                 <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0 rounded-2">
-                    <X01StatsCharts
-                        avg={gameStats?.avg || []}
-                        sectionHits={gameStats?.sectionHits || {}}
-                        checkouts={gameStats?.checkouts || {}}
-                        scoreRanges={gameStats?.scoreRanges || {}}
-                        players={players}
-                    />
+                    <div className="row g-4">
+                        <div className="col-12">
+                            <AverageTrendChart
+                                title="Average per leg"
+                                description="Every player's average in each leg of this game."
+                                data={gameStats?.avg ?? []}
+                                players={players}
+                            />
+                        </div>
+                        <div className="col-12 col-xl-6"><ScoringFinishingChart scoring={gameScoring(game, players)} players={players} /></div>
+                        <div className="col-12 col-xl-6">
+                            <DartsPerLegChart data={gameDartsPerLeg(game, players)} players={players} description="Darts each player needed for the legs they won in this game." />
+                        </div>
+                        <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} /></div>
+                        <div className="col-12"><DoublesChart ratesByPlayer={players.map((_, i) => gameStats?.checkouts?.[`player${i + 1}`] ?? [])} players={players} /></div>
+                        <div className="col-12"><ScoreRangesChart data={gameStats?.scoreRanges ?? []} players={players} /></div>
+                    </div>
                 </div>
             </div>
 
