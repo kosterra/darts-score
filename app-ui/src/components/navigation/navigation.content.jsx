@@ -17,11 +17,11 @@ import ClubLogo from '../elements/club.logo';
 
 /**
  * The menu, built for the logged-in user. Everything under "Club" belongs to
- * the selected club (its players list only for the club's admins); "Admin"
+ * the selected club; its players see everything there, only its admins can change it. "Admin"
  * spans all clubs and is for global admins only.
  */
 const useSections = () => {
-    const { activeClub, isClubAdmin, isGlobalAdmin } = useAuth();
+    const { activeClub, isGlobalAdmin } = useAuth();
     // a global admin without a club of their own only looks after the app
     const hasClub = !!activeClub;
 
@@ -31,7 +31,7 @@ const useSections = () => {
             visible: hasClub,
             items: [
                 { label: 'Dashboard', icon: MdDashboard, to: '/', end: true },
-                { label: 'Players', icon: FaUserPen, to: '/players', visible: isClubAdmin },
+                { label: 'Players', icon: FaUserPen, to: '/players' },
                 { label: 'Player statistics', icon: FaChartLine, to: '/stats/players' },
                 { label: 'Games', icon: FaTrophy, to: '/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },

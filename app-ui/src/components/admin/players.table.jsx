@@ -16,6 +16,7 @@ import PlayerForm from '../elements/player.form';
 import PlayerLogin from '../elements/player.login';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
+import { useAuth } from '../../utils/auth.context';
 import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDateTime } from './admin.format';
@@ -32,14 +33,16 @@ const matches = (player, term) => [player.nickname, player.firstname, player.las
 
 /**
  * Players and guests in one table.
- * scope "club": the selected club's players, for its admins: add, edit, give a
- * login, show on the public page, turn guests into members and delete.
+ * scope "club": the selected club's players for everyone in it; its admins also
+ * add, edit, give a login, show on the public page, turn guests into members and delete.
  * scope "all": players of the clubs a global admin picks, with their club.
  */
 const PlayersTable = ({ scope = 'club' }) => {
     const toast = useRef(null);
+    const { isClubAdmin } = useAuth();
     const acrossClubs = scope === 'all';
     const { clubs, selectedIds, select } = useClubSelection(acrossClubs);
+    const canManage = acrossClubs || isClubAdmin;
 
     const [players, setPlayers] = useState(null);
     const [search, setSearch] = useState('');
@@ -115,7 +118,7 @@ const PlayersTable = ({ scope = 'club' }) => {
         : <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? 'Nickname shown' : 'Hidden'}</span>;
 
     // the club's own admins look after their players; across clubs a global admin inspects and deletes
-    const actionsBody = (player) => (
+    const actionsBody = (player) => !canManage ? null : (
         <div className="row-actions">
             {!acrossClubs && <>
                 <PlayerForm onPlayerEdit={loadPlayers} edit={true} updatePlayer={player} />
@@ -153,7 +156,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                 <SelectButton value={kind} options={KIND_OPTIONS} onChange={(e) => e.value && setKind(e.value)} aria-label="Members or guests" />
                 <div className="ms-auto d-flex align-items-center gap-3">
                     {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? 'player' : 'players'}</span>}
-                    {!acrossClubs && <PlayerForm onPlayerAdd={loadPlayers} />}
+                    {!acrossClubs && isClubAdmin && <PlayerForm onPlayerAdd={loadPlayers} />}
                 </div>
             </AdminToolbar>
 
@@ -176,10 +179,10 @@ const PlayersTable = ({ scope = 'club' }) => {
                         <Column field="nickname" header="Player" sortable body={(player) => <PlayerCell player={player} />} style={{ minWidth: '14rem' }} />
                         {acrossClubs && <Column field="club.name" header="Club" sortable body={(player) => <ClubCell club={player.club} />} />}
                         <Column header="Type" body={kindBody} />
-                        <Column header="Login" body={loginBody} />
-                        <Column header="Public page" body={publicBody} />
+                        {canManage && <Column header="Login" body={loginBody} />}
+                        {canManage && <Column header="Public page" body={publicBody} />}
                         <Column field="createdAt" header="Added" sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(player.createdAt).slice(0, 10)}</span>} />
-                        <Column body={actionsBody} />
+                        {canManage && <Column body={actionsBody} />}
                     </DataTable>
                 )
             }

@@ -163,7 +163,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         <Column header="Player" body={(entry) => <PlayerCell player={playerOf(entry)} />} style={{ minWidth: '14rem' }} />
                         <Column field="mode" header="Mode" sortable body={(entry) => <span className="text-default fs-7">{entry.mode}</span>} />
                         <Column field="timeMs" header="Time" sortable body={timeBody} />
-                        <Column body={actionsBody} />
+                        {canManage && <Column body={actionsBody} />}
                     </DataTable>
                 )
             }
