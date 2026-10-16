@@ -5,6 +5,7 @@ import { Toast } from 'primereact/toast';
 import X01Context from './x01.context';
 import X01Reducer from './x01.reducer';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
+import GameMoment from '../components/games/common/game.moment';
 import X01Service from '../services/x01.service';
 import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
@@ -73,6 +74,9 @@ const X01State = props => {
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
+    // { key, kind, winner, … } while a leg or set win is shown
+    const [moment, setMoment] = useState(null);
+    const endMoment = useCallback(() => setMoment(null), []);
 
     // fetch a x01 game from the API
     useEffect(() => {
@@ -261,10 +265,41 @@ const X01State = props => {
             return
         }
 
-        manageCurrentPlayerChange(hasWonLeg, hasWonSet);
+        const nextStarter = manageCurrentPlayerChange(hasWonLeg, hasWonSet);
+        if (hasWonLeg) {
+            setOneEighty(null);
+            setMoment(buildMoment(hasWonSet, nextStarter));
+        }
 
         setLoading('validateThrow', false);
     }
+
+    /**
+     * What the banner for a won leg or set shows, from the state before this
+     * visit was applied: the winner's count goes up by one.
+     */
+    const buildMoment = (hasWonSet, nextStarterId) => {
+        const { game } = state;
+        const nameOf = (id) => state.players.find(p => p.id === id)?.nickname ?? '';
+        const winnerId = game.currentPlayerTurn;
+        const countOf = (id) => {
+            const model = game.playerModels[id];
+            const count = hasWonSet ? model.setsWon : model.currentSetLegsWon;
+            return count + (id === winnerId ? 1 : 0);
+        };
+        const multipleSets = game.numberOfSets > 1;
+        return {
+            key: Date.now(),
+            kind: hasWonSet ? 'set' : 'leg',
+            winner: nameOf(winnerId),
+            title: hasWonSet
+                ? `wins set ${game.currentSet}`
+                : `wins leg ${game.currentSetLeg}${multipleSets ? ` of set ${game.currentSet}` : ''}`,
+            standings: game.players.map(id => ({ name: nameOf(id), value: countOf(id) })),
+            next: hasWonSet ? `Set ${game.currentSet + 1}` : `Leg ${game.currentSetLeg + 1}`,
+            starter: nameOf(nextStarterId),
+        };
+    };
 
     const validateWholeThrow = (values, currentScore) => {
         let getWhiteSpaces = values.filter(value => value.trim() === '');
@@ -1032,6 +1067,7 @@ const X01State = props => {
                 type: CHANGE_STARTING_PLAYER_SET,
                 payload: newStartingPlayerSet
             });
+            return newStartingPlayerSet;
         } else if (hasWonLeg) {
             let newStartingPlayerLeg = startingPlayerLegIndex < state.game.players.length - 1 ?
                 state.game.players[startingPlayerLegIndex + 1] : state.game.players[0];
@@ -1039,6 +1075,7 @@ const X01State = props => {
                 type: CHANGE_STARTING_PLAYER_LEG,
                 payload: newStartingPlayerLeg
             });
+            return newStartingPlayerLeg;
         }
     }
 
@@ -1090,6 +1127,7 @@ const X01State = props => {
                 {props.children}
             </X01Context.Provider>
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
+            <GameMoment moment={moment} onDone={endMoment} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>
     );

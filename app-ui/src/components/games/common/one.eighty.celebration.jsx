@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import useFleeting from './use.fleeting';
 
 const DURATION_MS = 2600;
 const SPARKS = 24;
@@ -10,8 +10,6 @@ const sparks = Array.from({ length: SPARKS }, (_, index) => ({
     delay: (index % 4) * 0.03,
 }));
 
-const LEAVE_MS = 250;
-
 /**
  * A short burst over the game when a player scores 180. It lies on top of
  * everything without catching a click or a key, so the next player throws on
@@ -20,29 +18,7 @@ const LEAVE_MS = 250;
  * { key, name }; a new key restarts it for the next 180.
  */
 const OneEightyCelebration = ({ celebration, onDone }) => {
-    const [leaving, setLeaving] = useState(false);
-
-    useEffect(() => {
-        if (!celebration) return undefined;
-        setLeaving(false);
-        let leaveTimer;
-        const timer = setTimeout(onDone, DURATION_MS);
-        // the next player getting on with the game makes room at once
-        const makeRoom = () => {
-            setLeaving(true);
-            clearTimeout(timer);
-            leaveTimer = setTimeout(onDone, LEAVE_MS);
-        };
-        // the click that confirmed the 180 is already over, so listening starts now
-        window.addEventListener('pointerdown', makeRoom, { once: true, capture: true });
-        window.addEventListener('keydown', makeRoom, { once: true, capture: true });
-        return () => {
-            clearTimeout(timer);
-            clearTimeout(leaveTimer);
-            window.removeEventListener('pointerdown', makeRoom, { capture: true });
-            window.removeEventListener('keydown', makeRoom, { capture: true });
-        };
-    }, [celebration, onDone]);
+    const leaving = useFleeting(celebration, onDone, DURATION_MS);
 
     if (!celebration) return null;
 

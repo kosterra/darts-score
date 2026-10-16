@@ -139,7 +139,8 @@ const X01Reducer = (state, action) => {
 
         // Allgemeine Spielupdates
         case INCREMENT_CURRENT_SET:
-            return { ...state, game: { ...state.game, currentSet: state.game.currentSet + 1 } };
+            // a new set starts again with its first leg
+            return { ...state, game: { ...state.game, currentSet: state.game.currentSet + 1, currentSetLeg: 1 } };
 
         case INCREMENT_CURRENT_SET_LEG:
             return { ...state, game: { ...state.game, currentSetLeg: state.game.currentSetLeg + 1 } };

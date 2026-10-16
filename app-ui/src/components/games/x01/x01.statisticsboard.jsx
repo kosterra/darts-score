@@ -1,6 +1,7 @@
 import { useContext, useMemo } from 'react';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import X01Context from '../../../utils/x01.context';
+import X01FormCard from './x01.form.card';
 
 const getNested = (obj, path, fallback = 0) =>
     path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj) ?? fallback;
@@ -28,6 +29,10 @@ const X01StatisticsBoard = ({ playerId }) => {
             <div className="row justify-content-md-center">
                 <div className="d-flex justify-content-center align-items-center">
                     <span className="text-default fs-6 fw-semibold text-center pb-2">{player?.nickname}</span>
+                </div>
+
+                <div className="col-12 p-0 px-1 px-md-2">
+                    <X01FormCard game={game} playerId={playerId} />
                 </div>
 
                 {/* === LEFT COLUMN === */}
@@ -118,7 +123,7 @@ const X01StatisticsBoard = ({ playerId }) => {
                             <div className="container">
                                 <div className="row mb-1">
                                     <span className="col-4 p-0 fs-8 text-default fw-semibold">Initial</span>
-                                    <span className="col-8 p-0 fs-8 text-default fw-semibold text-end">501</span>
+                                    <span className="col-8 p-0 fs-8 text-default fw-semibold text-end">{game.startingScore}</span>
                                 </div>
                                 {game.currentLegThrows
                                     .filter(e => e.playerId === playerId)

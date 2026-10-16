@@ -1,0 +1,242 @@
+// Leg and set wins: a banner sweeps across the game, then makes room.
+// Like the 180 it never catches a click or a key.
+
+$momentGold: #ffc94d;
+
+.game-moment {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    pointer-events: none;
+    overflow: hidden;
+    transition: opacity 0.25s ease-out;
+
+    &.game-moment-leaving {
+        opacity: 0;
+    }
+
+    .celebration-confetti {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+// the band runs across the whole screen, slightly tilted like a TV graphic
+.game-moment-band {
+    position: absolute;
+    left: -5%;
+    right: -5%;
+    top: 30%;
+    transform: translateX(-110%) skewY(-3deg);
+    background: linear-gradient(90deg, rgba(#1f3a2c, 0.96) 0%, rgba($primaryColor, 0.97) 45%, rgba(#1f3a2c, 0.96) 100%);
+    border-top: 2px solid rgba(#7ecca5, 0.8);
+    border-bottom: 2px solid rgba(#7ecca5, 0.8);
+    box-shadow: 0 1.25rem 3rem -1rem rgba(0, 0, 0, 0.85);
+    animation: game-moment-band 3.4s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+
+    .game-moment-set & {
+        background: linear-gradient(90deg, rgba(#3d2f0c, 0.96) 0%, rgba(#b8862a, 0.97) 45%, rgba(#3d2f0c, 0.96) 100%);
+        border-color: rgba($momentGold, 0.9);
+        animation-duration: 4.2s;
+    }
+}
+
+.game-moment-band-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    column-gap: 2.5rem;
+    row-gap: 0.75rem;
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 1.1rem 2rem;
+    // the text stands straight on the tilted band
+    transform: skewY(3deg);
+}
+
+.game-moment-chip {
+    padding: 0.3rem 0.8rem;
+    border-radius: 2rem;
+    background: $shade000;
+    color: #1d1c1a;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+
+    .game-moment-set & {
+        background: $momentGold;
+    }
+}
+
+.game-moment-headline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+    text-shadow: 0 0.2rem 0.6rem rgba(0, 0, 0, 0.6);
+}
+
+.game-moment-winner {
+    color: $shade000;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 800;
+}
+
+.game-moment-title {
+    color: rgba($shade000, 0.85);
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 600;
+}
+
+.game-moment-standings {
+    display: flex;
+    gap: 1.25rem;
+
+    > span {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 3rem;
+        opacity: 0.7;
+
+        &.is-winner {
+            opacity: 1;
+
+            .game-moment-standing-value {
+                transform: scale(1);
+                animation: game-moment-count 0.5s 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+            }
+        }
+    }
+}
+
+.game-moment-standing-value {
+    color: $shade000;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.game-moment-standing-name {
+    color: rgba($shade000, 0.8);
+    font-size: 0.75rem;
+    font-weight: 600;
+    max-width: 7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// who throws first next, in a pill below the band
+.game-moment-next {
+    position: absolute;
+    left: 50%;
+    top: calc(30% + 9.5rem);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 2rem;
+    background: rgba($surfaceColor, 0.95);
+    border: 1px solid rgba(#7ecca5, 0.6);
+    box-shadow: 0 0.75rem 2rem -0.75rem rgba(0, 0, 0, 0.9);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, 0.75rem);
+    animation: game-moment-next 3.4s ease-out forwards;
+
+    .game-moment-set & {
+        border-color: rgba($momentGold, 0.7);
+        animation-duration: 4.2s;
+    }
+}
+
+.game-moment-dart {
+    color: #7ecca5;
+    font-size: 1.1rem;
+    animation: game-moment-dart 0.6s 0.7s ease-out both;
+
+    .game-moment-set & {
+        color: $momentGold;
+    }
+}
+
+.game-moment-next-label {
+    color: $textSubtleColor;
+    font-size: 0.85rem;
+}
+
+.game-moment-starter {
+    color: $shade000;
+    font-weight: 800;
+}
+
+@keyframes game-moment-band {
+    0% { transform: translateX(-110%) skewY(-3deg); }
+    14% { transform: translateX(1.5%) skewY(-3deg); }
+    20% { transform: translateX(0) skewY(-3deg); }
+    82% { transform: translateX(0) skewY(-3deg); opacity: 1; }
+    100% { transform: translateX(110%) skewY(-3deg); opacity: 0.6; }
+}
+
+@keyframes game-moment-next {
+    0%, 16% { opacity: 0; transform: translate(-50%, 0.75rem); }
+    26% { opacity: 1; transform: translate(-50%, 0); }
+    84% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -0.5rem); }
+}
+
+@keyframes game-moment-count {
+    from { transform: scale(0.4); }
+    to { transform: scale(1); }
+}
+
+@keyframes game-moment-dart {
+    from { transform: translate(-0.8rem, 0.8rem) rotate(-20deg); opacity: 0; }
+    to { transform: translate(0, 0) rotate(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-moment-band,
+    .game-moment-next {
+        animation: game-moment-fade 3.4s ease-in-out forwards;
+    }
+
+    .game-moment-band {
+        transform: skewY(-3deg);
+    }
+
+    .game-moment-next {
+        transform: translate(-50%, 0);
+    }
+
+    .game-moment-dart,
+    .game-moment-standings .is-winner .game-moment-standing-value {
+        animation: none;
+    }
+
+    @keyframes game-moment-fade {
+        0%, 100% { opacity: 0; }
+        12%, 85% { opacity: 1; }
+    }
+}
+
+// A player's form during an X01 game
+.x01-form-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 2rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+
+    &.is-up { background: rgba(#7ecca5, 0.16); color: #7ecca5; }
+    &.is-down { background: rgba(#e07a5f, 0.16); color: #e8957e; }
+    &.is-steady { background: rgba($shade000, 0.08); color: $textSubtleColor; }
+}

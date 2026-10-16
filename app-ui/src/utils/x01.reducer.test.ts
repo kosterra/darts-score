@@ -92,8 +92,9 @@ describe('X01Reducer', () => {
 
     it('INCREMENT_CURRENT_SET increments by 1', () => {
         const state = makeState();
-        const next = X01Reducer(state, { type: INCREMENT_CURRENT_SET });
+        const next = X01Reducer({ ...state, game: { ...state.game, currentSetLeg: 3 } }, { type: INCREMENT_CURRENT_SET });
         expect(next.game.currentSet).toBe(2);
+        expect(next.game.currentSetLeg).toBe(1);
     });
 
     it('INCREMENT_LEGS_PLAYED increments by 1', () => {
