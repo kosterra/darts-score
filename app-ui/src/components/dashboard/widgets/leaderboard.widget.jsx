@@ -28,7 +28,7 @@ const LeaderboardWidget = ({ widget, entries = [], players }) => {
                                         shape="circle"
                                         className="avatar-sm bg-surface-high"
                                     />
-                                    <Link to={`/badges/${entry.player}`} className="leaderboard-name text-default fw-semibold">{player?.nickname ?? 'Unknown'}</Link>
+                                    <Link to={`/players/${entry.player}`} className="leaderboard-name text-default fw-semibold">{player?.nickname ?? 'Unknown'}</Link>
                                     <span className="leaderboard-value">
                                         <span className="text-default fw-semibold fs-5">{widget.format(entry.value)}</span>
                                         <span className="text-faint fs-8 ms-1">{widget.unit}</span>

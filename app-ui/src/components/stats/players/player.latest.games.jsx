@@ -46,11 +46,11 @@ const PlayerLatestGames = ({ player }) => {
                                         <div className="timeline-body">
                                             <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                 <GameTypeTag type={game.type} />
+                                                <span className="text-faint fs-8">{game.format}</span>
                                                 {result
                                                     ? <span className={`game-result game-result-${result}`}>{result === 'won' ? 'Won' : 'Lost'}</span>
                                                     : <GameStatusTag running />
                                                 }
-                                                <span className="text-faint fs-8">{game.format}</span>
                                             </div>
                                             <GamePlayers game={game} players={playersById} />
                                         </div>

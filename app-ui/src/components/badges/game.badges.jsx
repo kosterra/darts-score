@@ -53,7 +53,7 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                     <div className="d-flex flex-column gap-3 p-2">
                         {groups.map((group, groupIndex) => (
                             <div key={group.player.id} className="d-flex flex-wrap align-items-center gap-3">
-                                <Link to={`/badges/${group.player.id}`} className="d-flex align-items-center gap-2 text-default fw-semibold" style={{ minWidth: '10rem' }}>
+                                <Link to={`/players/${group.player.id}#badges`} className="d-flex align-items-center gap-2 text-default fw-semibold" style={{ minWidth: '10rem' }}>
                                     <Avatar
                                         label={resolvePlayerInitials(group.player.firstname, group.player.lastname)}
                                         image={resolvePlayerImg(group.player.profileImg)}

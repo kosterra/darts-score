@@ -53,6 +53,10 @@ $surfaceRaisedColor: $shade700 !default;
 $surfaceHighColor: $shade650 !default;
 $surfaceTranslucentColor: $shade700Translucent !default;
 $borderDefaultColor: $shade600 !default;
+// game status, in tags and timeline dots: soft orange while running, soft blue when finished
+$statusRunningColor: #f2b07e !default;
+$statusFinishedColor: #8fc3df !default;
+$statusTextColor: #1d1c1a !default;
 
 $hoverBg: rgba(255, 255, 255, 0.03) !default;
 

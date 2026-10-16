@@ -157,10 +157,12 @@
 .game-result {
     display: inline-flex;
     align-items: center;
-    padding: 0.2rem 0.55rem;
-    border-radius: 2rem;
-    font-size: 0.72rem;
-    font-weight: 700;
+    padding: $tagPadding;
+    border-radius: $borderRadius;
+    // the same size as the status tags it stands in for
+    font-size: $badgeFontSize;
+    font-weight: $badgeFontWeight;
+    line-height: 1.5;
 
     &.game-result-won { background: rgba(#7ecca5, 0.18); color: #7ecca5; }
     &.game-result-lost { background: rgba($shade000, 0.08); color: $textSubtleColor; }

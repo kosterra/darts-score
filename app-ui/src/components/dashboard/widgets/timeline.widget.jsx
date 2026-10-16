@@ -51,8 +51,8 @@ const TimelineWidget = ({ widget, games, players }) => {
                                             <div className="timeline-body">
                                                 <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                     <GameTypeTag type={game.type} />
-                                                    <GameStatusTag running={game.running} />
                                                     <span className="text-faint fs-8">{game.format}</span>
+                                                    <GameStatusTag running={game.running} />
                                                 </div>
                                                 <GamePlayers game={game} players={players} />
                                             </div>

@@ -86,13 +86,13 @@
             height: 0.75rem;
             margin-top: -0.375rem;
             border-radius: 50%;
-            // the colours of the status tags: blue for finished, orange for running
-            background: $infoButtonBg;
+            // the colours of the status tags: soft blue for finished, soft orange for running
+            background: $statusFinishedColor;
             border: 2px solid $surfaceColor;
         }
 
         &.timeline-running::before {
-            background: $warningButtonBg;
+            background: $statusRunningColor;
         }
     }
 
@@ -108,21 +108,31 @@
     }
 }
 
-// Game types, each in its own colour. Orange and blue are taken by the game
-// status (running / finished), so types use green, gold and purple.
+// Game types, each in its own colour: a small label with a short line in that
+// colour, like the panel titles. Orange and blue are taken by the game status
+// (running / finished, the only pills), so types use green, gold and purple.
 .game-type-tag {
     display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.6rem;
-    border-radius: 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    color: $textDefaultColor;
     font-size: 0.75rem;
     font-weight: 700;
-    line-height: 1.2;
-    color: #1d1c1a;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
 
-    &.game-type-x01 { background: #7ecca5; }
-    &.game-type-cricket { background: #d4c783; }
-    &.game-type-elimination { background: #b98be8; }
+    &::after {
+        content: '';
+        width: 1.1rem;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--game-type-color);
+    }
+
+    &.game-type-x01 { --game-type-color: #7ecca5; }
+    &.game-type-cricket { --game-type-color: #d4c783; }
+    &.game-type-elimination { --game-type-color: #b98be8; }
 }
 
 // Player picker on the statistics page
