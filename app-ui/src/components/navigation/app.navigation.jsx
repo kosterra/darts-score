@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Sidebar } from 'primereact/sidebar';
-import { FaBars } from "react-icons/fa6";
+import { FaBars, FaAnglesLeft, FaAnglesRight } from "react-icons/fa6";
 
 import NavigationContent from './navigation.content';
 
@@ -36,6 +36,16 @@ const AppNavigation = () => {
         <>
             <aside className={`app-navigation-rail d-none d-md-block ${collapsed ? 'collapsed' : ''}`}>
                 <NavigationContent collapsed={collapsed} onToggle={toggle} />
+                {/* a small handle on the menu's edge, so the header stays free for the club */}
+                <button
+                    type="button"
+                    className="nav-edge-toggle"
+                    onClick={toggle}
+                    aria-label={collapsed ? 'Expand the menu' : 'Collapse the menu'}
+                    title={collapsed ? 'Expand the menu' : 'Collapse the menu'}
+                >
+                    {collapsed ? <FaAnglesRight /> : <FaAnglesLeft />}
+                </button>
             </aside>
 
             <div className="app-navigation-bar d-md-none">
@@ -47,8 +57,9 @@ const AppNavigation = () => {
                 visible={drawerOpen}
                 onHide={() => setDrawerOpen(false)}
                 className="app-navigation-drawer"
+                // tapping next to the drawer closes it, so it needs no close button of its own
                 content={() => (
-                    <NavigationContent onClose={() => setDrawerOpen(false)} onNavigate={() => setDrawerOpen(false)} />
+                    <NavigationContent onNavigate={() => setDrawerOpen(false)} />
                 )}
             />
         </>

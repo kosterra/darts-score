@@ -50,7 +50,9 @@ $navRailWidth: 4.75rem;
         align-items: center;
         justify-content: space-between;
         gap: 0.5rem;
-        padding: 1rem 0.75rem 1rem 1rem;
+        padding: 0.85rem 0.75rem;
+        border-bottom: 1px solid $shade700;
+        margin-bottom: 0.5rem;
     }
 
     .nav-brand {
@@ -127,29 +129,36 @@ $navRailWidth: 4.75rem;
         }
     }
 
+    // the club switcher heads the menu, next to the collapse button
     .club-switcher {
-        padding: 0 0.75rem 0.75rem;
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .club-switcher-button {
         position: relative;
-        overflow: hidden;
+        // the switch badge sits half outside the logo
+        overflow: visible;
         display: flex;
         align-items: center;
         gap: 0.75rem;
         width: 100%;
-        padding: 0.6rem;
-        border: 1px solid $shade700;
+        padding: 0.4rem;
+        border: 0;
         border-radius: $borderRadius;
-        background: $surfaceRaisedColor;
+        background: transparent;
         text-align: left;
         cursor: pointer;
-        transition: background-color $transitionDuration, border-color $transitionDuration;
+        transition: background-color $transitionDuration;
 
         &:hover,
         &:focus-visible {
             background: $surfaceHighColor;
-            border-color: $shade600;
+
+            .club-switcher-badge {
+                background: $primaryColor;
+                color: $primaryTextColor;
+            }
         }
 
         .nav-chevron {
@@ -247,12 +256,34 @@ $navRailWidth: 4.75rem;
         }
     }
 
-    // About sits at the bottom, outside the sections
-    // About closes the menu below a plain rule, spaced like the rules of the section titles
-    .nav-bottom {
-        margin: 1.8rem 0 0;
-        padding-top: 1rem;
+    // the app itself, small and quiet above the profile, opening About
+    .nav-app {
+        padding: 0.4rem 0.75rem;
         border-top: 1px solid $shade700;
+    }
+
+    .nav-app-link {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.4rem 0.5rem;
+        border-radius: $borderRadius;
+        text-decoration: none;
+        opacity: 0.85;
+        transition: background-color $transitionDuration, opacity $transitionDuration;
+
+        img {
+            flex-shrink: 0;
+        }
+
+        &:hover,
+        &:focus-visible,
+        &.active {
+            background: $surfaceHighColor;
+            opacity: 1;
+        }
     }
 
     .nav-profile {
@@ -297,8 +328,7 @@ $navRailWidth: 4.75rem;
             display: none !important;
         }
 
-        .nav-section + .nav-section,
-        .nav-bottom {
+        .nav-section + .nav-section {
             margin-top: 0.5rem;
             padding-top: 0.5rem;
             border-top: 1px solid $shade700;
@@ -321,7 +351,16 @@ $navRailWidth: 4.75rem;
         }
 
         .club-switcher {
-            padding: 0 0.6rem 0.75rem;
+            flex: 0 0 auto;
+        }
+
+        .nav-app {
+            padding: 0.4rem 0.5rem;
+        }
+
+        .nav-app-link {
+            justify-content: center;
+            padding: 0.5rem;
         }
 
         .club-switcher-button {
@@ -388,4 +427,44 @@ $navRailWidth: 4.75rem;
     &.club-logo-sm { width: 2.25rem; height: 2.25rem; font-size: 0.85rem; }
     &.club-logo-md { width: 3.5rem; height: 3.5rem; font-size: 1.2rem; }
     &.club-logo-lg { width: 5rem; height: 5rem; font-size: 1.7rem; border-radius: 0.6rem; }
+}
+
+// The collapse handle: a small round button on the menu's right edge, at the
+// height of the club switcher, so the header is all the club's
+.nav-edge-toggle {
+    position: absolute;
+    top: 1.55rem;
+    right: -0.8rem;
+    z-index: 11;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    padding: 0;
+    border: 1px solid $shade600;
+    border-radius: 50%;
+    background: $surfaceRaisedColor;
+    color: $textSubtleColor;
+    font-size: 0.65rem;
+    cursor: pointer;
+    box-shadow: 0 0.25rem 0.6rem -0.2rem rgba(0, 0, 0, 0.8);
+    transition: background-color $transitionDuration, color $transitionDuration, border-color $transitionDuration;
+
+    &:hover,
+    &:focus-visible {
+        background: $primaryColor;
+        border-color: $primaryColor;
+        color: $primaryTextColor;
+    }
+}
+
+// a long club name may use two lines before it is cut off
+.club-switcher-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.2;
+    word-break: break-word;
 }

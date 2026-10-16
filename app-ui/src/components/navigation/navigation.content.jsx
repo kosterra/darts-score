@@ -4,14 +4,14 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaCircleQuestion, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaAnglesLeft, FaAnglesRight, FaXmark } from "react-icons/fa6";
+import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
 import { BsPersonFillCheck } from "react-icons/bs";
 
 import { useAuth } from '../../utils/auth.context';
-import { CLUB_ROLES, ROLE_LABELS } from '../../services/user.service';
+import { ROLE_LABELS } from '../../services/user.service';
 import { resolvePlayerInitials } from '../../utils/image.utils';
 import ClubLogo from '../elements/club.logo';
 
@@ -78,7 +78,6 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
     const navigate = useNavigate();
     const { clubs, activeClub, selectClub } = useAuth();
 
-    const roleOf = (club) => club.role === CLUB_ROLES.ADMIN ? 'Admin' : 'Player';
 
     const model = [
         {
@@ -104,7 +103,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
         <div className="club-switcher">
             <button
                 type="button"
-                className="club-switcher-button p-ripple"
+                className="club-switcher-button"
                 onClick={(event) => menu.current.toggle(event)}
                 aria-haspopup="menu"
                 aria-label={activeClub ? `Club: ${activeClub.name}. Switch club` : 'Choose a club'}
@@ -112,19 +111,12 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
             >
                 <span className="club-switcher-logo">
                     <ClubLogo club={activeClub} />
-                    {/* collapsed, only the logo is shown: this badge marks it as a switcher */}
-                    {collapsed && <span className="club-switcher-badge" aria-hidden="true"><FaChevronDown /></span>}
+                    {/* the badge on the logo marks it as a switcher, expanded and collapsed */}
+                    <span className="club-switcher-badge" aria-hidden="true"><FaChevronDown /></span>
                 </span>
-                {!collapsed && (
-                    <>
-                        <span className="nav-label d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
-                            <span className="text-default fw-semibold text-truncate">{activeClub?.name ?? 'No club yet'}</span>
-                            <span className="text-faint fs-8">{activeClub ? roleOf(activeClub) : 'Create or join a club'}</span>
-                        </span>
-                        <FaChevronDown className="nav-chevron" aria-hidden="true" />
-                    </>
-                )}
-                <Ripple />
+                {!collapsed &&
+                    <span className="club-switcher-name text-default fw-semibold">{activeClub?.name ?? 'Choose a club'}</span>
+                }
             </button>
             <Menu model={model} popup ref={menu} className="club-switcher-menu" />
         </div>
@@ -138,7 +130,7 @@ const isInside = (item, pathname) =>
  * The navigation itself: logo, menu and the profile of the logged-in user.
  * "collapsed" shows icons only (desktop rail); "onNavigate" closes the drawer on phones.
  */
-const NavigationContent = ({ collapsed = false, onToggle, onClose, onNavigate }) => {
+const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
     const { pathname } = useLocation();
     const { user, activeClub, isGlobalAdmin, logout } = useAuth();
     const sections = useSections();
@@ -219,25 +211,19 @@ const NavigationContent = ({ collapsed = false, onToggle, onClose, onNavigate })
 
     return (
         <div className={`app-navigation ${collapsed ? 'collapsed' : ''}`}>
+            {/* the club is what you work in, so it leads the menu; the app itself sits quietly at the bottom.
+                A global admin without clubs has nothing to switch and sees the app instead. */}
             <div className="nav-header">
-                <Link to="/" className="nav-brand" onClick={onNavigate} aria-label="Darts Score dashboard">
-                    <img alt="" src="/logo.svg" width="40" height="40" />
-                    <span className="nav-label fw-semibold">Darts Score</span>
-                </Link>
-                {onToggle &&
-                    <button type="button" className="nav-icon-button" onClick={onToggle} aria-label={collapsed ? 'Expand the menu' : 'Collapse the menu'}>
-                        {collapsed ? <FaAnglesRight /> : <FaAnglesLeft />}
-                    </button>
-                }
-                {onClose &&
-                    <button type="button" className="nav-icon-button" onClick={onClose} aria-label="Close the menu">
-                        <FaXmark />
-                    </button>
+                {(activeClub || !isGlobalAdmin)
+                    ? <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
+                    : (
+                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label="Darts Score">
+                            <img alt="" src="/logo.svg" width="40" height="40" />
+                            <span className="nav-label fw-semibold">Darts Score</span>
+                        </Link>
+                    )
                 }
             </div>
-
-            {/* a global admin without clubs has nothing to switch; they can still create or join one under Clubs */}
-            {(activeClub || !isGlobalAdmin) && <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />}
 
             <nav className="nav-sections" aria-label="Main">
                 {sections.map((section, index) => (
@@ -246,17 +232,21 @@ const NavigationContent = ({ collapsed = false, onToggle, onClose, onNavigate })
                         <ul className="list-unstyled m-0">{section.items.map(renderItem)}</ul>
                     </div>
                 ))}
-                {/* About closes the menu, without a section of its own */}
-                <ul className="nav-bottom list-unstyled">
-                    <li>
-                        <NavLink to="/about" className={linkClass} title={collapsed ? 'About' : undefined} onClick={onNavigate}>
-                            <FaCircleQuestion className="nav-icon" aria-hidden="true" />
-                            <span className="nav-label">About</span>
-                            <Ripple />
-                        </NavLink>
-                    </li>
-                </ul>
             </nav>
+
+            {/* the app: its name and version, opening the About page */}
+            <div className="nav-app">
+                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? 'About Darts Score' : undefined} onClick={onNavigate}>
+                    <img alt="" src="/logo.svg" width="24" height="24" />
+                    {!collapsed &&
+                        <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+                            <span className="text-subtle fw-semibold fs-7">Darts Score</span>
+                            <span className="text-faint fs-9">About · {import.meta.env.VITE_APP_VERSION}</span>
+                        </span>
+                    }
+                    <Ripple />
+                </NavLink>
+            </div>
 
             <div className="nav-profile">
                 <Link to="/profile" className="nav-profile-link p-ripple" onClick={onNavigate} title={collapsed ? 'Your profile' : undefined}>
