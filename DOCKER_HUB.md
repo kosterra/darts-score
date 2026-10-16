@@ -42,24 +42,38 @@ Open `http://localhost:3001` in your browser.
 
 ## Docker Compose
 
+A ready-to-copy setup is [`docker-compose.yml`](https://github.com/kosterra/darts-score/blob/main/docker-compose.yml) in the repository, with [`.env.sample`](https://github.com/kosterra/darts-score/blob/main/.env.sample) and [`mongo.env.sample`](https://github.com/kosterra/darts-score/blob/main/mongo.env.sample). In short:
+
 ```yaml
 services:
 
   darts_score:
     image: kosterra/darts-score:latest
+    container_name: darts_score_server
+    restart: unless-stopped
     ports:
       - "3001:3001"
     env_file:
       - .env
+    environment:
+      # "production" unless .env sets NODE_ENV (e.g. "test" on a test server)
+      NODE_ENV: ${NODE_ENV:-production}
     volumes:
       - ./data:/app/data
-    restart: unless-stopped
     depends_on:
       mongo:
         condition: service_healthy
+    healthcheck:
+      # the image has no curl or wget, so Node itself asks the health endpoint
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   mongo:
     image: mongo:8.0
+    container_name: darts_score_mongo
     restart: unless-stopped
     env_file:
       - mongo.env
@@ -70,29 +84,37 @@ services:
     volumes:
       - darts_score_db:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
 volumes:
   darts_score_db:
 ```
 
+MongoDB has no published port: only Darts Score reaches it, through the internal network. For HTTPS put a reverse proxy in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`.
+
 **.env**
 
 ```dotenv
-DB_HOST=mongo
+DB_HOST=darts_score_mongo
+DB_PORT=27017
+DB_NAME=darts_score
 DB_USER=admin
 DB_PASSWORD=yourpassword
-DB_NAME=darts_score
-DB_PORT=27017
-IMG_DIR=data/img
-NODE_ENV=production
 SESSION_SECRET=long-random-string
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=at-least-8-chars
+APP_URL=https://darts.example.com
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=darts@example.com
+SMTP_PASSWORD=yourmailpassword
+SMTP_FROM=Darts Score <darts@example.com>
+IMG_DIR=data/img
+LOG_LEVEL=info
 ```
 
 **mongo.env**
@@ -116,7 +138,7 @@ MONGO_INITDB_DATABASE=darts_score
 | `DB_NAME` | yes | — | MongoDB database name |
 | `IMG_DIR` | no | `data/img` | Path for uploaded player images |
 | `PORT` | no | `3001` | HTTP port the server listens on |
-| `NODE_ENV` | no | `production` | `development` or `production` |
+| `NODE_ENV` | no | `production` | `production` hides error details from the browser; anything else (e.g. `test`) shows them and appears as the environment on the administration page |
 | `UI_URL` | no | — | Allowed CORS origin (only needed when the UI is served separately) |
 | `SESSION_SECRET` | recommended | random per start | Signs the login cookie. Without it every restart logs all users out |
 | `ADMIN_EMAIL` | first start | — | Email of the first global admin, created on startup when no global admin exists |
@@ -126,6 +148,8 @@ MONGO_INITDB_DATABASE=darts_score
 | `SMTP_PORT` | no | `587` | SMTP port (`465` implies TLS) |
 | `SMTP_USER` / `SMTP_PASSWORD` | no | — | SMTP login, if the server needs one |
 | `SMTP_FROM` | no | `Darts Score <no-reply@darts-score.local>` | Sender of the mails |
+| `SMTP_SECURE` | no | `true` on port 465 | `true` for TLS from the start on another port |
+| `LOG_LEVEL` | no | `debug` | `error`, `warn`, `info` or `debug` |
 
 The app requires a login. Anyone can register and create clubs with their own players and games. A club can have several admins, and an admin can give players a login so they can play and train on their own. The global admin looks after all clubs and users on the *Administration* page and is meant for that only; play with a normal account.
 

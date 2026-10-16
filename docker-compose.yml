@@ -1,44 +1,52 @@
+# Darts Score for production: copy this file next to a .env and a mongo.env
+# (see .env.sample and mongo.env.sample), then run
+#
+#   docker compose up -d
+#
+# and open http://<your-server>:3001. For HTTPS put a reverse proxy (Caddy,
+# Traefik, nginx …) in front of port 3001; the login cookie is marked secure
+# automatically when the proxy forwards "X-Forwarded-Proto: https".
+#
+# To develop on Darts Score itself use docker-compose.dev.yml instead.
+
 services:
 
   # ---------------------------------------------------------------------------
-  # API Server
+  # Darts Score: the API and the app in one container
   # ---------------------------------------------------------------------------
-  darts_score_api:
-    container_name: darts_score_server
-    build:
-      context: .
-      target: development   # change to "production" for prod deployment
+  darts_score:
+    image: kosterra/darts-score:latest
+    container_name: darts_score
+    restart: unless-stopped
     ports:
       - "3001:3001"
-    volumes:
-      # Development hot-reload mounts (remove for production target)
-      - ./data:/app/data
-      - ./app-api/index.js:/app/index.js
-      - ./app-api/src:/app/src
     env_file:
       - ./.env
     environment:
-      NODE_ENV: development
-    restart: unless-stopped
+      # "production" unless .env sets NODE_ENV (e.g. "test" on a test server, which
+      # then shows error details and its name on the administration page)
+      NODE_ENV: ${NODE_ENV:-production}
+    volumes:
+      # uploaded player pictures and club logos
+      - ./data:/app/data
     depends_on:
       mongo:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      # the image has no curl or wget, so Node itself asks the health endpoint
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 20s
 
   # ---------------------------------------------------------------------------
-  # MongoDB
+  # MongoDB: only reachable by Darts Score, through the internal network
   # ---------------------------------------------------------------------------
   mongo:
     image: mongo:8.0
-    container_name: darts_score_mongo
+    container_name: darts_score_db
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     env_file:
       - ./mongo.env
     environment:
@@ -48,12 +56,14 @@ services:
       GLIBC_TUNABLES: glibc.pthread.rseq=1
     volumes:
       - darts_score_db:/data/db
+    # no "ports": the database stays private. To reach it from the server
+    # itself (e.g. with MongoDB Compass), add: ports: ["127.0.0.1:27017:27017"]
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 20s
 
 volumes:
   darts_score_db:

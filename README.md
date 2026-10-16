@@ -12,7 +12,7 @@ REST API **and** React UI for the [darts-score](https://github.com/kosterra/dart
 - [Getting Started](#getting-started)
   - [Local development (no Docker)](#local-development-no-docker)
   - [Docker Compose — development (recommended)](#docker-compose--development-recommended)
-  - [Docker Compose — production-like](#docker-compose--production-like)
+  - [Docker Compose — production](#docker-compose--production)
   - [Production](#production)
 - [Versioning](#versioning)
 - [Available Scripts](#available-scripts)
@@ -59,7 +59,7 @@ darts-score/
 │   └── package.json
 ├── data/                    # Runtime image storage (created on first upload)
 ├── Dockerfile
-├── docker-compose.yml       # Production-like: API + MongoDB (2 containers)
+├── docker-compose.yml       # Production: Darts Score + MongoDB, ready to copy (with .env.sample, mongo.env.sample)
 └── docker-compose.dev.yml   # Development: API + UI + MongoDB, all with hot-reload
 ```
 
@@ -242,21 +242,21 @@ To rebuild after dependency changes:
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-### Docker Compose — production-like
+### Docker Compose — production
 
-Starts the combined API + UI server (React served as static files by Express) and MongoDB. Uses the `development` Dockerfile target with nodemon.
+`docker-compose.yml` is a ready-to-copy production setup: the published image `kosterra/darts-score:latest` (app and API in one container) and MongoDB, which is only reachable through the internal Docker network.
+
+1. Copy `docker-compose.yml`, `.env.sample` and `mongo.env.sample` to the server.
+2. Rename the examples to `.env` and `mongo.env` and fill them in: database password (the same in both files), `SESSION_SECRET`, the first global admin, `APP_URL` and the SMTP settings for password reset and invitation mails.
+3. Start it:
 
 ```bash
-docker compose up --build
+docker compose up -d
 ```
 
-Both the React UI and API are served from `http://localhost:3001`. The Swagger UI is at `http://localhost:3001/api-docs`.
+The app runs on `http://<server>:3001`, the Swagger UI at `/api-docs`. For HTTPS put a reverse proxy (Caddy, Traefik, nginx …) in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`. Uploaded pictures and logos are kept in `./data`, the database in the Docker volume `darts_score_db`.
 
-### Production
-
-See the [darts-score-sample](https://github.com/kosterra/darts-score-sample) repository for the full production Docker Compose setup.
-
-To build and run the production image manually:
+To build and run the production image from the source instead:
 
 ```bash
 docker build --target production -t darts-score .

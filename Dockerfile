@@ -90,6 +90,10 @@ RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/
 
 WORKDIR /app
 
+# the npm packages the API needs at runtime; the bundle leaves them out
+COPY app-api/package.json app-api/package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund --loglevel warn && npm cache clean --force
+
 # API bundle + public assets + openapi spec (all placed in dist/ by build.js)
 COPY --chown=node:node --from=builder /app/dist ./dist
 # React UI static build
