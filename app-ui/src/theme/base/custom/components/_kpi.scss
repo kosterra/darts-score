@@ -167,3 +167,15 @@
     &.game-result-won { background: rgba(#7ecca5, 0.18); color: #7ecca5; }
     &.game-result-lost { background: rgba($shade000, 0.08); color: $textSubtleColor; }
 }
+
+// the weekly streak on a profile: lit flames for the weeks reached, grey ones still to go
+.streak-flames {
+    display: inline-flex;
+    gap: 0.1rem;
+    font-size: 1.05rem;
+    color: $shade600;
+
+    .is-lit {
+        color: $orange;
+    }
+}

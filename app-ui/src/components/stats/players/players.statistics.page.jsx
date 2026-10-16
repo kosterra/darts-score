@@ -118,7 +118,7 @@ const PlayersStatisticsPage = () => {
 
                 <div className="col-12 col-lg-8 col-xxl-9" style={{ minWidth: 0 }}>
                     {selected.length < 2 &&
-                        <header className="bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-column gap-2">
+                        <header className="hero-header rounded-2 p-4 mb-4 d-flex flex-column gap-2">
                             <h1 className="fs-2 fw-semibold text-default m-0">Player comparison</h1>
                             <span className="text-subtle">
                                 {selected.length === 0
@@ -134,7 +134,7 @@ const PlayersStatisticsPage = () => {
                     }
                     {selected.length > 1 &&
                         <>
-                            <header className="bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-column gap-3">
+                            <header className="hero-header hero-header-centered rounded-2 p-4 mb-4 d-flex flex-column gap-3">
                                 <span className="text-faint fs-8 text-uppercase text-center" style={{ letterSpacing: '0.08em' }}>Head to head</span>
                                 <div className="d-flex flex-wrap justify-content-center align-items-center gap-4">
                                     {selected.map((player, index) => (

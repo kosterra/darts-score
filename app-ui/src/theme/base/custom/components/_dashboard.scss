@@ -447,3 +447,20 @@ $momentGoldColor: #ffc94d;
     font-size: 0.75rem;
     font-weight: 700;
 }
+
+// The header of a page (a player, the club, a comparison): solid like the panels,
+// set apart by a soft green glow behind the picture and a thin green line on top
+.hero-header {
+    background:
+        radial-gradient(ellipse 30rem 16rem at 5.5rem 50%, rgba($primaryColor, 0.28), transparent 70%),
+        $surfaceColor;
+    border-top: 2px solid rgba($primaryColor, 0.7);
+    box-shadow: 0 0.75rem 1.75rem -0.75rem rgba(0, 0, 0, 0.75);
+
+    // centred headers glow from the top middle
+    &.hero-header-centered {
+        background:
+            radial-gradient(ellipse 36rem 12rem at 50% 0, rgba($primaryColor, 0.24), transparent 70%),
+            $surfaceColor;
+    }
+}

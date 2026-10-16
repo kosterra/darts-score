@@ -79,7 +79,7 @@ const Dashboard = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <header className="dashboard-header bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <header className="dashboard-header hero-header rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
                 <div className="d-flex flex-wrap align-items-start gap-4" style={{ minWidth: 0 }}>
                 <ClubLogo club={club} size="lg" />
                 <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 18rem' }}>

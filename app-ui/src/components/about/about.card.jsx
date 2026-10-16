@@ -32,7 +32,7 @@ const AboutCard = () => {
 
     return (
         <div className="d-flex flex-column gap-4 mx-auto" style={{ maxWidth: '62rem' }}>
-            <header className="bg-surface-translucent rounded-2 p-4 d-flex flex-wrap align-items-center gap-4">
+            <header className="hero-header rounded-2 p-4 d-flex flex-wrap align-items-center gap-4">
                 <img alt="" src="/logo.svg" width="80" height="80" />
                 <div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
                     <h1 className="fs-2 fw-semibold text-default m-0">Darts Score</h1>

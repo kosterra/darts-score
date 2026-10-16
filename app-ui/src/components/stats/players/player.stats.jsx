@@ -18,6 +18,20 @@ const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 const percent = (part, whole) => whole ? `${Math.round(part * 100 / whole)} %` : '–';
 const weeks = (count) => `${count} ${count === 1 ? 'week' : 'weeks'}`;
 
+const STREAK_FLAMES = 5;
+
+/**
+ * The weekly streak as five flames: one lit per week in a row, the rest grey
+ * until they are reached. From five weeks on all five burn.
+ */
+const StreakFlames = ({ weeks: count }) => (
+    <span className="streak-flames" aria-hidden="true">
+        {Array.from({ length: STREAK_FLAMES }, (_, index) => (
+            <FaFire key={index} className={index < count ? 'is-lit' : ''} />
+        ))}
+    </span>
+);
+
 // the colours of the game type tags
 const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6' };
 
@@ -71,9 +85,12 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
         ['Member since', dayjs(player.createdAt).format('DD.MM.YYYY')],
         ['Games played', formatNumber(games)],
         ['Wins', games ? `${formatNumber(wins)} (${percent(wins, games)})` : '–'],
-        ['Weekly streak', streak.current > 0
-            ? <span><FaFire className="text-orange me-1" aria-hidden="true" />{weeks(streak.current)}</span>
-            : 'None right now'],
+        ['Weekly streak', (
+            <span className="d-inline-flex align-items-center gap-2">
+                <StreakFlames weeks={streak.current} />
+                {streak.current > 0 ? weeks(streak.current) : 'None right now'}
+            </span>
+        )],
         ['Best streak', weeks(streak.best)],
         ['Badges', badges ? <a href="#badges" onClick={scrollToBadges}>{badges.earnedCount} of {badges.total}</a> : '–'],
     ];
@@ -85,7 +102,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
 
     return (
         <>
-            <header className="bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-wrap align-items-start gap-4">
+            <header className="hero-header rounded-2 p-4 mb-4 d-flex flex-wrap align-items-start gap-4">
                 <Avatar
                     label={resolvePlayerInitials(player.firstname, player.lastname)}
                     image={resolvePlayerImg(player.profileImg)}
