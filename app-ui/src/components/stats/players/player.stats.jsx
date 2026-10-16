@@ -19,7 +19,7 @@ const percent = (part, whole) => whole ? `${Math.round(part * 100 / whole)} %` :
 const weeks = (count) => `${count} ${count === 1 ? 'week' : 'weeks'}`;
 
 // the colours of the game type tags
-const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#b98be8' };
+const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6' };
 
 // the badge collection further down the profile page
 const scrollToBadges = (event) => {

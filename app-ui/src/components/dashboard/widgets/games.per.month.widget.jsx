@@ -3,12 +3,12 @@ import { Panel } from 'primereact/panel';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { gamesPerMonth } from '../../../utils/club.charts';
-import { AXIS, GRID, TOOLTIP, LEGEND } from '../../stats/charts/chart.theme';
+import { AXIS, BAR_OPACITY, GRID, TOOLTIP, LEGEND } from '../../stats/charts/chart.theme';
 
 const TYPES = [
     { key: 'x01', name: 'X01', color: '#7ecca5' },
     { key: 'cricket', name: 'Cricket', color: '#d4c783' },
-    { key: 'elimination', name: 'Elimination', color: '#b98be8' },
+    { key: 'elimination', name: 'Elimination', color: '#c3a9e6' },
 ];
 
 /**
@@ -28,7 +28,7 @@ const GamesPerMonthWidget = ({ widget, gameLog }) => {
                         <Tooltip {...TOOLTIP} />
                         <Legend {...LEGEND} />
                         {TYPES.map((type, index) => (
-                            <Bar key={type.key} dataKey={type.key} name={type.name} stackId="games" fill={type.color}
+                            <Bar key={type.key} dataKey={type.key} name={type.name} stackId="games" fill={type.color} fillOpacity={BAR_OPACITY}
                                 radius={index === TYPES.length - 1 ? [3, 3, 0, 0] : 0} maxBarSize={28} />
                         ))}
                     </BarChart>

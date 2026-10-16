@@ -2,7 +2,7 @@ import { Bar, BarChart, CartesianGrid, ComposedChart, LabelList, Legend, Line, R
 import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
-import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
+import { AXIS, BAR_OPACITY, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 
 const RANGE_ORDER = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
 const rangeLabel = (range) => range === 'ZERO' ? '0' : range.replace('-', '–');
@@ -33,7 +33,7 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
                     <YAxis type="category" dataKey="range" {...AXIS} width={64} interval={0} />
                     <Tooltip {...TOOLTIP} formatter={(value) => `${value} %`} />
                     {players.map((player, index) => (
-                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} radius={[0, 4, 4, 0]}>
+                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[0, 4, 4, 0]}>
                             {players.length === 1 && <LabelList dataKey={`p${index}`} position="right" fill="#9a9a9a" fontSize={11} formatter={(value) => value ? `${value} %` : ''} />}
                         </Bar>
                     ))}
@@ -63,7 +63,7 @@ export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
                     <YAxis {...AXIS} />
                     <Tooltip {...TOOLTIP} />
                     {players.map((player, index) => (
-                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} radius={[4, 4, 0, 0]} maxBarSize={56}>
+                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} maxBarSize={56}>
                             <LabelList dataKey={`p${index}`} position="top" fill="#d4d4d4" fontSize={12} />
                         </Bar>
                     ))}
@@ -93,7 +93,7 @@ export const DartsPerLegChart = ({ data = [], players = [], description = 'Darts
                             <YAxis {...AXIS} allowDecimals={false} />
                             <Tooltip {...TOOLTIP} />
                             {players.map((player, index) => (
-                                <Bar key={player.id} dataKey={keyOf(index)} name={player.nickname} fill={PLAYER_COLORS[index]} radius={[4, 4, 0, 0]} />
+                                <Bar key={player.id} dataKey={keyOf(index)} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} />
                             ))}
                             {players.length > 1 && <Legend {...LEGEND} />}
                         </BarChart>
@@ -122,7 +122,7 @@ export const FormChart = ({ data = [] }) => {
                             <YAxis yAxisId="rate" {...AXIS} domain={[0, 100]} unit=" %" />
                             <YAxis yAxisId="avg" orientation="right" {...AXIS} domain={[0, 'auto']} />
                             <Tooltip {...TOOLTIP} formatter={(value, name) => name === 'Win rate' ? `${value} %` : value} />
-                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={0.55} radius={[4, 4, 0, 0]} />
+                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} />
                             <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
                             <Legend {...LEGEND} />
                         </ComposedChart>
@@ -153,7 +153,7 @@ export const LegsPerGameChart = ({ games = [], players = [] }) => {
                     <YAxis {...AXIS} allowDecimals={false} />
                     <Tooltip {...TOOLTIP} />
                     {players.map((player, index) => (
-                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} stackId="legs" fill={PLAYER_COLORS[index]} />
+                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} stackId="legs" fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} />
                     ))}
                     <Legend {...LEGEND} />
                 </BarChart>

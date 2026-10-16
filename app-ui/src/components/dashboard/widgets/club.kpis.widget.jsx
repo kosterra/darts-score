@@ -6,7 +6,7 @@ import { KpiRing, KpiHero, KpiChip } from '../../stats/players/kpi';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 const GREEN = '#7ecca5';
-const TYPE_COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#b98be8' };
+const TYPE_COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6' };
 
 /**
  * The club in numbers: rates as rings, the average and this month's games as

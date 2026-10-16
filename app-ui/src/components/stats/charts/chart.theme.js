@@ -5,6 +5,9 @@ import ChartConfigOptions from '../common/chart.config.options';
  */
 export const PLAYER_COLORS = ChartConfigOptions.fillColors.values;
 
+// Bars are drawn a little see-through, so they sit calmly on the dark panels
+export const BAR_OPACITY = 0.55;
+
 export const AXIS = {
     stroke: '#5c5c5c',
     tick: { fill: '#9a9a9a', fontSize: 12 },
