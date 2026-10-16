@@ -1,6 +1,9 @@
 import { Panel } from 'primereact/panel';
 import { FaFire, FaCrosshairs, FaStopwatch, FaFlagCheckered, FaBullseye, FaUsers, FaCalendarCheck, FaPlay } from 'react-icons/fa6';
 import { FaArrowTrendUp, FaArrowTrendDown } from 'react-icons/fa6';
+import { MdSportsCricket } from 'react-icons/md';
+import { BiTargetLock } from 'react-icons/bi';
+import { GiDart } from 'react-icons/gi';
 
 import { KpiRing, KpiHero, KpiChip } from '../../stats/players/kpi';
 
@@ -37,15 +40,15 @@ const ClubKpisWidget = ({ widget, kpis, totals, players }) => {
             </div>
             <div className="kpi-chips">
                 <KpiChip icon={FaBullseye} label="X01 games" value={formatNumber(totals.x01)} color={TYPE_COLORS.x01} />
-                <KpiChip icon={FaBullseye} label="Cricket games" value={formatNumber(totals.cricket)} color={TYPE_COLORS.cricket} />
-                <KpiChip icon={FaBullseye} label="Elimination games" value={formatNumber(totals.elimination)} color={TYPE_COLORS.elimination} />
+                <KpiChip icon={MdSportsCricket} label="Cricket games" value={formatNumber(totals.cricket)} color={TYPE_COLORS.cricket} />
+                <KpiChip icon={BiTargetLock} label="Elimination games" value={formatNumber(totals.elimination)} color={TYPE_COLORS.elimination} />
                 <KpiChip icon={FaPlay} label="Running now" value={formatNumber(totals.running)} color={GREEN} />
                 <KpiChip icon={FaUsers} label="Active this month" value={`${formatNumber(kpis.activePlayersThisMonth)} players`} color={GREEN} />
                 <KpiChip icon={FaFire} label="180s" value={formatNumber(kpis.num180s)} color={GREEN} />
                 <KpiChip icon={FaCrosshairs} label={kpis.highestCheckout ? `Highest checkout · ${nameOf(kpis.highestCheckout.player)}` : 'Highest checkout'} value={kpis.highestCheckout?.value} color={GREEN} />
                 <KpiChip icon={FaStopwatch} label={kpis.bestLeg ? `Best 501 leg · ${nameOf(kpis.bestLeg.player)}` : 'Best 501 leg'} value={kpis.bestLeg ? `${kpis.bestLeg.value} darts` : null} color={GREEN} />
                 <KpiChip icon={FaFlagCheckered} label="Legs played" value={formatNumber(kpis.legsPlayed)} color={GREEN} />
-                <KpiChip icon={FaBullseye} label="Darts thrown" value={formatNumber(kpis.dartsThrown)} color={GREEN} />
+                <KpiChip icon={GiDart} label="Darts thrown" value={formatNumber(kpis.dartsThrown)} color={GREEN} />
                 <KpiChip icon={FaCalendarCheck} label={kpis.longestStreak ? `Longest weekly streak · ${nameOf(kpis.longestStreak.player)}` : 'Longest weekly streak'} value={kpis.longestStreak ? `${kpis.longestStreak.value} weeks` : null} color={GREEN} />
             </div>
         </Panel>
