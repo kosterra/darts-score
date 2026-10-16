@@ -1,0 +1,470 @@
+// App navigation: rail on desktop, drawer on phones, same content in both
+
+$navWidth: 16rem;
+$navRailWidth: 4.75rem;
+
+.app-navigation-rail {
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+    height: 100vh;
+    width: $navWidth;
+    background: $sidebarContainerBg;
+    box-shadow: 0.5rem 0 1.5rem -1rem rgba(0, 0, 0, 0.8);
+    transition: width $transitionDuration;
+    z-index: 10;
+
+    &.collapsed {
+        width: $navRailWidth;
+    }
+}
+
+.app-navigation-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 900;
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    background: $sidebarContainerBg;
+    box-shadow: 0 -0.5rem 1.5rem -1rem rgba(0, 0, 0, 0.8);
+}
+
+.app-navigation-drawer.p-sidebar {
+    width: min(18rem, 85vw);
+    background: $sidebarContainerBg;
+    border: 0;
+}
+
+.app-navigation {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: $sidebarTextColor;
+    font-family: $fontFamily;
+
+    .nav-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.85rem 0.75rem;
+        border-bottom: 1px solid $shade700;
+        margin-bottom: 0.5rem;
+    }
+
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 0;
+        color: $textDefaultColor;
+        font-size: 1.05rem;
+        white-space: nowrap;
+    }
+
+    .nav-icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 0;
+        border-radius: $borderRadius;
+        background: transparent;
+        color: $textSubtleColor;
+        cursor: pointer;
+
+        &:hover,
+        &:focus-visible {
+            background: $surfaceHighColor;
+            color: $textDefaultColor;
+        }
+    }
+
+    .nav-sections {
+        flex-grow: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 0 0.75rem 1rem;
+        // a thin, dark scrollbar instead of the bright default one
+        scrollbar-width: thin;
+        scrollbar-color: $shade600 transparent;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: $shade600;
+            border-radius: 3px;
+        }
+    }
+
+    .nav-section + .nav-section {
+        margin-top: 0.75rem;
+    }
+
+    // section titles are headings, not links: white, small caps, with a fine rule
+    .nav-section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.75rem 0.75rem 0.35rem;
+        color: $shade000;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        white-space: nowrap;
+
+        &::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: $shade700;
+        }
+    }
+
+    // the club switcher heads the menu, next to the collapse button
+    .club-switcher {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .club-switcher-button {
+        position: relative;
+        // the switch badge sits half outside the logo
+        overflow: visible;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.4rem;
+        border: 0;
+        border-radius: $borderRadius;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color $transitionDuration;
+
+        &:hover,
+        &:focus-visible {
+            background: $surfaceHighColor;
+
+            .club-switcher-badge {
+                background: $primaryColor;
+                color: $primaryTextColor;
+            }
+        }
+
+        .nav-chevron {
+            color: $textSubtleColor;
+        }
+    }
+
+    .club-switcher-logo {
+        position: relative;
+        display: inline-flex;
+        flex-shrink: 0;
+    }
+
+    .club-switcher-badge {
+        position: absolute;
+        right: -0.4rem;
+        bottom: -0.4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.1rem;
+        height: 1.1rem;
+        border-radius: 50%;
+        background: $surfaceHighColor;
+        box-shadow: 0 0 0 2px $sidebarContainerBg;
+        color: $textDefaultColor;
+        font-size: 0.55rem;
+        transition: background-color $transitionDuration, color $transitionDuration;
+    }
+
+
+    .nav-link-item {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 0;
+        border-radius: $borderRadius;
+        background: transparent;
+        color: $textSubtleColor;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: left;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color $transitionDuration, color $transitionDuration;
+
+        &:hover,
+        &:focus-visible {
+            background: $surfaceHighColor;
+            color: $textDefaultColor;
+        }
+
+        // the current page is marked in the brand green
+        &.active {
+            background: $primaryColor;
+            color: $primaryTextColor;
+        }
+
+        &.contains-active {
+            color: $textDefaultColor;
+        }
+    }
+
+    .nav-icon {
+        flex-shrink: 0;
+        width: 1.15rem;
+        height: 1.15rem;
+    }
+
+    .nav-chevron {
+        margin-left: auto;
+        font-size: 0.7rem;
+        transition: transform $transitionDuration;
+
+        &.open {
+            transform: rotate(180deg);
+        }
+    }
+
+    .nav-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        margin: 0.15rem 0 0.35rem 1.4rem;
+        padding-left: 0.85rem;
+        border-left: 1px solid $shade700;
+
+        .nav-link-item {
+            padding: 0.45rem 0.75rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    // the app itself, small and quiet above the profile, opening About
+    .nav-app {
+        padding: 0.4rem 0.75rem;
+        border-top: 1px solid $shade700;
+    }
+
+    .nav-app-link {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.4rem 0.5rem;
+        border-radius: $borderRadius;
+        text-decoration: none;
+        opacity: 0.85;
+        transition: background-color $transitionDuration, opacity $transitionDuration;
+
+        img {
+            flex-shrink: 0;
+        }
+
+        &:hover,
+        &:focus-visible,
+        &.active {
+            background: $surfaceHighColor;
+            opacity: 1;
+        }
+    }
+
+    .nav-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.75rem;
+        border-top: 1px solid $shade700;
+    }
+
+    .nav-profile-link {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-grow: 1;
+        min-width: 0;
+        padding: 0.5rem;
+        border-radius: $borderRadius;
+
+        &:hover,
+        &:focus-visible {
+            background: $surfaceHighColor;
+        }
+    }
+
+    // icon rail: only icons, everything else hidden
+    &.collapsed {
+        .nav-header {
+            flex-direction: column;
+            padding: 1rem 0.5rem;
+        }
+
+        .nav-sections {
+            padding: 0 0.6rem 1rem;
+        }
+
+        .nav-label,
+        .nav-chevron,
+        .nav-section-title {
+            display: none !important;
+        }
+
+        .nav-section + .nav-section {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid $shade700;
+        }
+
+        .nav-link-item {
+            justify-content: center;
+            padding: 0.7rem;
+        }
+
+
+        .nav-profile {
+            justify-content: center;
+            padding: 0.75rem 0.5rem;
+        }
+
+        .nav-profile-link {
+            flex-grow: 0;
+            padding: 0.25rem;
+        }
+
+        .club-switcher {
+            flex: 0 0 auto;
+        }
+
+        .nav-app {
+            padding: 0.4rem 0.5rem;
+        }
+
+        .nav-app-link {
+            justify-content: center;
+            padding: 0.5rem;
+        }
+
+        .club-switcher-button {
+            justify-content: center;
+            overflow: visible;
+            padding: 0.4rem;
+            border-color: transparent;
+            background: transparent;
+
+            &:hover,
+            &:focus-visible {
+                border-color: transparent;
+                background: transparent;
+
+                .club-switcher-badge {
+                    background: $primaryColor;
+                    color: $primaryTextColor;
+                }
+            }
+        }
+    }
+}
+
+// popup list of clubs opened from the club switcher
+.club-switcher-menu.p-menu {
+    min-width: 15rem;
+
+    .club-switcher-current .p-menuitem-text {
+        font-weight: 700;
+    }
+}
+
+// A club's logo, or its initials on the brand green
+.club-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: $borderRadius;
+    background: $primaryColor;
+    color: $primaryTextColor;
+    font-weight: 700;
+    box-shadow: 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+
+    // a logo picture keeps its own shape: transparent parts stay transparent,
+    // and the shadow follows the outline instead of drawing a square
+    &.has-image {
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
+
+        img {
+            filter: drop-shadow(0 0.3rem 0.5rem rgba(0, 0, 0, 0.6));
+        }
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    &.club-logo-sm { width: 2.25rem; height: 2.25rem; font-size: 0.85rem; }
+    &.club-logo-md { width: 3.5rem; height: 3.5rem; font-size: 1.2rem; }
+    &.club-logo-lg { width: 5rem; height: 5rem; font-size: 1.7rem; border-radius: 0.6rem; }
+}
+
+// The collapse handle: a small round button on the menu's right edge, at the
+// height of the club switcher, so the header is all the club's
+.nav-edge-toggle {
+    position: absolute;
+    top: 1.55rem;
+    right: -0.8rem;
+    z-index: 11;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    padding: 0;
+    border: 1px solid $shade600;
+    border-radius: 50%;
+    background: $surfaceRaisedColor;
+    color: $textSubtleColor;
+    font-size: 0.65rem;
+    cursor: pointer;
+    box-shadow: 0 0.25rem 0.6rem -0.2rem rgba(0, 0, 0, 0.8);
+    transition: background-color $transitionDuration, color $transitionDuration, border-color $transitionDuration;
+
+    &:hover,
+    &:focus-visible {
+        background: $primaryColor;
+        border-color: $primaryColor;
+        color: $primaryTextColor;
+    }
+}
+
+// a long club name may use two lines before it is cut off
+.club-switcher-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.2;
+    word-break: break-word;
+}

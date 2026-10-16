@@ -13,14 +13,19 @@
         color: $successButtonTextColor;
     }
 
+    // all tags share the corners of the other labels, also the ones asked for as "rounded"
+    &.p-tag-rounded {
+        border-radius: $borderRadius;
+    }
+
     &.p-tag-info {
-        background-color: $infoButtonBg;
-        color: $infoButtonTextColor;
+        background-color: $statusFinishedColor;
+        color: $statusTextColor;
     }
 
     &.p-tag-warning {
-        background-color: $warningButtonBg;
-        color: $warningButtonTextColor;
+        background-color: $statusRunningColor;
+        color: $statusTextColor;
     }
 
     &.p-tag-danger {

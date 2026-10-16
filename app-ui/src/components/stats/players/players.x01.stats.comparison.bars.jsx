@@ -1,7 +1,9 @@
-import { Panel } from 'primereact/panel';
-
 import ComparisonBar from '../../elements/comparison.bar';
 
+/**
+ * The players' X01 figures side by side as bars. Shown inside the
+ * "X01 head to head" panel, so it brings no panel or title of its own.
+ */
 const PlayersX01StatsComparisonBars = (props) => {
     const {
         playersX01Stats
@@ -39,26 +41,20 @@ const PlayersX01StatsComparisonBars = (props) => {
     }
 
     return (
-        <Panel>
-            <span className="d-flex justify-content-center align-items-center text-shade100 fs-4 fw-semibold mb-4 mt-4">
-                X01 Statistics
-            </span>
-
-            <div className="d-flex flex-column align-items-center p-4">
-                {[
-                    { data: getChartData('wonGames', 'Won Games') },
-                    { data: getChartData('num180s', '180s') },
-                    { data: getChartData('num160plus', '160+') },
-                    { data: getChartData('num140plus', '140+') },
-                    { data: getChartData('avg.overall', 'Overall Average') },
-                    { data: getChartData('avg.dartsPerLeg', 'AVG Darts per Leg') },
-                    { data: getCheckoutData() },          // Sonderfall mit Berechnung
-                    { data: getChartData('checkouts.highest', 'Highest Checkout') },
-                ].map((item, idx) => (
-                    <ComparisonBar key={idx} data={item.data} />
-                ))}
-            </div>
-        </Panel>
+        <div className="d-flex flex-column align-items-center gap-1 mt-2">
+            {[
+                { data: getChartData('wonGames', 'Won Games') },
+                { data: getChartData('num180s', '180s') },
+                { data: getChartData('num160plus', '160+') },
+                { data: getChartData('num140plus', '140+') },
+                { data: getChartData('avg.overall', 'Overall Average') },
+                { data: getChartData('avg.dartsPerLeg', 'AVG Darts per Leg') },
+                { data: getCheckoutData() },          // Sonderfall mit Berechnung
+                { data: getChartData('checkouts.highest', 'Highest Checkout') },
+            ].map((item, idx) => (
+                <ComparisonBar key={idx} data={item.data} />
+            ))}
+        </div>
     );
 };
 

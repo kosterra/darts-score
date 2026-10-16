@@ -26,7 +26,7 @@ const CheckoutOverlay = ({ score = 501 }) => {
                 <TiInfoLarge />
             </Button>
 
-            <OverlayPanel ref={op} showCloseIcon className="p-2 bg-shade900 shadow-3">
+            <OverlayPanel ref={op} showCloseIcon className="p-2 bg-surface shadow-3">
                 <Checkout score={score} />
             </OverlayPanel>
         </div>

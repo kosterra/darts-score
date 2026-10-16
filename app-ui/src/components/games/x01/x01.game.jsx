@@ -14,7 +14,7 @@ const X01Game = () => {
 
     useEffect(() => {
         if (game?.hasWinner) {
-            navigate(`/stats/games/x01/${game.id}`, { replace: true });
+            navigate(`/stats/games/x01/${game.id}`, { replace: true, state: { justFinished: true } });
         }
     }, [game?.hasWinner, game?.id, navigate]);
 
@@ -24,7 +24,7 @@ const X01Game = () => {
 
     if (!game || !players?.length) {
         return (
-            <div className="text-center text-shade400 fs-6 mt-5">
+            <div className="text-center text-subtle fs-6 mt-5">
                 Game data not available.
             </div>
         );

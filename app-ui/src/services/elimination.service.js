@@ -113,11 +113,11 @@ const updateEliminationGame = async (game) => {
     }
 }
 
-const deleteEliminationGame = async (gameId) => {
+const deleteEliminationGame = async (gameId, clubId) => {
     try {
         const response = await fetch(API_URL + 'games/elimination/' + gameId, {
             method: 'DELETE',
-            headers: getHeaders(false)
+            headers: getHeaders(false, clubId)
         });
 
         if (!response.ok) {

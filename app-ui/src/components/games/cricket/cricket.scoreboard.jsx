@@ -41,7 +41,7 @@ const CricketScoreBoard = ({ playerId, idx }) => {
 
         return (
             <div className="d-flex flex-row" key={number}>
-                <div className={`col-4 d-flex justify-content-center text-shade100 fw-semibold p-0 ${checkSectionClosed(number) ? 'text-red text-decoration-line-through' : ''}`}>
+                <div className={`col-4 d-flex justify-content-center text-default fw-semibold p-0 ${checkSectionClosed(number) ? 'text-red text-decoration-line-through' : ''}`}>
                     {label}
                 </div>
                 <div className="col-8 d-flex justify-content-center align-items-center gap-1 p-0">
@@ -62,13 +62,11 @@ const CricketScoreBoard = ({ playerId, idx }) => {
                         label={resolvePlayerInitials(player.firstname, player.lastname)}
                         image={resolvePlayerImg(player.profileImg)}
                         shape="circle"
-                        size="xlarge"
-                        style={{ maxWidth: '5.2rem', maxHeight: '5.2rem' }}
-                        className="w-100 h-100 ratio ratio-1x1"
+                        className="avatar-fluid"
                     />
                     <div className="text-center mt-2">
-                        <div className="fs-6 text-shade100 fw-semibold">{player.nickname}</div>
-                        <div className="fs-7 text-shade500 text-truncate" title={player.firstname + ' ' + player.lastname}>
+                        <div className="fs-6 text-default fw-semibold">{player.nickname}</div>
+                        <div className="fs-7 text-faint text-truncate" title={player.firstname + ' ' + player.lastname}>
                             {player.firstname + ' ' + player.lastname}
                         </div>
                     </div>
@@ -86,7 +84,7 @@ const CricketScoreBoard = ({ playerId, idx }) => {
 
                 {/* Player Score */}
                 <div className="col-4 d-flex justify-content-center align-items-center">
-                    <div className="display-3 text-shade100 fw-semibold">{score}</div>
+                    <div className="display-3 text-default fw-semibold">{score}</div>
                 </div>
 
                 {/* Section Hits */}

@@ -5,6 +5,29 @@ export default (mongoose) => {
       lastname:   { type: String, required: true, trim: true },
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
+      club:       { type: mongoose.Schema.Types.ObjectId, ref: 'club', index: true },
+      // Badges the player has collected, each with the game or training it was earned in
+      badges: [{
+        _id: false,
+        badge:      { type: String, required: true },
+        earnedAt:   { type: Date, required: true },
+        sourceType: String,
+        sourceId:   String,
+      }],
+      // Weeks played in a row, kept up to date with the badges
+      activity: {
+        lastWeek:       { type: Number, default: null },
+        weekStreak:     { type: Number, default: 0 },
+        bestWeekStreak: { type: Number, default: 0 },
+      },
+      // Whether the nickname may be shown on the public start page; otherwise
+      // the player appears there without a name
+      publicProfile: { type: Boolean, default: false },
+      // A guest only exists for the games they were added to: not offered when
+      // picking players and not listed as a club member
+      guest:      { type: Boolean, default: false },
+      // The account that can log in as this player; makes that user a member of the club
+      user:       { type: mongoose.Schema.Types.ObjectId, ref: 'user', default: null },
     },
     { timestamps: true }
   );

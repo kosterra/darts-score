@@ -21,8 +21,17 @@ import statsRoutes     from './src/routes/stats.routes.js';
 import x01Routes       from './src/routes/x01.routes.js';
 import cricketRoutes   from './src/routes/cricket.routes.js';
 import elimRoutes      from './src/routes/elimination.routes.js';
-import imgRoutes       from './src/routes/player.img.routes.js';
+import { playerImageRoutes, clubLogoRoutes } from './src/routes/player.img.routes.js';
 import atcRoutes       from './src/routes/atc.routes.js';
+import authRoutes      from './src/routes/auth.routes.js';
+import clubRoutes      from './src/routes/club.routes.js';
+import userRoutes      from './src/routes/user.routes.js';
+import adminRoutes     from './src/routes/admin.routes.js';
+import publicRoutes    from './src/routes/public.routes.js';
+import badgeRoutes     from './src/routes/badge.routes.js';
+import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
+import { getSessionSecret } from './src/utils/auth.utils.js';
+import { bootstrap } from './src/utils/bootstrap.js';
 
 const { UI_URL } = process.env;
 
@@ -59,7 +68,7 @@ app.use(rateLimit({
 // Misc middleware
 // ---------------------------------------------------------------------------
 app.use(favicon(path.join(import.meta.dirname, 'public', 'favicon.ico')));
-app.use(cookieParser());
+app.use(cookieParser(getSessionSecret()));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.json({ limit: '30mb' }));
 
@@ -77,7 +86,10 @@ if (HAS_UI) app.use(express.static(UI_DIST));
 // ---------------------------------------------------------------------------
 db.mongoose
     .connect(db.url)
-    .then(() => logger.info('Connected to MongoDB'))
+    .then(() => {
+        logger.info('Connected to MongoDB');
+        return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
+    })
     .catch(err => {
         logger.error(err, 'Cannot connect to MongoDB');
         process.exit(1);
@@ -96,12 +108,28 @@ if (!HAS_UI) {
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
+// Unauthenticated liveness probe for container health checks
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+authRoutes(app);
+publicRoutes(app);
+clubLogoRoutes(app);
+
+// Everything else under /api needs a logged-in user ...
+app.use('/api', requireAuth);
+clubRoutes(app);
+userRoutes(app);
+adminRoutes(app);
+badgeRoutes(app);
+
+// ... and players, games, training and statistics also need a selected club
+app.use(['/api/players', '/api/games', '/api/training', '/api/stats'], requireClub);
 playerRoutes(app);
 statsRoutes(app);
 x01Routes(app);
 cricketRoutes(app);
 elimRoutes(app);
-imgRoutes(app);
+playerImageRoutes(app);
 atcRoutes(app);
 
 // ---------------------------------------------------------------------------

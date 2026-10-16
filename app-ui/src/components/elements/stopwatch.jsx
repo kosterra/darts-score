@@ -58,7 +58,7 @@ const Stopwatch = (props) => {
             <div className="row p-3">
                 <div className="col">
                     <div className="d-flex justify-content-center align-items-end">
-                        {/* <span className="text-shade100 fw-semibold font-monospace display-1" id="hr">
+                        {/* <span className="text-default fw-semibold font-monospace display-1" id="hr">
                             {hours}:{minutes.toString().padStart(2, "0")}:{seconds.toString().padStart(2, "0")}.{milliseconds.toString().padStart(2, "0")}
                         </span> */}
                         <span className="fw-semibold font-monospace display-1" id="hr">{hours}</span>

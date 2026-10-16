@@ -1,6 +1,7 @@
 export default (mongoose) => {
   const schema = mongoose.Schema(
     {
+      club:              { type: mongoose.Schema.Types.ObjectId, ref: 'club', index: true },
       timeMs:       { type: Number, min: 1 },
       hours:        Number,
       minutes:      Number,

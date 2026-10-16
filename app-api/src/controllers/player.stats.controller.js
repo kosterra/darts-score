@@ -2,6 +2,9 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { playerStatsModel, checkoutItemModel } from '../models/player.stats.models.js';
+import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress } from '../utils/chart.data.js';
+import { x01Kpis, cricketKpis, eliminationKpis } from '../utils/kpi.data.js';
+import { playerLevel, levelInputs } from '../utils/levels.js';
 
 const X01 = db.x01;
 const Cricket = db.cricket;
@@ -25,17 +28,34 @@ async function calculatePlayerStats(playerId) {
 
     const x01Games = await findX01Games(playerId);
     const cricketGames = await findCricketGames(playerId);
+    const eliminationGames = await db.elimination.find({ players: { $all: [playerId] }, gameIsRunning: false }).lean();
 
     playerStats.playedGames.x01 = x01Games.length;
     playerStats.playedGames.cricket = cricketGames.length;
-    playerStats.playedGames.total = x01Games.length + cricketGames.length;
+    playerStats.playedGames.elimination = eliminationGames.length;
+    playerStats.playedGames.total = x01Games.length + cricketGames.length + eliminationGames.length;
 
     const wonGamesX01 = x01Games.filter(game => game.playerModels[playerId].hasWonGame === true).length;
     const wonGamesCricket = cricketGames.filter(game => game.playerModels[playerId].hasWonGame === true).length;
+    const wonGamesElimination = eliminationGames.filter(game => game.playerModels?.[playerId]?.hasWonGame === true).length;
 
     playerStats.wonGames.x01 = wonGamesX01;
     playerStats.wonGames.cricket = wonGamesCricket;
-    playerStats.wonGames.total = wonGamesX01 + wonGamesCricket;
+    playerStats.wonGames.elimination = wonGamesElimination;
+    playerStats.wonGames.total = wonGamesX01 + wonGamesCricket + wonGamesElimination;
+
+    // the player's level, from games, wins, badges and skill
+    const player = await db.player.findById(playerId, 'badges').lean();
+    playerStats.level = playerLevel(levelInputs({
+        x01Games, cricketGames, eliminationGames, playerId, badgeCount: player?.badges?.length ?? 0,
+    }));
+
+    // key figures per game type for the statistics page
+    playerStats.kpis = {
+        x01: x01Kpis(x01Games, playerId),
+        cricket: cricketKpis(cricketGames, playerId),
+        elimination: eliminationKpis(eliminationGames, playerId),
+    };
 
     playerStats.avg.overallX01 = calculateOverallX01Avg(x01Games, playerId);
     playerStats.avg.perGameX01 = calculatePerGameX01Avg(x01Games, playerId);
@@ -55,6 +75,16 @@ async function calculatePlayerStats(playerId) {
     playerStats.scoreRanges = getScoreRangesX01(x01Games, playerId);
 
     playerStats.sectionHits = getSectionHitsX01(x01Games, playerId, playerStats.sectionHits);
+
+    // data for the trend, form, phase, darts-per-leg and training charts
+    playerStats.trend = averageTrend(x01Games, playerId);
+    playerStats.form = monthlyForm([
+        ...x01Games.map(game => ({ type: 'x01', game })),
+        ...cricketGames.map(game => ({ type: 'cricket', game })),
+    ], playerId);
+    playerStats.scoring = scoringVsFinishing(x01Games, playerId);
+    playerStats.dartsPerLeg = dartsPerLegDistribution(x01Games, playerId);
+    playerStats.training = trainingProgress(await db.atc.find({ 'player.id': playerId }).lean());
 
     return playerStats;
 }

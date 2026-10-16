@@ -1,63 +1,113 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
-import { Card } from 'primereact/card';
+import { FaGithub } from "react-icons/fa6";
 
-import { FaEnvelope, FaReact, FaExternalLinkAlt } from "react-icons/fa";
+import CHANGELOG from './changelog';
+import RULES from './rules';
+import BadgeMedal from '../badges/badge.medal';
+import { requestJSON } from '../../utils/service.utils';
 
-import { SiVite, SiBootstrap } from "react-icons/si";
+const REPOSITORY = 'https://github.com/kosterra/darts-score';
 
+/**
+ * What the app is, what is new, how the games work and which badges exist.
+ */
 const AboutCard = () => {
+    const [catalogue, setCatalogue] = useState(null);
 
-    const renderFooter = (link) => {
-        return (
-            <div className="d-flex justify-content-end">
-                <a href={link} target="_blank" rel="noopener noreferrer" className="p-button font-bold">
-                    <FaExternalLinkAlt className="fs-6" />
-                </a>
-            </div>
-        );
-    };
+    useEffect(() => {
+        requestJSON('/api/badges').then(setCatalogue).catch(error => console.error('Failed to load the badges', error));
+    }, []);
+
+    // category -> series (badges of one group, in tier order)
+    const categories = (catalogue?.categories ?? []).map(({ category, title }) => {
+        const series = [];
+        for (const badge of catalogue.badges.filter(b => b.category === category)) {
+            if (series.at(-1)?.[0].group !== badge.group) series.push([]);
+            series.at(-1).push(badge);
+        }
+        return { category, title, series };
+    });
 
     return (
-        <Panel header="About" className="w-100 w-md-75 w-xxl-50 mx-auto" >
-            <div className="d-flex justify-content-center my-4 fs-5 fw-semibold">Built using</div>
-            <div className="row">
-                <div className="col col-12 col-xl-6 my-2">
-                    <Card title="Vite" subTitle="Next Generation Frontend Tooling" footer={renderFooter('https://vitejs.dev/')}>
-                        <span className="d-flex justify-content-center m-0 display-1">
-                            <SiVite />
-                        </span>
-                    </Card>
+        <div className="d-flex flex-column gap-4 mx-auto" style={{ maxWidth: '62rem' }}>
+            <header className="hero-header rounded-2 p-4 d-flex flex-wrap align-items-center gap-4">
+                <img alt="" src="/logo.svg" width="80" height="80" />
+                <div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                    <h1 className="fs-2 fw-semibold text-default m-0">Darts Score</h1>
+                    <span className="text-subtle">The scoreboard for your club, your pub team or your living room.</span>
+                    <span className="text-faint fs-7">Version {import.meta.env.VITE_APP_VERSION} · open source under the GPLv3</span>
                 </div>
-                <div className="col col-12 col-xl-6 my-2">
-                    <Card title="React" subTitle="The library for web and native user interfaces" footer={renderFooter('https://reactjs.org/') }>
-                        <span className="d-flex justify-content-center m-0 display-1">
-                            <FaReact />
-                        </span>
-                    </Card>
+                <div className="d-flex flex-wrap gap-2">
+                    <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm p-button-outlined">
+                        <FaGithub className="me-2" aria-hidden="true" />Source code
+                    </a>
+                    <a href={`${REPOSITORY}/issues`} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm">
+                        <i className="pi pi-comment me-2" aria-hidden="true" />Report a problem or idea
+                    </a>
                 </div>
-                <div className="col col-12 col-xl-6 my-2">
-                    <Card title="PrimeReact" subTitle="The Most Complete UI Suite for React.js" footer={renderFooter('https://primereact.org/')}>
-                        <span className="d-flex justify-content-center m-0">
-                            <i className="pi pi-prime display-1" />
-                        </span>
-                    </Card>
+            </header>
+
+            <Panel header="What's new">
+                <div className="d-flex flex-column gap-4 p-2">
+                    {CHANGELOG.map(release => (
+                        <section key={release.version}>
+                            <h2 className="fs-5 fw-semibold text-default mb-2">{release.version}</h2>
+                            <ul className="text-subtle m-0 ps-4 d-flex flex-column gap-1">
+                                {release.changes.map(change => <li key={change}>{change}</li>)}
+                            </ul>
+                        </section>
+                    ))}
                 </div>
-                <div className="col col-12 col-xl-6 my-2">
-                    <Card title="Bootstrap" subTitle="A powerful frontend toolkit" footer={renderFooter('https://getbootstrap.com/')}>
-                        <span className="d-flex justify-content-center m-0 display-1">
-                            <SiBootstrap />
-                        </span>
-                    </Card>
+            </Panel>
+
+            <Panel header="How to play">
+                <div className="row g-3 p-1">
+                    {RULES.map(({ title, icon: Icon, body }, index) => (
+                        // entering darts applies to every game, so it spans the full width above the four game modes
+                        <section key={title} className={index === 0 ? 'col-12' : 'col-12 col-lg-6'}>
+                            <div className="about-rule bg-surface-raised rounded-2 p-4 h-100">
+                                <h2 className="d-flex align-items-center gap-3 fs-5 fw-semibold text-default mb-3">
+                                    <span className="about-rule-icon" aria-hidden="true"><Icon /></span>
+                                    {title}
+                                </h2>
+                                <div className="text-subtle fs-7 about-rules">{body}</div>
+                            </div>
+                        </section>
+                    ))}
                 </div>
-            </div>
-            <div className="d-flex justify-content-center my-4 fs-5 fw-semibold">Contact</div>
-            <div className="d-flex justify-content-center">
-                <a href="mailto:rkoster@gmx.ch" className="p-button p-button-sm">
-                    <FaEnvelope className="pe-2 fs-3" />
-                    E-Mail
-                </a>
-            </div>
-        </Panel>
+            </Panel>
+
+            <Panel header="Badges">
+                <div className="d-flex flex-column gap-4 p-2">
+                    <p className="text-subtle m-0">
+                        Badges are earned automatically in games and trainings. Your own collection is under <Link to="/badges">Statistics → Badges</Link>.
+                    </p>
+                    {!catalogue && <span className="text-faint">Loading badges…</span>}
+                    {categories.map(category => (
+                        <section key={category.category} className="d-flex flex-column gap-3">
+                            <h2 className="fs-5 fw-semibold text-default m-0">{category.title}</h2>
+                            <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+                                {category.series.map(badges => (
+                                    <li key={badges[0].group} className="d-flex align-items-center gap-3">
+                                        <BadgeMedal badge={badges.at(-1)} size="sm" />
+                                        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                                            <span className="text-default fw-semibold">{badges[0].groupTitle}</span>
+                                            <span className="text-faint fs-7">
+                                                {badges.length === 1
+                                                    ? badges[0].description
+                                                    : badges.map(badge => `${badge.title} (${new Intl.NumberFormat().format(badge.target)})`).join(' · ')}
+                                            </span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    ))}
+                </div>
+            </Panel>
+        </div>
     );
 };
 

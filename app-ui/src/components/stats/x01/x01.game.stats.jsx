@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { SplitButton } from 'primereact/splitbutton';
@@ -17,9 +17,15 @@ import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import X01StatsScoreBoard from './x01.stats.scoreboard';
 import X01StatsScoreBoardMultiple from './x01.stats.scoreboard.multiple';
 import X01StatsTab from './x01.stats.tab';
-import X01StatsCharts from './x01.stats.charts';
+import AverageTrendChart from '../charts/average.trend.chart';
+import HitsHeatmapChart from '../charts/hits.heatmap.chart';
+import DoublesChart from '../charts/doubles.chart';
+import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart } from '../charts/simple.bar.charts';
+import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
+import { sectionHitsOf } from '../charts/chart.theme';
 import X01GameHeader from '../../games/x01/x01.game.header';
 import PageLoader from '../../elements/page.loader';
+import GameBadges from '../../badges/game.badges';
 
 const X01GameStats = () => {
     const { id } = useParams();
@@ -28,6 +34,13 @@ const X01GameStats = () => {
     const [game, setGame] = useState(null);
     const [players, setPlayers] = useState(null);
     const [gameStats, setGameStats] = useState({});
+    // set by the game page when this game was won a moment ago
+    const [justFinished] = useState(Boolean(useLocation().state?.justFinished));
+
+    useEffect(() => {
+        // forget the marker, so reloading the page does not celebrate again
+        if (justFinished) window.history.replaceState({ ...window.history.state, usr: null }, '');
+    }, [justFinished]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -92,7 +105,7 @@ const X01GameStats = () => {
     };
 
     const tabHeaderTemplate = ({ index, onClick }) => (
-        <div className="d-flex align-items-center text-shade500 gap-2 p-3 cursor-pointer" onClick={onClick}>
+        <div className="d-flex align-items-center text-faint gap-2 p-3 cursor-pointer" onClick={onClick}>
             <Badge size="large" severity="secondary" value={index === 0 ? 'A' : index} />
             <span className="fw-bold fs-6">{index === 0 ? 'Overall' : `Set`}</span>
         </div>
@@ -120,6 +133,19 @@ const X01GameStats = () => {
                 </div>
             </div>
 
+            <div className="row d-flex justify-content-center align-items-center">
+                <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0">
+                    <GameBadges
+                        gameType="x01"
+                        gameId={game.id}
+                        players={players}
+                        winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
+                        celebrate={justFinished && game.hasWinner}
+                        className="mt-3"
+                    />
+                </div>
+            </div>
+
             <div className="row d-flex justify-content-center align-items-center mt-3">
                 <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0 rounded-2">
                     <Panel>
@@ -140,13 +166,23 @@ const X01GameStats = () => {
 
             <div className="row d-flex justify-content-center align-items-center mt-4">
                 <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0 rounded-2">
-                    <X01StatsCharts
-                        avg={gameStats?.avg || []}
-                        sectionHits={gameStats?.sectionHits || {}}
-                        checkouts={gameStats?.checkouts || {}}
-                        scoreRanges={gameStats?.scoreRanges || {}}
-                        players={players}
-                    />
+                    <div className="row g-4">
+                        <div className="col-12">
+                            <AverageTrendChart
+                                title="Average per leg"
+                                description="Every player's average in each leg of this game."
+                                data={gameStats?.avg ?? []}
+                                players={players}
+                            />
+                        </div>
+                        <div className="col-12 col-xl-6"><ScoringFinishingChart scoring={gameScoring(game, players)} players={players} /></div>
+                        <div className="col-12 col-xl-6">
+                            <DartsPerLegChart data={gameDartsPerLeg(game, players)} players={players} description="Darts each player needed for the legs they won in this game." />
+                        </div>
+                        <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} /></div>
+                        <div className="col-12"><DoublesChart ratesByPlayer={players.map((_, i) => gameStats?.checkouts?.[`player${i + 1}`] ?? [])} players={players} /></div>
+                        <div className="col-12"><ScoreRangesChart data={gameStats?.scoreRanges ?? []} players={players} /></div>
+                    </div>
                 </div>
             </div>
 
@@ -158,6 +194,7 @@ const X01GameStats = () => {
                         onClick={() => onRestartGame()}
                         size="small"
                         severity="primary"
+                        menuClassName="p-splitbutton-menu-primary"
                         model={[
                             { label: 'Switch Players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
                             { label: 'Shuffle Players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }

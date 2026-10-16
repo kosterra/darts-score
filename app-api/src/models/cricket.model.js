@@ -1,6 +1,7 @@
 export default (mongoose) => {
   const schema = mongoose.Schema(
     {
+      club:              { type: mongoose.Schema.Types.ObjectId, ref: 'club', index: true },
       gameIsRunning:     { type: Boolean, default: true },
       isSoloGame:        { type: Boolean, default: false },
       hasWinner:         { type: Boolean, default: false },

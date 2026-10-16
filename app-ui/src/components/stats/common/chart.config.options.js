@@ -1,5 +1,6 @@
 const ChartConfigOptions = {
-    fillColors: { values: ['#528b6e', '#565656', '#d4c783', '#d95652'], default: '#528b6e' },
+    // one clearly different colour per player: green, gold, light blue, coral
+    fillColors: { values: ['#5fa883', '#d4c783', '#7baabf', '#e07a5f'], default: '#5fa883' },
     strokeColor: '#d4c783',
 };
 

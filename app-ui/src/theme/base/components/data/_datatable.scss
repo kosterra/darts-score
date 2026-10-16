@@ -39,6 +39,8 @@
         border: $tableHeaderCellBorder;
         border-width: $tableHeaderCellBorderWidth;
         font-weight: $tableHeaderCellFontWeight;
+        // column headings stay below the panel title
+        font-size: 0.85rem;
         color: $tableHeaderCellTextColor;
         background: $tableHeaderCellBg;
         transition: $listItemTransition;

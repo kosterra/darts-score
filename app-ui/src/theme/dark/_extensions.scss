@@ -51,6 +51,149 @@
         }
     }
     
+    // Checkboxes: like the switches, this PrimeReact version needs the native
+    // input hidden over the box and marks the checked state with p-highlight
+    .p-checkbox {
+        position: relative;
+        display: inline-flex;
+        flex-shrink: 0;
+
+        .p-checkbox-input {
+            appearance: none;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .p-checkbox-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &.p-highlight .p-checkbox-box {
+            background: $checkboxActiveBg;
+            border-color: $checkboxActiveBorderColor;
+            color: $checkboxIconActiveColor;
+        }
+
+        &.p-disabled .p-checkbox-input {
+            cursor: default;
+        }
+    }
+
+    // Depth: panels and pictures lift off the page a little, like the badge medals
+    .p-panel {
+        border-radius: $borderRadius;
+        box-shadow: 0 0.75rem 1.75rem -0.75rem rgba(0, 0, 0, 0.75);
+    }
+
+    .p-avatar.p-avatar-circle {
+        box-shadow: 0 0 0 2px $surfaceColor, 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+    }
+
+    // Switches: this PrimeReact version marks the checked state with p-highlight
+    // and expects the layout rules below, which the base theme predates
+    .p-inputswitch {
+        position: relative;
+        display: inline-block;
+        flex-shrink: 0;
+
+        .p-inputswitch-input {
+            appearance: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            z-index: 1;
+            cursor: pointer;
+        }
+
+        .p-inputswitch-slider {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+
+            &:before {
+                position: absolute;
+                content: '';
+                top: 50%;
+            }
+        }
+
+        &.p-highlight .p-inputswitch-slider {
+            background: $inputSwitchSliderOnBg;
+
+            &:before {
+                background: $inputSwitchHandleOnBg;
+                transform: translateX($inputSwitchHandleWidth);
+            }
+        }
+
+        &.p-disabled .p-inputswitch-input {
+            cursor: default;
+        }
+    }
+
+    // Player pictures: fill the circle without distortion, in a fixed set of sizes
+    .p-avatar {
+        flex-shrink: 0;
+
+        img {
+            object-fit: cover;
+        }
+
+        &.avatar-xs { width: 1.6rem; height: 1.6rem; font-size: 0.65rem; }
+        &.avatar-sm { width: 2.5rem; height: 2.5rem; font-size: 1rem; }
+        &.avatar-md { width: 3.5rem; height: 3.5rem; font-size: 1.4rem; }
+        &.avatar-lg { width: 6rem; height: 6rem; font-size: 2.4rem; }
+        &.avatar-xl { width: 8rem; height: 8rem; font-size: 3.2rem; }
+
+        // up to avatar-lg, but shrinks with its column (scoreboards)
+        &.avatar-fluid {
+            flex-shrink: 1;
+            align-self: center;
+            width: 100%;
+            max-width: 6rem;
+            height: auto;
+            min-height: 0;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            font-size: 2rem;
+        }
+    }
+
+    // Dropdown menu of a primary SplitButton, coloured like the button itself
+    .p-tieredmenu.p-splitbutton-menu-primary {
+        background: $buttonBg;
+
+        .p-menuitem {
+            > .p-menuitem-content,
+            > .p-menuitem-content .p-menuitem-link,
+            > .p-menuitem-content .p-menuitem-link .p-menuitem-text,
+            > .p-menuitem-content .p-menuitem-link .p-menuitem-icon {
+                color: $buttonTextColor;
+            }
+
+            &:not(.p-highlight):not(.p-disabled) {
+                &.p-focus > .p-menuitem-content,
+                > .p-menuitem-content:hover {
+                    background: $buttonHoverBg;
+                }
+            }
+        }
+    }
+
     .p-carousel {
         .p-carousel-indicators .p-carousel-indicator.p-highlight button {
             background-color: $primaryColor;

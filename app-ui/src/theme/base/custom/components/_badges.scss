@@ -1,0 +1,217 @@
+// Badges and the celebration shown after a win or a new record
+
+$badgeMetals: (
+    "bronze": #cd7f32,
+    "silver": #c0c0c0,
+    "gold": #e6c34a,
+    "platinum": #9fd3e6,
+    "diamond": #c9a4ff,
+    "legend": #ff7a59,
+);
+
+.badge-medal {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    border: 3px solid currentColor;
+    // the metal colour is set per tier below and tints ring, icon and glow
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 60%), $surfaceHighColor;
+    box-shadow: 0 0 0 3px $surfaceColor, 0 0 14px -2px currentColor;
+
+    &.badge-medal-sm {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 0.95rem;
+        border-width: 2px;
+        box-shadow: 0 0 0 2px $surfaceColor, 0 0 8px -2px currentColor;
+    }
+
+    @each $metal, $color in $badgeMetals {
+        &.badge-#{$metal} {
+            color: $color;
+        }
+    }
+
+    &.badge-locked {
+        color: $shade600;
+        background: $surfaceRaisedColor;
+        box-shadow: none;
+
+        .badge-lock {
+            position: absolute;
+            right: -0.3rem;
+            bottom: -0.2rem;
+            font-size: 0.85rem;
+            color: $textFaintColor;
+        }
+    }
+}
+
+.badge-player-card {
+    transition: background-color $transitionDuration;
+
+    &:hover,
+    &:focus-visible {
+        background: $surfaceHighColor !important;
+    }
+}
+
+@keyframes badge-pop {
+    0% { transform: scale(0) rotate(-25deg); opacity: 0; }
+    70% { transform: scale(1.18) rotate(6deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes celebration-trophy {
+    0% { transform: translateY(-3rem) scale(0.4); opacity: 0; }
+    60% { transform: translateY(0.4rem) scale(1.1); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes celebration-card {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.badge-pop {
+    animation: badge-pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+
+.celebration {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+    background: rgba($surfaceColor, 0.88);
+
+    .celebration-confetti {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .celebration-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+        width: 100%;
+        max-width: 34rem;
+        margin: auto;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        border-radius: 0.75rem;
+        background: $surfaceRaisedColor;
+        border: 1px solid $surfaceHighColor;
+        box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.6);
+        animation: celebration-card 0.3s ease-out both;
+    }
+
+    .celebration-trophy {
+        font-size: 4.5rem;
+        animation: celebration-trophy 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+    }
+
+    .celebration-title {
+        font-size: 2.25rem;
+    }
+
+    .celebration-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        width: 6.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .badge-pop,
+    .celebration .celebration-card,
+    .celebration .celebration-trophy {
+        animation: none;
+    }
+}
+
+// A badge series on a player's page: description on the left, tiers on the right
+.badge-series {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 2rem;
+    padding: 1rem 0.5rem;
+
+    & + .badge-series {
+        border-top: 1px solid $shade700;
+    }
+
+    .badge-series-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        flex: 1 1 16rem;
+        min-width: 0;
+    }
+
+    .badge-series-tiers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .badge-tier {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        width: 5.5rem;
+        text-align: center;
+    }
+
+    .badge-tier-name {
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+}
+
+// Game rules on the About page
+.about-rules {
+    p,
+    ul {
+        margin-bottom: 0.75rem;
+    }
+
+    ul {
+        padding-left: 1.25rem;
+    }
+
+    strong {
+        color: $textDefaultColor;
+    }
+}
+
+.about-rule-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: $primaryColor;
+    color: $primaryTextColor;
+    font-size: 1.15rem;
+}

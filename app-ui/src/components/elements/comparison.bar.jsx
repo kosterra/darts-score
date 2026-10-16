@@ -1,3 +1,4 @@
+import { BAR_OPACITY } from '../stats/charts/chart.theme';
 import { Fragment } from 'react';
 
 import {
@@ -31,7 +32,7 @@ const ComparisonBar = (props) => {
             {Object.values(data[0]).filter((value) => !isNaN(value) && value > 0).length > 0 &&
                 <div className="w-100">
                     <div className="col-12 d-flex justify-content-center align-items-center">
-                        <span className="fs-7 fw-semibold text-shade500">{data[0].name}</span>
+                        <span className="fs-7 fw-semibold text-faint">{data[0].name}</span>
                     </div>
                     <div className="col-12 d-flex justify-content-center align-items-center">
                         <ResponsiveContainer width="100%" height={45}>
@@ -53,22 +54,22 @@ const ComparisonBar = (props) => {
                                 <YAxis type="category" hide={true} dataKey="name" />
 
                                 {data[0].player1 &&
-                                    <Bar key={Math.random()} dataKey="player1" stackId="a" fill={fillColors.values[0]} animationDuration={2000}>
+                                    <Bar key={Math.random()} dataKey="player1" stackId="a" fill={fillColors.values[0]} fillOpacity={BAR_OPACITY} animationDuration={2000}>
                                         <LabelList className="fs-8 fw-semibold" position="inside" fill="#fff" valueAccessor={valueAccessor("player1")} />
                                     </Bar>
                                 }
                                 {data[0].player2 &&
-                                    <Bar key={Math.random()} dataKey="player2" stackId="a" fill={fillColors.values[1]} animationDuration={2000}>
+                                    <Bar key={Math.random()} dataKey="player2" stackId="a" fill={fillColors.values[1]} fillOpacity={BAR_OPACITY} animationDuration={2000}>
                                         <LabelList className="fs-8 fw-semibold" position="inside" fill="#fff" valueAccessor={valueAccessor("player2")} />
                                     </Bar>
                                 }
                                 {data[0].player3 &&
-                                    <Bar key={Math.random()} dataKey="player3" stackId="a" fill={fillColors.values[2]} animationDuration={2000}>
+                                    <Bar key={Math.random()} dataKey="player3" stackId="a" fill={fillColors.values[2]} fillOpacity={BAR_OPACITY} animationDuration={2000}>
                                         <LabelList className="fs-8 fw-semibold" position="inside" fill="#fff" valueAccessor={valueAccessor("player3")} />
                                     </Bar>
                                 }
                                 {data[0].player4 &&
-                                    <Bar key={Math.random()} dataKey="player4" stackId="a" fill={fillColors.values[3]} animationDuration={2000}>
+                                    <Bar key={Math.random()} dataKey="player4" stackId="a" fill={fillColors.values[3]} fillOpacity={BAR_OPACITY} animationDuration={2000}>
                                         <LabelList className="fs-8 fw-semibold" position="inside" fill="#fff" valueAccessor={valueAccessor("player4")} />
                                     </Bar>
                                 }

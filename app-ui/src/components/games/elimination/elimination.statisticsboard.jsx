@@ -28,7 +28,7 @@ const EliminationStatisticsBoard = ({ playerId }) => {
         <div className="container-fluid">
             <div className="row justify-content-md-center mb-3">
                 <div className="d-flex justify-content-center align-items-center">
-                    <span className="text-shade100 fs-6 fw-semibold text-center pb-2">
+                    <span className="text-default fs-6 fw-semibold text-center pb-2">
                         {player?.nickname}
                     </span>
                 </div>
@@ -62,7 +62,7 @@ const EliminationStatisticsBoard = ({ playerId }) => {
                                     </div>
                                 ))
                         ) : (
-                            <span className="text-shade500">No data yet</span>
+                            <span className="text-faint">No data yet</span>
                         )}
                     </div>
                 </AccordionTab>

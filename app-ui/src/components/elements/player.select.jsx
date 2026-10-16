@@ -44,13 +44,12 @@ const PlayerSelect = (props) => {
                         label={(player.firstname + ' ' + player.lastname).split(" ").map((n) => n[0]).join("")}
                         image={resolvePlayerImg(player.profileImg)}
                         shape="circle"
-                        size="large"
-                        className="bg-shade700 m-2 me-2"
+                        className="avatar-md bg-surface-high m-2 me-2"
                     />
                 </span>
                 <span className="d-flex flex-column justify-content-center ms-4">
                     <span className="fs-6 fw-semibold">{player.nickname}</span>
-                    <span className="text-shade500 fs-7 fw-semibold">{player.firstname + ' ' + player.lastname}</span>
+                    <span className="text-faint fs-7 fw-semibold">{player.firstname + ' ' + player.lastname}</span>
                 </span>
             </div>
         );

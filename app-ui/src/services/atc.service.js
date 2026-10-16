@@ -41,11 +41,11 @@ const loadATCEntries = async (mode) => {
     }
 }
 
-const deleteATCEntry = async (entryId) => {
+const deleteATCEntry = async (entryId, clubId) => {
     try {
         const response = await fetch(API_URL + 'training/atc/' + entryId, {
             method: 'DELETE',
-            headers: getHeaders(false)
+            headers: getHeaders(false, clubId)
         });
 
         if (!response.ok) {

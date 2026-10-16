@@ -9,11 +9,14 @@ import ATCService from "../../services/atc.service";
 import ATCEntryModel from "../../models/atc.model";
 import ATCModeConfig from './atc.mode.config';
 import ATCConfigOptions from './atc.config.options';
+import Celebration from '../badges/celebration';
 
 const ATC = () => {
     const [player, setPlayer] = useState({});
     const [mode, setMode] = useState(ATCConfigOptions.modeOptions.default);
     const [atcEntries, setATCEntries] = useState([]);
+    // what to celebrate after a training: { title, subtitle, player, badgeGroups }
+    const [celebration, setCelebration] = useState(null);
 
     useEffect(() => {
         loadATCEntries();
@@ -51,7 +54,16 @@ const ATC = () => {
         atcEntry.player = player;
 
         try {
-            if (await ATCService.createATCEntry(atcEntry)) {
+            const saved = await ATCService.createATCEntry(atcEntry);
+            if (saved) {
+                if (saved.isRecord || saved.newBadges?.length > 0) {
+                    setCelebration({
+                        title: saved.isRecord ? 'New record!' : 'New badge!',
+                        subtitle: saved.isRecord ? `A new personal best in ${mode}` : 'Training complete',
+                        player,
+                        badgeGroups: saved.newBadges?.length > 0 ? [{ player, badges: saved.newBadges }] : []
+                    });
+                }
                 toast.current.show(
                     {
                         severity: 'success',
@@ -77,11 +89,11 @@ const ATC = () => {
 
     const headerTemplate = () => {
         return (
-            <div className="p-panel-header" >
-                <div>
-                    <div className="text-center fs-6 fw-semibold">Around the Clock</div>
-                    <div className="text-center fs-8 fw-medium">Play Game</div>
-                </div>
+            <div className="p-panel-header">
+                <span className="p-panel-title">
+                    <span>Around the Clock</span>
+                    <span className="text-faint fs-8 fw-normal">Play Game</span>
+                </span>
             </div>
         );
     };
@@ -89,7 +101,7 @@ const ATC = () => {
     return (
         <div className="container-fluid p-4">
             <div className="row d-flex">
-                <span className="fs-2 text-shade100 text-center mb-4">Around the clock</span>
+                <span className="fs-2 text-default text-center mb-4">Around the clock</span>
                 <Panel headerTemplate={headerTemplate} className="col-12 col-lg-7 col-xl-6 col-xxl-5 mt-4" >
                     <div className="d-flex flex-column justify-content-center align-items-center">
                         <div className="col-10 col-lg-8 mb-4">
@@ -113,6 +125,7 @@ const ATC = () => {
                     <ATCEntryList atcEntries={atcEntries} />
                 </div>
             </div>
+            {celebration && <Celebration {...celebration} onClose={() => setCelebration(null)} />}
             <Toast ref={toast} position="bottom-right" />
         </div>
     );

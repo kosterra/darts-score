@@ -1,0 +1,25 @@
+// Public start page: the background photo only shows in the hero and fades
+// into a plain surface, so the content below it stays calm and readable.
+.landing {
+    min-height: 100vh;
+    background: $shade900;
+
+    .landing-hero {
+        // Small screens: the photo sits behind the text, so it is darkened a lot
+        background:
+            linear-gradient(to bottom, rgba($shade900, 0.7) 0%, rgba($shade900, 0.8) 60%, $shade900 100%),
+            url("/background.webp") center / cover no-repeat;
+    }
+
+    // Wide screens: the dartboard shows at the top left behind the headline,
+    // kept darker on that side so the text stays readable
+    @media (min-width: 992px) {
+        .landing-hero {
+            background:
+                // fade out towards the plain surface below
+                linear-gradient(to bottom, rgba($shade900, 0.35) 0%, rgba($shade900, 0.6) 55%, $shade900 100%),
+                linear-gradient(to right, rgba($shade900, 0.9) 0%, rgba($shade900, 0.55) 55%, rgba($shade900, 0.15) 100%),
+                url("/background.webp") center / cover no-repeat;
+        }
+    }
+}

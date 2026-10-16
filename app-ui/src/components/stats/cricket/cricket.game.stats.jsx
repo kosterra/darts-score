@@ -37,7 +37,7 @@ const CricketGameStats = () => {
     return (
         <div className="container-fluid p-4">
             <div className="row d-flex justify-content-center align-items-center">
-                <div className="col text-shade100">
+                <div className="col text-default">
                     Not yet implemented. Coming soon...
                 </div>
             </div>

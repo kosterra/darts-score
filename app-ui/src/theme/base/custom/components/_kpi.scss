@@ -1,0 +1,268 @@
+// A player's key figures: rings, big numbers and chips
+
+.kpi-headline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 1rem;
+    align-items: center;
+    justify-items: center;
+}
+
+.kpi-label {
+    color: $textSubtleColor;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.kpi-detail {
+    color: $textFaintColor;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.kpi-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+
+    svg {
+        width: 6.5rem;
+        height: 6.5rem;
+        transform: rotate(-90deg);
+
+        @media (max-width: 575px) {
+            width: 5.25rem;
+            height: 5.25rem;
+        }
+    }
+}
+
+.kpi-ring-track {
+    fill: none;
+    stroke: $surfaceHighColor;
+    stroke-width: 9;
+}
+
+.kpi-ring-value {
+    fill: none;
+    stroke: var(--kpi-color);
+    stroke-width: 9;
+    stroke-linecap: round;
+    stroke-dasharray: var(--kpi-dash);
+    stroke-dashoffset: var(--kpi-offset);
+    animation: kpi-ring-fill 1.1s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+}
+
+.kpi-ring-text {
+    fill: $shade000;
+    font-size: 1.35rem;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+    // the svg is turned so the ring starts at the top; the number stays upright
+    transform: rotate(90deg);
+    transform-origin: 50px 50px;
+}
+
+.kpi-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.kpi-hero-value {
+    color: $shade000;
+    font-size: clamp(2.2rem, 4vw, 2.9rem);
+    font-weight: 800;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+}
+
+.kpi-chips {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+
+    // two side by side on phones
+    @media (max-width: 575px) {
+        grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    }
+    gap: 0.75rem;
+}
+
+.kpi-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    min-width: 0;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+    border-left: 3px solid var(--kpi-color);
+}
+
+.kpi-chip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--kpi-color) 16%, transparent);
+    color: var(--kpi-color);
+    font-size: 1rem;
+}
+
+.kpi-chip-value {
+    color: $shade000;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+
+.kpi-chip-label {
+    color: $textFaintColor;
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+// narrow phones: smaller icons, so the labels have room to wrap
+@media (max-width: 575px) {
+    .kpi-chip {
+        gap: 0.55rem;
+        padding: 0.6rem 0.65rem;
+    }
+
+    .kpi-chip-icon {
+        width: 1.8rem;
+        height: 1.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+@keyframes kpi-ring-fill {
+    from { stroke-dashoffset: var(--kpi-dash); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .kpi-ring-value {
+        animation: none;
+    }
+}
+
+// a player's own result in a game: won or lost
+.game-result {
+    display: inline-flex;
+    align-items: center;
+    padding: $tagPadding;
+    border-radius: $borderRadius;
+    // the same size as the status tags it stands in for
+    font-size: $badgeFontSize;
+    font-weight: $badgeFontWeight;
+    line-height: 1.5;
+
+    &.game-result-won { background: rgba(#7ecca5, 0.18); color: #7ecca5; }
+    &.game-result-lost { background: rgba($shade000, 0.08); color: $textSubtleColor; }
+}
+
+// the weekly streak on a profile: lit flames for the weeks reached, grey ones still to go
+.streak-flames {
+    display: inline-flex;
+    gap: 0.1rem;
+    font-size: 1.05rem;
+    color: $shade600;
+
+    .is-lit {
+        color: $orange;
+    }
+}
+
+// Player levels
+.level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--level-color);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.level-badge-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--level-color) 18%, transparent);
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--level-color) 55%, transparent);
+}
+
+.level-badge-sm {
+    font-size: 0.8rem;
+
+    .level-badge-icon { width: 1.5rem; height: 1.5rem; font-size: 0.7rem; }
+}
+
+.level-badge-md {
+    font-size: 1.05rem;
+
+    .level-badge-icon { width: 2.4rem; height: 2.4rem; font-size: 1.05rem; }
+}
+
+.level-progress.p-progressbar {
+    height: 0.45rem;
+    background: $surfaceHighColor;
+
+    .p-progressbar-value {
+        background: var(--level-color);
+    }
+}
+
+.level-breakdown {
+    td {
+        padding: 0.35rem 0.25rem;
+        border-bottom: 1px solid $surfaceHighColor;
+    }
+
+    .level-breakdown-total td {
+        border-bottom: 0;
+        color: $textDefaultColor;
+        font-weight: 700;
+    }
+}
+
+.level-ladder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+
+    &.is-current {
+        box-shadow: inset 0 0 0 1.5px $primaryColor;
+    }
+
+    &.is-ahead {
+        opacity: 0.6;
+    }
+}
+
+// a quiet link that opens the explanation of the levels
+.level-help {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $primaryColor;
+    font-size: 0.8rem;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        text-decoration: underline;
+    }
+}

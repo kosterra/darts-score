@@ -55,17 +55,15 @@ const X01ScoreBoard = (props) => {
                                     label={resolvePlayerInitials(player.firstname, player.lastname)}
                                     image={resolvePlayerImg(player.profileImg)}
                                     shape="circle"
-                                    size="xlarge"
-                                    style={{ maxWidth: '5.2rem', maxHeight: '5.2rem' }}
-                                    className="w-100 h-100 ratio ratio-1x1"
+                                    className="avatar-fluid"
                                 />
                             </div>
                             <div className="col-7 col-md-8 col-xxl-12 d-flex flex-column justify-content-center align-items-center">
                                 <div>
-                                    <span className="fs-6 text-shade100 fw-semibold">{player.nickname}</span>
+                                    <span className="fs-6 text-default fw-semibold">{player.nickname}</span>
                                 </div>
                                 <div>
-                                    <span className="fs-7 text-shade500 text-truncate" title={player.firstname + ' ' + player.lastname}>
+                                    <span className="fs-7 text-faint text-truncate" title={player.firstname + ' ' + player.lastname}>
                                         {player.firstname + ' ' + player.lastname}
                                     </span>
                                 </div>
@@ -96,7 +94,7 @@ const X01ScoreBoard = (props) => {
                     </div>
                     <div className="col-5 col-xl-6 d-flex flex-row flex-md-column align-items-center justify-content-center p-0">
                         <div className="col-6 col-xl-12 d-flex justify-content-center align-items-center">
-                            <div className="display-3 text-shade100 fw-semibold" >
+                            <div className="display-3 text-default fw-semibold" >
                                 {game.currentPlayerTurn === playerId ?
                                     checkIfScoreIsBusted(score) ? 'BUST' : score : playerModel.score
                                 }
@@ -104,7 +102,7 @@ const X01ScoreBoard = (props) => {
                         </div>
                         <div className="col-6 col-xl-12 d-flex flex-column flex-md-row align-items-center justify-content-center gap-1 gap-md-3 mt-xl-2">
                             <div>
-                                <div className="d-flex justify-content-center text-shade100 fw-semibold mb-02">
+                                <div className="d-flex justify-content-center text-default fw-semibold mb-02">
                                     LEGS
                                 </div>
                                 {game.numberOfLegs <= 5 && game.legMode === 'Best of' &&
@@ -129,12 +127,12 @@ const X01ScoreBoard = (props) => {
                                 }
                                 {((game.numberOfLegs > 4 && game.legMode === 'First to') || (game.numberOfLegs > 5 && game.legMode === 'Best of')) &&
                                     <div className="d-flex justify-content-center">
-                                        <span className="text-shade100">{game.playerModels[playerId].currentSetLegsWon}</span>
+                                        <span className="text-default">{game.playerModels[playerId].currentSetLegsWon}</span>
                                     </div>
                                 }
                             </div>
                             <div>
-                                <div className="d-flex justify-content-center text-shade100 fw-semibold mb-02">
+                                <div className="d-flex justify-content-center text-default fw-semibold mb-02">
                                     SETS
                                 </div>
                                 {game.numberOfSets <= 5 && game.setMode === 'Best of' &&
@@ -159,7 +157,7 @@ const X01ScoreBoard = (props) => {
                                 }
                                 {((game.numberOfSets > 4 && game.setMode === 'First to') || (game.numberOfSets > 5 && game.setMode === 'Best of')) &&
                                     <div className="d-flex justify-content-center">
-                                        <span className="text-shade100">{game.playerModels[playerId].setsWon}</span>
+                                        <span className="text-default">{game.playerModels[playerId].setsWon}</span>
                                     </div>
                                 }
                             </div>

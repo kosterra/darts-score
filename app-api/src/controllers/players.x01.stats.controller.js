@@ -1,7 +1,8 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
-import { createGameFilterQuery } from '../utils/game.utils.js';
+import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
+import { averageTrend, scoringVsFinishing, dartsPerLegDistribution, DARTS_PER_LEG_BUCKETS } from '../utils/chart.data.js';
 import { playersX01StatsModel, checkoutItemModel, avgItemModel } from '../models/players.x01.stats.models.js';
 
 const X01 = db.x01;
@@ -9,7 +10,8 @@ const X01 = db.x01;
 export const getPlayersX01Stats = async (req, res, next) => {
     logger.debug("load x01 statistics for multiple players!");
     try {
-        const x01PlayersStats = await calculateX01PlayersStats(req.body);
+        // the comparison always stays within the selected club
+        const x01PlayersStats = await calculateX01PlayersStats({ ...req.body, club: req.club._id });
         res.send(x01PlayersStats);
     } catch (err) {
         logger.error(err, 'Failed to calculate players x01 stats');
@@ -51,14 +53,35 @@ async function calculateX01PlayersStats(body) {
     playersX01Stats.scoreRanges = getPlayersScoreRangesX01(x01Games, playersX01Stats.scoreRanges, body.playerIds)
     playersX01Stats.sectionHits = getPlayersSectionHitsX01(x01Games, playersX01Stats.sectionHits, body.playerIds)
 
+    // per player: phase averages, darts per won 501 leg, and the average of every game with its date
+    playersX01Stats.scoring = {}
+    body.playerIds.forEach((playerId, idx) => {
+        playersX01Stats.scoring['player' + (idx + 1)] = scoringVsFinishing(x01Games, playerId)
+    })
+    playersX01Stats.dartsPerLeg = DARTS_PER_LEG_BUCKETS.map((bucket, index) => {
+        const entry = { bucket: bucket.label }
+        body.playerIds.forEach((playerId, idx) => {
+            entry['player' + (idx + 1)] = dartsPerLegDistribution(x01Games, playerId)[index].count
+        })
+        return entry
+    })
+    const trends = body.playerIds.map(playerId => new Map(averageTrend(x01Games, playerId).map(entry => [entry.gameId, entry])))
+    playersX01Stats.trend = [...x01Games]
+        .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt))
+        .map(game => {
+            const entry = { gameId: String(game._id), date: game.updatedAt }
+            trends.forEach((trend, idx) => { entry['player' + (idx + 1)] = trend.get(String(game._id))?.average ?? null })
+            return entry
+        })
+
     return playersX01Stats
 }
 
 async function findX01Games(body) {
     logger.debug('find x01 games by filter body');
-    let query = createGameFilterQuery(body)
+    const query = { ...createGameFilterQuery(body), club: body.club }
 
-    let x01Games = await X01.find(query)
+    let x01Games = await findFilteredGames(X01, query, body)
         .then(data => {
             return data;
         })

@@ -1,5 +1,6 @@
 import {
-    getHeaders
+    getHeaders,
+    requestJSON
 } from '../utils/service.utils';
 
 const API_URL = '/api/';
@@ -59,8 +60,51 @@ const loadX01GameStats = async (gameId) => {
 }
 
 // Export methods
+/**
+ * Club dashboard data: facts about the club, leaderboards and recent games.
+ */
+const loadClubStats = () => requestJSON(API_URL + 'stats/club');
+
+/**
+ * Badge overview of the club: every player with their number of badges.
+ */
+const loadClubBadges = () => requestJSON(API_URL + 'stats/badges');
+
+/**
+ * All badges for one player, earned ones and the progress towards the others.
+ */
+const loadPlayerBadges = (playerId) => requestJSON(API_URL + 'stats/badges/player/' + playerId);
+
+/**
+ * A player's latest games in the selected club: { total, games, players }.
+ */
+/**
+ * The level of every club member: { [playerId]: { id, name, index, xp } }.
+ */
+const loadPlayerLevels = () => requestJSON(`${API_URL}stats/levels`);
+
+/**
+ * Head to head in Cricket or Elimination with the comparison filters
+ * ({ type, playerIds, includeOthers, dateFilter, from, to, lastGames }).
+ */
+const loadHeadToHead = (body) => requestJSON(`${API_URL}stats/players/headtohead`, { method: 'POST', body });
+
+const loadPlayerGames = (playerId, limit = 5) => requestJSON(`${API_URL}stats/player/${playerId}/games?limit=${limit}`);
+
+/**
+ * The badges each player earned in one game ('x01' | 'cricket' | 'elimination').
+ */
+const loadGameBadges = (gameType, gameId) => requestJSON(`${API_URL}stats/badges/game/${gameType}/${gameId}`);
+
 const StatsService = {
+    loadClubBadges,
+    loadPlayerBadges,
+    loadGameBadges,
+    loadClubStats,
     loadPlayerStats,
+    loadPlayerGames,
+    loadHeadToHead,
+    loadPlayerLevels,
     loadX01GameStats,
     loadX01PlayersStats
 }

@@ -15,9 +15,7 @@ const X01StatsScoreBoardPlayer = ({ player = {}, hasWonGame = false }) => {
                         label={initials}
                         image={resolvePlayerImg(profileImg)}
                         shape="circle"
-                        size="xlarge"
-                        style={{ width: '6rem', height: '6rem' }}
-                        className="bg-shade700 mx-3"
+                        className="avatar-lg bg-surface-high mx-3"
                     />
                     {hasWonGame && (
                         <span className="position-absolute top-80 start-85 translate-middle">
@@ -25,8 +23,8 @@ const X01StatsScoreBoardPlayer = ({ player = {}, hasWonGame = false }) => {
                         </span>
                     )}
                 </div>
-                <div className="mt-2 text-shade100 fs-6 fw-semibold">{nickname}</div>
-                <div className="text-shade500 fs-7 fw-semibold">{firstname} {lastname}</div>
+                <div className="mt-2 text-default fs-6 fw-semibold">{nickname}</div>
+                <div className="text-faint fs-7 fw-semibold">{firstname} {lastname}</div>
             </div>
         </Fragment>
     );

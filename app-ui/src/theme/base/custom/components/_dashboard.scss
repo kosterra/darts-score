@@ -1,0 +1,544 @@
+// Club dashboard widgets
+
+.dashboard-widget {
+    // widgets in one row share its height, so their panels fill it
+    display: flex;
+    flex-direction: column;
+
+    .p-toggleable-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .p-panel-content {
+        flex-grow: 1;
+    }
+}
+
+.leaderboard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .leaderboard-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: $borderRadius;
+    }
+
+    // the leader stands out a little
+    .leaderboard-first {
+        background: $surfaceRaisedColor;
+    }
+
+    .leaderboard-rank {
+        width: 1.5rem;
+        flex-shrink: 0;
+        text-align: center;
+        color: $textFaintColor;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .leaderboard-name {
+        flex-grow: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .leaderboard-value {
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.timeline {
+    // the line the entries hang on
+    border-left: 2px solid $borderDefaultColor;
+    margin-left: 0.4rem !important;
+
+    // each game is a small card beside the line, a step lighter than the panel
+    .timeline-entry {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0 0 0.45rem 1rem;
+        padding: 0.6rem 0.75rem;
+        border-radius: $borderRadius;
+        background: $surfaceRaisedColor;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        // the dot on the line, outside the card
+        &::before {
+            content: '';
+            position: absolute;
+            left: calc(-1rem - 0.375rem - 1px);
+            top: 50%;
+            width: 0.75rem;
+            height: 0.75rem;
+            margin-top: -0.375rem;
+            border-radius: 50%;
+            // the colours of the status tags: soft blue for finished, soft orange for running
+            background: $statusFinishedColor;
+            border: 2px solid $surfaceColor;
+        }
+
+        &.timeline-running::before {
+            background: $statusRunningColor;
+        }
+    }
+
+    .timeline-time {
+        width: 2.75rem;
+        flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .timeline-body {
+        flex-grow: 1;
+        min-width: 0;
+    }
+}
+
+// Game types, each in its own colour: a small label with a short line in that
+// colour, like the panel titles. Orange and blue are taken by the game status
+// (running / finished, the only pills), so types use green, gold and purple.
+.game-type-tag {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    color: $textDefaultColor;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+
+    &::after {
+        content: '';
+        width: 1.1rem;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--game-type-color);
+    }
+
+    &.game-type-x01 { --game-type-color: #7ecca5; }
+    &.game-type-cricket { --game-type-color: #d4c783; }
+    &.game-type-elimination { --game-type-color: #c3a9e6; }
+}
+
+// Player picker on the statistics page
+.players-picker {
+    @media (min-width: 992px) {
+        position: sticky;
+        top: 1rem;
+    }
+
+    .players-picker-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.6rem;
+        border-radius: $borderRadius;
+        cursor: pointer;
+        transition: background-color $transitionDuration;
+
+        &:hover {
+            background: $surfaceRaisedColor;
+        }
+
+        &.selected {
+            background: $surfaceHighColor;
+        }
+
+        &.disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+    }
+
+    .players-picker-colour {
+        flex-shrink: 0;
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 50%;
+    }
+}
+
+// In a comparison every player's picture has a ring in their chart colour
+.compare-avatar.p-avatar.p-avatar-circle {
+    box-shadow: 0 0 0 3px var(--compare-colour), 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+}
+
+// Latest games of a comparison: a horizontal line of winners
+.h2h-timeline {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.5rem 0.25rem 0.25rem;
+
+    // the line the stops sit on, through the dots
+    &::before {
+        content: '';
+        position: absolute;
+        left: 1rem;
+        right: 1rem;
+        top: 3.55rem;
+        height: 2px;
+        background: linear-gradient(to right, transparent, $shade600 8%, $shade600 92%, transparent);
+    }
+
+    .h2h-stop {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.45rem;
+        min-width: 3rem;
+        animation: h2h-in 0.4s ease-out both;
+    }
+
+    .h2h-winner.p-avatar {
+        width: 2.4rem;
+        height: 2.4rem;
+        font-size: 0.85rem;
+        box-shadow: 0 0 0 2px var(--winner-colour), 0 0.35rem 0.8rem -0.3rem rgba(0, 0, 0, 0.8);
+        transition: transform $transitionDuration;
+    }
+
+    .h2h-stop:hover .h2h-winner.p-avatar {
+        transform: translateY(-3px) scale(1.08);
+    }
+
+    .h2h-dot {
+        position: relative;
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 50%;
+        background: var(--winner-colour);
+        box-shadow: 0 0 0 3px $surfaceColor;
+    }
+
+    // the most recent game glows
+    .latest .h2h-winner.p-avatar {
+        width: 2.9rem;
+        height: 2.9rem;
+        margin-top: -0.25rem;
+        box-shadow: 0 0 0 3px var(--winner-colour), 0 0 16px -2px var(--winner-colour);
+    }
+
+    .h2h-date {
+        font-size: 0.7rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+}
+
+@keyframes h2h-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .h2h-timeline .h2h-stop { animation: none; }
+}
+
+// Charts: dartboard heatmap fields light up on hover
+.dartboard-heatmap {
+    display: block;
+    width: 100%;
+    height: auto;
+
+    path:hover,
+    circle:hover {
+        stroke: #efe6d0;
+        stroke-width: 1;
+    }
+}
+
+// Chart titles carry the same short green line as panel titles
+.chart-card-title {
+    @include accent-title();
+}
+
+// Reordering the widgets in the customize dialog
+.widget-order-item {
+    transition: box-shadow $transitionDuration, background-color $transitionDuration;
+
+    &.is-dragged {
+        background: $surfaceHighColor !important;
+        box-shadow: 0 0.75rem 1.5rem -0.75rem rgba(0, 0, 0, 0.9);
+        position: relative;
+        z-index: 1;
+    }
+}
+
+.widget-order-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: $borderRadius;
+    background: transparent;
+    color: $textSubtleColor;
+    cursor: grab;
+    // a finger on the handle drags the widget instead of scrolling the dialog
+    touch-action: none;
+
+    &:hover,
+    &:focus-visible {
+        background: $surfaceHighColor;
+        color: $textDefaultColor;
+    }
+
+    .is-dragged & {
+        cursor: grabbing;
+        color: $primaryColor;
+    }
+}
+
+// Activity calendar: one square per day, greener the more games
+.activity-calendar {
+    display: grid;
+    grid-template-columns: 2rem repeat(var(--weeks), minmax(0, 1fr));
+    gap: 3px;
+}
+
+.activity-month,
+.activity-weekday {
+    color: $textFaintColor;
+    font-size: 0.65rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.activity-weekday {
+    display: flex;
+    align-items: center;
+}
+
+.activity-day {
+    display: inline-block;
+    aspect-ratio: 1;
+    min-width: 0.7rem;
+    border-radius: 3px;
+    background: $surfaceRaisedColor;
+
+    &.level-1 { background: rgba(#7ecca5, 0.25); }
+    &.level-2 { background: rgba(#7ecca5, 0.45); }
+    &.level-3 { background: rgba(#7ecca5, 0.7); }
+    &.level-4 { background: #7ecca5; }
+}
+
+// Head-to-head matrix
+.h2h-matrix {
+    border-collapse: separate;
+    border-spacing: 4px;
+
+    th {
+        font-weight: normal;
+        text-align: center;
+    }
+
+    tbody th {
+        text-align: left;
+        padding-right: 0.5rem;
+        max-width: 10rem;
+    }
+
+    td {
+        width: 2.75rem;
+        height: 2.75rem;
+        min-width: 2.75rem;
+        border-radius: $borderRadius;
+        text-align: center;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        background: $surfaceRaisedColor;
+        color: $textDefaultColor;
+
+        &.is-lead { background: rgba(#7ecca5, 0.3); color: $shade000; }
+        &.is-behind { background: rgba(#e07a5f, 0.18); }
+        &.is-even { background: rgba($shade000, 0.08); }
+        &.is-none { color: $textFaintColor; }
+        &.is-self { background: transparent; }
+    }
+}
+
+$momentGoldColor: #ffc94d;
+
+// Club records
+.records-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 0.75rem;
+}
+
+.record-card {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.85rem;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+    min-width: 0;
+}
+
+.record-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    background: rgba($momentGoldColor, 0.16);
+    color: $momentGoldColor;
+}
+
+.record-value {
+    color: $shade000;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+
+// When we play: days by time of day
+.when-grid {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(4, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.when-slot,
+.when-day {
+    color: $textFaintColor;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+}
+
+.when-slot {
+    justify-content: center;
+}
+
+.when-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2rem;
+    border-radius: $borderRadius;
+    // empty cells stay grey, busy ones turn green
+    background: color-mix(in srgb, #7ecca5 calc(var(--intensity) * 85%), $surfaceRaisedColor);
+    color: $shade000;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+// The header of a page (a player, the club, a comparison): solid like the panels,
+// set apart by a soft green glow behind the picture and a thin green line on top
+.hero-header {
+    background:
+        radial-gradient(ellipse 30rem 16rem at 5.5rem 50%, rgba($primaryColor, 0.28), transparent 70%),
+        $surfaceColor;
+    border-top: 2px solid rgba($primaryColor, 0.7);
+    box-shadow: 0 0.75rem 1.75rem -0.75rem rgba(0, 0, 0, 0.75);
+
+    // centred headers glow from the top middle
+    &.hero-header-centered {
+        background:
+            radial-gradient(ellipse 36rem 12rem at 50% 0, rgba($primaryColor, 0.24), transparent 70%),
+            $surfaceColor;
+    }
+}
+
+// Comparison header: both sides around "vs.", which sits exactly in the middle
+.compare-faceoff {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 2rem;
+    row-gap: 1rem;
+
+    .compare-side {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1.5rem;
+
+        &.is-left { justify-content: flex-end; }
+        &.is-right { justify-content: flex-start; }
+    }
+
+    .compare-vs {
+        text-align: center;
+    }
+
+    // phones: one under the other, all centred
+    @media (max-width: 575px) {
+        grid-template-columns: minmax(0, 1fr);
+
+        .compare-side {
+            justify-content: center !important;
+        }
+    }
+}
+
+// Filters of the player comparison, inside its header below the players
+.comparison-filters-divider {
+    height: 1px;
+    background: $surfaceHighColor;
+    margin: 0.25rem 0;
+}
+
+.comparison-filters {
+    // every control has the same height, so they line up across the row
+    --filter-height: 2.75rem;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: center;
+    column-gap: 1.75rem;
+    row-gap: 1rem;
+
+    .p-selectbutton .p-button,
+    .p-dropdown,
+    .p-calendar .p-inputtext {
+        height: var(--filter-height);
+    }
+
+    .p-dropdown {
+        align-items: center;
+    }
+
+    // short choices like "5" or "1 W" as real pills, not circles
+    .p-selectbutton.p-selectbutton-pills {
+        width: auto;
+        gap: 0.4rem;
+
+        .p-button {
+            flex: 0 0 auto;
+            min-width: 3rem;
+            padding: 0 0.9rem;
+            border-radius: 2rem !important;
+        }
+    }
+
+    .comparison-include-others {
+        height: var(--filter-height);
+    }
+}

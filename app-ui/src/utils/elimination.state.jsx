@@ -1,9 +1,10 @@
-import { Fragment, useEffect, useRef, useReducer } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useReducer, useState } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { Toast } from 'primereact/toast';
 
 import EliminationContext from './elimination.context';
 import EliminationReducer from './elimination.reducer';
+import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import EliminationService from '../services/elimination.service';
 import EliminationReturnToPreviousPlayer, { getScoreRangeLabel } from './elimination.return.to.previous.player';
 import PlayerService from '../services/player.service';
@@ -40,6 +41,9 @@ const EliminationState = ({ children }) => {
         loading: { initGameLoading: true, validateThrow: false }
     };
     const [state, dispatch] = useReducer(EliminationReducer, initialState);
+    // { key, name } while the 180 celebration plays
+    const [oneEighty, setOneEighty] = useState(null);
+    const endOneEighty = useCallback(() => setOneEighty(null), []);
 
     // -------------------- API Fetch --------------------
     useEffect(() => {
@@ -304,6 +308,11 @@ const EliminationState = ({ children }) => {
             });
         });
 
+        if (!busted && totalRoundScore === 180) {
+            const player = state.players?.find(p => p.id === playerId);
+            setOneEighty({ key: Date.now(), name: player?.nickname ?? '' });
+        }
+
         // Apply stats updates
         const dartCount = currentThrow.filter(d => d && d.trim() !== '').length;
         const updatedPlayerModel = {
@@ -419,6 +428,7 @@ const EliminationState = ({ children }) => {
             }}>
                 {children}
             </EliminationContext.Provider>
+            <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>
     );

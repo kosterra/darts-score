@@ -1,14 +1,15 @@
 $primaryColor: #528b6e !default;
+$primaryDarkColor: #46785e !default; // filled buttons: 4.5:1 against $primaryTextColor
 $primaryLightColor: #60a382 !default;
 $primaryLighterColor: #7ecca5 !default;
-$primaryLightestColor: #528b6e !default;
+$primaryLightestColor: #a8dcc2 !default;
 $primaryTextColor: #f7f2f2 !default;
 
 //$highlightBg: rgba(52, 211, 153, 0.16) !default;
 $highlightBg: $primaryColor !default;
 $highlightTextColor: rgba(255, 255, 255, 0.87) !default;
 $highlightFocusBg: rgba($primaryColor, 0.24) !default;
-$rootBgColor: #2b2b2bcb;
+$rootBgColor: #262626d9;
 
 @import "../_variables";
 @import "../../base/_components";

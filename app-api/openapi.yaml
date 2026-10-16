@@ -2,7 +2,12 @@ openapi: 3.1.0
 
 info:
   title: darts-score API
-  description: REST API for the darts-score application. Manages players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+  description: |
+    REST API for the darts-score application. Manages accounts, clubs, players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+
+    **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all further requests.
+
+    **Clubs:** players, games, training entries and statistics belong to a club. Requests under `/api/players`, `/api/games`, `/api/training` and `/api/stats` must name the club in an `X-Club-Id` header. The user must be an admin of that club, a player of it with a login, or a global admin. Players can read, play games and record trainings; creating, editing and deleting players and deleting games or training entries is for club admins.
   version: 2026.10.0
   license:
     name: GPLv3
@@ -12,7 +17,18 @@ servers:
   - url: http://localhost:3001
     description: Local development
 
+security:
+  - sessionCookie: []
+
 tags:
+  - name: Public
+    description: What visitors see without a login
+  - name: Auth
+    description: Registration, login and the logged-in user's profile
+  - name: Clubs
+    description: Clubs of the logged-in user (all clubs for a global admin)
+  - name: Users
+    description: User administration (global admin only)
   - name: Players
     description: Player management
   - name: Player Images
@@ -33,7 +49,494 @@ tags:
 # ---------------------------------------------------------------------------
 paths:
 
+  # ---------- Health --------------------------------------------------------
+
+  /api/health:
+    get:
+      tags: [Auth]
+      summary: Liveness probe
+      security: []
+      responses:
+        '200':
+          description: The server is running
+
+  # ---------- Public -------------------------------------------------------
+
+  /api/public/overview:
+    get:
+      tags: [Public]
+      summary: Data of the public start page - totals, public clubs, their running games and latest results
+      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public.
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  # ---------- Auth ----------------------------------------------------------
+
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register an account and log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: Account created; session cookie set
+        '409':
+          description: Email already registered
+        '422':
+          description: Validation failed
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Logged in; session cookie set
+        '401':
+          description: Email or password is wrong
+
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Log out
+      security: []
+      responses:
+        '200':
+          description: Session cookie cleared
+
+  /api/auth/config:
+    get:
+      tags: [Auth]
+      summary: Whether the server can send mails (password reset, invitations)
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /api/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Mail a password reset link
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailInput'
+      responses:
+        '200':
+          description: Always the same answer, whether or not the account exists
+        '503':
+          description: Email sending is not set up
+
+  /api/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Set a new password with the token from a reset or invitation mail and log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetInput'
+      responses:
+        '200':
+          description: Password set; session cookie set
+        '400':
+          description: Link invalid or expired
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: The logged-in user
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Not logged in
+    put:
+      tags: [Auth]
+      summary: Update own name and email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: Email already registered
+
+  /api/auth/password:
+    put:
+      tags: [Auth]
+      summary: Change own password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordInput'
+      responses:
+        '200':
+          description: Password changed; other sessions are logged out
+        '403':
+          description: Current password is wrong
+
+  # ---------- Clubs ---------------------------------------------------------
+
+  /api/clubs:
+    get:
+      tags: [Clubs]
+      summary: Clubs the user is an admin or a player of, with that role (global admins find every club under /api/admin/overview)
+      responses:
+        '200':
+          description: OK
+    post:
+      tags: [Clubs]
+      summary: Create a club with the logged-in user as its admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubInput'
+      responses:
+        '201':
+          description: Club created
+
+  /api/clubs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Clubs]
+      summary: Change a club's name and public visibility settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubInput'
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: No access to this club
+    delete:
+      tags: [Clubs]
+      summary: Delete a club and its games (a global admin also deletes its players)
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: The club still has players (only for club admins)
+
+  /api/clubs/{id}/logo:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Clubs]
+      summary: Upload a new logo for the club (multipart field "logo", .png or .jpg)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                logo: { type: string, format: binary }
+      responses:
+        '200':
+          description: Logo saved
+        '422':
+          description: No valid image
+    delete:
+      tags: [Clubs]
+      summary: Remove the club's logo
+      responses:
+        '200':
+          description: Logo removed
+
+  /api/images/clubs/{filename}:
+    get:
+      tags: [Player Images]
+      summary: A club logo (no login needed, logos also show on the public page)
+      security: []
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: The image
+        '404':
+          description: Not found
+
+  /api/clubs/{id}/admins:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags: [Clubs]
+      summary: Add an admin; creates the account when the email is unknown
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClubAdminInput'
+      responses:
+        '201':
+          description: Admin added
+        '409':
+          description: Already an admin of the club
+        '422':
+          description: Names or initial password missing for a new account
+
+  /api/clubs/{id}/admins/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags: [Clubs]
+      summary: Remove an admin from the club
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: A club needs at least one admin
+
+  # ---------- Users ---------------------------------------------------------
+
+  /api/admin/overview:
+    get:
+      tags: [Users]
+      summary: Totals, every club with its admins and activity, and the state of the installation (global admins only)
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Global admin rights required
+
+  /api/admin/clubs:
+    get:
+      tags: [Users]
+      summary: Every club (id, name, logo), for the club filter of the admin lists (global admins only)
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Global admin rights required
+
+  /api/admin/players:
+    get:
+      tags: [Users]
+      summary: Players and guests of the clubs in ?clubs=id1,id2, each with its club (global admins only)
+      parameters:
+        - in: query
+          name: clubs
+          required: true
+          description: Comma-separated club ids, at least one
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: No or invalid clubs chosen
+        '403':
+          description: Global admin rights required
+
+  /api/admin/games:
+    get:
+      tags: [Users]
+      summary: X01, Cricket and Elimination games of the clubs in ?clubs=id1,id2, each with its type and club (global admins only)
+      parameters:
+        - in: query
+          name: clubs
+          required: true
+          description: Comma-separated club ids, at least one
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: No or invalid clubs chosen
+        '403':
+          description: Global admin rights required
+
+  /api/admin/trainings:
+    get:
+      tags: [Users]
+      summary: Around the Clock trainings of the clubs in ?clubs=id1,id2, each with its club (global admins only)
+      parameters:
+        - in: query
+          name: clubs
+          required: true
+          description: Comma-separated club ids, at least one
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: No or invalid clubs chosen
+        '403':
+          description: Global admin rights required
+
+  /api/users:
+    get:
+      tags: [Users]
+      summary: All users with the clubs they belong to, their role there and their last login
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Global admin rights required
+
+  /api/users/{id}/role:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Users]
+      summary: Change the role of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: You cannot change your own role
+
+  /api/users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      responses:
+        '200':
+          description: OK
+        '409':
+          description: The user is the only admin of a club, or is yourself
+
   # ---------- Players -------------------------------------------------------
+
+  /api/players/{id}/account:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Players]
+      summary: Give a player a login (club admins only); creates the account when the email is unknown
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerLoginInput'
+      responses:
+        '200':
+          description: Player linked to the account
+        '409':
+          description: The account already plays in this club as another player
+        '422':
+          description: Initial password missing for a new account
+    delete:
+      tags: [Players]
+      summary: Take the login away from a player (club admins only); the account itself stays
+      responses:
+        '200':
+          description: Login removed
+
+  /api/players/{id}/visibility:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Players]
+      summary: Show or hide a player's nickname on the public start page (club admins, or the player themselves)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [publicProfile]
+              properties:
+                publicProfile: { type: boolean }
+      responses:
+        '200':
+          description: Setting saved
+
+  /api/players/guest:
+    post:
+      tags: [Players]
+      summary: Add a guest for a game (any member of the club); guests are left out of player lists unless includeGuests=true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 25 }
+      responses:
+        '201':
+          description: Guest created
+
+  /api/players/{id}/member:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags: [Players]
+      summary: Turn a guest into a regular player of the club (club admins only)
+      responses:
+        '200':
+          description: The player is now a club member
+
+  /api/players/me:
+    post:
+      tags: [Players]
+      summary: Add the logged-in user as a player of the club
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NicknameInput'
+      responses:
+        '201':
+          description: Player created
+        '409':
+          description: Already a player of this club
 
   /api/players:
     get:
@@ -572,6 +1075,74 @@ paths:
 
   # ---------- Statistics ----------------------------------------------------
 
+  /api/stats/players/headtohead:
+    post:
+      tags: [Statistics]
+      summary: Head to head of two or more players in Cricket or Elimination (type), with the comparison filters
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Unknown game type
+
+  /api/stats/levels:
+    get:
+      tags: [Statistics]
+      summary: The level of every member of the selected club (id, name, index, xp)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: OK
+
+  /api/stats/club:
+    get:
+      tags: [Statistics]
+      summary: Club dashboard data - facts about the club, leaderboards over all finished games, recent and running games
+      responses:
+        '200':
+          description: OK
+
+  /api/stats/badges:
+    get:
+      tags: [Statistics]
+      summary: Badge overview of the club - every player with their number of badges and the latest ones
+      responses:
+        '200':
+          description: OK
+
+  /api/stats/badges/player/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Statistics]
+      summary: All badges for one player - earned ones with date and source, open ones with progress
+      responses:
+        '200':
+          description: OK
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/stats/badges/game/{type}/{id}:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [x01, cricket, elimination]
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Statistics]
+      summary: The badges each player earned in one game
+      responses:
+        '200':
+          description: OK
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /api/stats/player/{id}:
     get:
       tags: [Statistics]
@@ -624,7 +1195,21 @@ paths:
 # ---------------------------------------------------------------------------
 components:
 
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: ds_session
+
   parameters:
+    ClubId:
+      name: X-Club-Id
+      in: header
+      required: true
+      description: Club the request works in (required under /api/players, /api/games, /api/training and /api/stats)
+      schema:
+        type: string
+
     Id:
       name: id
       in: path
@@ -690,6 +1275,89 @@ components:
             $ref: '#/components/schemas/Message'
 
   schemas:
+    RegisterInput:
+      type: object
+      required: [email, password, firstname, lastname]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 128 }
+        firstname: { type: string, minLength: 2, maxLength: 25 }
+        lastname: { type: string, minLength: 2, maxLength: 25 }
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    ProfileInput:
+      type: object
+      required: [email, firstname, lastname]
+      properties:
+        email: { type: string, format: email }
+        firstname: { type: string }
+        lastname: { type: string }
+
+    PasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: { type: string }
+        newPassword: { type: string, minLength: 8, maxLength: 128 }
+
+    EmailInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+
+    ResetInput:
+      type: object
+      required: [token, password]
+      properties:
+        token: { type: string }
+        password: { type: string, minLength: 8, maxLength: 128 }
+
+    ClubAdminInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+        firstname: { type: string, description: Needed when the email has no account yet }
+        lastname: { type: string, description: Needed when the email has no account yet }
+        password: { type: string, minLength: 8, description: Initial password for a new account; without it an invitation is mailed }
+
+    PlayerLoginInput:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, description: Initial password for a new account; without it an invitation is mailed }
+
+    ClubInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 3, maxLength: 50 }
+        description: { type: string, maxLength: 500 }
+        isPublic: { type: boolean, description: List the club on the public start page }
+        publicLiveGames: { type: boolean, description: Show running games of a public club }
+        publicResults: { type: boolean, description: Show finished games of a public club }
+        dashboardWidgets: { type: array, items: { type: string }, description: Ids of the dashboard widgets to show, in order. An empty list means the default set }
+
+    RoleInput:
+      type: object
+      required: [role]
+      properties:
+        role: { type: string, enum: [globalAdmin, user] }
+
+    NicknameInput:
+      type: object
+      required: [nickname]
+      properties:
+        nickname: { type: string, minLength: 3, maxLength: 25 }
+
 
     # ------ Common ----------------------------------------------------------
 

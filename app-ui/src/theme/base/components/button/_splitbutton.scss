@@ -4,17 +4,17 @@
     &.p-button-outlined {
         > .p-button {
             background-color: transparent;
-            color: $buttonBg;
+            color: $buttonAccentColor;
             border: $outlinedButtonBorder;
 
             &:not(:disabled):hover {
-                background: rgba($buttonBg, $textButtonHoverBgOpacity);
-                color: $buttonBg;
+                background: rgba($buttonAccentColor, $textButtonHoverBgOpacity);
+                color: $buttonAccentColor;
             }
 
             &:not(:disabled):active {
-                background: rgba($buttonBg, $textButtonActiveBgOpacity);
-                color: $buttonBg;
+                background: rgba($buttonAccentColor, $textButtonActiveBgOpacity);
+                color: $buttonAccentColor;
             }
         }
 
@@ -39,18 +39,18 @@
     &.p-button-text {
         > .p-button {
             background-color: transparent;
-            color: $buttonBg;
+            color: $buttonAccentColor;
             border-color: transparent;
 
             &:not(:disabled):hover {
-                background: rgba($buttonBg, $textButtonHoverBgOpacity);
-                color: $buttonBg;
+                background: rgba($buttonAccentColor, $textButtonHoverBgOpacity);
+                color: $buttonAccentColor;
                 border-color: transparent;
             }
 
             &:not(:disabled):active {
-                background: rgba($buttonBg, $textButtonActiveBgOpacity);
-                color: $buttonBg;
+                background: rgba($buttonAccentColor, $textButtonActiveBgOpacity);
+                color: $buttonAccentColor;
                 border-color: transparent;
             }
         }

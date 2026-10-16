@@ -41,17 +41,15 @@ const EliminationScoreBoard = ({ playerId, idx }) => {
                                 label={resolvePlayerInitials(player.firstname, player.lastname)}
                                 image={resolvePlayerImg(player.profileImg)}
                                 shape="circle"
-                                size="xlarge"
-                                style={{ maxWidth: '5.2rem', maxHeight: '5.2rem' }}
-                                className="w-100 h-100 ratio ratio-1x1"
+                                className="avatar-fluid"
                             />
                         </div>
                         <div className="col-7 col-md-8 col-xxl-12 d-flex flex-column justify-content-center align-items-center">
                             <div>
-                                <span className="fs-6 text-shade100 fw-semibold">{player.nickname}</span>
+                                <span className="fs-6 text-default fw-semibold">{player.nickname}</span>
                             </div>
                             <div>
-                                <span className="fs-7 text-shade500 text-truncate" title={player.firstname + ' ' + player.lastname}>
+                                <span className="fs-7 text-faint text-truncate" title={player.firstname + ' ' + player.lastname}>
                                     {player.firstname + ' ' + player.lastname}
                                 </span>
                             </div>
@@ -67,11 +65,11 @@ const EliminationScoreBoard = ({ playerId, idx }) => {
                 </div>
                 <div className="col-5 col-xl-6 d-flex flex-row flex-md-column align-items-center justify-content-center p-0">
                     <div className="flex-column d-flex justify-content-center align-items-center">
-                        <div className="display-3 text-shade100 fw-semibold">
+                        <div className="display-3 text-default fw-semibold">
                             {isCurrentPlayer && checkIfScoreIsBusted(liveScore) ? 'BUST' : liveScore}
                         </div>
-                        <div className="fs-6 text-shade100 mt-3 d-flex flex-column justify-content-center align-items-center">
-                            <span className="fs-7 fw-semibold text-shade500">Points to beat next player</span>
+                        <div className="fs-6 text-default mt-3 d-flex flex-column justify-content-center align-items-center">
+                            <span className="fs-7 fw-semibold text-faint">Points to beat next player</span>
                             <span className="fs-2 fw-semibold">{pointsToNext === 0 ? '-' : pointsToNext}</span>
                         </div>
                     </div>

@@ -27,7 +27,7 @@ const ScoreInputBoardHelp = () => {
         <div>
             {/* Trigger */}
             <div className="mb-2 ms-1 d-flex align-items-center">
-                <span className="col-10 text-shade100 fs-8 fw-semibold d-inline-block text-truncate">
+                <span className="col-10 text-default fs-8 fw-semibold d-inline-block text-truncate">
                     Click the dartboard or enter score
                 </span>
                 <div className="col-2 d-flex justify-content-end">

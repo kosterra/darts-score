@@ -5,7 +5,7 @@ vi.mock('../models/logger.model.js', () => ({
 }));
 
 // dayjs is not mocked — actual date arithmetic is tested via relative assertions
-const { createGameFilterQuery } = await import('./game.utils.js');
+const { createGameFilterQuery, lastGamesOf } = await import('./game.utils.js');
 
 describe('createGameFilterQuery', () => {
     beforeEach(() => vi.clearAllMocks());
@@ -61,5 +61,47 @@ describe('createGameFilterQuery', () => {
         const diffDays = (result.createdAt.$lt - result.createdAt.$gte) / (1000 * 60 * 60 * 24);
         expect(diffDays).toBeGreaterThan(364);
         expect(diffDays).toBeLessThanOrEqual(367);
+    });
+});
+
+describe('createGameFilterQuery for the comparison filters', () => {
+    it('filters by starting score and format', () => {
+        const query = createGameFilterQuery({ playerIds: ['a'], startingScore: '501', format: { setMode: 'Best of', numberOfSets: 3, legMode: 'First to', numberOfLegs: '2' } });
+        expect(query).toMatchObject({ startingScore: 501, setMode: 'Best of', numberOfSets: 3, legMode: 'First to', numberOfLegs: 2 });
+    });
+
+    it('uses a custom date range from the start of the first to the end of the last day', () => {
+        const query = createGameFilterQuery({ playerIds: ['a'], dateFilter: 'Custom', from: '2026-10-01', to: '2026-10-15' });
+        expect(query.createdAt.$gte.getDate()).toBe(1);
+        expect(query.createdAt.$gte.getHours()).toBe(0);
+        expect(query.createdAt.$lte.getDate()).toBe(15);
+        expect(query.createdAt.$lte.getHours()).toBe(23);
+    });
+
+    it('lets nothing but plain values through', () => {
+        const query = createGameFilterQuery({
+            playerIds: ['a', { $ne: null }],
+            includeOthers: 'yes',
+            startingScore: { $gt: 0 },
+            format: { setMode: { $ne: 'x' }, numberOfSets: { $gt: 0 } },
+            dateFilter: 'Custom',
+            from: { $gt: '' },
+        });
+        expect(query.players).toEqual({ $all: ['a'], $size: 1 });
+        expect(query).not.toHaveProperty('startingScore');
+        expect(query).not.toHaveProperty('setMode');
+        expect(query).not.toHaveProperty('numberOfSets');
+        expect(query).not.toHaveProperty('createdAt');
+    });
+});
+
+describe('lastGamesOf', () => {
+    it('accepts a positive number, capped, and nothing else', () => {
+        expect(lastGamesOf({ lastGames: 10 })).toBe(10);
+        expect(lastGamesOf({ lastGames: '5' })).toBe(5);
+        expect(lastGamesOf({ lastGames: 100000 })).toBe(500);
+        expect(lastGamesOf({ lastGames: 'All' })).toBeNull();
+        expect(lastGamesOf({ lastGames: { $gt: 1 } })).toBeNull();
+        expect(lastGamesOf({})).toBeNull();
     });
 });
