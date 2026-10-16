@@ -4,6 +4,13 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.5',
+        changes: [
+            'Fixes logging in when Darts Score runs from the Docker image.',
+            'Self-hosting with Portainer: the settings can be entered as the stack\'s environment variables.',
+        ],
+    },
+    {
         version: '2026.10.4',
         changes: [
             'Fixes the Docker image of 2026.10.3, which stopped right after starting.',
