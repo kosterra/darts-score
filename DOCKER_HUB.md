@@ -49,7 +49,7 @@ services:
 
   darts_score:
     image: kosterra/darts-score:latest
-    container_name: darts_score_server
+    container_name: darts_score
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -73,7 +73,7 @@ services:
 
   mongo:
     image: mongo:8.0
-    container_name: darts_score_mongo
+    container_name: darts_score_db
     restart: unless-stopped
     env_file:
       - mongo.env
@@ -99,7 +99,7 @@ MongoDB has no published port: only Darts Score reaches it, through the internal
 **.env**
 
 ```dotenv
-DB_HOST=darts_score_mongo
+DB_HOST=mongo
 DB_PORT=27017
 DB_NAME=darts_score
 DB_USER=admin
