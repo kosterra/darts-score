@@ -143,25 +143,33 @@ const PlayersStatisticsPage = () => {
                         <>
                             <header className="hero-header hero-header-centered rounded-2 p-4 mb-4 d-flex flex-column gap-3">
                                 <span className="text-faint fs-8 text-uppercase text-center" style={{ letterSpacing: '0.08em' }}>Head to head</span>
-                                <div className="d-flex flex-wrap justify-content-center align-items-center gap-4">
-                                    {selected.map((player, index) => (
-                                        <Fragment key={player.id}>
-                                            {index > 0 && <span className="text-faint fw-semibold fs-5">vs.</span>}
-                                            {/* the players face each other: the left half shows name then picture, the right half picture then name */}
-                                            <span className={`d-flex align-items-center gap-3 ${index < selected.length / 2 ? 'flex-row-reverse text-end' : ''}`}>
-                                                <Avatar
-                                                    label={resolvePlayerInitials(player.firstname, player.lastname)}
-                                                    image={resolvePlayerImg(player.profileImg)}
-                                                    shape="circle"
-                                                    className="avatar-lg bg-surface-high compare-avatar"
-                                                    style={{ '--compare-colour': ChartConfigOptions.fillColors.values[index] }}
-                                                />
-                                                <span className="d-flex flex-column">
-                                                    <span className="fs-4 fw-semibold text-default">{player.nickname}</span>
-                                                    <span className="text-subtle fs-7">{player.firstname} {player.lastname}</span>
-                                                    <span className="mt-1"><LevelBadge level={levels[player.id]} /></span>
-                                                </span>
-                                            </span>
+                                {/* the two sides face each other around "vs.", which stays in the middle under the heading */}
+                                <div className="compare-faceoff">
+                                    {[selected.slice(0, Math.ceil(selected.length / 2)), selected.slice(Math.ceil(selected.length / 2))].map((side, sideIndex) => (
+                                        <Fragment key={sideIndex}>
+                                            {sideIndex === 1 && <span className="compare-vs text-faint fw-semibold fs-5">vs.</span>}
+                                            <div className={`compare-side ${sideIndex === 0 ? 'is-left' : 'is-right'}`}>
+                                                {side.map(player => {
+                                                    const index = selected.indexOf(player);
+                                                    return (
+                                                        // the left side shows name then picture, the right side picture then name
+                                                        <span key={player.id} className={`d-flex align-items-center gap-3 ${sideIndex === 0 ? 'flex-row-reverse text-end' : ''}`}>
+                                                            <Avatar
+                                                                label={resolvePlayerInitials(player.firstname, player.lastname)}
+                                                                image={resolvePlayerImg(player.profileImg)}
+                                                                shape="circle"
+                                                                className="avatar-lg bg-surface-high compare-avatar"
+                                                                style={{ '--compare-colour': ChartConfigOptions.fillColors.values[index] }}
+                                                            />
+                                                            <span className={`d-flex flex-column ${sideIndex === 0 ? 'align-items-end' : 'align-items-start'}`}>
+                                                                <span className="fs-4 fw-semibold text-default">{player.nickname}</span>
+                                                                <span className="text-subtle fs-7">{player.firstname} {player.lastname}</span>
+                                                                <span className="mt-1"><LevelBadge level={levels[player.id]} /></span>
+                                                            </span>
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
                                         </Fragment>
                                     ))}
                                 </div>

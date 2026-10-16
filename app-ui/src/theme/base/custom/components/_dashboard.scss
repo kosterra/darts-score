@@ -464,3 +464,35 @@ $momentGoldColor: #ffc94d;
             $surfaceColor;
     }
 }
+
+// Comparison header: both sides around "vs.", which sits exactly in the middle
+.compare-faceoff {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 2rem;
+    row-gap: 1rem;
+
+    .compare-side {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1.5rem;
+
+        &.is-left { justify-content: flex-end; }
+        &.is-right { justify-content: flex-start; }
+    }
+
+    .compare-vs {
+        text-align: center;
+    }
+
+    // phones: one under the other, all centred
+    @media (max-width: 575px) {
+        grid-template-columns: minmax(0, 1fr);
+
+        .compare-side {
+            justify-content: center !important;
+        }
+    }
+}
