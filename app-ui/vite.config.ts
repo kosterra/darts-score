@@ -8,6 +8,20 @@ const rootPackage = path.resolve(import.meta.dirname, '../package.json')
 const appVersion = process.env.APP_VERSION
   ?? (existsSync(rootPackage) ? JSON.parse(readFileSync(rootPackage, 'utf8')).version : 'dev')
 
+// The version is built into the app when the dev server starts, so a new
+// version in the root package.json restarts the dev server to show it.
+const restartOnVersionChange = () => ({
+  name: 'restart-on-version-change',
+  apply: 'serve' as const,
+  configureServer(server) {
+    if (!existsSync(rootPackage)) return
+    server.watcher.add(rootPackage)
+    server.watcher.on('change', (file) => {
+      if (path.resolve(file) === rootPackage) server.restart()
+    })
+  },
+})
+
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
@@ -21,7 +35,7 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react()],
+  plugins: [react(), restartOnVersionChange()],
   define: {
     // read as import.meta.env.VITE_APP_VERSION
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),

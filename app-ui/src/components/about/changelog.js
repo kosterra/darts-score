@@ -4,7 +4,7 @@
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.10.3',
         changes: [
             'Accounts and clubs: log in, run one or more clubs, and share a club with several admins.',
             'Players can get their own login to play and train on their own; guests can join a single game.',
