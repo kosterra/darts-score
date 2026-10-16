@@ -242,3 +242,21 @@
 @function shade($color, $percentage) {
 	@return color.mix(#000, $color, $percentage);
 }
+
+// A panel or dialog title: white, with a short line in the brand green below it
+@mixin accent-title() {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    color: $textDefaultColor;
+    line-height: 1.25;
+
+    &::after {
+        content: '';
+        width: 1.75rem;
+        height: 3px;
+        border-radius: 3px;
+        background: $primaryColor;
+    }
+}

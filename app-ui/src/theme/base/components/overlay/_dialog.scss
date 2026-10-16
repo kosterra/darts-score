@@ -8,13 +8,13 @@
         background: $dialogHeaderBg;
         color: $dialogHeaderTextColor;
         padding: $dialogHeaderPadding;
-        border-top-right-radius: 0;
-        border-top-left-radius: 0;
-        text-align: center;
+        border-top-right-radius: $borderRadius;
+        border-top-left-radius: $borderRadius;
 
         .p-dialog-title {
             font-weight: $dialogHeaderFontWeight;
             font-size: $dialogHeaderFontSize;
+            @include accent-title();
         }
 
         .p-dialog-header-icon {

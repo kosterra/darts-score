@@ -247,3 +247,8 @@
         stroke-width: 1;
     }
 }
+
+// Chart titles carry the same short green line as panel titles
+.chart-card-title {
+    @include accent-title();
+}

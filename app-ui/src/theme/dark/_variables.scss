@@ -388,12 +388,13 @@ $inputSwitchHandleOnBg: $primaryTextColor !default;
 //panel
 $panelHeaderBorderColor: $shade600 !default;
 $panelHeaderBorder: 0 !default;
-$panelHeaderBg: $primaryColor !default;
+// headers sit on the panel itself, like the chart cards; a short green line marks the title
+$panelHeaderBg: $shade800 !default;
 $panelHeaderTextColor: $shade000 !default;
 $panelHeaderFontWeight: 600 !default;
 $panelHeaderFontSize: 1rem !default;
-$panelHeaderPadding: 0.4rem !default;
-$panelHeaderMinHeight: 3rem !default;
+$panelHeaderPadding: 1.1rem 1.25rem 0 !default;
+$panelHeaderMinHeight: 0 !default;
 $panelToggleableHeaderPadding: 0.75rem 1.25rem !default;
 
 $panelHeaderHoverBg: $hoverBg !default;
@@ -424,21 +425,21 @@ $picklistItemBg: $shade900 !default;
 //accordion
 $accordionSpacing: 4px !default;
 $accordionHeaderBorder: $panelHeaderBorder !default;
-$accordionHeaderBg: $panelHeaderBg !default;
+$accordionHeaderBg: $shade700 !default;
 $accordionHeaderTextColor: $panelHeaderTextColor !default;
 $accordionHeaderFontSize: 0.8rem !default;
 $accordionHeaderFontWeight: $panelHeaderFontWeight !default;
 $accordionHeaderPadding: $panelHeaderPadding !default;
 
-$accordionHeaderHoverBg: $primaryLightColor !default;
+$accordionHeaderHoverBg: $shade650 !default;
 $accordionHeaderHoverBorderColor: $shade600 !default;
 $accordionHeaderTextHoverColor: $shade000 !default;
 
-$accordionHeaderActiveBg: $panelHeaderBg !default;
+$accordionHeaderActiveBg: $shade700 !default;
 $accordionHeaderActiveBorderColor: $shade600 !default;
 $accordionHeaderTextActiveColor: $shade000 !default;
 
-$accordionHeaderActiveHoverBg: $primaryLightColor !default;
+$accordionHeaderActiveHoverBg: $shade650 !default;
 $accordionHeaderActiveHoverBorderColor: $shade600 !default;
 $accordionHeaderTextActiveHoverColor: $shade000 !default;
 
@@ -533,8 +534,8 @@ $tableHeaderPadding: 1rem 1rem !default;
 
 $tableHeaderCellPadding: 0.4rem 1rem !default;
 $tableHeaderCellBg: $shade800 !default;
-$tableHeaderCellTextColor: $shade000 !default;
-$tableHeaderCellFontWeight: 700 !default;
+$tableHeaderCellTextColor: $shade300 !default;
+$tableHeaderCellFontWeight: 600 !default;
 $tableHeaderCellBorder: none !default;
 $tableHeaderCellBorderWidth: 0 0 1px 0 !default;
 $tableHeaderCellHoverBg: $shade700 !default;
@@ -673,13 +674,13 @@ $sidebarSubmenuitemHoverBg: $shade800Translucent !default;
 $sidebarExpandIconColor: $shade300 !default;
 
 //dialog
-$dialogHeaderBg: $primaryColor !default;
+$dialogHeaderBg: $overlayContentBg !default;
 $dialogHeaderBorder: 0 none !default;
 $dialogHeaderTextColor: $shade000 !default;
-$dialogHeaderFontWeight: 700 !default;
+$dialogHeaderFontWeight: 600 !default;
 $dialogHeaderFontSize: 1rem !default;
-$dialogHeaderPadding: 0.6rem !default;
-$dialogContentPadding: 2rem 1.5rem 2rem 1.5rem !default;
+$dialogHeaderPadding: 1.25rem 1.5rem 0 !default;
+$dialogContentPadding: 1.25rem 1.5rem 2rem 1.5rem !default;
 $dialogFooterBorder: 0 none !default;
 $dialogFooterPadding: 0 1.5rem 1.5rem 1.5rem !default;
 

@@ -17,11 +17,11 @@ const ATCEntryList = (props) => {
 
     const headerTemplate = () => {
         return (
-            <div className="p-panel-header" >
-                <div>
-                    <div className="text-center fs-6 fw-semibold">Around the Clock</div>
-                    <div className="text-center fs-8 fw-medium">Scoreboard</div>
-                </div>
+            <div className="p-panel-header">
+                <span className="p-panel-title">
+                    <span>Around the Clock</span>
+                    <span className="text-faint fs-8 fw-normal">Scoreboard</span>
+                </span>
             </div>
         );
     };

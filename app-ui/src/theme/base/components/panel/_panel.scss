@@ -6,6 +6,7 @@
     &.panel-brighter-bg {
         background: $panelBrighterContentBg;
 
+        .p-panel-header,
         .p-panel-content {
             background: $panelBrighterContentBg;
         }
@@ -21,7 +22,7 @@
     .p-panel-header {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         border: $panelHeaderBorder;
         padding: $panelHeaderPadding;
         background: $panelHeaderBg;
@@ -33,6 +34,7 @@
         .p-panel-title {
             font-weight: $panelHeaderFontWeight;
             font-size: $panelHeaderFontSize;
+            @include accent-title();
         }
 
         .p-panel-header-icon {
@@ -44,6 +46,11 @@
         .p-panel-header {
             padding: $panelToggleableHeaderPadding;
         }
+    }
+
+    // the content follows its title closely, the header has no colour of its own to separate them
+    .p-panel-header + .p-toggleable-content > .p-panel-content {
+        padding-top: 1rem;
     }
 
     .p-panel-content {
