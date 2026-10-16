@@ -468,3 +468,24 @@ $navRailWidth: 4.75rem;
     line-height: 1.2;
     word-break: break-word;
 }
+
+// A message from the global admins on top of every page, e.g. "Test environment"
+.app-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.3;
+}
+
+// the pages next to the menu, with the banner on top
+.app-content {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}

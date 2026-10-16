@@ -120,3 +120,35 @@
         text-decoration: underline;
     }
 }
+
+// Banner colours in the administration
+.banner-swatch {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+
+    &.is-selected {
+        border-color: $shade000;
+    }
+}
+
+.banner-custom-color {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+
+    input[type="color"] {
+        width: 2.25rem;
+        height: 2rem;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+    }
+}

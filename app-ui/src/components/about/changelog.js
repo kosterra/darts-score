@@ -4,6 +4,13 @@
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            'A banner on top of every page, set by the global admins, e.g. to mark a test environment.',
+            'A picture that cannot be saved is now reported instead of showing success.',
+        ],
+    },
+    {
         version: '2026.10.5',
         changes: [
             'Fixes logging in when Darts Score runs from the Docker image.',

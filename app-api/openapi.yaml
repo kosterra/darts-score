@@ -331,6 +331,31 @@ paths:
 
   # ---------- Users ---------------------------------------------------------
 
+  /api/public/banner:
+    get:
+      tags: [Public]
+      summary: The banner shown on top of every page while it is switched on ({ enabled, text, color })
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /api/admin/banner:
+    get:
+      tags: [Users]
+      summary: The banner as global admins edit it, also while switched off
+      responses:
+        '200':
+          description: OK
+    put:
+      tags: [Users]
+      summary: Switch the banner on or off and set its text (up to 200 characters) and colour (#rrggbb)
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Invalid text or colour
+
   /api/admin/overview:
     get:
       tags: [Users]

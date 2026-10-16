@@ -16,7 +16,13 @@ const loadPlayers = (clubIds) => requestJSON(`${API_URL}/players${query(clubIds)
 const loadGames = (clubIds) => requestJSON(`${API_URL}/games${query(clubIds)}`);
 const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(clubIds)}`);
 
+// the banner on top of every page, as global admins edit it
+const loadBannerSettings = () => requestJSON(`${API_URL}/banner`);
+const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT', body: banner });
+
 const AdminService = {
+    loadBannerSettings,
+    saveBanner,
     loadOverview,
     loadClubs,
     loadPlayers,

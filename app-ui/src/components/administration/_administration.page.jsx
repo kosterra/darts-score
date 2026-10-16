@@ -14,6 +14,7 @@ import ClubLogo from '../elements/club.logo';
 import DeletePopup from '../elements/delete.popup';
 import ClubAdminsDialog from '../clubs/club.admins.dialog';
 import UsersList from '../admin/users.list';
+import BannerSettings from './banner.settings';
 import StatTile from '../stats/players/stat.tile';
 import { useAuth } from '../../utils/auth.context';
 
@@ -139,6 +140,8 @@ const AdministrationPage = () => {
             </Panel>
 
             <UsersList />
+
+            <BannerSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Banner saved', detail, life: 3000 })} />
 
             {system &&
                 <Panel header="System">
