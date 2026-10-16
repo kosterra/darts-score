@@ -47,8 +47,11 @@ services:
       IMG_DIR: ${IMG_DIR:-data/img}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:
-      # uploaded player pictures and club logos
-      - ./data:/app/data
+      # uploaded player pictures and club logos, in a Docker volume the app may
+      # write to. To keep them in a folder of your own instead, use e.g.
+      # "/opt/darts-score/data:/app/data" and give that folder to user 1000
+      # ("chown -R 1000:1000 /opt/darts-score/data"), the user the app runs as.
+      - darts_score_data:/app/data
     depends_on:
       mongo:
         condition: service_healthy
@@ -91,3 +94,5 @@ services:
 volumes:
   darts_score_db:
     name: darts_score_db
+  darts_score_data:
+    name: darts_score_data

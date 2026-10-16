@@ -30,6 +30,7 @@ import adminRoutes     from './src/routes/admin.routes.js';
 import publicRoutes    from './src/routes/public.routes.js';
 import badgeRoutes     from './src/routes/badge.routes.js';
 import { isAllowedOrigin } from './src/utils/origin.utils.js';
+import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
@@ -170,7 +171,10 @@ app.use((err, req, res, next) => {
 // Start
 // ---------------------------------------------------------------------------
 const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, () => logger.info(`Server listening on ${PORT}`));
+const server = app.listen(PORT, () => {
+    logger.info(`Server listening on ${PORT}`);
+    checkImageFolder();
+});
 
 // Graceful shutdown
 const shutdown = (signal) => {

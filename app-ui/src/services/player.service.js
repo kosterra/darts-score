@@ -5,6 +5,12 @@ const API_URL = '/api/';
 /**
  * Create a new player. Accepts a pre-built FormData object.
  */
+// the server's own explanation (e.g. why a picture could not be saved), else the status
+const errorMessageOf = async (response) => {
+    const data = await response.json().catch(() => ({}));
+    return data.errors?.join(' ') || data.message || response.statusText;
+};
+
 const createPlayer = async (formData) => {
     try {
         const response = await fetch(API_URL + 'players', {
@@ -12,7 +18,7 @@ const createPlayer = async (formData) => {
             headers: getHeaders(false), // no Content-Type: let browser set multipart boundary
             body: formData
         });
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) throw new Error(await errorMessageOf(response));
         return response.ok;
     } catch (error) {
         throw new Error(error.message);
@@ -91,7 +97,7 @@ const updatePlayer = async (player) => {
             headers: getHeaders(false),
             body: formData
         });
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) throw new Error(await errorMessageOf(response));
         return response.ok;
     } catch (error) {
         throw new Error(error.message);
