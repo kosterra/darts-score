@@ -1075,6 +1075,18 @@ paths:
 
   # ---------- Statistics ----------------------------------------------------
 
+  /api/stats/players/headtohead:
+    post:
+      tags: [Statistics]
+      summary: Head to head of two or more players in Cricket or Elimination (type), with the comparison filters
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Unknown game type
+
   /api/stats/levels:
     get:
       tags: [Statistics]

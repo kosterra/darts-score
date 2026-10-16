@@ -17,6 +17,7 @@ const CHANGELOG = [
             'Player profiles: key figures, latest games, charts and badges on one page, opened from the players list or the badges overview. Comparing players has its own page.',
             'New dashboard widgets: club key figures, an activity calendar, when the club plays, club records, head to head, games per month and club form. Reorder widgets by drag and drop.',
             'Player levels from Rookie to Legend: collect XP by playing, winning, earning badges and getting better.',
+            'Player comparison: filters by starting score, format, last games together and your own dates, and head to head in Cricket and Elimination.',
             'Forgot your password? Reset it by email.',
             'New side navigation with your profile at the bottom; on phones it opens as a drawer.',
             'Clubs can have a logo and a description.',

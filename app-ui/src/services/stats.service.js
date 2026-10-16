@@ -83,6 +83,12 @@ const loadPlayerBadges = (playerId) => requestJSON(API_URL + 'stats/badges/playe
  */
 const loadPlayerLevels = () => requestJSON(`${API_URL}stats/levels`);
 
+/**
+ * Head to head in Cricket or Elimination with the comparison filters
+ * ({ type, playerIds, includeOthers, dateFilter, from, to, lastGames }).
+ */
+const loadHeadToHead = (body) => requestJSON(`${API_URL}stats/players/headtohead`, { method: 'POST', body });
+
 const loadPlayerGames = (playerId, limit = 5) => requestJSON(`${API_URL}stats/player/${playerId}/games?limit=${limit}`);
 
 /**
@@ -97,6 +103,7 @@ const StatsService = {
     loadClubStats,
     loadPlayerStats,
     loadPlayerGames,
+    loadHeadToHead,
     loadPlayerLevels,
     loadX01GameStats,
     loadX01PlayersStats

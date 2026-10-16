@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Checkbox } from 'primereact/checkbox';
@@ -10,9 +11,44 @@ import StatsService from '../../../services/stats.service';
 import LevelBadge from '../../players/level.badge';
 import PageLoader from '../../elements/page.loader';
 import PlayerVSStats from './player.vs.stats';
+import OtherHeadToHead from './other.head.to.head';
+import ComparisonFilters from './comparison.filters';
+import X01Service from '../../../services/x01.service';
 import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+
+const DEFAULT_FILTERS = {
+    type: 'x01',
+    period: 'All',
+    range: null,
+    lastGames: 'All',
+    startingScore: 'All',
+    format: 'all',
+    includeOthers: false,
+};
+
+const formatLabel = (game) =>
+    `${game.setMode} ${game.numberOfSets} ${game.numberOfSets === 1 ? 'set' : 'sets'} · ${game.legMode} ${game.numberOfLegs} ${game.numberOfLegs === 1 ? 'leg' : 'legs'}`;
+
+/**
+ * What the server is asked for, from the filters in the header.
+ */
+const requestOf = (filters, formats) => {
+    const [from, to] = filters.range ?? [];
+    const format = formats.find(entry => entry.value === filters.format)?.format;
+    return {
+        includeOthers: filters.includeOthers,
+        dateFilter: filters.period,
+        ...(filters.period === 'Custom' && {
+            from: from ? dayjs(from).format('YYYY-MM-DD') : undefined,
+            to: to ? dayjs(to).format('YYYY-MM-DD') : (from ? dayjs(from).format('YYYY-MM-DD') : undefined),
+        }),
+        ...(filters.lastGames !== 'All' && { lastGames: filters.lastGames }),
+        ...(filters.type === 'x01' && filters.startingScore !== 'All' && { startingScore: filters.startingScore }),
+        ...(filters.type === 'x01' && format && { format }),
+    };
+};
 
 // The charts have one colour per player, so a comparison has at most this many
 const MAX_PLAYERS = ChartConfigOptions.fillColors.values.length;
@@ -27,6 +63,9 @@ const PlayersStatisticsPage = () => {
     const [selectedIds, setSelectedIds] = useState([]);
     const [search, setSearch] = useState('');
     const [levels, setLevels] = useState({});
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    // the X01 formats these players have played together, for the format filter
+    const [formats, setFormats] = useState([]);
 
     useEffect(() => {
         StatsService.loadPlayerLevels().then(setLevels).catch(() => setLevels({}));
@@ -44,6 +83,24 @@ const PlayersStatisticsPage = () => {
             setPlayers([]);
         });
     }, [user.id]);
+
+    const selectedKey = selectedIds.join(',');
+    useEffect(() => {
+        if (selectedIds.length < 2) return;
+        X01Service.findX01Games({ playerIds: selectedIds, includeOthers: filters.includeOthers, dateFilter: 'All' })
+            .then(games => {
+                const unique = new Map();
+                games.forEach(game => {
+                    const label = formatLabel(game);
+                    if (!unique.has(label)) {
+                        unique.set(label, { label, value: label, format: { setMode: game.setMode, numberOfSets: game.numberOfSets, legMode: game.legMode, numberOfLegs: game.numberOfLegs } });
+                    }
+                });
+                setFormats([...unique.values()].sort((a, b) => a.label.localeCompare(b.label)));
+            })
+            .catch(() => setFormats([]));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedKey, filters.includeOthers]);
 
     const selected = useMemo(
         () => selectedIds.map(id => players?.find(player => player.id === id)).filter(Boolean),
@@ -173,8 +230,13 @@ const PlayersStatisticsPage = () => {
                                         </Fragment>
                                     ))}
                                 </div>
+                                <div className="comparison-filters-divider" />
+                                <ComparisonFilters filters={filters} onChange={setFilters} formats={formats} />
                             </header>
-                            <PlayerVSStats players={selected} />
+                            {filters.type === 'x01'
+                                ? <PlayerVSStats players={selected} request={requestOf(filters, formats)} />
+                                : <OtherHeadToHead type={filters.type} players={selected} request={{ ...requestOf(filters, formats), playerIds: selectedIds }} />
+                            }
                         </>
                     }
                 </div>

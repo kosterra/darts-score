@@ -496,3 +496,49 @@ $momentGoldColor: #ffc94d;
         }
     }
 }
+
+// Filters of the player comparison, inside its header below the players
+.comparison-filters-divider {
+    height: 1px;
+    background: $surfaceHighColor;
+    margin: 0.25rem 0;
+}
+
+.comparison-filters {
+    // every control has the same height, so they line up across the row
+    --filter-height: 2.75rem;
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: center;
+    column-gap: 1.75rem;
+    row-gap: 1rem;
+
+    .p-selectbutton .p-button,
+    .p-dropdown,
+    .p-calendar .p-inputtext {
+        height: var(--filter-height);
+    }
+
+    .p-dropdown {
+        align-items: center;
+    }
+
+    // short choices like "5" or "1 W" as real pills, not circles
+    .p-selectbutton.p-selectbutton-pills {
+        width: auto;
+        gap: 0.4rem;
+
+        .p-button {
+            flex: 0 0 auto;
+            min-width: 3rem;
+            padding: 0 0.9rem;
+            border-radius: 2rem !important;
+        }
+    }
+
+    .comparison-include-others {
+        height: var(--filter-height);
+    }
+}

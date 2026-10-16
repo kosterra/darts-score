@@ -28,10 +28,12 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
             {recent.map((game, index) => {
                 const winnerId = game.players.find(id => game.playerModels?.[id]?.hasWonGame);
                 const winner = players.find(player => player.id === winnerId);
+                // X01 games show the sets and starting score, Cricket and Elimination the points
+                const isX01 = game.startingScore != null;
                 const result = game.players
-                    .map(id => game.playerModels?.[id]?.setsWon ?? 0)
+                    .map(id => (isX01 ? game.playerModels?.[id]?.setsWon : game.playerModels?.[id]?.score) ?? 0)
                     .join(' : ');
-                const tooltip = `${dayjs(game.updatedAt).format('DD.MM.YYYY')} · ${game.startingScore} · ${winner ? `${winner.nickname} won` : 'Winner not in this comparison'} (sets ${result})`;
+                const tooltip = `${dayjs(game.updatedAt).format('DD.MM.YYYY')}${isX01 ? ` · ${game.startingScore}` : ''} · ${winner ? `${winner.nickname} won` : 'Winner not in this comparison'} (${isX01 ? 'sets' : 'points'} ${result})`;
                 const isLatest = index === recent.length - 1;
 
                 return (

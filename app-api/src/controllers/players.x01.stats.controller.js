@@ -1,7 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
-import { createGameFilterQuery } from '../utils/game.utils.js';
+import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
 import { averageTrend, scoringVsFinishing, dartsPerLegDistribution, DARTS_PER_LEG_BUCKETS } from '../utils/chart.data.js';
 import { playersX01StatsModel, checkoutItemModel, avgItemModel } from '../models/players.x01.stats.models.js';
 
@@ -10,7 +10,8 @@ const X01 = db.x01;
 export const getPlayersX01Stats = async (req, res, next) => {
     logger.debug("load x01 statistics for multiple players!");
     try {
-        const x01PlayersStats = await calculateX01PlayersStats(req.body);
+        // the comparison always stays within the selected club
+        const x01PlayersStats = await calculateX01PlayersStats({ ...req.body, club: req.club._id });
         res.send(x01PlayersStats);
     } catch (err) {
         logger.error(err, 'Failed to calculate players x01 stats');
@@ -78,9 +79,9 @@ async function calculateX01PlayersStats(body) {
 
 async function findX01Games(body) {
     logger.debug('find x01 games by filter body');
-    let query = createGameFilterQuery(body)
+    const query = { ...createGameFilterQuery(body), club: body.club }
 
-    let x01Games = await X01.find(query)
+    let x01Games = await findFilteredGames(X01, query, body)
         .then(data => {
             return data;
         })

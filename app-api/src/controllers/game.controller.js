@@ -1,6 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { createGameFilterQuery } from '../utils/game.utils.js';
+import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
 import { syncGameBadges } from '../utils/badge.service.js';
 
 const DEFAULT_LIMIT = 100;
@@ -43,7 +43,7 @@ export const createGameController = (Model, gameName) => {
         logger.debug(`${label} findByFilters called`);
         try {
             const query = { ...createGameFilterQuery(req.body), club: req.club._id };
-            const data = await Model.find(query);
+            const data = await findFilteredGames(Model, query, req.body);
             res.json(data);
         } catch (err) {
             logger.error(err, `Failed to filter ${label} games`);

@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { InputSwitch } from 'primereact/inputswitch';
-import { SelectButton } from 'primereact/selectbutton';
 import { Panel } from 'primereact/panel';
 
 import StatsService from '../../../services/stats.service';
@@ -15,23 +13,16 @@ import StatTile from './stat.tile';
 import HeadToHeadTimeline from './head.to.head.timeline';
 
 /**
- * Compares two or more players of the selected club.
+ * Compares two or more players of the selected club in X01. "request" holds
+ * the filters chosen in the page header (period, last games, starting score,
+ * format, other players).
  */
-const PlayerVSStats = ({ players = [], showStatsFilter = true }) => {
+const PlayerVSStats = ({ players = [], request }) => {
     const [games, setGames] = useState([]);
     const [playerStats, setPlayerStats] = useState({});
-    const [includeOthersValue, setIncludeOthersValue] = useState(false);
-    const [dateFilterValue, setDateFilterValue] = useState('All');
 
-    const dateFilter = ['1 D', '1 W', '1 M', '1 Y', 'All'];
-
-    /** ─────────────────────────────
-     * Data Loading
-     * ───────────────────────────── */
     const loadX01Data = async () => {
-        const playerIds = players.map(p => p.id);
-        const body = { playerIds, includeOthers: includeOthersValue, dateFilter: dateFilterValue };
-
+        const body = { ...request, playerIds: players.map(p => p.id) };
         const [x01Games, playersStats] = await Promise.all([
             X01Service.findX01Games(body),
             StatsService.loadX01PlayersStats(body),
@@ -42,8 +33,9 @@ const PlayerVSStats = ({ players = [], showStatsFilter = true }) => {
 
     useEffect(() => {
         if (players.length >= 2) loadX01Data();
+        // the request is rebuilt on every render; its content is what matters
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [players, includeOthersValue, dateFilterValue]);
+    }, [players, JSON.stringify(request)]);
 
     /** ─────────────────────────────
      * Rendering
@@ -52,25 +44,6 @@ const PlayerVSStats = ({ players = [], showStatsFilter = true }) => {
 
     return (
         <div className="d-flex flex-column gap-4">
-            {showStatsFilter &&
-                <div className="bg-surface-translucent rounded-2 p-3 d-flex flex-wrap align-items-center column-gap-4 row-gap-3">
-                    <div className="d-flex flex-wrap align-items-center gap-3">
-                        <span className="text-subtle fs-7">Period</span>
-                        <SelectButton
-                            value={dateFilterValue}
-                            onChange={e => e.value && setDateFilterValue(e.value)}
-                            options={dateFilter}
-                            className="p-selectbutton-pills min-pills-width"
-                            aria-label="Period"
-                        />
-                    </div>
-                    <label htmlFor="compare-include-others" className="d-flex align-items-center gap-2 text-subtle fs-7">
-                        <InputSwitch inputId="compare-include-others" checked={includeOthersValue} onChange={e => setIncludeOthersValue(e.value)} />
-                        Include games with other players too
-                    </label>
-                </div>
-            }
-
             {hasGames
                 ? (
                     <>
@@ -97,7 +70,7 @@ const PlayerVSStats = ({ players = [], showStatsFilter = true }) => {
                         </div>
                     </>
                 )
-                : <p className="text-subtle m-0">These players have no finished X01 games together in this period. Try a longer period, or include games with other players.</p>
+                : <p className="text-subtle m-0">These players have no finished X01 games together with these filters. Try a longer period or fewer filters, or include games with other players.</p>
             }
         </div>
     );
