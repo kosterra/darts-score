@@ -4,7 +4,7 @@
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.10.6',
         changes: [
             'A banner on top of every page, set by the global admins, e.g. to mark a test environment.',
             'A picture that cannot be saved is now reported instead of showing success.',
