@@ -29,6 +29,7 @@ import userRoutes      from './src/routes/user.routes.js';
 import adminRoutes     from './src/routes/admin.routes.js';
 import publicRoutes    from './src/routes/public.routes.js';
 import badgeRoutes     from './src/routes/badge.routes.js';
+import { isAllowedOrigin } from './src/utils/origin.utils.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
@@ -42,16 +43,18 @@ const app = express();
 // ---------------------------------------------------------------------------
 // CORS
 // ---------------------------------------------------------------------------
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || origin === UI_URL) {
-            callback(null, true);
-        } else {
-            logger.warn(`CORS blocked: ${origin}`);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    optionsSuccessStatus: 200
+// The app and the API share one address in production, and browsers send an
+// Origin header on same-origin POSTs too, so the app's own address is allowed
+// besides APP_URL and UI_URL (a UI running on its own address)
+const allowedOrigins = [UI_URL, process.env.APP_URL].filter(Boolean);
+app.use(cors((req, callback) => {
+    const origin = req.get('origin');
+    if (isAllowedOrigin({ origin, host: req.get('host'), forwardedHost: req.get('x-forwarded-host'), allowedOrigins })) {
+        callback(null, { origin: true, optionsSuccessStatus: 200 });
+    } else {
+        logger.warn(`CORS blocked: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+    }
 }));
 
 // ---------------------------------------------------------------------------
@@ -84,6 +87,14 @@ if (HAS_UI) app.use(express.static(UI_DIST));
 // ---------------------------------------------------------------------------
 // Database
 // ---------------------------------------------------------------------------
+// Without these the connection fails with a puzzling "undefined:undefined",
+// so say plainly what is missing
+const missingDbSettings = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].filter(name => !process.env[name]);
+if (missingDbSettings.length) {
+    logger.error(`Missing database settings: ${missingDbSettings.join(', ')}. Put them in the .env file next to docker-compose.yml (Portainer: the stack's environment variables, stored as stack.env).`);
+    process.exit(1);
+}
+
 db.mongoose
     .connect(db.url)
     .then(() => {

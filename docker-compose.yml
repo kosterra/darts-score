@@ -1,11 +1,14 @@
-# Darts Score for production: copy this file next to a .env and a mongo.env
-# (see .env.sample and mongo.env.sample), then run
+# Darts Score for production: copy this file next to a .env with your settings
+# (see .env.sample), then run
 #
 #   docker compose up -d
 #
 # and open http://<your-server>:3001. For HTTPS put a reverse proxy (Caddy,
 # Traefik, nginx …) in front of port 3001; the login cookie is marked secure
 # automatically when the proxy forwards "X-Forwarded-Proto: https".
+#
+# In Portainer: create a stack from this file and enter the settings of
+# .env.sample as the stack's environment variables.
 #
 # To develop on Darts Score itself use docker-compose.dev.yml instead.
 
@@ -20,12 +23,29 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
-    env_file:
-      - ./.env
+    # The settings come from the variables of the stack (Portainer) or a .env
+    # file next to this file (docker compose). Settings marked "?" are required:
+    # without them the stack is not started and says which one is missing.
     environment:
-      # "production" unless .env sets NODE_ENV (e.g. "test" on a test server, which
-      # then shows error details and its name on the administration page)
       NODE_ENV: ${NODE_ENV:-production}
+      DB_HOST: ${DB_HOST:-mongo}
+      DB_PORT: ${DB_PORT:-27017}
+      DB_NAME: ${DB_NAME:-darts_score}
+      DB_USER: ${DB_USER:?set DB_USER, the database user}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD, the database password}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET to a long random value}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      APP_URL: ${APP_URL:-}
+      UI_URL: ${UI_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      IMG_DIR: ${IMG_DIR:-data/img}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:
       # uploaded player pictures and club logos
       - ./data:/app/data
@@ -47,9 +67,12 @@ services:
     image: mongo:8.0
     container_name: darts_score_db
     restart: unless-stopped
-    env_file:
-      - ./mongo.env
     environment:
+      # the database's administrator is the user Darts Score logs in with;
+      # it is created on the database's very first start
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:?set DB_USER, the database user}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD, the database password}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-darts_score}
       # mongod < 8.0.35 refuses to start on Ubuntu 7.0.0-x kernels (SERVER-131779).
       # Letting glibc own rseq makes TCMalloc skip per-CPU caches, which passes the check.
       # Remove once mongo:8.0 resolves to >= 8.0.35.
