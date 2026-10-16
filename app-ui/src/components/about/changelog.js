@@ -4,6 +4,13 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.4',
+        changes: [
+            'Fixes the Docker image of 2026.10.3, which stopped right after starting.',
+            'Easier self-hosting: a ready-to-copy Docker Compose setup with all settings explained, including mail.',
+        ],
+    },
+    {
         version: '2026.10.3',
         changes: [
             'Accounts and clubs: log in, run one or more clubs, and share a club with several admins.',
