@@ -10,7 +10,13 @@ import { resolveWidgets } from './dashboard.widgets';
 import DashboardCustomizeDialog from './dashboard.customize.dialog';
 import ClubLogo from '../elements/club.logo';
 import LeaderboardWidget from './widgets/leaderboard.widget';
-import TotalsWidget from './widgets/totals.widget';
+import ClubKpisWidget from './widgets/club.kpis.widget';
+import ActivityCalendarWidget from './widgets/activity.calendar.widget';
+import WhenWePlayWidget from './widgets/when.we.play.widget';
+import RecordsWidget from './widgets/records.widget';
+import HeadToHeadWidget from './widgets/head.to.head.widget';
+import GamesPerMonthWidget from './widgets/games.per.month.widget';
+import ClubFormWidget from './widgets/club.form.widget';
 import RunningGamesWidget from './widgets/running.games.widget';
 import TimelineWidget from './widgets/timeline.widget';
 
@@ -57,7 +63,13 @@ const Dashboard = () => {
 
     const renderWidget = (widget) => {
         switch (widget.kind) {
-            case 'totals': return <TotalsWidget totals={totals} />;
+            case 'totals': return <ClubKpisWidget widget={widget} kpis={stats.kpis} totals={totals} players={players} />;
+            case 'activityCalendar': return <ActivityCalendarWidget widget={widget} gameLog={stats.gameLog} />;
+            case 'whenWePlay': return <WhenWePlayWidget widget={widget} gameLog={stats.gameLog} />;
+            case 'records': return <RecordsWidget widget={widget} records={stats.records} players={players} />;
+            case 'headToHead': return <HeadToHeadWidget widget={widget} headToHead={stats.headToHead} players={players} />;
+            case 'gamesPerMonth': return <GamesPerMonthWidget widget={widget} gameLog={stats.gameLog} />;
+            case 'clubForm': return <ClubFormWidget widget={widget} gameLog={stats.gameLog} />;
             case 'runningGames': return <RunningGamesWidget widget={widget} games={stats.runningGames} total={totals.running} players={players} />;
             case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
             case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;

@@ -1,5 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
+import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insights.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -117,7 +118,7 @@ export const getClubStats = async (req, res) => {
     const filter = { club: club._id };
 
     const [players, gamesByType] = await Promise.all([
-        db.player.find(filter, 'firstname lastname nickname profileImg guest').lean(),
+        db.player.find(filter, 'firstname lastname nickname profileImg guest activity').lean(),
         Promise.all(GAME_TYPES.map(async ({ type, model }) => ({ type, games: await model().find(filter).lean() }))),
     ]);
 
@@ -150,10 +151,22 @@ export const getClubStats = async (req, res) => {
             lastGameAt: recent[0]?.game.updatedAt ?? null,
         },
         // guests are included so past games can show their names; leaderboards only rank club members
-        players: players.map(({ _id, ...player }) => ({ id: String(_id), ...player })),
+        players: players.map(player => ({
+            id: String(player._id),
+            firstname: player.firstname,
+            lastname: player.lastname,
+            nickname: player.nickname,
+            profileImg: player.profileImg,
+            guest: player.guest,
+        })),
         leaderboards: buildLeaderboards(collectPlayerTotals(finishedByType), new Set(members.map(player => String(player._id)))),
         recentGames: recent.map(({ type, game }) => summarizeGame(type, game)),
         runningGames: running.slice(0, RUNNING_GAMES).map(({ type, game }) => summarizeGame(type, game)),
+        // key figures, who beats whom, records and when the club plays
+        kpis: clubKpis({ finishedByType, allGames, members }),
+        headToHead: headToHead(finishedByType, new Set(members.map(player => String(player._id)))),
+        records: clubRecords(finishedByType.find(entry => entry.type === 'x01').games),
+        gameLog: gameLog(allGames),
     });
 };
 

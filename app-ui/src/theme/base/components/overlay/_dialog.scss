@@ -29,6 +29,9 @@
 
     .p-dialog-content {
         background: $overlayContentBg;
+        // a thin, dark scrollbar like the menu's, instead of the bright default one
+        scrollbar-width: thin;
+        scrollbar-color: $shade600 transparent;
         color: $panelContentTextColor;
         padding: $dialogContentPadding;
 

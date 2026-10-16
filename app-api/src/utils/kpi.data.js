@@ -12,7 +12,7 @@ const min = (values) => values.length ? Math.min(...values) : null;
  * The player's visits in one X01 leg with what each really scored: the
  * points it took off, so a busted visit scores 0.
  */
-const legVisits = (game, leg, playerId) => {
+export const legVisits = (game, leg, playerId) => {
     let left = Number(game.startingScore);
     return leg.filter(visit => visit?.playerId === playerId).map(visit => {
         const scoreLeft = Number(visit.scoreLeft);

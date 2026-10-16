@@ -153,6 +153,7 @@
             object-fit: cover;
         }
 
+        &.avatar-xs { width: 1.6rem; height: 1.6rem; font-size: 0.65rem; }
         &.avatar-sm { width: 2.5rem; height: 2.5rem; font-size: 1rem; }
         &.avatar-md { width: 3.5rem; height: 3.5rem; font-size: 1.4rem; }
         &.avatar-lg { width: 6rem; height: 6rem; font-size: 2.4rem; }

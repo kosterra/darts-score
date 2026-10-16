@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formOf, visitsOf } from './x01.form';
 
-const visit = (playerId: string, scoreLeft: number) => ({ playerId, scoreLeft, darts: [], roundScore: 0 });
+const visit = (playerId, scoreLeft) => ({ playerId, scoreLeft, darts: [], roundScore: 0 });
 
 const game = (overrides = {}) => ({
     startingScore: 501,
@@ -47,7 +47,7 @@ describe('formOf', () => {
     });
 
     it('sees a player getting better or worse', () => {
-        const run = (scores: number[]) => {
+        const run = (scores) => {
             let left = 10000;
             return game({ startingScore: 10000, allSetsThrows: {}, currentLegThrows: scores.map(score => visit('a', left -= score)) });
         };
