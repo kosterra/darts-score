@@ -193,7 +193,7 @@ export const giveLogin = async (req, res) => {
         user,
         inviteLink,
         `You can now play at ${req.club.name}`,
-        `${req.user.firstname} ${req.user.lastname} gave you a login as player "${player.nickname}" of the club "${req.club.name}" on Darts Score. You can start games and trainings there on your own.`
+        `${req.user.firstname} ${req.user.lastname} gave you a login as player "${player.nickname}" of the club "${req.club.name}" on Oche. You can start games and trainings there on your own.`
     );
 
     res.send((await toClient([player], req))[0]);

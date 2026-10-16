@@ -217,9 +217,9 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 {(activeClub || !isGlobalAdmin)
                     ? <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
                     : (
-                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label="Darts Score">
+                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label="Oche">
                             <img alt="" src="/logo.svg" width="40" height="40" />
-                            <span className="nav-label fw-semibold">Darts Score</span>
+                            <span className="nav-label fw-semibold">Oche</span>
                         </Link>
                     )
                 }
@@ -236,11 +236,11 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
-                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? 'About Darts Score' : undefined} onClick={onNavigate}>
+                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? 'About Oche' : undefined} onClick={onNavigate}>
                     <img alt="" src="/logo.svg" width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column" style={{ minWidth: 0 }}>
-                            <span className="text-subtle fw-semibold fs-7">Darts Score</span>
+                            <span className="text-subtle fw-semibold fs-7">Oche</span>
                             <span className="text-faint fs-9">About · {import.meta.env.VITE_APP_VERSION}</span>
                         </span>
                     }

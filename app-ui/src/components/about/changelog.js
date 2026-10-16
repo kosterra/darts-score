@@ -4,6 +4,12 @@
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            'Darts Score is now called Oche, after the line darts players throw from.',
+        ],
+    },
+    {
         version: '2026.10.6',
         changes: [
             'A banner on top of every page, set by the global admins, e.g. to mark a test environment.',

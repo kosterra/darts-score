@@ -107,7 +107,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
-SMTP_FROM=Darts Score <no-reply@example.com>
+SMTP_FROM=Oche <no-reply@example.com>
 ```
 
 ### Accounts, clubs and roles

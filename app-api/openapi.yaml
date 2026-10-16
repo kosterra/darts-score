@@ -1,9 +1,9 @@
 openapi: 3.1.0
 
 info:
-  title: darts-score API
+  title: Oche API
   description: |
-    REST API for the darts-score application. Manages accounts, clubs, players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+    REST API for Oche, the darts club app. Manages accounts, clubs, players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
 
     **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all further requests.
 

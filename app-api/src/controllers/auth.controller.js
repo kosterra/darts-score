@@ -99,7 +99,7 @@ export const forgotPassword = async (req, res) => {
         // Mail problems are logged, not shown: the answer must not reveal whether the account exists
         sendMail({
             to: user.email,
-            subject: 'Reset your Darts Score password',
+            subject: 'Reset your Oche password',
             text: `Hello ${user.firstname},\n\nuse this link to choose a new password. It works once and for ${RESET_TOKEN_HOURS} hour:\n\n${link}\n\nIf you did not ask for this, you can ignore this mail.\n`,
         }).catch(err => logger.error(err, 'Failed to send password reset mail'));
     }

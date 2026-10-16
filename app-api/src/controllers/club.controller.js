@@ -170,7 +170,7 @@ export const addAdmin = async (req, res) => {
         user,
         inviteLink,
         `You are now an admin of ${club.name}`,
-        `${req.user.firstname} ${req.user.lastname} made you an admin of the club "${club.name}" on Darts Score.`
+        `${req.user.firstname} ${req.user.lastname} made you an admin of the club "${club.name}" on Oche.`
     );
 
     res.status(201).json(await withAdmins(club));
