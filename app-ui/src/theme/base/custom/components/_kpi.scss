@@ -179,3 +179,90 @@
         color: $orange;
     }
 }
+
+// Player levels
+.level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--level-color);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.level-badge-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--level-color) 18%, transparent);
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--level-color) 55%, transparent);
+}
+
+.level-badge-sm {
+    font-size: 0.8rem;
+
+    .level-badge-icon { width: 1.5rem; height: 1.5rem; font-size: 0.7rem; }
+}
+
+.level-badge-md {
+    font-size: 1.05rem;
+
+    .level-badge-icon { width: 2.4rem; height: 2.4rem; font-size: 1.05rem; }
+}
+
+.level-progress.p-progressbar {
+    height: 0.45rem;
+    background: $surfaceHighColor;
+
+    .p-progressbar-value {
+        background: var(--level-color);
+    }
+}
+
+.level-breakdown {
+    td {
+        padding: 0.35rem 0.25rem;
+        border-bottom: 1px solid $surfaceHighColor;
+    }
+
+    .level-breakdown-total td {
+        border-bottom: 0;
+        color: $textDefaultColor;
+        font-weight: 700;
+    }
+}
+
+.level-ladder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+
+    &.is-current {
+        box-shadow: inset 0 0 0 1.5px $primaryColor;
+    }
+
+    &.is-ahead {
+        opacity: 0.6;
+    }
+}
+
+// a quiet link that opens the explanation of the levels
+.level-help {
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $primaryColor;
+    font-size: 0.8rem;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        text-decoration: underline;
+    }
+}

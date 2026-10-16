@@ -1075,6 +1075,16 @@ paths:
 
   # ---------- Statistics ----------------------------------------------------
 
+  /api/stats/levels:
+    get:
+      tags: [Statistics]
+      summary: The level of every member of the selected club (id, name, index, xp)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: OK
+
   /api/stats/club:
     get:
       tags: [Statistics]

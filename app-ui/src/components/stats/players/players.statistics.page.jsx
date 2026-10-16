@@ -6,6 +6,8 @@ import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
 
 import PlayerService from '../../../services/player.service';
+import StatsService from '../../../services/stats.service';
+import LevelBadge from '../../players/level.badge';
 import PageLoader from '../../elements/page.loader';
 import PlayerVSStats from './player.vs.stats';
 import ChartConfigOptions from '../common/chart.config.options';
@@ -24,6 +26,11 @@ const PlayersStatisticsPage = () => {
     const [players, setPlayers] = useState(null);
     const [selectedIds, setSelectedIds] = useState([]);
     const [search, setSearch] = useState('');
+    const [levels, setLevels] = useState({});
+
+    useEffect(() => {
+        StatsService.loadPlayerLevels().then(setLevels).catch(() => setLevels({}));
+    }, []);
 
     useEffect(() => {
         PlayerService.searchPlayers('').then(loaded => {
@@ -152,6 +159,7 @@ const PlayersStatisticsPage = () => {
                                                 <span className="d-flex flex-column">
                                                     <span className="fs-4 fw-semibold text-default">{player.nickname}</span>
                                                     <span className="text-subtle fs-7">{player.firstname} {player.lastname}</span>
+                                                    <span className="mt-1"><LevelBadge level={levels[player.id]} /></span>
                                                 </span>
                                             </span>
                                         </Fragment>

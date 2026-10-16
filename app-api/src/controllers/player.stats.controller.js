@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { playerStatsModel, checkoutItemModel } from '../models/player.stats.models.js';
 import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress } from '../utils/chart.data.js';
 import { x01Kpis, cricketKpis, eliminationKpis } from '../utils/kpi.data.js';
+import { playerLevel, levelInputs } from '../utils/levels.js';
 
 const X01 = db.x01;
 const Cricket = db.cricket;
@@ -42,6 +43,12 @@ async function calculatePlayerStats(playerId) {
     playerStats.wonGames.cricket = wonGamesCricket;
     playerStats.wonGames.elimination = wonGamesElimination;
     playerStats.wonGames.total = wonGamesX01 + wonGamesCricket + wonGamesElimination;
+
+    // the player's level, from games, wins, badges and skill
+    const player = await db.player.findById(playerId, 'badges').lean();
+    playerStats.level = playerLevel(levelInputs({
+        x01Games, cricketGames, eliminationGames, playerId, badgeCount: player?.badges?.length ?? 0,
+    }));
 
     // key figures per game type for the statistics page
     playerStats.kpis = {

@@ -16,6 +16,7 @@ const CHANGELOG = [
             'Player statistics with new key figures: first 9 average, best leg, 100+ visits, marks per round in Cricket, and Elimination statistics.',
             'Player profiles: key figures, latest games, charts and badges on one page, opened from the players list or the badges overview. Comparing players has its own page.',
             'New dashboard widgets: club key figures, an activity calendar, when the club plays, club records, head to head, games per month and club form. Reorder widgets by drag and drop.',
+            'Player levels from Rookie to Legend: collect XP by playing, winning, earning badges and getting better.',
             'Forgot your password? Reset it by email.',
             'New side navigation with your profile at the bottom; on phones it opens as a drawer.',
             'Clubs can have a logo and a description.',

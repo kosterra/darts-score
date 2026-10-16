@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insights.js';
+import { playerLevel, levelInputs } from '../utils/levels.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -200,4 +201,29 @@ export const getPlayerGames = async (req, res) => {
         games: latest.map(({ type, game }) => summarizeGame(type, game)),
         players: players.map(({ _id, ...player }) => ({ id: String(_id), ...player })),
     });
+};
+
+/**
+ * The level of every club member, for lists of players: { [playerId]: { name, index, xp } }.
+ */
+export const getPlayerLevels = async (req, res) => {
+    logger.debug('player levels called');
+    const filter = { club: req.club._id, gameIsRunning: false };
+    const [players, x01, cricket, elimination] = await Promise.all([
+        db.player.find({ club: req.club._id, guest: { $ne: true } }, 'badges').lean(),
+        db.x01.find(filter).lean(),
+        db.cricket.find(filter).lean(),
+        db.elimination.find(filter).lean(),
+    ]);
+    const of = (games, id) => games.filter(game => (game.players ?? []).map(String).includes(id));
+    const levels = {};
+    for (const player of players) {
+        const id = String(player._id);
+        const { level, xp } = playerLevel(levelInputs({
+            x01Games: of(x01, id), cricketGames: of(cricket, id), eliminationGames: of(elimination, id),
+            playerId: id, badgeCount: player.badges?.length ?? 0,
+        }));
+        levels[id] = { id: level.id, name: level.name, index: level.index, xp };
+    }
+    res.json(levels);
 };

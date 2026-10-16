@@ -10,6 +10,7 @@ import PageLoader from '../../elements/page.loader';
 import BadgeMedal from '../../badges/badge.medal';
 import PlayerStatsCharts from './player.stats.charts';
 import { KpiRing, KpiHero, KpiChip } from './kpi';
+import PlayerLevel from '../../players/player.level';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 
 const LATEST_BADGES = 5;
@@ -86,7 +87,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
         ['Games played', formatNumber(games)],
         ['Wins', games ? `${formatNumber(wins)} (${percent(wins, games)})` : '–'],
         ['Weekly streak', (
-            <span className="d-inline-flex align-items-center gap-2">
+            <span key="streak" className="d-inline-flex align-items-center gap-2">
                 <StreakFlames weeks={streak.current} />
                 {streak.current > 0 ? weeks(streak.current) : 'None right now'}
             </span>
@@ -116,6 +117,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         </h1>
                         <span className="text-subtle">{player.firstname} {player.lastname}</span>
                     </div>
+                    <PlayerLevel level={stats.level} />
                     <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         {facts.map(([label, value]) => (
                             <div key={label}>

@@ -78,6 +78,11 @@ const loadPlayerBadges = (playerId) => requestJSON(API_URL + 'stats/badges/playe
 /**
  * A player's latest games in the selected club: { total, games, players }.
  */
+/**
+ * The level of every club member: { [playerId]: { id, name, index, xp } }.
+ */
+const loadPlayerLevels = () => requestJSON(`${API_URL}stats/levels`);
+
 const loadPlayerGames = (playerId, limit = 5) => requestJSON(`${API_URL}stats/player/${playerId}/games?limit=${limit}`);
 
 /**
@@ -92,6 +97,7 @@ const StatsService = {
     loadClubStats,
     loadPlayerStats,
     loadPlayerGames,
+    loadPlayerLevels,
     loadX01GameStats,
     loadX01PlayersStats
 }

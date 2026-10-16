@@ -13,6 +13,8 @@ import { Toast } from 'primereact/toast';
 
 import AdminService from '../../services/admin.service';
 import PlayerService from '../../services/player.service';
+import StatsService from '../../services/stats.service';
+import LevelBadge from '../players/level.badge';
 import PlayerForm from '../elements/player.form';
 import PlayerLogin from '../elements/player.login';
 import DeletePopup from '../elements/delete.popup';
@@ -46,6 +48,12 @@ const PlayersTable = ({ scope = 'club' }) => {
     const canManage = acrossClubs || isClubAdmin;
 
     const [players, setPlayers] = useState(null);
+    // levels exist per club, so only the club's own list shows them
+    const [levels, setLevels] = useState({});
+
+    useEffect(() => {
+        if (!acrossClubs) StatsService.loadPlayerLevels().then(setLevels).catch(() => setLevels({}));
+    }, [acrossClubs]);
     const [search, setSearch] = useState('');
     const [kind, setKind] = useState('all');
 
@@ -188,6 +196,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                             style={{ minWidth: '14rem' }}
                         />
                         {acrossClubs && <Column field="club.name" header="Club" sortable body={(player) => <ClubCell club={player.club} />} />}
+                        {!acrossClubs && <Column header="Level" body={(player) => player.guest ? <span className="text-faint fs-7">–</span> : <LevelBadge level={levels[player.id]} />} />}
                         <Column header="Type" body={kindBody} />
                         {canManage && <Column header="Login" body={loginBody} />}
                         {canManage && <Column header="Public page" body={publicBody} />}
