@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
@@ -158,10 +156,10 @@ const PlayersTable = ({ scope = 'club' }) => {
         <Panel header={acrossClubs ? 'Players of all clubs' : 'Players'}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
-                <IconField iconPosition="left">
-                    <InputIcon className="pi pi-search" />
+                <span className="p-input-icon-left">
+                    <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search players" aria-label="Search players" />
-                </IconField>
+                </span>
                 <SelectButton value={kind} options={KIND_OPTIONS} onChange={(e) => e.value && setKind(e.value)} aria-label="Members or guests" />
                 <div className="ms-auto d-flex align-items-center gap-3">
                     {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? 'player' : 'players'}</span>}
