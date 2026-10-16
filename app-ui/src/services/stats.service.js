@@ -76,6 +76,11 @@ const loadClubBadges = () => requestJSON(API_URL + 'stats/badges');
 const loadPlayerBadges = (playerId) => requestJSON(API_URL + 'stats/badges/player/' + playerId);
 
 /**
+ * A player's latest games in the selected club: { total, games, players }.
+ */
+const loadPlayerGames = (playerId, limit = 5) => requestJSON(`${API_URL}stats/player/${playerId}/games?limit=${limit}`);
+
+/**
  * The badges each player earned in one game ('x01' | 'cricket' | 'elimination').
  */
 const loadGameBadges = (gameType, gameId) => requestJSON(`${API_URL}stats/badges/game/${gameType}/${gameId}`);
@@ -86,6 +91,7 @@ const StatsService = {
     loadGameBadges,
     loadClubStats,
     loadPlayerStats,
+    loadPlayerGames,
     loadX01GameStats,
     loadX01PlayersStats
 }

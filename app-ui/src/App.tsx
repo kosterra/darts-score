@@ -20,6 +20,7 @@ const EliminationGameStats = lazy(() => import('./components/stats/elimination/e
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
+const PlayerProfilePage = lazy(() => import('./components/players/_player.profile.page'));
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
@@ -92,6 +93,7 @@ function AppContent() {
                 <Route path="/stats/:id" element={<StatsPage />} />
                 <Route path="/stats/games/:id" element={<GameListRedirect />} />
                 <Route path="/players" element={<ClubListsPage list="players" />} />
+                <Route path="/players/:id" element={<PlayerProfilePage />} />
                 <Route path="/games" element={<ClubListsPage list="games" />} />
                 <Route path="/trainings" element={<ClubListsPage list="trainings" />} />
                 <Route path="/stats/games/x01/:id" element={<X01GameStats />} />

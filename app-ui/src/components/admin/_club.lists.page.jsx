@@ -17,7 +17,7 @@ const ClubListsPage = ({ list }) => {
     return (
         <div className="container-fluid p-4 border-0">
             {list === 'players' && <PlayersTable scope="club" />}
-            {list === 'games' && <GamesTable scope="club" initialType={GAME_TYPES.includes(type) ? type : 'all'} />}
+            {list === 'games' && <GamesTable scope="club" initialType={GAME_TYPES.includes(type) ? type : 'all'} initialPlayerId={searchParams.get('player')} />}
             {list === 'trainings' && <TrainingsTable scope="club" />}
         </div>
     );

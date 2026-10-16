@@ -156,3 +156,35 @@ export const getClubStats = async (req, res) => {
         runningGames: running.slice(0, RUNNING_GAMES).map(({ type, game }) => summarizeGame(type, game)),
     });
 };
+
+const PLAYER_GAMES = 5;
+
+/**
+ * A player's latest games in the selected club, newest first, with the
+ * names of everyone who played in them and how many games there are in all.
+ */
+export const getPlayerGames = async (req, res) => {
+    logger.debug('player games called');
+    const playerId = req.params.id;
+    const filter = { club: req.club._id, players: playerId };
+    const limit = Math.min(Number(req.query.limit) || PLAYER_GAMES, 50);
+
+    const gamesByType = await Promise.all(GAME_TYPES.map(async ({ type, model }) => ({
+        type,
+        games: await model().find(filter).sort({ updatedAt: -1 }).limit(limit).lean(),
+        total: await model().countDocuments(filter),
+    })));
+    const latest = gamesByType
+        .flatMap(({ type, games }) => games.map(game => ({ type, game })))
+        .sort((a, b) => b.game.updatedAt - a.game.updatedAt)
+        .slice(0, limit);
+
+    const playerIds = [...new Set(latest.flatMap(({ game }) => game.players ?? []))];
+    const players = await db.player.find({ _id: { $in: playerIds } }, 'firstname lastname nickname profileImg guest').lean();
+
+    res.json({
+        total: gamesByType.reduce((sum, { total }) => sum + total, 0),
+        games: latest.map(({ type, game }) => summarizeGame(type, game)),
+        players: players.map(({ _id, ...player }) => ({ id: String(_id), ...player })),
+    });
+};

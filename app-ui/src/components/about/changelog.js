@@ -13,6 +13,8 @@ const CHANGELOG = [
             'Badges for milestones, wins, scoring, finishes and training, with a celebration when you win.',
             'Weekly streaks: see how many weeks in a row you have played.',
             'A celebration for every 180 in X01 and Elimination, without holding up the next player.',
+            'Player statistics with new key figures: first 9 average, best leg, 100+ visits, marks per round in Cricket, and Elimination statistics.',
+            'Player profiles: key figures, latest games, charts and badges on one page, opened from the players list or the badges overview. Comparing players has its own page.',
             'Forgot your password? Reset it by email.',
             'New side navigation with your profile at the bottom; on phones it opens as a drawer.',
             'Clubs can have a logo and a description.',

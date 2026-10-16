@@ -73,7 +73,7 @@ const STATUS_OPTIONS = [
  * scope "club": the selected club's games; everyone can open them, its admins also inspect and delete.
  * scope "all": games of the clubs a global admin picks, with the club of each game.
  */
-const GamesTable = ({ scope = 'club', initialType = 'all' }) => {
+const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = null }) => {
     const toast = useRef(null);
     const { activeClub, isClubAdmin } = useAuth();
     const acrossClubs = scope === 'all';
@@ -84,10 +84,11 @@ const GamesTable = ({ scope = 'club', initialType = 'all' }) => {
     const [players, setPlayers] = useState([]);
     const [type, setType] = useState(initialType);
     const [status, setStatus] = useState('all');
-    const [playerId, setPlayerId] = useState(null);
+    const [playerId, setPlayerId] = useState(initialPlayerId);
     const [selection, setSelection] = useState([]);
 
     useEffect(() => setType(initialType), [initialType]);
+    useEffect(() => setPlayerId(initialPlayerId), [initialPlayerId]);
 
     const loadClubGames = async () => {
         const loaded = await Promise.all(Object.entries(GAME_TYPES).map(async ([gameType, config]) =>

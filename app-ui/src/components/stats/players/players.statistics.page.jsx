@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Checkbox } from 'primereact/checkbox';
 import { InputText } from 'primereact/inputtext';
@@ -6,7 +7,6 @@ import { Panel } from 'primereact/panel';
 
 import PlayerService from '../../../services/player.service';
 import PageLoader from '../../elements/page.loader';
-import PlayerStats from './player.stats';
 import PlayerVSStats from './player.vs.stats';
 import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
@@ -16,8 +16,8 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.ut
 const MAX_PLAYERS = ChartConfigOptions.fillColors.values.length;
 
 /**
- * Player statistics of the selected club: pick one player for their own
- * statistics, or several to compare them. Starts with your own player.
+ * Compares two or more players of the selected club. A single player's
+ * statistics are on their profile.
  */
 const PlayersStatisticsPage = () => {
     const { user } = useAuth();
@@ -27,6 +27,7 @@ const PlayersStatisticsPage = () => {
 
     useEffect(() => {
         PlayerService.searchPlayers('').then(loaded => {
+            // your own player starts selected, so picking one more shows a comparison
             const sorted = [...loaded].sort((a, b) => a.nickname.localeCompare(b.nickname));
             setPlayers(sorted);
             const own = sorted.find(player => player.user === user.id);
@@ -70,7 +71,7 @@ const PlayersStatisticsPage = () => {
                                 />
                             </span>
                             <span className="text-faint fs-8">
-                                Pick one player for their statistics, or up to {MAX_PLAYERS} to compare them.
+                                Pick two to {MAX_PLAYERS} players to compare them.
                             </span>
                             {players.length === 0 && <span className="text-subtle">This club has no players yet.</span>}
                             <ul className="list-unstyled m-0 d-flex flex-column gap-1">
@@ -116,13 +117,21 @@ const PlayersStatisticsPage = () => {
                 </div>
 
                 <div className="col-12 col-lg-8 col-xxl-9" style={{ minWidth: 0 }}>
-                    {selected.length === 0 &&
-                        <header className="bg-surface-translucent rounded-2 p-4 mb-4">
-                            <h1 className="fs-2 fw-semibold text-default m-0">Player statistics</h1>
-                            <span className="text-subtle">Pick a player on the left to see their profile and statistics, or several to compare them.</span>
+                    {selected.length < 2 &&
+                        <header className="bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-column gap-2">
+                            <h1 className="fs-2 fw-semibold text-default m-0">Player comparison</h1>
+                            <span className="text-subtle">
+                                {selected.length === 0
+                                    ? 'Pick two or more players on the left to compare them.'
+                                    : `Pick at least one more player to compare with ${selected[0].nickname}.`}
+                            </span>
+                            {selected.length === 1 &&
+                                <Link to={`/players/${selected[0].id}`} className="fs-7 align-self-start">
+                                    Open the profile of {selected[0].nickname} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
+                                </Link>
+                            }
                         </header>
                     }
-                    {selected.length === 1 && <PlayerStats player={selected[0]} isOwn={selected[0].user === user.id} />}
                     {selected.length > 1 &&
                         <>
                             <header className="bg-surface-translucent rounded-2 p-4 mb-4 d-flex flex-column gap-3">

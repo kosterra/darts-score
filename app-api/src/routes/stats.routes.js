@@ -4,7 +4,7 @@ import { validatePlayerIds } from '../validators/game.validators.js';
 import { getPlayerStats } from '../controllers/player.stats.controller.js';
 import { getX01Stats } from '../controllers/x01.stats.controller.js';
 import { getPlayersX01Stats } from '../controllers/players.x01.stats.controller.js';
-import { getClubStats } from '../controllers/club.stats.controller.js';
+import { getClubStats, getPlayerGames } from '../controllers/club.stats.controller.js';
 import { getClubBadges, getPlayerBadges, getGameBadges } from '../controllers/badge.controller.js';
 import { playersBelongToClub } from '../controllers/game.controller.js';
 import db from '../models/db.model.js';
@@ -42,6 +42,7 @@ export default (app) => {
     router.get('/badges/game/:type/:id', getGameBadges);
     // Retrieve stats for a player
     router.get('/player/:id', playerInClub, getPlayerStats);
+    router.get('/player/:id/games', playerInClub, getPlayerGames);
     // Retrieve stats for a x01 game
     router.get('/games/x01/:id', x01GameInClub, getX01Stats);
     // Retrieve X01 stats for multiple players

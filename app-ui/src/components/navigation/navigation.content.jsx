@@ -32,7 +32,7 @@ const useSections = () => {
             items: [
                 { label: 'Dashboard', icon: MdDashboard, to: '/', end: true },
                 { label: 'Players', icon: FaUserPen, to: '/players' },
-                { label: 'Player statistics', icon: FaChartLine, to: '/stats/players' },
+                { label: 'Player comparison', icon: FaChartLine, to: '/stats/players' },
                 { label: 'Games', icon: FaTrophy, to: '/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
                 { label: 'Badges', icon: FaMedal, to: '/badges' },

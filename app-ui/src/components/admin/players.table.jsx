@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -176,7 +177,16 @@ const PlayersTable = ({ scope = 'club' }) => {
                         emptyMessage={players?.length ? 'No players match these filters.' : 'No players yet.'}
                         responsiveLayout="scroll"
                     >
-                        <Column field="nickname" header="Player" sortable body={(player) => <PlayerCell player={player} />} style={{ minWidth: '14rem' }} />
+                        <Column
+                            field="nickname"
+                            header="Player"
+                            sortable
+                            // in the club's own list the name opens the player's profile
+                            body={(player) => acrossClubs
+                                ? <PlayerCell player={player} />
+                                : <Link to={`/players/${player.id}`} className="player-link"><PlayerCell player={player} /></Link>}
+                            style={{ minWidth: '14rem' }}
+                        />
                         {acrossClubs && <Column field="club.name" header="Club" sortable body={(player) => <ClubCell club={player.club} />} />}
                         <Column header="Type" body={kindBody} />
                         {canManage && <Column header="Login" body={loginBody} />}

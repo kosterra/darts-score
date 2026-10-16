@@ -5,6 +5,45 @@
         vertical-align: middle;
     }
 
+    // every entry is a small card, a step lighter than the panel
+    .p-datatable-table {
+        border-collapse: separate;
+        border-spacing: 0 0.45rem;
+    }
+
+    .p-datatable-tbody > tr {
+        background: transparent;
+
+        > td {
+            background: $surfaceRaisedColor;
+            transition: background-color $transitionDuration;
+
+            &:first-child {
+                border-top-left-radius: $borderRadius;
+                border-bottom-left-radius: $borderRadius;
+            }
+
+            &:last-child {
+                border-top-right-radius: $borderRadius;
+                border-bottom-right-radius: $borderRadius;
+            }
+        }
+
+        &:hover > td {
+            background: $surfaceHighColor;
+        }
+
+        // a ticked row
+        &.p-highlight > td {
+            background: rgba($primaryColor, 0.22);
+        }
+
+        // "no entries" is a message, not an entry
+        &.p-datatable-emptymessage > td {
+            background: transparent;
+        }
+    }
+
     // the sorted column is told by its arrow, not a block of colour
     .p-datatable-thead > tr > th.p-highlight {
         background: transparent;
@@ -65,5 +104,19 @@
             background: $surfaceHighColor;
             color: $textDefaultColor;
         }
+    }
+}
+
+// a player's name that opens their profile
+.player-link {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+    border-radius: $borderRadius;
+
+    &:hover .text-default,
+    &:focus-visible .text-default {
+        color: $primaryColor !important;
+        text-decoration: underline;
     }
 }
