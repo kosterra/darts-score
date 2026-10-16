@@ -59,7 +59,7 @@ darts-score/
 │   └── package.json
 ├── data/                    # Runtime image storage (created on first upload)
 ├── Dockerfile
-├── docker-compose.yml       # Production: Darts Score + MongoDB, ready to copy (with .env.sample, mongo.env.sample)
+├── docker-compose.yml       # Production: Darts Score + MongoDB, ready to copy (settings: .env.sample)
 └── docker-compose.dev.yml   # Development: API + UI + MongoDB, all with hot-reload
 ```
 
@@ -246,8 +246,8 @@ docker compose -f docker-compose.dev.yml up --build
 
 `docker-compose.yml` is a ready-to-copy production setup: the published image `kosterra/darts-score:latest` (app and API in one container) and MongoDB, which is only reachable through the internal Docker network.
 
-1. Copy `docker-compose.yml`, `.env.sample` and `mongo.env.sample` to the server.
-2. Rename the examples to `.env` and `mongo.env` and fill them in: database password (the same in both files), `SESSION_SECRET`, the first global admin, `APP_URL` and the SMTP settings for password reset and invitation mails.
+1. Copy `docker-compose.yml` and `.env.sample` to the server.
+2. Rename `.env.sample` to `.env` and fill it in: database user and password (MongoDB is created with them), `SESSION_SECRET`, the first global admin, `APP_URL` and the SMTP settings for password reset and invitation mails. In Portainer, enter the same settings as the stack's environment variables instead.
 3. Start it:
 
 ```bash

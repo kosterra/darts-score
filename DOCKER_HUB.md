@@ -42,23 +42,45 @@ Open `http://localhost:3001` in your browser.
 
 ## Docker Compose
 
-A ready-to-copy setup is [`docker-compose.yml`](https://github.com/kosterra/darts-score/blob/main/docker-compose.yml) in the repository, with [`.env.sample`](https://github.com/kosterra/darts-score/blob/main/.env.sample) and [`mongo.env.sample`](https://github.com/kosterra/darts-score/blob/main/mongo.env.sample). In short:
+A ready-to-copy setup is [`docker-compose.yml`](https://github.com/kosterra/darts-score/blob/main/docker-compose.yml) in the repository, with [`.env.sample`](https://github.com/kosterra/darts-score/blob/main/.env.sample) for the settings. Put them in a `.env` file next to it, or in Portainer as the stack's environment variables. In short:
 
 ```yaml
 services:
 
+  # ---------------------------------------------------------------------------
+  # Darts Score: the API and the app in one container
+  # ---------------------------------------------------------------------------
   darts_score:
     image: kosterra/darts-score:latest
     container_name: darts_score
     restart: unless-stopped
     ports:
       - "3001:3001"
-    env_file:
-      - .env
+    # The settings come from the variables of the stack (Portainer) or a .env
+    # file next to this file (docker compose). Settings marked "?" are required:
+    # without them the stack is not started and says which one is missing.
     environment:
-      # "production" unless .env sets NODE_ENV (e.g. "test" on a test server)
       NODE_ENV: ${NODE_ENV:-production}
+      DB_HOST: ${DB_HOST:-mongo}
+      DB_PORT: ${DB_PORT:-27017}
+      DB_NAME: ${DB_NAME:-darts_score}
+      DB_USER: ${DB_USER:?set DB_USER, the database user}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD, the database password}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET to a long random value}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      APP_URL: ${APP_URL:-}
+      UI_URL: ${UI_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      IMG_DIR: ${IMG_DIR:-data/img}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:
+      # uploaded player pictures and club logos
       - ./data:/app/data
     depends_on:
       mongo:
@@ -71,18 +93,27 @@ services:
       retries: 3
       start_period: 20s
 
+  # ---------------------------------------------------------------------------
+  # MongoDB: only reachable by Darts Score, through the internal network
+  # ---------------------------------------------------------------------------
   mongo:
     image: mongo:8.0
     container_name: darts_score_db
     restart: unless-stopped
-    env_file:
-      - mongo.env
     environment:
+      # the database's administrator is the user Darts Score logs in with;
+      # it is created on the database's very first start
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:?set DB_USER, the database user}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD, the database password}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-darts_score}
       # mongod < 8.0.35 refuses to start on Ubuntu 7.0.0-x kernels (SERVER-131779).
+      # Letting glibc own rseq makes TCMalloc skip per-CPU caches, which passes the check.
       # Remove once mongo:8.0 resolves to >= 8.0.35.
       GLIBC_TUNABLES: glibc.pthread.rseq=1
     volumes:
       - darts_score_db:/data/db
+    # no "ports": the database stays private. To reach it from the server
+    # itself (e.g. with MongoDB Compass), add: ports: ["127.0.0.1:27017:27017"]
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 15s
@@ -92,16 +123,14 @@ services:
 
 volumes:
   darts_score_db:
+    name: darts_score_db
 ```
 
 MongoDB has no published port: only Darts Score reaches it, through the internal network. For HTTPS put a reverse proxy in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`.
 
-**.env**
+**.env** (or the stack's environment variables in Portainer; MongoDB is created with `DB_USER` and `DB_PASSWORD`)
 
 ```dotenv
-DB_HOST=mongo
-DB_PORT=27017
-DB_NAME=darts_score
 DB_USER=admin
 DB_PASSWORD=yourpassword
 SESSION_SECRET=long-random-string
@@ -115,14 +144,6 @@ SMTP_PASSWORD=yourmailpassword
 SMTP_FROM=Darts Score <darts@example.com>
 IMG_DIR=data/img
 LOG_LEVEL=info
-```
-
-**mongo.env**
-
-```dotenv
-MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=yourpassword
-MONGO_INITDB_DATABASE=darts_score
 ```
 
 ---
