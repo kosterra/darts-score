@@ -8,6 +8,15 @@ const VIEWPORT_SIZE = 240;  // px, on-screen size of the crop area
 const OUTPUT_SIZE = 512;    // px, size of the cropped image
 const MAX_ZOOM = 4;
 
+// whether any pixel of the square canvas is (partly) see-through
+const hasTransparency = (context, size) => {
+    const pixels = context.getImageData(0, 0, size, size).data;
+    for (let index = 3; index < pixels.length; index += 4) {
+        if (pixels[index] < 255) return true;
+    }
+    return false;
+};
+
 const ImageCropper = ({ file, onCrop, onCancel }) => {
     const imgRef = useRef(null);
     const dragStart = useRef(null);
@@ -64,14 +73,17 @@ const ImageCropper = ({ file, onCrop, onCancel }) => {
         const canvas = document.createElement('canvas');
         canvas.width = OUTPUT_SIZE;
         canvas.height = OUTPUT_SIZE;
-        canvas.getContext('2d').drawImage(
+        const context = canvas.getContext('2d');
+        context.drawImage(
             imgRef.current,
             source.x, source.y, source.size, source.size,
             0, 0, OUTPUT_SIZE, OUTPUT_SIZE
         );
 
-        // keep PNG (transparency), everything else becomes JPEG
-        const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        // A picture with transparent parts (e.g. a logo) stays a PNG, whatever its file
+        // name says; JPEG has no transparency and would turn those parts black.
+        // Everything else becomes a JPEG, which keeps photos small.
+        const type = hasTransparency(context, OUTPUT_SIZE) ? 'image/png' : 'image/jpeg';
         const extension = type === 'image/png' ? '.png' : '.jpg';
         const filename = file.name.replace(/\.[^.]*$/, '') + extension;
 
