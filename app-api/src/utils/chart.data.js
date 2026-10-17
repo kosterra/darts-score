@@ -117,3 +117,29 @@ export const trainingProgress = (entries) => {
     }
     return byMode;
 };
+
+// how much the average must change to count as rising or falling
+export const FORM_THRESHOLD = 2;
+
+/**
+ * A player's current form from their latest X01 games: the averages of the
+ * last "size" games against the "size" games before, and the latest averages
+ * for a sparkline. trend is 'up', 'down' or 'steady', or null with too few games.
+ */
+export const recentForm = (x01Games, playerId, size = 5) => {
+    const averages = averageTrend(x01Games, playerId).map(entry => entry.average);
+    const mean = (values) => values.length ? round(values.reduce((sum, value) => sum + value, 0) / values.length) : null;
+    const recent = averages.slice(-size);
+    const before = averages.slice(-2 * size, -size);
+    const recentAverage = mean(recent);
+    const previousAverage = mean(before);
+    const change = recentAverage != null && previousAverage != null ? round(recentAverage - previousAverage) : null;
+    return {
+        games: averages.length,
+        recentAverage,
+        previousAverage,
+        change,
+        trend: change == null ? null : change >= FORM_THRESHOLD ? 'up' : change <= -FORM_THRESHOLD ? 'down' : 'steady',
+        latest: averages.slice(-2 * size),
+    };
+};

@@ -602,3 +602,27 @@ $momentGoldColor: #ffc94d;
         height: var(--filter-height);
     }
 }
+
+// A compared player's current form: their latest averages and the trend
+.form-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &.is-up { color: #7ecca5; }
+    &.is-down { color: #e07a5f; }
+    &.is-steady { color: $textSubtleColor; }
+
+    .form-change {
+        font-variant-numeric: tabular-nums;
+        opacity: 0.85;
+    }
+}

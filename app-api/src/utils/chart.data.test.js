@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress } from './chart.data.js';
+import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, recentForm } from './chart.data.js';
 
 const P = 'p1';
 const O = 'p2';
@@ -56,5 +56,33 @@ describe('chart data', () => {
         const progress = trainingProgress([entry('2026-01-03', 'Single', 500), entry('2026-01-01', 'Single', 600), entry('2026-01-02', 'Double', 900), entry('2026-01-04', 'Single', 550)]);
         expect(progress.Single.map(e => e.best)).toEqual([600, 500, 500]);
         expect(progress.Double).toHaveLength(1);
+    });
+});
+
+describe('recentForm', () => {
+    const game = (day, average) => ({
+        _id: `g${day}`,
+        updatedAt: new Date(2026, 0, day),
+        playerModels: { p1: { averages: { game: { overall: average } }, totalThrow: { game: { rounds: 10 } } } },
+    });
+
+    it('compares the last games with the games before', () => {
+        const games = [40, 42, 44, 46, 48, 50, 52, 54, 56, 58].map((average, i) => game(i + 1, average));
+        expect(recentForm(games, 'p1')).toMatchObject({ games: 10, recentAverage: 54, previousAverage: 44, change: 10, trend: 'up' });
+    });
+
+    it('works in the order the games were played', () => {
+        const games = [60, 60, 60, 60, 60, 50, 50, 50, 50, 50].map((average, i) => game(i + 1, average)).reverse();
+        expect(recentForm(games, 'p1')).toMatchObject({ change: -10, trend: 'down', latest: [60, 60, 60, 60, 60, 50, 50, 50, 50, 50] });
+    });
+
+    it('calls small changes steady', () => {
+        const games = [50, 50, 50, 50, 50, 51, 51, 51, 51, 51].map((average, i) => game(i + 1, average));
+        expect(recentForm(games, 'p1').trend).toBe('steady');
+    });
+
+    it('has no trend without enough games', () => {
+        expect(recentForm([game(1, 50), game(2, 60)], 'p1')).toMatchObject({ games: 2, recentAverage: 55, change: null, trend: null });
+        expect(recentForm([], 'p1')).toMatchObject({ games: 0, recentAverage: null, trend: null, latest: [] });
     });
 });

@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { knownInClub } from '../models/player.model.js';
 import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insights.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
+import { recentForm } from '../utils/chart.data.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -229,4 +230,25 @@ export const getPlayerLevels = async (req, res) => {
         levels[id] = { id: level.id, name: level.name, index: level.index, xp };
     }
     res.json(levels);
+};
+
+const FORM_GAMES = 5;
+
+/**
+ * The current form of players being compared, from each one's own latest X01
+ * games in the club (not only the games they played together): the last five
+ * against the five before. { [playerId]: { trend, change, recentAverage, … } }
+ */
+export const getPlayersForm = async (req, res) => {
+    logger.debug('players form called');
+    const ids = [...new Set(req.body.playerIds)];
+    const forms = await Promise.all(ids.map(async (playerId) => {
+        const games = await db.x01
+            .find({ club: req.club._id, players: playerId, gameIsRunning: false })
+            .sort({ updatedAt: -1 })
+            .limit(FORM_GAMES * 2)
+            .lean();
+        return [playerId, recentForm(games, playerId, FORM_GAMES)];
+    }));
+    res.json(Object.fromEntries(forms));
 };
