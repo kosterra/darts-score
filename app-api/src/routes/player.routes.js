@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
 import * as PlayerController from '../controllers/player.controller.js';
@@ -99,6 +99,22 @@ export default (app) => {
         PlayerController.giveLogin
     );
     router.delete('/:id/account', requireClubAdmin, PlayerController.removeLogin);
+
+    // a player's clubs: club admins of several clubs add, move and remove players between their clubs
+    router.get('/:id/clubs', requireClubAdmin, PlayerController.clubsOf);
+    router.post('/:id/clubs',
+        requireClubAdmin,
+        body('club').isMongoId().withMessage('Choose a club.'),
+        body('move').optional().isBoolean().withMessage('move must be true or false.'),
+        validate,
+        PlayerController.addToOtherClub
+    );
+    router.delete('/:id/clubs/:clubId',
+        requireClubAdmin,
+        param('clubId').isMongoId().withMessage('Invalid club.'),
+        validate,
+        PlayerController.removeFromOtherClub
+    );
 
     app.use('/api/players', router);
 };

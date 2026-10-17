@@ -145,7 +145,20 @@ const makeMember = (playerId) =>
 const setPublicProfile = (playerId, publicProfile, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/visibility`, { method: 'PUT', body: { publicProfile }, clubId });
 
+/**
+ * The clubs of a player of the selected club, each with whether the user may
+ * change it; adding (or with "move" moving) to and removing from the user's clubs.
+ */
+const loadPlayerClubs = (playerId) => requestJSON(`${API_URL}players/${playerId}/clubs`);
+const addPlayerToClub = (playerId, clubId, move = false) =>
+    requestJSON(`${API_URL}players/${playerId}/clubs`, { method: 'POST', body: { club: clubId, move } });
+const removePlayerFromClub = (playerId, clubId) =>
+    requestJSON(`${API_URL}players/${playerId}/clubs/${clubId}`, { method: 'DELETE' });
+
 const PlayerService = {
+    loadPlayerClubs,
+    addPlayerToClub,
+    removePlayerFromClub,
     setPublicProfile,
     createGuest,
     makeMember,

@@ -4,6 +4,12 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.8',
+        changes: [
+            'Club admins who run several clubs move players from one of their clubs to another, add them to a second club or remove them from a club.',
+        ],
+    },
+    {
         version: '2026.10.7',
         changes: [
             'Darts Score is now called Oche, after the line darts players throw from.',
