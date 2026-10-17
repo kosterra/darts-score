@@ -1,34 +1,13 @@
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Panel } from 'primereact/panel';
 
-import ChartCard from '../charts/chart.card';
-import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from '../charts/chart.theme';
+import RoundsLineChart from '../charts/rounds.line.chart';
+import { PLAYER_COLORS } from '../charts/chart.theme';
 import { CRICKET_NUMBERS } from '../../../utils/cricket.game.summary';
 
 // the marks on a number as on a cricket scoreboard: /, X, then a circled X once it is closed
 const MARK_SYMBOLS = ['', '/', '✕', 'ⓧ'];
 
 const numberLabel = (number) => number === 25 ? 'Bull' : String(number);
-
-/**
- * A progress line chart over the rounds of the game, one line per player.
- */
-export const CricketProgressChart = ({ title, description, data, players, max, unit }) => (
-    <ChartCard title={title} description={description}>
-        <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={data} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
-                <CartesianGrid {...GRID} />
-                <XAxis dataKey="round" {...AXIS} allowDecimals={false} label={{ value: 'Round', position: 'insideBottomRight', offset: -2, fill: '#7a7a7a', fontSize: 11 }} />
-                <YAxis {...AXIS} domain={[0, max ?? 'auto']} allowDecimals={false} />
-                <Tooltip {...TOOLTIP} labelFormatter={(round) => round === 0 ? 'Start' : `Round ${round}`} formatter={(value) => unit ? `${value} ${unit}` : value} />
-                {players.map((player, index) => (
-                    <Line key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />
-                ))}
-                {players.length > 1 && <Legend {...LEGEND} />}
-            </LineChart>
-        </ResponsiveContainer>
-    </ChartCard>
-);
 
 /**
  * The board at the end: every number with each player's marks and the points
@@ -94,7 +73,7 @@ const CricketBoardPanel = ({ board, players, closing }) => {
                 </Panel>
             </div>
             <div className="col-12 col-xl-6">
-                <CricketProgressChart
+                <RoundsLineChart
                     title="Race to close"
                     description="How far each player was towards closing 15 to 20 and the bull (21 marks) after every round."
                     data={closing}

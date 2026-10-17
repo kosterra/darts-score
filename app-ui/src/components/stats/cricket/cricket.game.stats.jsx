@@ -13,7 +13,8 @@ import GameResultHeader from '../common/game.result.header';
 import MatchMoments from '../common/match.moments';
 import { whenPlayed } from '../common/game.text';
 import HitsHeatmapChart from '../charts/hits.heatmap.chart';
-import CricketBoardPanel, { CricketProgressChart } from './cricket.board.panel';
+import CricketBoardPanel from './cricket.board.panel';
+import RoundsLineChart from '../charts/rounds.line.chart';
 import { CRICKET_NUMBERS, replayCricket, cricketFigures, cricketProgress, cricketMoments, hitsBySection } from '../../../utils/cricket.game.summary';
 import { cricketRematch } from '../../../utils/cricket.rematch';
 
@@ -29,6 +30,9 @@ const FIGURES = [
     { key: 'dartsThrown', label: 'Darts thrown', neutral: true },
 ];
 
+
+// the colour of the game type, as on the dashboard and the profile
+const GAME_COLOR = '#d4c783';
 /**
  * The statistics of one Cricket game: the result with each player's key
  * figures, the moments of the game, the board at the end with the race to
@@ -118,13 +122,13 @@ const CricketGameStats = () => {
                     className="mb-4"
                 />
 
-                <MatchMoments moments={moments} players={players} />
+                <MatchMoments moments={moments} players={players} color={GAME_COLOR} />
 
                 <CricketBoardPanel board={replay.board} players={players} closing={progress.closing} />
 
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">
-                        <CricketProgressChart
+                        <RoundsLineChart
                             title="Points over the game"
                             description="Each player's points after every round: they come from marks on numbers the others have not closed yet."
                             data={progress.points}

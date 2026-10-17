@@ -1,18 +1,52 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link, useLocation } from "react-router-dom";
-import { Tag } from 'primereact/tag';
-import { Avatar } from 'primereact/avatar';
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Button } from 'primereact/button';
+import { Panel } from 'primereact/panel';
+import { SplitButton } from 'primereact/splitbutton';
+import { PiShuffle, PiUserSwitch } from 'react-icons/pi';
+import { MdReplay } from 'react-icons/md';
 
 import PlayerService from '../../../services/player.service';
+import EliminationService from '../../../services/elimination.service';
 import PageLoader from '../../elements/page.loader';
 import GameBadges from '../../badges/game.badges';
-import EliminationService from '../../../services/elimination.service';
-import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import GameResultHeader from '../common/game.result.header';
+import MatchMoments from '../common/match.moments';
+import { whenPlayed } from '../common/game.text';
+import RoundsLineChart from '../charts/rounds.line.chart';
+import HitsHeatmapChart from '../charts/hits.heatmap.chart';
+import { ScoreRangesChart } from '../charts/simple.bar.charts';
+import { PLAYER_COLORS } from '../charts/chart.theme';
+import {
+    replayElimination, eliminationFigures, eliminationRace, eliminationScoreRanges, eliminationHits, eliminationMoments,
+} from '../../../utils/elimination.game.summary';
+import { eliminationRematch } from '../../../utils/elimination.rematch';
 
+// the key figures of every player in the header; for knock-outs suffered less is better
+const FIGURES = [
+    { key: 'average', label: 'Average per visit' },
+    { key: 'highestVisit', label: 'Highest visit' },
+    { key: 'tonPlus', label: '100+ visits' },
+    { key: 'eliminationsMade', label: 'Knock-outs made' },
+    { key: 'timesEliminated', label: 'Knocked out', lowerIsBetter: true },
+    { key: 'pointsLost', label: 'Points lost to knock-outs', lowerIsBetter: true },
+    { key: 'dartsThrown', label: 'Darts thrown', neutral: true },
+];
+
+
+// the colour of the game type, as on the dashboard and the profile
+const GAME_COLOR = '#c3a9e6';
+/**
+ * The statistics of one Elimination game: the result with each player's key
+ * figures, the moments of the game, the race to the target with every
+ * knock-out, how the visits scored and where the darts landed.
+ */
 const EliminationGameStats = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [game, setGame] = useState(null);
     const [players, setPlayers] = useState(null);
+    const [failed, setFailed] = useState(false);
     // set by the game page when this game was won a moment ago
     const [justFinished] = useState(Boolean(useLocation().state?.justFinished));
 
@@ -23,142 +57,149 @@ const EliminationGameStats = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const g = await EliminationService.loadEliminationGameById(id);
-            const p = await PlayerService.findPlayersByIds(g.players);
-            setGame(g);
-            setPlayers(p);
+            try {
+                const gameData = await EliminationService.loadEliminationGameById(id);
+                if (!gameData) return setFailed(true);
+                const playerData = (await PlayerService.findPlayersByIds(gameData.players))
+                    .filter(player => gameData.players.includes(player.id))
+                    .sort((a, b) => gameData.players.indexOf(a.id) - gameData.players.indexOf(b.id));
+                setGame(gameData);
+                setPlayers(playerData);
+            } catch (err) {
+                console.error('Failed to load game data', err);
+                setFailed(true);
+            }
         };
         loadData();
     }, [id]);
 
+    const replay = useMemo(() => game ? replayElimination(game) : null, [game]);
+    const figures = useMemo(() => game && players && replay
+        ? Object.fromEntries(players.map(player => [player.id, eliminationFigures(game, player.id, replay)]))
+        : {}, [game, players, replay]);
+    const race = useMemo(() => game && replay ? eliminationRace(game, replay) : [], [game, replay]);
+
+    if (failed) return <div className="container-fluid p-4 text-subtle">This game could not be found in the selected club.</div>;
     if (!game || !players) return <PageLoader />;
 
-    const winner = players.find(p => game.playerModels[p.id]?.hasWonGame);
+    const indexOf = new Map(players.map((player, index) => [player.id, index]));
+    const nameOf = (playerId) => players[indexOf.get(playerId)]?.nickname ?? '–';
+    // the biggest knock-out names who was hit
+    const moments = eliminationMoments(game, replay).map(moment => moment.victim
+        ? { ...moment, detail: `knocked out ${nameOf(moment.victim)} · ${moment.detail}` }
+        : moment);
+    const target = Number(game.targetScore);
 
-    // Sort players by final score descending
-    const rankedPlayers = [...players].sort((a, b) => {
-        const scoreA = game.playerModels[a.id]?.score ?? 0;
-        const scoreB = game.playerModels[b.id]?.score ?? 0;
-        return scoreB - scoreA;
-    });
+    const onRestartGame = async (switchPlayers = false, shuffle = false) => {
+        const newGame = await EliminationService.createEliminationGame(eliminationRematch(game, { switchPlayers, shuffle }));
+        navigate(`/elimination/${newGame.id}`);
+    };
+
+    const actions = (
+        <>
+            <SplitButton
+                label="Play again"
+                icon={<MdReplay className="me-2 fs-5" />}
+                onClick={() => onRestartGame()}
+                size="small"
+                severity="primary"
+                menuClassName="p-splitbutton-menu-primary"
+                model={[
+                    { label: 'Switch players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
+                    { label: 'Shuffle players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
+                ]}
+            />
+            <Button label="New game" icon="pi pi-plus" onClick={() => navigate('/elimination', { replace: true })} size="small" outlined severity="primary" />
+            <Button label="Home" icon="pi pi-home" onClick={() => navigate('/', { replace: true })} size="small" outlined />
+        </>
+    );
+
+    const Who = ({ playerId }) => (
+        <span className="d-inline-flex align-items-center text-nowrap">
+            <span className="result-hero-dot" style={{ background: PLAYER_COLORS[indexOf.get(playerId)] }} aria-hidden="true" />
+            {nameOf(playerId)}
+        </span>
+    );
 
     return (
-        <div className="container-fluid p-4">
-            {/* Winner Banner */}
-            {winner && (
-                <div className="row justify-content-center mb-4">
-                    <div className="col-12 col-md-8 col-xl-6 text-center">
-                        <div className="rounded-3 bg-surface-high p-4 shadow">
-                            <div className="text-subtle fs-7 mb-1">🏆 Winner</div>
-                            <div className="text-default fs-3 fw-bold">{winner.nickname}</div>
-                            <div className="text-subtle fs-7">{winner.firstname} {winner.lastname}</div>
-                            <div className="mt-2">
-                                <Tag
-                                    value={`Target: ${game.targetScore} · Out: ${game.gameOutMode}`}
-                                    severity="success"
-                                    rounded
-                                />
-                            </div>
-                        </div>
+        <div className="container-fluid p-4 border-0">
+            <div className="game-stats-page">
+                <GameResultHeader
+                    game={game}
+                    players={players}
+                    title={`Elimination · first to ${target}`}
+                    subtitle={`${game.gameInMode ?? 'Straight In'} / ${game.gameOutMode ?? 'Straight Out'} · ${whenPlayed(game)}`}
+                    scoreOf={(player) => figures[player.id]?.score ?? 0}
+                    scoreDetailOf={(player) => (figures[player.id]?.score ?? 0) >= target ? `reached ${target}` : `${target - (figures[player.id]?.score ?? 0)} to go`}
+                    rows={FIGURES}
+                    figures={figures}
+                    actions={actions}
+                />
+
+                <GameBadges
+                    gameType="elimination"
+                    gameId={game.id}
+                    players={players}
+                    winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
+                    celebrate={justFinished && game.hasWinner}
+                    className="mb-4"
+                />
+
+                <MatchMoments moments={moments} players={players} color={GAME_COLOR} />
+
+                <div className="row g-4 mb-4">
+                    <div className="col-12 col-xl-7">
+                        <RoundsLineChart
+                            title="Race to the target"
+                            description="Every player's score after each visit of the game. A drop to 0 is a knock-out: an opponent landed exactly on that score."
+                            data={race}
+                            players={players}
+                            target={target}
+                            unit="points"
+                            step="Visit"
+                        />
+                    </div>
+                    <div className="col-12 col-xl-5">
+                        <Panel header="Knock-outs" className="h-100">
+                            {replay.eliminations.length
+                                ? (
+                                    <div className="x01-legs-wrap">
+                                        <table className="x01-legs">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Round</th>
+                                                    <th scope="col">By</th>
+                                                    <th scope="col">Knocked out</th>
+                                                    <th scope="col" className="text-end">Lost</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="is-static">
+                                                {replay.eliminations.map(event => (
+                                                    <tr key={`${event.visit}-${event.victim}`}>
+                                                        <td className="fw-semibold">{event.turn}</td>
+                                                        <td><Who playerId={event.by} /></td>
+                                                        <td><Who playerId={event.victim} /></td>
+                                                        <td className="text-end">{event.at}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )
+                                : <p className="text-subtle m-0">Nobody was knocked out in this game.</p>
+                            }
+                            <span className="d-block text-faint fs-8 mt-2">Landing exactly on an opponent&apos;s score sends them back to 0; &quot;Lost&quot; is the score they had.</span>
+                        </Panel>
                     </div>
                 </div>
-            )}
 
-            <div className="row justify-content-center mb-4">
-                <div className="col-12 col-md-8 col-xl-6">
-                    <GameBadges gameType="elimination" gameId={game.id} players={players} winner={winner} celebrate={justFinished && !!winner} />
-                </div>
-            </div>
-
-            {/* Per-player stats */}
-            <div className="row justify-content-center g-3">
-                {rankedPlayers.map((player, rank) => {
-                    const model = game.playerModels[player.id];
-                    if (!model) return null;
-
-                    const totalDarts = model.totalThrow?.darts ?? 0;
-                    const totalRounds = model.totalThrow?.rounds ?? 0;
-                    const finalScore = model.score ?? 0;
-                    const avgPerDart = totalDarts > 0 ? (finalScore / totalDarts).toFixed(2) : '—';
-                    const avgPerRound = totalRounds > 0 ? (finalScore / totalRounds).toFixed(2) : '—';
-                    const best = model.bestThreeDarts ?? 0;
-                    const isWinner = model.hasWonGame;
-
-                    return (
-                        <div key={player.id} className="col-12 col-sm-6 col-xl-3">
-                            <div className={`rounded-3 p-3 shadow ${isWinner ? 'bg-shade600' : 'bg-surface-high'}`}>
-                                {/* Player header */}
-                                <div className="d-flex align-items-center gap-3 mb-3">
-                                    <Avatar
-                                        label={resolvePlayerInitials(player.firstname, player.lastname)}
-                                        image={resolvePlayerImg(player.profileImg)}
-                                        shape="circle"
-                                        className="avatar-md"
-                                    />
-                                    <div>
-                                        <div className="text-default fw-semibold">{player.nickname}</div>
-                                        <div className="text-faint fs-8">{player.firstname} {player.lastname}</div>
-                                        {isWinner && (
-                                            <Tag value="Winner 🏆" severity="success" rounded className="mt-1 fs-9" />
-                                        )}
-                                    </div>
-                                    <div className="ms-auto text-subtle fs-7">#{rank + 1}</div>
-                                </div>
-
-                                {/* Stats */}
-                                <div className="d-flex flex-column gap-1 fs-7">
-                                    <div className="d-flex justify-content-between">
-                                        <span className="text-subtle">Final Score</span>
-                                        <span className="text-default fw-semibold">{finalScore}</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between">
-                                        <span className="text-subtle">Darts Thrown</span>
-                                        <span className="text-default">{totalDarts}</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between">
-                                        <span className="text-subtle">Rounds</span>
-                                        <span className="text-default">{totalRounds}</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between">
-                                        <span className="text-subtle">Avg / Dart</span>
-                                        <span className="text-default">{avgPerDart}</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between">
-                                        <span className="text-subtle">Avg / Round</span>
-                                        <span className="text-default">{avgPerRound}</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between">
-                                        <span className="text-subtle">Best 3 Darts</span>
-                                        <span className="text-default">{best}</span>
-                                    </div>
-                                </div>
-
-                                {/* Score Ranges */}
-                                {model.scoreRanges && Object.keys(model.scoreRanges).length > 0 && (
-                                    <div className="mt-3 border-top border-default pt-2">
-                                        <div className="text-faint fs-8 mb-1">Score Ranges</div>
-                                        {Object.entries(model.scoreRanges)
-                                            .sort((a, b) => a[0].localeCompare(b[0]))
-                                            .map(([range, count]) => (
-                                                <div key={range} className="d-flex justify-content-between fs-8">
-                                                    <span className="text-subtle">{range}</span>
-                                                    <span className="text-default">{count}x</span>
-                                                </div>
-                                            ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* Back link */}
-            <div className="row justify-content-center mt-4">
-                <div className="col-auto">
-                    <Link to="/" className="btn btn-outline-secondary btn-sm">
-                        ← Back to Dashboard
-                    </Link>
+                <div className="row g-4">
+                    <div className="col-12 col-xl-6">
+                        <ScoreRangesChart data={eliminationScoreRanges(game.players, replay)} players={players} />
+                    </div>
+                    <div className="col-12 col-xl-6">
+                        <HitsHeatmapChart hitsByPlayer={players.map(player => eliminationHits(player.id, replay))} players={players} gameName="this game" />
+                    </div>
                 </div>
             </div>
         </div>

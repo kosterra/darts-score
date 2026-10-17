@@ -43,6 +43,9 @@ const FIGURES = [
 // a heading above a group of charts
 const SectionTitle = ({ children }) => <h2 className="stats-section-title">{children}</h2>;
 
+
+// the colour of the game type, as on the dashboard and the profile
+const GAME_COLOR = '#7ecca5';
 /**
  * The statistics of one X01 game: the result with each player's key figures,
  * the moments of the match, every leg with its race to zero, the players side
@@ -187,7 +190,7 @@ const X01GameStats = () => {
                     className="mb-4"
                 />
 
-                <MatchMoments moments={moments} players={players} />
+                <MatchMoments moments={moments} players={players} color={GAME_COLOR} />
 
                 <X01LegsPanel game={game} players={players} legs={legs} />
 

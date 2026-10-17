@@ -1,42 +1,49 @@
-import { FaBolt, FaBullseye, FaCrosshairs, FaFire, FaScaleBalanced, FaStopwatch, FaXmark } from 'react-icons/fa6';
+import { FaArrowRotateLeft, FaBolt, FaBullseye, FaCrosshairs, FaFire, FaFlagCheckered, FaScaleBalanced, FaSkull, FaStopwatch, FaXmark } from 'react-icons/fa6';
+
+import { Panel } from 'primereact/panel';
 
 import { PLAYER_COLORS } from '../charts/chart.theme';
+import { KpiChip } from '../players/kpi';
 
 // X01: highest visit, best checkout, quickest leg, 180s, deciding leg;
-// Cricket: best round in marks, most points, triples, bullseyes
+// Cricket: best round in marks, most points, triples, bullseyes;
+// Elimination: the biggest knock-out, all knock-outs, the winning visit, a comeback
 const ICONS = {
     highest: FaBolt, checkout: FaCrosshairs, quickest: FaStopwatch, '180s': FaFire, decider: FaScaleBalanced,
     marks: FaXmark, points: FaBolt, triples: FaFire, bullseyes: FaBullseye,
+    knockout: FaSkull, eliminations: FaSkull, finish: FaFlagCheckered, comeback: FaArrowRotateLeft,
 };
 
 /**
- * The moments of a game in a row of small cards, e.g. the highest visit or
- * the best round, each with the player and when it happened.
+ * The moments of a game as the figure chips of the dashboard and profile,
+ * e.g. the highest visit or the best round, each with the player and when it
+ * happened. "color" is the colour of the game type.
  */
-const MatchMoments = ({ moments, players }) => {
+const MatchMoments = ({ moments, players, color }) => {
     if (!moments.length) return null;
     const byId = new Map(players.map((player, index) => [player.id, { player, color: PLAYER_COLORS[index] }]));
 
     return (
-        <section className="match-moments mb-4" aria-label="Moments of the match">
-            {moments.map(moment => {
-                const Icon = ICONS[moment.id];
-                const who = byId.get(moment.playerId);
-                return (
-                    <div key={moment.id} className="match-moment bg-surface rounded-2">
-                        <Icon className="match-moment-icon" aria-hidden="true" />
-                        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
-                            <span className="text-faint fs-8">{moment.label}</span>
-                            <span className="text-default fw-semibold fs-5 lh-sm">{moment.value}</span>
-                            <span className="text-subtle fs-8 text-truncate">
+        <Panel header="Moments of the game" className="mb-4">
+            <div className="kpi-chips kpi-chips-wide">
+                {moments.map(moment => {
+                    const who = byId.get(moment.playerId);
+                    return (
+                        <KpiChip
+                            key={moment.id}
+                            icon={ICONS[moment.id]}
+                            label={moment.label}
+                            value={moment.value}
+                            color={color}
+                            detail={<>
                                 {who && <><span className="result-hero-dot" style={{ background: who.color }} aria-hidden="true" />{who.player.nickname} · </>}
                                 {moment.detail}
-                            </span>
-                        </div>
-                    </div>
-                );
-            })}
-        </section>
+                            </>}
+                        />
+                    );
+                })}
+            </div>
+        </Panel>
     );
 };
 

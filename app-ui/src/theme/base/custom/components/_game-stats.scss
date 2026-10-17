@@ -265,26 +265,6 @@ $winnerGold: #ffc94d;
     }
 }
 
-// Moments of the match
-.match-moments {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-    gap: 0.75rem;
-}
-
-.match-moment {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    padding: 0.85rem 1rem;
-}
-
-.match-moment-icon {
-    flex-shrink: 0;
-    color: #ffc94d;
-    font-size: 1.35rem;
-}
-
 // Leg by leg: a row per leg, the one shown in the race chart marked
 .x01-legs-wrap {
     overflow-x: auto;
@@ -458,4 +438,26 @@ $winnerGold: #ffc94d;
     color: #ffc94d;
     font-size: 0.75rem;
     font-weight: 700;
+}
+
+// phones: tighter, and names may wrap so the list fits the screen
+@media (max-width: 575px) {
+    .x01-legs {
+        font-size: 0.78rem;
+
+        th,
+        td {
+            padding-left: 0.3rem;
+            padding-right: 0.3rem;
+        }
+    }
+}
+
+// a list of the same look whose rows are not chosen by clicking (the knock-outs)
+.x01-legs tbody.is-static tr {
+    cursor: default;
+
+    &:hover td {
+        background: $surfaceRaisedColor;
+    }
 }
