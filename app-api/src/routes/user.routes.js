@@ -4,6 +4,7 @@ import { validate } from '../utils/validation.js';
 import { ROLES } from '../models/user.model.js';
 import { requireGlobalAdmin } from '../middleware/auth.middleware.js';
 import * as UserController from '../controllers/user.controller.js';
+import { emailValidator, nameValidators, passwordValidator } from './auth.routes.js';
 
 const idValidator = param('id').isMongoId().withMessage('Invalid user id.');
 
@@ -21,6 +22,11 @@ export default (app) => {
         UserController.updateRole
     );
     router.delete('/:id', idValidator, validate, UserController.remove);
+
+    // helping users who cannot help themselves, e.g. with an email address that does not exist
+    router.put('/:id', idValidator, emailValidator, nameValidators(), validate, UserController.update);
+    router.put('/:id/password', idValidator, passwordValidator('password'), validate, UserController.setPassword);
+    router.post('/:id/password-link', idValidator, validate, UserController.passwordLink);
 
     app.use('/api/users', router);
 };

@@ -1,6 +1,11 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { CLUB_ROLES } from '../models/user.model.js';
+import { hashPassword } from '../utils/auth.utils.js';
+import { issuePasswordLink } from '../utils/auth.tokens.js';
+
+// how long a password link created by a global admin works
+export const ADMIN_LINK_HOURS = 24;
 
 const User = db.user;
 const Club = db.club;
@@ -12,21 +17,22 @@ export const findAll = async (req, res) => {
     logger.debug('users find all called');
     const [users, clubs, players] = await Promise.all([
         User.find({}).sort({ lastname: 1, firstname: 1 }),
-        Club.find({}, 'name admins').lean(),
+        Club.find({}, 'name admins logo').lean(),
         db.player.find({ user: { $ne: null } }, 'user clubs').lean(),
     ]);
     const clubNames = new Map(clubs.map(club => [String(club._id), club.name]));
+    const clubLogos = new Map(clubs.map(club => [String(club._id), club.logo ?? '']));
 
     const membershipsOf = (userId) => {
         const id = String(userId);
         const memberships = clubs
             .filter(club => club.admins.some(admin => String(admin) === id))
-            .map(club => ({ id: club._id, name: club.name, role: CLUB_ROLES.ADMIN }));
+            .map(club => ({ id: club._id, name: club.name, logo: club.logo ?? '', role: CLUB_ROLES.ADMIN }));
         players
             .filter(player => String(player.user) === id)
             .flatMap(player => player.clubs ?? [])
             .filter(clubId => clubNames.has(String(clubId)) && !memberships.some(m => String(m.id) === String(clubId)))
-            .forEach(clubId => memberships.push({ id: clubId, name: clubNames.get(String(clubId)), role: CLUB_ROLES.PLAYER }));
+            .forEach(clubId => memberships.push({ id: clubId, name: clubNames.get(String(clubId)), logo: clubLogos.get(String(clubId)), role: CLUB_ROLES.PLAYER }));
         return memberships.sort((a, b) => a.name.localeCompare(b.name));
     };
 
@@ -62,4 +68,63 @@ export const remove = async (req, res) => {
     await db.player.updateMany({ user: id }, { $set: { user: null } });
     logger.info(`User ${user.email} deleted by ${req.user.email}`);
     res.json({ message: 'User deleted.' });
+};
+
+// a global admin changes their own account in their profile
+const refuseSelf = (req, res) => {
+    if (!req.user._id.equals(req.params.id)) return false;
+    res.status(409).json({ message: 'Change your own account in your profile.' });
+    return true;
+};
+
+/**
+ * Corrects a user's name and email address, e.g. an address that does not exist.
+ */
+export const update = async (req, res) => {
+    logger.debug('users update called');
+    if (refuseSelf(req, res)) return;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    const { firstname, lastname, email } = req.body;
+    if (email !== user.email && await User.exists({ email })) {
+        return res.status(409).json({ message: 'An account with this email already exists.' });
+    }
+    const changes = [user.email !== email && `email ${user.email} → ${email}`, (user.firstname !== firstname || user.lastname !== lastname) && 'name'].filter(Boolean);
+    Object.assign(user, { firstname, lastname, email });
+    await user.save();
+    logger.info(`User ${user.email} edited by ${req.user.email}${changes.length ? ` (${changes.join(', ')})` : ''}`);
+    res.json(user);
+};
+
+/**
+ * Sets a new password for a user who cannot use "forgot password", e.g.
+ * without a working email address. Their sessions end.
+ */
+export const setPassword = async (req, res) => {
+    logger.debug('users set password called');
+    if (refuseSelf(req, res)) return;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    user.passwordHash = await hashPassword(req.body.password);
+    user.sessionVersion += 1;
+    user.resetTokenHash = null;
+    user.resetTokenExpires = null;
+    await user.save();
+    logger.info(`Password of ${user.email} set by ${req.user.email}`);
+    res.json({ message: 'Password set.' });
+};
+
+/**
+ * A "choose your password" link for a user, handed to the global admin
+ * instead of mailed, to pass on another way. It works once and for a day.
+ */
+export const passwordLink = async (req, res) => {
+    logger.debug('users password link called');
+    if (refuseSelf(req, res)) return;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found.' });
+    const link = issuePasswordLink(user, ADMIN_LINK_HOURS);
+    await user.save();
+    logger.info(`Password link for ${user.email} created by ${req.user.email}`);
+    res.json({ link, validHours: ADMIN_LINK_HOURS });
 };

@@ -6,15 +6,17 @@ import TrainingsTable from './trainings.table';
 import ClubsTable from './clubs.table';
 import AlertsPage from './alerts.page';
 import ErrorLog from './error.log';
+import UsersList from './users.list';
 import { useAuth } from '../../utils/auth.context';
 
 const GAME_TYPES = ['x01', 'cricket', 'elimination'];
 // pages that are not lists of a club's records
-const OTHER_PAGES = { clubs: ClubsTable, alerts: AlertsPage, logs: ErrorLog };
+const OTHER_PAGES = { clubs: ClubsTable, users: UsersList, alerts: AlertsPage, logs: ErrorLog };
 
 /**
- * The pages under "Admin", for global admins: all clubs; players, games and
- * trainings of the clubs they pick, each with its club; spam alerts and the error log.
+ * The pages under "Admin", for global admins: all clubs and users; players,
+ * games and trainings of the clubs they pick, each with its club; spam alerts
+ * and the error log.
  */
 const AdminPage = () => {
     const { id } = useParams();
@@ -24,7 +26,6 @@ const AdminPage = () => {
     const isTrainings = ['trainings', 'training', 'atc'].includes(id);
     const OtherPage = OTHER_PAGES[id];
 
-    if (id === 'users') return <Navigate replace to={isGlobalAdmin ? '/administration' : '/'} />;
     // club admins find their club's lists under "Club" (also for old links to the admin area)
     if (!isGlobalAdmin) {
         if (isGames) return <Navigate replace to="/games" />;

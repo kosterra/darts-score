@@ -4,6 +4,13 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.9',
+        changes: [
+            'Global admins help users who cannot log in, e.g. because their email address does not exist: correct their name and email, set a new password, or create a link to choose one and pass it on.',
+            'The users have their own page in the Admin menu, like the clubs, with a search by name or email and a club filter; Administration keeps the totals, the banner and the system.',
+        ],
+    },
+    {
         version: '2026.10.8',
         changes: [
             'Club admins who run several clubs move players from one of their clubs to another, add them to a second club or remove them from a club.',

@@ -6,7 +6,6 @@ import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import AdminService from '../../services/admin.service';
-import UsersList from '../admin/users.list';
 import BannerSettings from './banner.settings';
 import StatTile from '../stats/players/stat.tile';
 import { useAuth } from '../../utils/auth.context';
@@ -26,8 +25,8 @@ const formatBytes = (bytes) => {
 };
 
 /**
- * For global admins: the totals, accounts, banner and state of the installation.
- * Clubs, alerts and the error log have their own pages under "Admin".
+ * For global admins: the totals, the banner and the state of the installation.
+ * Clubs, users, alerts and the error log have their own pages under "Admin".
  */
 const AdministrationPage = () => {
     const toast = useRef(null);
@@ -66,8 +65,6 @@ const AdministrationPage = () => {
                     </div>
                 ))}
             </div>
-
-            <UsersList />
 
             <BannerSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Banner saved', detail, life: 3000 })} />
 

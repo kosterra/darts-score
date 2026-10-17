@@ -4,33 +4,38 @@ import ClubLogo from '../elements/club.logo';
 
 /**
  * Picks the clubs whose entries an admin list shows. Lists across clubs
- * always need at least one, so they never load everything at once.
+ * always need at least one, so they never load everything at once; with
+ * "optional" none means all (e.g. the users).
  */
-export const ClubFilter = ({ clubs, selectedIds, onChange }) => (
+export const ClubFilter = ({ clubs, selectedIds, onChange, optional = false }) => (
     <MultiSelect
         value={selectedIds}
         options={clubs}
         optionLabel="name"
         optionValue="id"
         onChange={(e) => onChange(e.value)}
-        placeholder="Choose clubs"
+        placeholder={optional ? 'All clubs' : 'Choose clubs'}
         filter
         display="chip"
         maxSelectedLabels={3}
         selectedItemsLabel="{0} clubs"
-        className={selectedIds.length ? '' : 'p-invalid'}
+        className={selectedIds.length || optional ? '' : 'p-invalid'}
         aria-label="Clubs"
         style={{ minWidth: '14rem', maxWidth: '100%' }}
     />
 );
 
 /**
- * The club an entry belongs to, in the lists across clubs.
+ * The club an entry belongs to, in the lists across clubs; "detail" is a line
+ * under the name, e.g. the user's role in the club.
  */
-export const ClubCell = ({ club }) => (
+export const ClubCell = ({ club, detail }) => (
     <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
         <ClubLogo club={club} />
-        <span className="text-default fs-7 text-truncate">{club?.name ?? 'Unknown club'}</span>
+        <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+            <span className="text-default fs-7 text-truncate">{club?.name ?? 'Unknown club'}</span>
+            {detail && <span className="text-faint fs-8">{detail}</span>}
+        </span>
     </div>
 );
 

@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug } from "react-icons/fa6";
+import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -80,6 +80,7 @@ const useSections = () => {
             visible: isGlobalAdmin,
             items: [
                 { label: 'Clubs', icon: FaPeopleGroup, to: '/admin/clubs' },
+                { label: 'Users', icon: FaUserGear, to: '/admin/users' },
                 { label: 'Players', icon: FaUserPen, to: '/admin/players' },
                 { label: 'Games', icon: GiDart, to: '/admin/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },

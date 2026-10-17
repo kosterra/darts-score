@@ -44,7 +44,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs'];
+const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading } = useAuth();
