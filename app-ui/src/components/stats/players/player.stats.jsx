@@ -14,6 +14,7 @@ import ComparisonFilters, { FilterPanel } from './comparison.filters';
 import { describeFilters } from './filter.summary';
 import { KpiRing, KpiHero, KpiChip } from './kpi';
 import PlayerLevel from '../../players/player.level';
+import { averageLevelOf } from '../../../utils/average.levels';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 
 const LATEST_BADGES = 5;
@@ -216,7 +217,14 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                             <Panel header="X01">
                                 <div className="kpi-headline mb-4">
                                     <KpiRing label="Win rate" part={wonGames.x01} whole={playedGames.x01} color={COLORS.x01} detail={`${formatNumber(wonGames.x01)} of ${formatNumber(playedGames.x01)} games`} />
-                                    <KpiHero label="3-dart average" value={avg.overallX01} color={COLORS.x01} />
+                                    <KpiHero
+                                        label="3-dart average"
+                                        value={avg.overallX01}
+                                        color={COLORS.x01}
+                                        detail={averageLevelOf(avg.overallX01) && avg.overallX01 > 0 && (
+                                            <span style={{ color: averageLevelOf(avg.overallX01).color, fontWeight: 700 }}>{averageLevelOf(avg.overallX01).name}</span>
+                                        )}
+                                    />
                                     <KpiHero label="First 9 average" value={x01.firstNineAverage} color={COLORS.x01} />
                                     <KpiRing label="Checkout rate" part={checkouts.hit} whole={checkouts.total} color={COLORS.x01} detail={`${formatNumber(checkouts.hit)} of ${formatNumber(checkouts.total)} attempts`} />
                                 </div>

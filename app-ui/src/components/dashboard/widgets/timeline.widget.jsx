@@ -57,8 +57,8 @@ const TimelineWidget = ({ widget, games, players }) => {
                                                 <GamePlayers game={game} players={players} />
                                             </div>
                                             {game.running
-                                                ? <Link to={`/${game.type}/${game.id}`} aria-label="Continue this game"><Button icon={<GiDart />} size="small" /></Link>
-                                                : <Link to={`/stats/games/${game.type}/${game.id}`} aria-label="Statistics of this game"><Button icon={<FaChartBar />} size="small" /></Link>
+                                                ? <Link to={`/${game.type}/${game.id}`} aria-label="Continue this game"><Button icon={<GiDart />} size="small" title="Continue playing" /></Link>
+                                                : <Link to={`/stats/games/${game.type}/${game.id}`} aria-label="Statistics of this game"><Button icon={<FaChartBar />} size="small" title="Show statistics" /></Link>
                                             }
                                         </li>
                                     ))}

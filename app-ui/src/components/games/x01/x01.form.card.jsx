@@ -13,14 +13,23 @@ const TRENDS = {
 
 const formatAverage = (value) => value == null ? '–' : value.toFixed(1);
 
-const VisitTooltip = ({ active, payload }) => {
+// the visit in the look of the other chart tooltips
+const VisitTooltip = ({ active, payload, color }) => {
     if (!active || !payload?.length) return null;
     const visit = payload[0].payload;
     return (
-        <div style={TOOLTIP.contentStyle} className="px-2 py-1 fs-8">
-            <div className="fw-semibold">Visit {visit.index} · Leg {visit.leg}</div>
-            <div>Score {visit.score}</div>
-            <div>Last 3 average {formatAverage(visit.rolling)}</div>
+        <div className="chart-tooltip">
+            <div className="chart-tooltip-label">Visit {visit.index} · Leg {visit.leg}</div>
+            <div className="chart-tooltip-row">
+                <span className="chart-tooltip-dot" style={{ background: '#9a9a9a' }} />
+                <span className="chart-tooltip-name">Score</span>
+                <span className="chart-tooltip-value">{visit.score}</span>
+            </div>
+            <div className="chart-tooltip-row">
+                <span className="chart-tooltip-dot" style={{ background: color }} />
+                <span className="chart-tooltip-name">Last 3 average</span>
+                <span className="chart-tooltip-value">{formatAverage(visit.rolling)}</span>
+            </div>
         </div>
     );
 };
@@ -65,7 +74,7 @@ const X01FormCard = ({ game, playerId }) => {
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={form.visits} margin={{ top: 4, right: 2, bottom: 0, left: 2 }}>
                                 <YAxis hide domain={[0, 180]} />
-                                <Tooltip content={<VisitTooltip />} cursor={TOOLTIP.cursor} />
+                                <Tooltip content={<VisitTooltip color={color} />} cursor={TOOLTIP.cursor} />
                                 <Bar dataKey="score" fill="#ffffff" fillOpacity={0.12} radius={[2, 2, 0, 0]} isAnimationActive={false} />
                                 {form.gameAverage != null && <ReferenceLine y={form.gameAverage} stroke="#9a9a9a" strokeDasharray="3 3" />}
                                 <Line dataKey="rolling" stroke={color} strokeWidth={2} dot={false} type="monotone" isAnimationActive={false} />

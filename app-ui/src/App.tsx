@@ -4,6 +4,7 @@ import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
@@ -131,6 +132,7 @@ function App() {
             <AuthState>
                 <Router>
                     <AppContent />
+                    <AppTooltip />
                 </Router>
             </AuthState>
         </PrimeReactProvider>

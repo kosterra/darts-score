@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 // Sections clockwise from the top, as on a real board
 const ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
@@ -22,9 +24,21 @@ const ringSegment = (inner, outer, start, end) => {
 /**
  * A dartboard whose fields are shaded by a value: the more, the stronger the
  * colour. "valueOf(section, ring)" gives the value of a field (ring is S, D or
- * T; the bull is section 25), "describe" the tooltip text.
+ * T; the bull is section 25), "describe" a short text of a field. With
+ * "tooltip(section, ring)" (giving { label, value, detail }) a field shows the
+ * tooltip card of the charts on hovering, with a dot in the board's colour.
  */
-const DartboardHeatmap = ({ valueOf, describe, color = '#5fa883', onlyDoubles = false, label }) => {
+const DartboardHeatmap = ({ valueOf, describe, tooltip, color = '#5fa883', onlyDoubles = false, label, name }) => {
+    const [hovered, setHovered] = useState(null);
+    // the card follows the pointer inside the board
+    const hoverProps = (section, ring) => tooltip ? {
+        onMouseMove: (event) => {
+            const box = event.currentTarget.ownerSVGElement.parentElement.getBoundingClientRect();
+            setHovered({ section, ring, x: event.clientX - box.left, y: event.clientY - box.top });
+        },
+        onMouseLeave: () => setHovered(null),
+    } : {};
+    const hoveredTip = hovered && tooltip?.(hovered.section, hovered.ring);
     const fields = [];
     ORDER.forEach((section, index) => {
         const start = index * 18 - 9;
@@ -47,47 +61,60 @@ const DartboardHeatmap = ({ valueOf, describe, color = '#5fa883', onlyDoubles = 
     const opacity = (value) => value > 0 ? 0.1 + 0.9 * (0.5 * Math.sqrt(value / max) + 0.5 * rankOf(value)) : 0;
 
     return (
-        <svg viewBox="-118 -118 236 236" className="dartboard-heatmap" role="img" aria-label={label}>
-            <circle r={R.doubleOuter + 0.5} fill="#1b1b1b" />
-            {/* only the doubles: the inside still looks like a dartboard, with a
-                narrow treble ring, the outer bull and the wires, but no values */}
-            {onlyDoubles &&
-                <g pointerEvents="none" aria-hidden="true">
-                    {ORDER.map((section, index) => (
-                        <path key={`t-${section}`} d={ringSegment(DOUBLES_ONLY.trebleInner, DOUBLES_ONLY.trebleOuter, index * 18 - 9, index * 18 + 9)} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5" />
-                    ))}
-                    {ORDER.map((section, index) => {
-                        const [x1, y1] = polar(DOUBLES_ONLY.outerBull, index * 18 - 9);
-                        const [x2, y2] = polar(DOUBLES_ONLY.inner, index * 18 - 9);
-                        return <line key={`w-${section}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3a3a3a" strokeWidth="0.5" />;
-                    })}
-                    <circle r={DOUBLES_ONLY.outerBull} fill="#222" stroke="#3a3a3a" strokeWidth="0.5" />
-                </g>
-            }
-            {fields.map(field => (
-                <path key={field.key} d={field.path} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5">
-                    <title>{describe(field.section, field.ring)}</title>
-                </path>
-            ))}
-            {fields.map((field, index) => values[index] > 0 && (
-                <path key={`h-${field.key}`} d={field.path} fill={color} fillOpacity={opacity(values[index])} pointerEvents="none" />
-            ))}
-            {(onlyDoubles ? [['D', DOUBLES_ONLY.bull]] : [['S', R.outerBull], ['D', R.bull]]).map(([ring, radius]) => {
-                const value = ring === 'S' ? bullValues[0] : bullValues[1];
-                return (
-                    <g key={ring}>
-                        <circle r={radius} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5">
-                            <title>{describe(25, ring)}</title>
-                        </circle>
-                        {value > 0 && <circle r={radius} fill={color} fillOpacity={opacity(value)} pointerEvents="none" />}
+        <div className="dartboard-heatmap-wrap">
+            <svg viewBox="-118 -118 236 236" className="dartboard-heatmap" role="img" aria-label={label}>
+                <circle r={R.doubleOuter + 0.5} fill="#1b1b1b" />
+                {/* only the doubles: the inside still looks like a dartboard, with a
+                    narrow treble ring, the outer bull and the wires, but no values */}
+                {onlyDoubles &&
+                    <g pointerEvents="none" aria-hidden="true">
+                        {ORDER.map((section, index) => (
+                            <path key={`t-${section}`} d={ringSegment(DOUBLES_ONLY.trebleInner, DOUBLES_ONLY.trebleOuter, index * 18 - 9, index * 18 + 9)} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5" />
+                        ))}
+                        {ORDER.map((section, index) => {
+                            const [x1, y1] = polar(DOUBLES_ONLY.outerBull, index * 18 - 9);
+                            const [x2, y2] = polar(DOUBLES_ONLY.inner, index * 18 - 9);
+                            return <line key={`w-${section}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3a3a3a" strokeWidth="0.5" />;
+                        })}
+                        <circle r={DOUBLES_ONLY.outerBull} fill="#222" stroke="#3a3a3a" strokeWidth="0.5" />
                     </g>
-                );
-            })}
-            {ORDER.map((section, index) => {
-                const [x, y] = polar(R.numbers, index * 18);
-                return <text key={section} x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize="8" fill="#9a9a9a">{section}</text>;
-            })}
-        </svg>
+                }
+                {fields.map(field => (
+                    <path key={field.key} d={field.path} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5" {...hoverProps(field.section, field.ring)}>
+                        {!tooltip && <title>{describe(field.section, field.ring)}</title>}
+                    </path>
+                ))}
+                {fields.map((field, index) => values[index] > 0 && (
+                    <path key={`h-${field.key}`} d={field.path} fill={color} fillOpacity={opacity(values[index])} pointerEvents="none" />
+                ))}
+                {(onlyDoubles ? [['D', DOUBLES_ONLY.bull]] : [['S', R.outerBull], ['D', R.bull]]).map(([ring, radius]) => {
+                    const value = ring === 'S' ? bullValues[0] : bullValues[1];
+                    return (
+                        <g key={ring}>
+                            <circle r={radius} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5" {...hoverProps(25, ring)}>
+                                {!tooltip && <title>{describe(25, ring)}</title>}
+                            </circle>
+                            {value > 0 && <circle r={radius} fill={color} fillOpacity={opacity(value)} pointerEvents="none" />}
+                        </g>
+                    );
+                })}
+                {ORDER.map((section, index) => {
+                    const [x, y] = polar(R.numbers, index * 18);
+                    return <text key={section} x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize="8" fill="#9a9a9a" pointerEvents="none">{section}</text>;
+                })}
+            </svg>
+        {hoveredTip &&
+            <div className="chart-tooltip dartboard-tooltip" style={{ left: hovered.x, top: hovered.y }} role="tooltip">
+                <div className="chart-tooltip-label">{hoveredTip.label}</div>
+                <div className="chart-tooltip-row">
+                    <span className="chart-tooltip-dot" style={{ background: color }} />
+                    <span className="chart-tooltip-name">{name}</span>
+                    <span className="chart-tooltip-value">{hoveredTip.value}</span>
+                </div>
+                {hoveredTip.detail && <div className="chart-tooltip-detail">{hoveredTip.detail}</div>}
+            </div>
+        }
+        </div>
     );
 };
 

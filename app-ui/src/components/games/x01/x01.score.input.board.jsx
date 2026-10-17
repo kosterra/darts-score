@@ -124,6 +124,8 @@ const X01ScoreInputBoard = () => {
                                                 <Button
                                                     type="button"
                                                     icon="pi pi-times"
+                                                    title="Clear this dart"
+                                                    aria-label="Clear this dart"
                                                     severity="danger"
                                                     onClick={() => updateCurrentThrowManual(score, '', 0)}
                                                 />
@@ -142,6 +144,8 @@ const X01ScoreInputBoard = () => {
                                                     <Button
                                                         type="button"
                                                         icon="pi pi-times"
+                                                        title="Clear this dart"
+                                                        aria-label="Clear this dart"
                                                         severity="danger"
                                                         onClick={() => updateCurrentThrowManual(score, '', 1)}
                                                     />
@@ -161,6 +165,8 @@ const X01ScoreInputBoard = () => {
                                                     <Button
                                                         type="button"
                                                         icon="pi pi-times"
+                                                        title="Clear this dart"
+                                                        aria-label="Clear this dart"
                                                         severity="danger"
                                                         onClick={() => updateCurrentThrowManual(score, '', 2)}
                                                     />

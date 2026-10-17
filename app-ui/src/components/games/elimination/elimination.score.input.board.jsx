@@ -111,6 +111,8 @@ const EliminationScoreInputBoard = () => {
                                                 <Button
                                                     type="button"
                                                     icon="pi pi-times"
+                                                    title="Clear this dart"
+                                                    aria-label="Clear this dart"
                                                     severity="danger"
                                                     onClick={() => updateCurrentThrowManual(currentScore, '', 0)}
                                                 />
@@ -131,6 +133,8 @@ const EliminationScoreInputBoard = () => {
                                                     <Button
                                                         type="button"
                                                         icon="pi pi-times"
+                                                        title="Clear this dart"
+                                                        aria-label="Clear this dart"
                                                         severity="danger"
                                                         onClick={() => updateCurrentThrowManual(currentScore, '', 1)}
                                                     />
@@ -152,6 +156,8 @@ const EliminationScoreInputBoard = () => {
                                                     <Button
                                                         type="button"
                                                         icon="pi pi-times"
+                                                        title="Clear this dart"
+                                                        aria-label="Clear this dart"
                                                         severity="danger"
                                                         onClick={() => updateCurrentThrowManual(currentScore, '', 2)}
                                                     />

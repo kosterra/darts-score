@@ -54,7 +54,8 @@ const DeletePopup = (props) => {
                 <Button
                     severity="danger"
                     icon="pi pi-trash"
-                    title="Show _raw data"
+                    title={header}
+                    aria-label={header}
                     onClick={() => setShowDialog(true)}
                 />
             </div>

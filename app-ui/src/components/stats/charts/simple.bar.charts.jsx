@@ -4,6 +4,8 @@ import dayjs from 'dayjs';
 import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
 import { groupByPeriod } from '../../../utils/trend.grouping';
+import ChartTooltip from './chart.tooltip';
+import { averageLevelOf } from '../../../utils/average.levels';
 import { AXIS, BAR_OPACITY, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 
 const RANGE_ORDER = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
@@ -130,7 +132,16 @@ export const FormChart = ({ data = [] }) => {
                             <YAxis yAxisId="avg" orientation="right" {...AXIS} domain={[0, 'auto']} />
                             {/* games have their own scale, without an axis of their own */}
                             <YAxis yAxisId="games" hide domain={[0, (max) => Math.max(max, 1) * 1.15]} allowDecimals={false} />
-                            <Tooltip {...TOOLTIP} formatter={(value, name) => name === 'Win rate' ? `${value} %` : value} />
+                            <Tooltip
+                                {...TOOLTIP}
+                                content={(
+                                    <ChartTooltip
+                                        formatter={(value, name) => name === 'Win rate' ? `${value} %` : value}
+                                        // the level of the average only, not of the win rate or the games
+                                        levelOf={(value, entry) => entry.dataKey === 'average' ? averageLevelOf(value) : null}
+                                    />
+                                )}
+                            />
                             <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
                             <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden('average')} />
                             <Line yAxisId="games" type="monotone" dataKey="games" name="Games played" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={series.isHidden('games')} />

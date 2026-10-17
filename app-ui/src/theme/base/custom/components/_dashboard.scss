@@ -244,6 +244,36 @@
     }
 }
 
+// the card of a hovered stop sits outside the scrolling line, so it is never cut off
+.h2h-timeline-wrap {
+    position: relative;
+}
+
+.h2h-timeline .h2h-stop:focus-visible {
+    outline: none;
+
+    .h2h-winner.p-avatar {
+        transform: translateY(-3px) scale(1.08);
+    }
+}
+
+.h2h-tooltip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    white-space: nowrap;
+
+    &.is-middle { transform: translateX(-50%); }
+    &.is-start { transform: translateX(-1.5rem); }
+    &.is-end { transform: translateX(calc(-100% + 1.5rem)); }
+
+    .h2h-tooltip-trophy {
+        margin-left: 0.4rem;
+        color: #ffc94d;
+        font-size: 0.7rem;
+    }
+}
+
 @keyframes h2h-in {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }

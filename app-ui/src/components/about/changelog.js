@@ -8,6 +8,8 @@ const CHANGELOG = [
         changes: [
             'Global admins help users who cannot log in, e.g. because their email address does not exist: correct their name and email, set a new password, or create a link to choose one and pass it on.',
             'The users have their own page in the Admin menu, like the clubs, with a search by name or email and a club filter; Administration keeps the totals, the banner and the system.',
+            'Average levels from Beginner to Elite: the average over time marks every change of level, up and down, with lines for the level reached and the next one and the level in the tooltip; the profile names the level of the 3-dart average.',
+            'One tooltip style throughout the app: on charts, dartboards and the latest winners each value with its player\'s colour, and every icon button explains itself on hovering.',
         ],
     },
     {

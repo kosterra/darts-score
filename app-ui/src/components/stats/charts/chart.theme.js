@@ -1,4 +1,6 @@
+import { createElement } from 'react';
 import ChartConfigOptions from '../common/chart.config.options';
+import ChartTooltip from './chart.tooltip';
 
 /**
  * Shared look of the statistics charts on the dark theme.
@@ -16,10 +18,9 @@ export const AXIS = {
 
 export const GRID = { stroke: '#313131', strokeDasharray: '3 3', vertical: false };
 
+// every chart's tooltip: a card with a coloured dot per value (see ChartTooltip)
 export const TOOLTIP = {
-    contentStyle: { background: '#292929', border: '1px solid #3d3d3d', borderRadius: 5, color: '#d4d4d4' },
-    labelStyle: { color: '#d4d4d4', fontWeight: 600 },
-    itemStyle: { color: '#d4d4d4' },
+    content: createElement(ChartTooltip),
     cursor: { fill: 'rgba(255, 255, 255, 0.04)' },
 };
 

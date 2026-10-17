@@ -258,6 +258,8 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                 <Button
                     severity="primary"
                     icon={edit ? 'pi pi-user-edit' : 'pi pi-user-plus'}
+                    title={label ? undefined : edit ? 'Edit player' : 'Add a player'}
+                    aria-label={label ? undefined : edit ? 'Edit player' : 'Add a player'}
                     label={label}
                     size={label ? 'small' : undefined}
                     onClick={handleOpen}

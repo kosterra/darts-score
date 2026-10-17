@@ -39,6 +39,15 @@ const HitsHeatmapChart = ({ hitsByPlayer = [], players = [], gameName = 'X01' })
                                 color={PLAYER_COLORS[index]}
                                 label={`Hits of ${player.nickname} on the dartboard`}
                                 describe={describe}
+                                name={player.nickname}
+                                tooltip={(section, ring) => {
+                                    const count = valueOf(section, ring);
+                                    return {
+                                        label: section === 25 ? (ring === 'D' ? 'Bull' : 'Outer bull') : `${RING_NAMES[ring]} ${section}`,
+                                        value: total ? formatShare(count / total) : '0 %',
+                                        detail: `${count} ${count === 1 ? 'hit' : 'hits'} of ${total} on the board`,
+                                    };
+                                }}
                             />
                         </div>
                         {fields.length > 0 &&
