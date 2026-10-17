@@ -2,6 +2,7 @@ import { Area, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, Respon
 import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
+import useHiddenSeries from './use.hidden.series';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 
 const MOVING_WINDOW = 5;
@@ -18,6 +19,7 @@ const movingAverage = (values, index) => {
  * data: [{ date | label, average }] for one player, [{ date | label, player1, player2, … }] for several
  */
 const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average over time', description }) => {
+    const series = useHiddenSeries();
     const single = players.length === 1;
     const rows = data.map((entry, index) => ({
         ...entry,
@@ -45,18 +47,18 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
                             {single
                                 ? (
                                     <>
-                                        <Area type="monotone" dataKey="average" name="Game average" stroke={PLAYER_COLORS[0]} fill={PLAYER_COLORS[0]} fillOpacity={0.18} strokeOpacity={0.5} dot={false} />
-                                        <Line type="monotone" dataKey="moving" name="Trend" stroke="#efe6d0" strokeWidth={2.5} dot={false} />
+                                        <Area type="monotone" dataKey="average" name="Game average" stroke={PLAYER_COLORS[0]} fill={PLAYER_COLORS[0]} fillOpacity={0.18} strokeOpacity={0.5} dot={false} hide={series.isHidden('average')} />
+                                        <Line type="monotone" dataKey="moving" name="Trend" stroke="#efe6d0" strokeWidth={2.5} dot={false} hide={series.isHidden('moving')} />
                                         {overall > 0 &&
                                             <ReferenceLine y={overall} stroke={PLAYER_COLORS[1]} strokeDasharray="6 4" label={{ value: `Ø ${overall}`, fill: PLAYER_COLORS[1], fontSize: 12, position: 'insideTopRight' }} />
                                         }
                                     </>
                                 )
                                 : players.map((player, index) => (
-                                    <Line key={player.id} type="monotone" dataKey={`player${index + 1}`} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
+                                    <Line key={player.id} type="monotone" dataKey={`player${index + 1}`} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden(`player${index + 1}`)} />
                                 ))
                             }
-                            <Legend {...LEGEND} />
+                            <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </ComposedChart>
                     </ResponsiveContainer>
                 )

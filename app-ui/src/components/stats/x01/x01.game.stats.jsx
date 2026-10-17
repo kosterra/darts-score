@@ -140,7 +140,7 @@ const X01GameStats = () => {
 
     const bySets = game.numberOfSets > 1;
     const barsScopes = [
-        { label: 'Whole game', value: 'game' },
+        { label: 'All sets', value: 'game' },
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: `Set ${i + 1}`, value: `set-${i + 1}` })),
     ];
 
@@ -197,11 +197,11 @@ const X01GameStats = () => {
                 {players.length > 1 &&
                     <Panel header="Side by side" className="mb-4">
                         {barsScopes.length > 2 &&
-                            <div className="d-flex justify-content-center mb-3">
-                                <SelectButton value={barsScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} aria-label="Whole game or set" />
+                            <div className="d-flex justify-content-start mb-3">
+                                <SelectButton value={barsScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} className="p-selectbutton-pills pills-inline" aria-label="Whole game or set" />
                             </div>
                         }
-                        <X01StatsComparisonBars game={game} valueKey={barsScope} />
+                        <X01StatsComparisonBars game={game} valueKey={barsScope} players={players} />
                     </Panel>
                 }
 

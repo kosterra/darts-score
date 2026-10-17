@@ -5,6 +5,7 @@ import { Panel } from 'primereact/panel';
 import ChartCard from '../charts/chart.card';
 import { AXIS, GRID, PLAYER_COLORS, TOOLTIP, LEGEND } from '../charts/chart.theme';
 import { raceOf } from '../../../utils/x01.game.summary';
+import useHiddenSeries from '../charts/use.hidden.series';
 
 /**
  * Every leg of the game in a list (who started, who won, the darts, the
@@ -13,6 +14,7 @@ import { raceOf } from '../../../utils/x01.game.summary';
 const X01LegsPanel = ({ game, players, legs }) => {
     // the last leg first: in a close game it is the one that decided it
     const [selectedKey, setSelectedKey] = useState(legs[legs.length - 1]?.key ?? null);
+    const series = useHiddenSeries();
     if (!legs.length) return null;
 
     const indexOf = new Map(players.map((player, index) => [player.id, index]));
@@ -75,9 +77,9 @@ const X01LegsPanel = ({ game, players, legs }) => {
                             <YAxis {...AXIS} domain={[0, Number(game.startingScore)]} allowDecimals={false} />
                             <Tooltip {...TOOLTIP} labelFormatter={(visit) => visit === 0 ? 'Start' : `Visit ${visit}`} />
                             {players.map((player, index) => (
-                                <Line key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />
+                                <Line key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} hide={series.isHidden(player.id)} />
                             ))}
-                            {players.length > 1 && <Legend {...LEGEND} />}
+                            {players.length > 1 && <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />}
                         </LineChart>
                     </ResponsiveContainer>
                 </ChartCard>

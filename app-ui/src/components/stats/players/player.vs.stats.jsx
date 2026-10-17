@@ -57,7 +57,7 @@ const PlayerVSStats = ({ players = [], request }) => {
                                     <HeadToHeadTimeline games={games} players={players} />
                                 </div>
                             </div>
-                            <PlayersX01StatsComparisonBars playersX01Stats={playerStats} />
+                            <PlayersX01StatsComparisonBars playersX01Stats={playerStats} players={players} />
                         </Panel>
                         <div className="row g-4">
                             <div className="col-12"><AverageTrendChart data={playerStats.trend ?? []} players={players} /></div>

@@ -1,8 +1,8 @@
 import { Bar, BarChart, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { useState } from 'react';
 import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
+import useHiddenSeries from './use.hidden.series';
 import { AXIS, BAR_OPACITY, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 
 const RANGE_ORDER = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
@@ -13,6 +13,7 @@ const rangeLabel = (range) => range === 'ZERO' ? '0' : range.replace('-', '–')
  * data: [{ range, count }] for one player, [{ range, player1Count, … }] for several
  */
 export const ScoreRangesChart = ({ data = [], players = [] }) => {
+    const series = useHiddenSeries();
     const keyOf = (index) => players.length === 1 ? 'count' : `player${index + 1}Count`;
     const totals = players.map((_, index) => data.reduce((sum, entry) => sum + (Number(entry[keyOf(index)]) || 0), 0));
     const byRange = new Map(data.map(entry => [entry.range, entry]));
@@ -26,7 +27,7 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
     });
 
     return (
-        <ChartCard title="Score per visit" description="How often each score range was thrown, as a share of all visits.">
+        <ChartCard title="Score per visit" description={`How often each score range was thrown, as a share of all visits.${players.length > 1 ? ' Click a name below the chart to show or hide that player.' : ''}`}>
             <ResponsiveContainer width="100%" height={Math.max(260, rows.length * (players.length > 1 ? 30 : 26))}>
                 <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 40, left: 10, bottom: 0 }} barGap={2}>
                     <CartesianGrid {...GRID} horizontal={false} vertical />
@@ -34,11 +35,11 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
                     <YAxis type="category" dataKey="range" {...AXIS} width={64} interval={0} />
                     <Tooltip {...TOOLTIP} formatter={(value) => `${value} %`} />
                     {players.map((player, index) => (
-                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[0, 4, 4, 0]}>
+                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[0, 4, 4, 0]} hide={series.isHidden(`p${index}`)}>
                             {players.length === 1 && <LabelList dataKey={`p${index}`} position="right" fill="#9a9a9a" fontSize={11} formatter={(value) => value ? `${value} %` : ''} />}
                         </Bar>
                     ))}
-                    {players.length > 1 && <Legend {...LEGEND} />}
+                    {players.length > 1 && <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />}
                 </BarChart>
             </ResponsiveContainer>
         </ChartCard>
@@ -51,6 +52,7 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
  * scoring: [{ opening, finishing }] one per player
  */
 export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
+    const series = useHiddenSeries();
     const rows = [
         { phase: 'Scoring', ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.opening ?? 0])) },
         { phase: 'Finishing', ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.finishing ?? 0])) },
@@ -64,11 +66,11 @@ export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
                     <YAxis {...AXIS} />
                     <Tooltip {...TOOLTIP} />
                     {players.map((player, index) => (
-                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} maxBarSize={56}>
+                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} maxBarSize={56} hide={series.isHidden(`p${index}`)}>
                             <LabelList dataKey={`p${index}`} position="top" fill="#d4d4d4" fontSize={12} />
                         </Bar>
                     ))}
-                    {players.length > 1 && <Legend {...LEGEND} />}
+                    {players.length > 1 && <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />}
                 </BarChart>
             </ResponsiveContainer>
         </ChartCard>
@@ -80,6 +82,7 @@ export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
  * data: [{ bucket, count }] for one player, [{ bucket, player1, … }] for several
  */
 export const DartsPerLegChart = ({ data = [], players = [], description = 'Darts needed for the 501 legs won. Nine is the perfect leg.' }) => {
+    const series = useHiddenSeries();
     const keyOf = (index) => players.length === 1 ? 'count' : `player${index + 1}`;
     const empty = data.every(entry => players.every((_, index) => !entry[keyOf(index)]));
     return (
@@ -94,9 +97,9 @@ export const DartsPerLegChart = ({ data = [], players = [], description = 'Darts
                             <YAxis {...AXIS} allowDecimals={false} />
                             <Tooltip {...TOOLTIP} />
                             {players.map((player, index) => (
-                                <Bar key={player.id} dataKey={keyOf(index)} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} />
+                                <Bar key={player.id} dataKey={keyOf(index)} name={player.nickname} fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden(keyOf(index))} />
                             ))}
-                            {players.length > 1 && <Legend {...LEGEND} />}
+                            {players.length > 1 && <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />}
                         </BarChart>
                     </ResponsiveContainer>
                 )
@@ -111,15 +114,7 @@ export const DartsPerLegChart = ({ data = [], players = [], description = 'Darts
  */
 export const FormChart = ({ data = [] }) => {
     const rows = data.map(entry => ({ ...entry, label: dayjs(`${entry.month}-01`).format('MMM YY') }));
-    // series switched off in the legend
-    const [hidden, setHidden] = useState(() => new Set());
-    const toggle = ({ dataKey }) => setHidden(current => {
-        const next = new Set(current);
-        if (next.has(dataKey)) next.delete(dataKey);
-        else next.add(dataKey);
-        return next;
-    });
-    const legendLabel = (name, { dataKey }) => <span style={{ opacity: hidden.has(dataKey) ? 0.4 : 1, cursor: 'pointer' }}>{name}</span>;
+    const series = useHiddenSeries();
 
     return (
         <ChartCard title="Form" description="Win rate (bars), X01 average and games played (lines) per month: how the form goes with how often you play. Click an entry below the chart to show or hide it.">
@@ -135,10 +130,10 @@ export const FormChart = ({ data = [] }) => {
                             {/* games have their own scale, without an axis of their own */}
                             <YAxis yAxisId="games" hide domain={[0, (max) => Math.max(max, 1) * 1.15]} allowDecimals={false} />
                             <Tooltip {...TOOLTIP} formatter={(value, name) => name === 'Win rate' ? `${value} %` : value} />
-                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={hidden.has('winRate')} />
-                            <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={hidden.has('average')} />
-                            <Line yAxisId="games" type="monotone" dataKey="games" name="Games played" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={hidden.has('games')} />
-                            <Legend {...LEGEND} onClick={toggle} formatter={legendLabel} />
+                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
+                            <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden('average')} />
+                            <Line yAxisId="games" type="monotone" dataKey="games" name="Games played" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={series.isHidden('games')} />
+                            <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </ComposedChart>
                     </ResponsiveContainer>
                 )
@@ -152,6 +147,7 @@ export const FormChart = ({ data = [] }) => {
  * games: X01 game documents; players: the compared players
  */
 export const LegsPerGameChart = ({ games = [], players = [] }) => {
+    const series = useHiddenSeries();
     const rows = [...games]
         .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt))
         .map(game => ({
@@ -167,9 +163,9 @@ export const LegsPerGameChart = ({ games = [], players = [] }) => {
                     <YAxis {...AXIS} allowDecimals={false} />
                     <Tooltip {...TOOLTIP} />
                     {players.map((player, index) => (
-                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} stackId="legs" fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} />
+                        <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} stackId="legs" fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} hide={series.isHidden(`p${index}`)} />
                     ))}
-                    <Legend {...LEGEND} />
+                    <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                 </BarChart>
             </ResponsiveContainer>
         </ChartCard>

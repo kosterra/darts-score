@@ -3,6 +3,7 @@ import { Panel } from 'primereact/panel';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { gamesPerMonth } from '../../../utils/club.charts';
+import useHiddenSeries from '../../stats/charts/use.hidden.series';
 import { AXIS, BAR_OPACITY, GRID, TOOLTIP, LEGEND } from '../../stats/charts/chart.theme';
 
 const TYPES = [
@@ -16,6 +17,7 @@ const TYPES = [
  */
 const GamesPerMonthWidget = ({ widget, gameLog }) => {
     const data = useMemo(() => gamesPerMonth(gameLog), [gameLog]);
+    const series = useHiddenSeries();
     return (
         <Panel header={widget.title} className="h-100">
             <p className="text-faint fs-8 mt-0 mb-2">Finished games per month, by game type.</p>
@@ -26,10 +28,10 @@ const GamesPerMonthWidget = ({ widget, gameLog }) => {
                         <XAxis dataKey="label" {...AXIS} interval="preserveStartEnd" />
                         <YAxis {...AXIS} allowDecimals={false} />
                         <Tooltip {...TOOLTIP} />
-                        <Legend {...LEGEND} />
+                        <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         {TYPES.map((type, index) => (
                             <Bar key={type.key} dataKey={type.key} name={type.name} stackId="games" fill={type.color} fillOpacity={BAR_OPACITY}
-                                radius={index === TYPES.length - 1 ? [3, 3, 0, 0] : 0} maxBarSize={28} />
+                                radius={index === TYPES.length - 1 ? [3, 3, 0, 0] : 0} maxBarSize={28} hide={series.isHidden(type.key)} />
                         ))}
                     </BarChart>
                 </ResponsiveContainer>
