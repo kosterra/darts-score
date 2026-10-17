@@ -159,7 +159,7 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
                                     stroke={level.color}
                                     strokeOpacity={0.7}
                                     strokeDasharray="3 5"
-                                    label={{ value: `Next: ${level.name} · ${level.min}`, fill: level.color, fontSize: 11, position: 'insideTopLeft' }}
+                                    label={{ value: `${level.name} · ${level.min}`, fill: level.color, fontSize: 11, position: 'insideTopLeft' }}
                                 />
                             ))}
                             <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
