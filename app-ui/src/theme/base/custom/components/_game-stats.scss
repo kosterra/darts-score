@@ -1,0 +1,461 @@
+// The statistics pages of one game (X01, Cricket)
+
+.game-stats-page {
+    max-width: 78rem;
+    margin: 0 auto;
+}
+
+// Result: format and actions on top, the players with the score, the key figures
+.result-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background:
+        radial-gradient(ellipse 40rem 14rem at 50% 30%, rgba($primaryColor, 0.22), transparent 70%),
+        $surfaceColor;
+}
+
+.result-hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.result-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.result-hero-players {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    column-gap: 2.5rem;
+    row-gap: 1.5rem;
+
+    // two players always face each other, also on a phone
+    &.count-2 {
+        flex-wrap: nowrap;
+
+        @media (max-width: 575px) {
+            column-gap: 0.75rem;
+        }
+    }
+}
+
+.result-hero-player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 9rem;
+    max-width: 14rem;
+
+    .count-2 & {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    // the winner stands out, the others step back a little
+    &:not(.is-winner) .result-hero-score {
+        color: $textSubtleColor;
+    }
+}
+
+.result-hero-name {
+    max-width: 100%;
+    font-size: 1.25rem;
+
+    @media (max-width: 575px) {
+        font-size: 1rem;
+    }
+}
+
+.result-hero-avatar {
+    box-shadow: 0 0 0 3px var(--player-colour);
+}
+
+// The winner: a gold trophy badge on the picture that pops in, a slowly
+// breathing gold halo behind it and a "Winner" label under the name
+$winnerGold: #ffc94d;
+
+.result-hero-portrait {
+    position: relative;
+    display: inline-flex;
+}
+
+.result-hero-halo {
+    position: absolute;
+    inset: -0.9rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba($winnerGold, 0.45) 0%, rgba($winnerGold, 0.12) 55%, transparent 72%);
+    animation: result-hero-halo 2.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.result-hero-trophy {
+    position: absolute;
+    top: -0.55rem;
+    right: -0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffe08a, $winnerGold 55%, #d99a1e);
+    // a dark orange ring instead of a dark one, so the badge stays warm
+    box-shadow:
+        0 0 0 2px #b8650f,
+        0 0 1.2rem rgba($winnerGold, 0.65),
+        0 0.3rem 0.6rem rgba(0, 0, 0, 0.6);
+    color: #5a3b00;
+    font-size: 1.25rem;
+    animation: result-hero-trophy-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.15s;
+
+    // a short shine across the badge now and then
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.75) 50%, transparent 65%);
+        background-size: 250% 100%;
+        background-position: 150% 0;
+        animation: result-hero-trophy-shine 4s ease-in-out infinite 1s;
+    }
+}
+
+.result-hero-winner {
+    display: inline-flex;
+    align-items: center;
+    // the capitals have no descenders: equal padding and line height 1 centre them
+    padding: 0.25rem 0.65rem;
+    line-height: 1;
+    border-radius: 1rem;
+    background: rgba($winnerGold, 0.16);
+    color: $winnerGold;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    &.is-placeholder {
+        visibility: hidden;
+    }
+}
+
+.is-winner .result-hero-score {
+    color: $winnerGold;
+    text-shadow: 0 0 1.2rem rgba($winnerGold, 0.35);
+}
+
+@keyframes result-hero-trophy-pop {
+    0% { transform: scale(0) rotate(-25deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes result-hero-halo {
+    0%, 100% { transform: scale(0.94); opacity: 0.75; }
+    50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes result-hero-trophy-shine {
+    0%, 70% { background-position: 150% 0; }
+    100% { background-position: -50% 0; }
+}
+
+// the same look without movement for people who turned animations off
+@media (prefers-reduced-motion: reduce) {
+    .result-hero-halo,
+    .result-hero-trophy,
+    .result-hero-trophy::after {
+        animation: none;
+    }
+}
+
+.result-hero-score {
+    color: $textDefaultColor;
+    font-size: 3.25rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.result-hero-dot {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-right: 0.4rem;
+    border-radius: 50%;
+}
+
+// key figures: one row per figure, one column per player, the best one marked
+.result-hero-figures-wrap {
+    overflow-x: auto;
+    border-top: 1px solid $surfaceHighColor;
+    padding-top: 1rem;
+}
+
+.result-hero-figures {
+    width: 100%;
+    max-width: 44rem;
+    margin: 0 auto;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+
+    th,
+    td {
+        padding: 0.4rem 0.75rem;
+        white-space: nowrap;
+    }
+
+    // on a phone the figure names may wrap, so every column fits
+    @media (max-width: 575px) {
+        font-size: 0.8rem;
+
+        th,
+        td {
+            padding: 0.35rem 0.35rem;
+        }
+
+        tbody th {
+            white-space: normal;
+        }
+
+        // the checkout attempts move under the rate
+        td .fs-8 {
+            display: block;
+            margin-left: 0 !important;
+        }
+    }
+
+    thead th {
+        color: $textSubtleColor;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    tbody th {
+        color: $textSubtleColor;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    tbody td {
+        color: $textDefaultColor;
+        font-weight: 600;
+        text-align: center;
+
+        &.is-best {
+            color: #7ecca5;
+        }
+    }
+
+    tbody tr + tr {
+        border-top: 1px solid rgba($surfaceHighColor, 0.6);
+    }
+}
+
+// Moments of the match
+.match-moments {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.75rem;
+}
+
+.match-moment {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+}
+
+.match-moment-icon {
+    flex-shrink: 0;
+    color: #ffc94d;
+    font-size: 1.35rem;
+}
+
+// Leg by leg: a row per leg, the one shown in the race chart marked
+.x01-legs-wrap {
+    overflow-x: auto;
+}
+
+.x01-legs {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.35rem;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+
+    th {
+        padding: 0 0.6rem;
+        color: $textFaintColor;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    td {
+        padding: 0.5rem 0.6rem;
+        background: $surfaceRaisedColor;
+        color: $textDefaultColor;
+        transition: background-color $transitionDuration;
+
+        &:first-child { border-radius: $borderRadius 0 0 $borderRadius; }
+        &:last-child { border-radius: 0 $borderRadius $borderRadius 0; }
+    }
+
+    tbody tr {
+        cursor: pointer;
+
+        &:hover td,
+        &:focus-visible td {
+            background: $surfaceHighColor;
+        }
+
+        &:focus-visible {
+            outline: none;
+        }
+
+        &.is-selected td {
+            background: rgba($primaryColor, 0.25);
+        }
+    }
+}
+
+// a heading above a group of charts
+.stats-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+    color: $shade000;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    &::after {
+        content: '';
+        flex-grow: 1;
+        height: 1px;
+        background: $surfaceHighColor;
+    }
+}
+
+// Cricket: the board at the end, a row per number, a column per player
+.cricket-board-wrap {
+    overflow-x: auto;
+}
+
+.cricket-board {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.35rem;
+    font-size: 0.85rem;
+
+    thead th {
+        padding: 0 0.6rem;
+        color: $textFaintColor;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    tbody th,
+    tbody td {
+        padding: 0.45rem 0.6rem;
+        background: $surfaceRaisedColor;
+        color: $textDefaultColor;
+    }
+
+    tbody th {
+        border-radius: $borderRadius 0 0 $borderRadius;
+        font-weight: 700;
+    }
+
+    tbody td:last-child {
+        border-radius: 0 $borderRadius $borderRadius 0;
+    }
+
+    // phones: after the general rules, so these win
+    @media (max-width: 575px) {
+        font-size: 0.8rem;
+
+        thead th,
+        tbody th,
+        tbody td {
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        // long names are cut, the full name shows on hover; a table cell
+        // ignores max-width, so the name itself is limited
+        .cricket-board-name {
+            display: inline-block;
+            max-width: 2.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: bottom;
+        }
+    }
+}
+
+// a mark and the points scored on the number, in fixed columns: the mark
+// sits in the middle of the player's column and lines up in every row
+.cricket-cell {
+    display: grid;
+    grid-template-columns: 2.6rem 1.6rem 2.6rem;
+    align-items: center;
+    justify-content: center;
+
+    .cricket-marks {
+        grid-column: 2;
+        text-align: center;
+    }
+
+    .cricket-points {
+        grid-column: 3;
+        margin-left: 0.3rem;
+        text-align: left;
+    }
+
+    // narrow screens leave out the balancing column
+    @media (max-width: 575px) {
+        grid-template-columns: 0 1.3rem 1.9rem;
+
+        .cricket-points {
+            margin-left: 0.15rem;
+            font-size: 0.7rem;
+        }
+    }
+}
+
+.cricket-marks {
+    display: inline-block;
+    min-width: 1.4rem;
+    color: $textSubtleColor;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+
+    // closed is bright, not in a colour: the colours belong to the players
+    &.is-closed {
+        color: $textDefaultColor;
+    }
+}
+
+.cricket-points {
+    color: #ffc94d;
+    font-size: 0.75rem;
+    font-weight: 700;
+}

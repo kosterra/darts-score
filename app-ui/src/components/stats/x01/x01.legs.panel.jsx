@@ -23,7 +23,7 @@ const X01LegsPanel = ({ game, players, legs }) => {
     const legName = (leg) => severalSets ? `Set ${leg.set} · Leg ${leg.legInSet}` : `Leg ${leg.legInSet}`;
 
     const Who = ({ id }) => id
-        ? <span className="d-inline-flex align-items-center text-nowrap"><span className="x01-result-dot" style={{ background: PLAYER_COLORS[indexOf.get(id)] }} aria-hidden="true" />{nameOf(id)}</span>
+        ? <span className="d-inline-flex align-items-center text-nowrap"><span className="result-hero-dot" style={{ background: PLAYER_COLORS[indexOf.get(id)] }} aria-hidden="true" />{nameOf(id)}</span>
         : <span className="text-faint">–</span>;
 
     return (

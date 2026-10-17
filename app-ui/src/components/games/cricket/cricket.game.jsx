@@ -6,9 +6,8 @@ import { PiShuffle, PiUserSwitch } from "react-icons/pi";
 import { MdReplay } from "react-icons/md";
 
 import CricketContext from '../../../utils/cricket.context';
-import CricketModels from '../../../models/cricket.models';
 import CricketService from '../../../services/cricket.service';
-import { shufflePlayers as shuffle } from '../../../utils/game.utils';
+import { cricketRematch } from '../../../utils/cricket.rematch';
 import CricketScoreBoard from './cricket.scoreboard';
 import CricketScoreInputBoard from './cricket.score.input.board';
 import PageLoader from '../../elements/page.loader';
@@ -37,30 +36,7 @@ const CricketGame = () => {
     const onFinishGame = () => navigate("/", { replace: true });
 
     const onRestartGame = async (switchPlayers = false, shufflePlayers = false) => {
-        const newMatchSetup = { ...CricketModels.CricketGameModel };
-        newMatchSetup.isSoloGame = game.players.length === 1;
-        newMatchSetup.startingScore = game.startingScore;
-        newMatchSetup.numberOfPlayers = game.players.length;
-
-        if (switchPlayers) {
-            newMatchSetup.players = game.players.slice().reverse();
-        } else if (shufflePlayers) {
-            newMatchSetup.players = shuffle(game.players);
-        } else {
-            newMatchSetup.players = [...game.players];
-        }
-
-        newMatchSetup.currentPlayerTurn = newMatchSetup.players[0];
-        newMatchSetup.playerModels = {};
-
-        newMatchSetup.players.forEach(player => {
-            newMatchSetup.playerModels[player] = {
-                ...CricketModels.CricketPlayerModel,
-                score: Number(game.startingScore)
-            };
-        });
-
-        const newGame = await CricketService.createCricketGame(newMatchSetup);
+        const newGame = await CricketService.createCricketGame(cricketRematch(game, { switchPlayers, shuffle: shufflePlayers }));
         navigate('/cricket/' + newGame.id);
     };
 
@@ -115,6 +91,14 @@ const CricketGame = () => {
                                     { label: 'Switch Players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
                                     { label: 'Shuffle Players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
                                 ]}
+                            />
+                            <Button
+                                label="STATISTICS"
+                                icon="pi pi-chart-bar"
+                                onClick={() => navigate(`/stats/games/cricket/${game.id}`)}
+                                size="small"
+                                outlined
+                                severity="primary"
                             />
                             <Button
                                 label="NEW GAME"

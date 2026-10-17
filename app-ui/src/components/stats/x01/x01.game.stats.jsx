@@ -13,8 +13,9 @@ import PlayerService from '../../../services/player.service';
 import X01Models from '../../../models/x01.models';
 import X01Service from '../../../services/x01.service';
 import { shufflePlayers as shuffle } from '../../../utils/game.utils';
-import X01ResultHeader from './x01.result.header';
-import X01MatchMoments from './x01.match.moments';
+import GameResultHeader from '../common/game.result.header';
+import MatchMoments from '../common/match.moments';
+import { plural, whenPlayed } from '../common/game.text';
 import X01LegsPanel from './x01.legs.panel';
 import X01StatsComparisonBars from './x01.stats.comparison.bars';
 import { legsOf, playerFigures, matchMoments } from '../../../utils/x01.game.summary';
@@ -26,6 +27,18 @@ import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
 import { sectionHitsOf } from '../charts/chart.theme';
 import PageLoader from '../../elements/page.loader';
 import GameBadges from '../../badges/game.badges';
+
+// the key figures of every player in the header; for the best leg less wins
+const FIGURES = [
+    { key: 'average', label: '3-dart average' },
+    { key: 'firstNine', label: 'First 9 average' },
+    { key: 'checkoutRate', label: 'Checkout', format: (value) => `${value} %`, detail: (figures) => figures.checkoutDetail },
+    { key: 'highestCheckout', label: 'Highest checkout' },
+    { key: 'bestLeg', label: 'Best leg', format: (value) => `${value} darts`, lowerIsBetter: true },
+    { key: 'highestVisit', label: 'Highest visit' },
+    { key: 'oneEighties', label: '180s' },
+    { key: 'dartsThrown', label: 'Darts thrown', neutral: true },
+];
 
 // a heading above a group of charts
 const SectionTitle = ({ children }) => <h2 className="stats-section-title">{children}</h2>;
@@ -122,6 +135,7 @@ const X01GameStats = () => {
 
     if (!game || !players) return <PageLoader />;
 
+    const bySets = game.numberOfSets > 1;
     const barsScopes = [
         { label: 'Whole game', value: 'game' },
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: `Set ${i + 1}`, value: `set-${i + 1}` })),
@@ -148,8 +162,21 @@ const X01GameStats = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <div className="x01-stats-page">
-                <X01ResultHeader game={game} players={players} figures={figures} actions={actions} />
+            <div className="game-stats-page">
+                <GameResultHeader
+                    game={game}
+                    players={players}
+                    title={`${game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
+                    subtitle={`${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
+                    // sets decide when more than one could be played, otherwise legs
+                    scoreOf={(player) => bySets ? game.playerModels[player.id]?.setsWon ?? 0 : figures[player.id]?.legsWon ?? 0}
+                    scoreDetailOf={(player) => bySets
+                        ? `${plural(game.playerModels[player.id]?.setsWon ?? 0, 'set')} · ${plural(figures[player.id]?.legsWon ?? 0, 'leg')}`
+                        : plural(figures[player.id]?.legsWon ?? 0, 'leg')}
+                    rows={FIGURES}
+                    figures={figures}
+                    actions={actions}
+                />
 
                 <GameBadges
                     gameType="x01"
@@ -160,7 +187,7 @@ const X01GameStats = () => {
                     className="mb-4"
                 />
 
-                <X01MatchMoments moments={moments} players={players} />
+                <MatchMoments moments={moments} players={players} />
 
                 <X01LegsPanel game={game} players={players} legs={legs} />
 
@@ -199,7 +226,7 @@ const X01GameStats = () => {
 
                 <SectionTitle>On the board</SectionTitle>
                 <div className="row g-4">
-                    <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} /></div>
+                    <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} gameName="this game" /></div>
                 </div>
             </div>
         </div>
