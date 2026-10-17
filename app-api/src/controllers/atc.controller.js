@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { syncPlayerBadges } from '../utils/badge.service.js';
+import { noteCreated, checkLater } from '../utils/spam.guard.js';
 
 const ATC = db.atc;
 
@@ -13,7 +14,7 @@ export const create = async (req, res) => {
     try {
         const playerId = req.body.player?.id;
         const player = db.mongoose.isValidObjectId(playerId)
-            ? await db.player.findOne({ _id: playerId, club: req.club._id })
+            ? await db.player.findOne({ _id: playerId, clubs: req.club._id })
             : null;
 
         const previousBest = player
@@ -22,6 +23,7 @@ export const create = async (req, res) => {
 
         const atc = new ATC({ ...req.body, club: req.club._id });
         const data = await atc.save();
+        checkLater(() => noteCreated(req, 'training', { id: data._id, name: 'Around the Clock', names: [] }));
 
         let newBadges = [];
         if (player && !player.guest) {

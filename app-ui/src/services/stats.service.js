@@ -6,9 +6,11 @@ import {
 const API_URL = '/api/';
 
 // Public methods to export
-const loadPlayerStats = async (playerId) => {
+// filters: { scope, period, from, to, lastGames, startingScore, setMode, numberOfSets, legMode, numberOfLegs }
+const loadPlayerStats = async (playerId, filters = {}) => {
+    const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value != null && value !== '')).toString();
     try {
-        const response = await fetch(API_URL + 'stats/player/' + playerId, {
+        const response = await fetch(API_URL + 'stats/player/' + playerId + (query ? `?${query}` : ''), {
             method: 'GET',
             headers: getHeaders(false)
         });

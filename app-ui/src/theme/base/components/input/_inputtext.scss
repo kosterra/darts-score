@@ -48,6 +48,11 @@
     font-weight: 600;
 }
 
+// the label of the focused field, floated above it
+.p-float-label:focus-within > label {
+    color: $shade100;
+}
+
 .p-float-label > label.p-error {
     color: $errorColor;
 }

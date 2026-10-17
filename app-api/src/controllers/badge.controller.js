@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { BADGES, BADGE_CATEGORIES, currentWeekStreak, getBadge } from '../utils/badges.js';
 import { GAME_MODELS, syncPlayerBadges, syncGameBadges } from '../utils/badge.service.js';
+import { knownInClub } from '../models/player.model.js';
 
 /**
  * All badges for one player: the earned ones with their date and the open
@@ -9,7 +10,10 @@ import { GAME_MODELS, syncPlayerBadges, syncGameBadges } from '../utils/badge.se
  */
 export const getPlayerBadges = async (req, res) => {
     logger.debug('player badges called');
-    const player = await db.player.findOne({ _id: req.params.id, club: req.club._id });
+    const player = db.mongoose.isValidObjectId(req.params.id)
+        ? await db.player.findOne({ _id: req.params.id, ...knownInClub(req.club._id) })
+        : null;
+    if (!player) return res.status(404).json({ message: 'Player not found.' });
     const { metrics } = await syncPlayerBadges(player);
     const earnedById = new Map(player.badges.map(entry => [entry.badge, entry]));
 
@@ -52,7 +56,7 @@ export const getGameBadges = async (req, res) => {
     if (game.hasWinner) await syncGameBadges(req.club._id, game);
 
     const ids = (game.players ?? []).filter(playerId => db.mongoose.isValidObjectId(playerId));
-    const players = await db.player.find({ _id: { $in: ids }, club: req.club._id }, 'badges').lean();
+    const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) }, 'badges').lean();
 
     res.json({
         finished: Boolean(game.hasWinner),
@@ -74,7 +78,7 @@ const LATEST_BADGES = 3;
 export const getClubBadges = async (req, res) => {
     logger.debug('club badges called');
     const players = await db.player
-        .find({ club: req.club._id, guest: { $ne: true } }, 'firstname lastname nickname profileImg badges activity')
+        .find({ clubs: req.club._id, guest: { $ne: true } }, 'firstname lastname nickname profileImg badges activity')
         .lean();
 
     res.json({

@@ -16,18 +16,57 @@ const loadPlayers = (clubIds) => requestJSON(`${API_URL}/players${query(clubIds)
 const loadGames = (clubIds) => requestJSON(`${API_URL}/games${query(clubIds)}`);
 const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(clubIds)}`);
 
+// a player's clubs, and deleting a player from every club
+const addPlayerToClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs`, { method: 'POST', body: { club: clubId } });
+const removePlayerFromClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs/${clubId}`, { method: 'DELETE' });
+const deletePlayer = (playerId) => requestJSON(`${API_URL}/players/${playerId}`, { method: 'DELETE' });
+
 // the banner on top of every page, as global admins edit it
 const loadBannerSettings = () => requestJSON(`${API_URL}/banner`);
 const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT', body: banner });
 
+// warnings and errors of the API
+const loadLogs = ({ level = 'all', search = '' } = {}) =>
+    requestJSON(`${API_URL}/logs?level=${encodeURIComponent(level)}&search=${encodeURIComponent(search)}`);
+const clearLogs = () => requestJSON(`${API_URL}/logs`, { method: 'DELETE' });
+
+// spam alerts, the rules behind them and what is blocked
+const loadAlerts = (status = 'open') => requestJSON(`${API_URL}/alerts?status=${encodeURIComponent(status)}`);
+const loadAlertSummary = () => requestJSON(`${API_URL}/alerts/summary`);
+const loadAlertRules = () => requestJSON(`${API_URL}/alerts/rules`);
+const resolveAlert = (id) => requestJSON(`${API_URL}/alerts/${id}/resolve`, { method: 'PUT' });
+const reopenAlert = (id) => requestJSON(`${API_URL}/alerts/${id}/reopen`, { method: 'PUT' });
+const resolveAllAlerts = () => requestJSON(`${API_URL}/alerts/resolve-all`, { method: 'PUT' });
+const loadBlocks = () => requestJSON(`${API_URL}/blocks`);
+const blockUser = (id, reason) => requestJSON(`${API_URL}/blocks/users/${id}`, { method: 'PUT', body: { reason } });
+const unblockUser = (id) => requestJSON(`${API_URL}/blocks/users/${id}`, { method: 'DELETE' });
+const blockIp = (ip, reason, hours) => requestJSON(`${API_URL}/blocks/ips`, { method: 'POST', body: { ip, reason, hours } });
+const unblockIp = (id) => requestJSON(`${API_URL}/blocks/ips/${id}`, { method: 'DELETE' });
+
 const AdminService = {
+    loadLogs,
+    clearLogs,
+    loadAlerts,
+    loadAlertSummary,
+    loadAlertRules,
+    resolveAlert,
+    reopenAlert,
+    resolveAllAlerts,
+    loadBlocks,
+    blockUser,
+    unblockUser,
+    blockIp,
+    unblockIp,
     loadBannerSettings,
     saveBanner,
     loadOverview,
     loadClubs,
     loadPlayers,
     loadGames,
-    loadTrainings
+    loadTrainings,
+    addPlayerToClub,
+    removePlayerFromClub,
+    deletePlayer,
 };
 
 export default AdminService;

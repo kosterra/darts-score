@@ -2,6 +2,8 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
+import { addToClub, removeFromClub } from './player.controller.js';
+import { removeProfileImageFile } from './file.controller.js';
 
 const GAME_MODELS = [db.x01, db.cricket, db.elimination];
 
@@ -14,14 +16,28 @@ const perClub = async (model, group) => {
 };
 
 /**
+ * Members per club, guests left out; a player counts in each of their clubs.
+ */
+const membersPerClub = async () => {
+    const rows = await db.player.aggregate([
+        { $match: { guest: { $ne: true } } },
+        { $unwind: '$clubs' },
+        { $group: { _id: '$clubs', count: { $sum: 1 } } },
+    ]);
+    return new Map(rows.map(row => [String(row._id), row]));
+};
+
+/**
  * What a global admin looks after: every club with its admins and activity,
  * totals and the state of the installation.
  */
 export const overview = async (req, res) => {
     logger.debug('admin overview called');
-    const [clubs, players, gameStats, userCount, migrations, dbStats] = await Promise.all([
+    const [clubs, players, playerTotal, gameStats, userCount, migrations, dbStats] = await Promise.all([
         db.club.find({}).sort({ name: 1 }).populate('admins', 'firstname lastname email role'),
-        perClub(db.player, { count: { $sum: { $cond: [{ $eq: ['$guest', true] }, 0, 1] } } }),
+        membersPerClub(),
+        // each person once, even when they play in several clubs
+        db.player.countDocuments({ guest: { $ne: true }, 'clubs.0': { $exists: true } }),
         Promise.all(GAME_MODELS.map(model => perClub(model, { count: { $sum: 1 }, last: { $max: '$updatedAt' } }))),
         db.user.countDocuments(),
         db.mongoose.connection.collection('migrations').find({}).sort({ appliedAt: 1 }).toArray(),
@@ -52,7 +68,7 @@ export const overview = async (req, res) => {
         totals: {
             clubs: clubRows.length,
             users: userCount,
-            players: clubRows.reduce((sum, club) => sum + club.playerCount, 0),
+            players: playerTotal,
             games: clubRows.reduce((sum, club) => sum + club.gameCount, 0),
         },
         clubs: clubRows,
@@ -91,12 +107,74 @@ const selectedClubs = async (req, res) => {
 // each record tells which club it belongs to
 const withClub = (clubsById, extra = {}) => (doc) => ({ ...doc.toJSON(), ...extra, club: clubsById.get(String(doc.club)) });
 
+/**
+ * Players of the chosen clubs, each with all the clubs they are a member of.
+ */
 export const players = async (req, res) => {
     logger.debug('admin players called');
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
-    const found = await db.player.find({ club: { $in: [...clubsById.keys()] } }).sort({ nickname: 1 });
-    res.json(found.map(withClub(clubsById)));
+    const [found, allClubs] = await Promise.all([
+        db.player.find({ clubs: { $in: [...clubsById.keys()] } }).sort({ nickname: 1 }),
+        db.club.find({}, 'name logo'),
+    ]);
+    const clubInfo = new Map(allClubs.map(club => [String(club._id), { id: club._id, name: club.name, logo: club.logo }]));
+    res.json(found.map(player => ({
+        ...player.toJSON(),
+        clubs: player.clubs.map(id => clubInfo.get(String(id))).filter(Boolean),
+    })));
+};
+
+const loadPlayer = async (req, res) => {
+    const player = db.mongoose.isValidObjectId(req.params.id) ? await db.player.findById(req.params.id) : null;
+    if (!player) res.status(404).json({ message: 'Player not found.' });
+    return player;
+};
+
+/**
+ * Makes a player a member of one more club.
+ */
+export const addPlayerToClub = async (req, res) => {
+    const player = await loadPlayer(req, res);
+    if (!player) return;
+    const club = await db.club.findById(req.body.club);
+    if (!club) return res.status(404).json({ message: 'Club not found.' });
+
+    const error = await addToClub(player, club);
+    if (error) return res.status(409).json({ message: error });
+    logger.info(`Player "${player.nickname}" added to club "${club.name}" by ${req.user.email}`);
+    res.json(player);
+};
+
+/**
+ * Ends a player's membership in a club. The last club cannot be taken away:
+ * a player without a club is deleted instead.
+ */
+export const removePlayerFromClub = async (req, res) => {
+    const player = await loadPlayer(req, res);
+    if (!player) return;
+    const clubId = req.params.clubId;
+    if (!player.clubs.some(id => id.equals(clubId))) {
+        return res.status(404).json({ message: 'The player is not a member of this club.' });
+    }
+    if (player.clubs.length === 1) {
+        return res.status(409).json({ message: `This is the only club of ${player.nickname}. Delete the player instead.` });
+    }
+    await removeFromClub(player, player.clubs.find(id => id.equals(clubId)));
+    logger.info(`Player "${player.nickname}" removed from a club by ${req.user.email}`);
+    res.json(player);
+};
+
+/**
+ * Deletes a player from every club. Their games stay, without the name.
+ */
+export const deletePlayer = async (req, res) => {
+    const player = await loadPlayer(req, res);
+    if (!player) return;
+    await player.deleteOne();
+    removeProfileImageFile(player.profileImg);
+    logger.info(`Player "${player.nickname}" deleted by ${req.user.email}`);
+    res.json({ message: 'Player deleted.' });
 };
 
 export const games = async (req, res) => {

@@ -34,12 +34,28 @@ import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
+import { startErrorLog } from './src/utils/error.log.js';
+import { clientIp } from './src/utils/spam.guard.js';
 
 const { UI_URL } = process.env;
 
 logger.info(`Logger level: ${logger.level}`);
+// warnings and errors are also kept for the error log of global admins
+startErrorLog();
+
+process.on('unhandledRejection', (reason) => logger.error({ err: reason }, 'Unhandled promise rejection'));
+process.on('uncaughtException', (err) => {
+    logger.fatal(err, 'Uncaught exception, stopping');
+    // a moment to save the entry to the error log
+    setTimeout(() => process.exit(1), 500).unref();
+});
 
 const app = express();
+
+// The address of the client is needed by the spam rules. Behind a reverse
+// proxy it comes from X-Forwarded-For, trusted from proxies on the local or
+// private network (Docker, a proxy on the same server) unless TRUST_PROXY says otherwise.
+app.set('trust proxy', process.env.TRUST_PROXY || 'loopback, linklocal, uniquelocal');
 
 // ---------------------------------------------------------------------------
 // CORS
@@ -161,8 +177,10 @@ app.use((req, res) => {
 // ---------------------------------------------------------------------------
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-    logger.error(err);
     const status = err.status || err.statusCode || 500;
+    // what failed, for the error log; client mistakes (bad JSON, too large) are only warnings
+    const request = { method: req.method, url: req.originalUrl, user: req.user?.email, ip: clientIp(req) };
+    logger[status >= 500 ? 'error' : 'warn']({ err, request }, `${req.method} ${req.originalUrl} failed: ${err.message}`);
     const message = process.env.NODE_ENV === 'production' ? 'Internal server error.' : err.message;
     res.status(status).json({ message });
 });

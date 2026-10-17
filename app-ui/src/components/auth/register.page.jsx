@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
@@ -14,6 +14,9 @@ const RegisterPage = () => {
     const { register } = useAuth();
 
     const [account, setAccount] = useState({ firstname: '', lastname: '', email: '', password: '' });
+    // against bots: a field people never see, and how long the form was open
+    const [website, setWebsite] = useState('');
+    const openedAt = useRef(Date.now());
     const [passwordRepeat, setPasswordRepeat] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -31,7 +34,7 @@ const RegisterPage = () => {
         setError('');
         setSubmitting(true);
         try {
-            await register(account);
+            await register({ ...account, website, formTimeMs: Date.now() - openedAt.current });
         } catch (err) {
             setError(err.message);
             setSubmitting(false);
@@ -44,6 +47,10 @@ const RegisterPage = () => {
                 <span className="fs-7 text-subtle">
                     Create your account, then set up your own club and add its players. To join an existing club as a player, ask its admin for a login instead.
                 </span>
+                <div className="register-website" aria-hidden="true">
+                    <label htmlFor="register-website">Website</label>
+                    <input id="register-website" name="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                </div>
                 <span className="p-float-label w-100">
                     <InputText id="register-firstname" autoComplete="given-name" value={account.firstname} onChange={onChange('firstname')} className="w-100" required />
                     <label htmlFor="register-firstname">Firstname</label>

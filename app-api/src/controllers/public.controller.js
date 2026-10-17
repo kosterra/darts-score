@@ -72,8 +72,9 @@ const buildOverview = async () => {
         ),
         loadGames({ hasWinner: true }, idsWhere('publicResults'), MAX_RESULTS),
         db.player.aggregate([
-            { $match: { club: { $in: publicClubs.map(club => club._id) }, guest: { $ne: true } } },
-            { $group: { _id: '$club', count: { $sum: 1 } } },
+            { $match: { clubs: { $in: publicClubs.map(club => club._id) }, guest: { $ne: true } } },
+            { $unwind: '$clubs' },
+            { $group: { _id: '$clubs', count: { $sum: 1 } } },
         ]),
         Promise.all([
             db.club.countDocuments(),

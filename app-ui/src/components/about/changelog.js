@@ -7,6 +7,10 @@ const CHANGELOG = [
         version: 'Next release',
         changes: [
             'Darts Score is now called Oche, after the line darts players throw from.',
+            'A player can be a member of several clubs: one profile, with badges from every club. Removing a player from a club keeps their games there.',
+            'Global admins add players to clubs, remove them and create new players for any club.',
+            'Protection against spam: suspicious registrations and accounts creating masses of clubs, players or games are blocked, and global admins see alerts.',
+            'Global admins have an error log and their own list of all clubs.',
         ],
     },
     {

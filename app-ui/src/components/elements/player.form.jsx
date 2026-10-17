@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import { Toast } from 'primereact/toast';
@@ -11,8 +12,14 @@ import PlayerService from '../../services/player.service';
 import PlayerModel from '../../models/player.model';
 import { resolvePlayerImg } from '../../utils/image.utils';
 
-const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit }) => {
+/**
+ * Adds or edits a player. With "clubs" (global admins) a new player can be
+ * added to any of these clubs, "defaultClubId" first; otherwise to the selected club.
+ */
+const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defaultClubId, label }) => {
     const toast = useRef(null);
+    const choosesClub = !edit && Array.isArray(clubs);
+    const [clubId, setClubId] = useState(null);
     const initialState = updatePlayer ?? PlayerModel;
 
     const [showDialog, setShowDialog] = useState(false);
@@ -97,14 +104,14 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit }) => {
             }
         } else {
             try {
-                if (await PlayerService.createPlayer(formData)) {
+                if (await PlayerService.createPlayer(formData, choosesClub ? clubId : undefined)) {
                     toast.current.show({
                         severity: 'success',
                         summary: 'Create Player',
                         detail: 'Successfully created player: ' + data.nickname,
                         life: 3000
                     });
-                    onPlayerAdd();
+                    onPlayerAdd(choosesClub ? clubId : undefined);
                 }
             } catch (error) {
                 toast.current.show({
@@ -134,7 +141,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit }) => {
     const footerContent = (
         <div className="d-flex justify-content-end align-items-end gap-3">
             <Button type="button" label="Close" icon="pi pi-times" severity="secondary" onClick={resetDialog} />
-            <Button type="submit" label={edit ? 'Update' : 'Create'} icon="pi pi-save" />
+            <Button type="submit" label={edit ? 'Update' : 'Create'} icon="pi pi-save" disabled={choosesClub && !clubId} />
         </div>
     );
 
@@ -142,6 +149,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit }) => {
         // Reset image state to current player image when reopening the dialog
         setPreviewUrl(edit ? resolvePlayerImg(updatePlayer?.profileImg ?? '') : '');
         setImageAction('unchanged');
+        if (choosesClub) setClubId(clubs.some(club => club.id === defaultClubId) ? defaultClubId : null);
         setShowDialog(true);
     };
 
@@ -168,6 +176,24 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit }) => {
                             />
                         </div>
                         <div className="col d-flex flex-column justify-content-center align-items-center p-2 pt-4 gap-4">
+                            {choosesClub &&
+                                <div className="py-1 w-100 w-sm-50">
+                                    <span className="p-float-label w-100">
+                                        <Dropdown
+                                            inputId="player-club"
+                                            value={clubId}
+                                            options={clubs}
+                                            optionLabel="name"
+                                            optionValue="id"
+                                            onChange={(e) => setClubId(e.value)}
+                                            filter={clubs.length > 8}
+                                            className="w-100"
+                                        />
+                                        <label htmlFor="player-club">Club</label>
+                                    </span>
+                                    <small className="text-faint">&nbsp;</small>
+                                </div>
+                            }
                             <div className="py-1 w-100 w-sm-50">
                                 <span className="p-float-label w-100">
                                     <Controller
@@ -232,6 +258,8 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit }) => {
                 <Button
                     severity="primary"
                     icon={edit ? 'pi pi-user-edit' : 'pi pi-user-plus'}
+                    label={label}
+                    size={label ? 'small' : undefined}
                     onClick={handleOpen}
                 />
             </div>

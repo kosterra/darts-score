@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
+import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
@@ -8,6 +9,8 @@ import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import UserService, { ROLES, ROLE_LABELS, CLUB_ROLES } from '../../services/user.service';
+import AdminService from '../../services/admin.service';
+import { announceAlertsChange } from './alert.events';
 import DeletePopup from '../elements/delete.popup';
 import { useAuth } from '../../utils/auth.context';
 
@@ -53,11 +56,24 @@ const UsersList = () => {
         }
     };
 
+    const onToggleBlocked = async (user) => {
+        try {
+            if (user.blockedAt) await AdminService.unblockUser(user.id);
+            else await AdminService.blockUser(user.id, `Blocked by ${currentUser.email}`);
+            await loadUsers();
+            announceAlertsChange();
+            toast.current.show({ severity: 'success', summary: user.blockedAt ? 'Account unblocked' : 'Account blocked', detail: user.email, life: 3000 });
+        } catch (error) {
+            showError(user.blockedAt ? 'Unblock account' : 'Block account', error);
+        }
+    };
+
     const isSelf = (user) => user.id === currentUser.id;
 
     const nameBody = (user) => (
         <span className="text-default fw-semibold">
             {user.firstname} {user.lastname}{isSelf(user) && <span className="text-faint fw-normal"> (you)</span>}
+            {user.blockedAt && <Tag value="Blocked" severity="danger" className="ms-2" title={user.blockedReason} />}
         </span>
     );
 
@@ -84,7 +100,17 @@ const UsersList = () => {
     const formatDate = (value) => value ? dayjs(value).format('DD.MM.YYYY') : 'Never';
 
     const actionBody = (user) => isSelf(user) ? null : (
-        <div className="d-flex justify-content-end">
+        <div className="row-actions">
+            {user.role !== ROLES.GLOBAL_ADMIN &&
+                <Button
+                    icon={user.blockedAt ? 'pi pi-unlock' : 'pi pi-ban'}
+                    severity={user.blockedAt ? 'secondary' : 'danger'}
+                    aria-label={user.blockedAt ? `Unblock ${user.email}` : `Block ${user.email}`}
+                    tooltip={user.blockedAt ? `Blocked: ${user.blockedReason || 'no reason given'}. Unblock` : 'Block: logs the account out and stops it from logging in'}
+                    tooltipOptions={{ position: 'top' }}
+                    onClick={() => onToggleBlocked(user)}
+                />
+            }
             <DeletePopup
                 data={user}
                 header="Delete User"

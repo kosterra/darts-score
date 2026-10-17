@@ -8,6 +8,9 @@ import atcModel from './atc.model.js';
 import userModel from './user.model.js';
 import clubModel from './club.model.js';
 import settingModel from './setting.model.js';
+import logEntryModel from './log.entry.model.js';
+import alertModel from './alert.model.js';
+import blockedIpModel from './blocked.ip.model.js';
 
 const db = {
   mongoose,
@@ -20,6 +23,9 @@ const db = {
   user: userModel(mongoose),
   club: clubModel(mongoose),
   setting: settingModel(mongoose),
+  logEntry: logEntryModel(mongoose),
+  alert: alertModel(mongoose),
+  blockedIp: blockedIpModel(mongoose),
 };
 
 export default db;

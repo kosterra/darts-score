@@ -497,11 +497,18 @@ $momentGoldColor: #ffc94d;
     }
 }
 
-// Filters of the player comparison, inside its header below the players
+// Filters of the player comparison and the profile, inside their header
 .comparison-filters-divider {
     height: 1px;
     background: $surfaceHighColor;
     margin: 0.25rem 0;
+}
+
+// the profile's figures while they reload for other filters
+.is-refreshing {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity $transitionDuration;
 }
 
 .comparison-filters {
@@ -515,7 +522,7 @@ $momentGoldColor: #ffc94d;
     column-gap: 1.75rem;
     row-gap: 1rem;
 
-    .p-selectbutton .p-button,
+    .p-selectbutton:not(.p-selectbutton-pills) .p-button,
     .p-dropdown,
     .p-calendar .p-inputtext {
         height: var(--filter-height);
@@ -525,15 +532,19 @@ $momentGoldColor: #ffc94d;
         align-items: center;
     }
 
-    // short choices like "5" or "1 W" as real pills, not circles
+    // short choices like "5" or "1 W" as pills as high as on the game
+    // configuration pages; their row is as high as the other controls, so
+    // they sit centred next to them
     .p-selectbutton.p-selectbutton-pills {
         width: auto;
+        height: var(--filter-height);
+        align-items: center;
         gap: 0.4rem;
 
         .p-button {
             flex: 0 0 auto;
             min-width: 3rem;
-            padding: 0 0.9rem;
+            padding: 0.4rem 0.9rem;
             border-radius: 2rem !important;
         }
     }

@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { requireGlobalAdmin } from '../middleware/auth.middleware.js';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
+import * as SecurityController from '../controllers/security.controller.js';
 
 export default (app) => {
     const router = Router();
@@ -15,6 +16,10 @@ export default (app) => {
     router.get('/clubs', AdminController.clubs);
     // players, games and trainings of the clubs in ?clubs=id1,id2
     router.get('/players', AdminController.players);
+    // a player's clubs, and deleting a player from every club
+    router.post('/players/:id/clubs', param('id').isMongoId(), body('club').isMongoId().withMessage('Choose a club.'), validate, AdminController.addPlayerToClub);
+    router.delete('/players/:id/clubs/:clubId', param('id').isMongoId(), param('clubId').isMongoId(), validate, AdminController.removePlayerFromClub);
+    router.delete('/players/:id', param('id').isMongoId(), validate, AdminController.deletePlayer);
     router.get('/games', AdminController.games);
     router.get('/trainings', AdminController.trainings);
 
@@ -28,6 +33,30 @@ export default (app) => {
         validate,
         updateBanner,
     );
+
+    // warnings and errors of the API
+    router.get('/logs', SecurityController.logs);
+    router.delete('/logs', SecurityController.clearLogs);
+
+    // spam alerts and what the rules blocked
+    const idParam = param('id').isMongoId().withMessage('Invalid id.');
+    router.get('/alerts', SecurityController.alerts);
+    router.get('/alerts/summary', SecurityController.alertSummary);
+    router.get('/alerts/rules', SecurityController.rules);
+    router.put('/alerts/resolve-all', SecurityController.resolveAllAlerts);
+    router.put('/alerts/:id/resolve', idParam, validate, SecurityController.resolveAlert);
+    router.put('/alerts/:id/reopen', idParam, validate, SecurityController.reopenAlert);
+    router.get('/blocks', SecurityController.blocks);
+    router.put('/blocks/users/:id', idParam, body('reason').optional().isString().isLength({ max: 200 }), validate, SecurityController.blockAccount);
+    router.delete('/blocks/users/:id', idParam, validate, SecurityController.unblockAccount);
+    router.post('/blocks/ips',
+        body('ip').isString().withMessage('An address is required.'),
+        body('reason').optional().isString().isLength({ max: 200 }),
+        body('hours').optional({ values: 'null' }).isFloat({ min: 0, max: 24 * 365 }).withMessage('Hours must be a number.'),
+        validate,
+        SecurityController.blockAddress,
+    );
+    router.delete('/blocks/ips/:id', idParam, validate, SecurityController.unblockAddress);
 
     app.use('/api/admin', router);
 };

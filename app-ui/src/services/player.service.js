@@ -11,11 +11,12 @@ const errorMessageOf = async (response) => {
     return data.errors?.join(' ') || data.message || response.statusText;
 };
 
-const createPlayer = async (formData) => {
+// clubId: the club to add the player to, the selected club when left out
+const createPlayer = async (formData, clubId) => {
     try {
         const response = await fetch(API_URL + 'players', {
             method: 'POST',
-            headers: getHeaders(false), // no Content-Type: let browser set multipart boundary
+            headers: getHeaders(false, clubId), // no Content-Type: let browser set multipart boundary
             body: formData
         });
         if (!response.ok) throw new Error(await errorMessageOf(response));
@@ -111,7 +112,8 @@ const deletePlayer = async (playerId, clubId) => {
             headers: getHeaders(false, clubId)
         });
         if (!response.ok) throw new Error(response.statusText);
-        return response.ok;
+        // removed: "player" when deleted, "membership" when the player only left this club
+        return await response.json().catch(() => ({ removed: 'player' }));
     } catch (error) {
         throw new Error(error.message);
     }

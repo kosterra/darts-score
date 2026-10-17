@@ -4,12 +4,18 @@ import { ROLES } from '../models/user.model.js';
 import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
 import { isMailConfigured, sendMail } from '../utils/mail.utils.js';
+import { checkRegistration, noteRegistration, checkLater } from '../utils/spam.guard.js';
+
+export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
 const User = db.user;
 
 export const register = async (req, res) => {
     logger.debug('auth register called');
     const { email, password, firstname, lastname } = req.body;
+
+    const refused = await checkRegistration(req);
+    if (refused) return res.status(refused.status).json({ message: refused.message });
 
     if (await User.exists({ email })) {
         return res.status(409).json({ message: 'An account with this email already exists.' });
@@ -23,6 +29,7 @@ export const register = async (req, res) => {
         role: ROLES.USER,
     });
     logger.info(`Registered user ${user.email}`);
+    checkLater(() => noteRegistration(req, user));
 
     setSessionCookie(req, res, user);
     res.status(201).json(user);
@@ -37,6 +44,7 @@ export const login = async (req, res) => {
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
         return res.status(401).json({ message: 'Email or password is wrong.' });
     }
+    if (user.blockedAt) return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
 
     user.lastLoginAt = new Date();
     await user.save({ timestamps: false });

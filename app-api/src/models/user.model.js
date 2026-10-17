@@ -18,6 +18,9 @@ export default (mongoose) => {
       resetTokenExpires: { type: Date, default: null },
       // Shown to global admins, to spot accounts nobody uses
       lastLoginAt:       { type: Date, default: null },
+      // A blocked account cannot log in or use the API, e.g. one a spam rule caught
+      blockedAt:         { type: Date, default: null },
+      blockedReason:     { type: String, default: '' },
     },
     { timestamps: true }
   );

@@ -1,5 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
+import { knownInClub } from '../models/player.model.js';
 import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insights.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
 
@@ -119,7 +120,8 @@ export const getClubStats = async (req, res) => {
     const filter = { club: club._id };
 
     const [players, gamesByType] = await Promise.all([
-        db.player.find(filter, 'firstname lastname nickname profileImg guest activity').lean(),
+        // former members too: their games still count in the club's leaderboards
+        db.player.find(knownInClub(club._id), 'firstname lastname nickname profileImg guest activity').lean(),
         Promise.all(GAME_TYPES.map(async ({ type, model }) => ({ type, games: await model().find(filter).lean() }))),
     ]);
 
@@ -205,12 +207,13 @@ export const getPlayerGames = async (req, res) => {
 
 /**
  * The level of every club member, for lists of players: { [playerId]: { name, index, xp } }.
+ * A level belongs to the person, so it counts their games in all their clubs.
  */
 export const getPlayerLevels = async (req, res) => {
     logger.debug('player levels called');
-    const filter = { club: req.club._id, gameIsRunning: false };
-    const [players, x01, cricket, elimination] = await Promise.all([
-        db.player.find({ club: req.club._id, guest: { $ne: true } }, 'badges').lean(),
+    const players = await db.player.find({ ...knownInClub(req.club._id), guest: { $ne: true } }, 'badges').lean();
+    const filter = { players: { $in: players.map(player => String(player._id)) }, gameIsRunning: false };
+    const [x01, cricket, elimination] = await Promise.all([
         db.x01.find(filter).lean(),
         db.cricket.find(filter).lean(),
         db.elimination.find(filter).lean(),
