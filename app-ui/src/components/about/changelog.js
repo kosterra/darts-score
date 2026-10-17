@@ -4,6 +4,18 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.8',
+        changes: [
+            'Club admins who run several clubs move players from one of their clubs to another, add them to a second club or remove them from a club.',
+            'Player comparison: the latest winners use the whole width, the games together sit next to the figures, and the better value shows its lead (e.g. 109 +22).',
+            'Average over time on the profile and in the comparison: with more than 30 games one point per month (or per quarter over three years) instead of one per game.',
+            'Player comparison: with more than 30 games together the legs won are added up per month (or per quarter) instead of a bar per game.',
+            'Fix: "Where the darts land" now counts hits on the 2 and on the bull; they were left out on the profile, in the comparison and on the X01 game statistics.',
+            '"Where the darts land" is easier to read: clearer shading, each player\'s five most hit fields as a list, and every field\'s share of the darts on hovering.',
+            '"Favourite doubles": a wide ring shaded by how often each double was tried, the six most tried doubles with their checkout rate, and the best double among those tried at least 10 times.',
+        ],
+    },
+    {
         version: '2026.10.7',
         changes: [
             'Darts Score is now called Oche, after the line darts players throw from.',

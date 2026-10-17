@@ -28,12 +28,14 @@ const PlayersX01StatsComparisonBars = ({ playersX01Stats, players }) => {
             label: 'Checkout',
             values: totals.map((total, index) => total ? hits[index] / total : 0),
             texts: totals.map((total, index) => total ? `${Math.round(hits[index] / total * 100)} %` : '–'),
+            // the lead in percentage points
+            formatLead: (difference) => `${Math.round(difference * 100)} %`,
             details: totals.map((total, index) => total ? `${hits[index]}/${total}` : ''),
         },
         { key: 'highest', label: 'Highest checkout', values: valuesOf('checkouts.highest') },
     ];
 
-    return <div className="mt-3"><SideBySide rows={rows} players={players} /></div>;
+    return <SideBySide rows={rows} players={players} />;
 };
 
 export default PlayersX01StatsComparisonBars;

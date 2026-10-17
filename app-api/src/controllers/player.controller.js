@@ -5,6 +5,7 @@ import { removeProfileImageFile } from './file.controller.js';
 import { CLUB_ROLES } from '../models/user.model.js';
 import { inClub, knownInClub } from '../models/player.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
+import { canManageClub } from '../middleware/auth.middleware.js';
 
 const Player = db.player;
 
@@ -266,4 +267,61 @@ export const setVisibility = async (req, res) => {
     player.publicProfile = req.body.publicProfile;
     await player.save();
     res.send((await toClient([player], req))[0]);
+};
+
+/**
+ * The clubs a player of the selected club is a member of, each saying whether
+ * the user may change it (they are one of its admins).
+ */
+export const clubsOf = async (req, res) => {
+    logger.debug('players clubs called');
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const clubs = await db.club.find({ _id: { $in: player.clubs } }, 'name logo admins').sort({ name: 1 });
+    res.json(clubs.map(club => ({ id: club._id, name: club.name, logo: club.logo, canManage: canManageClub(req.user, club) })));
+};
+
+/**
+ * Makes a player of the selected club a member of another club the user runs
+ * too; with "move" the player then leaves the selected club.
+ */
+export const addToOtherClub = async (req, res) => {
+    logger.debug('players add to other club called');
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const target = await db.club.findById(req.body.club);
+    if (!target) return res.status(404).json({ message: 'Club not found.' });
+    if (!canManageClub(req.user, target)) {
+        return res.status(403).json({ message: 'You can only add players to clubs you are an admin of.' });
+    }
+
+    const error = await addToClub(player, target);
+    if (error) return res.status(409).json({ message: error });
+    if (req.body.move === true) await removeFromClub(player, req.club._id);
+
+    logger.info(`Player "${player.nickname}" ${req.body.move === true ? 'moved' : 'added'} from club "${req.club.name}" to "${target.name}" by ${req.user.email}`);
+    res.json(player.toJSON());
+};
+
+/**
+ * Ends a player's membership in one of the user's clubs. The last club of a
+ * player cannot be taken away: a player without a club is deleted instead.
+ */
+export const removeFromOtherClub = async (req, res) => {
+    logger.debug('players remove from club called');
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const club = await db.club.findById(req.params.clubId);
+    if (!club || !player.clubs.some(id => id.equals(club._id))) {
+        return res.status(404).json({ message: 'The player is not a member of this club.' });
+    }
+    if (!canManageClub(req.user, club)) {
+        return res.status(403).json({ message: 'You can only remove players from clubs you are an admin of.' });
+    }
+    if (player.clubs.length === 1) {
+        return res.status(409).json({ message: `This is the only club of ${player.nickname}. Delete the player instead.` });
+    }
+    await removeFromClub(player, club._id);
+    logger.info(`Player "${player.nickname}" removed from club "${club.name}" by ${req.user.email}`);
+    res.json(player.toJSON());
 };

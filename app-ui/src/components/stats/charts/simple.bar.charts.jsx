@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
+import { groupByPeriod } from '../../../utils/trend.grouping';
 import { AXIS, BAR_OPACITY, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 
 const RANGE_ORDER = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
@@ -148,20 +149,33 @@ export const FormChart = ({ data = [] }) => {
  */
 export const LegsPerGameChart = ({ games = [], players = [] }) => {
     const series = useHiddenSeries();
-    const rows = [...games]
+    const keys = players.map((_, index) => `p${index}`);
+    const perGame = [...games]
         .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt))
         .map(game => ({
-            label: dayjs(game.updatedAt).format('DD.MM.YY'),
+            date: game.updatedAt,
             ...Object.fromEntries(players.map((player, index) => [`p${index}`, game.playerModels?.[player.id]?.legsWon?.game ?? 0])),
         }));
+    // many games: the legs added up per month or quarter instead of a bar per game
+    const { rows, step } = groupByPeriod(perGame, keys, { combine: 'sum' });
+    const perPeriod = step !== 'game';
+    const tooltipLabel = (label, payload) => {
+        const count = payload?.[0]?.payload?.games;
+        return perPeriod && count ? `${label} · ${count} ${count === 1 ? 'game' : 'games'}` : label;
+    };
     return (
-        <ChartCard title="Legs per game" description="Legs each player won in every game they played together, oldest first.">
+        <ChartCard
+            title={perPeriod ? `Legs per ${step}` : 'Legs per game'}
+            description={perPeriod
+                ? `Legs each player won per ${step} in the games they played together.`
+                : 'Legs each player won in every game they played together, oldest first.'}
+        >
             <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={rows} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                     <CartesianGrid {...GRID} />
                     <XAxis dataKey="label" {...AXIS} minTickGap={16} />
                     <YAxis {...AXIS} allowDecimals={false} />
-                    <Tooltip {...TOOLTIP} />
+                    <Tooltip {...TOOLTIP} labelFormatter={tooltipLabel} />
                     {players.map((player, index) => (
                         <Bar key={player.id} dataKey={`p${index}`} name={player.nickname} stackId="legs" fill={PLAYER_COLORS[index]} fillOpacity={BAR_OPACITY} hide={series.isHidden(`p${index}`)} />
                     ))}

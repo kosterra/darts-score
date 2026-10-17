@@ -9,8 +9,7 @@ import HitsHeatmapChart from '../charts/hits.heatmap.chart';
 import DoublesChart from '../charts/doubles.chart';
 import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart, LegsPerGameChart } from '../charts/simple.bar.charts';
 import { sectionHitsOf } from '../charts/chart.theme';
-import StatTile from './stat.tile';
-import HeadToHeadTimeline from './head.to.head.timeline';
+import HeadToHeadLayout from './head.to.head.layout';
 
 /**
  * Compares two or more players of the selected club in X01. "request" holds
@@ -48,16 +47,9 @@ const PlayerVSStats = ({ players = [], request }) => {
                 ? (
                     <>
                         <Panel header="X01 head to head">
-                            <div className="row g-3 mb-3 align-items-center">
-                                <div className="col-12 col-md-3 col-xl-2">
-                                    <StatTile label="Games together" value={games.length} />
-                                </div>
-                                <div className="col-12 col-md-9 col-xl-10" style={{ minWidth: 0 }}>
-                                    <span className="text-faint fs-8">Latest winners</span>
-                                    <HeadToHeadTimeline games={games} players={players} />
-                                </div>
-                            </div>
-                            <PlayersX01StatsComparisonBars playersX01Stats={playerStats} players={players} />
+                            <HeadToHeadLayout gamesTogether={games.length} games={games} players={players}>
+                                <PlayersX01StatsComparisonBars playersX01Stats={playerStats} players={players} />
+                            </HeadToHeadLayout>
                         </Panel>
                         <div className="row g-4">
                             <div className="col-12"><AverageTrendChart data={playerStats.trend ?? []} players={players} /></div>

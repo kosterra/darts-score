@@ -32,6 +32,8 @@ const X01StatsComparisonBars = ({ valueKey, game, players }) => {
             label: 'Checkout',
             values: checkouts.map(({ hit = 0, total = 0 }) => total ? hit / total : 0),
             texts: checkouts.map(({ hit = 0, total = 0 }) => total ? `${Math.round(hit / total * 100)} %` : '–'),
+            // the lead in percentage points
+            formatLead: (difference) => `${Math.round(difference * 100)} %`,
             details: checkouts.map(({ hit = 0, total = 0 }) => total ? `${hit}/${total}` : ''),
         },
     ];

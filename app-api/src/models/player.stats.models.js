@@ -29,6 +29,9 @@ export const playerStatsModel = {
         { section: '9',  hit: 0, S: 0, D: 0, T: 0 },
         { section: '12', hit: 0, S: 0, D: 0, T: 0 },
         { section: '5',  hit: 0, S: 0, D: 0, T: 0 },
+        { section: '2',  hit: 0, S: 0, D: 0, T: 0 },
+        // the bull: S25 is the single, D25 the double bull
+        { section: '25', hit: 0, S: 0, D: 0, T: 0 },
     ],
 };
 
