@@ -37,8 +37,12 @@ const DartboardHeatmap = ({ valueOf, describe, color = '#5fa883', onlyDoubles = 
     const values = fields.map(field => valueOf(field.section, field.ring) ?? 0);
     const bullValues = [valueOf(25, 'S') ?? 0, valueOf(25, 'D') ?? 0];
     const max = Math.max(1, ...values, ...bullValues);
-    // square root, so one very busy field (usually treble 20) does not wash out all others
-    const opacity = (value) => value > 0 ? 0.15 + 0.85 * Math.sqrt(value / max) : 0;
+    // half the square root of the hits, half the rank among the hit fields: one
+    // very busy field (usually the 20) does not wash out all others, and fields
+    // hit a little more or less than each other still look different
+    const hitValues = [...values, ...bullValues].filter(value => value > 0).sort((a, b) => a - b);
+    const rankOf = (value) => hitValues.length > 1 ? hitValues.lastIndexOf(value) / (hitValues.length - 1) : 1;
+    const opacity = (value) => value > 0 ? 0.1 + 0.9 * (0.5 * Math.sqrt(value / max) + 0.5 * rankOf(value)) : 0;
 
     return (
         <svg viewBox="-118 -118 236 236" className="dartboard-heatmap" role="img" aria-label={label}>

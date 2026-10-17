@@ -634,3 +634,66 @@ $winnerGold: #ffc94d;
         }
     }
 }
+
+// "Where the darts land": the most hit fields under each board and the scale
+.hit-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    max-width: 18rem;
+    margin: 0.75rem auto 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hit-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: $borderRadius;
+    overflow: hidden;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+
+    // a soft bar behind the field, as long as its share against the most hit one
+    .hit-field-bar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        opacity: 0.18;
+    }
+
+    .hit-field-name,
+    .hit-field-share {
+        position: relative;
+    }
+
+    .hit-field-name {
+        color: $textDefaultColor;
+        font-weight: 700;
+    }
+
+    .hit-field-share {
+        color: $textSubtleColor;
+        font-weight: 600;
+    }
+}
+
+.hit-scale {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    color: $textFaintColor;
+    font-size: 0.72rem;
+
+    .hit-scale-bar {
+        width: 7rem;
+        height: 0.45rem;
+        border-radius: 0.25rem;
+        background: linear-gradient(90deg, rgba($shade000, 0.08), rgba($shade000, 0.85));
+    }
+}

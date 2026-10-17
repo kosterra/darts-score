@@ -5,7 +5,9 @@ export const x01StatsModel = {
         { section: '13' }, { section: '6'  }, { section: '10' }, { section: '15' },
         { section: '17' }, { section: '3'  }, { section: '19' }, { section: '7'  },
         { section: '16' }, { section: '8'  }, { section: '11' }, { section: '14' },
-        { section: '9'  }, { section: '12' }, { section: '5'  },
+        { section: '9'  }, { section: '12' }, { section: '5'  }, { section: '2'  },
+        // the bull: S25 is the single, D25 the double bull
+        { section: '25' },
     ],
     checkouts: {},
     scoreRanges: [
