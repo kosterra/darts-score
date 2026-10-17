@@ -220,16 +220,21 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                                     <KpiHero label="First 9 average" value={x01.firstNineAverage} color={COLORS.x01} />
                                     <KpiRing label="Checkout rate" part={checkouts.hit} whole={checkouts.total} color={COLORS.x01} detail={`${formatNumber(checkouts.hit)} of ${formatNumber(checkouts.total)} attempts`} />
                                 </div>
+                                {/* the game in figures, then how often each score range was thrown */}
                                 <div className="kpi-chips">
                                     <KpiChip icon={FaFlagCheckered} label="Legs won" value={formatNumber(x01.legsWon)} color={COLORS.x01} />
-                                    <KpiChip icon={FaFire} label="180s" value={formatNumber(stats.num180s)} color={COLORS.x01} />
-                                    <KpiChip icon={FaBolt} label="140+" value={formatNumber(stats.num140plus)} color={COLORS.x01} />
-                                    <KpiChip icon={FaHashtag} label="100+ visits" value={formatNumber(x01.tonPlus)} color={COLORS.x01} />
                                     <KpiChip icon={FaCrosshairs} label="Highest checkout" value={checkouts.highest || null} color={COLORS.x01} />
                                     <KpiChip icon={FaStopwatch} label="Best 501 leg" value={x01.bestLeg ? `${x01.bestLeg} darts` : null} color={COLORS.x01} />
                                     <KpiChip icon={GiDart} label="Darts per leg" value={avg.dartsPerLegX01 || null} color={COLORS.x01} />
                                     <KpiChip icon={FaBullseye} label="Darts thrown" value={formatNumber(throwedDarts.x01)} color={COLORS.x01} />
                                     <KpiChip icon={FaTrophy} label="Points scored" value={formatNumber(throwedPoints.x01)} color={COLORS.x01} />
+                                </div>
+                                <div className="kpi-chips mt-3">
+                                    <KpiChip icon={FaFire} label="180s" value={formatNumber(stats.num180s)} color={COLORS.x01} />
+                                    <KpiChip icon={FaBolt} label="160+" value={formatNumber(stats.num160plus)} color={COLORS.x01} />
+                                    <KpiChip icon={FaBolt} label="140+" value={formatNumber(stats.num140plus)} color={COLORS.x01} />
+                                    <KpiChip icon={FaHashtag} label="120+" value={formatNumber(stats.num120plus)} color={COLORS.x01} />
+                                    <KpiChip icon={FaHashtag} label="100+" value={formatNumber(stats.num100plus)} color={COLORS.x01} />
                                 </div>
                             </Panel>
                         }

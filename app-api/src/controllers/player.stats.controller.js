@@ -113,6 +113,10 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
     playerStats.throwedPoints.x01 = getTotalPointsThrownX01(x01Games, playerId);
 
     playerStats.num180s = getNumberOf180sX01(x01Games, playerId);
+    // each count is its own range, like the 180s: 160+ means 160–179
+    playerStats.num160plus = getNumberOfVisitsInRange(x01Games, playerId, '160-179');
+    playerStats.num120plus = getNumberOfVisitsInRange(x01Games, playerId, '120-139');
+    playerStats.num100plus = getNumberOfVisitsInRange(x01Games, playerId, '100-119');
     playerStats.num140plus = getNumberOf140plusX01(x01Games, playerId);
 
     playerStats.checkouts.hit = getCheckoutHitX01(x01Games, playerId);
@@ -224,6 +228,10 @@ const getNumberOf180sX01 = (x01Games, playerId) => {
         return accumulator + value;
     }, 0);
 }
+
+// visits in one score range, e.g. '160-179'
+const getNumberOfVisitsInRange = (x01Games, playerId, range) => x01Games
+    .reduce((sum, game) => sum + (game.playerModels[playerId]?.scoreRanges?.game?.[range] || 0), 0);
 
 const getNumberOf140plusX01 = (x01Games, playerId) => {
     return x01Games.map(game => {

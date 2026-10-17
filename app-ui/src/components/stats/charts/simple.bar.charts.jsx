@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useState } from 'react';
 import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
@@ -110,8 +111,18 @@ export const DartsPerLegChart = ({ data = [], players = [], description = 'Darts
  */
 export const FormChart = ({ data = [] }) => {
     const rows = data.map(entry => ({ ...entry, label: dayjs(`${entry.month}-01`).format('MMM YY') }));
+    // series switched off in the legend
+    const [hidden, setHidden] = useState(() => new Set());
+    const toggle = ({ dataKey }) => setHidden(current => {
+        const next = new Set(current);
+        if (next.has(dataKey)) next.delete(dataKey);
+        else next.add(dataKey);
+        return next;
+    });
+    const legendLabel = (name, { dataKey }) => <span style={{ opacity: hidden.has(dataKey) ? 0.4 : 1, cursor: 'pointer' }}>{name}</span>;
+
     return (
-        <ChartCard title="Form" description="Win rate (bars) and X01 average (line) per month.">
+        <ChartCard title="Form" description="Win rate (bars), X01 average and games played (lines) per month: how the form goes with how often you play. Click an entry below the chart to show or hide it.">
             {rows.length === 0
                 ? <p className="text-faint fs-7">No games yet.</p>
                 : (
@@ -121,10 +132,13 @@ export const FormChart = ({ data = [] }) => {
                             <XAxis dataKey="label" {...AXIS} minTickGap={16} />
                             <YAxis yAxisId="rate" {...AXIS} domain={[0, 100]} unit=" %" />
                             <YAxis yAxisId="avg" orientation="right" {...AXIS} domain={[0, 'auto']} />
+                            {/* games have their own scale, without an axis of their own */}
+                            <YAxis yAxisId="games" hide domain={[0, (max) => Math.max(max, 1) * 1.15]} allowDecimals={false} />
                             <Tooltip {...TOOLTIP} formatter={(value, name) => name === 'Win rate' ? `${value} %` : value} />
-                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} />
-                            <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
-                            <Legend {...LEGEND} />
+                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={hidden.has('winRate')} />
+                            <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={hidden.has('average')} />
+                            <Line yAxisId="games" type="monotone" dataKey="games" name="Games played" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={hidden.has('games')} />
+                            <Legend {...LEGEND} onClick={toggle} formatter={legendLabel} />
                         </ComposedChart>
                     </ResponsiveContainer>
                 )
