@@ -1,10 +1,14 @@
 import { Fragment } from 'react';
 import ComparisonBar from '../../elements/comparison.bar';
 
+/**
+ * The players of an X01 game side by side as bars, for the whole game
+ * (valueKey "game") or one set ("set-1", …).
+ */
 const X01StatsComparisonBars = ({ valueKey, game }) => {
     const players = game.players || [];
 
-    // Hilfsfunktion zum sicheren Zugriff auf Spielerstatistiken
+    // a value of a player's statistics, or the default when it is missing
     const getPlayerStat = (playerId, path = [], defaultValue = 0) => {
         return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), game.playerModels[playerId]) ?? defaultValue;
     };
@@ -21,20 +25,21 @@ const X01StatsComparisonBars = ({ valueKey, game }) => {
     });
 
     const getWonLegsData = () =>
-        [buildData('Won Legs', (playerId) => getPlayerStat(playerId, ['legsWon', valueKey]))];
+        [buildData('Legs won', (playerId) => getPlayerStat(playerId, ['legsWon', valueKey]))];
 
     const getRangesData = (name, range) =>
         [buildData(name, (playerId) => getPlayerStat(playerId, ['scoreRanges', valueKey, range]))];
 
+    // the 3-dart average over all visits, as in the key figures and on the profile
     const getAverageData = () =>
-        [buildData('Average', (playerId) => {
-            const avg = getPlayerStat(playerId, ['averages', valueKey, valueKey === 'game' ? 'begMidGame' : 'begMidSet'], 0);
+        [buildData('3-dart average', (playerId) => {
+            const avg = getPlayerStat(playerId, ['averages', valueKey, 'overall'], 0);
             return Number(avg.toFixed(1));
         })];
 
     const getCheckoutData = () => {
         const checkout = {
-            name: 'Checkouts',
+            name: 'Checkout',
             unit: '%'
         };
 

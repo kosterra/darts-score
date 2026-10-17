@@ -143,3 +143,20 @@ export const recentForm = (x01Games, playerId, size = 5) => {
         latest: averages.slice(-2 * size),
     };
 };
+
+/**
+ * The 3-dart average over all visits of these X01 games: every game's
+ * average weighted by the visits in it, so a long game counts more than a
+ * short one. 0 without visits.
+ */
+export const threeDartAverage = (x01Games, playerId) => {
+    let points = 0;
+    let rounds = 0;
+    for (const game of x01Games) {
+        const playerModel = model(game, playerId);
+        const gameRounds = playerModel.totalThrow?.game?.rounds ?? 0;
+        points += (playerModel.averages?.game?.overall ?? 0) * gameRounds;
+        rounds += gameRounds;
+    }
+    return rounds ? round(points / rounds) : 0;
+};

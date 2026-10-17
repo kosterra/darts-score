@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, recentForm } from './chart.data.js';
+import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, recentForm, threeDartAverage } from './chart.data.js';
 
 const P = 'p1';
 const O = 'p2';
@@ -84,5 +84,18 @@ describe('recentForm', () => {
     it('has no trend without enough games', () => {
         expect(recentForm([game(1, 50), game(2, 60)], 'p1')).toMatchObject({ games: 2, recentAverage: 55, change: null, trend: null });
         expect(recentForm([], 'p1')).toMatchObject({ games: 0, recentAverage: null, trend: null, latest: [] });
+    });
+});
+
+describe('threeDartAverage', () => {
+    const game = (overall, rounds) => ({ playerModels: { p1: { averages: { game: { overall } }, totalThrow: { game: { rounds } } } } });
+
+    it('weights every game by its visits', () => {
+        expect(threeDartAverage([game(60, 10), game(90, 30)], 'p1')).toBe(82.5);
+    });
+
+    it('is 0 without visits', () => {
+        expect(threeDartAverage([], 'p1')).toBe(0);
+        expect(threeDartAverage([game(50, 0)], 'p1')).toBe(0);
     });
 });

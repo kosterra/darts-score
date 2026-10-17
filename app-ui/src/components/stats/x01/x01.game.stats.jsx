@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Badge } from 'primereact/badge';
 import { Button } from 'primereact/button';
 import { SplitButton } from 'primereact/splitbutton';
 import { Panel } from 'primereact/panel';
-import { TabView, TabPanel } from 'primereact/tabview';
+import { SelectButton } from 'primereact/selectbutton';
 import { PiShuffle } from "react-icons/pi";
 import { PiUserSwitch } from "react-icons/pi";
 import { MdReplay } from "react-icons/md";
@@ -14,19 +13,29 @@ import PlayerService from '../../../services/player.service';
 import X01Models from '../../../models/x01.models';
 import X01Service from '../../../services/x01.service';
 import { shufflePlayers as shuffle } from '../../../utils/game.utils';
-import X01StatsScoreBoard from './x01.stats.scoreboard';
-import X01StatsScoreBoardMultiple from './x01.stats.scoreboard.multiple';
-import X01StatsTab from './x01.stats.tab';
+import X01ResultHeader from './x01.result.header';
+import X01MatchMoments from './x01.match.moments';
+import X01LegsPanel from './x01.legs.panel';
+import X01StatsComparisonBars from './x01.stats.comparison.bars';
+import { legsOf, playerFigures, matchMoments } from '../../../utils/x01.game.summary';
 import AverageTrendChart from '../charts/average.trend.chart';
 import HitsHeatmapChart from '../charts/hits.heatmap.chart';
 import DoublesChart from '../charts/doubles.chart';
 import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart } from '../charts/simple.bar.charts';
 import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
 import { sectionHitsOf } from '../charts/chart.theme';
-import X01GameHeader from '../../games/x01/x01.game.header';
 import PageLoader from '../../elements/page.loader';
 import GameBadges from '../../badges/game.badges';
 
+// a heading above a group of charts
+const SectionTitle = ({ children }) => <h2 className="stats-section-title">{children}</h2>;
+
+/**
+ * The statistics of one X01 game: the result with each player's key figures,
+ * the moments of the match, every leg with its race to zero, the players side
+ * by side for the game or a set, and the charts grouped by scoring, finishing
+ * and the board.
+ */
 const X01GameStats = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -34,6 +43,8 @@ const X01GameStats = () => {
     const [game, setGame] = useState(null);
     const [players, setPlayers] = useState(null);
     const [gameStats, setGameStats] = useState({});
+    // the whole game or one set in the side-by-side bars
+    const [barsScope, setBarsScope] = useState('game');
     // set by the game page when this game was won a moment ago
     const [justFinished] = useState(Boolean(useLocation().state?.justFinished));
 
@@ -63,8 +74,13 @@ const X01GameStats = () => {
         };
 
         loadData();
-        // eslint-disable-next-line
     }, [id]);
+
+    const legs = useMemo(() => game ? legsOf(game) : [], [game]);
+    const figures = useMemo(() => game && players
+        ? Object.fromEntries(players.map(player => [player.id, playerFigures(game, player.id, legs)]))
+        : {}, [game, players, legs]);
+    const moments = useMemo(() => game ? matchMoments(game, legs) : [], [game, legs]);
 
     const onNewGame = () => navigate("/x01", { replace: true });
     const onFinishGame = () => navigate("/", { replace: true });
@@ -104,118 +120,86 @@ const X01GameStats = () => {
         navigate(`/x01/${newGame.id}`);
     };
 
-    const tabHeaderTemplate = ({ index, onClick }) => (
-        <div className="d-flex align-items-center text-faint gap-2 p-3 cursor-pointer" onClick={onClick}>
-            <Badge size="large" severity="secondary" value={index === 0 ? 'A' : index} />
-            <span className="fw-bold fs-6">{index === 0 ? 'Overall' : `Set`}</span>
-        </div>
-    );
-
     if (!game || !players) return <PageLoader />;
 
-    return (
-        <div className="container-fluid p-4 pt-0 border-0">
-            <X01GameHeader
-                setMode={game.setMode}
-                numberOfSets={game.numberOfSets}
-                legMode={game.legMode}
-                numberOfLegs={game.numberOfLegs}
-                legInMode={game.legInMode}
-                legOutMode={game.legOutMode}
+    const barsScopes = [
+        { label: 'Whole game', value: 'game' },
+        ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: `Set ${i + 1}`, value: `set-${i + 1}` })),
+    ];
+
+    const actions = (
+        <>
+            <SplitButton
+                label="Play again"
+                icon={<MdReplay className="me-2 fs-5" />}
+                onClick={() => onRestartGame()}
+                size="small"
+                severity="primary"
+                menuClassName="p-splitbutton-menu-primary"
+                model={[
+                    { label: 'Switch players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
+                    { label: 'Shuffle players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
+                ]}
             />
+            <Button label="New game" icon="pi pi-plus" onClick={onNewGame} size="small" outlined severity="primary" />
+            <Button label="Home" icon="pi pi-home" onClick={onFinishGame} size="small" outlined />
+        </>
+    );
 
-            <div className="row d-flex justify-content-center align-items-center">
-                <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8">
-                    {game.players.length === 2
-                        ? <X01StatsScoreBoard players={players} game={game} />
-                        : <X01StatsScoreBoardMultiple players={players} game={game} />
-                    }
-                </div>
-            </div>
+    return (
+        <div className="container-fluid p-4 border-0">
+            <div className="x01-stats-page">
+                <X01ResultHeader game={game} players={players} figures={figures} actions={actions} />
 
-            <div className="row d-flex justify-content-center align-items-center">
-                <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0">
-                    <GameBadges
-                        gameType="x01"
-                        gameId={game.id}
-                        players={players}
-                        winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
-                        celebrate={justFinished && game.hasWinner}
-                        className="mt-3"
-                    />
-                </div>
-            </div>
+                <GameBadges
+                    gameType="x01"
+                    gameId={game.id}
+                    players={players}
+                    winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
+                    celebrate={justFinished && game.hasWinner}
+                    className="mb-4"
+                />
 
-            <div className="row d-flex justify-content-center align-items-center mt-3">
-                <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0 rounded-2">
-                    <Panel>
-                        <TabView>
-                            <TabPanel header="Overall" headerTemplate={tabHeaderTemplate}>
-                                <X01StatsTab valueKey="game" game={game} gameStats={gameStats} />
-                            </TabPanel>
+                <X01MatchMoments moments={moments} players={players} />
 
-                            {[...Array(game.setsPlayed)].map((_, i) => (
-                                <TabPanel key={`set-tab-${i}`} header={`Set ${i + 1}`} headerTemplate={tabHeaderTemplate}>
-                                    <X01StatsTab valueKey={`set-${i + 1}`} game={game} />
-                                </TabPanel>
-                            ))}
-                        </TabView>
+                <X01LegsPanel game={game} players={players} legs={legs} />
+
+                {players.length > 1 &&
+                    <Panel header="Side by side" className="mb-4">
+                        {barsScopes.length > 2 &&
+                            <div className="d-flex justify-content-center mb-3">
+                                <SelectButton value={barsScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} aria-label="Whole game or set" />
+                            </div>
+                        }
+                        <X01StatsComparisonBars game={game} valueKey={barsScope} />
                     </Panel>
-                </div>
-            </div>
+                }
 
-            <div className="row d-flex justify-content-center align-items-center mt-4">
-                <div className="col-xs-12 col-sm-12 col-md-10 col-lg-8 px-0 rounded-2">
-                    <div className="row g-4">
-                        <div className="col-12">
-                            <AverageTrendChart
-                                title="Average per leg"
-                                description="Every player's average in each leg of this game."
-                                data={gameStats?.avg ?? []}
-                                players={players}
-                            />
-                        </div>
-                        <div className="col-12 col-xl-6"><ScoringFinishingChart scoring={gameScoring(game, players)} players={players} /></div>
-                        <div className="col-12 col-xl-6">
-                            <DartsPerLegChart data={gameDartsPerLeg(game, players)} players={players} description="Darts each player needed for the legs they won in this game." />
-                        </div>
-                        <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} /></div>
-                        <div className="col-12"><DoublesChart ratesByPlayer={players.map((_, i) => gameStats?.checkouts?.[`player${i + 1}`] ?? [])} players={players} /></div>
-                        <div className="col-12"><ScoreRangesChart data={gameStats?.scoreRanges ?? []} players={players} /></div>
+                <SectionTitle>Scoring</SectionTitle>
+                <div className="row g-4 mb-4">
+                    <div className="col-12 col-xl-6">
+                        <AverageTrendChart
+                            title="Average per leg"
+                            description="Every player's average in each leg of this game."
+                            data={gameStats?.avg ?? []}
+                            players={players}
+                        />
                     </div>
+                    <div className="col-12 col-xl-6"><ScoreRangesChart data={gameStats?.scoreRanges ?? []} players={players} /></div>
                 </div>
-            </div>
 
-            <div className="row mt-4">
-                <div className="col d-flex justify-content-center align-items-center gap-2">
-                    <SplitButton
-                        label="PLAY AGAIN"
-                        icon={<MdReplay className="me-2 fs-5" />}
-                        onClick={() => onRestartGame()}
-                        size="small"
-                        severity="primary"
-                        menuClassName="p-splitbutton-menu-primary"
-                        model={[
-                            { label: 'Switch Players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
-                            { label: 'Shuffle Players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
-                        ]}
-                    />
-                    <Button
-                        label="NEW GAME"
-                        icon="pi pi-plus"
-                        onClick={onNewGame}
-                        size="small"
-                        outlined
-                        severity="primary"
-                    />
-                    <Button
-                        label="BACK HOME"
-                        icon="pi pi-home"
-                        onClick={onFinishGame}
-                        size="small"
-                        outlined
-                        severity="primary"
-                    />
+                <SectionTitle>Finishing</SectionTitle>
+                <div className="row g-4 mb-4">
+                    <div className="col-12 col-xl-6"><ScoringFinishingChart scoring={gameScoring(game, players)} players={players} /></div>
+                    <div className="col-12 col-xl-6">
+                        <DartsPerLegChart data={gameDartsPerLeg(game, players)} players={players} description="Darts each player needed for the legs they won in this game." />
+                    </div>
+                    <div className="col-12"><DoublesChart ratesByPlayer={players.map((_, i) => gameStats?.checkouts?.[`player${i + 1}`] ?? [])} players={players} /></div>
+                </div>
+
+                <SectionTitle>On the board</SectionTitle>
+                <div className="row g-4">
+                    <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} /></div>
                 </div>
             </div>
         </div>

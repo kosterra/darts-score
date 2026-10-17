@@ -47,7 +47,7 @@ const PlayersX01StatsComparisonBars = (props) => {
                 { data: getChartData('num180s', '180s') },
                 { data: getChartData('num160plus', '160+') },
                 { data: getChartData('num140plus', '140+') },
-                { data: getChartData('avg.overall', 'Overall Average') },
+                { data: getChartData('avg.overall', '3-dart average') },
                 { data: getChartData('avg.dartsPerLeg', 'AVG Darts per Leg') },
                 { data: getCheckoutData() },          // Sonderfall mit Berechnung
                 { data: getChartData('checkouts.highest', 'Highest Checkout') },
