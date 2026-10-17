@@ -2,6 +2,8 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
 import { syncGameBadges } from '../utils/badge.service.js';
+import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { knownInClub } from '../models/player.model.js';
 
 const DEFAULT_LIMIT = 100;
 
@@ -11,7 +13,17 @@ const DEFAULT_LIMIT = 100;
 export const playersBelongToClub = async (playerIds, clubId) => {
     const ids = [...new Set(playerIds)];
     if (!ids.every(id => db.mongoose.isValidObjectId(id))) return false;
-    return await db.player.countDocuments({ _id: { $in: ids }, club: clubId }) === ids.length;
+    return await db.player.countDocuments({ _id: { $in: ids }, clubs: clubId }) === ids.length;
+};
+
+/**
+ * True when every given player id is a member or a former member of the club:
+ * the statistics of their games there stay available.
+ */
+export const playersKnownInClub = async (playerIds, clubId) => {
+    const ids = [...new Set(playerIds)];
+    if (!ids.every(id => db.mongoose.isValidObjectId(id))) return false;
+    return await db.player.countDocuments({ _id: { $in: ids }, ...knownInClub(clubId) }) === ids.length;
 };
 
 /**
@@ -32,6 +44,7 @@ export const createGameController = (Model, gameName) => {
             }
             const doc = new Model({ ...req.body, club: req.club._id });
             const data = await doc.save();
+            checkLater(() => noteCreated(req, 'game', { id: data._id, name: label, names: [] }));
             res.status(201).json(data);
         } catch (err) {
             logger.error(err, `Failed to create ${label} game`);

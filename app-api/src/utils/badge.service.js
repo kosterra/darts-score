@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { getBadge, replayBadges } from './badges.js';
+import { knownInClub } from '../models/player.model.js';
 
 export const GAME_MODELS = {
     x01: () => db.x01,
@@ -9,16 +10,16 @@ export const GAME_MODELS = {
 };
 
 /**
- * Everything a player finished in their club, as events for the badge replay.
+ * Everything a player finished, in all their clubs, as events for the badge replay.
  */
 const loadPlayerEvents = async (player) => {
     const playerId = String(player._id);
     const [gamesByType, trainings] = await Promise.all([
         Promise.all(Object.entries(GAME_MODELS).map(async ([type, model]) => ({
             type,
-            games: await model().find({ club: player.club, players: playerId, hasWinner: true }).lean(),
+            games: await model().find({ players: playerId, hasWinner: true }).lean(),
         }))),
-        db.atc.find({ club: player.club, 'player.id': playerId }).lean(),
+        db.atc.find({ 'player.id': playerId }).lean(),
     ]);
 
     return [
@@ -57,7 +58,7 @@ export const syncPlayerBadges = async (player) => {
 export const syncGameBadges = async (clubId, game) => {
     try {
         const ids = (game.players ?? []).filter(id => db.mongoose.isValidObjectId(id));
-        const players = await db.player.find({ _id: { $in: ids }, club: clubId, guest: { $ne: true } });
+        const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(clubId), guest: { $ne: true } });
         for (const player of players) await syncPlayerBadges(player);
     } catch (err) {
         logger.error(err, 'Failed to update badges after a game');

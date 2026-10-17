@@ -87,3 +87,36 @@ export const findFilteredGames = (Model, query, filters, lean = false) => {
     if (limit) cursor = cursor.limit(limit);
     return lean ? cursor.lean() : cursor;
 };
+
+/**
+ * The filters of a player's profile, from the query string: which clubs
+ * ("all", or "club" for the selected one), the period, the last N games of
+ * each type, and for X01 the starting score and the format.
+ */
+export const profileFiltersOf = (query = {}) => {
+    const text = (value) => typeof value === 'string' ? value : undefined;
+    const hasFormat = SET_LEG_MODES.includes(query.setMode) || SET_LEG_MODES.includes(query.legMode);
+    return {
+        scope: query.scope === 'club' ? 'club' : 'all',
+        dateFilter: text(query.period) ?? 'All',
+        from: text(query.from),
+        to: text(query.to),
+        lastGames: text(query.lastGames),
+        startingScore: text(query.startingScore),
+        ...(hasFormat && {
+            format: {
+                setMode: text(query.setMode),
+                numberOfSets: text(query.numberOfSets),
+                legMode: text(query.legMode),
+                numberOfLegs: text(query.numberOfLegs),
+            },
+        }),
+    };
+};
+
+/**
+ * True when the profile shows everything: all clubs, all time, every game.
+ */
+export const isUnfiltered = (filters) =>
+    filters.scope === 'all' && filters.dateFilter === 'All' && !lastGamesOf(filters)
+    && !positiveInteger(filters.startingScore) && !filters.format;

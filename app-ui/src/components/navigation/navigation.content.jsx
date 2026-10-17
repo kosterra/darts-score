@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown } from "react-icons/fa6";
+import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -14,6 +14,31 @@ import { useAuth } from '../../utils/auth.context';
 import { ROLE_LABELS } from '../../services/user.service';
 import { resolvePlayerInitials } from '../../utils/image.utils';
 import ClubLogo from '../elements/club.logo';
+import AdminService from '../../services/admin.service';
+import { ALERTS_CHANGED } from '../admin/alert.events';
+
+/**
+ * Open spam alerts, for the count next to "Alerts". Only global admins see
+ * them; the count follows page changes, the alerts page and a minute's timer.
+ */
+const useOpenAlerts = (enabled) => {
+    const { pathname } = useLocation();
+    const [summary, setSummary] = useState(null);
+
+    useEffect(() => {
+        if (!enabled) return undefined;
+        const load = () => AdminService.loadAlertSummary().then(setSummary).catch(() => {});
+        load();
+        const timer = setInterval(load, 60 * 1000);
+        window.addEventListener(ALERTS_CHANGED, load);
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener(ALERTS_CHANGED, load);
+        };
+    }, [enabled, pathname]);
+
+    return enabled ? summary : null;
+};
 
 /**
  * The menu, built for the logged-in user. Everything under "Club" belongs to
@@ -24,6 +49,7 @@ const useSections = () => {
     const { activeClub, isGlobalAdmin } = useAuth();
     // a global admin without a club of their own only looks after the app
     const hasClub = !!activeClub;
+    const openAlerts = useOpenAlerts(isGlobalAdmin);
 
     const sections = [
         {
@@ -49,13 +75,22 @@ const useSections = () => {
         },
         { title: 'Training', visible: hasClub, items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
         {
-            // for global admins: the lists across all clubs and the administration of the app
+            // for global admins: the lists across all clubs, watching over the app and its administration
             title: 'Admin',
             visible: isGlobalAdmin,
             items: [
+                { label: 'Clubs', icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: 'Players', icon: FaUserPen, to: '/admin/players' },
                 { label: 'Games', icon: GiDart, to: '/admin/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
+                {
+                    label: 'Alerts',
+                    icon: FaBell,
+                    to: '/admin/alerts',
+                    badge: openAlerts?.open || null,
+                    badgeCritical: openAlerts?.critical > 0,
+                },
+                { label: 'Error log', icon: FaBug, to: '/admin/logs' },
                 { label: 'Administration', icon: FaShieldHalved, to: '/administration' },
             ],
         },
@@ -201,6 +236,11 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 <NavLink to={item.to} end={item.end} className={linkClass} title={collapsed ? item.label : undefined} onClick={onNavigate}>
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
+                    {item.badge &&
+                        <span className={`nav-badge ${item.badgeCritical ? 'critical' : ''}`} aria-label={`${item.badge} open`}>
+                            {item.badge > 99 ? '99+' : item.badge}
+                        </span>
+                    }
                     <Ripple />
                 </NavLink>
             </li>
@@ -217,9 +257,9 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 {(activeClub || !isGlobalAdmin)
                     ? <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
                     : (
-                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label="Darts Score">
+                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label="Oche">
                             <img alt="" src="/logo.svg" width="40" height="40" />
-                            <span className="nav-label fw-semibold">Darts Score</span>
+                            <span className="nav-label fw-semibold">Oche</span>
                         </Link>
                     )
                 }
@@ -236,11 +276,11 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
-                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? 'About Darts Score' : undefined} onClick={onNavigate}>
+                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? 'About Oche' : undefined} onClick={onNavigate}>
                     <img alt="" src="/logo.svg" width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column" style={{ minWidth: 0 }}>
-                            <span className="text-subtle fw-semibold fs-7">Darts Score</span>
+                            <span className="text-subtle fw-semibold fs-7">Oche</span>
                             <span className="text-faint fs-9">About · {import.meta.env.VITE_APP_VERSION}</span>
                         </span>
                     }

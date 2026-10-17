@@ -117,3 +117,46 @@ export const trainingProgress = (entries) => {
     }
     return byMode;
 };
+
+// how much the average must change to count as rising or falling
+export const FORM_THRESHOLD = 2;
+
+/**
+ * A player's current form from their latest X01 games: the averages of the
+ * last "size" games against the "size" games before, and the latest averages
+ * for a sparkline. trend is 'up', 'down' or 'steady', or null with too few games.
+ */
+export const recentForm = (x01Games, playerId, size = 5) => {
+    const averages = averageTrend(x01Games, playerId).map(entry => entry.average);
+    const mean = (values) => values.length ? round(values.reduce((sum, value) => sum + value, 0) / values.length) : null;
+    const recent = averages.slice(-size);
+    const before = averages.slice(-2 * size, -size);
+    const recentAverage = mean(recent);
+    const previousAverage = mean(before);
+    const change = recentAverage != null && previousAverage != null ? round(recentAverage - previousAverage) : null;
+    return {
+        games: averages.length,
+        recentAverage,
+        previousAverage,
+        change,
+        trend: change == null ? null : change >= FORM_THRESHOLD ? 'up' : change <= -FORM_THRESHOLD ? 'down' : 'steady',
+        latest: averages.slice(-2 * size),
+    };
+};
+
+/**
+ * The 3-dart average over all visits of these X01 games: every game's
+ * average weighted by the visits in it, so a long game counts more than a
+ * short one. 0 without visits.
+ */
+export const threeDartAverage = (x01Games, playerId) => {
+    let points = 0;
+    let rounds = 0;
+    for (const game of x01Games) {
+        const playerModel = model(game, playerId);
+        const gameRounds = playerModel.totalThrow?.game?.rounds ?? 0;
+        points += (playerModel.averages?.game?.overall ?? 0) * gameRounds;
+        rounds += gameRounds;
+    }
+    return rounds ? round(points / rounds) : 0;
+};

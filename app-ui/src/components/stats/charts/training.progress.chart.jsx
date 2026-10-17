@@ -2,6 +2,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
+import useHiddenSeries from './use.hidden.series';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 
 const MODES = ['Single', 'Double', 'Triple', 'All'];
@@ -19,6 +20,7 @@ const formatTime = (hundredths) => {
  * progress: { Single: [{ date, timeMs, best }], … }
  */
 const TrainingProgressChart = ({ progress = {} }) => {
+    const series = useHiddenSeries();
     const modes = MODES.filter(mode => progress[mode]?.length);
     // one row per training, carrying each mode's best time so far
     const events = modes.flatMap(mode => progress[mode].map(entry => ({ mode, ...entry })))
@@ -41,9 +43,9 @@ const TrainingProgressChart = ({ progress = {} }) => {
                             <YAxis {...AXIS} tickFormatter={formatTime} reversed={false} domain={['auto', 'auto']} width={56} />
                             <Tooltip {...TOOLTIP} formatter={(value) => formatTime(value)} />
                             {modes.map((mode, index) => (
-                                <Line key={mode} type="stepAfter" dataKey={mode} name={mode} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
+                                <Line key={mode} type="stepAfter" dataKey={mode} name={mode} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden(mode)} />
                             ))}
-                            <Legend {...LEGEND} />
+                            <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </LineChart>
                     </ResponsiveContainer>
                 )

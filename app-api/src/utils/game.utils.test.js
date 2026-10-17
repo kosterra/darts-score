@@ -5,7 +5,7 @@ vi.mock('../models/logger.model.js', () => ({
 }));
 
 // dayjs is not mocked — actual date arithmetic is tested via relative assertions
-const { createGameFilterQuery, lastGamesOf } = await import('./game.utils.js');
+const { createGameFilterQuery, lastGamesOf, profileFiltersOf, isUnfiltered } = await import('./game.utils.js');
 
 describe('createGameFilterQuery', () => {
     beforeEach(() => vi.clearAllMocks());
@@ -103,5 +103,30 @@ describe('lastGamesOf', () => {
         expect(lastGamesOf({ lastGames: 'All' })).toBeNull();
         expect(lastGamesOf({ lastGames: { $gt: 1 } })).toBeNull();
         expect(lastGamesOf({})).toBeNull();
+    });
+});
+
+describe('profileFiltersOf', () => {
+    it('starts with everything', () => {
+        const filters = profileFiltersOf({});
+        expect(filters).toEqual({ scope: 'all', dateFilter: 'All', from: undefined, to: undefined, lastGames: undefined, startingScore: undefined });
+        expect(isUnfiltered(filters)).toBe(true);
+    });
+
+    it('reads the filters of the query string', () => {
+        const filters = profileFiltersOf({ scope: 'club', period: '1 M', lastGames: '10', startingScore: '501', setMode: 'Best of', numberOfSets: '1', legMode: 'First to', numberOfLegs: '3' });
+        expect(filters).toMatchObject({ scope: 'club', dateFilter: '1 M', lastGames: '10', startingScore: '501', format: { setMode: 'Best of', numberOfSets: '1', legMode: 'First to', numberOfLegs: '3' } });
+        expect(isUnfiltered(filters)).toBe(false);
+    });
+
+    it('ignores anything but plain text', () => {
+        const filters = profileFiltersOf({ scope: { $ne: 1 }, period: ['x'], startingScore: { $gt: 0 }, setMode: 'Drop tables' });
+        expect(filters).toEqual({ scope: 'all', dateFilter: 'All', from: undefined, to: undefined, lastGames: undefined, startingScore: undefined });
+    });
+
+    it('builds a database query from them', () => {
+        const query = createGameFilterQuery({ ...profileFiltersOf({ startingScore: '501', period: 'Custom', from: '2026-01-01' }), playerIds: ['p1'], includeOthers: true });
+        expect(query).toMatchObject({ gameIsRunning: false, players: { $all: ['p1'] }, startingScore: 501 });
+        expect(query.createdAt.$gte).toBeInstanceOf(Date);
     });
 });

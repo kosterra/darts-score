@@ -2,18 +2,24 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { playerStatsModel, checkoutItemModel } from '../models/player.stats.models.js';
-import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress } from '../utils/chart.data.js';
+import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, threeDartAverage } from '../utils/chart.data.js';
 import { x01Kpis, cricketKpis, eliminationKpis } from '../utils/kpi.data.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
+import { createGameFilterQuery, findFilteredGames, profileFiltersOf, isUnfiltered } from '../utils/game.utils.js';
 
 const X01 = db.x01;
 const Cricket = db.cricket;
 
-// Get statistics for a player by player id
+/**
+ * A player's statistics for their profile, filtered like the comparison: all
+ * their clubs or only the selected one (?scope=club), a period, the last N
+ * games and for X01 the starting score and format. The level always counts
+ * everything, like badges: it belongs to the person.
+ */
 export const getPlayerStats = async (req, res, next) => {
     logger.debug("statistics get player stats called!");
     try {
-        const playerStats = await calculatePlayerStats(req.params.id);
+        const playerStats = await calculatePlayerStats(req.params.id, profileFiltersOf(req.query), req.club._id);
         res.send(playerStats);
     } catch (err) {
         logger.error(err, 'Failed to calculate player stats');
@@ -21,14 +27,56 @@ export const getPlayerStats = async (req, res, next) => {
     }
 };
 
-async function calculatePlayerStats(playerId) {
+/**
+ * The finished games of a player that match the filters, per game type.
+ * Starting score and format only concern X01.
+ */
+const findPlayerGames = async (playerId, filters, clubId) => {
+    const inScope = filters.scope === 'club' ? { club: clubId } : {};
+    const forPlayer = { ...filters, playerIds: [playerId], includeOthers: true };
+    const x01Query = { ...createGameFilterQuery(forPlayer), ...inScope };
+    const otherQuery = { ...createGameFilterQuery({ ...forPlayer, startingScore: undefined, format: undefined }), ...inScope };
+    const [x01Games, cricketGames, eliminationGames] = await Promise.all([
+        findFilteredGames(X01, x01Query, filters),
+        findFilteredGames(Cricket, otherQuery, filters),
+        findFilteredGames(db.elimination, otherQuery, filters, true),
+    ]);
+    // oldest first, as the charts expect
+    const chronological = (games) => [...games].sort((a, b) => a.createdAt - b.createdAt);
+    return {
+        x01Games: chronological(x01Games),
+        cricketGames: chronological(cricketGames),
+        eliminationGames: chronological(eliminationGames),
+        trainingQuery: { 'player.id': playerId, ...inScope, ...(otherQuery.createdAt && { createdAt: otherQuery.createdAt }) },
+    };
+};
+
+// the X01 formats a player has played, for the format filter
+const formatsOf = (games) => {
+    const unique = new Map();
+    games.forEach(({ setMode, numberOfSets, legMode, numberOfLegs }) => {
+        const key = `${setMode}|${numberOfSets}|${legMode}|${numberOfLegs}`;
+        if (setMode && legMode && !unique.has(key)) unique.set(key, { setMode, numberOfSets, legMode, numberOfLegs });
+    });
+    return [...unique.values()];
+};
+
+async function calculatePlayerStats(playerId, filters = profileFiltersOf(), clubId = null) {
     logger.debug('calculate player stats called');
     const playerStats = JSON.parse(JSON.stringify(playerStatsModel));
     playerStats.playerId = playerId;
 
-    const x01Games = await findX01Games(playerId);
-    const cricketGames = await findCricketGames(playerId);
-    const eliminationGames = await db.elimination.find({ players: { $all: [playerId] }, gameIsRunning: false }).lean();
+    const filtered = await findPlayerGames(playerId, filters, clubId);
+    const { x01Games, cricketGames, eliminationGames, trainingQuery } = filtered;
+
+    // the whole history in all clubs, for the level
+    const everything = isUnfiltered(filters) ? filtered : await findPlayerGames(playerId, profileFiltersOf(), clubId);
+    // the formats to choose from: every one played in the chosen clubs
+    const onlyClubChosen = isUnfiltered({ ...filters, scope: 'all' });
+    const inScope = filters.scope === 'all' ? everything
+        : onlyClubChosen ? filtered
+        : await findPlayerGames(playerId, { ...profileFiltersOf(), scope: 'club' }, clubId);
+    playerStats.filterOptions = { formats: formatsOf(inScope.x01Games) };
 
     playerStats.playedGames.x01 = x01Games.length;
     playerStats.playedGames.cricket = cricketGames.length;
@@ -47,7 +95,7 @@ async function calculatePlayerStats(playerId) {
     // the player's level, from games, wins, badges and skill
     const player = await db.player.findById(playerId, 'badges').lean();
     playerStats.level = playerLevel(levelInputs({
-        x01Games, cricketGames, eliminationGames, playerId, badgeCount: player?.badges?.length ?? 0,
+        ...everything, playerId, badgeCount: player?.badges?.length ?? 0,
     }));
 
     // key figures per game type for the statistics page
@@ -65,6 +113,10 @@ async function calculatePlayerStats(playerId) {
     playerStats.throwedPoints.x01 = getTotalPointsThrownX01(x01Games, playerId);
 
     playerStats.num180s = getNumberOf180sX01(x01Games, playerId);
+    // each count is its own range, like the 180s: 160+ means 160–179
+    playerStats.num160plus = getNumberOfVisitsInRange(x01Games, playerId, '160-179');
+    playerStats.num120plus = getNumberOfVisitsInRange(x01Games, playerId, '120-139');
+    playerStats.num100plus = getNumberOfVisitsInRange(x01Games, playerId, '100-119');
     playerStats.num140plus = getNumberOf140plusX01(x01Games, playerId);
 
     playerStats.checkouts.hit = getCheckoutHitX01(x01Games, playerId);
@@ -84,64 +136,27 @@ async function calculatePlayerStats(playerId) {
     ], playerId);
     playerStats.scoring = scoringVsFinishing(x01Games, playerId);
     playerStats.dartsPerLeg = dartsPerLegDistribution(x01Games, playerId);
-    playerStats.training = trainingProgress(await db.atc.find({ 'player.id': playerId }).lean());
+    playerStats.training = trainingProgress(await db.atc.find(trainingQuery).sort({ createdAt: 1 }).lean());
 
     return playerStats;
 }
 
-async function findX01Games(playerId) {
-    logger.debug('find x01 games called');
-    let x01Games = await X01.find({ players: { $all: [playerId] }, gameIsRunning: false })
-        .then(data => {
-            return data;
-        })
-        .catch(err => {
-            logger.error('Failed to find x01 games. ' + err);
-        });
+// the real 3-dart average over all visits (not only the scoring part of the legs)
+const calculateOverallX01Avg = (x01Games, playerId) => threeDartAverage(x01Games, playerId);
 
-    return x01Games;
-}
-
-async function findCricketGames(playerId) {
-    logger.debug('find cricket games called');
-    let cricketGames = await Cricket.find({ players: { $all: [playerId] }, gameIsRunning: false })
-        .then(data => {
-            return data;
-        })
-        .catch(err => {
-            logger.error('Failed to find cricket games. ' + err);
-        });
-
-    return cricketGames;
-}
-
-const calculateOverallX01Avg = (x01Games, playerId) => {
-    const averages = x01Games.map(game => {
-        if (((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0) === 0) {
-            return null;
-        }
-        return Math.round(((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0), 2);
-    }).filter(stat => stat !== null);
-
-    const sum = averages.reduce((accumulator, value) => {
-        return accumulator + value;
-    }, 0);
-
-    return Math.round(sum / x01Games.length, 2);
-}
-
-const calculatePerGameX01Avg = (x01Games, playerId) => {
-    return x01Games.map((game, idx) => {
-        if (((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0) === 0) {
-            return null;
-        }
+// the 3-dart average of each of the last ten games
+const calculatePerGameX01Avg = (x01Games, playerId) => x01Games
+    .map((game, idx) => {
+        const average = game.playerModels[playerId]?.averages?.game?.overall ?? 0;
+        if (!average) return null;
         return {
             label: idx + 1,
-            value: Math.round((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0),
+            value: Math.round(average * 10) / 10,
             desc: game.startingScore + ' (' + dayjs(game.createdAt).format("DD.MM.YYYY") + ')'
         };
-    }).filter(stat => stat !== null).slice(-10);
-}
+    })
+    .filter(stat => stat !== null)
+    .slice(-10);
 
 const calculateDartsPerLegX01Avg = (x01Games, playerId) => {
     const legsPlayed = getTotalLegsPlayedX01(x01Games);
@@ -202,6 +217,10 @@ const getNumberOf180sX01 = (x01Games, playerId) => {
         return accumulator + value;
     }, 0);
 }
+
+// visits in one score range, e.g. '160-179'
+const getNumberOfVisitsInRange = (x01Games, playerId, range) => x01Games
+    .reduce((sum, game) => sum + (game.playerModels[playerId]?.scoreRanges?.game?.[range] || 0), 0);
 
 const getNumberOf140plusX01 = (x01Games, playerId) => {
     return x01Games.map(game => {

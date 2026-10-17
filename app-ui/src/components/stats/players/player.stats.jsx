@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
+import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { FaFire, FaBullseye, FaTrophy, FaStopwatch, FaFlagCheckered, FaHashtag, FaCrosshairs, FaBolt } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
@@ -9,6 +10,8 @@ import StatsService from '../../../services/stats.service';
 import PageLoader from '../../elements/page.loader';
 import BadgeMedal from '../../badges/badge.medal';
 import PlayerStatsCharts from './player.stats.charts';
+import ComparisonFilters, { FilterPanel } from './comparison.filters';
+import { describeFilters } from './filter.summary';
 import { KpiRing, KpiHero, KpiChip } from './kpi';
 import PlayerLevel from '../../players/player.level';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
@@ -20,6 +23,38 @@ const percent = (part, whole) => whole ? `${Math.round(part * 100 / whole)} %` :
 const weeks = (count) => `${count} ${count === 1 ? 'week' : 'weeks'}`;
 
 const STREAK_FLAMES = 5;
+
+// the profile opens with the selected club's games
+const DEFAULT_FILTERS = {
+    scope: 'club',
+    period: 'All',
+    range: null,
+    lastGames: 'All',
+    startingScore: 'All',
+    format: 'all',
+};
+
+const formatLabel = ({ setMode, numberOfSets, legMode, numberOfLegs }) =>
+    `${setMode} ${numberOfSets} ${numberOfSets === 1 ? 'set' : 'sets'} · ${legMode} ${numberOfLegs} ${numberOfLegs === 1 ? 'leg' : 'legs'}`;
+
+/**
+ * What the server is asked for, from the filters above the statistics.
+ */
+const requestOf = (filters, formats) => {
+    const [from, to] = filters.range ?? [];
+    const day = (date) => date ? dayjs(date).format('YYYY-MM-DD') : undefined;
+    const format = formats.find(entry => entry.value === filters.format)?.format;
+    return {
+        scope: filters.scope,
+        period: filters.period,
+        ...(filters.period === 'Custom' && { from: day(from), to: day(to ?? from) }),
+        ...(filters.lastGames !== 'All' && { lastGames: filters.lastGames }),
+        ...(filters.startingScore !== 'All' && { startingScore: filters.startingScore }),
+        ...format,
+    };
+};
+
+const isFiltered = (filters) => Object.entries(DEFAULT_FILTERS).some(([key, value]) => key !== 'range' && filters[key] !== value);
 
 /**
  * The weekly streak as five flames: one lit per week in a row, the rest grey
@@ -46,31 +81,44 @@ const scrollToBadges = (event) => {
 };
 
 /**
- * A player's profile in the selected club: who they are, how they are doing
- * (games, wins, streak, badges) and their detailed statistics. "afterFigures"
- * is shown between the key figures and the charts.
+ * A player's profile: who they are, how they are doing (games, wins, streak,
+ * badges) and their detailed statistics, filtered by clubs, period, last games
+ * and X01 starting score and format. Level, badges and streak always count
+ * everything. "afterFigures" is shown between the key figures and the charts.
  */
 const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
     const [stats, setStats] = useState(null);
     const [badges, setBadges] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    // reloading for other filters keeps the page and dims it
+    const [refreshing, setRefreshing] = useState(false);
+
+    // the X01 formats the player has played, from the last answer
+    const formats = (stats?.filterOptions?.formats ?? []).map(format => ({ label: formatLabel(format), value: formatLabel(format), format }));
+    const playsInSeveralClubs = (player.clubs?.length ?? 0) > 1;
+    // a date range only counts once its first day is chosen
+    const request = requestOf(filters, formats);
+    const requestKey = filters.period === 'Custom' && !filters.range?.[0] ? null : JSON.stringify(request);
 
     useEffect(() => {
-        let cancelled = false;
-        setLoading(true);
-        Promise.all([
-            StatsService.loadPlayerStats(player.id).catch(() => null),
-            StatsService.loadPlayerBadges(player.id).catch(() => null),
-        ]).then(([loadedStats, loadedBadges]) => {
-            if (cancelled) return;
-            setStats(loadedStats ?? {});
-            setBadges(loadedBadges);
-            setLoading(false);
-        });
-        return () => { cancelled = true; };
+        StatsService.loadPlayerBadges(player.id).then(setBadges).catch(() => setBadges(null));
     }, [player.id]);
 
-    if (loading) return <PageLoader />;
+    useEffect(() => {
+        if (requestKey === null) return undefined;
+        let cancelled = false;
+        setRefreshing(true);
+        StatsService.loadPlayerStats(player.id, JSON.parse(requestKey))
+            .catch(() => ({}))
+            .then(loaded => {
+                if (cancelled) return;
+                setStats(loaded);
+                setRefreshing(false);
+            });
+        return () => { cancelled = true; };
+    }, [player.id, requestKey]);
+
+    if (!stats) return <PageLoader />;
 
     const { playedGames = {}, wonGames = {}, avg = {}, checkouts = {}, throwedDarts = {}, throwedPoints = {} } = stats;
     const games = playedGames.total ?? 0;
@@ -135,17 +183,35 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         </a>
                     </div>
                 }
+                <div className="w-100">
+                    <FilterPanel {...describeFilters(filters, DEFAULT_FILTERS, { formats, withType: false, withOthers: false, withScope: true })}>
+                        <ComparisonFilters
+                            filters={filters}
+                            onChange={setFilters}
+                            formats={formats}
+                            withType={false}
+                            withOthers={false}
+                            withScope
+                            scopeHint={playsInSeveralClubs ? null : `${player.nickname} plays only in this club, so both show the same games.`}
+                            lastGamesLabel="Last games"
+                        />
+                    </FilterPanel>
+                </div>
             </header>
 
             {games === 0
                 ? (
                     <div className="d-flex flex-column gap-4">
-                        <p className="text-subtle m-0">{player.nickname} has not finished a game yet. Statistics appear here after the first game.</p>
+                        <p className="text-subtle m-0">
+                            {isFiltered(filters)
+                                ? <>No finished games match these filters. <Button label="Show all games" link className="p-0 align-baseline" onClick={() => setFilters(DEFAULT_FILTERS)} /></>
+                                : `${player.nickname} has not finished a game yet. Statistics appear here after the first game.`}
+                        </p>
                         {afterFigures}
                     </div>
                 )
                 : (
-                    <div className="d-flex flex-column gap-4">
+                    <div className={`d-flex flex-column gap-4 ${refreshing ? 'is-refreshing' : ''}`}>
                         {playedGames.x01 > 0 &&
                             <Panel header="X01">
                                 <div className="kpi-headline mb-4">
@@ -154,16 +220,21 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                                     <KpiHero label="First 9 average" value={x01.firstNineAverage} color={COLORS.x01} />
                                     <KpiRing label="Checkout rate" part={checkouts.hit} whole={checkouts.total} color={COLORS.x01} detail={`${formatNumber(checkouts.hit)} of ${formatNumber(checkouts.total)} attempts`} />
                                 </div>
+                                {/* the game in figures, then how often each score range was thrown */}
                                 <div className="kpi-chips">
                                     <KpiChip icon={FaFlagCheckered} label="Legs won" value={formatNumber(x01.legsWon)} color={COLORS.x01} />
-                                    <KpiChip icon={FaFire} label="180s" value={formatNumber(stats.num180s)} color={COLORS.x01} />
-                                    <KpiChip icon={FaBolt} label="140+" value={formatNumber(stats.num140plus)} color={COLORS.x01} />
-                                    <KpiChip icon={FaHashtag} label="100+ visits" value={formatNumber(x01.tonPlus)} color={COLORS.x01} />
                                     <KpiChip icon={FaCrosshairs} label="Highest checkout" value={checkouts.highest || null} color={COLORS.x01} />
                                     <KpiChip icon={FaStopwatch} label="Best 501 leg" value={x01.bestLeg ? `${x01.bestLeg} darts` : null} color={COLORS.x01} />
                                     <KpiChip icon={GiDart} label="Darts per leg" value={avg.dartsPerLegX01 || null} color={COLORS.x01} />
                                     <KpiChip icon={FaBullseye} label="Darts thrown" value={formatNumber(throwedDarts.x01)} color={COLORS.x01} />
                                     <KpiChip icon={FaTrophy} label="Points scored" value={formatNumber(throwedPoints.x01)} color={COLORS.x01} />
+                                </div>
+                                <div className="kpi-chips mt-3">
+                                    <KpiChip icon={FaFire} label="180s" value={formatNumber(stats.num180s)} color={COLORS.x01} />
+                                    <KpiChip icon={FaBolt} label="160+" value={formatNumber(stats.num160plus)} color={COLORS.x01} />
+                                    <KpiChip icon={FaBolt} label="140+" value={formatNumber(stats.num140plus)} color={COLORS.x01} />
+                                    <KpiChip icon={FaHashtag} label="120+" value={formatNumber(stats.num120plus)} color={COLORS.x01} />
+                                    <KpiChip icon={FaHashtag} label="100+" value={formatNumber(stats.num100plus)} color={COLORS.x01} />
                                 </div>
                             </Panel>
                         }

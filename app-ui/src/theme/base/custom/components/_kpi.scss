@@ -129,6 +129,18 @@
     line-height: 1.2;
 }
 
+// chips with a detail line (the moments of a game) get a little more room
+.kpi-chips.kpi-chips-wide {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.kpi-chip-detail {
+    margin-top: 0.15rem;
+    color: $textSubtleColor;
+    font-size: 0.72rem;
+    line-height: 1.25;
+}
+
 // narrow phones: smaller icons, so the labels have room to wrap
 @media (max-width: 575px) {
     .kpi-chip {

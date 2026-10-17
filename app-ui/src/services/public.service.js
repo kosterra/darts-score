@@ -6,8 +6,14 @@ import { requestJSON } from '../utils/service.utils';
  */
 const loadOverview = () => requestJSON('/api/public/overview');
 
+/**
+ * The banner on top of every page (e.g. "Test environment"): { enabled, text, color }.
+ */
+const loadBanner = () => requestJSON('/api/public/banner');
+
 const PublicService = {
-    loadOverview
+    loadOverview,
+    loadBanner
 };
 
 export default PublicService;

@@ -8,9 +8,10 @@ const RING_NAMES = { S: 'single', D: 'double', T: 'treble' };
  * Where the darts landed, on a dartboard per player.
  *
  * hitsByPlayer: one entry per player, each [{ section: '20', S, D, T }]
+ * gameName: the game the hits are from, for the description
  */
-const HitsHeatmapChart = ({ hitsByPlayer = [], players = [] }) => (
-    <ChartCard title="Where the darts land" description="Every field of the board shaded by how often it was hit in X01. Hover a field for the number.">
+const HitsHeatmapChart = ({ hitsByPlayer = [], players = [], gameName = 'X01' }) => (
+    <ChartCard title="Where the darts land" description={`Every field of the board shaded by how often it was hit in ${gameName}. Hover a field for the number.`}>
         <div className="row g-3 justify-content-center">
             {players.map((player, index) => {
                 const bySection = new Map((hitsByPlayer[index] ?? []).map(entry => [String(entry.section), entry]));

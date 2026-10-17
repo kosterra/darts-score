@@ -32,7 +32,7 @@ docker run -d \
   -e DB_USER=admin \
   -e DB_PASSWORD=yourpassword \
   -e DB_NAME=darts_score \
-  -v ./data:/app/data \
+  -v darts_score_data:/app/data \
   kosterra/darts-score:latest
 ```
 
@@ -80,8 +80,11 @@ services:
       IMG_DIR: ${IMG_DIR:-data/img}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:
-      # uploaded player pictures and club logos
-      - ./data:/app/data
+      # uploaded player pictures and club logos, in a Docker volume the app may
+      # write to. To keep them in a folder of your own instead, use e.g.
+      # "/opt/darts-score/data:/app/data" and give that folder to user 1000
+      # ("chown -R 1000:1000 /opt/darts-score/data"), the user the app runs as.
+      - darts_score_data:/app/data
     depends_on:
       mongo:
         condition: service_healthy
@@ -124,6 +127,8 @@ services:
 volumes:
   darts_score_db:
     name: darts_score_db
+  darts_score_data:
+    name: darts_score_data
 ```
 
 MongoDB has no published port: only Darts Score reaches it, through the internal network. For HTTPS put a reverse proxy in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`.
@@ -141,7 +146,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=darts@example.com
 SMTP_PASSWORD=yourmailpassword
-SMTP_FROM=Darts Score <darts@example.com>
+SMTP_FROM=Oche <darts@example.com>
 IMG_DIR=data/img
 LOG_LEVEL=info
 ```
@@ -168,7 +173,7 @@ LOG_LEVEL=info
 | `SMTP_HOST` | for email | — | SMTP server. Without it password reset and invitations by mail are off |
 | `SMTP_PORT` | no | `587` | SMTP port (`465` implies TLS) |
 | `SMTP_USER` / `SMTP_PASSWORD` | no | — | SMTP login, if the server needs one |
-| `SMTP_FROM` | no | `Darts Score <no-reply@darts-score.local>` | Sender of the mails |
+| `SMTP_FROM` | no | `Oche <no-reply@darts-score.local>` | Sender of the mails |
 | `SMTP_SECURE` | no | `true` on port 465 | `true` for TLS from the start on another port |
 | `LOG_LEVEL` | no | `debug` | `error`, `warn`, `info` or `debug` |
 
@@ -180,11 +185,18 @@ The app requires a login. Anyone can register and create clubs with their own pl
 
 ## Persistent data
 
-Player profile images are written to `IMG_DIR` (default `data/img`). Mount this path as a volume to persist images across container restarts and upgrades:
+Player pictures and club logos are written to `/app/data` (`IMG_DIR`, default `data/img`). The app runs as user `node` (ID 1000), so `/app/data` must be writable for that user:
+
+- **A named volume** (as in the compose file above) works out of the box: Docker creates it with the right owner.
+- **A folder of your own** must belong to user 1000, otherwise uploads fail and the log says "Pictures cannot be saved":
+
+```bash
+mkdir -p /opt/darts-score/data && chown -R 1000:1000 /opt/darts-score/data
+```
 
 ```yaml
 volumes:
-  - ./data:/app/data
+  - /opt/darts-score/data:/app/data
 ```
 
 ---

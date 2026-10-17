@@ -1,17 +1,20 @@
 import logger from '../models/logger.model.js';
+import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { removeProfileImageFile } from './file.controller.js';
 import { CLUB_ROLES } from '../models/user.model.js';
+import { inClub, knownInClub } from '../models/player.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 
 const Player = db.player;
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// Every lookup is limited to the club the request works on
-const findInClub = (req) =>
+// Every lookup is limited to the club the request works on: changes to its
+// members, reading also to former members, whose games the club still shows
+const findInClub = (req, filter = inClub) =>
     db.mongoose.isValidObjectId(req.params.id)
-        ? Player.findOne({ _id: req.params.id, club: req.club._id })
+        ? Player.findOne({ _id: req.params.id, ...filter(req.club._id) })
         : null;
 
 /**
@@ -34,8 +37,9 @@ export const create = async (req, res) => {
         lastname: req.body.lastname,
         nickname: req.body.nickname,
         profileImg: req.file ? req.file.filename : '',
-        club: req.club._id,
+        clubs: [req.club._id],
     });
+    checkLater(() => noteCreated(req, 'player', { id: player._id, name: player.nickname, names: [player.nickname, player.firstname, player.lastname] }));
     res.send(player.toJSON());
 };
 
@@ -50,8 +54,9 @@ export const createGuest = async (req, res) => {
         lastname: 'Guest',
         nickname: req.body.name,
         guest: true,
-        club: req.club._id,
+        clubs: [req.club._id],
     });
+    checkLater(() => noteCreated(req, 'player', { id: guest._id, name: guest.nickname }));
     res.status(201).send(guest.toJSON());
 };
 
@@ -72,14 +77,14 @@ export const makeMember = async (req, res) => {
  */
 export const createForCurrentUser = async (req, res) => {
     logger.debug('players create for current user called');
-    if (await Player.exists({ club: req.club._id, user: req.user._id })) {
+    if (await Player.exists({ clubs: req.club._id, user: req.user._id })) {
         return res.status(409).json({ message: 'You are already a player of this club.' });
     }
     const player = await Player.create({
         firstname: req.user.firstname,
         lastname: req.user.lastname,
         nickname: req.body.nickname,
-        club: req.club._id,
+        clubs: [req.club._id],
         user: req.user._id,
     });
     res.status(201).send(player.toJSON());
@@ -87,7 +92,7 @@ export const createForCurrentUser = async (req, res) => {
 
 // Guests are left out unless a list asks for them (game history needs their names)
 const memberFilter = (req) => ({
-    club: req.club._id,
+    clubs: req.club._id,
     ...(req.query.includeGuests !== 'true' && { guest: { $ne: true } }),
 });
 
@@ -113,13 +118,13 @@ export const findBySearchTerm = async (req, res) => {
 export const findByIds = async (req, res) => {
     logger.debug('players find by ids called!');
     const ids = req.body.playerIds.filter(id => db.mongoose.isValidObjectId(id));
-    const players = await Player.find({ _id: { $in: ids }, club: req.club._id });
+    const players = await Player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) });
     res.send(players.map(p => p.toJSON()));
 };
 
 export const findOne = async (req, res) => {
     logger.debug('players find one called!');
-    const player = await findInClub(req);
+    const player = await findInClub(req, knownInClub);
     if (!player) return res.status(404).send({ message: 'Player not found.' });
     res.send(player.toJSON());
 };
@@ -154,9 +159,42 @@ export const remove = async (req, res) => {
     const player = await findInClub(req);
     if (!player) return res.status(404).send({ message: 'Player not found.' });
 
+    // a member of other clubs only leaves this one; their games here keep their name
+    if (player.clubs.length > 1) {
+        await removeFromClub(player, req.club._id);
+        logger.info(`Player "${player.nickname}" removed from club "${req.club.name}" by ${req.user.email}`);
+        return res.send({ message: 'Player was removed from this club.', removed: 'membership' });
+    }
+
     await player.deleteOne();
     removeProfileImageFile(player.profileImg);
-    res.send({ message: 'Player was deleted successfully!' });
+    res.send({ message: 'Player was deleted successfully!', removed: 'player' });
+};
+
+/**
+ * Ends a player's membership in a club; the club remembers them as a former member.
+ */
+export const removeFromClub = async (player, clubId) => {
+    player.clubs = player.clubs.filter(id => !id.equals(clubId));
+    if (!player.formerClubs.some(id => id.equals(clubId))) player.formerClubs.push(clubId);
+    await player.save();
+};
+
+/**
+ * Makes a player a member of another club too. Resolves to an error message
+ * when that is not possible.
+ */
+export const addToClub = async (player, club) => {
+    if (player.guest) return 'A guest cannot be added to another club. Make them a club member first.';
+    if (player.clubs.some(id => id.equals(club._id))) return `${player.nickname} is already a member of ${club.name}.`;
+    // the account behind the player can only be one player per club
+    if (player.user && await Player.exists({ clubs: club._id, user: player.user })) {
+        return `The account of ${player.nickname} already plays in ${club.name} as another player.`;
+    }
+    player.clubs.push(club._id);
+    player.formerClubs = player.formerClubs.filter(id => !id.equals(club._id));
+    await player.save();
+    return null;
 };
 
 /**
@@ -180,9 +218,10 @@ export const giveLogin = async (req, res) => {
     }, req.user);
     if (error) return res.status(422).json({ errors: [error] });
 
-    const other = await Player.findOne({ club: req.club._id, user: user._id, _id: { $ne: player._id } });
+    // one account is one player per club, also in the player's other clubs
+    const other = await Player.findOne({ clubs: { $in: player.clubs }, user: user._id, _id: { $ne: player._id } });
     if (other) {
-        return res.status(409).json({ message: `This account already plays in this club as ${other.nickname}.` });
+        return res.status(409).json({ message: `This account already plays as ${other.nickname} in a club of this player.` });
     }
 
     player.user = user._id;
@@ -193,7 +232,7 @@ export const giveLogin = async (req, res) => {
         user,
         inviteLink,
         `You can now play at ${req.club.name}`,
-        `${req.user.firstname} ${req.user.lastname} gave you a login as player "${player.nickname}" of the club "${req.club.name}" on Darts Score. You can start games and trainings there on your own.`
+        `${req.user.firstname} ${req.user.lastname} gave you a login as player "${player.nickname}" of the club "${req.club.name}" on Oche. You can start games and trainings there on your own.`
     );
 
     res.send((await toClient([player], req))[0]);

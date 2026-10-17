@@ -120,3 +120,58 @@
         text-decoration: underline;
     }
 }
+
+// Banner colours in the administration
+.banner-swatch {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+
+    &.is-selected {
+        border-color: $shade000;
+    }
+}
+
+.banner-custom-color {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+
+    input[type="color"] {
+        width: 2.25rem;
+        height: 2rem;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+    }
+}
+
+// The stack and details of an error log entry
+.error-log-stack {
+    max-height: 22rem;
+    overflow: auto;
+    padding: 0.75rem 1rem;
+    border-radius: $borderRadius;
+    background: $surfaceColor;
+    color: $textSubtleColor;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+// A registration field only bots fill in: off screen for people and screen readers
+.register-website {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}

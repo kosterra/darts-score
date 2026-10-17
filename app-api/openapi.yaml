@@ -1,9 +1,9 @@
 openapi: 3.1.0
 
 info:
-  title: darts-score API
+  title: Oche API
   description: |
-    REST API for the darts-score application. Manages accounts, clubs, players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+    REST API for Oche, the darts club app. Manages accounts, clubs, players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
 
     **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all further requests.
 
@@ -330,6 +330,31 @@ paths:
           description: A club needs at least one admin
 
   # ---------- Users ---------------------------------------------------------
+
+  /api/public/banner:
+    get:
+      tags: [Public]
+      summary: The banner shown on top of every page while it is switched on ({ enabled, text, color })
+      security: []
+      responses:
+        '200':
+          description: OK
+
+  /api/admin/banner:
+    get:
+      tags: [Users]
+      summary: The banner as global admins edit it, also while switched off
+      responses:
+        '200':
+          description: OK
+    put:
+      tags: [Users]
+      summary: Switch the banner on or off and set its text (up to 200 characters) and colour (#rrggbb)
+      responses:
+        '200':
+          description: OK
+        '422':
+          description: Invalid text or colour
 
   /api/admin/overview:
     get:

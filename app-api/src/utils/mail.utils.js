@@ -28,7 +28,7 @@ const getTransporter = () => {
 
 export const sendMail = async ({ to, subject, text }) => {
     await getTransporter().sendMail({
-        from: process.env.SMTP_FROM || 'Darts Score <no-reply@darts-score.local>',
+        from: process.env.SMTP_FROM || 'Oche <no-reply@darts-score.local>',
         to,
         subject,
         text,

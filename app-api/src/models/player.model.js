@@ -1,3 +1,8 @@
+// A player is a member of one or more clubs; these filters find them
+export const inClub = (clubId) => ({ clubs: clubId });
+// ... and also those removed from the club, whose names its games still show
+export const knownInClub = (clubId) => ({ $or: [{ clubs: clubId }, { formerClubs: clubId }] });
+
 export default (mongoose) => {
   const schema = mongoose.Schema(
     {
@@ -5,7 +10,10 @@ export default (mongoose) => {
       lastname:   { type: String, required: true, trim: true },
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
-      club:       { type: mongoose.Schema.Types.ObjectId, ref: 'club', index: true },
+      // The clubs the player is a member of: one person can play in several clubs
+      clubs:       { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'club' }], default: [] },
+      // Clubs the player was removed from; their games there keep showing the name
+      formerClubs: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'club' }], default: [] },
       // Badges the player has collected, each with the game or training it was earned in
       badges: [{
         _id: false,
@@ -34,6 +42,8 @@ export default (mongoose) => {
 
   // Speeds up name/nickname search queries
   schema.index({ nickname: 1, firstname: 1, lastname: 1 });
+  schema.index({ clubs: 1 });
+  schema.index({ formerClubs: 1 });
 
   schema.method('toJSON', function () {
     const { _id, ...object } = this.toObject();

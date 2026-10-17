@@ -107,7 +107,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
-SMTP_FROM=Darts Score <no-reply@example.com>
+SMTP_FROM=Oche <no-reply@example.com>
 ```
 
 ### Accounts, clubs and roles
@@ -254,7 +254,7 @@ docker compose -f docker-compose.dev.yml up --build
 docker compose up -d
 ```
 
-The app runs on `http://<server>:3001`, the Swagger UI at `/api-docs`. For HTTPS put a reverse proxy (Caddy, Traefik, nginx …) in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`. Uploaded pictures and logos are kept in `./data`, the database in the Docker volume `darts_score_db`.
+The app runs on `http://<server>:3001`, the Swagger UI at `/api-docs`. For HTTPS put a reverse proxy (Caddy, Traefik, nginx …) in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`. Uploaded pictures and logos are kept in the Docker volume `darts_score_data`, the database in `darts_score_db`. To keep the pictures in a folder of your own, mount it at `/app/data` and give it to user 1000, the user the app runs as (`chown -R 1000:1000 <folder>`).
 
 To build and run the production image from the source instead:
 

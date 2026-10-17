@@ -13,7 +13,7 @@ export const findAll = async (req, res) => {
     const [users, clubs, players] = await Promise.all([
         User.find({}).sort({ lastname: 1, firstname: 1 }),
         Club.find({}, 'name admins').lean(),
-        db.player.find({ user: { $ne: null } }, 'user club').lean(),
+        db.player.find({ user: { $ne: null } }, 'user clubs').lean(),
     ]);
     const clubNames = new Map(clubs.map(club => [String(club._id), club.name]));
 
@@ -23,9 +23,10 @@ export const findAll = async (req, res) => {
             .filter(club => club.admins.some(admin => String(admin) === id))
             .map(club => ({ id: club._id, name: club.name, role: CLUB_ROLES.ADMIN }));
         players
-            .filter(player => String(player.user) === id && clubNames.has(String(player.club)))
-            .filter(player => !memberships.some(m => String(m.id) === String(player.club)))
-            .forEach(player => memberships.push({ id: player.club, name: clubNames.get(String(player.club)), role: CLUB_ROLES.PLAYER }));
+            .filter(player => String(player.user) === id)
+            .flatMap(player => player.clubs ?? [])
+            .filter(clubId => clubNames.has(String(clubId)) && !memberships.some(m => String(m.id) === String(clubId)))
+            .forEach(clubId => memberships.push({ id: clubId, name: clubNames.get(String(clubId)), role: CLUB_ROLES.PLAYER }));
         return memberships.sort((a, b) => a.name.localeCompare(b.name));
     };
 

@@ -14,9 +14,15 @@ const migrations = [
         description: 'Move players, games and training entries from before clubs existed into a default club',
         run: async ({ admin }) => {
             const clubless = { club: { $in: [null, undefined] } };
-            const models = [db.player, db.x01, db.cricket, db.elimination, db.atc];
+            // players are counted on the raw collection: from 2026-10-player-clubs on
+            // their model has a list of clubs, and this migration still sets the old field
+            const playersWithoutClub = { ...clubless, 'clubs.0': { $exists: false } };
+            const collections = [
+                [db.player.collection, playersWithoutClub],
+                ...[db.x01, db.cricket, db.elimination, db.atc].map(model => [model.collection, clubless]),
+            ];
 
-            const counts = await Promise.all(models.map(model => model.countDocuments(clubless)));
+            const counts = await Promise.all(collections.map(([collection, filter]) => collection.countDocuments(filter)));
             if (counts.every(count => count === 0)) return true;
 
             if (!admin) {
@@ -35,9 +41,28 @@ const migrations = [
                     admins: [admin._id],
                     ...(firstGameAt && { createdAt: firstGameAt }),
                 });
-            // timestamps: false keeps each record's own "last updated" time, which is when a game was finished
-            await Promise.all(models.map(model => model.updateMany(clubless, { $set: { club: club._id } }, { timestamps: false })));
+            // straight on the collections, so each record keeps its own "last updated" time, which is when a game was finished
+            await Promise.all(collections.map(([collection, filter]) => collection.updateMany(filter, { $set: { club: club._id } })));
             logger.info(`Moved existing data into "${club.name}": ${counts.join(' / ')} (players / x01 / cricket / elimination / atc)`);
+            return true;
+        },
+    },
+    {
+        id: '2026-10-player-clubs',
+        description: 'Let players be members of several clubs: their one club becomes a list of clubs',
+        run: async () => {
+            const players = db.player.collection;
+            // timestamps stay as they are: nothing about the players themselves changed
+            const { modifiedCount } = await players.updateMany(
+                { club: { $type: 'objectId' } },
+                [{ $set: { clubs: ['$club'], formerClubs: { $ifNull: ['$formerClubs', []] } } }, { $unset: 'club' }]
+            );
+            // players without a club (should not exist) only lose the old field
+            await players.updateMany({ club: { $exists: true } }, [
+                { $set: { clubs: { $ifNull: ['$clubs', []] }, formerClubs: { $ifNull: ['$formerClubs', []] } } },
+                { $unset: 'club' },
+            ]);
+            logger.info(`Moved ${modifiedCount} players to the list of clubs`);
             return true;
         },
     },
@@ -46,7 +71,7 @@ const migrations = [
         description: 'Award the badges players have already earned in their past games and trainings',
         run: async () => {
             const { syncPlayerBadges } = await import('./badge.service.js');
-            const players = await db.player.find({ guest: { $ne: true }, club: { $ne: null } });
+            const players = await db.player.find({ guest: { $ne: true }, 'clubs.0': { $exists: true } });
             for (const player of players) await syncPlayerBadges(player);
             logger.info(`Checked the badges of ${players.length} players`);
             return true;
@@ -57,7 +82,7 @@ const migrations = [
         description: 'Award the badges added later and work out every player\'s weekly streak',
         run: async () => {
             const { syncPlayerBadges } = await import('./badge.service.js');
-            const players = await db.player.find({ guest: { $ne: true }, club: { $ne: null } });
+            const players = await db.player.find({ guest: { $ne: true }, 'clubs.0': { $exists: true } });
             for (const player of players) await syncPlayerBadges(player);
             return true;
         },

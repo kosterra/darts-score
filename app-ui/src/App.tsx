@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParam
 import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
+import AppBanner from './components/banner/app.banner';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
@@ -43,7 +44,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/players', '/admin/games', '/admin/trainings'];
+const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading } = useAuth();
@@ -59,6 +60,7 @@ function AppContent() {
     if (!user) {
         return (
             <Suspense fallback={<PageLoader />}>
+                <AppBanner />
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage />} />
@@ -79,41 +81,45 @@ function AppContent() {
     return (
         <div className="d-flex mb-5 mb-md-0">
             <AppNavigation />
-            {/* Keyed by club so every page reloads its data after switching clubs */}
-            <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
-            <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/x01" element={<X01ConfigPage />} />
-                <Route path="/x01/:id" element={<X01GamePage />} />
-                <Route path="/cricket" element={<CricketConfigPage />} />
-                <Route path="/cricket/:id" element={<CricketGamePage />} />
-                <Route path="/elimination" element={<EliminationConfigPage />} />
-                <Route path="/elimination/:id" element={<EliminationGamePage />} />
-                <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
-                <Route path="/stats/:id" element={<StatsPage />} />
-                <Route path="/stats/games/:id" element={<GameListRedirect />} />
-                <Route path="/players" element={<ClubListsPage list="players" />} />
-                <Route path="/players/:id" element={<PlayerProfilePage />} />
-                <Route path="/games" element={<ClubListsPage list="games" />} />
-                <Route path="/trainings" element={<ClubListsPage list="trainings" />} />
-                <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
-                <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
-                <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
-                <Route path="/training" element={<TrainingPage />} />
-                <Route path="/training/atc" element={<TrainingPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/badges" element={<BadgesPage />} />
-                <Route path="/badges/:id" element={<BadgesPage />} />
-                <Route path="/clubs" element={<ClubsPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/administration" element={<AdministrationPage />} />
-                <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
-                <Route path="/admin/:id" element={<AdminPage />} />
-                <Route path="/admin/games/:id" element={<AdminPage />} />
-                <Route path="/admin/training/:id" element={<AdminPage />} />
-                <Route path="*" element={<Navigate replace to="/" />} />
-            </Routes>
-            </Suspense>
+            {/* the banner sits on top of the pages, next to the menu */}
+            <div className="app-content">
+                <AppBanner />
+                {/* Keyed by club so every page reloads its data after switching clubs */}
+                <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
+                <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/x01" element={<X01ConfigPage />} />
+                    <Route path="/x01/:id" element={<X01GamePage />} />
+                    <Route path="/cricket" element={<CricketConfigPage />} />
+                    <Route path="/cricket/:id" element={<CricketGamePage />} />
+                    <Route path="/elimination" element={<EliminationConfigPage />} />
+                    <Route path="/elimination/:id" element={<EliminationGamePage />} />
+                    <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
+                    <Route path="/stats/:id" element={<StatsPage />} />
+                    <Route path="/stats/games/:id" element={<GameListRedirect />} />
+                    <Route path="/players" element={<ClubListsPage list="players" />} />
+                    <Route path="/players/:id" element={<PlayerProfilePage />} />
+                    <Route path="/games" element={<ClubListsPage list="games" />} />
+                    <Route path="/trainings" element={<ClubListsPage list="trainings" />} />
+                    <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
+                    <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
+                    <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
+                    <Route path="/training" element={<TrainingPage />} />
+                    <Route path="/training/atc" element={<TrainingPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/badges" element={<BadgesPage />} />
+                    <Route path="/badges/:id" element={<BadgesPage />} />
+                    <Route path="/clubs" element={<ClubsPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/administration" element={<AdministrationPage />} />
+                    <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
+                    <Route path="/admin/:id" element={<AdminPage />} />
+                    <Route path="/admin/games/:id" element={<AdminPage />} />
+                    <Route path="/admin/training/:id" element={<AdminPage />} />
+                    <Route path="*" element={<Navigate replace to="/" />} />
+                </Routes>
+                </Suspense>
+            </div>
         </div>
     );
 }

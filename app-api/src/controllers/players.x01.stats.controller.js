@@ -2,7 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
-import { averageTrend, scoringVsFinishing, dartsPerLegDistribution, DARTS_PER_LEG_BUCKETS } from '../utils/chart.data.js';
+import { averageTrend, scoringVsFinishing, dartsPerLegDistribution, DARTS_PER_LEG_BUCKETS, threeDartAverage } from '../utils/chart.data.js';
 import { playersX01StatsModel, checkoutItemModel, avgItemModel } from '../models/players.x01.stats.models.js';
 
 const X01 = db.x01;
@@ -92,33 +92,22 @@ async function findX01Games(body) {
     return x01Games;
 }
 
-const calculateOverallX01Avg = (x01Games, playerId) => {
-    const averages = x01Games.map(game => {
-        if (((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0) === 0) {
-            return null;
-        }
-        return Math.round(((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0), 2);
-    }).filter(stat => stat !== null);
+// the real 3-dart average over all visits (not only the scoring part of the legs)
+const calculateOverallX01Avg = (x01Games, playerId) => threeDartAverage(x01Games, playerId);
 
-    const sum = averages.reduce((accumulator, value) => {
-        return accumulator + value;
-    }, 0);
-
-    return Math.round(sum / x01Games.length, 2);
-}
-
-const calculatePerGameX01Avg = (x01Games, playerId) => {
-    return x01Games.map((game, idx) => {
-        if (((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0) === 0) {
-            return null;
-        }
+// the 3-dart average of each of the last ten games
+const calculatePerGameX01Avg = (x01Games, playerId) => x01Games
+    .map((game, idx) => {
+        const average = game.playerModels[playerId]?.averages?.game?.overall ?? 0;
+        if (!average) return null;
         return {
             label: idx + 1,
-            value: Math.round((((game.playerModels[playerId] || {}).averages || {}).game || {}).begMidGame || 0),
+            value: Math.round(average * 10) / 10,
             desc: game.startingScore + ' (' + dayjs(game.createdAt).format("DD.MM.YYYY") + ')'
         };
-    }).filter(stat => stat !== null).slice(-10);
-}
+    })
+    .filter(stat => stat !== null)
+    .slice(-10);
 
 const calculateDartsPerLegX01Avg = (x01Games, playerId) => {
     const legsPlayed = getTotalLegsPlayedX01(x01Games);
@@ -258,7 +247,7 @@ const getPlayersAveragesPerGameX01 = (x01Games, playerIds) => {
             var playerModel = game.playerModels[playerId];
 
             if (((playerModel || {}).averages || {}).game || {}) {
-                item['player' + (playerIdx + 1)] = ((((playerModel || {}).averages || {}).game || {}).begMidGame || 0).toFixed(1);
+                item['player' + (playerIdx + 1)] = (playerModel?.averages?.game?.overall || 0).toFixed(1);
             }
         })
 

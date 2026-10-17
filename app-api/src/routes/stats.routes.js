@@ -5,21 +5,22 @@ import { getPlayerStats } from '../controllers/player.stats.controller.js';
 import { getX01Stats } from '../controllers/x01.stats.controller.js';
 import { getPlayersX01Stats } from '../controllers/players.x01.stats.controller.js';
 import { getHeadToHead } from '../controllers/head.to.head.controller.js';
-import { getClubStats, getPlayerGames, getPlayerLevels } from '../controllers/club.stats.controller.js';
+import { getClubStats, getPlayerGames, getPlayerLevels, getPlayersForm } from '../controllers/club.stats.controller.js';
 import { getClubBadges, getPlayerBadges, getGameBadges } from '../controllers/badge.controller.js';
-import { playersBelongToClub } from '../controllers/game.controller.js';
+import { playersKnownInClub } from '../controllers/game.controller.js';
 import db from '../models/db.model.js';
 
-// Statistics are only given for players and games of the request's club
+// Statistics are only given for players and games of the request's club,
+// also for former members, whose games stay in the club
 const playerInClub = async (req, res, next) => {
-    if (!(await playersBelongToClub([req.params.id], req.club._id))) {
+    if (!(await playersKnownInClub([req.params.id], req.club._id))) {
         return res.status(404).json({ message: 'Player not found.' });
     }
     next();
 };
 
 const playersInClub = async (req, res, next) => {
-    if (!(await playersBelongToClub(req.body.playerIds, req.club._id))) {
+    if (!(await playersKnownInClub(req.body.playerIds, req.club._id))) {
         return res.status(404).json({ message: 'Player not found.' });
     }
     next();
@@ -50,6 +51,8 @@ export default (app) => {
     // Retrieve X01 stats for multiple players
     router.post('/players/x01', validatePlayerIds, validate, playersInClub, getPlayersX01Stats);
     router.post('/players/headtohead', validatePlayerIds, validate, playersInClub, getHeadToHead);
+    // the current form of compared players, from their own latest games
+    router.post('/players/form', validatePlayerIds, validate, playersInClub, getPlayersForm);
 
     app.use('/api/stats', router);
 };

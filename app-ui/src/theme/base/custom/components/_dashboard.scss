@@ -497,11 +497,67 @@ $momentGoldColor: #ffc94d;
     }
 }
 
-// Filters of the player comparison, inside its header below the players
+// Filters of the player comparison and the profile, inside their header
 .comparison-filters-divider {
     height: 1px;
     background: $surfaceHighColor;
     margin: 0.25rem 0;
+}
+
+// Filters that open from a button; closed, a bar shows what is chosen
+.filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.filter-panel-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid $surfaceHighColor;
+}
+
+.filter-panel-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.filter-chip {
+    padding: 0.2rem 0.65rem;
+    border-radius: 1rem;
+    background: $surfaceHighColor;
+    color: $textSubtleColor;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.filter-panel-toggle.p-button {
+    flex-shrink: 0;
+
+    &.is-open {
+        background: $surfaceHighColor;
+        color: $textDefaultColor;
+    }
+
+    .p-badge {
+        min-width: 1.1rem;
+        height: 1.1rem;
+        line-height: 1.1rem;
+        font-size: 0.65rem;
+    }
+}
+
+// the profile's figures while they reload for other filters
+.is-refreshing {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity $transitionDuration;
 }
 
 .comparison-filters {
@@ -511,11 +567,11 @@ $momentGoldColor: #ffc94d;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    justify-content: center;
+    justify-content: flex-start;
     column-gap: 1.75rem;
     row-gap: 1rem;
 
-    .p-selectbutton .p-button,
+    .p-selectbutton:not(.p-selectbutton-pills) .p-button,
     .p-dropdown,
     .p-calendar .p-inputtext {
         height: var(--filter-height);
@@ -525,20 +581,48 @@ $momentGoldColor: #ffc94d;
         align-items: center;
     }
 
-    // short choices like "5" or "1 W" as real pills, not circles
+    // short choices like "5" or "1 W" as pills as high as on the game
+    // configuration pages; their row is as high as the other controls, so
+    // they sit centred next to them
     .p-selectbutton.p-selectbutton-pills {
         width: auto;
+        height: var(--filter-height);
+        align-items: center;
         gap: 0.4rem;
 
         .p-button {
             flex: 0 0 auto;
             min-width: 3rem;
-            padding: 0 0.9rem;
+            padding: 0.4rem 0.9rem;
             border-radius: 2rem !important;
         }
     }
 
     .comparison-include-others {
         height: var(--filter-height);
+    }
+}
+
+// A compared player's current form: their latest averages and the trend
+.form-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &.is-up { color: #7ecca5; }
+    &.is-down { color: #e07a5f; }
+    &.is-steady { color: $textSubtleColor; }
+
+    .form-change {
+        font-variant-numeric: tabular-nums;
+        opacity: 0.85;
     }
 }

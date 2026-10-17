@@ -6,9 +6,11 @@ import {
 const API_URL = '/api/';
 
 // Public methods to export
-const loadPlayerStats = async (playerId) => {
+// filters: { scope, period, from, to, lastGames, startingScore, setMode, numberOfSets, legMode, numberOfLegs }
+const loadPlayerStats = async (playerId, filters = {}) => {
+    const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value != null && value !== '')).toString();
     try {
-        const response = await fetch(API_URL + 'stats/player/' + playerId, {
+        const response = await fetch(API_URL + 'stats/player/' + playerId + (query ? `?${query}` : ''), {
             method: 'GET',
             headers: getHeaders(false)
         });
@@ -83,6 +85,9 @@ const loadPlayerBadges = (playerId) => requestJSON(API_URL + 'stats/badges/playe
  */
 const loadPlayerLevels = () => requestJSON(`${API_URL}stats/levels`);
 
+// the current X01 form of compared players: { [playerId]: { trend, change, recentAverage, previousAverage, latest } }
+const loadPlayersForm = (playerIds) => requestJSON(`${API_URL}stats/players/form`, { method: 'POST', body: { playerIds } });
+
 /**
  * Head to head in Cricket or Elimination with the comparison filters
  * ({ type, playerIds, includeOthers, dateFilter, from, to, lastGames }).
@@ -105,6 +110,7 @@ const StatsService = {
     loadPlayerGames,
     loadHeadToHead,
     loadPlayerLevels,
+    loadPlayersForm,
     loadX01GameStats,
     loadX01PlayersStats
 }

@@ -23,7 +23,7 @@ const FEATURES = [
 const STEPS = [
     { title: 'Create your account', text: 'Register with your email address. It takes a minute.' },
     { title: 'Set up your club', text: 'Name your club, add your players and invite further admins.' },
-    { title: 'Play', text: 'Start a game, throw, and let Darts Score do the counting.' },
+    { title: 'Play', text: 'Start a game, throw, and let Oche do the counting.' },
 ];
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
@@ -57,7 +57,7 @@ const LandingPage = () => {
                 <header className="d-flex justify-content-between align-items-center gap-3 px-4 py-3">
                     <div className="d-flex align-items-center gap-3">
                         <img alt="" src="/logo.svg" width="48" height="48" />
-                        <span className="fs-5 fw-semibold text-default">Darts Score</span>
+                        <span className="fs-5 fw-semibold text-default">Oche</span>
                     </div>
                     <nav className="d-flex gap-2" aria-label="Account">
                         <Link to="/login"><Button label="Log in" size="small" outlined /></Link>
@@ -70,7 +70,7 @@ const LandingPage = () => {
                         <div className="col-12 col-lg-8 col-xl-7 d-flex flex-column gap-3">
                             <h1 className="display-4 fw-semibold text-default m-0">Game on. We keep the score.</h1>
                             <p className="fs-5 text-default m-0">
-                                Darts Score is the scoreboard for your club, your pub team or your living room: it counts every dart,
+                                Oche is the scoreboard for your club, your pub team or your living room: it counts every dart,
                                 keeps the statistics and shows who is on the oche right now.
                             </p>
                             <div className="d-flex flex-wrap gap-3 pt-2">
@@ -84,7 +84,7 @@ const LandingPage = () => {
 
             <main className="container pb-5 d-flex flex-column gap-5">
                 {overview &&
-                    <section className="row gy-3 text-center" aria-label="Darts Score in numbers">
+                    <section className="row gy-3 text-center" aria-label="Oche in numbers">
                         {[['Clubs', overview.totals.clubs], ['Players', overview.totals.players], ['Games played', overview.totals.gamesPlayed]].map(([label, value]) => (
                             <div className="col-12 col-md-4" key={label}>
                                 <div className="bg-surface-translucent rounded-2 py-4">
@@ -179,7 +179,7 @@ const LandingPage = () => {
             </main>
 
             <footer className="text-center text-faint fs-8 py-4">
-                Darts Score · open source under the GPLv3
+                Oche · open source under the GPLv3
             </footer>
         </div>
     );

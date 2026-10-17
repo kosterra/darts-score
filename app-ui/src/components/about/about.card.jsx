@@ -35,7 +35,7 @@ const AboutCard = () => {
             <header className="hero-header rounded-2 p-4 d-flex flex-wrap align-items-center gap-4">
                 <img alt="" src="/logo.svg" width="80" height="80" />
                 <div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
-                    <h1 className="fs-2 fw-semibold text-default m-0">Darts Score</h1>
+                    <h1 className="fs-2 fw-semibold text-default m-0">Oche</h1>
                     <span className="text-subtle">The scoreboard for your club, your pub team or your living room.</span>
                     <span className="text-faint fs-7">Version {import.meta.env.VITE_APP_VERSION} · open source under the GPLv3</span>
                 </div>

@@ -9,10 +9,12 @@ import { Panel } from 'primereact/panel';
 import PlayerService from '../../../services/player.service';
 import StatsService from '../../../services/stats.service';
 import LevelBadge from '../../players/level.badge';
+import FormBadge from './form.badge';
 import PageLoader from '../../elements/page.loader';
 import PlayerVSStats from './player.vs.stats';
 import OtherHeadToHead from './other.head.to.head';
-import ComparisonFilters from './comparison.filters';
+import ComparisonFilters, { FilterPanel } from './comparison.filters';
+import { describeFilters } from './filter.summary';
 import X01Service from '../../../services/x01.service';
 import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
@@ -66,6 +68,8 @@ const PlayersStatisticsPage = () => {
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
     // the X01 formats these players have played together, for the format filter
     const [formats, setFormats] = useState([]);
+    // each compared player's current form, from their own latest games
+    const [forms, setForms] = useState({});
 
     useEffect(() => {
         StatsService.loadPlayerLevels().then(setLevels).catch(() => setLevels({}));
@@ -85,6 +89,12 @@ const PlayersStatisticsPage = () => {
     }, [user.id]);
 
     const selectedKey = selectedIds.join(',');
+    useEffect(() => {
+        if (selectedIds.length < 2) return;
+        StatsService.loadPlayersForm(selectedIds).then(setForms).catch(() => setForms({}));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedKey]);
+
     useEffect(() => {
         if (selectedIds.length < 2) return;
         X01Service.findX01Games({ playerIds: selectedIds, includeOthers: filters.includeOthers, dateFilter: 'All' })
@@ -222,6 +232,7 @@ const PlayersStatisticsPage = () => {
                                                                 <span className="fs-4 fw-semibold text-default">{player.nickname}</span>
                                                                 <span className="text-subtle fs-7">{player.firstname} {player.lastname}</span>
                                                                 <span className="mt-1"><LevelBadge level={levels[player.id]} /></span>
+                                                                <span className="mt-1"><FormBadge form={forms[player.id]} color={ChartConfigOptions.fillColors.values[index]} align={sideIndex === 0 ? 'end' : 'start'} /></span>
                                                             </span>
                                                         </span>
                                                     );
@@ -230,8 +241,9 @@ const PlayersStatisticsPage = () => {
                                         </Fragment>
                                     ))}
                                 </div>
-                                <div className="comparison-filters-divider" />
-                                <ComparisonFilters filters={filters} onChange={setFilters} formats={formats} />
+                                <FilterPanel {...describeFilters(filters, DEFAULT_FILTERS, { formats })}>
+                                    <ComparisonFilters filters={filters} onChange={setFilters} formats={formats} />
+                                </FilterPanel>
                             </header>
                             {filters.type === 'x01'
                                 ? <PlayerVSStats players={selected} request={requestOf(filters, formats)} />

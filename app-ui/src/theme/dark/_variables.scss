@@ -112,8 +112,9 @@ $inputTextColor: $shade000 !default;
 $inputIconColor: $shade100 !default;
 $inputBorder: 1px solid $shade900 !default;
 $inputHoverBorderColor: none !default;
-$inputFocusBorderColor: $shade800 !default;
-$inputFocusBgColor: $shade700 !default;
+// a focused field stays dark, so it stands out from the panel, and gets a light border
+$inputFocusBorderColor: $shade500 !default;
+$inputFocusBgColor: $shade900 !default;
 $inputErrorBorderColor: $errorColor !default;
 $inputPlaceholderTextColor: $shade600 !default;
 $inputFilledBg: $shade600 !default;

@@ -5,14 +5,21 @@ const API_URL = '/api/';
 /**
  * Create a new player. Accepts a pre-built FormData object.
  */
-const createPlayer = async (formData) => {
+// the server's own explanation (e.g. why a picture could not be saved), else the status
+const errorMessageOf = async (response) => {
+    const data = await response.json().catch(() => ({}));
+    return data.errors?.join(' ') || data.message || response.statusText;
+};
+
+// clubId: the club to add the player to, the selected club when left out
+const createPlayer = async (formData, clubId) => {
     try {
         const response = await fetch(API_URL + 'players', {
             method: 'POST',
-            headers: getHeaders(false), // no Content-Type: let browser set multipart boundary
+            headers: getHeaders(false, clubId), // no Content-Type: let browser set multipart boundary
             body: formData
         });
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) throw new Error(await errorMessageOf(response));
         return response.ok;
     } catch (error) {
         throw new Error(error.message);
@@ -91,7 +98,7 @@ const updatePlayer = async (player) => {
             headers: getHeaders(false),
             body: formData
         });
-        if (!response.ok) throw new Error(response.statusText);
+        if (!response.ok) throw new Error(await errorMessageOf(response));
         return response.ok;
     } catch (error) {
         throw new Error(error.message);
@@ -105,7 +112,8 @@ const deletePlayer = async (playerId, clubId) => {
             headers: getHeaders(false, clubId)
         });
         if (!response.ok) throw new Error(response.statusText);
-        return response.ok;
+        // removed: "player" when deleted, "membership" when the player only left this club
+        return await response.json().catch(() => ({ removed: 'player' }));
     } catch (error) {
         throw new Error(error.message);
     }

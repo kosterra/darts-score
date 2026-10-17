@@ -15,6 +15,7 @@ import StatsService from '../../services/stats.service';
 import LevelBadge from '../players/level.badge';
 import PlayerForm from '../elements/player.form';
 import PlayerLogin from '../elements/player.login';
+import PlayerClubsDialog from './player.clubs.dialog';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import { useAuth } from '../../utils/auth.context';
@@ -54,6 +55,8 @@ const PlayersTable = ({ scope = 'club' }) => {
     }, [acrossClubs]);
     const [search, setSearch] = useState('');
     const [kind, setKind] = useState('all');
+    // across clubs: the player whose clubs are being changed
+    const [clubsOfPlayerId, setClubsOfPlayerId] = useState(null);
 
     const showError = (summary, error) =>
         toast.current.show({ severity: 'error', summary, detail: error.message, life: 4000 });
@@ -104,12 +107,29 @@ const PlayersTable = ({ scope = 'club' }) => {
     };
 
     const onDelete = async (player) => {
-        if (await PlayerService.deletePlayer(player.id, acrossClubs ? player.club?.id : undefined)) {
-            toast.current.show({ severity: 'success', summary: 'Player deleted', detail: player.nickname, life: 3000 });
+        try {
+            // across clubs a global admin deletes the player from every club; in a club's own
+            // list a member of other clubs only leaves this one
+            const result = acrossClubs
+                ? await AdminService.deletePlayer(player.id)
+                : await PlayerService.deletePlayer(player.id);
+            const leftClub = result?.removed === 'membership';
+            toast.current.show({ severity: 'success', summary: leftClub ? 'Player removed from the club' : 'Player deleted', detail: player.nickname, life: 3000 });
             await loadPlayers();
-        } else {
+        } catch {
             showError('Delete player', { message: `${player.nickname} could not be deleted. Please try again.` });
         }
+    };
+
+    // a player was added across clubs: show the club they were added to
+    const onPlayerAdded = async (clubId) => {
+        if (clubId && !selectedIds.includes(clubId)) select([...selectedIds, clubId]);
+        else await loadPlayers();
+    };
+
+    const onClubsChange = async (summary) => {
+        toast.current.show({ severity: 'success', summary, detail: players?.find(player => player.id === clubsOfPlayerId)?.nickname, life: 3000 });
+        await loadPlayers();
     };
 
     const kindBody = (player) => player.guest
@@ -145,8 +165,18 @@ const PlayersTable = ({ scope = 'club' }) => {
                     </>
                 }
             </>}
+            {acrossClubs &&
+                <Button type="button" icon="pi pi-building" severity="secondary" aria-label={`Clubs of ${player.nickname}`} tooltip="Clubs: add to or remove from a club" tooltipOptions={{ position: 'top' }} onClick={() => setClubsOfPlayerId(player.id)} />
+            }
             <JSONViewer data={player} header="Player _RAW Data" />
-            <DeletePopup data={player} header="Delete Player" message={'player ' + player.nickname} handleDelete={onDelete} />
+            <DeletePopup
+                data={player}
+                header="Delete Player"
+                message={acrossClubs && player.clubs?.length > 1
+                    ? `player ${player.nickname} from all ${player.clubs.length} clubs`
+                    : 'player ' + player.nickname}
+                handleDelete={onDelete}
+            />
         </div>
     );
 
@@ -164,6 +194,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                 <div className="ms-auto d-flex align-items-center gap-3">
                     {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? 'player' : 'players'}</span>}
                     {!acrossClubs && isClubAdmin && <PlayerForm onPlayerAdd={loadPlayers} />}
+                    {acrossClubs && <PlayerForm onPlayerAdd={onPlayerAdded} clubs={clubs} defaultClubId={selectedIds[0]} label="New player" />}
                 </div>
             </AdminToolbar>
 
@@ -193,7 +224,11 @@ const PlayersTable = ({ scope = 'club' }) => {
                                 : <Link to={`/players/${player.id}`} className="player-link"><PlayerCell player={player} /></Link>}
                             style={{ minWidth: '14rem' }}
                         />
-                        {acrossClubs && <Column field="club.name" header="Club" sortable body={(player) => <ClubCell club={player.club} />} />}
+                        {acrossClubs && <Column header="Clubs" body={(player) => (
+                            <div className="d-flex flex-column gap-1">
+                                {(player.clubs ?? []).map(club => <ClubCell key={club.id} club={club} />)}
+                            </div>
+                        )} />}
                         {!acrossClubs && <Column header="Level" body={(player) => player.guest ? <span className="text-faint fs-7">–</span> : <LevelBadge level={levels[player.id]} />} />}
                         <Column header="Type" body={kindBody} />
                         {canManage && <Column header="Login" body={loginBody} />}
@@ -204,6 +239,15 @@ const PlayersTable = ({ scope = 'club' }) => {
                 )
             }
 
+            {acrossClubs &&
+                <PlayerClubsDialog
+                    player={players?.find(player => player.id === clubsOfPlayerId) ?? null}
+                    clubs={clubs}
+                    onHide={() => setClubsOfPlayerId(null)}
+                    onChange={onClubsChange}
+                    onError={showError}
+                />
+            }
             <Toast ref={toast} position="bottom-right" />
         </Panel>
     );

@@ -1,69 +1,42 @@
-import { Fragment } from 'react';
-import ComparisonBar from '../../elements/comparison.bar';
+import SideBySide from '../common/side.by.side';
 
-const X01StatsComparisonBars = ({ valueKey, game }) => {
-    const players = game.players || [];
+const RANGES = [['180s', '180'], ['160+', '160-179'], ['140+', '140-159'], ['120+', '120-139'], ['100+', '100-119']];
 
-    // Hilfsfunktion zum sicheren Zugriff auf Spielerstatistiken
-    const getPlayerStat = (playerId, path = [], defaultValue = 0) => {
-        return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), game.playerModels[playerId]) ?? defaultValue;
-    };
+/**
+ * The players of an X01 game side by side, for the whole game (valueKey
+ * "game") or one set ("set-1", …): legs won, the high scores, the 3-dart
+ * average and the checkout rate.
+ */
+const X01StatsComparisonBars = ({ valueKey, game, players }) => {
+    const ids = players.map(player => player.id);
+    const modelOf = (id) => game.playerModels?.[id] ?? {};
 
-    const buildData = (name, pathMapper, unit) => ({
-        name,
-        unit,
-        ...Object.fromEntries(
-            players.map((playerId, idx) => {
-                const val = pathMapper(playerId);
-                return [`player${idx + 1}`, val];
-            })
-        )
-    });
+    const checkouts = ids.map(id => modelOf(id).checkout?.[valueKey] ?? {});
+    const averages = ids.map(id => modelOf(id).averages?.[valueKey]?.overall ?? 0);
 
-    const getWonLegsData = () =>
-        [buildData('Won Legs', (playerId) => getPlayerStat(playerId, ['legsWon', valueKey]))];
+    const rows = [
+        { key: 'legs', label: 'Legs won', values: ids.map(id => modelOf(id).legsWon?.[valueKey] ?? 0) },
+        ...RANGES.map(([label, range]) => ({
+            key: range,
+            label,
+            values: ids.map(id => modelOf(id).scoreRanges?.[valueKey]?.[range] ?? 0),
+        })),
+        {
+            key: 'average',
+            label: '3-dart average',
+            values: averages,
+            texts: averages.map(average => average.toFixed(1)),
+        },
+        {
+            key: 'checkout',
+            label: 'Checkout',
+            values: checkouts.map(({ hit = 0, total = 0 }) => total ? hit / total : 0),
+            texts: checkouts.map(({ hit = 0, total = 0 }) => total ? `${Math.round(hit / total * 100)} %` : '–'),
+            details: checkouts.map(({ hit = 0, total = 0 }) => total ? `${hit}/${total}` : ''),
+        },
+    ];
 
-    const getRangesData = (name, range) =>
-        [buildData(name, (playerId) => getPlayerStat(playerId, ['scoreRanges', valueKey, range]))];
-
-    const getAverageData = () =>
-        [buildData('Average', (playerId) => {
-            const avg = getPlayerStat(playerId, ['averages', valueKey, valueKey === 'game' ? 'begMidGame' : 'begMidSet'], 0);
-            return Number(avg.toFixed(1));
-        })];
-
-    const getCheckoutData = () => {
-        const checkout = {
-            name: 'Checkouts',
-            unit: '%'
-        };
-
-        game.players.forEach((playerId, idx) => {
-            const { hit = 0, total = 0 } =
-                game?.playerModels?.[playerId]?.checkout?.[valueKey] ?? {};
-
-            const percent = total ? ((100 * hit) / total).toFixed(1) : '0.0';
-
-            const key = `player${idx + 1}`;
-            checkout[key] = `${percent}`;
-            checkout[`${key}sub`] = `(${hit}/${total})`;
-        });
-
-        return [checkout];
-    };
-
-    return (
-        <Fragment>
-            <ComparisonBar data={getWonLegsData()} />
-            <ComparisonBar data={getRangesData('180s', '180')} />
-            <ComparisonBar data={getRangesData('160+', '160-179')} />
-            <ComparisonBar data={getRangesData('140+', '140-159')} />
-            <ComparisonBar data={getRangesData('120+', '120-139')} />
-            <ComparisonBar data={getRangesData('100+', '100-119')} />
-            <ComparisonBar data={getAverageData()} />
-            <ComparisonBar data={getCheckoutData()} />
-        </Fragment>
-    );
+    return <SideBySide rows={rows} players={players} />;
 };
 
 export default X01StatsComparisonBars;

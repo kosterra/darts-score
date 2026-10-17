@@ -66,6 +66,8 @@ export const validatePlayerIds = [
     body('playerIds')
         .isArray({ min: 1 })
         .withMessage('playerIds must be a non-empty array.')
+        // the entries are only checked once it is a list
+        .bail()
         .custom((ids) => {
             if (!ids.every(id => typeof id === 'string' && id.trim().length > 0)) {
                 throw new Error('Each playerIds entry must be a non-empty string.');

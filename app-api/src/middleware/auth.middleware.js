@@ -17,7 +17,7 @@ export const canManageClub = (user, club) =>
  */
 export const getClubRole = async (user, club) => {
     if (canManageClub(user, club)) return CLUB_ROLES.ADMIN;
-    if (await Player.exists({ club: club._id, user: user._id })) return CLUB_ROLES.PLAYER;
+    if (await Player.exists({ clubs: club._id, user: user._id })) return CLUB_ROLES.PLAYER;
     return null;
 };
 
@@ -32,6 +32,9 @@ export const requireAuth = async (req, res, next) => {
     const user = await User.findById(session.uid);
     if (!user || user.sessionVersion !== session.v) {
         return res.status(401).json({ message: 'Please log in.' });
+    }
+    if (user.blockedAt) {
+        return res.status(403).json({ message: 'This account is blocked. Please contact the administrator of this installation.', blocked: true });
     }
     req.user = user;
     next();

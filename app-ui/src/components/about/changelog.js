@@ -4,6 +4,32 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.7',
+        changes: [
+            'Darts Score is now called Oche, after the line darts players throw from.',
+            'A player can be a member of several clubs: one profile, with badges from every club. Removing a player from a club keeps their games there.',
+            'Global admins add players to clubs, remove them and create new players for any club.',
+            'Protection against spam: suspicious registrations and accounts creating masses of clubs, players or games are blocked, and global admins see alerts.',
+            'Global admins have an error log and their own list of all clubs.',
+            'New statistics after every game: the result with each player\'s key figures and a celebrated winner, the moments of the game and charts that follow it.',
+            'X01 game statistics: every leg with who won it and a race to zero, and the players side by side for the game or a set.',
+            'Cricket game statistics: the board at the end with who closed each number first, the race to close and the points over the game.',
+            'Elimination game statistics: the race to the target with every knock-out, the knock-outs listed and a comeback when there is one.',
+            'Cricket games can be started again: new games were refused by mistake.',
+            'Player profiles have filters (this club or all clubs, period, last games, X01 starting score and format), opened from a filter button.',
+            'The X01 card on the profile shows 180s, 160+, 140+, 120+ and 100+, and the form chart shows how often was played.',
+            'The player comparison shows each player\'s current form: rising, falling or steady.',
+            'The 3-dart average on profiles and in the comparison counts all darts, not only the scoring part of a leg.',
+        ],
+    },
+    {
+        version: '2026.10.6',
+        changes: [
+            'A banner on top of every page, set by the global admins, e.g. to mark a test environment.',
+            'A picture that cannot be saved is now reported instead of showing success.',
+        ],
+    },
+    {
         version: '2026.10.5',
         changes: [
             'Fixes logging in when Darts Score runs from the Docker image.',

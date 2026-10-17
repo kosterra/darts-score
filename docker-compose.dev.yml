@@ -71,10 +71,13 @@ services:
     volumes:
       - ./app-ui:/ui
       - /ui/node_modules
-      # the app version shown on the About page
-      - ./package.json:/package.json:ro
+      # the app version shown on the About page, read from the root package.json.
+      # The folder is mounted (read-only), not the single file: a single-file mount
+      # keeps showing the old file once git replaces it, e.g. when switching branches
+      - .:/repo:ro
     environment:
       API_PROXY_TARGET: http://api:3001
+      ROOT_PACKAGE: /repo/package.json
     restart: unless-stopped
     depends_on:
       - api

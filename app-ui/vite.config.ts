@@ -4,7 +4,8 @@ import path from 'path'
 import { existsSync, readFileSync } from 'fs'
 
 // The app's version lives in the repository's root package.json
-const rootPackage = path.resolve(import.meta.dirname, '../package.json')
+// (in the dev container it is mounted elsewhere, see ROOT_PACKAGE in docker-compose.dev.yml)
+const rootPackage = process.env.ROOT_PACKAGE ?? path.resolve(import.meta.dirname, '../package.json')
 const appVersion = process.env.APP_VERSION
   ?? (existsSync(rootPackage) ? JSON.parse(readFileSync(rootPackage, 'utf8')).version : 'dev')
 

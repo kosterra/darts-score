@@ -1,61 +1,39 @@
-import ComparisonBar from '../../elements/comparison.bar';
+import SideBySide from '../common/side.by.side';
 
 /**
- * The players' X01 figures side by side as bars. Shown inside the
- * "X01 head to head" panel, so it brings no panel or title of its own.
+ * The players' X01 figures side by side. Shown inside the "X01 head to head"
+ * panel, so it brings no panel or title of its own.
+ * playersX01Stats holds every figure as { player1, player2, … }.
  */
-const PlayersX01StatsComparisonBars = (props) => {
-    const {
-        playersX01Stats
-    } = props;
-
-    const getChartData = (path, title) => {
-        const source = path
-            .split('.')
-            .reduce((obj, key) => obj?.[key], playersX01Stats) ?? {};
-
-        return [{ ...source, name: title }];
+const PlayersX01StatsComparisonBars = ({ playersX01Stats, players }) => {
+    const valuesOf = (path) => {
+        const source = path.split('.').reduce((obj, key) => obj?.[key], playersX01Stats) ?? {};
+        return players.map((_, index) => Number(source[`player${index + 1}`] ?? 0));
     };
 
-    const getCheckoutData = () => {
-        const stats = playersX01Stats?.checkouts ?? {}
-        const total = stats.total ?? {}
-        const hit = stats.hit ?? {}
+    const hits = valuesOf('checkouts.hit');
+    const totals = valuesOf('checkouts.total');
+    const averages = valuesOf('avg.overall');
+    const dartsPerLeg = valuesOf('avg.dartsPerLeg');
 
-        const makePlayerData = (playerKey) => {
-            const totalVal = total[playerKey] ?? 0
-            const hitVal = hit[playerKey] ?? 0
+    const rows = [
+        { key: 'won', label: 'Won games', values: valuesOf('wonGames') },
+        { key: '180', label: '180s', values: valuesOf('num180s') },
+        { key: '160', label: '160+', values: valuesOf('num160plus') },
+        { key: '140', label: '140+', values: valuesOf('num140plus') },
+        { key: 'average', label: '3-dart average', values: averages, texts: averages.map(value => value.toFixed(1)) },
+        { key: 'dartsPerLeg', label: 'Darts per leg', values: dartsPerLeg, lowerIsBetter: true },
+        {
+            key: 'checkout',
+            label: 'Checkout',
+            values: totals.map((total, index) => total ? hits[index] / total : 0),
+            texts: totals.map((total, index) => total ? `${Math.round(hits[index] / total * 100)} %` : '–'),
+            details: totals.map((total, index) => total ? `${hits[index]}/${total}` : ''),
+        },
+        { key: 'highest', label: 'Highest checkout', values: valuesOf('checkouts.highest') },
+    ];
 
-            const percentage = totalVal > 0 ? ((hitVal / totalVal) * 100).toFixed(1) : '0.0'
-            const sub = `(${hitVal}/${totalVal})`
-
-            return { [playerKey]: percentage, [`${playerKey}sub`]: sub }
-        }
-
-        return [{
-            name: "Checkout",
-            unit: "%",
-            ...makePlayerData('player1'),
-            ...makePlayerData('player2')
-        }]
-    }
-
-    return (
-        <div className="d-flex flex-column align-items-center gap-1 mt-2">
-            {[
-                { data: getChartData('wonGames', 'Won Games') },
-                { data: getChartData('num180s', '180s') },
-                { data: getChartData('num160plus', '160+') },
-                { data: getChartData('num140plus', '140+') },
-                { data: getChartData('avg.overall', 'Overall Average') },
-                { data: getChartData('avg.dartsPerLeg', 'AVG Darts per Leg') },
-                { data: getCheckoutData() },          // Sonderfall mit Berechnung
-                { data: getChartData('checkouts.highest', 'Highest Checkout') },
-            ].map((item, idx) => (
-                <ComparisonBar key={idx} data={item.data} />
-            ))}
-        </div>
-    );
+    return <div className="mt-3"><SideBySide rows={rows} players={players} /></div>;
 };
 
 export default PlayersX01StatsComparisonBars;

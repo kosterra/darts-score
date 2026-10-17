@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
@@ -38,13 +39,14 @@ const withAdmins = async (club) => {
  */
 export const findAll = async (req, res) => {
     logger.debug('clubs find all called');
-    const playerClubIds = await Player.distinct('club', { user: req.user._id });
+    const playerClubIds = await Player.distinct('clubs', { user: req.user._id });
     const filter = { $or: [{ admins: req.user._id }, { _id: { $in: playerClubIds } }] };
     const clubs = await Club.find(filter).sort({ name: 1 }).populate('admins', ADMIN_FIELDS);
 
     const counts = await Player.aggregate([
-        { $match: { club: { $in: clubs.map(c => c._id) }, guest: { $ne: true } } },
-        { $group: { _id: '$club', count: { $sum: 1 } } },
+        { $match: { clubs: { $in: clubs.map(c => c._id) }, guest: { $ne: true } } },
+        { $unwind: '$clubs' },
+        { $group: { _id: '$clubs', count: { $sum: 1 } } },
     ]);
     const countByClub = new Map(counts.map(c => [String(c._id), c.count]));
 
@@ -66,6 +68,7 @@ export const create = async (req, res) => {
     logger.debug('clubs create called');
     const club = await Club.create({ name: req.body.name, admins: [req.user._id] });
     logger.info(`Club "${club.name}" created by ${req.user.email}`);
+    checkLater(() => noteCreated(req, 'club', { id: club._id, name: club.name, club }));
     res.status(201).json({ ...(await withAdmins(club)), role: CLUB_ROLES.ADMIN, playerCount: 0 });
 };
 
@@ -90,13 +93,17 @@ export const remove = async (req, res) => {
     if (!club) return;
 
     // A global admin may remove a whole club at once, e.g. one created as spam
-    if (!isGlobalAdmin(req.user) && await Player.exists({ club: club._id, guest: { $ne: true } })) {
+    if (!isGlobalAdmin(req.user) && await Player.exists({ clubs: club._id, guest: { $ne: true } })) {
         return res.status(409).json({ message: 'Remove the players of this club before deleting it.' });
     }
 
-    const players = await Player.find({ club: club._id }, 'profileImg');
+    // players of this club only go with it; members of other clubs stay there
+    const onlyHere = { clubs: [club._id] };
+    const players = await Player.find(onlyHere, 'profileImg');
+    // one after the other, so no player loses their last club without being deleted
+    await Player.deleteMany(onlyHere);
     await Promise.all([
-        Player.deleteMany({ club: club._id }),
+        Player.updateMany({ $or: [{ clubs: club._id }, { formerClubs: club._id }] }, { $pull: { clubs: club._id, formerClubs: club._id } }),
         db.x01.deleteMany({ club: club._id }),
         db.cricket.deleteMany({ club: club._id }),
         db.elimination.deleteMany({ club: club._id }),
@@ -170,7 +177,7 @@ export const addAdmin = async (req, res) => {
         user,
         inviteLink,
         `You are now an admin of ${club.name}`,
-        `${req.user.firstname} ${req.user.lastname} made you an admin of the club "${club.name}" on Darts Score.`
+        `${req.user.firstname} ${req.user.lastname} made you an admin of the club "${club.name}" on Oche.`
     );
 
     res.status(201).json(await withAdmins(club));

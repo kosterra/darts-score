@@ -5,7 +5,8 @@ export default (mongoose) => {
       gameIsRunning:     { type: Boolean, default: true },
       isSoloGame:        { type: Boolean, default: false },
       hasWinner:         { type: Boolean, default: false },
-      startingScore:     { type: Number, min: 1 },
+      // Cricket starts at 0 points
+      startingScore:     { type: Number, min: 0, default: 0 },
       numberOfPlayers:   { type: Number, enum: [1, 2, 3, 4] },
       currentPlayerTurn: String,
       currentThrow:      [String],

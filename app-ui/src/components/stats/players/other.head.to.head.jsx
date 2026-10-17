@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { Panel } from 'primereact/panel';
 
 import StatsService from '../../../services/stats.service';
-import ComparisonBar from '../../elements/comparison.bar';
+import SideBySide from '../common/side.by.side';
 import StatTile from './stat.tile';
 import HeadToHeadTimeline from './head.to.head.timeline';
 
-// the figures compared per game type: [label, key of the player's figures, format]
+// the figures compared per game type: [label, key of the player's figures, format, options]
 const FIGURES = {
     cricket: [
         ['Won games', 'wins'],
@@ -18,7 +18,7 @@ const FIGURES = {
         ['Won games', 'wins'],
         ['Average per visit', 'averageVisit'],
         ['Best visit', 'bestVisit'],
-        ['Darts thrown', 'dartsThrown'],
+        ['Darts thrown', 'dartsThrown', null, { neutral: true }],
     ],
 };
 
@@ -43,10 +43,10 @@ const OtherHeadToHead = ({ type, players, request }) => {
         return <p className="text-subtle m-0">These players have no finished {type === 'cricket' ? 'Cricket' : 'Elimination'} games together with these filters.</p>;
     }
 
-    const figureOf = (playerIndex, key, format) => {
-        const value = data.players[playerIndex]?.[key];
-        return format ? Number(format(value) ?? 0) : value ?? 0;
-    };
+    const rows = FIGURES[type].map(([label, key, format, options = {}]) => {
+        const values = players.map((_, index) => Number(data.players[index]?.[key] ?? 0));
+        return { key, label, values, texts: format ? values.map(value => format(value)) : undefined, ...options };
+    });
 
     return (
         <Panel header={TITLES[type]}>
@@ -59,13 +59,8 @@ const OtherHeadToHead = ({ type, players, request }) => {
                     <HeadToHeadTimeline games={data.games} players={players} />
                 </div>
             </div>
-            <div className="d-flex flex-column align-items-center gap-1 mt-2">
-                {FIGURES[type].map(([label, key, format]) => (
-                    <ComparisonBar
-                        key={key}
-                        data={[{ name: label, ...Object.fromEntries(players.map((_, index) => [`player${index + 1}`, figureOf(index, key, format)])) }]}
-                    />
-                ))}
+            <div className="mt-3">
+                <SideBySide rows={rows} players={players} />
             </div>
         </Panel>
     );
