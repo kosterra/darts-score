@@ -30,4 +30,10 @@ describe('groupByPeriod', () => {
         expect(rows[0].label).toBe('Q1 23');
         expect(rows.reduce((sum, row) => sum + row.games, 0)).toBe(40);
     });
+
+    it('adds the values up when asked to', () => {
+        const { rows } = groupByPeriod(games(60, '2026-01-01', 1), ['player1'], { combine: 'sum' });
+        // January: 31 games of 40, 41, 42, … in turn
+        expect(rows[0].player1).toBe(Array.from({ length: 31 }, (_, i) => 40 + (i % 3)).reduce((a, b) => a + b, 0));
+    });
 });
