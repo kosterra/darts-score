@@ -4,7 +4,8 @@ const X01GameHeader = ({
     legMode = 'Leg Mode',
     numberOfLegs = 1,
     legInMode = 'Straight In',
-    legOutMode = 'Double Out'
+    legOutMode = 'Double Out',
+    handicap = false
 }) => {
     const pluralize = (count, word) => `${count} ${word}${count > 1 ? 's' : ''}`;
 
@@ -15,7 +16,7 @@ const X01GameHeader = ({
                     {setMode} <strong>{pluralize(numberOfSets, 'Set')}</strong> – {legMode} <strong>{pluralize(numberOfLegs, 'Leg')}</strong>
                 </div>
                 <div className="text-subtle fs-8 pt-1 fw-medium">
-                    {legInMode} / {legOutMode}
+                    {handicap ? 'Handicap: own starting score and in/out per player' : `${legInMode} / ${legOutMode}`}
                 </div>
             </div>
         </div>

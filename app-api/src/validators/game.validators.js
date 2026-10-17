@@ -25,6 +25,25 @@ const validateX01StartingScore = check('startingScore')
     .isIn(VALID_X01_SCORES)
     .withMessage(`startingScore must be one of: ${VALID_X01_SCORES.join(', ')}.`);
 
+// a handicap: players may have their own starting score and in/out mode
+const validateX01Handicaps = body('playerModels')
+    .optional()
+    .custom((playerModels) => {
+        if (typeof playerModels !== 'object' || Array.isArray(playerModels)) throw new Error('playerModels must be an object.');
+        for (const model of Object.values(playerModels)) {
+            if (model?.startingScore != null && !VALID_X01_SCORES.includes(Number(model.startingScore))) {
+                throw new Error(`A player's startingScore must be one of: ${VALID_X01_SCORES.join(', ')}.`);
+            }
+            if (model?.legInMode != null && !VALID_IN_MODES.includes(model.legInMode)) {
+                throw new Error(`A player's legInMode must be one of: ${VALID_IN_MODES.join(', ')}.`);
+            }
+            if (model?.legOutMode != null && !VALID_OUT_MODES.includes(model.legOutMode)) {
+                throw new Error(`A player's legOutMode must be one of: ${VALID_OUT_MODES.join(', ')}.`);
+            }
+        }
+        return true;
+    });
+
 const validateNumberOfSets = check('numberOfSets')
     .isInt({ min: 1 })
     .withMessage('numberOfSets must be a positive integer.');
@@ -43,6 +62,7 @@ export const validateX01Create = [
     validateNumberOfLegs,
     validateNumberOfPlayers,
     validatePlayers,
+    validateX01Handicaps,
 ];
 
 export const validateEliminationCreate = [

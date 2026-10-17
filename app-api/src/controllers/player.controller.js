@@ -37,6 +37,7 @@ export const create = async (req, res) => {
         firstname: req.body.firstname,
         lastname: req.body.lastname,
         nickname: req.body.nickname,
+        dateOfBirth: req.body.dateOfBirth,
         profileImg: req.file ? req.file.filename : '',
         clubs: [req.club._id],
     });
@@ -116,6 +117,26 @@ export const findBySearchTerm = async (req, res) => {
     res.send(await toClient(players, req));
 };
 
+const RECENT_GAMES = 100;
+
+/**
+ * When each player last played in the club, { [playerId]: date }, from the
+ * latest games of every type: the game setup offers recent players first.
+ */
+export const lastPlayed = async (req, res) => {
+    logger.debug('players last played called!');
+    const latest = await Promise.all([db.x01, db.cricket, db.elimination].map(model =>
+        model.find({ club: req.club._id }, 'players createdAt').sort({ createdAt: -1 }).limit(RECENT_GAMES).lean()
+    ));
+    const lastPlayedById = {};
+    for (const game of latest.flat()) {
+        for (const playerId of game.players ?? []) {
+            if (!lastPlayedById[playerId] || game.createdAt > lastPlayedById[playerId]) lastPlayedById[playerId] = game.createdAt;
+        }
+    }
+    res.send(lastPlayedById);
+};
+
 export const findByIds = async (req, res) => {
     logger.debug('players find by ids called!');
     const ids = req.body.playerIds.filter(id => db.mongoose.isValidObjectId(id));
@@ -146,6 +167,7 @@ export const update = async (req, res) => {
     player.firstname = req.body.firstname;
     player.lastname = req.body.lastname;
     player.nickname = req.body.nickname;
+    player.dateOfBirth = req.body.dateOfBirth;
     if (req.file) player.profileImg = req.file.filename;
     else if (req.body.clearProfileImg === 'true') player.profileImg = '';
     await player.save();

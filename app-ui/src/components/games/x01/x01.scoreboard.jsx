@@ -7,6 +7,7 @@ import X01Context from '../../../utils/x01.context';
 import CheckoutOverlay from './x01.checkout.overlay';
 import checkout from '../../../utils/checkout';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 
 const X01ScoreBoard = (props) => {
     const { playerId, idx } = props
@@ -67,6 +68,13 @@ const X01ScoreBoard = (props) => {
                                         {player.firstname + ' ' + player.lastname}
                                     </span>
                                 </div>
+                                {hasHandicap(game) &&
+                                    <div>
+                                        <span className="x01-handicap-rules" title={`Handicap: ${rulesOf(game, playerId).startingScore}, ${rulesOf(game, playerId).legInMode} / ${rulesOf(game, playerId).legOutMode}`}>
+                                            {describeRules(rulesOf(game, playerId))}
+                                        </span>
+                                    </div>
+                                }
                             </div>
                             <div className="col-1 d-flex d-md-none d-flex flex-column justify-content-center align-items-center gap-1">
                                 {game.startingPlayerLeg === playerId && (

@@ -17,6 +17,7 @@ import {
     lastDartIsDouble,
     lastDartIsTriple
 } from './game.utils';
+import { inModeOf, outModeOf, startingScoreOf } from './x01.rules';
 
 import {
     FETCH_GAME_SUCCESS,
@@ -121,14 +122,20 @@ const X01State = props => {
         });
     }, [id, navigate]);
 
+    // the rules of the player at the oche: with a handicap they differ per player
+    const currentInMode = () => inModeOf(state.game, state.game.currentPlayerTurn);
+    const currentOutMode = () => outModeOf(state.game, state.game.currentPlayerTurn);
+    // nothing scored in this leg yet: the in mode decides whether a dart counts
+    const hasNotStarted = (score) => Number(score) === startingScoreOf(state.game, state.game.currentPlayerTurn);
+
     const updateCurrentThrowManual = (score, value, index) => {
-        if (state.game.gameType === score && value !== '' && validateDartValue(value)) {
-            if (state.game.legInMode === 'Double In') {
+        if (hasNotStarted(score) && value !== '' && validateDartValue(value)) {
+            if (currentInMode() === 'Double In') {
                 let startedInDouble = dartIsDouble(value);
                 if (!startedInDouble) {
                     value = '0'
                 }
-            } else if (state.game.legInMode === 'Master In') {
+            } else if (currentInMode() === 'Master In') {
                 let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
                 if (!startedInMaster) {
                     value = '0';
@@ -153,13 +160,13 @@ const X01State = props => {
         const newCurrentThrow = [...state.game.currentThrow];
 
         for (let index = 0; index < newCurrentThrow.length; index++) {
-            if (state.game.gameType === score && validateDartValue(value)) {
-                if (state.game.legInMode === 'Double In') {
+            if (hasNotStarted(score) && validateDartValue(value)) {
+                if (currentInMode() === 'Double In') {
                     let startedInDouble = dartIsDouble(value);
                     if (!startedInDouble) {
                         value = '0'
                     }
-                } else if (state.game.legInMode === 'Master In') {
+                } else if (currentInMode() === 'Master In') {
                     let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
                     if (!startedInMaster) {
                         value = '0';
@@ -327,9 +334,9 @@ const X01State = props => {
         let isBusted = currentScore < 0;
 
         if (!isBusted) {
-            if (state.game.legOutMode === 'Double Out') {
+            if (currentOutMode() === 'Double Out') {
                 isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow));
-            } else if (state.game.legOutMode === 'Master Out') {
+            } else if (currentOutMode() === 'Master Out') {
                 isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow) && !lastDartIsTriple(state.game.currentThrow));
             }
         }
@@ -889,7 +896,7 @@ const X01State = props => {
                 };
             }
 
-            if (state.game.legOutMode === 'Double Out' && couldCheckoutInDouble(newCurrentScore)) {
+            if (currentOutMode() === 'Double Out' && couldCheckoutInDouble(newCurrentScore)) {
                 let possibleDoubleOut = newCurrentScore / 2;
                 let hasDouble = newCurrentScore - dartScore === 0 && /d/i.test(dart[0]);
 
@@ -924,7 +931,7 @@ const X01State = props => {
                 // Per leg checkout quote
                 !hasDouble && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].miss++;
                 hasDouble && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hit++;
-            } else if (state.game.legOutMode === 'Master Out'
+            } else if (currentOutMode() === 'Master Out'
                 && (couldCheckoutInDouble(newCurrentScore) || couldCheckoutInTriple(newCurrentScore))) {
                 let hasMaster = newCurrentScore - dartScore === 0 && (/d/i.test(dart[0]) || /t/i.test(dart[0]));
 
@@ -934,7 +941,7 @@ const X01State = props => {
                 checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].total++;
                 !hasMaster && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].miss++;
                 hasMaster && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hit++;
-            } else if (state.game.legOutMode === 'Straight Out'
+            } else if (currentOutMode() === 'Straight Out'
                 && (couldCheckoutInSingle(newCurrentScore)
                     || couldCheckoutInDouble(newCurrentScore)
                     || couldCheckoutInTriple(newCurrentScore))) {

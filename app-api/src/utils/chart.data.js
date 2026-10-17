@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { legsInOrder, thrownDarts } from './badges.js';
+import { startingScoreOf } from './x01.rules.js';
 
 /**
  * Data for the statistics charts, worked out from a player's finished games.
@@ -92,7 +93,7 @@ export const DARTS_PER_LEG_BUCKETS = [
  */
 export const dartsPerLegDistribution = (x01Games, playerId) => {
     const counts = DARTS_PER_LEG_BUCKETS.map(bucket => ({ bucket: bucket.label, count: 0 }));
-    for (const game of x01Games.filter(g => Number(g.startingScore) === 501)) {
+    for (const game of x01Games.filter(g => startingScoreOf(g, playerId) === 501)) {
         for (const leg of legsInOrder(game)) {
             const finish = leg.find(visit => visit?.scoreLeft === 0);
             if (finish?.playerId !== playerId) continue;

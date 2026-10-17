@@ -27,6 +27,7 @@ import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
 import { sectionHitsOf } from '../charts/chart.theme';
 import PageLoader from '../../elements/page.loader';
 import GameBadges from '../../badges/game.badges';
+import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 
 // the key figures of every player in the header; for the best leg less wins
 const FIGURES = [
@@ -128,7 +129,11 @@ const X01GameStats = () => {
         newMatchSetup.currentPlayerTurn = startingPlayer;
 
         newMatchSetup.playerModels = newPlayers.reduce((acc, player) => {
-            acc[player] = { ...X01Models.X01PlayerModel, score: Number(game.startingScore) };
+            // a rematch keeps each player's handicap
+            const rules = rulesOf(game, player);
+            acc[player] = hasHandicap(game)
+                ? { ...X01Models.X01PlayerModel, ...rules, score: rules.startingScore }
+                : { ...X01Models.X01PlayerModel, score: Number(game.startingScore) };
             return acc;
         }, {});
 
@@ -169,8 +174,10 @@ const X01GameStats = () => {
                 <GameResultHeader
                     game={game}
                     players={players}
-                    title={`${game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
-                    subtitle={`${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
+                    title={`${hasHandicap(game) ? 'Handicap' : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
+                    subtitle={hasHandicap(game)
+                        ? `${players.map(player => `${player.nickname} ${describeRules(rulesOf(game, player.id))}`).join(' · ')} · ${whenPlayed(game)}`
+                        : `${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
                     // sets decide when more than one could be played, otherwise legs
                     scoreOf={(player) => bySets ? game.playerModels[player.id]?.setsWon ?? 0 : figures[player.id]?.legsWon ?? 0}
                     scoreDetailOf={(player) => bySets

@@ -1,0 +1,219 @@
+// The game setup: choosing the players and their throwing order, the handicap
+
+.player-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.6rem;
+}
+
+.player-pick-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.85rem 0.5rem 0.7rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
+  color: var(--text-default);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+
+  &:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.35); }
+  &:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  &.is-chosen {
+    border-color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-raised));
+  }
+
+  &.is-guest {
+    border-style: dashed;
+    background: transparent;
+    color: var(--text-subtle);
+  }
+}
+
+.player-pick-number {
+  position: absolute;
+  top: 0.4rem;
+  left: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: var(--primary-color-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.player-pick-plus {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: 1px dashed var(--border-default);
+  font-size: 1.3rem;
+}
+
+.player-pick-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.player-pick-detail {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-faint);
+  font-size: 0.72rem;
+}
+
+.player-order {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+}
+
+.player-order-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.player-order-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.5rem;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  cursor: grab;
+
+  &.is-dragged { opacity: 0.4; }
+}
+
+.player-order-number {
+  color: var(--primary-color);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-order-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-order-actions { display: flex; }
+
+.player-order-button {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-subtle);
+  font-size: 0.7rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
+  &:disabled { opacity: 0.3; cursor: default; }
+}
+
+.player-bull-off {
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--surface-raised);
+}
+
+// the button with what will be played
+.game-setup-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.5rem;
+}
+
+.game-setup-summary {
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.game-setup-section-title {
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.x01-handicap {
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-default);
+}
+
+.x01-handicap-player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--border-default);
+}
+
+.x01-handicap-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 10rem;
+  flex: 1 1 12rem;
+}
+
+.x01-handicap-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+
+  .p-dropdown { width: 9.5rem; }
+  .p-dropdown.x01-handicap-score { width: 6.5rem; }
+}
+
+.x01-handicap-age .p-inputnumber-input { width: 4.5rem; }
+
+@media (max-width: 575.98px) {
+  .x01-handicap-fields { width: 100%; }
+  .x01-handicap-fields .p-dropdown,
+  .x01-handicap-fields .p-dropdown.x01-handicap-score { flex: 1 1 6.5rem; width: auto; min-width: 0; }
+  .player-order-item { width: 100%; }
+  .player-order-name { flex: 1 1 auto; max-width: none; }
+
+  .player-picker-grid { grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); }
+  .player-order-actions .player-order-button { width: 1.9rem; height: 1.9rem; }
+}

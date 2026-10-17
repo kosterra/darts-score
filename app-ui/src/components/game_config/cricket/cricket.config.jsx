@@ -2,83 +2,55 @@ import { useState, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Toast } from 'primereact/toast';
 import { Panel } from 'primereact/panel';
-import { Button } from 'primereact/button';
 
-import PlayerConfig from '../config_components/player.config';
+import PlayerPicker from '../config_components/player.picker';
+import GameSetupStart from '../config_components/game.setup.start';
+import { missingPlayers, playersSummary } from '../config_components/game.setup.summary';
 import CricketModels from '../../../models/cricket.models';
 import CricketService from '../../../services/cricket.service';
 
-
 const CricketConfig = () => {
-    const initialState = CricketModels.CricketGameModel;
-
-    const [game, setGame] = useState(initialState);
+    const [players, setPlayers] = useState([]);
+    const [starting, setStarting] = useState(false);
 
     const toast = useRef(null);
-
     const navigate = useNavigate();
 
-    const handleConfigChange = (name, value) => {
-        if (name === 'players') {
-            setGame({ ...game, players: value })
-        } else {
-            setGame({ ...game, [name]: Number(value) });
-        }
-    }
+    const missing = missingPlayers(players);
 
-    const handleSubmit = async (event) => {
-        if (!validate()) {
-            event.preventDefault();
-            event.stopPropagation();
-            toast.current.show(
-                {
-                    severity: 'error',
-                    summary: 'Missing Config',
-                    detail: 'You need to select ' + game.numberOfPlayers + ' players!',
-                    life: 3000
-                }
-            );
-        } else {
-            let playerIds = game.players.map((item) => item.id);
-            game.isSoloGame = playerIds.length === 1;
-            game['players'] = playerIds;
-            game.currentPlayerTurn = game.players[0];
-
-            game.players.forEach(player => {
-                let cricketPlayerModel = { ...CricketModels.CricketPlayerModel };
-                cricketPlayerModel.score = Number(game.startingScore);
-                game.playerModels[player] = cricketPlayerModel;
-            })
-
-            let newGame = await CricketService.createCricketGame(game)
+    const handleSubmit = async () => {
+        if (missing) return;
+        setStarting(true);
+        const game = CricketModels.CricketGameModel;
+        const playerIds = players.map(player => player.id);
+        try {
+            const newGame = await CricketService.createCricketGame({
+                ...game,
+                isSoloGame: false,
+                numberOfPlayers: playerIds.length,
+                players: playerIds,
+                currentPlayerTurn: playerIds[0],
+                playerModels: Object.fromEntries(playerIds.map(playerId => [playerId, { ...CricketModels.CricketPlayerModel, score: Number(game.startingScore) }])),
+            });
             navigate('/cricket/' + newGame.id);
+        } catch (error) {
+            toast.current.show({ severity: 'error', summary: 'Start Game', detail: 'Failed to create the game. ' + error.message, life: 4000 });
+            setStarting(false);
         }
-    }
-
-    const validate = () => {
-        return Number(game.numberOfPlayers) === game.players.length;
-    }
+    };
 
     return (
         <>
-            <Panel header="Cricket" className="w-100 w-md-75 w-xxl-50 mx-auto" >
+            <Panel header="Cricket" className="w-100 w-md-75 w-xxl-50 mx-auto">
                 <div className="container">
-                    <PlayerConfig
-                        numberOfPlayersOption={game.numberOfPlayers}
-                        selectedPlayers={game.players}
-                        onNumberOfPlayersChange={handleConfigChange}
-                        onSelectedPlayersChange={handleConfigChange}
-                    />
-                    <div className="container text-center">
-                        <Button variant="primary" size="small" className="m-0" onClick={handleSubmit}>
-                            Start Game
-                        </Button>
-                    </div>
+                    <p className="game-setup-section-title">Players</p>
+                    <PlayerPicker selected={players} onChange={setPlayers} />
+                    <GameSetupStart summary={`Cricket · ${playersSummary(players)}`} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>
             </Panel>
             <Toast ref={toast} position="bottom-right" />
         </>
     );
-}
+};
 
 export default CricketConfig;

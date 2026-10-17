@@ -16,6 +16,10 @@ import { resolvePlayerImg } from '../../utils/image.utils';
  * Adds or edits a player. With "clubs" (global admins) a new player can be
  * added to any of these clubs, "defaultClubId" first; otherwise to the selected club.
  */
+// a date as the date field wants it: "2016-05-24"
+const toDateInput = (value) => value ? String(value).slice(0, 10) : '';
+const today = () => new Date().toISOString().slice(0, 10);
+
 const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defaultClubId, label }) => {
     const toast = useRef(null);
     const choosesClub = !edit && Array.isArray(clubs);
@@ -36,6 +40,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
             firstname:  initialState.firstname  ?? '',
             lastname:   initialState.lastname   ?? '',
             nickname:   initialState.nickname   ?? '',
+            dateOfBirth: toDateInput(initialState.dateOfBirth),
             profileImg: '',
             id:         initialState.id         ?? ''
         }
@@ -48,6 +53,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                 firstname:  updatePlayer.firstname  ?? '',
                 lastname:   updatePlayer.lastname   ?? '',
                 nickname:   updatePlayer.nickname   ?? '',
+                dateOfBirth: toDateInput(updatePlayer.dateOfBirth),
                 profileImg: '',
                 id:         updatePlayer.id         ?? ''
             });
@@ -72,6 +78,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
         formData.append('firstname', data.firstname);
         formData.append('lastname',  data.lastname);
         formData.append('nickname',  data.nickname);
+        formData.append('dateOfBirth', data.dateOfBirth);
 
         if (imageAction === 'new' && data.profileImg instanceof File) {
             // New file selected — upload it
@@ -247,6 +254,31 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                     <label htmlFor="nickname">Nickname</label>
                                 </span>
                                 {getFormErrorMessage('nickname')}
+                            </div>
+                            <div className="py-1 w-100 w-sm-50">
+                                <span className="p-float-label w-100">
+                                    <Controller
+                                        name="dateOfBirth"
+                                        control={control}
+                                        rules={{
+                                            required: 'Date of birth is required',
+                                            validate: (value) => value <= today() || 'Date of birth must be in the past',
+                                        }}
+                                        render={({ field }) => (
+                                            <InputText
+                                                id="dateOfBirth"
+                                                type="date"
+                                                max={today()}
+                                                {...field}
+                                                className={classNames('w-100', { 'p-invalid': errors.dateOfBirth })}
+                                            />
+                                        )}
+                                    />
+                                    <label htmlFor="dateOfBirth">Date of birth</label>
+                                </span>
+                                {errors.dateOfBirth
+                                    ? getFormErrorMessage('dateOfBirth')
+                                    : <small className="text-faint">For fair handicaps between players of different ages.</small>}
                             </div>
                         </div>
                         {footerContent}

@@ -23,6 +23,18 @@ const playerValidator = [
         .notEmpty().withMessage('Nickname is required.')
         .isLength({ min: 3, max: 25 }).withMessage('Nickname must be between 3 and 25 characters.')
         .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Nickname contains invalid characters.'),
+    // a real day in the past, at most 110 years ago
+    body('dateOfBirth')
+        .notEmpty().withMessage('Date of birth is required.')
+        .bail()
+        .isISO8601({ strict: true }).withMessage('Date of birth must be a date.')
+        .custom((value) => {
+            const date = new Date(value);
+            const oldest = new Date();
+            oldest.setFullYear(oldest.getFullYear() - 110);
+            if (date > new Date() || date < oldest) throw new Error('Date of birth must be a day in the past.');
+            return true;
+        }),
 ];
 
 export default (app) => {
@@ -64,6 +76,9 @@ export default (app) => {
 
     // Search players by name/nickname
     router.get('/search', PlayerController.findBySearchTerm);
+
+    // When each player last played in the club
+    router.get('/last-played', PlayerController.lastPlayed);
 
     // Find players by IDs
     router.post('/find', validatePlayerIds, validate, PlayerController.findByIds);

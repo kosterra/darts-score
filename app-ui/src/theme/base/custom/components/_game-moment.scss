@@ -240,3 +240,16 @@ $momentGold: #ffc94d;
     &.is-down { background: rgba(#e07a5f, 0.16); color: #e8957e; }
     &.is-steady { background: rgba($shade000, 0.08); color: $textSubtleColor; }
 }
+
+// a player's own starting score and in/out in a handicap game
+.x01-handicap-rules {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-color-secondary, #b5b5b5);
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

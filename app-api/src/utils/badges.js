@@ -1,3 +1,5 @@
+import { startingScoreOf } from './x01.rules.js';
+
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
  * tiers that are earned when the metric reaches the tier's target.
@@ -212,7 +214,7 @@ const applyVisits = (metrics, game, playerId, won) => {
             if (darts.at(-1)?.toUpperCase() === 'D1') metrics.madhouses += 1;
             const dartsInLeg = leg.filter(visit => visit?.playerId === playerId)
                 .reduce((sum, visit) => sum + thrownDarts(visit.darts).length, 0);
-            if (Number(game.startingScore) === NINE_DARTER_SCORE && dartsInLeg <= NINE_DARTS) metrics.nineDarters += 1;
+            if (startingScoreOf(game, playerId) === NINE_DARTER_SCORE && dartsInLeg <= NINE_DARTS) metrics.nineDarters += 1;
         }
 
         const mine = legsWon.get(playerId) ?? 0;

@@ -10,6 +10,9 @@ export default (mongoose) => {
       lastname:   { type: String, required: true, trim: true },
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
+      // For the handicap suggestion between players of different ages; required
+      // when a player is added or edited, older players may still be without one
+      dateOfBirth: { type: Date, default: null },
       // The clubs the player is a member of: one person can play in several clubs
       clubs:       { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'club' }], default: [] },
       // Clubs the player was removed from; their games there keep showing the name

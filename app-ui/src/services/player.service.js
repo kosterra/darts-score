@@ -56,6 +56,13 @@ const searchPlayers = async (searchTerm, { includeGuests = false } = {}) => {
     }
 };
 
+// when each player last played in the club: { [playerId]: date }
+const lastPlayed = async () => {
+    const response = await fetch(API_URL + 'players/last-played', { method: 'GET', headers: getHeaders(false) });
+    if (!response.ok) throw new Error(response.statusText);
+    return await response.json();
+};
+
 const findPlayersByIds = async (playerIds) => {
     try {
         const response = await fetch(API_URL + 'players/find', {
@@ -167,6 +174,7 @@ const PlayerService = {
     createPlayer,
     getPlayer,
     searchPlayers,
+    lastPlayed,
     findPlayersByIds,
     updatePlayer,
     deletePlayer

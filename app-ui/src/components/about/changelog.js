@@ -10,6 +10,12 @@ const CHANGELOG = [
             'The users have their own page in the Admin menu, like the clubs, with a search by name or email and a club filter; Administration keeps the totals, the banner and the system.',
             'Average levels from Beginner to Elite: the average over time marks every change of level, up and down, with lines for the level reached and the next one and the level in the tooltip; the profile names the level of the 3-dart average.',
             'One tooltip style throughout the app: on charts, dartboards and the latest winners each value with its player\'s colour, and every icon button explains itself on hovering.',
+            'New player selection for X01, Cricket and Elimination: tap the players (those who played lately come first, a guest is one tap away), set the throwing order by dragging or with the arrows, shuffle it or put the winner of the bull-off first. The number of players follows from the selection, and the start button shows what will be played.',
+            'Solo games are gone from the game setup; playing alone will come back as training against a bot.',
+            'X01 handicap for players of different strength, e.g. a parent against a child: every player gets their own starting score and in/out mode. The suggestion from each player\'s recent average, level and age is applied with one click, and every value can still be changed.',
+            'Players have a date of birth, for the handicap suggestion: it is asked for when a player is added or edited, and the players list marks those who have none yet. Guests can be given an age in the handicap.',
+            'Fix: Double In and Master In now really require the double (or treble) to start; before, every dart counted from the start.',
+            'Fix: the number of players in the X01 setup no longer jumps back when the set or leg mode changes with it.',
         ],
     },
     {

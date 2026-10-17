@@ -11,6 +11,7 @@ import X01DartBoard from './x01.dartboard';
 import Checkout from './x01.checkout';
 import checkout from '../../../utils/checkout';
 import ScoreInputBoardHelp from '../common/score.input.board.help';
+import { startingScoreOf } from '../../../utils/x01.rules';
 
 
 const X01ScoreInputBoard = () => {
@@ -24,7 +25,7 @@ const X01ScoreInputBoard = () => {
         loading
     } = useContext(X01Context);
 
-    const [score, setScore] = useState(game.startingScore);
+    const [score, setScore] = useState(startingScoreOf(game, game.currentPlayerTurn));
     const [submit, setSubmit] = useState(false);
 
     const keyfilterPattern = /^[SDT0-9]{1,3}$/;

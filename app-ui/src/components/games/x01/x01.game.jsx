@@ -7,6 +7,7 @@ import X01StatisticsBoard from './x01.statisticsboard';
 import X01ScoreInputBoard from './x01.score.input.board';
 import X01GameHeader from './x01.game.header';
 import PageLoader from '../../elements/page.loader';
+import { hasHandicap } from '../../../utils/x01.rules';
 
 const X01Game = () => {
     const { game, players, loading } = useContext(X01Context);
@@ -39,6 +40,7 @@ const X01Game = () => {
                 numberOfLegs={game.numberOfLegs}
                 legInMode={game.legInMode}
                 legOutMode={game.legOutMode}
+                handicap={hasHandicap(game)}
             />
 
             {/* --- Scoreboard Section --- */}

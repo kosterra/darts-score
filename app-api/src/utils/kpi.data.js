@@ -1,4 +1,5 @@
 import { legsInOrder, thrownDarts } from './badges.js';
+import { startingScoreOf } from './x01.rules.js';
 
 // Key figures of a player per game type, for the statistics page.
 
@@ -13,7 +14,7 @@ const min = (values) => values.length ? Math.min(...values) : null;
  * points it took off, so a busted visit scores 0.
  */
 export const legVisits = (game, leg, playerId) => {
-    let left = Number(game.startingScore);
+    let left = startingScoreOf(game, playerId);
     return leg.filter(visit => visit?.playerId === playerId).map(visit => {
         const scoreLeft = Number(visit.scoreLeft);
         const score = Math.max(0, left - scoreLeft);
@@ -40,7 +41,7 @@ export const x01Kpis = (x01Games, playerId) => {
             const finish = leg.find(visit => Number(visit?.scoreLeft) === 0);
             if (finish?.playerId !== playerId) continue;
             legsWon += 1;
-            if (Number(game.startingScore) === 501) best501Legs.push(own.reduce((sum, visit) => sum + visit.darts, 0));
+            if (startingScoreOf(game, playerId) === 501) best501Legs.push(own.reduce((sum, visit) => sum + visit.darts, 0));
         }
     }
 

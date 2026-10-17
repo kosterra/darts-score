@@ -5,6 +5,7 @@ import { Panel } from 'primereact/panel';
 import ChartCard from '../charts/chart.card';
 import { AXIS, GRID, PLAYER_COLORS, TOOLTIP, LEGEND } from '../charts/chart.theme';
 import { raceOf } from '../../../utils/x01.game.summary';
+import { startingScoreOf } from '../../../utils/x01.rules';
 import useHiddenSeries from '../charts/use.hidden.series';
 
 /**
@@ -21,7 +22,7 @@ const X01LegsPanel = ({ game, players, legs }) => {
     const nameOf = (id) => players[indexOf.get(id)]?.nickname ?? '–';
     const severalSets = (game.setsPlayed ?? 1) > 1;
     const selected = legs.find(leg => leg.key === selectedKey) ?? legs[legs.length - 1];
-    const race = raceOf(selected, players.map(player => player.id), game.startingScore);
+    const race = raceOf(selected, players.map(player => player.id), id => startingScoreOf(game, id));
     const legName = (leg) => severalSets ? `Set ${leg.set} · Leg ${leg.legInSet}` : `Leg ${leg.legInSet}`;
 
     const Who = ({ id }) => id
@@ -74,7 +75,7 @@ const X01LegsPanel = ({ game, players, legs }) => {
                         <LineChart data={race} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                             <CartesianGrid {...GRID} />
                             <XAxis dataKey="visit" {...AXIS} allowDecimals={false} label={{ value: 'Visit', position: 'insideBottomRight', offset: -2, fill: '#7a7a7a', fontSize: 11 }} />
-                            <YAxis {...AXIS} domain={[0, Number(game.startingScore)]} allowDecimals={false} />
+                            <YAxis {...AXIS} domain={[0, Math.max(...players.map(player => startingScoreOf(game, player.id)))]} allowDecimals={false} />
                             <Tooltip {...TOOLTIP} labelFormatter={(visit) => visit === 0 ? 'Start' : `Visit ${visit}`} />
                             {players.map((player, index) => (
                                 <Line key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} hide={series.isHidden(player.id)} />

@@ -32,6 +32,19 @@ describe('x01Kpis', () => {
         expect(kpis.bestLeg).toBe(10);
     });
 
+    it('scores a handicap from the player\'s own starting score', () => {
+        const handicap = {
+            startingScore: 501,
+            playerModels: { b: { startingScore: 301 } },
+            allSetsThrows: { 'set-1': { 'leg-1': [visit('a', 401), visit('b', 241), visit('a', 301), visit('b', 0)] } },
+        };
+        const kpis = x01Kpis([handicap], 'b');
+        expect(kpis.highestVisit).toBe(241);
+        // a 301 leg is no best 501 leg
+        expect(kpis.bestLeg).toBeNull();
+        expect(kpis.legsWon).toBe(1);
+    });
+
     it('is empty without games', () => {
         expect(x01Kpis([], 'a')).toEqual({ firstNineAverage: null, bestLeg: null, tonPlus: 0, highestVisit: null, legsWon: 0 });
     });
