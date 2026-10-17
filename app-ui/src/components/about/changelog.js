@@ -4,7 +4,7 @@
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.10.7',
         changes: [
             'Darts Score is now called Oche, after the line darts players throw from.',
             'A player can be a member of several clubs: one profile, with badges from every club. Removing a player from a club keeps their games there.',
