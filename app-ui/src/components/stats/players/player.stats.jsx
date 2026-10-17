@@ -10,7 +10,8 @@ import StatsService from '../../../services/stats.service';
 import PageLoader from '../../elements/page.loader';
 import BadgeMedal from '../../badges/badge.medal';
 import PlayerStatsCharts from './player.stats.charts';
-import ComparisonFilters from './comparison.filters';
+import ComparisonFilters, { FilterPanel } from './comparison.filters';
+import { describeFilters } from './filter.summary';
 import { KpiRing, KpiHero, KpiChip } from './kpi';
 import PlayerLevel from '../../players/player.level';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
@@ -183,17 +184,18 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                     </div>
                 }
                 <div className="w-100">
-                    <div className="comparison-filters-divider" />
-                    <ComparisonFilters
-                        filters={filters}
-                        onChange={setFilters}
-                        formats={formats}
-                        withType={false}
-                        withOthers={false}
-                        withScope
-                        scopeHint={playsInSeveralClubs ? null : `${player.nickname} plays only in this club, so both show the same games.`}
-                        lastGamesLabel="Last games"
-                    />
+                    <FilterPanel {...describeFilters(filters, DEFAULT_FILTERS, { formats, withType: false, withOthers: false, withScope: true })}>
+                        <ComparisonFilters
+                            filters={filters}
+                            onChange={setFilters}
+                            formats={formats}
+                            withType={false}
+                            withOthers={false}
+                            withScope
+                            scopeHint={playsInSeveralClubs ? null : `${player.nickname} plays only in this club, so both show the same games.`}
+                            lastGamesLabel="Last games"
+                        />
+                    </FilterPanel>
                 </div>
             </header>
 

@@ -12,7 +12,8 @@ import LevelBadge from '../../players/level.badge';
 import PageLoader from '../../elements/page.loader';
 import PlayerVSStats from './player.vs.stats';
 import OtherHeadToHead from './other.head.to.head';
-import ComparisonFilters from './comparison.filters';
+import ComparisonFilters, { FilterPanel } from './comparison.filters';
+import { describeFilters } from './filter.summary';
 import X01Service from '../../../services/x01.service';
 import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
@@ -230,8 +231,9 @@ const PlayersStatisticsPage = () => {
                                         </Fragment>
                                     ))}
                                 </div>
-                                <div className="comparison-filters-divider" />
-                                <ComparisonFilters filters={filters} onChange={setFilters} formats={formats} />
+                                <FilterPanel {...describeFilters(filters, DEFAULT_FILTERS, { formats })}>
+                                    <ComparisonFilters filters={filters} onChange={setFilters} formats={formats} />
+                                </FilterPanel>
                             </header>
                             {filters.type === 'x01'
                                 ? <PlayerVSStats players={selected} request={requestOf(filters, formats)} />

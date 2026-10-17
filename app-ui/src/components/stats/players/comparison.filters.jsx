@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
@@ -21,6 +23,40 @@ const Filter = ({ label, children }) => (
         {children}
     </div>
 );
+
+/**
+ * Filters that open from a button. Closed, a bar shows what they are set to;
+ * the button counts the filters changed from their defaults.
+ */
+export const FilterPanel = ({ summary, changed, children }) => {
+    const [open, setOpen] = useState(false);
+    return (
+        <div className="filter-panel">
+            <div className="filter-panel-bar">
+                <span className="filter-panel-summary" aria-label="Filters in use">
+                    {summary.map(part => <span key={part} className="filter-chip">{part}</span>)}
+                </span>
+                <Button
+                    type="button"
+                    icon={changed ? 'pi pi-filter-fill' : 'pi pi-filter'}
+                    label="Filters"
+                    badge={changed ? String(changed) : undefined}
+                    severity="secondary"
+                    size="small"
+                    className={`filter-panel-toggle ${open ? 'is-open' : ''}`}
+                    aria-expanded={open}
+                    onClick={() => setOpen(!open)}
+                />
+            </div>
+            {open &&
+                <>
+                    <div className="comparison-filters-divider" />
+                    {children}
+                </>
+            }
+        </div>
+    );
+};
 
 const SCOPES = [
     { label: 'This club', value: 'club' },

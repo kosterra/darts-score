@@ -504,6 +504,55 @@ $momentGoldColor: #ffc94d;
     margin: 0.25rem 0;
 }
 
+// Filters that open from a button; closed, a bar shows what is chosen
+.filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.filter-panel-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid $surfaceHighColor;
+}
+
+.filter-panel-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.filter-chip {
+    padding: 0.2rem 0.65rem;
+    border-radius: 1rem;
+    background: $surfaceHighColor;
+    color: $textSubtleColor;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.filter-panel-toggle.p-button {
+    flex-shrink: 0;
+
+    &.is-open {
+        background: $surfaceHighColor;
+        color: $textDefaultColor;
+    }
+
+    .p-badge {
+        min-width: 1.1rem;
+        height: 1.1rem;
+        line-height: 1.1rem;
+        font-size: 0.65rem;
+    }
+}
+
 // the profile's figures while they reload for other filters
 .is-refreshing {
     opacity: 0.55;
@@ -518,7 +567,7 @@ $momentGoldColor: #ffc94d;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    justify-content: center;
+    justify-content: flex-start;
     column-gap: 1.75rem;
     row-gap: 1rem;
 
