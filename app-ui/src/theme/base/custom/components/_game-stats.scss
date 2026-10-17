@@ -525,6 +525,14 @@ $winnerGold: #ffc94d;
     }
 }
 
+// the lead of the best value, in the colour of the points on the Cricket board
+.tape-lead {
+    margin: 0 0.4rem;
+    color: #ffc94d;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
 .tape-detail {
     margin-left: 0.35rem;
     color: $textFaintColor;
@@ -590,5 +598,39 @@ $winnerGold: #ffc94d;
     .tape-line {
         grid-template-columns: 5rem 1fr 4.5rem;
         gap: 0.5rem;
+    }
+}
+
+// Head to head: the figures in the middle of the panel, the games together on
+// the left at the height of their top; the right column only keeps the middle
+.h2h-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 46rem) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 1.5rem;
+
+    .h2h-games {
+        grid-column: 1;
+        max-width: 12rem;
+    }
+
+    .h2h-figures {
+        grid-column: 2;
+        min-width: 0;
+    }
+
+    // narrow screens: the number above the figures
+    @media (max-width: 991px) {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 1rem;
+
+        .h2h-games,
+        .h2h-figures {
+            grid-column: 1;
+        }
+
+        .h2h-games {
+            max-width: none;
+        }
     }
 }

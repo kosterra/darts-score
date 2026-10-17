@@ -3,8 +3,7 @@ import { Panel } from 'primereact/panel';
 
 import StatsService from '../../../services/stats.service';
 import SideBySide from '../common/side.by.side';
-import StatTile from './stat.tile';
-import HeadToHeadTimeline from './head.to.head.timeline';
+import HeadToHeadLayout from './head.to.head.layout';
 
 // the figures compared per game type: [label, key of the player's figures, format, options]
 const FIGURES = {
@@ -50,18 +49,9 @@ const OtherHeadToHead = ({ type, players, request }) => {
 
     return (
         <Panel header={TITLES[type]}>
-            <div className="row g-3 mb-3 align-items-center">
-                <div className="col-12 col-md-3 col-xl-2">
-                    <StatTile label="Games together" value={data.playedGames} />
-                </div>
-                <div className="col-12 col-md-9 col-xl-10" style={{ minWidth: 0 }}>
-                    <span className="text-faint fs-8">Latest winners</span>
-                    <HeadToHeadTimeline games={data.games} players={players} />
-                </div>
-            </div>
-            <div className="mt-3">
+            <HeadToHeadLayout gamesTogether={data.playedGames} games={data.games} players={players}>
                 <SideBySide rows={rows} players={players} />
-            </div>
+            </HeadToHeadLayout>
         </Panel>
     );
 };

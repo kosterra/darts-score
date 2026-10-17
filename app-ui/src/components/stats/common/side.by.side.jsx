@@ -5,8 +5,10 @@ import { PLAYER_COLORS } from '../charts/chart.theme';
  * Two players: the values left and right of the figure, with a thin line
  * growing from the centre to each side; three or four: a thin line per player.
  * The better value is bright, the others are dimmed.
+ * The best value shows its lead over the next one, e.g. "109 +22".
  * rows: [{ key, label, values: [number], texts?: [string], details?: [string],
- *         lowerIsBetter?, neutral? }] — neutral rows mark no one as better.
+ *         lowerIsBetter?, neutral?, formatLead?(difference) }] — neutral rows
+ *         mark no one as better; formatLead writes the lead, e.g. as a percentage.
  * Rows where every value is 0 are left out.
  */
 const SideBySide = ({ rows, players }) => {
@@ -20,6 +22,33 @@ const SideBySide = ({ rows, players }) => {
         const best = row.lowerIsBetter ? Math.min(...values.filter(value => value > 0)) : Math.max(...values);
         return values[index] === best && values.some(value => value !== best);
     };
+    // decimals as in the shown value: "42.3" leads by "+0.4", "13" by "+2"
+    const decimalsOf = (text) => (String(text).match(/\.(\d+)/)?.[1].length ?? 0);
+    // the lead of the best value over the next one, or null
+    const leadOf = (row, index) => {
+        if (!isBest(row, index)) return null;
+        const values = row.values.map(Number);
+        const others = values.filter((_, i) => i !== index);
+        const next = row.lowerIsBetter
+            ? Math.min(...others.filter(value => value > 0))
+            : Math.max(...others);
+        if (!Number.isFinite(next)) return null;
+        const difference = Math.abs(values[index] - next);
+        if (!difference) return null;
+        // without trailing zeros: "+383", not "+383.0"
+        const text = row.formatLead
+            ? row.formatLead(difference)
+            : String(Number(difference.toFixed(decimalsOf(textOf(row, index)))));
+        // a lead that rounds to nothing is not worth showing
+        if (!/[1-9]/.test(text)) return null;
+        // fewer is better: the lead is how many fewer
+        return `${row.lowerIsBetter ? '−' : '+'}${text}`;
+    };
+    const Lead = ({ row, index }) => {
+        const lead = leadOf(row, index);
+        return lead ? <span className="tape-lead">{lead}</span> : null;
+    };
+
     // the longest line is the highest value
     const share = (row, index) => {
         const max = Math.max(...row.values.map(Number));
@@ -42,8 +71,11 @@ const SideBySide = ({ rows, players }) => {
                         <div className="tape-values">
                             {[0, 1].map(index => (
                                 <span key={index} className={`tape-value ${index === 0 ? 'is-left' : 'is-right'} ${isBest(row, index) ? 'is-best' : ''}`}>
+                                    {/* the lead sits on the inside, next to the figure's name */}
+                                    {index === 1 && <Lead row={row} index={index} />}
                                     {textOf(row, index)}
                                     {row.details?.[index] && <span className="tape-detail">{row.details[index]}</span>}
+                                    {index === 0 && <Lead row={row} index={index} />}
                                 </span>
                             ))}
                             <span className="tape-label">{row.label}</span>
@@ -79,6 +111,7 @@ const SideBySide = ({ rows, players }) => {
                                 />
                             </span>
                             <span className={`tape-value ${isBest(row, index) ? 'is-best' : ''}`}>
+                                <Lead row={row} index={index} />
                                 {textOf(row, index)}
                                 {row.details?.[index] && <span className="tape-detail">{row.details[index]}</span>}
                             </span>

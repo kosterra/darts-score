@@ -7,6 +7,7 @@ const CHANGELOG = [
         version: '2026.10.8',
         changes: [
             'Club admins who run several clubs move players from one of their clubs to another, add them to a second club or remove them from a club.',
+            'Player comparison: the latest winners use the whole width, the games together sit next to the figures, and the better value shows its lead (e.g. 109 +22).',
         ],
     },
     {
