@@ -511,3 +511,50 @@
   padding: 0.35rem 0.75rem;
   font-size: 0.85rem;
 }
+
+// with doubles and trebles moving on: four buttons, two by two on a phone
+.atc-round-buttons.is-rings {
+  grid-template-columns: repeat(4, 1fr);
+
+  @media (max-width: 575.98px) { grid-template-columns: 1fr 1fr; }
+}
+
+.atc-round-visit span {
+  display: inline-grid;
+  place-items: center;
+  color: var(--primary-color-text);
+  font-size: 0.5rem;
+  font-weight: 700;
+}
+
+// e.g. "Last round: everybody gets as many turns"
+.atc-round-notice {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, #ffc94d 16%, transparent);
+  color: #ffc94d;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+// the setup of an Around the Clock game: doubles and trebles moving on
+.clock-skip-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 auto 1rem;
+  padding: 0.7rem 0.9rem;
+  max-width: 30rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  cursor: pointer;
+
+  .p-inputswitch { flex-shrink: 0; }
+}
+
+// the Around the Clock game: the round in the middle of the page
+.clock-game-board {
+  max-width: 44rem;
+  margin: 0 auto;
+}

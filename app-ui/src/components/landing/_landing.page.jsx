@@ -12,7 +12,7 @@ import ClubLogo from '../elements/club.logo';
 const REFRESH_MS = 15 * 1000;
 
 const FEATURES = [
-    { icon: <FaBullseye />, title: 'X01, Cricket and Elimination', text: 'Score the classic games for one to four players, on a dartboard you tap or by typing the darts.' },
+    { icon: <FaBullseye />, title: 'X01, Cricket, Elimination and Around the Clock', text: 'Score the classic games for one to four players, on a dartboard you tap or by typing the darts.' },
     { icon: <MdQueryStats />, title: 'Statistics that mean something', text: 'Averages, checkout rates, score ranges and head-to-head comparisons for every player and game.' },
     { icon: <FaRegClock />, title: 'Training', text: 'Practise Around the Clock against the stopwatch and watch your best times improve.' },
     { icon: <FaPeopleGroup />, title: 'Made for clubs', text: 'Run your club with several admins. Players get their own login to play and train whenever they like.' },

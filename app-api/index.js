@@ -21,6 +21,7 @@ import statsRoutes     from './src/routes/stats.routes.js';
 import x01Routes       from './src/routes/x01.routes.js';
 import cricketRoutes   from './src/routes/cricket.routes.js';
 import elimRoutes      from './src/routes/elimination.routes.js';
+import clockRoutes     from './src/routes/clock.routes.js';
 import { playerImageRoutes, clubLogoRoutes } from './src/routes/player.img.routes.js';
 import atcRoutes       from './src/routes/atc.routes.js';
 import authRoutes      from './src/routes/auth.routes.js';
@@ -157,6 +158,7 @@ statsRoutes(app);
 x01Routes(app);
 cricketRoutes(app);
 elimRoutes(app);
+clockRoutes(app);
 playerImageRoutes(app);
 atcRoutes(app);
 

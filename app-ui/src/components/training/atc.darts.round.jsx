@@ -20,9 +20,13 @@ const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
  * Backspace takes the last dart back.
  *
  * players: in throwing order
- * round: from useAtcRound
+ * round: { order, current, visit, players: { [id]: { target, darts, finished } } }
+ * onDart(value): 0 a miss, 1 a hit; with rings 1 a single, 2 a double, 3 a treble
+ * rings: Single, Double and Treble instead of Hit (S, D and T on a keyboard)
+ * notice: a line above the buttons, e.g. that this is the last round
+ * onCancel: without it the round cannot be cancelled here
  */
-const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel }) => {
+const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel, rings = false, notice }) => {
     const [confirmCancel, setConfirmCancel] = useState(false);
     const playerOf = (id) => players.find(player => player.id === id) ?? { nickname: 'Unknown player' };
     const currentId = round.order[round.current];
@@ -33,13 +37,13 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
         const onKey = (event) => {
             if (event.target.closest?.('input, textarea, [contenteditable="true"]') || event.metaKey || event.ctrlKey || event.altKey) return;
             const key = event.key.toLowerCase();
-            if (key === 'h') onDart(true);
-            else if (key === 'm') onDart(false);
+            const value = rings ? { m: 0, s: 1, h: 1, d: 2, t: 3 }[key] : { m: 0, h: 1 }[key];
+            if (value !== undefined) onDart(value);
             else if (key === 'backspace' && canUndo) { event.preventDefault(); onUndo(); }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [onDart, onUndo, canUndo]);
+    }, [onDart, onUndo, canUndo, rings]);
 
     return (
         <div className="atc-round">
@@ -77,28 +81,40 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
                 <div className="d-flex align-items-center gap-3 text-faint fs-8">
                     <span className="atc-round-visit" aria-label={`Dart ${round.visit.length + 1} of ${DARTS_PER_VISIT}`}>
                         {Array.from({ length: DARTS_PER_VISIT }, (_, index) => (
-                            <span key={index} className={index < round.visit.length ? (round.visit[index] ? 'is-hit' : 'is-miss') : ''} />
+                            <span key={index} className={index < round.visit.length ? (round.visit[index] ? 'is-hit' : 'is-miss') : ''}>
+                                {rings && round.visit[index] > 1 ? ['', '', 'D', 'T'][round.visit[index]] : ''}
+                            </span>
                         ))}
                     </span>
                     <span>{current.darts} {current.darts === 1 ? 'dart' : 'darts'}</span>
                 </div>
             </div>
 
-            <div className="atc-round-buttons">
-                <Button type="button" label="Miss" icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(false)} />
-                <Button type="button" label="Hit" icon="pi pi-check" severity="success" className="atc-round-button" onClick={() => onDart(true)} />
-            </div>
+            {notice && <div className="atc-round-notice" role="status">{notice}</div>}
+
+            {rings
+                ? <div className="atc-round-buttons is-rings">
+                    <Button type="button" label="Miss" icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
+                    <Button type="button" label="Single" severity="success" className="atc-round-button" onClick={() => onDart(1)} />
+                    <Button type="button" label="Double" severity="success" className="atc-round-button" onClick={() => onDart(2)} />
+                    <Button type="button" label="Treble" severity="success" className="atc-round-button" onClick={() => onDart(3)} />
+                </div>
+                : <div className="atc-round-buttons">
+                    <Button type="button" label="Miss" icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
+                    <Button type="button" label="Hit" icon="pi pi-check" severity="success" className="atc-round-button" onClick={() => onDart(1)} />
+                </div>
+            }
 
             <div className="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-2">
                 <Button type="button" label="Undo" icon="pi pi-undo" size="small" text disabled={!canUndo} onClick={onUndo} />
-                {confirmCancel
+                {onCancel && (confirmCancel
                     ? <>
                         <span className="text-faint fs-8">Cancel this round? Nothing is saved.</span>
                         <Button type="button" label="Yes, cancel" size="small" text severity="danger" onClick={onCancel} />
                         <Button type="button" label="No" size="small" text onClick={() => setConfirmCancel(false)} />
                     </>
                     : <Button type="button" label="Cancel round" icon="pi pi-times" size="small" text severity="danger" onClick={() => setConfirmCancel(true)} />
-                }
+                )}
             </div>
         </div>
     );

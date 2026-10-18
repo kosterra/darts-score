@@ -123,6 +123,13 @@ describe('replayBadges', () => {
         expect(ids([x01(true, short)])).not.toContain('average-60');
     });
 
+    it('awards the Around the Clock badge for a win and counts its darts', () => {
+        const clock = { type: 'clock', id: 'c1', at: at(), data: { players: [P, O], playerModels: { [P]: { hasWonGame: true, darts: 30 } } } };
+        const result = replayBadges([clock], P);
+        expect(result.metrics).toMatchObject({ winsClock: 1, wins: 1, darts: 30, gameTypesWon: 0 });
+        expect(result.earned.map(e => e.badge)).toContain('clockWins-1');
+    });
+
     it('awards the all-rounder after a win in every game type', () => {
         const win = (type) => ({ type, id: `${type}${clock}`, at: at(), data: { players: [P, O], playerModels: { [P]: { hasWonGame: true } } } });
         expect(ids([win('x01'), win('cricket')])).not.toContain('allRounder-3');

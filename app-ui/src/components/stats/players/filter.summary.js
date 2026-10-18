@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-const GAME_TYPE_LABELS = { x01: 'X01', cricket: 'Cricket', elimination: 'Elimination' };
+const GAME_TYPE_LABELS = { x01: 'X01', cricket: 'Cricket', elimination: 'Elimination', clock: 'Around the Clock' };
 const PERIOD_LABELS = { '1 D': 'Today', '1 W': 'Last week', '1 M': 'Last month', '1 Y': 'Last year', 'All': 'All time' };
 
 /**

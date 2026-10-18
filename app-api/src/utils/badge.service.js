@@ -7,6 +7,7 @@ export const GAME_MODELS = {
     x01: () => db.x01,
     cricket: () => db.cricket,
     elimination: () => db.elimination,
+    clock: () => db.clock,
 };
 
 /**

@@ -1,4 +1,4 @@
-import { FaTrophy, FaFire, FaBolt, FaFlagCheckered, FaBullseye, FaFish, FaBroom, FaChartLine, FaBaseballBatBall, FaSkull, FaStar, FaRoute, FaClock, FaStopwatch, FaLock, FaDragon, FaGem, FaHouseCrack, FaBed, FaArrowTrendUp, FaCalendarCheck, FaBoltLightning } from "react-icons/fa6";
+import { FaTrophy, FaFire, FaBolt, FaFlagCheckered, FaBullseye, FaFish, FaBroom, FaChartLine, FaBaseballBatBall, FaSkull, FaStar, FaRoute, FaClock, FaStopwatch, FaLock, FaDragon, FaGem, FaHouseCrack, FaBed, FaArrowTrendUp, FaCalendarCheck, FaBoltLightning, FaArrowsSpin } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
 
 const GROUP_ICONS = {
@@ -20,6 +20,7 @@ const GROUP_ICONS = {
     average: FaChartLine,
     cricketWins: FaBaseballBatBall,
     eliminationWins: FaSkull,
+    clockWins: FaArrowsSpin,
     allRounder: FaStar,
     darts: FaRoute,
     training: FaClock,

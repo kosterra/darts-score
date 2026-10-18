@@ -3,7 +3,7 @@ import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { playerStatsModel, checkoutItemModel } from '../models/player.stats.models.js';
 import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, trainingDarts, threeDartAverage } from '../utils/chart.data.js';
-import { x01Kpis, cricketKpis, eliminationKpis } from '../utils/kpi.data.js';
+import { x01Kpis, cricketKpis, eliminationKpis, clockKpis } from '../utils/kpi.data.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
 import { createGameFilterQuery, findFilteredGames, profileFiltersOf, isUnfiltered } from '../utils/game.utils.js';
 
@@ -36,10 +36,11 @@ const findPlayerGames = async (playerId, filters, clubId) => {
     const forPlayer = { ...filters, playerIds: [playerId], includeOthers: true };
     const x01Query = { ...createGameFilterQuery(forPlayer), ...inScope };
     const otherQuery = { ...createGameFilterQuery({ ...forPlayer, startingScore: undefined, format: undefined }), ...inScope };
-    const [x01Games, cricketGames, eliminationGames] = await Promise.all([
+    const [x01Games, cricketGames, eliminationGames, clockGames] = await Promise.all([
         findFilteredGames(X01, x01Query, filters),
         findFilteredGames(Cricket, otherQuery, filters),
         findFilteredGames(db.elimination, otherQuery, filters, true),
+        findFilteredGames(db.clock, otherQuery, filters, true),
     ]);
     // oldest first, as the charts expect
     const chronological = (games) => [...games].sort((a, b) => a.createdAt - b.createdAt);
@@ -47,6 +48,7 @@ const findPlayerGames = async (playerId, filters, clubId) => {
         x01Games: chronological(x01Games),
         cricketGames: chronological(cricketGames),
         eliminationGames: chronological(eliminationGames),
+        clockGames: chronological(clockGames),
         trainingQuery: { 'player.id': playerId, ...inScope, ...(otherQuery.createdAt && { createdAt: otherQuery.createdAt }) },
     };
 };
@@ -67,7 +69,7 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
     playerStats.playerId = playerId;
 
     const filtered = await findPlayerGames(playerId, filters, clubId);
-    const { x01Games, cricketGames, eliminationGames, trainingQuery } = filtered;
+    const { x01Games, cricketGames, eliminationGames, clockGames, trainingQuery } = filtered;
 
     // the whole history in all clubs, for the level
     const everything = isUnfiltered(filters) ? filtered : await findPlayerGames(playerId, profileFiltersOf(), clubId);
@@ -81,16 +83,19 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
     playerStats.playedGames.x01 = x01Games.length;
     playerStats.playedGames.cricket = cricketGames.length;
     playerStats.playedGames.elimination = eliminationGames.length;
-    playerStats.playedGames.total = x01Games.length + cricketGames.length + eliminationGames.length;
+    playerStats.playedGames.clock = clockGames.length;
+    playerStats.playedGames.total = x01Games.length + cricketGames.length + eliminationGames.length + clockGames.length;
 
     const wonGamesX01 = x01Games.filter(game => game.playerModels[playerId].hasWonGame === true).length;
     const wonGamesCricket = cricketGames.filter(game => game.playerModels[playerId].hasWonGame === true).length;
     const wonGamesElimination = eliminationGames.filter(game => game.playerModels?.[playerId]?.hasWonGame === true).length;
+    const wonGamesClock = clockGames.filter(game => game.playerModels?.[playerId]?.hasWonGame === true).length;
 
     playerStats.wonGames.x01 = wonGamesX01;
     playerStats.wonGames.cricket = wonGamesCricket;
     playerStats.wonGames.elimination = wonGamesElimination;
-    playerStats.wonGames.total = wonGamesX01 + wonGamesCricket + wonGamesElimination;
+    playerStats.wonGames.clock = wonGamesClock;
+    playerStats.wonGames.total = wonGamesX01 + wonGamesCricket + wonGamesElimination + wonGamesClock;
 
     // the player's level, from games, wins, badges and skill
     const player = await db.player.findById(playerId, 'badges').lean();
@@ -103,6 +108,7 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
         x01: x01Kpis(x01Games, playerId),
         cricket: cricketKpis(cricketGames, playerId),
         elimination: eliminationKpis(eliminationGames, playerId),
+        clock: clockKpis(clockGames, playerId),
     };
 
     playerStats.avg.overallX01 = calculateOverallX01Avg(x01Games, playerId);

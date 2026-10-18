@@ -27,7 +27,7 @@ import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 
 const SCORINGS = [
     { label: 'Against the clock', value: 'Time', description: 'Stop the clock with your last hit; the fastest time wins.' },
-    { label: 'Fewest darts', value: 'Darts', description: 'Tap Hit or Miss for every dart; the fewest darts win. Up to four players take turns.' },
+    { label: 'Fewest darts', value: 'Darts', description: 'Tap Hit or Miss for every dart; 21 is perfect. Against others: an Around the Clock game.' },
 ];
 
 const names = (players) => players.length > 1
@@ -164,8 +164,6 @@ const ATC = () => {
     const changeScoring = (value) => {
         setScoring(value);
         setFinished(null);
-        // against the clock is one player at a time
-        if (value === 'Time' && players.length > 1) setPlayers(players.slice(0, 1));
     };
 
     const saveChallenge = async (timeMs) => {
@@ -253,11 +251,11 @@ const ATC = () => {
                             {playing && <ATCTrainingSummary players={active?.players ?? finished?.players ?? players} mode={active?.mode ?? finished?.mode ?? mode} scoring={scoring} />}
                             {!playing && <>
                             {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
-                            <p className="game-setup-section-title">{darts ? 'Players' : 'Player'}</p>
+                            <p className="game-setup-section-title">Player</p>
                             {/* a fieldset locks every card while a training runs */}
                             <fieldset disabled={inProgress} className="atc-setup-lock">
                                 <PlayerPicker
-                                    single={!darts}
+                                    single
                                     minPlayers={1}
                                     selected={players}
                                     onChange={setPlayers}
@@ -306,7 +304,7 @@ const ATC = () => {
                                                 <Button type="button" label="Start round" icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => startRound()} />
                                             </div>
                                             <div className="text-faint fs-8 text-center mt-2">
-                                                {players.length ? `${names(players)} ${players.length > 1 ? 'take turns of three darts' : 'throws'}; H and M work on a keyboard.` : 'Choose who plays to start.'}
+                                                {players.length ? 'Tap Hit or Miss for every dart; H and M work on a keyboard.' : 'Choose a player to start.'}
                                             </div>
                                         </div>
                                 : <>

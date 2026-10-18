@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { x01Kpis, cricketKpis, eliminationKpis } from './kpi.data.js';
+import { x01Kpis, cricketKpis, eliminationKpis, clockKpis } from './kpi.data.js';
 
 const visit = (playerId, scoreLeft, darts = ['S1', 'S1', 'S1']) => ({ playerId, scoreLeft, darts });
 
@@ -69,5 +69,19 @@ describe('eliminationKpis', () => {
             { playerModels: { a: { hasWonGame: false } } },
         ];
         expect(eliminationKpis(games, 'a')).toEqual({ games: 2, wins: 1, averageVisit: 80, bestVisit: 100, dartsThrown: 5 });
+    });
+});
+
+describe('clockKpis', () => {
+    const game = (darts, hits, finished, won) => ({ playerModels: { p1: { darts, hits, finished, hasWonGame: won } } });
+
+    it('counts wins, the fewest darts of a finished game and the hit rate', () => {
+        const kpis = clockKpis([game(30, 21, true, true), game(24, 21, true, false), game(27, 15, false, false)], 'p1');
+        expect(kpis).toMatchObject({ games: 3, wins: 1, fewestDarts: 24, averageDarts: 27, dartsThrown: 81 });
+        expect(kpis.hitRate).toBe(70.4);
+    });
+
+    it('has no figures without games', () => {
+        expect(clockKpis([], 'p1')).toMatchObject({ games: 0, wins: 0, fewestDarts: null, hitRate: null });
     });
 });

@@ -6,7 +6,7 @@ import { addToClub, removeFromClub } from './player.controller.js';
 import { removeProfileImageFile } from './file.controller.js';
 import { withPlayers } from './atc.controller.js';
 
-const GAME_MODELS = [db.x01, db.cricket, db.elimination];
+const GAME_MODELS = [db.x01, db.cricket, db.elimination, db.clock];
 
 /**
  * Counts per club over one collection, as a map from club id to the result.
@@ -183,11 +183,12 @@ export const games = async (req, res) => {
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
     const filter = { club: { $in: [...clubsById.keys()] } };
-    const [x01, cricket, elimination] = await Promise.all(GAME_MODELS.map(model => model.find(filter).sort({ createdAt: -1 })));
+    const [x01, cricket, elimination, clock] = await Promise.all(GAME_MODELS.map(model => model.find(filter).sort({ createdAt: -1 })));
     res.json([
         ...x01.map(withClub(clubsById, { type: 'x01' })),
         ...cricket.map(withClub(clubsById, { type: 'cricket' })),
         ...elimination.map(withClub(clubsById, { type: 'elimination' })),
+        ...clock.map(withClub(clubsById, { type: 'clock' })),
     ]);
 };
 

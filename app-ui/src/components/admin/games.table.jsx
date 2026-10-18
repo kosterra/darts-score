@@ -16,6 +16,7 @@ import PlayerService from '../../services/player.service';
 import X01Service from '../../services/x01.service';
 import CricketService from '../../services/cricket.service';
 import EliminationService from '../../services/elimination.service';
+import ClockService from '../../services/clock.service';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import GameStatusTag from '../elements/game.status.tag';
@@ -53,6 +54,12 @@ const GAME_TYPES = {
         describe: (game) => ({ title: `Target ${game.targetScore}` }),
         score: (model) => `${model.score ?? 0} points`,
     },
+    clock: {
+        load: () => ClockService.loadAllClockGames(),
+        remove: (id, clubId) => ClockService.deleteClockGame(id, clubId),
+        describe: (game) => ({ title: `Around the Clock · ${game.mode ?? 'All'}` }),
+        score: (model) => model.finished ? `${model.darts ?? 0} darts` : `${model.target ?? 0} of 21`,
+    },
 };
 
 const TYPE_OPTIONS = [
@@ -60,6 +67,7 @@ const TYPE_OPTIONS = [
     { label: 'X01', value: 'x01' },
     { label: 'Cricket', value: 'cricket' },
     { label: 'Elimination', value: 'elimination' },
+    { label: 'Around the Clock', value: 'clock' },
 ];
 
 const STATUS_OPTIONS = [

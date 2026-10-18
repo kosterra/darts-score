@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 // Dashboard charts from the club's game log ([{ at, type, finished, points?, rounds? }]),
 // grouped by day, month and hour in the visitor's own time zone.
 
-const GAME_TYPES = ['x01', 'cricket', 'elimination'];
+const GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock'];
 
 // Monday-based day of the week: 0 = Monday … 6 = Sunday
 const weekday = (date) => (date.day() + 6) % 7;

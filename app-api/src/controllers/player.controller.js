@@ -125,7 +125,7 @@ const RECENT_GAMES = 100;
  */
 export const lastPlayed = async (req, res) => {
     logger.debug('players last played called!');
-    const latest = await Promise.all([db.x01, db.cricket, db.elimination].map(model =>
+    const latest = await Promise.all([db.x01, db.cricket, db.elimination, db.clock].map(model =>
         model.find({ club: req.club._id }, 'players createdAt').sort({ createdAt: -1 }).limit(RECENT_GAMES).lean()
     ));
     const lastPlayedById = {};

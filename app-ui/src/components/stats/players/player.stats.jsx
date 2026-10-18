@@ -70,7 +70,7 @@ const StreakFlames = ({ weeks: count }) => (
 );
 
 // the colours of the game type tags
-const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6' };
+const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6' };
 
 // the badge collection further down the profile page
 const scrollToBadges = (event) => {
@@ -148,6 +148,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
     const x01 = kpis.x01 ?? {};
     const cricket = kpis.cricket ?? {};
     const elimination = kpis.elimination ?? {};
+    const clock = kpis.clock ?? {};
     const twoDigits = (value) => value == null ? null : value.toFixed(2);
 
     return (
@@ -282,6 +283,26 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                                             </>
                                         )
                                         : <p className="text-subtle m-0">No finished Elimination games yet.</p>
+                                    }
+                                </Panel>
+                            </div>
+                            <div className="col-12 col-xl-6">
+                                <Panel header="Around the Clock" className="h-100">
+                                    {clock.games > 0
+                                        ? (
+                                            <>
+                                                <div className="kpi-headline mb-4">
+                                                    <KpiRing label="Win rate" part={clock.wins} whole={clock.games} color={COLORS.clock} detail={`${formatNumber(clock.wins)} of ${formatNumber(clock.games)} games`} />
+                                                    <KpiHero label="Hit rate" value={clock.hitRate == null ? null : `${clock.hitRate} %`} color={COLORS.clock} />
+                                                </div>
+                                                <div className="kpi-chips">
+                                                    <KpiChip icon={FaStopwatch} label="Fewest darts" value={clock.fewestDarts ? `${clock.fewestDarts} darts` : null} color={COLORS.clock} />
+                                                    <KpiChip icon={GiDart} label="Darts per game" value={clock.averageDarts} color={COLORS.clock} />
+                                                    <KpiChip icon={FaBullseye} label="Darts thrown" value={formatNumber(clock.dartsThrown)} color={COLORS.clock} />
+                                                </div>
+                                            </>
+                                        )
+                                        : <p className="text-subtle m-0">No finished Around the Clock games yet.</p>
                                     }
                                 </Panel>
                             </div>

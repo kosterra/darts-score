@@ -25,6 +25,7 @@ export const DASHBOARD_WIDGETS = [
     { id: 'leaderWinsX01', title: 'Most X01 wins', description: 'Wins in X01 games', kind: 'leaderboard', board: 'winsX01', unit: 'wins', format: integer, cols: LEADERBOARD_COLS },
     { id: 'leaderWinsCricket', title: 'Most Cricket wins', description: 'Wins in Cricket games', kind: 'leaderboard', board: 'winsCricket', unit: 'wins', format: integer, cols: LEADERBOARD_COLS },
     { id: 'leaderWinsElimination', title: 'Most Elimination wins', description: 'Wins in Elimination games', kind: 'leaderboard', board: 'winsElimination', unit: 'wins', format: integer, cols: LEADERBOARD_COLS },
+    { id: 'leaderWinsClock', title: 'Most Around the Clock wins', description: 'Wins in Around the Clock games', kind: 'leaderboard', board: 'winsClock', unit: 'wins', format: integer, cols: LEADERBOARD_COLS },
     { id: 'leaderMostDarts', title: 'Most darts thrown', description: 'Darts thrown over all game types', kind: 'leaderboard', board: 'mostDarts', unit: 'darts', format: integer, cols: LEADERBOARD_COLS },
 ];
 

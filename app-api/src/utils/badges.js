@@ -119,6 +119,11 @@ export const BADGE_GROUPS = [
         tiers: [[1, 'Eliminator'], [10, 'Hitman'], [50, 'Last One Standing']],
     },
     {
+        group: 'clockWins', category: 'winning', title: 'Around the Clock', metric: 'winsClock',
+        describe: (n) => n === 1 ? 'Win an Around the Clock game' : `Win ${n} Around the Clock games`,
+        tiers: [[1, 'Clockwork'], [10, 'Round the Board'], [50, 'Master of the Clock']],
+    },
+    {
         group: 'allRounder', category: 'winning', title: 'All-rounder', metric: 'gameTypesWon',
         describe: () => 'Win at least one game in every game type: X01, Cricket and Elimination',
         tiers: [[3, 'All-Rounder']],
@@ -167,7 +172,7 @@ export const getBadge = (id) => BADGES.find(badge => badge.id === id);
 const newMetrics = () => ({
     games: 0, wins: 0, streak: 0, bestStreak: 0, num180s: 0, highFinishes: 0, bullFinishes: 0, bigFishes: 0,
     whitewashes: 0, shanghaiFinishes: 0, nineDarters: 0, madhouses: 0, bedAndBreakfasts: 0, maxHatTricks: 0, comebacks: 0,
-    weekStreak: 0, bestWeekStreak: 0, lastWeek: null, bestAverage: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, gameTypesWon: 0,
+    weekStreak: 0, bestWeekStreak: 0, lastWeek: null, bestAverage: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0, gameTypesWon: 0,
     darts: 0, trainings: 0, trainingRecords: 0, bestTrainingTimes: {},
 });
 
@@ -253,14 +258,14 @@ const applyGame = (metrics, type, game, playerId) => {
     const competitive = opponents.length > 0;
 
     metrics.games += 1;
-    metrics.darts += (type === 'elimination' ? model.totalThrow?.darts : model.totalThrow?.game?.darts) ?? 0;
+    metrics.darts += (type === 'clock' ? model.darts : type === 'elimination' ? model.totalThrow?.darts : model.totalThrow?.game?.darts) ?? 0;
 
     if (competitive) {
         if (won) {
             metrics.wins += 1;
             metrics.streak += 1;
             metrics.bestStreak = Math.max(metrics.bestStreak, metrics.streak);
-            metrics[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination' }[type]] += 1;
+            metrics[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock' }[type]] += 1;
             metrics.gameTypesWon = ['winsX01', 'winsCricket', 'winsElimination'].filter(key => metrics[key] > 0).length;
         } else {
             metrics.streak = 0;
@@ -306,7 +311,7 @@ const applyTraining = (metrics, entry) => {
  * Replays a player's history and returns the badges earned along the way plus
  * the final metrics (for progress towards the next tiers).
  *
- * events: [{ type: 'x01' | 'cricket' | 'elimination' | 'atc', id, at: Date, data }]
+ * events: [{ type: 'x01' | 'cricket' | 'elimination' | 'clock' | 'atc', id, at: Date, data }]
  */
 export const replayBadges = (events, playerId) => {
     const metrics = newMetrics();

@@ -4,7 +4,7 @@ import PlayersTable from './players.table';
 import GamesTable from './games.table';
 import TrainingsTable from './trainings.table';
 
-const GAME_TYPES = ['x01', 'cricket', 'elimination'];
+const GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock'];
 
 /**
  * The lists of the selected club under "Club", for everyone in it. Only the

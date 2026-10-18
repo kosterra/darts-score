@@ -9,7 +9,7 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils
 const MEDALS = ['gold', 'silver', 'bronze'];
 
 // the darts at each target as small bars, the hardest ones highlighted
-const TargetBars = ({ perTarget, hardest }) => {
+export const TargetBars = ({ perTarget, hardest }) => {
     const most = Math.max(...perTarget);
     return (
         <div className="atc-target-bars" role="img" aria-label={`Darts per target: ${perTarget.map((darts, index) => `${TARGET_NAMES[index]} ${darts}`).join(', ')}`}>
@@ -17,7 +17,7 @@ const TargetBars = ({ perTarget, hardest }) => {
                 <span
                     key={index}
                     className={hardest.some(target => target.index === index) ? 'is-hard' : ''}
-                    style={{ height: `${Math.max(12, darts / most * 100)}%` }}
+                    style={{ height: darts ? `${Math.max(12, darts / most * 100)}%` : '3px' }}
                     title={`${TARGET_NAMES[index]}: ${darts} ${darts === 1 ? 'dart' : 'darts'}`}
                 />
             ))}

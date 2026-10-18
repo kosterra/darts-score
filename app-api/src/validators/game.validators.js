@@ -73,6 +73,19 @@ export const validateEliminationCreate = [
     validatePlayers,
 ];
 
+const VALID_CLOCK_MODES = ['Single', 'Double', 'Triple', 'All'];
+
+export const validateClockCreate = [
+    check('mode').isIn(VALID_CLOCK_MODES).withMessage(`mode must be one of: ${VALID_CLOCK_MODES.join(', ')}.`),
+    check('skipAhead').optional().isBoolean().withMessage('skipAhead must be true or false.'),
+    check('numberOfPlayers').isIn([2, 3, 4]).withMessage('numberOfPlayers must be 2, 3 or 4.'),
+    validatePlayers,
+    body('throws').optional().isArray().withMessage('throws must be a list.')
+        .bail()
+        .custom((throws) => throws.every(value => [0, 1, 2, 3].includes(value)))
+        .withMessage('each throw must be 0, 1, 2 or 3.'),
+];
+
 export const validateGameCreate = [
     validateNumberOfPlayers,
     validatePlayers,

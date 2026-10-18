@@ -3,13 +3,14 @@ import { FaFire, FaCrosshairs, FaStopwatch, FaFlagCheckered, FaBullseye, FaUsers
 import { FaArrowTrendUp, FaArrowTrendDown } from 'react-icons/fa6';
 import { MdSportsCricket } from 'react-icons/md';
 import { BiTargetLock } from 'react-icons/bi';
+import { PiClockClockwiseBold } from 'react-icons/pi';
 import { GiDart } from 'react-icons/gi';
 
 import { KpiRing, KpiHero, KpiChip } from '../../stats/players/kpi';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 const GREEN = '#7ecca5';
-const TYPE_COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6' };
+const TYPE_COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6' };
 
 /**
  * The club in numbers: rates as rings, the average and this month's games as
@@ -42,6 +43,7 @@ const ClubKpisWidget = ({ widget, kpis, totals, players }) => {
                 <KpiChip icon={FaBullseye} label="X01 games" value={formatNumber(totals.x01)} color={TYPE_COLORS.x01} />
                 <KpiChip icon={MdSportsCricket} label="Cricket games" value={formatNumber(totals.cricket)} color={TYPE_COLORS.cricket} />
                 <KpiChip icon={BiTargetLock} label="Elimination games" value={formatNumber(totals.elimination)} color={TYPE_COLORS.elimination} />
+                <KpiChip icon={PiClockClockwiseBold} label="Around the Clock games" value={formatNumber(totals.clock ?? 0)} color={TYPE_COLORS.clock} />
                 <KpiChip icon={FaPlay} label="Running now" value={formatNumber(totals.running)} color={GREEN} />
                 <KpiChip icon={FaUsers} label="Active this month" value={`${formatNumber(kpis.activePlayersThisMonth)} players`} color={GREEN} />
                 <KpiChip icon={FaFire} label="180s" value={formatNumber(kpis.num180s)} color={GREEN} />

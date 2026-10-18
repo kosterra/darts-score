@@ -19,6 +19,9 @@ const CricketGameStats = lazy(() => import('./components/stats/cricket/cricket.g
 const EliminationConfigPage = lazy(() => import('./components/game_config/elimination/_elimination.config.page'));
 const EliminationGamePage = lazy(() => import('./components/games/elimination/_elimination.game.page'));
 const EliminationGameStats = lazy(() => import('./components/stats/elimination/elimination.game.stats'));
+const ClockConfigPage = lazy(() => import('./components/game_config/clock/_clock.config.page'));
+const ClockGamePage = lazy(() => import('./components/games/clock/_clock.game.page'));
+const ClockGameStats = lazy(() => import('./components/stats/clock/clock.game.stats'));
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
@@ -95,6 +98,8 @@ function AppContent() {
                     <Route path="/cricket/:id" element={<CricketGamePage />} />
                     <Route path="/elimination" element={<EliminationConfigPage />} />
                     <Route path="/elimination/:id" element={<EliminationGamePage />} />
+                    <Route path="/clock" element={<ClockConfigPage />} />
+                    <Route path="/clock/:id" element={<ClockGamePage />} />
                     <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
                     <Route path="/stats/:id" element={<StatsPage />} />
                     <Route path="/stats/games/:id" element={<GameListRedirect />} />
@@ -105,6 +110,7 @@ function AppContent() {
                     <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
                     <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
                     <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
+                    <Route path="/stats/games/clock/:id" element={<ClockGameStats />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/training/atc" element={<TrainingPage />} />
                     <Route path="/about" element={<AboutPage />} />

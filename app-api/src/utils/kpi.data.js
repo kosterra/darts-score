@@ -90,6 +90,25 @@ export const cricketKpis = (cricketGames, playerId) => {
 };
 
 /**
+ * Around the Clock: games and wins, the fewest darts of a finished game, the
+ * darts on average, the hit rate and darts thrown.
+ */
+export const clockKpis = (clockGames, playerId) => {
+    const models = clockGames.map(game => model(game, playerId));
+    const finished = models.filter(entry => entry.finished && entry.darts);
+    const darts = models.reduce((sum, entry) => sum + (entry.darts ?? 0), 0);
+    const hits = models.reduce((sum, entry) => sum + (entry.hits ?? 0), 0);
+    return {
+        games: clockGames.length,
+        wins: models.filter(entry => entry.hasWonGame === true).length,
+        fewestDarts: finished.length ? Math.min(...finished.map(entry => entry.darts)) : null,
+        averageDarts: average(finished.map(entry => entry.darts)),
+        hitRate: darts ? Math.round(hits / darts * 1000) / 10 : null,
+        dartsThrown: darts,
+    };
+};
+
+/**
  * Elimination: games and wins, the average and best visit, and darts thrown.
  */
 export const eliminationKpis = (eliminationGames, playerId) => {

@@ -6,7 +6,7 @@ import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
 import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
-import { PiClockCountdownBold } from "react-icons/pi";
+import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
 import { BsPersonFillCheck } from "react-icons/bs";
 
@@ -71,6 +71,7 @@ const useSections = () => {
                 { label: 'X01', icon: FaBullseye, to: '/x01', end: true },
                 { label: 'Cricket', icon: MdSportsCricket, to: '/cricket', end: true },
                 { label: 'Elimination', icon: BiTargetLock, to: '/elimination', end: true },
+                { label: 'Around the Clock', icon: PiClockClockwiseBold, to: '/clock', end: true },
             ],
         },
         { title: 'Training', visible: hasClub, items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
