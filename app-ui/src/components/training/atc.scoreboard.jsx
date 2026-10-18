@@ -230,16 +230,24 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
         <Panel headerTemplate={() => header} className="atc-scoreboard">
             {filtersOpen &&
                 <div className="atc-filters">
-                    <div className="d-flex flex-wrap justify-content-between gap-2">
+                    <div className="atc-filter-group">
+                        <span className="atc-filter-label">Scoring</span>
                         <SelectButton value={view.scoring} options={SCORINGS} onChange={(e) => e.value && setView({ scoring: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Scoring" />
+                    </div>
+                    <div className="atc-filter-group">
+                        <span className="atc-filter-label">Mode</span>
                         <SelectButton value={view.mode} options={MODES} onChange={(e) => e.value && setView({ mode: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Mode" />
                     </div>
-                    <div className="d-flex flex-wrap justify-content-between gap-2">
+                    <div className="atc-filter-group">
+                        <span className="atc-filter-label">Period</span>
                         <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
+                    </div>
+                    <div className="atc-filter-group">
+                        <span className="atc-filter-label">Show</span>
                         <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Listed" />
                     </div>
                     {filtered &&
-                        <div className="text-end">
+                        <div className="atc-filter-reset">
                             <Button type="button" label="Reset" icon="pi pi-filter-slash" size="small" link className="p-0" onClick={() => setView(defaultView)} />
                         </div>
                     }
