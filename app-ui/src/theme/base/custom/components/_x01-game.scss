@@ -452,6 +452,34 @@
   .x01-dart-clear { right: 0.1rem; width: 1.5rem; height: 1.5rem; }
   .x01-visit-total { margin: 0.5rem 0; }
 
+  // with the board: the visit total, Enter score and Undo float above the menu bar
+  .x01-visit-bar.is-floating {
+    position: fixed;
+    right: 0.5rem;
+    bottom: calc(46px + env(safe-area-inset-bottom, 0px) + 0.4rem);
+    left: 0.5rem;
+    z-index: 899;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem 0.5rem 0.85rem;
+    border: 1px solid var(--border-default);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+
+    .x01-visit-total { flex: 1 1 auto; margin: 0; font-size: 0.8rem; text-align: left; }
+    .x01-visit-actions { flex: 0 0 auto; }
+    .x01-enter.p-button { flex: 0 0 auto; padding: 0.55rem 1rem; }
+    // just the icon for Undo: the bar is narrow
+    .x01-undo.p-button { flex: 0 0 auto; width: 2.5rem; padding: 0.5rem 0; }
+    .x01-undo .p-button-label { display: none; }
+  }
+
+  // room at the bottom of the page for the floating bar
+  .x01-game-page:has(.x01-visit-bar.is-floating) { padding-bottom: 9rem; }
+
 }
 
 // the switch between the board and the keypad, in the header of the visit

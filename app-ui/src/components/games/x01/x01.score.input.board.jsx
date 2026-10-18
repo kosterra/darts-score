@@ -186,6 +186,8 @@ const X01ScoreInputBoard = () => {
                             ))}
                         </div>
 
+                        {/* on a phone with the board this floats above the menu bar, always in reach */}
+                        <div className={`x01-visit-bar ${input === 'board' ? 'is-floating' : ''}`}>
                         <div className={`x01-visit-total ${busted ? 'is-bust' : ''}`} aria-live="polite">
                             {busted
                                 ? <span><strong>Bust</strong> · the score stays at {game.playerModels[game.currentPlayerTurn].score}</span>
@@ -207,12 +209,15 @@ const X01ScoreInputBoard = () => {
                                 id="submitReturn"
                                 type="submit"
                                 label="Undo last visit"
+                                aria-label="Undo last visit"
+                                title="Undo last visit"
                                 icon="pi pi-undo"
                                 text
                                 size="small"
                                 className="justify-content-center x01-undo"
                             />
                         }
+                        </div>
                         </div>
                     </form>
                 </Panel>
