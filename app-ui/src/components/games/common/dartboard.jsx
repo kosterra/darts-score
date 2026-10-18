@@ -12,11 +12,13 @@ const labelOf = (field) => !field || field === '0' ? 'Miss' : field === 'D25' ? 
 const BoardShapes = () => (
     <>
     <g transform="translate(210, 210) scale(1, -1)">
-        <circle id="0"
+        {/* beyond the black ring is off the board: it counts for nothing */}
+        <circle
             className="out"
             cx="0"
             cy="0"
-            r="9999">
+            r="9999"
+            pointerEvents="none">
         </circle>
         <circle id="0"
             className="item zero"
@@ -425,10 +427,10 @@ const DartBoard = (props) => {
         return { x, y };
     };
 
-    // the field under a point on the screen, null when it is off the board
+    // the field under a point on the screen ("0" on the black ring), null off the board
     const fieldAt = (clientX, clientY) => {
         const element = document.elementFromPoint(clientX, clientY);
-        return element && svgRef.current?.contains(element) ? (element.id || '0') : null;
+        return element && element !== svgRef.current && svgRef.current?.contains(element) && element.id ? element.id : null;
     };
 
     const flash = (field) => {
@@ -492,6 +494,8 @@ const DartBoard = (props) => {
 
     const onClick = (event) => {
         if (Date.now() < ignoreClickUntil.current) return;
+        // beside the board (the corners of its square) nothing happens
+        if (!event.target.id) return;
         select(event.target.id, toBoard(event.clientX, event.clientY));
     };
 
