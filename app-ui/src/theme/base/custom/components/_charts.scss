@@ -51,12 +51,12 @@
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.05rem 0.45rem;
-    border-radius: 1rem;
-    background: color-mix(in srgb, var(--level-color) 18%, transparent);
+    padding: 0.1rem 0.45rem;
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--level-color) 14%, transparent);
     color: var(--level-color);
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 600;
     white-space: nowrap;
 
     svg { font-size: 0.65rem; }

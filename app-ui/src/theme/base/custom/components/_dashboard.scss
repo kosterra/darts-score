@@ -558,14 +558,10 @@ $momentGoldColor: #ffc94d;
     min-width: 0;
 }
 
+// a label for each filter in use
 .filter-chip {
-    padding: 0.2rem 0.65rem;
-    border-radius: 1rem;
-    background: $surfaceHighColor;
-    color: $textSubtleColor;
-    font-size: 0.75rem;
-    font-weight: 600;
-    white-space: nowrap;
+    @include label-shape;
+    @include label-neutral;
 }
 
 .filter-panel-toggle.p-button {

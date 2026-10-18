@@ -44,16 +44,10 @@ $momentGold: #e9ac2f;
 }
 
 .game-moment-tag {
-    padding: 0.15rem 0.55rem;
-    border-radius: 999px;
-    background: rgba($primaryColor, 0.42);
-    color: $buttonTextColor;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    @include label-shape;
+    @include label-tone($labelGreen);
 
-    .is-set & { background: rgba($momentGold, 0.3); }
+    .is-set & { @include label-tone($labelGold); }
 }
 
 .game-moment-close {
@@ -164,13 +158,9 @@ $momentGold: #e9ac2f;
 
 // a player's own starting score and in/out in a handicap game
 .x01-handicap-rules {
-  display: inline-block;
+  @include label-shape;
+  @include label-neutral;
   margin-top: 0.25rem;
-  padding: 0.05rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--text-color-secondary, #b5b5b5);
   font-size: 0.7rem;
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
