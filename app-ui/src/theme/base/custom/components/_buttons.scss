@@ -87,16 +87,16 @@ $softGreenTextHover: #95d6b4;
   box-shadow: none;
 }
 
-// a switch that is on (PrimeReact marks it p-highlight): the soft green track with a knob in the green of the
-// chosen pills, instead of the filled green; off stays grey
+// a switch that is on (PrimeReact marks it p-highlight): the soft green track of
+// the buttons with a knob in the light colour of the button labels; off stays grey
 :where(.p-inputswitch.p-highlight .p-inputswitch-slider) {
-  background: rgba($primaryColor, 0.35);
+  background: rgba($primaryColor, 0.5);
 
-  &::before { background: $softGreenText; }
+  &::before { background: $buttonTextColor; }
 }
 
 :where(.p-inputswitch.p-highlight:not(.p-disabled):hover .p-inputswitch-slider) {
-  background: rgba($primaryColor, 0.45);
+  background: rgba($primaryColor, 0.6);
 }
 
 // the focus ring only for the keyboard, as with the buttons
