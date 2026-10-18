@@ -1,50 +1,62 @@
+import { useEffect, useState } from 'react';
 import { GiDart } from 'react-icons/gi';
 
-import Confetti from '../../badges/confetti';
-import useFleeting from './use.fleeting';
-
-const DURATION_MS = { leg: 3400, set: 4200 };
+// how long the card stays, and how long it takes to leave
+const DURATION_MS = { leg: 8000, set: 10000 };
+const LEAVE_MS = 300;
 
 /**
- * A broadcast-style banner when a player wins a leg or a set, with the
- * standing and who throws first next. Like the 180 it never catches a click
- * or a key and makes room as soon as the next player gets going.
+ * A card when a player wins a leg or a set (bottom right, on a phone at the
+ * top): the standing and who throws first next. It covers neither the board
+ * nor the input, so the game goes on at once; it stays a few seconds or until
+ * it is closed.
  * "moment" is { key, kind: 'leg' | 'set', winner, title, standings: [{ name, value }], next, starter }.
  */
 const GameMoment = ({ moment, onDone }) => {
-    const leaving = useFleeting(moment, onDone, moment ? DURATION_MS[moment.kind] : 0);
+    const [leaving, setLeaving] = useState(false);
+
+    useEffect(() => {
+        if (!moment) return undefined;
+        setLeaving(false);
+        const leave = setTimeout(() => setLeaving(true), DURATION_MS[moment.kind] ?? DURATION_MS.leg);
+        return () => clearTimeout(leave);
+    }, [moment]);
+
+    useEffect(() => {
+        if (!leaving) return undefined;
+        const done = setTimeout(onDone, LEAVE_MS);
+        return () => clearTimeout(done);
+    }, [leaving, onDone]);
 
     if (!moment) return null;
     const isSet = moment.kind === 'set';
 
     return (
-        <div key={moment.key} className={`game-moment game-moment-${moment.kind} ${leaving ? 'game-moment-leaving' : ''}`} aria-live="polite">
-            <span className="visually-hidden">
-                {moment.winner} {moment.title}. {moment.next}: {moment.starter} throws first.
-            </span>
-            {isSet && <Confetti />}
-            <div className="game-moment-band" aria-hidden="true">
-                <div className="game-moment-band-inner">
-                    <span className="game-moment-chip">{isSet ? 'Set won' : 'Leg won'}</span>
-                    <div className="game-moment-headline">
-                        <span className="game-moment-winner">{moment.winner}</span>
-                        <span className="game-moment-title">{moment.title}</span>
-                    </div>
-                    <div className="game-moment-standings">
-                        {moment.standings.map(standing => (
-                            <span key={standing.name} className={standing.name === moment.winner ? 'is-winner' : ''}>
-                                <span className="game-moment-standing-value">{standing.value}</span>
-                                <span className="game-moment-standing-name">{standing.name}</span>
-                            </span>
-                        ))}
-                    </div>
+        <div className="game-moment-dock">
+            <div key={moment.key} className={`game-moment-card is-${moment.kind} ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite">
+                <div className="game-moment-top">
+                    <span className="game-moment-tag">{isSet ? 'Set won' : 'Leg won'}</span>
+                    <button type="button" className="game-moment-close" aria-label="Close" onClick={() => setLeaving(true)}>
+                        <i className="pi pi-times" aria-hidden="true" />
+                    </button>
                 </div>
-            </div>
-            <div className="game-moment-next" aria-hidden="true">
-                <GiDart className="game-moment-dart" />
-                <span className="game-moment-next-label">{moment.next}</span>
-                <span className="game-moment-starter">{moment.starter}</span>
-                <span className="game-moment-next-label">throws first</span>
+                <div className="game-moment-headline">
+                    <span className="game-moment-winner">{moment.winner}</span> {moment.title}
+                </div>
+                <div className="game-moment-standings">
+                    {moment.standings.map((standing, index) => (
+                        <span key={standing.name} className={standing.name === moment.winner ? 'is-winner' : ''}>
+                            {index > 0 && <span className="game-moment-dash" aria-hidden="true">–</span>}
+                            <span className="game-moment-value">{standing.value}</span>
+                            <span className="game-moment-name">{standing.name}</span>
+                        </span>
+                    ))}
+                    <span className="game-moment-unit">{isSet ? 'sets' : 'legs'}</span>
+                </div>
+                <div className="game-moment-next">
+                    <GiDart aria-hidden="true" />
+                    <span>Next: {moment.next} · <strong>{moment.starter}</strong> throws first</span>
+                </div>
             </div>
         </div>
     );
