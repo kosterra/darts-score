@@ -36,9 +36,10 @@ $softGreenTextHover: #95d6b4;
 }
 
 // a light tint on top, so it shows on panels and on cards alike; the arrows of
-// a number field are tools like these
+// a number field and the button of a date field are tools like these
 :where(.p-button.p-button-secondary:not(.p-button-text):not(.p-button-link)),
-:where(.p-inputnumber .p-inputnumber-button) {
+:where(.p-inputnumber .p-inputnumber-button),
+:where(.p-calendar .p-datepicker-trigger) {
   @include soft-button(#ffffff, $textDefaultColor, $shade000, 0.1);
 }
 

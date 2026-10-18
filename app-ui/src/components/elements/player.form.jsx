@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
+import { Calendar } from 'primereact/calendar';
 import { classNames } from 'primereact/utils';
 import { Toast } from 'primereact/toast';
 
@@ -20,6 +21,16 @@ import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
 // a date as the date field wants it: "2016-05-24"
 const toDateInput = (value) => value ? String(value).slice(0, 10) : '';
 const today = () => new Date().toISOString().slice(0, 10);
+// "2016-05-24" and back for the calendar, in local time so the day stays the day
+const toDate = (value) => {
+    const [year, month, day] = (value || '').split('-').map(Number);
+    return year && month && day ? new Date(year, month - 1, day) : null;
+};
+const fromDate = (date) => date instanceof Date && !Number.isNaN(date.getTime())
+    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    : '';
+// with no date yet the calendar opens ten years back: most new players with a date that matters are children
+const tenYearsAgo = () => new Date(new Date().getFullYear() - 10, 0, 1);
 
 const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defaultClubId, label }) => {
     const toast = useRef(null);
@@ -266,12 +277,22 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                             validate: (value) => value <= today() || 'Date of birth must be in the past',
                                         }}
                                         render={({ field }) => (
-                                            <InputText
-                                                id="dateOfBirth"
-                                                type="date"
-                                                max={today()}
-                                                {...field}
+                                            // typed as 14.03.2012 (the dots come by themselves), or picked:
+                                            // a click on the month or year in the header jumps to choosing those
+                                            <Calendar
+                                                inputId="dateOfBirth"
+                                                value={toDate(field.value)}
+                                                onChange={(e) => field.onChange(fromDate(e.value))}
+                                                onBlur={field.onBlur}
+                                                dateFormat="dd.mm.yy"
+                                                mask="99.99.9999"
+                                                maxDate={new Date()}
+                                                viewDate={field.value ? undefined : tenYearsAgo()}
+                                                showIcon
+                                                icon="pi pi-calendar"
+                                                pt={{ input: { root: { inputMode: 'numeric', autoComplete: 'bday' } } }}
                                                 className={classNames('w-100', { 'p-invalid': errors.dateOfBirth })}
+                                                inputClassName={classNames({ 'p-invalid': errors.dateOfBirth })}
                                             />
                                         )}
                                     />
