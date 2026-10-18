@@ -16,6 +16,7 @@ import { resolvePlayerInitials } from '../../utils/image.utils';
 import ClubLogo from '../elements/club.logo';
 import AdminService from '../../services/admin.service';
 import { ALERTS_CHANGED } from '../admin/alert.events';
+import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.service';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -41,6 +42,31 @@ const useOpenAlerts = (enabled) => {
 };
 
 /**
+ * What fair play has waiting (impossible, and suspicious not looked at yet),
+ * for the count next to "Fair play": of the selected club for its admins, of
+ * every club for global admins ("all"). Follows page changes, the fair play
+ * page and a few minutes' timer.
+ */
+const useFairPlay = (enabled, all, clubId) => {
+    const { pathname } = useLocation();
+    const [summary, setSummary] = useState(null);
+
+    useEffect(() => {
+        if (!enabled) return undefined;
+        const load = () => IntegrityService.loadSummary(all).then(setSummary).catch(() => {});
+        load();
+        const timer = setInterval(load, 5 * 60 * 1000);
+        window.addEventListener(FAIR_PLAY_CHANGED, load);
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener(FAIR_PLAY_CHANGED, load);
+        };
+    }, [enabled, all, clubId, pathname]);
+
+    return enabled ? summary : null;
+};
+
+/**
  * The menu, built for the logged-in user. Everything under "Club" belongs to
  * the selected club; its players see everything there, only its admins can change it. "Admin"
  * spans all clubs and is for global admins only.
@@ -50,6 +76,8 @@ const useSections = () => {
     // a global admin without a club of their own only looks after the app
     const hasClub = !!activeClub;
     const openAlerts = useOpenAlerts(isGlobalAdmin);
+    const clubFairPlay = useFairPlay(isClubAdmin && hasClub, false, activeClub?.id);
+    const allFairPlay = useFairPlay(isGlobalAdmin, true, null);
 
     const sections = [
         {
@@ -63,7 +91,14 @@ const useSections = () => {
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
                 { label: 'Badges', icon: FaMedal, to: '/badges' },
                 // for the club's admins: games and trainings that cannot be real or are worth a look
-                ...(isClubAdmin ? [{ label: 'Fair play', icon: FaScaleBalanced, to: '/fair-play' }] : []),
+                ...(isClubAdmin ? [{
+                    label: 'Fair play',
+                    icon: FaScaleBalanced,
+                    to: '/fair-play',
+                    badge: clubFairPlay?.open || null,
+                    // red while something impossible waits to be deleted
+                    badgeCritical: clubFairPlay?.impossible > 0,
+                }] : []),
             ],
         },
         {
@@ -87,7 +122,13 @@ const useSections = () => {
                 { label: 'Players', icon: FaUserPen, to: '/admin/players' },
                 { label: 'Games', icon: GiDart, to: '/admin/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
-                { label: 'Fair play', icon: FaScaleBalanced, to: '/admin/fair-play' },
+                {
+                    label: 'Fair play',
+                    icon: FaScaleBalanced,
+                    to: '/admin/fair-play',
+                    badge: allFairPlay?.open || null,
+                    badgeCritical: allFairPlay?.impossible > 0,
+                },
                 {
                     label: 'Alerts',
                     icon: FaBell,

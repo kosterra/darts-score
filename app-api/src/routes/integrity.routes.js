@@ -17,6 +17,7 @@ export default (app) => {
     const target = [param('type').isIn(TYPES), param('id').isMongoId()];
 
     router.get('/', scope, IntegrityController.scan);
+    router.get('/summary', scope, IntegrityController.summary);
     router.put('/:type/:id/review', target, body('status').isIn(['ok', 'watch']).withMessage('The status is ok or watch.'), validate, IntegrityController.review);
     router.delete('/:type/:id', target, validate, IntegrityController.remove);
 

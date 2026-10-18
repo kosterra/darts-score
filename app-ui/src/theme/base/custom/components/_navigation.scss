@@ -456,6 +456,7 @@ $navRailWidth: 4.75rem;
         object-fit: cover;
     }
 
+    &.club-logo-xs { width: 1.5rem; height: 1.5rem; font-size: 0.6rem; }
     &.club-logo-sm { width: 2.25rem; height: 2.25rem; font-size: 0.85rem; }
     &.club-logo-md { width: 3.5rem; height: 3.5rem; font-size: 1.2rem; }
     &.club-logo-lg { width: 5rem; height: 5rem; font-size: 1.7rem; border-radius: $borderRadius; }

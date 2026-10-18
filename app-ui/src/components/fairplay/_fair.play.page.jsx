@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
+import { MultiSelect } from 'primereact/multiselect';
 import { Avatar } from 'primereact/avatar';
 import dayjs from 'dayjs';
 
-import IntegrityService from '../../services/integrity.service';
+import IntegrityService, { announceFairPlayChange } from '../../services/integrity.service';
+import ClubLogo from '../elements/club.logo';
 import PageLoader from '../elements/page.loader';
 import DeletePopup from '../elements/delete.popup';
 import { useAuth } from '../../utils/auth.context';
@@ -28,15 +30,25 @@ const FairPlayPage = ({ all = false }) => {
     const [failed, setFailed] = useState(false);
     const [list, setList] = useState(null);
     const [busy, setBusy] = useState(null);
+    // global admins: the clubs shown, none chosen means all
+    const [clubFilter, setClubFilter] = useState([]);
 
     const load = () => IntegrityService.loadFindings(all).then(setData).catch(() => setFailed(true));
     useEffect(() => { load(); }, [all]);
 
+    // the clubs with findings, for the filter
+    const clubs = useMemo(() => {
+        const byId = new Map((data?.entries ?? []).map(entry => [entry.club.id, entry.club]));
+        return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+    }, [data]);
+    const inFilter = (entry) => !all || !clubFilter.length || clubFilter.includes(entry.club.id);
+
     const counts = useMemo(() => {
         const result = { impossible: 0, suspicious: 0, watch: 0, fine: 0 };
-        (data?.entries ?? []).forEach(entry => { result[listOf(entry)] += 1; });
+        (data?.entries ?? []).filter(inFilter).forEach(entry => { result[listOf(entry)] += 1; });
         return result;
-    }, [data]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data, clubFilter, all]);
     // the list to start with: what needs doing first
     const shown = list ?? (counts.impossible ? 'impossible' : counts.suspicious ? 'suspicious' : counts.watch ? 'watch' : 'suspicious');
 
@@ -49,13 +61,14 @@ const FairPlayPage = ({ all = false }) => {
         { label: `Watched · ${counts.watch}`, value: 'watch' },
         { label: `Looks fine · ${counts.fine}`, value: 'fine' },
     ];
-    const entries = data.entries.filter(entry => listOf(entry) === shown);
+    const entries = data.entries.filter(entry => inFilter(entry) && listOf(entry) === shown);
 
     const setReview = async (entry, status) => {
         setBusy(entry.id);
         try {
             const review = await IntegrityService.review(entry.type, entry.id, status);
             setData(current => ({ ...current, entries: current.entries.map(item => item.id === entry.id ? { ...item, review } : item) }));
+            announceFairPlayChange();
         } finally {
             setBusy(null);
         }
@@ -65,6 +78,7 @@ const FairPlayPage = ({ all = false }) => {
         try {
             await IntegrityService.remove(entry.type, entry.id);
             setData(current => ({ ...current, entries: current.entries.filter(item => item.id !== entry.id) }));
+            announceFairPlayChange();
         } finally {
             setBusy(null);
         }
@@ -78,7 +92,26 @@ const FairPlayPage = ({ all = false }) => {
                     <strong className="text-default"> Impossible</strong> ones (e.g. Around the Clock in a few seconds, a visit that does not match its darts) cannot come from a real game: delete them, with the badges earned in them.
                     <strong className="text-default"> Suspicious</strong> ones are possible but worth a look (e.g. a world-class time, an opponent who never threw): mark them as fine, or keep them on the watch list.
                 </p>
-                <SelectButton value={shown} options={options} onChange={(e) => e.value && setList(e.value)} className="p-selectbutton-pills pills-inline flex-wrap mb-3" aria-label="List" />
+                <div className="fair-play-filters">
+                    <SelectButton value={shown} options={options} onChange={(e) => e.value && setList(e.value)} className="p-selectbutton-pills pills-inline flex-wrap" aria-label="List" />
+                    {all && clubs.length > 0 &&
+                        <MultiSelect
+                            value={clubFilter}
+                            options={clubs}
+                            optionLabel="name"
+                            optionValue="id"
+                            onChange={(e) => setClubFilter(e.value ?? [])}
+                            placeholder="All clubs"
+                            itemTemplate={(club) => <span className="d-inline-flex align-items-center gap-2"><ClubLogo club={club} size="xs" />{club.name}</span>}
+                            maxSelectedLabels={2}
+                            selectedItemsLabel="{0} clubs"
+                            filter={clubs.length > 6}
+                            showClear
+                            className="fair-play-club-filter"
+                            aria-label="Clubs"
+                        />
+                    }
+                </div>
 
                 {entries.length === 0
                     ? <p className="text-faint fs-7 py-4 text-center m-0">{shown === 'impossible' ? 'Nothing impossible: no data that cannot be real.' : 'Nothing here.'}</p>
@@ -88,10 +121,17 @@ const FairPlayPage = ({ all = false }) => {
                                 const viewable = entry.type !== 'training' && (!all || entry.club.id === activeClub?.id);
                                 return (
                                     <li key={`${entry.type}-${entry.id}`} className={`fair-play-entry is-${entry.level}`}>
+                                        {/* across all clubs: whose club it is comes first */}
+                                        {all &&
+                                            <div className="fair-play-club">
+                                                <ClubLogo club={entry.club} size="sm" />
+                                                <span className="text-default fw-semibold">{entry.club.name || 'Unknown club'}</span>
+                                            </div>
+                                        }
                                         <div className="fair-play-head">
                                             <span className={`fair-play-level is-${entry.level}`}>{LEVEL_LABELS[entry.level]}</span>
                                             <span className="text-default fw-semibold">{entry.summary}</span>
-                                            <span className="text-faint fs-8">{dayjs(entry.at).format('DD.MM.YYYY HH:mm')}{all && entry.club.name ? ` · ${entry.club.name}` : ''}</span>
+                                            <span className="text-faint fs-8">{dayjs(entry.at).format('DD.MM.YYYY HH:mm')}</span>
                                         </div>
                                         <div className="fair-play-players">
                                             {entry.players.map(player => (
