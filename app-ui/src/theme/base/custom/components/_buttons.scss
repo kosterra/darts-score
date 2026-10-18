@@ -1,6 +1,7 @@
 // One look per kind of button throughout the app:
 // - the main action of an area: filled green (the theme's default button)
-// - secondary actions: soft green (outlined and secondary buttons)
+// - secondary actions: soft green with the light text of the main button
+//   (outlined and secondary buttons)
 // - destructive actions and undo: soft red (danger buttons)
 // - small options: green text (text and link buttons)
 // - the chosen pill of a choice: soft green, the others grey
@@ -12,23 +13,25 @@
 $softGreenText: #7cc6a0;
 $softGreenTextHover: #95d6b4;
 
-@mixin soft-button($color, $text: lighten($color, 22%), $textHover: lighten($color, 28%)) {
+@mixin soft-button($color, $text: lighten($color, 22%), $textHover: lighten($color, 28%), $tint: 0.2) {
   border-color: transparent;
-  background: rgba($color, 0.2);
+  background: rgba($color, $tint);
   color: $text;
 
   &:enabled:hover {
     border-color: transparent;
-    background: rgba($color, 0.3);
+    background: rgba($color, $tint + 0.1);
     color: $textHover;
   }
 
-  &:enabled:active { background: rgba($color, 0.38); }
+  &:enabled:active { background: rgba($color, $tint + 0.18); }
 }
 
 :where(.p-button.p-button-outlined:not(.p-button-danger):not(.p-button-text):not(.p-button-link)),
 :where(.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link)) {
-  @include soft-button($primaryColor, $softGreenText, $softGreenTextHover);
+  // the light text of the main button, so the two sit together as a pair and
+  // differ only in how strong their green is
+  @include soft-button($primaryColor, $buttonTextColor, $buttonTextColor, 0.42);
 }
 
 :where(.p-button.p-button-danger:not(.p-button-text):not(.p-button-link)) {
