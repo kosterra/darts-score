@@ -5,6 +5,7 @@ import { Toast } from 'primereact/toast';
 import EliminationContext from './elimination.context';
 import EliminationReducer from './elimination.reducer';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
+import KnockOut from '../components/games/common/knock.out';
 import EliminationService from '../services/elimination.service';
 import EliminationReturnToPreviousPlayer, { getScoreRangeLabel } from './elimination.return.to.previous.player';
 import PlayerService from '../services/player.service';
@@ -44,6 +45,11 @@ const EliminationState = ({ children }) => {
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
+    // { key, by, byIndex, victim, victimIndex, score, others } while a player is kicked back to 0
+    const [knockOut, setKnockOut] = useState(null);
+    const endKnockOut = useCallback(() => setKnockOut(null), []);
+    const knockOutTimer = useRef(null);
+    useEffect(() => () => clearTimeout(knockOutTimer.current), []);
 
     // a visit (or an undo) asks for a save of the game as it is afterwards;
     // the saves run one after the other, so they arrive in order
@@ -347,17 +353,27 @@ const EliminationState = ({ children }) => {
             return;
         }
 
-        // Apply eliminations
+        // Apply eliminations: the first one sent back is kicked out of their house
         eliminations.forEach(pid => {
-            const playerObj = state.players?.find(p => p.id === pid);
             dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId: pid, score: 0 } });
-            toast.current.show({
-                severity: 'warn',
-                summary: 'Eliminated!',
-                detail: `${playerObj?.nickname || playerObj?.name || 'A player'} was reset to 0!`,
-                life: 3000
-            });
         });
+        if (eliminations.length) {
+            const nicknameOf = (pid) => state.players?.find(p => p.id === pid)?.nickname ?? '';
+            const [victim] = eliminations;
+            const scene = {
+                key: Date.now(),
+                by: nicknameOf(playerId),
+                byIndex: state.game.players.indexOf(playerId),
+                victim: nicknameOf(victim),
+                victimIndex: state.game.players.indexOf(victim),
+                score: scoresBefore[victim],
+                others: eliminations.length - 1,
+            };
+            // after a 180 the maximum has its moment first
+            clearTimeout(knockOutTimer.current);
+            if (totalRoundScore === 180) knockOutTimer.current = setTimeout(() => setKnockOut(scene), 2700);
+            else setKnockOut(scene);
+        }
 
         if (!busted && totalRoundScore === 180) {
             const player = state.players?.find(p => p.id === playerId);
@@ -484,6 +500,7 @@ const EliminationState = ({ children }) => {
                 {children}
             </EliminationContext.Provider>
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
+            <KnockOut knockOut={knockOut} onDone={endKnockOut} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>
     );

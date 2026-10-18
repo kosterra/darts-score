@@ -231,3 +231,180 @@ $oneEightyGold: #ffc94d;
         15%, 80% { opacity: 1; }
     }
 }
+
+// Knocked back to 0 in Elimination: a figure walks up to the house of the
+// player whose score was hit, kicks them out, and they fly back home to 0.
+// Over the game without catching a click, like the 180.
+.knock-out {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    pointer-events: none;
+    overflow: hidden;
+    transition: opacity 0.25s ease-out;
+    animation: knock-in 0.3s ease-out both;
+
+    &.is-leaving { opacity: 0; }
+}
+
+.knock-banner {
+    position: absolute;
+    left: 50%;
+    // just above the stage, which is 13em of its own font size
+    bottom: calc(clamp(9px, 2.4vw, 16px) * 13 + 1rem);
+    width: max-content;
+    max-width: 92vw;
+    margin: 0;
+    padding: 0.5rem 1.1rem;
+    border-radius: 999px;
+    background: rgba(20, 16, 12, 0.85);
+    color: #efe6d0;
+    font-size: clamp(1rem, 2.6vw, 1.5rem);
+    text-align: center;
+    transform: translateX(-50%);
+    box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.5);
+    animation: knock-banner 0.45s 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+    font-variant-numeric: tabular-nums;
+
+    strong { color: #ffc94d; }
+}
+
+// the stage at the bottom; sizes in em, so a phone gets a smaller one
+.knock-scene {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 40em;
+    max-width: 100vw;
+    height: 13em;
+    font-size: clamp(9px, 2.4vw, 16px);
+    transform: translateX(-50%);
+}
+
+.knock-house {
+    position: absolute;
+    left: 38%;
+    bottom: 0;
+    width: 11em;
+}
+
+.knock-home {
+    position: absolute;
+    right: 1%;
+    bottom: 0;
+    width: 5em;
+}
+
+.knock-figure {
+    display: block;
+    // the kicking leg reaches beyond the figure's box
+    overflow: visible;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0.2rem 0.4rem rgba(0, 0, 0, 0.5));
+}
+
+// the victim in front of the door: trembling, then flying home in an arc
+.knock-victim {
+    position: absolute;
+    left: calc(38% + 2.75em);
+    bottom: 0;
+    width: 5.5em;
+    animation: knock-fly-x 1.15s 1.15s cubic-bezier(0.3, 0.2, 0.5, 1) both;
+}
+
+.knock-victim-arc {
+    transform-origin: 50% 60%;
+    animation:
+        knock-tremble 0.18s 0.4s ease-in-out 4 alternate,
+        knock-fly-arc 1.15s 1.15s linear both;
+}
+
+// the attacker walks in from the left, kicks, and hops for joy
+.knock-attacker {
+    position: absolute;
+    left: -8em;
+    bottom: 0;
+    width: 5.5em;
+    animation:
+        knock-walk 1s 0.1s cubic-bezier(0.3, 0.7, 0.4, 1) both,
+        knock-hop 0.35s 2.3s ease-in-out 4 alternate;
+}
+
+.knock-leg {
+    transform-box: view-box;
+    transform-origin: 71px 120px;
+    animation: knock-kick 0.5s 1s ease-in-out both;
+}
+
+// the dust of the kick
+.knock-puff {
+    position: absolute;
+    left: calc(38% + 2.5em);
+    bottom: 2.5em;
+    width: 3em;
+    height: 3em;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(239, 230, 208, 0.9), rgba(239, 230, 208, 0) 70%);
+    opacity: 0;
+    animation: knock-puff 0.5s 1.1s ease-out both;
+}
+
+@keyframes knock-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes knock-walk {
+    0% { left: -8em; transform: translateY(0); }
+    25% { transform: translateY(-0.4em); }
+    50% { transform: translateY(0); }
+    75% { transform: translateY(-0.4em); }
+    100% { left: calc(38% - 2.4em); transform: translateY(0); }
+}
+
+@keyframes knock-hop {
+    from { transform: translateY(0); }
+    to { transform: translateY(-1.2em); }
+}
+
+@keyframes knock-kick {
+    0% { transform: rotate(0deg); }
+    45% { transform: rotate(-100deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes knock-tremble {
+    from { transform: rotate(-4deg); }
+    to { transform: rotate(4deg); }
+}
+
+@keyframes knock-fly-x {
+    from { left: calc(38% + 2.75em); }
+    to { left: calc(99% - 4.2em); }
+}
+
+@keyframes knock-fly-arc {
+    0% { transform: translateY(0) rotate(0deg) scale(1); }
+    45% { transform: translateY(-9em) rotate(380deg) scale(0.8); }
+    85% { transform: translateY(-1.5em) rotate(700deg) scale(0.55); }
+    93% { transform: translateY(0.2em) rotate(720deg) scale(0.55); }
+    100% { transform: translateY(0) rotate(720deg) scale(0.55); }
+}
+
+@keyframes knock-puff {
+    0% { opacity: 0; transform: scale(0.3); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.8); }
+}
+
+@keyframes knock-banner {
+    from { opacity: 0; transform: translate(-50%, 1rem) scale(0.8); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+// less motion: only the message
+@media (prefers-reduced-motion: reduce) {
+    .knock-scene { display: none; }
+    .knock-banner { bottom: 6rem; animation: none; }
+}
