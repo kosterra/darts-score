@@ -86,13 +86,13 @@ const X01LiveHeader = () => {
                             </span>
                             <div className="x01-hero-info">
                                 <span className="x01-hero-name text-truncate" title={player.nickname}>{player.nickname}</span>
+                                <span className="x01-live-leg">
+                                    Last visit <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
+                                </span>
                                 <span className="x01-live-tags">
                                     {isTurn && <span className="x01-live-turn">Throwing</span>}
                                     {game.startingPlayerLeg === player.id && <span className="x01-live-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>}
                                     {handicap && <span className="x01-handicap-rules">{describeRules(rulesOf(game, player.id))}</span>}
-                                </span>
-                                <span className="x01-live-leg">
-                                    Last visit <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
                                 </span>
                             </div>
                             <div className="x01-hero-score">

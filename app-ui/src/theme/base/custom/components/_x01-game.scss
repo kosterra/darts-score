@@ -24,7 +24,8 @@
 .x01-hero-player {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  // the halo reaches about 1rem beyond the photo: the text keeps clear of it
+  gap: 1.75rem;
   min-width: 0;
 
   // the others step back a little, the player at the oche is bright
