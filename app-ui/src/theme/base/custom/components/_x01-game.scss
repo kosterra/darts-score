@@ -706,6 +706,11 @@
 
   .cricket-marks.is-new { color: #ffc94d; }
 
+  // the third mark lands like a stamp on paper
+  .cricket-marks.is-stamped {
+    animation: cricket-stamp 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+
   // a number everyone closed is out of play
   th.is-dead { color: var(--text-faint); text-decoration: line-through; }
   td.is-dead .cricket-marks { opacity: 0.35; }
@@ -742,4 +747,15 @@
   @include label-tone(#e9ac2f);
   margin-right: 0.5rem;
   font-size: 0.7rem;
+}
+
+@keyframes cricket-stamp {
+  0% { opacity: 0; transform: scale(2.6) rotate(-25deg); }
+  55% { opacity: 1; transform: scale(0.85) rotate(4deg); }
+  75% { transform: scale(1.08) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cricket-strip .cricket-marks.is-stamped { animation: none; }
 }

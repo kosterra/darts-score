@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useReducer, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useReducer, useState } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { Toast } from 'primereact/toast';
 
@@ -7,6 +7,8 @@ import CricketReducer from './cricket.reducer';
 import CricketService from '../services/cricket.service';
 import CricketReturnToPreviousPlayer from './cricket.return.to.previous.player';
 import PlayerService from '../services/player.service';
+import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
+import WhiteHorse from '../components/games/common/white.horse';
 
 import { validateDartValue, cricketGetCurrentScore } from './game.utils';
 import { cutThroatPoints, variantOf, winsWithScore } from './cricket.variants';
@@ -44,6 +46,13 @@ const CricketState = props => {
     };
 
     const [state, dispatch] = useReducer(CricketReducer, initialState);
+
+    // the big moments of a visit: nine marks (three trebles), or the White
+    // Horse (three different trebles); { key, name, ... } while they play
+    const [nineMarks, setNineMarks] = useState(null);
+    const [whiteHorse, setWhiteHorse] = useState(null);
+    const endNineMarks = useCallback(() => setNineMarks(null), []);
+    const endWhiteHorse = useCallback(() => setWhiteHorse(null), []);
 
     // a visit (or an undo) asks for a save of the game as it is afterwards;
     // the saves run one after the other, so they arrive in order
@@ -182,6 +191,8 @@ const CricketState = props => {
             }));
         }
 
+        celebrateVisit(playerId, currentThrow);
+
         updateTotalThrow();
         updatePlayerScore(currentScore);
         updateSectionHit(sectionHit);
@@ -200,6 +211,23 @@ const CricketState = props => {
         setLoading('validateThrow', false);
         setSaveRequest(request => request + 1);
     }
+
+    /**
+     * Three trebles on 15 to 20 in one visit: nine marks, the most a visit can
+     * bring. Three different ones are the White Horse.
+     */
+    const celebrateVisit = (playerId, darts) => {
+        const trebles = darts.map(dart => String(dart).trim().toUpperCase()).filter(dart => /^T(1[5-9]|20)$/.test(dart));
+        if (trebles.length !== 3) return;
+        const name = state.players.find(player => player.id === playerId)?.nickname ?? '';
+        if (new Set(trebles).size === 3) {
+            setNineMarks(null);
+            setWhiteHorse({ key: Date.now(), name, darts: trebles });
+        } else {
+            setWhiteHorse(null);
+            setNineMarks({ key: Date.now(), name, number: '9', words: 'Nine marks!', sign: '9 marks' });
+        }
+    };
 
     const validateWholeThrow = (values, currentScore, sectionHit) => {
         let getWhiteSpaces = values.filter(value => value.trim() === '');
@@ -503,6 +531,8 @@ const CricketState = props => {
             >
                 {props.children}
             </CricketContext.Provider>
+            <OneEightyCelebration celebration={nineMarks} onDone={endNineMarks} />
+            <WhiteHorse moment={whiteHorse} onDone={endWhiteHorse} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>
     );

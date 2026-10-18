@@ -18,7 +18,8 @@ const sparks = Array.from({ length: SPARKS }, (_, index) => ({
  * everything without catching a click or a key, so the next player throws on
  * right away; as soon as they click, tap or type it fades out quickly, and
  * otherwise it removes itself after a few seconds. "celebration" is
- * { key, name }; a new key restarts it for the next 180.
+ * { key, name }, with "number" and "words" for another maximum (e.g. the nine
+ * marks of Cricket); a new key restarts it for the next one.
  */
 const OneEightyCelebration = ({ celebration, onDone }) => {
     const leaving = useFleeting(celebration, onDone, DURATION_MS);
@@ -27,7 +28,7 @@ const OneEightyCelebration = ({ celebration, onDone }) => {
 
     return (
         <div key={celebration.key} className={`one-eighty ${leaving ? 'one-eighty-leaving' : ''}`} aria-live="polite">
-            <span className="visually-hidden">One hundred and eighty by {celebration.name}!</span>
+            <span className="visually-hidden">{celebration.words ?? 'One hundred and eighty'} by {celebration.name}!</span>
             <div className="one-eighty-flash" aria-hidden="true" />
             <div className="one-eighty-stage" aria-hidden="true">
                 <span className="one-eighty-ring" />
@@ -39,13 +40,13 @@ const OneEightyCelebration = ({ celebration, onDone }) => {
                         style={{ '--angle': `${spark.angle}deg`, '--distance': `${spark.distance}rem`, '--delay': `${spark.delay}s` }}
                     />
                 ))}
-                <span className="one-eighty-number">180</span>
+                <span className="one-eighty-number">{celebration.number ?? '180'}</span>
                 <span className="one-eighty-label">
                     <span className="one-eighty-name">{celebration.name}</span>
-                    <span className="one-eighty-words">One hundred and eighty!</span>
+                    <span className="one-eighty-words">{celebration.words ?? 'One hundred and eighty!'}</span>
                 </span>
             </div>
-            <OneEightyFigures />
+            <OneEightyFigures text={celebration.sign ?? celebration.number ?? '180'} />
         </div>
     );
 };

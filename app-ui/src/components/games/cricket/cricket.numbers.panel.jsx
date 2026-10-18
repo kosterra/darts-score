@@ -50,9 +50,15 @@ const CricketNumbersPanel = () => {
                             {CRICKET_NUMBERS.map(number => {
                                 const count = marks[player.id][number];
                                 const fresh = count > before[player.id][number];
+                                // closed by the darts being entered: stamped on, once
+                                const stamped = fresh && count >= 3 && before[player.id][number] < 3;
                                 return (
                                     <td key={number} className={dead(number) ? 'is-dead' : ''}>
-                                        <span className={`cricket-marks ${count >= 3 ? 'is-closed' : ''} ${fresh ? 'is-new' : ''}`} aria-label={`${numberLabel(number)}: ${Math.min(count, 3)} of 3 marks`}>
+                                        <span
+                                            key={stamped ? 'stamped' : 'plain'}
+                                            className={`cricket-marks ${count >= 3 ? 'is-closed' : ''} ${fresh ? 'is-new' : ''} ${stamped ? 'is-stamped' : ''}`}
+                                            aria-label={`${numberLabel(number)}: ${Math.min(count, 3)} of 3 marks`}
+                                        >
                                             {MARK_SYMBOLS[Math.min(count, 3)] || '·'}
                                         </span>
                                     </td>
