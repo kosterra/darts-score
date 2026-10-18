@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkoutRoutes, formatRoute, setupSuggestions } from './checkout.routes';
+import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from './checkout.routes';
 
 describe('checkoutRoutes', () => {
     it('knows the only way to finish 170', () => {
@@ -68,5 +68,32 @@ describe('setupSuggestions', () => {
         expect(setupSuggestions(301, { dartsLeft: 1 })).toEqual([]);
         expect(setupSuggestions(200)).toEqual([]);
         expect(setupSuggestions(169, { outMode: 'Straight Out' })).toEqual([]);
+    });
+});
+
+describe('scoringTip', () => {
+    it('leaves a finish for the next visit', () => {
+        expect(scoringTip(251)).toMatchObject({ darts: ['T20', 'T20', 'T20'], leaves: 71 });
+    });
+
+    it('avoids leaving a bogey number', () => {
+        const tip = scoringTip(349);
+        expect(tip.darts).toEqual(['T20', 'T20', 'T19']);
+        expect(tip.leaves).toBe(172);
+        expect(tip.advice).toMatch(/169 would be a bogey/);
+    });
+
+    it('gives the usual advice when the finish is still far away', () => {
+        expect(scoringTip(450)).toEqual({ darts: null, leaves: null, advice: 'Stay on T20; switch to T19 if the 20 is blocked.' });
+    });
+
+    it('has nothing when a finish or a setup is possible', () => {
+        expect(scoringTip(117)).toBeNull();
+        expect(scoringTip(169)).toBeNull();
+    });
+
+    it('plans with the darts left in the visit', () => {
+        expect(scoringTip(231, { dartsLeft: 1 })).toEqual(expect.objectContaining({ darts: null }));
+        expect(scoringTip(201, { dartsLeft: 2 }).darts).toHaveLength(2);
     });
 });

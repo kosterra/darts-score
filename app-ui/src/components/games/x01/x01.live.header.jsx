@@ -8,7 +8,7 @@ import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { describeRules, hasHandicap, outModeOf, rulesOf } from '../../../utils/x01.rules';
 import { legSummaryOf } from '../../../utils/x01.live';
-import { checkoutRoutes, formatRoute, setupSuggestions } from '../../../utils/checkout.routes';
+import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../../../utils/checkout.routes';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
@@ -61,10 +61,14 @@ const X01LiveHeader = () => {
                     const isTurn = game.currentPlayerTurn === player.id;
                     const score = isTurn ? model.score - getCurrentThrowScore() : model.score;
                     const busted = isTurn && checkIfScoreIsBusted(score);
-                    const throwing = { dartsLeft: isTurn ? 3 - dartsEntered : 3, outMode: outModeOf(game, player.id) };
+                    // with every dart of the visit in, the way out of the next visit counts
+                    const dartsLeft = isTurn ? 3 - dartsEntered : 3;
+                    const throwing = { dartsLeft: dartsLeft || 3, outMode: outModeOf(game, player.id) };
                     const routes = busted ? [] : checkoutRoutes(score, throwing);
-                    // no finish: what to set up instead, as the checkout table suggests
+                    // no finish: what to set up instead, as the checkout table suggests, or what to score
                     const setup = busted || routes.length ? null : setupSuggestions(score, throwing)[0];
+                    const tip = busted || routes.length || setup ? null : scoringTip(score, throwing);
+                    const plan = setup ?? (tip?.darts ? tip : null);
                     const leg = legSummaryOf(game, player.id);
                     return (
                         <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${ordered.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
@@ -91,10 +95,16 @@ const X01LiveHeader = () => {
                             </div>
                             <div className="x01-hero-score">
                                 <span className={`result-hero-score ${busted ? 'is-bust' : ''}`}>{busted ? 'BUST' : score}</span>
-                                <span className={`x01-live-route ${routes[0] || setup ? '' : 'is-empty'} ${setup ? 'is-setup' : ''}`} title={routes.length > 1 ? `${routes.length} ways to finish` : setup ? `No finish: set up ${setup.leaves}` : undefined}>
+                                {/* always a line, so the legs of the players stay in line */}
+                                <span
+                                    className={`x01-live-route ${routes[0] ? '' : 'is-setup'}`}
+                                    title={plan ? `No finish: this leaves ${plan.leaves}` : tip?.advice ?? undefined}
+                                >
                                     {routes[0]
-                                        ? <>{formatRoute(routes[0])}{routes.length > 1 && <span className="x01-live-route-more">+{routes.length - 1}</span>}</>
-                                        : setup ? <>{formatRoute(setup.darts)}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />leaves {setup.leaves}</span></> : '\u00a0'}
+                                        ? formatRoute(routes[0])
+                                        : plan ? <>{formatRoute(plan.darts)}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />leaves {plan.leaves}</span></>
+                                        : tip ? 'Stay on T20'
+                                        : '\u00a0'}
                                 </span>
                                 <span className="x01-live-won">
                                     <WonCount label="Legs" won={model.currentSetLegsWon} mode={game.legMode} count={game.numberOfLegs} />

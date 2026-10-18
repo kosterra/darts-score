@@ -160,3 +160,52 @@ export const setupSuggestions = (score, { dartsLeft = 3, outMode = 'Double Out' 
     }
     return found;
 };
+
+// the scores that cannot be finished with three darts, and the darts to score with
+const BOGEYS = [169, 168, 166, 165, 163, 162, 159];
+const SCORING = ['T20', 'T19', 'T18', 'T17', 'S20', 'S19'].map(name => DARTS.find(dart => dart.name === name));
+
+// whether one list of sort values comes before another, the first difference deciding
+const before = (a, b) => {
+    const index = a.findIndex((value, i) => value !== b[i]);
+    return index >= 0 && a[index] < b[index];
+};
+
+// how good a score is to be left with for the next visit, lower is better
+const leaveRank = (leave) => {
+    if (leave >= 2 && leave <= 40 && leave % 2 === 0) return 0;
+    if (checkoutRoutes(leave, { dartsLeft: 2 }).length) return 1;
+    if (checkoutRoutes(leave).length) return 2;
+    if (leave > 170) return 3;
+    // a bogey number (or 1): the next visit cannot finish
+    return 4;
+};
+
+/**
+ * What to throw when there is neither a finish nor a setup: the darts that
+ * leave the best score for the next visit, avoiding the bogey numbers
+ * (e.g. 251 → T20 · T20 · T20 leaves 71; 349 → T20 · T20 · T19 leaves 172, not
+ * 169), or, still far away, the usual advice. { darts, leaves, advice }
+ */
+export const scoringTip = (score, { dartsLeft = 3, outMode = 'Double Out' } = {}) => {
+    if (!Number.isInteger(score) || score < 2 || dartsLeft < 1) return null;
+    if (checkoutRoutes(score, { dartsLeft, outMode }).length || setupSuggestions(score, { dartsLeft, outMode }).length) return null;
+    const advice = 'Stay on T20; switch to T19 if the 20 is blocked.';
+    if (outMode !== 'Double Out' || score - 60 * dartsLeft > 170) return { darts: null, leaves: null, advice };
+
+    let best = null;
+    const consider = (darts) => {
+        const leaves = score - darts.reduce((sum, dart) => sum + dart.value, 0);
+        if (leaves < 2) return;
+        // a good leave first, then the darts players stay on (T20 before T19 …), then the higher score
+        const key = [leaveRank(leaves), darts.reduce((sum, dart) => sum + SCORING.indexOf(dart), 0), leaves];
+        if (!best || before(key, best.key)) best = { key, darts, leaves };
+    };
+    const pick = (from, count, chosen) => {
+        if (chosen.length === count) return consider(chosen);
+        for (let index = from; index < SCORING.length; index++) pick(index, count, [...chosen, SCORING[index]]);
+    };
+    pick(0, dartsLeft, []);
+    if (!best) return { darts: null, leaves: null, advice };
+    return { darts: best.darts.map(dart => dart.name), leaves: best.leaves, advice: BOGEYS.includes(score - 60 * dartsLeft) ? `${score - 60 * dartsLeft} would be a bogey number: no finish in one visit.` : null };
+};
