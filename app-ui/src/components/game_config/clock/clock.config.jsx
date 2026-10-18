@@ -65,7 +65,9 @@ const ClockConfig = () => {
                     <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">Game</p>
-                    <div className="d-flex flex-column align-items-center gap-2 mb-3">
+                    <div className="setting-box">
+                        <p className="setting-title">Mode</p>
+                        <div className="d-flex flex-column align-items-center gap-2">
                         <SelectButton
                             value={mode}
                             onChange={(e) => e.value && setMode(e.value)}
@@ -75,6 +77,7 @@ const ClockConfig = () => {
                             aria-label="Mode"
                         />
                         <span className="text-faint fs-8 text-center">{MODES.find(option => option.value === mode)?.description}</span>
+                        </div>
                     </div>
                     {mode === 'All' &&
                         <label className="clock-skip-switch">

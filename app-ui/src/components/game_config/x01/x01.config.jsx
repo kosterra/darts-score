@@ -127,9 +127,7 @@ const X01Config = () => {
                         numberOfLegsOption={game.numberOfLegs}
                         onSetsLegsChange={handleConfigChange}
                     />
-                    <div className="container">
-                        <X01HandicapConfig game={game} players={players} rules={handicap} onChange={setHandicap} />
-                    </div>
+                    <X01HandicapConfig game={game} players={players} rules={handicap} onChange={setHandicap} />
 
                     <GameSetupStart summary={summary} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>

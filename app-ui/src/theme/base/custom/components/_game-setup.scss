@@ -212,9 +212,7 @@
 .quick-formats {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
 }
 
 .quick-format {
@@ -222,14 +220,14 @@
   padding: 0.45rem 0.9rem;
   border: 0;
   border-radius: 999px;
-  background: $toggleButtonPillsBg;
+  background: rgba(255, 255, 255, 0.07);
   color: var(--text-default);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
-  &:hover { background: color-mix(in srgb, #fff 6%, $toggleButtonPillsBg); }
+  &:hover { background: rgba(255, 255, 255, 0.12); }
   &:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 
   &.is-active {
@@ -259,3 +257,38 @@
 }
 
 .player-checkout-preferences-hint { flex-basis: 100%; }
+
+// A group of settings (starting score, in and out, sets, mode …): the same
+// lighter box as the throwing order and the handicap, the title inside on the
+// left. Either one element (.setting-box) or a title followed by its row
+// (.setting-title + .setting-body), which together make one box.
+.setting-box {
+  margin-bottom: 1rem;
+  padding: 0.7rem 0.9rem 0.9rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+
+  > .setting-title {
+    margin: 0 0 0.5rem;
+    padding: 0;
+    background: none;
+  }
+}
+
+.setting-title {
+  margin: 0;
+  padding: 0.7rem 0.9rem 0.4rem;
+  border-radius: $borderRadius $borderRadius 0 0;
+  background: var(--surface-raised);
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.setting-body {
+  margin-bottom: 1rem;
+  padding: 0.1rem 0.4rem 0.9rem;
+  border-radius: 0 0 $borderRadius $borderRadius;
+  background: var(--surface-raised);
+}

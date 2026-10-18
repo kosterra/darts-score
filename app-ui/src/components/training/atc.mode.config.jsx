@@ -5,7 +5,8 @@ import ATCHelp from './atc.help';
 const ATCModeConfig = ({ atcModeOption, onATCModeChange, disabled = false }) => {
     const options = ATCConfigOptions.modeOptions.values;
     return (
-        <div className="d-flex flex-column align-items-center gap-2">
+        <div className="setting-box d-flex flex-column align-items-center gap-2">
+            <p className="setting-title align-self-stretch">Mode</p>
             <SelectButton
                 value={atcModeOption}
                 onChange={(e) => e.value && onATCModeChange(e.value)}

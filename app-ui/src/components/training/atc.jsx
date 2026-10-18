@@ -301,7 +301,8 @@ const ATC = () => {
                             </fieldset>
 
                             <p className="game-setup-section-title mt-4">Training</p>
-                            <div className="d-flex flex-column align-items-center gap-2 mb-3">
+                            <div className="setting-box d-flex flex-column align-items-center gap-2">
+                                <p className="setting-title align-self-stretch">Scoring</p>
                                 <SelectButton
                                     value={scoring}
                                     options={SCORINGS}

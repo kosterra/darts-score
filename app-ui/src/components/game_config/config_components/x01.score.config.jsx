@@ -9,9 +9,10 @@ const X01ScoreConfig = (props) => {
     } = props;
 
     return (
-        <div className="container">
-            <p className="text-center text-faint fs-7 fw-semibold">Starting Score</p>
-            <div className="row m-0 mb-3">
+        // no container of its own: the boxes line up with the other boxes of the setup
+        <div>
+            <p className="setting-title">Starting Score</p>
+            <div className="row mx-0 mt-0 setting-body">
                 <div className="col">
                     <SelectButton
                         value={scoreOption}

@@ -64,9 +64,9 @@ const CricketConfig = () => {
                     <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">Game</p>
-                    <div className="container">
-                        <p className="text-center text-faint fs-7 fw-semibold">Variant</p>
-                        <div className="row m-0 mb-3">
+                    <div>
+                        <p className="setting-title">Variant</p>
+                        <div className="row mx-0 mt-0 setting-body">
                             <div className="col d-flex flex-column align-items-center gap-2">
                                 <SelectButton
                                     value={variant}

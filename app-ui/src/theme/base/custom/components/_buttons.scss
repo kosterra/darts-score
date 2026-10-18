@@ -51,6 +51,14 @@ $softGreenTextHover: #95d6b4;
 // every pill in the same weight, also those with an icon of their own
 :where(.p-selectbutton .p-button) { font-weight: 700; }
 
+// a pill not chosen: a light tint on top, so it shows on a panel and in a box alike
+:where(.p-selectbutton .p-button:not(.p-highlight)) {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.07);
+
+  &:hover { background: rgba(255, 255, 255, 0.12); }
+}
+
 // the chosen pill: a choice, not an action, so soft rather than filled, with
 // the light text of the buttons
 :where(.p-selectbutton .p-button.p-highlight) {

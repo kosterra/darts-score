@@ -5,7 +5,9 @@ import { isFormat } from '../../../utils/setup.memory';
  * format the game is set up in is highlighted.
  */
 const QuickFormats = ({ formats, settings, playerCount, onApply }) => (
-    <div className="quick-formats" role="group" aria-label="Quick formats">
+    <div className="setting-box" role="group" aria-label="Quick formats">
+        <p className="setting-title">Quick formats</p>
+        <div className="quick-formats">
         {formats.map(format => {
             const active = isFormat(settings, format, playerCount);
             return (
@@ -20,6 +22,7 @@ const QuickFormats = ({ formats, settings, playerCount, onApply }) => (
                 </button>
             );
         })}
+        </div>
     </div>
 );
 
