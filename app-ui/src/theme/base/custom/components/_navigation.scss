@@ -232,17 +232,19 @@ $navRailWidth: 4.75rem;
         min-width: 1.35rem;
         height: 1.35rem;
         padding: 0 0.4rem;
+        // like the labels: a soft tint with the number in its colour, opaque so it
+        // stays readable over the icon in the folded menu; gold, red when critical
         border-radius: $borderRadius;
-        background: $shade600;
-        color: $textDefaultColor;
+        background: color-mix(in srgb, #e9ac2f 22%, $surfaceColor);
+        color: #e9ac2f;
         font-size: 0.7rem;
         font-weight: 700;
         line-height: 1.35rem;
         text-align: center;
 
         &.critical {
-            background: #e07a5f;
-            color: #1d1c1a;
+            background: color-mix(in srgb, #ec8b80 24%, $surfaceColor);
+            color: #ec8b80;
         }
     }
 

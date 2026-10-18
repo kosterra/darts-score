@@ -17,6 +17,8 @@ export const ClubFilter = ({ clubs, selectedIds, onChange, optional = false }) =
         placeholder={optional ? 'All clubs' : 'Choose clubs'}
         filter
         display="chip"
+        // a plain cross on the chosen clubs, like the labels
+        removeIcon="pi pi-times"
         maxSelectedLabels={3}
         selectedItemsLabel="{0} clubs"
         className={selectedIds.length || optional ? '' : 'p-invalid'}

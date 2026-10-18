@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
-import { MultiSelect } from 'primereact/multiselect';
 import { Avatar } from 'primereact/avatar';
 import dayjs from 'dayjs';
 
 import IntegrityService, { announceFairPlayChange } from '../../services/integrity.service';
 import ClubLogo from '../elements/club.logo';
+import { ClubFilter } from '../admin/club.filter';
 import PageLoader from '../elements/page.loader';
 import DeletePopup from '../elements/delete.popup';
 import { useAuth } from '../../utils/auth.context';
@@ -95,21 +95,7 @@ const FairPlayPage = ({ all = false }) => {
                 <div className="fair-play-filters">
                     <SelectButton value={shown} options={options} onChange={(e) => e.value && setList(e.value)} className="p-selectbutton-pills pills-inline flex-wrap" aria-label="List" />
                     {all && clubs.length > 0 &&
-                        <MultiSelect
-                            value={clubFilter}
-                            options={clubs}
-                            optionLabel="name"
-                            optionValue="id"
-                            onChange={(e) => setClubFilter(e.value ?? [])}
-                            placeholder="All clubs"
-                            itemTemplate={(club) => <span className="d-inline-flex align-items-center gap-2"><ClubLogo club={club} size="xs" />{club.name}</span>}
-                            maxSelectedLabels={2}
-                            selectedItemsLabel="{0} clubs"
-                            filter={clubs.length > 6}
-                            showClear
-                            className="fair-play-club-filter"
-                            aria-label="Clubs"
-                        />
+                        <ClubFilter clubs={clubs} selectedIds={clubFilter} onChange={(ids) => setClubFilter(ids ?? [])} optional />
                     }
                 </div>
 
