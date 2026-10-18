@@ -437,9 +437,14 @@
   }
 
 
+  // the rows' margin matches the page padding: the board reaches exactly from edge to
+  // edge and nothing is wider than the screen
+  .x01-live .row { --bs-gutter-x: 1rem; }
   .x01-play { --bs-gutter-y: 0.75rem; margin-bottom: 0.75rem; }
   .x01-board-plain.is-hidden { display: none; }
-  .x01-board-col .dartboard-img { height: auto; width: 100%; max-width: 16rem; }
+  // the board over the whole width, the column without its side padding
+  .x01-board-plain { padding-right: 0; padding-left: 0; }
+  .x01-board-col .dartboard-img { height: auto; width: 100%; max-width: none; }
 
   .x01-darts { flex-direction: row; }
   .x01-dart-field { flex: 1 1 0; min-width: 0; }

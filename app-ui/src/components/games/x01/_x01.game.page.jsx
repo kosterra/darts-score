@@ -5,11 +5,10 @@ const X01GamePage = () => {
 
   return (
     <div className="container-fluid bg-transparent border-0 x01-game-page">
-      <div className="row justify-content-md-center align-items-center">
-        <X01State>
-          <X01Game />
-        </X01State>
-      </div>
+      {/* no Bootstrap row: its negative margin made the page wider than a phone */}
+      <X01State>
+        <X01Game />
+      </X01State>
     </div>
   )
 }
