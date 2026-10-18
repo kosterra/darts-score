@@ -63,3 +63,9 @@ $softGreenTextHover: #95d6b4;
 :where(.p-button.p-button-text:disabled, .p-button.p-button-link:disabled, .p-button.p-button-text.p-disabled) {
   background: transparent;
 }
+
+// the focus ring only for the keyboard: after a click or tap a button keeps the
+// focus, and the ring stayed around it (e.g. Enter score after every visit)
+:where(.p-button:focus:not(:focus-visible), .p-selectbutton .p-button:focus:not(:focus-visible)) {
+  box-shadow: none;
+}
