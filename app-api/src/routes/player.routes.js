@@ -3,6 +3,7 @@ import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
 import * as PlayerController from '../controllers/player.controller.js';
+import { DOUBLES, MAIN_TREBLES } from '../utils/checkout.profile.js';
 import { uploadProfileImage } from '../controllers/file.controller.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { emailValidator, passwordValidator } from './auth.routes.js';
@@ -83,6 +84,9 @@ export default (app) => {
     // Find players by IDs
     router.post('/find', validatePlayerIds, validate, PlayerController.findByIds);
 
+    // How the players of a game finish and score, for its ways out
+    router.post('/checkout-profiles', validatePlayerIds, validate, PlayerController.checkoutProfiles);
+
     // Retrieve a single player
     router.get('/:id', PlayerController.findOne);
 
@@ -103,6 +107,14 @@ export default (app) => {
         body('publicProfile').isBoolean({ strict: true }).withMessage('publicProfile must be true or false.'),
         validate,
         PlayerController.setVisibility
+    );
+
+    // A player's favourite double and main treble (admins, or the player themselves)
+    router.put('/:id/preferences',
+        body('favouriteDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('favouriteDouble must be auto or a double, e.g. D16.'),
+        body('mainTreble').optional().isIn(['auto', ...MAIN_TREBLES]).withMessage(`mainTreble must be auto or one of ${MAIN_TREBLES.join(', ')}.`),
+        validate,
+        PlayerController.setPreferences
     );
 
     // Give a player a login (or take it away again)

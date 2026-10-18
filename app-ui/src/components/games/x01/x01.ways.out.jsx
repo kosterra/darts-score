@@ -20,17 +20,36 @@ const Plan = ({ darts, leaves, note, preferred }) => (
  * visit and a few others; without a finish what to set up, or what to score to
  * leave a finish for the next visit, as is common practice.
  */
+// why the ways are in this order: the player's own doubles or treble, set or learned
+const ProfileNote = ({ profile, about }) => {
+    if (!profile) return null;
+    if (about === 'double') {
+        if (profile.doubleSource === 'set') return <span className="x01-ways-note">Your favourite double first: {profile.favouriteDouble} (set in the player profile).</span>;
+        if (profile.doubleSource === 'history') {
+            const best = profile.doubles[0];
+            return <span className="x01-ways-note">Your best doubles first: {best.double} hit {best.rate} % of {best.total} darts in your games.</span>;
+        }
+        return null;
+    }
+    if (profile.trebleSource === 'set') return <span className="x01-ways-note">Your main treble: {profile.mainTreble} (set in the player profile).</span>;
+    if (profile.trebleSource === 'history') return <span className="x01-ways-note">Your main treble from your games: {profile.mainTreble}.</span>;
+    return null;
+};
+
 const X01WaysOut = () => {
-    const { game, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
+    const { game, checkoutProfiles = {}, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
     const playerId = game.currentPlayerTurn;
     const score = game.playerModels[playerId].score - getCurrentThrowScore();
     const dartsLeft = 3 - game.currentThrow.filter(dart => dart.trim() !== '').length;
     const outMode = outModeOf(game, playerId);
+    // the player's own doubles and main treble, set or learned from their games
+    const profile = checkoutProfiles[playerId];
+    const own = { doubles: profile?.doubleOrder ?? [], mainTreble: profile?.mainTreble };
 
     if (checkIfScoreIsBusted(score)) return <p className="text-subtle fs-8 m-0">Bust: the score stays as it was.</p>;
 
     if (dartsLeft === 0) {
-        const next = checkoutRoutes(score, { outMode })[0];
+        const next = checkoutRoutes(score, { outMode, ...own })[0];
         return (
             <div className="x01-ways">
                 <p className="text-subtle fs-8 m-0">All three darts are in: Enter score finishes the visit{score === 0 ? ' and the leg' : ''}.</p>
@@ -44,7 +63,7 @@ const X01WaysOut = () => {
         );
     }
 
-    const routes = checkoutRoutes(score, { dartsLeft, outMode });
+    const routes = checkoutRoutes(score, { dartsLeft, outMode, ...own });
     if (routes.length) {
         const others = routes.slice(1, 1 + OTHER_WAYS);
         return (
@@ -61,12 +80,13 @@ const X01WaysOut = () => {
                         </div>
                     </div>
                 }
+                <ProfileNote profile={profile} about="double" />
             </div>
         );
     }
 
-    const setups = setupSuggestions(score, { dartsLeft, outMode });
-    const tip = setups.length ? null : scoringTip(score, { dartsLeft, outMode });
+    const setups = setupSuggestions(score, { dartsLeft, outMode, ...own });
+    const tip = setups.length ? null : scoringTip(score, { dartsLeft, outMode, ...own });
     return (
         <div className="x01-ways">
             <p className="text-subtle fs-8 m-0">
@@ -88,6 +108,7 @@ const X01WaysOut = () => {
                     {tip.darts && !tip.advice && <span className="text-subtle fs-8">Leaves a finish for the next visit.</span>}
                 </div>
             }
+            <ProfileNote profile={profile} about={setups.length ? 'double' : 'treble'} />
         </div>
     );
 };

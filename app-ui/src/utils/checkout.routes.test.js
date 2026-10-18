@@ -97,3 +97,21 @@ describe('scoringTip', () => {
         expect(scoringTip(201, { dartsLeft: 2 }).darts).toHaveLength(2);
     });
 });
+
+describe('the player\'s own doubles and treble', () => {
+    it('finish on the player\'s best doubles first', () => {
+        expect(checkoutRoutes(79)[0]).toEqual(['T19', 'D11']);
+        expect(checkoutRoutes(79, { doubles: ['D20', 'D16'] })[0]).toEqual(['T13', 'D20']);
+        expect(checkoutRoutes(40, { doubles: ['D16'] })[0]).toEqual(['D20']);
+        expect(checkoutRoutes(40, { doubles: ['D16'] })[1]).toEqual(['S8', 'D16']);
+    });
+
+    it('set up one of the player\'s doubles', () => {
+        expect(setupSuggestions(169, { doubles: ['D16'] })[0].leaves).toBe(32);
+    });
+
+    it('score on the player\'s main treble', () => {
+        expect(scoringTip(450, { mainTreble: 'T19' }).advice).toBe('Stay on T19; switch to T20 if the 19 is blocked.');
+        expect(scoringTip(251, { mainTreble: 'T19' }).darts[0]).toBe('T19');
+    });
+});

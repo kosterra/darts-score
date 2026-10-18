@@ -78,6 +78,8 @@ const X01State = props => {
         toast.current?.clear();
         toast.current?.show({ severity: 'error', summary, detail, life: 3000 });
     };
+    // how each player finishes and scores, for the ways out: { [playerId]: profile }
+    const [checkoutProfiles, setCheckoutProfiles] = useState({});
     // bumped after every visit and every undo: the game is saved then
     const [saveRequest, setSaveRequest] = useState(0);
     // the saves run one after the other, in the order of the visits
@@ -119,6 +121,8 @@ const X01State = props => {
             fetchPlayers(game).then(() => {
                 setLoading('initGameLoading', false);
             });
+            // the ways out work without them, so a failure only means the usual order
+            PlayerService.loadCheckoutProfiles(game.players).then(setCheckoutProfiles).catch(() => {});
         }).catch(error => {
             toast.current.show(
                 {
@@ -1131,6 +1135,7 @@ const X01State = props => {
                 value={{
                     game: state.game,
                     players: state.players,
+                    checkoutProfiles,
                     loading: state.loading,
                     resetScores,
                     onClickValidateThrow,

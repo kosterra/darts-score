@@ -27,9 +27,12 @@ const setupCost = (dart) => {
     return 3;
 };
 
-// how good the last dart is: the common doubles first; with straight out the
-// single, the easiest dart, before the double and the treble
-const finalCost = (dart, outMode) => {
+// how good the last dart is: the player's own doubles first (best first), then
+// the common doubles; with straight out the single, the easiest dart, before
+// the double and the treble
+const finalCost = (dart, outMode, doubles = []) => {
+    const own = doubles.indexOf(dart.name);
+    if (own >= 0) return -12 + own * 2;
     const ring = outMode === 'Straight Out' ? { S: 0, D: 30, T: 60 }[dart.ring] : { D: 0, T: 30, S: 60 }[dart.ring];
     return ring + doubleRank(dart.number);
 };
@@ -50,21 +53,22 @@ const tableRoute = (score) => {
 /**
  * Every finish of "score" with at most "dartsLeft" darts: [["T20", "T19", "D12"], …].
  * Darts before the last are in any order, so each combination is listed once.
+ * doubles: the player's own doubles, best first, to finish on before the others.
  * Fewest darts first, then natural setup darts (big trebles, singles) and the
  * common doubles, weighed together; with double out
  * the route of the checkout table comes first.
  */
 const cache = new Map();
 
-export const checkoutRoutes = (score, { dartsLeft = 3, outMode = 'Double Out' } = {}) => {
+export const checkoutRoutes = (score, { dartsLeft = 3, outMode = 'Double Out', doubles = [] } = {}) => {
     if (!Number.isInteger(score) || score < 1 || score > 180 || dartsLeft < 1) return [];
     // the same score is asked for on every render: work it out once
-    const key = `${score}|${dartsLeft}|${outMode}`;
-    if (!cache.has(key)) cache.set(key, findRoutes(score, dartsLeft, outMode));
+    const key = `${score}|${dartsLeft}|${outMode}|${doubles.join(',')}`;
+    if (!cache.has(key)) cache.set(key, findRoutes(score, dartsLeft, outMode, doubles));
     return cache.get(key);
 };
 
-const findRoutes = (score, dartsLeft, outMode) => {
+const findRoutes = (score, dartsLeft, outMode, doubles) => {
     const finals = DARTS.filter(dart => finishesWith(dart, outMode));
     const found = new Map();
     const add = (setup, last) => {
@@ -73,7 +77,7 @@ const findRoutes = (score, dartsLeft, outMode) => {
         const key = [...ordered.map(dart => dart.name), last.name].join(' ');
         if (found.has(key)) return;
         const cost = ordered.reduce((sum, dart) => sum + setupCost(dart), 0);
-        found.set(key, { darts: [...ordered, last].map(dart => dart.name), sort: [ordered.length, cost * 3 + finalCost(last, outMode), cost] });
+        found.set(key, { darts: [...ordered, last].map(dart => dart.name), sort: [ordered.length, cost * 3 + finalCost(last, outMode, doubles), cost] });
     };
 
     for (const last of finals) {
@@ -92,8 +96,9 @@ const findRoutes = (score, dartsLeft, outMode) => {
         .sort((a, b) => a.sort[0] - b.sort[0] || a.sort[1] - b.sort[1] || a.sort[2] - b.sort[2] || a.darts.join().localeCompare(b.darts.join()))
         .map(route => route.darts);
 
-    // the familiar route first, when it can be thrown with the darts left
-    const preferred = outMode === 'Double Out' ? tableRoute(score) : null;
+    // the familiar route first, when it can be thrown with the darts left; the
+    // player's own doubles decide instead when they are known
+    const preferred = outMode === 'Double Out' && !doubles.length ? tableRoute(score) : null;
     if (preferred && preferred.length <= dartsLeft) {
         const key = (darts) => [...darts.slice(0, -1)].sort().join(' ') + ' > ' + darts.at(-1);
         const index = routes.findIndex(route => key(route) === key(preferred));
@@ -127,16 +132,18 @@ const tableSuggestions = (score) => {
  * worked out otherwise; none when a finish is possible or the score is too
  * high to set up in this visit.
  */
-export const setupSuggestions = (score, { dartsLeft = 3, outMode = 'Double Out' } = {}) => {
+export const setupSuggestions = (score, { dartsLeft = 3, outMode = 'Double Out', doubles = [] } = {}) => {
     // above 170 the way is simply to score: no setup to suggest, as in the checkout table
     if (outMode !== 'Double Out' || !Number.isInteger(score) || score < 3 || score > 170 || dartsLeft < 1) return [];
-    if (checkoutRoutes(score, { dartsLeft, outMode }).length) return [];
-    if (dartsLeft === 3) {
-        const fromTable = tableSuggestions(score);
-        if (fromTable.length) return fromTable;
-    }
+    if (checkoutRoutes(score, { dartsLeft, outMode, doubles }).length) return [];
+    // the table with a full visit, unless the player's own doubles are known
+    const fromTable = dartsLeft === 3 ? tableSuggestions(score) : [];
+    if (fromTable.length && !doubles.length) return fromTable;
+    // leaving one of the player's doubles comes first
+    const ownLeaves = doubles.map(double => DARTS.find(dart => dart.name === double)?.value).filter(Boolean);
+    const leavesInOrder = [...new Set([...ownLeaves, ...GOOD_LEAVES])];
     const found = [];
-    for (const leaves of GOOD_LEAVES) {
+    for (const leaves of leavesInOrder) {
         const target = score - leaves;
         if (target < 1 || target > 60 * dartsLeft) continue;
         const candidates = [];
@@ -158,12 +165,12 @@ export const setupSuggestions = (score, { dartsLeft = 3, outMode = 'Double Out' 
         found.push({ darts: best.map(dart => dart.name), leaves, note: null });
         if (found.length === 2) break;
     }
-    return found;
+    return found.length ? found : fromTable;
 };
 
 // the scores that cannot be finished with three darts, and the darts to score with
 const BOGEYS = [169, 168, 166, 165, 163, 162, 159];
-const SCORING = ['T20', 'T19', 'T18', 'T17', 'S20', 'S19'].map(name => DARTS.find(dart => dart.name === name));
+const SCORING_ORDER = ['T20', 'T19', 'T18', 'T17', 'S20', 'S19'];
 
 // whether one list of sort values comes before another, the first difference deciding
 const before = (a, b) => {
@@ -187,10 +194,14 @@ const leaveRank = (leave) => {
  * (e.g. 251 → T20 · T20 · T20 leaves 71; 349 → T20 · T20 · T19 leaves 172, not
  * 169), or, still far away, the usual advice. { darts, leaves, advice }
  */
-export const scoringTip = (score, { dartsLeft = 3, outMode = 'Double Out' } = {}) => {
+export const scoringTip = (score, { dartsLeft = 3, outMode = 'Double Out', doubles = [], mainTreble = null } = {}) => {
     if (!Number.isInteger(score) || score < 2 || dartsLeft < 1) return null;
-    if (checkoutRoutes(score, { dartsLeft, outMode }).length || setupSuggestions(score, { dartsLeft, outMode }).length) return null;
-    const advice = 'Stay on T20; switch to T19 if the 20 is blocked.';
+    if (checkoutRoutes(score, { dartsLeft, outMode, doubles }).length || setupSuggestions(score, { dartsLeft, outMode, doubles }).length) return null;
+    // the treble the player throws at most comes first, the other one is the way round a blocked bed
+    const main = mainTreble === 'T19' || mainTreble === 'T18' ? mainTreble : 'T20';
+    const other = main === 'T20' ? 'T19' : 'T20';
+    const advice = `Stay on ${main}; switch to ${other} if the ${main.slice(1)} is blocked.`;
+    const scoring = [main, ...SCORING_ORDER.filter(name => name !== main)].map(name => DARTS.find(dart => dart.name === name));
     if (outMode !== 'Double Out' || score - 60 * dartsLeft > 170) return { darts: null, leaves: null, advice };
 
     let best = null;
@@ -198,12 +209,12 @@ export const scoringTip = (score, { dartsLeft = 3, outMode = 'Double Out' } = {}
         const leaves = score - darts.reduce((sum, dart) => sum + dart.value, 0);
         if (leaves < 2) return;
         // a good leave first, then the darts players stay on (T20 before T19 …), then the higher score
-        const key = [leaveRank(leaves), darts.reduce((sum, dart) => sum + SCORING.indexOf(dart), 0), leaves];
+        const key = [leaveRank(leaves), darts.reduce((sum, dart) => sum + scoring.indexOf(dart), 0), leaves];
         if (!best || before(key, best.key)) best = { key, darts, leaves };
     };
     const pick = (from, count, chosen) => {
         if (chosen.length === count) return consider(chosen);
-        for (let index = from; index < SCORING.length; index++) pick(index, count, [...chosen, SCORING[index]]);
+        for (let index = from; index < scoring.length; index++) pick(index, count, [...chosen, scoring[index]]);
     };
     pick(0, dartsLeft, []);
     if (!best) return { darts: null, leaves: null, advice };

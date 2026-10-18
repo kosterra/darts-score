@@ -152,6 +152,14 @@ const makeMember = (playerId) =>
 const setPublicProfile = (playerId, publicProfile, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/visibility`, { method: 'PUT', body: { publicProfile }, clubId });
 
+// a player's favourite double and main treble ("auto" learns them from the games)
+const setPreferences = (playerId, preferences, clubId) =>
+    requestJSON(`${API_URL}players/${playerId}/preferences`, { method: 'PUT', body: preferences, clubId });
+
+// how the players finish and score: { [playerId]: { doubleOrder, doubles, favouriteDouble, doubleSource, mainTreble, trebleSource, … } }
+const loadCheckoutProfiles = (playerIds, clubId) =>
+    requestJSON(`${API_URL}players/checkout-profiles`, { method: 'POST', body: { playerIds }, clubId });
+
 /**
  * The clubs of a player of the selected club, each with whether the user may
  * change it; adding (or with "move" moving) to and removing from the user's clubs.
@@ -163,6 +171,8 @@ const removePlayerFromClub = (playerId, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/clubs/${clubId}`, { method: 'DELETE' });
 
 const PlayerService = {
+    setPreferences,
+    loadCheckoutProfiles,
     loadPlayerClubs,
     addPlayerToClub,
     removePlayerFromClub,

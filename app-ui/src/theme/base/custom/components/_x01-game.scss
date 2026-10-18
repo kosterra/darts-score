@@ -578,3 +578,9 @@
   .x01-keypad-numbers, .x01-keypad-extras { gap: 0.3rem; }
   .x01-key { min-height: 2.9rem; font-size: 1rem; }
 }
+
+// why the ways are in this order
+.x01-ways-note {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}

@@ -34,6 +34,12 @@ export default (mongoose) => {
       // Whether the nickname may be shown on the public start page; otherwise
       // the player appears there without a name
       publicProfile: { type: Boolean, default: false },
+      // How the player finishes and scores, for the ways out during a game:
+      // "auto" learns it from their games, otherwise e.g. "D16" or "T19"
+      preferences: {
+        favouriteDouble: { type: String, default: 'auto' },
+        mainTreble:      { type: String, default: 'auto' },
+      },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
       guest:      { type: Boolean, default: false },

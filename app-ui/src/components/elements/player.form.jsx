@@ -11,6 +11,7 @@ import ImageUploader from './image.uploader';
 import PlayerService from '../../services/player.service';
 import PlayerModel from '../../models/player.model';
 import { resolvePlayerImg } from '../../utils/image.utils';
+import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
 
 /**
  * Adds or edits a player. With "clubs" (global admins) a new player can be
@@ -281,6 +282,16 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                     : <small className="text-faint">For fair handicaps between players of different ages.</small>}
                             </div>
                         </div>
+                        {/* saved right away, apart from the rest of the form */}
+                        {edit && updatePlayer?.id && !updatePlayer.guest &&
+                            <div className="mt-3">
+                                <p className="game-setup-section-title">Ways out in X01</p>
+                                <PlayerCheckoutPreferences
+                                    player={updatePlayer}
+                                    onError={(error) => toast.current?.show({ severity: 'error', summary: 'Ways out', detail: error.message, life: 4000 })}
+                                />
+                            </div>
+                        }
                         {footerContent}
                     </div>
                 </form>

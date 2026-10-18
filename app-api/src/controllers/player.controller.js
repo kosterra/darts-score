@@ -6,6 +6,7 @@ import { CLUB_ROLES } from '../models/user.model.js';
 import { inClub, knownInClub } from '../models/player.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
+import { checkoutProfile } from '../utils/checkout.profile.js';
 
 const Player = db.player;
 
@@ -142,6 +143,24 @@ export const findByIds = async (req, res) => {
     const ids = req.body.playerIds.filter(id => db.mongoose.isValidObjectId(id));
     const players = await Player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) });
     res.send(players.map(p => p.toJSON()));
+};
+
+/**
+ * How the players finish and score, for the ways out of a game:
+ * { [playerId]: checkout profile }, learned from all their X01 games (it is
+ * the person's skill, whichever club they played in) and their preferences.
+ */
+export const checkoutProfiles = async (req, res) => {
+    logger.debug('players checkout profiles called');
+    const ids = req.body.playerIds.filter(id => db.mongoose.isValidObjectId(id));
+    const players = await Player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) }, 'preferences guest').lean();
+    const profiles = {};
+    for (const player of players) {
+        const id = String(player._id);
+        const games = await db.x01.find({ players: id }, { [`playerModels.${id}.checkout.sections`]: 1, [`playerModels.${id}.hit`]: 1 }).lean();
+        profiles[id] = checkoutProfile(games, id, player.preferences);
+    }
+    res.send(profiles);
 };
 
 export const findOne = async (req, res) => {
@@ -289,6 +308,28 @@ export const setVisibility = async (req, res) => {
     player.publicProfile = req.body.publicProfile;
     await player.save();
     res.send((await toClient([player], req))[0]);
+};
+
+/**
+ * A player's favourite double and main treble for the ways out ("auto" learns
+ * them from the games). Club admins, or the player themselves.
+ */
+export const setPreferences = async (req, res) => {
+    logger.debug('players set preferences called');
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+
+    const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+        return res.status(403).send({ message: 'Only club admins can change this for other players.' });
+    }
+
+    player.preferences = {
+        favouriteDouble: req.body.favouriteDouble ?? player.preferences?.favouriteDouble ?? 'auto',
+        mainTreble: req.body.mainTreble ?? player.preferences?.mainTreble ?? 'auto',
+    };
+    await player.save();
+    res.send(player.toJSON());
 };
 
 /**

@@ -36,7 +36,7 @@ const WonCount = ({ label, won, mode, count }) => {
  * the key figures are in a panel below, so the board stays in view.
  */
 const X01LiveHeader = () => {
-    const { game, players, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
+    const { game, players, checkoutProfiles = {}, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const handicap = hasHandicap(game);
@@ -63,7 +63,9 @@ const X01LiveHeader = () => {
                     const busted = isTurn && checkIfScoreIsBusted(score);
                     // with every dart of the visit in, the way out of the next visit counts
                     const dartsLeft = isTurn ? 3 - dartsEntered : 3;
-                    const throwing = { dartsLeft: dartsLeft || 3, outMode: outModeOf(game, player.id) };
+                    // the player's own doubles and main treble, set or learned from their games
+                    const profile = checkoutProfiles[player.id];
+                    const throwing = { dartsLeft: dartsLeft || 3, outMode: outModeOf(game, player.id), doubles: profile?.doubleOrder ?? [], mainTreble: profile?.mainTreble };
                     const routes = busted ? [] : checkoutRoutes(score, throwing);
                     // no finish: what to set up instead, as the checkout table suggests, or what to score
                     const setup = busted || routes.length ? null : setupSuggestions(score, throwing)[0];
@@ -103,7 +105,7 @@ const X01LiveHeader = () => {
                                     {routes[0]
                                         ? formatRoute(routes[0])
                                         : plan ? <>{formatRoute(plan.darts)}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />leaves {plan.leaves}</span></>
-                                        : tip ? 'Stay on T20'
+                                        : tip ? `Stay on ${profile?.mainTreble === 'T19' || profile?.mainTreble === 'T18' ? profile.mainTreble : 'T20'}`
                                         : '\u00a0'}
                                 </span>
                                 <span className="x01-live-won">
