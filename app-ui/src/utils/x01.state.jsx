@@ -6,6 +6,8 @@ import X01Context from './x01.context';
 import X01Reducer from './x01.reducer';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import GameMoment from '../components/games/common/game.moment';
+import { BigFish, BedAndBreakfast, BullFinish, PerfectLeg } from '../components/games/common/x01.moments';
+import { x01VisitMoment } from './x01.moments';
 import X01Service from '../services/x01.service';
 import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
@@ -90,6 +92,10 @@ const X01State = props => {
     // { key, kind, winner, … } while a leg or set win is shown
     const [moment, setMoment] = useState(null);
     const endMoment = useCallback(() => setMoment(null), []);
+    // { key, kind, name, … } while a big moment of a visit plays (a high finish, the
+    // big fish, a bull finish, the nine-darter, bed and breakfast)
+    const [highlight, setHighlight] = useState(null);
+    const endHighlight = useCallback(() => setHighlight(null), []);
 
     // fetch a x01 game from the API
     useEffect(() => {
@@ -231,9 +237,24 @@ const X01State = props => {
         }];
 
         let hasBusted = checkIfScoreIsBusted(currentScore)
-        if (!hasBusted && roundScore === 180) {
-            const player = state.players.find(p => p.id === state.game.currentPlayerTurn);
-            setOneEighty({ key: Date.now(), name: player?.nickname ?? '' });
+        // the big moment of the visit, the biggest one if there are several
+        const visitMoment = x01VisitMoment({
+            game: state.game,
+            playerId: state.game.currentPlayerTurn,
+            darts: currentThrow,
+            roundScore,
+            legThrows: currentLegThrows,
+            won: !hasBusted && currentScore === 0,
+            busted: hasBusted,
+        });
+        const thrower = state.players.find(p => p.id === state.game.currentPlayerTurn);
+        if (visitMoment?.kind === 'oneEighty') {
+            setOneEighty({ key: Date.now(), name: thrower?.nickname ?? '' });
+        } else if (visitMoment?.kind === 'checkout') {
+            // a high finish: the gold burst of the 180 with the finish on the signs
+            setOneEighty({ key: Date.now(), name: thrower?.nickname ?? '', number: String(visitMoment.checkout), words: 'Checkout!', sign: String(visitMoment.checkout) });
+        } else if (visitMoment) {
+            setHighlight({ key: Date.now(), name: thrower?.nickname ?? '', playerIndex: state.game.players.indexOf(state.game.currentPlayerTurn), ...visitMoment });
         }
         let hasWonLeg = false;
         let hasWonSet = false;
@@ -283,7 +304,6 @@ const X01State = props => {
 
         const nextStarter = manageCurrentPlayerChange(hasWonLeg, hasWonSet);
         if (hasWonLeg) {
-            setOneEighty(null);
             setMoment(buildMoment(hasWonSet, nextStarter));
         }
 
@@ -1133,6 +1153,8 @@ const X01State = props => {
         <Fragment>
             <X01Context.Provider
                 value={{
+                    // a moment of the winning visit plays to its end before the statistics page
+                    celebrating: Boolean(oneEighty || highlight),
                     game: state.game,
                     players: state.players,
                     checkoutProfiles,
@@ -1150,6 +1172,10 @@ const X01State = props => {
                 {props.children}
             </X01Context.Provider>
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
+            <BigFish moment={highlight?.kind === 'bigFish' ? highlight : null} onDone={endHighlight} />
+            <PerfectLeg moment={highlight?.kind === 'nineDarter' ? highlight : null} onDone={endHighlight} />
+            <BullFinish moment={highlight?.kind === 'bull' ? highlight : null} onDone={endHighlight} />
+            <BedAndBreakfast moment={highlight?.kind === 'bedAndBreakfast' ? highlight : null} onDone={endHighlight} />
             <GameMoment moment={moment} onDone={endMoment} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>

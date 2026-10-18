@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
 import { FaCircle, FaRegCircle } from 'react-icons/fa';
 import { GiDart } from 'react-icons/gi';
@@ -13,6 +13,8 @@ import { heldBy, useClubShame } from '../../badges/hall.of.shame';
 import ShameMedal from '../../badges/shame.medal';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+// legs or sets needed to win: the majority of a "Best of", all of a "First to"
+const needed = (mode, count) => mode === 'Best of' ? Math.round(count / 2) : count;
 
 // legs or sets won as circles out of those needed, or as a number when there are too many
 const WonCount = ({ label, won, mode, count }) => {
@@ -45,6 +47,21 @@ const X01LiveHeader = () => {
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const handicap = hasHandicap(game);
 
+    // a visit of 100 or more: a short "TON!" next to the score of the player who threw it
+    const [ton, setTon] = useState(null);
+    const visits = game.currentLegThrows.length;
+    const seenVisits = useRef(visits);
+    useEffect(() => {
+        if (visits > seenVisits.current) {
+            const last = game.currentLegThrows.at(-1);
+            const bust = legSummaryOf(game, last.playerId).lastVisit?.bust;
+            const score = Number(last.roundScore);
+            if (!bust && score >= 100 && score < 180) setTon({ id: last.playerId, text: score >= 140 ? 'TON-40!' : 'TON!', key: Date.now() });
+        }
+        seenVisits.current = visits;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [visits]);
+
     return (
         <header className="hero-header result-hero x01-live-hero">
             <div className="result-hero-top">
@@ -76,6 +93,10 @@ const X01LiveHeader = () => {
                     const tip = busted || routes.length || setup ? null : scoringTip(score, throwing);
                     const plan = setup ?? (tip?.darts ? tip : null);
                     const leg = legSummaryOf(game, player.id);
+                    // on a finish that wins the match (or the set)
+                    const onTheBrinkOfSet = routes[0] && model.currentSetLegsWon === needed(game.legMode, game.numberOfLegs) - 1;
+                    const matchDart = onTheBrinkOfSet && (game.numberOfSets <= 1 || model.setsWon === needed(game.setMode, game.numberOfSets) - 1);
+                    const setDart = onTheBrinkOfSet && !matchDart;
                     return (
                         <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${ordered.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
                             <span className="result-hero-portrait x01-hero-portrait">
@@ -96,6 +117,8 @@ const X01LiveHeader = () => {
                                 <span className="x01-live-tags">
                                     {isTurn && <span className="x01-live-turn">Throwing</span>}
                                     {game.startingPlayerLeg === player.id && <span className="x01-live-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>}
+                                    {matchDart && <span className="x01-dart-for is-match">Match dart</span>}
+                                    {setDart && <span className="x01-dart-for">Set dart</span>}
                                     {handicap && <span className="x01-handicap-rules">{describeRules(rulesOf(game, player.id))}</span>}
                                     {heldBy(shame, player.id).map(badge => (
                                         <span key={badge.id} className="x01-shame">
@@ -105,10 +128,11 @@ const X01LiveHeader = () => {
                                 </span>
                             </div>
                             <div className="x01-hero-score">
+                                {ton?.id === player.id && <span key={ton.key} className="x01-ton-pop" aria-hidden="true">{ton.text}</span>}
                                 <span className={`result-hero-score ${busted ? 'is-bust' : ''}`}>{busted ? 'BUST' : score}</span>
                                 {/* always a line, so the legs of the players stay in line */}
                                 <span
-                                    className={`x01-live-route ${routes[0] ? '' : 'is-setup'}`}
+                                    className={`x01-live-route ${routes[0] ? '' : 'is-setup'} ${matchDart ? 'is-match-dart' : ''}`}
                                     title={plan ? `No finish: this leaves ${plan.leaves}` : tip?.advice ?? undefined}
                                 >
                                     {routes[0]

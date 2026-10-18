@@ -684,9 +684,10 @@ $oneEightyGold: #ffc94d;
     .white-horse-banner { bottom: 6rem; animation: none; }
 }
 
-// The hat trick and the shut-out of Cricket: over the game without catching
+// The big moments of a game (the hat trick and shut-out of Cricket, the high
+// finishes of X01): over the game without catching
 // a click, like the 180
-.cricket-moment {
+.stage-moment {
     position: fixed;
     inset: 0;
     z-index: 1200;
@@ -697,7 +698,7 @@ $oneEightyGold: #ffc94d;
     &.is-leaving { opacity: 0; }
 }
 
-.cricket-moment-banner {
+.stage-moment-banner {
     position: absolute;
     left: 50%;
     bottom: 13rem;
@@ -716,7 +717,7 @@ $oneEightyGold: #ffc94d;
     &.is-high { bottom: calc(clamp(7rem, 16vw, 10rem) * 1.42 + 3.5rem); }
 }
 
-.cricket-moment-title {
+.stage-moment-title {
     color: #ffc94d;
     font-size: clamp(2.2rem, 7vw, 4rem);
     font-weight: 900;
@@ -724,7 +725,7 @@ $oneEightyGold: #ffc94d;
     text-shadow: 0 0 1.5rem rgba(255, 201, 77, 0.45), 0 0.3rem 0.6rem rgba(0, 0, 0, 0.7);
 }
 
-.cricket-moment-detail {
+.stage-moment-detail {
     padding: 0.3rem 0.9rem;
     border-radius: 999px;
     background: rgba(20, 16, 12, 0.85);
@@ -825,5 +826,218 @@ $oneEightyGold: #ffc94d;
     .hat-trick-stage,
     .shut-out-run { display: none; }
 
-    .cricket-moment-banner { bottom: 6rem; animation: none; }
+    .stage-moment-banner { bottom: 6rem; animation: none; }
+}
+
+// ---------------------------------------------------------------------------
+// The big moments of X01
+
+// The Big Fish: water along the bottom edge, a fish leaping out and back in
+.big-fish-water {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3.5rem;
+    background: linear-gradient(to bottom, rgba(70, 150, 200, 0.55), rgba(30, 80, 120, 0.85));
+    mask: radial-gradient(1.4rem 0.9rem at 1.4rem 0, transparent 98%, #000) 0 0 / 2.8rem 100% repeat-x;
+    animation: water-rise 0.5s ease-out both, water-sway 1.2s ease-in-out infinite alternate;
+}
+
+.big-fish-leap {
+    position: absolute;
+    left: 22%;
+    bottom: 1.5rem;
+    width: clamp(9rem, 22vw, 15rem);
+    animation: fish-leap-x 2.4s 0.4s linear both;
+}
+
+.big-fish {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0.4rem 0.6rem rgba(0, 0, 0, 0.5));
+    transform-origin: 50% 50%;
+    animation: fish-leap-arc 2.4s 0.4s linear both;
+}
+
+.big-fish-splash {
+    position: absolute;
+    bottom: 2rem;
+    width: 6rem;
+    height: 3rem;
+    border-radius: 50% 50% 0 0;
+    border: 0.35rem solid rgba(200, 235, 250, 0.85);
+    border-bottom: 0;
+    opacity: 0;
+
+    &.is-in { left: calc(22% + 2rem); animation: splash 0.7s 0.45s ease-out both; }
+    &.is-out { left: calc(62% + 2rem); animation: splash 0.7s 2.65s ease-out both; }
+}
+
+@keyframes water-rise {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes water-sway {
+    from { background-position-x: 0; mask-position: 0 0; }
+    to { mask-position: 1.4rem 0; }
+}
+
+@keyframes fish-leap-x {
+    from { left: 22%; }
+    to { left: 62%; }
+}
+
+@keyframes fish-leap-arc {
+    0% { transform: translateY(4rem) rotate(40deg); opacity: 0; }
+    8% { opacity: 1; }
+    50% { transform: translateY(-9rem) rotate(0deg); }
+    92% { transform: translateY(2rem) rotate(-45deg); opacity: 1; }
+    100% { transform: translateY(5rem) rotate(-55deg); opacity: 0; }
+}
+
+@keyframes splash {
+    0% { opacity: 0; transform: scale(0.3, 0.2); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.3, 1.1) translateY(-0.5rem); }
+}
+
+// the banner above the highest point of the leap
+.stage-moment.is-big-fish .stage-moment-banner { bottom: 19rem; }
+
+// The perfect leg: fireworks all over the screen
+.stage-moment.is-perfect .stage-moment-banner { bottom: 40%; }
+
+.firework {
+    position: absolute;
+    width: 0;
+    height: 0;
+
+    span {
+        position: absolute;
+        left: -0.2rem;
+        top: -0.9rem;
+        width: 0.4rem;
+        height: 1.8rem;
+        border-radius: 1rem;
+        background: linear-gradient(to top, transparent, var(--colour));
+        filter: drop-shadow(0 0 0.4rem var(--colour));
+        opacity: 0;
+        transform: rotate(var(--angle)) translateY(0);
+        animation: firework-spark 1.1s var(--delay) cubic-bezier(0.15, 0.7, 0.3, 1) both;
+    }
+}
+
+@keyframes firework-spark {
+    0% { opacity: 1; transform: rotate(var(--angle)) translateY(-0.5rem) scale(0.6); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: rotate(var(--angle)) translateY(-7rem) scale(1); }
+}
+
+// The bull finish: a board at the bottom, a dart flies into the bullseye
+.bull-target {
+    position: absolute;
+    left: 50%;
+    bottom: 1.5rem;
+    width: 9rem;
+    height: 9rem;
+    margin-left: -4.5rem;
+    animation: water-rise 0.5s ease-out both;
+}
+
+.bull-board {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0.4rem 0.8rem rgba(0, 0, 0, 0.6));
+}
+
+.bull-dart {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8rem;
+    margin: -1rem 0 0 -8rem;
+    transform-origin: 100% 50%;
+    animation: dart-fly 0.6s 0.6s cubic-bezier(0.5, 0, 0.9, 0.6) both;
+}
+
+.bull-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 2rem;
+    height: 2rem;
+    margin: -1rem 0 0 -1rem;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 201, 77, 0.9);
+    opacity: 0;
+    animation: one-eighty-ring 0.9s 1.2s ease-out both;
+
+    &.is-late { border-color: rgba(255, 255, 255, 0.8); animation-delay: 1.4s; }
+}
+
+@keyframes dart-fly {
+    0% { transform: translate(-60vw, -40vh) rotate(25deg) scale(1.6); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(0, 0) rotate(-8deg) scale(1); opacity: 1; }
+}
+
+// Bed and Breakfast: a bed slides in with a sleeper and a coffee
+.bed-scene {
+    position: absolute;
+    // in the middle, clear of the card of a won leg in the corner
+    left: calc(50% - clamp(15rem, 34vw, 22rem) / 2);
+    bottom: 0;
+    width: clamp(15rem, 34vw, 22rem);
+    animation: bed-slide 4s cubic-bezier(0.3, 0.8, 0.4, 1) both;
+}
+
+.bed-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 0.4rem 0.7rem rgba(0, 0, 0, 0.55));
+}
+
+.bed-steam {
+    animation: steam 1.2s ease-in-out infinite alternate;
+}
+
+.bed-z {
+    position: absolute;
+    left: 14%;
+    top: 0;
+    color: #efe6d0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    opacity: 0;
+    animation: bed-z 2.2s ease-out infinite;
+
+    &:nth-of-type(2) { animation-delay: 0.7s; font-size: 1.1rem; }
+    &:nth-of-type(3) { animation-delay: 1.4s; font-size: 1.7rem; }
+}
+
+@keyframes bed-slide {
+    0% { transform: translateX(100vw); }
+    18%, 82% { transform: translateX(0); }
+    100% { transform: translateX(100vw); }
+}
+
+@keyframes steam {
+    from { opacity: 0.4; transform: translateY(0); }
+    to { opacity: 0.9; transform: translateY(-3px); }
+}
+
+@keyframes bed-z {
+    0% { opacity: 0; transform: translate(0, 0); }
+    25% { opacity: 1; }
+    100% { opacity: 0; transform: translate(1.5rem, -3rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .big-fish-water, .big-fish-leap, .big-fish-splash, .firework, .bull-target, .bed-scene { display: none; }
 }

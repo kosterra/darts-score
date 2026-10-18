@@ -19,10 +19,10 @@ export const HatTrick = ({ moment, onDone }) => {
     const top = HEAD_TOP[index];
 
     return (
-        <div key={moment.key} className={`cricket-moment ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
-            <p className="cricket-moment-banner is-high">
-                <span className="cricket-moment-title">Hat Trick!</span>
-                <span className="cricket-moment-detail"><strong>{moment.name}</strong> · {moment.darts.join(' · ')}</span>
+        <div key={moment.key} className={`stage-moment ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
+            <p className="stage-moment-banner is-high">
+                <span className="stage-moment-title">Hat Trick!</span>
+                <span className="stage-moment-detail"><strong>{moment.name}</strong> · {moment.darts.join(' · ')}</span>
             </p>
             <div className="hat-trick-stage" aria-hidden="true">
                 <svg viewBox="0 0 120 170" className="hat-trick-figure">
@@ -52,10 +52,10 @@ export const ShutOut = ({ moment, onDone }) => {
     const Figure = FIGURES[moment.playerIndex % FIGURES.length];
 
     return (
-        <div key={moment.key} className={`cricket-moment ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
-            <p className="cricket-moment-banner">
-                <span className="cricket-moment-title">Shut-out!</span>
-                <span className="cricket-moment-detail">
+        <div key={moment.key} className={`stage-moment ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
+            <p className="stage-moment-banner">
+                <span className="stage-moment-title">Shut-out!</span>
+                <span className="stage-moment-detail">
                     <strong>{moment.name}</strong> closed all seven, {moment.victims.join(' and ')} not a single one
                 </span>
             </p>
