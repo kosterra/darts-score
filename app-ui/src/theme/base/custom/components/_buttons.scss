@@ -7,15 +7,20 @@
 // The rules weigh nothing (:where), so a component's own look (the actions in
 // the lists, the keypad, the help icon) stays as it is.
 
-@mixin soft-button($color) {
+// the text of soft green buttons and of the chosen pill: a saturated green that
+// stands out from its background (about 4.8 : 1), not a pale one
+$softGreenText: #7cc6a0;
+$softGreenTextHover: #95d6b4;
+
+@mixin soft-button($color, $text: lighten($color, 22%), $textHover: lighten($color, 28%)) {
   border-color: transparent;
   background: rgba($color, 0.2);
-  color: lighten($color, 22%);
+  color: $text;
 
   &:enabled:hover {
     border-color: transparent;
     background: rgba($color, 0.3);
-    color: lighten($color, 28%);
+    color: $textHover;
   }
 
   &:enabled:active { background: rgba($color, 0.38); }
@@ -23,7 +28,7 @@
 
 :where(.p-button.p-button-outlined:not(.p-button-danger):not(.p-button-text):not(.p-button-link)),
 :where(.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link)) {
-  @include soft-button($primaryColor);
+  @include soft-button($primaryColor, $softGreenText, $softGreenTextHover);
 }
 
 :where(.p-button.p-button-danger:not(.p-button-text):not(.p-button-link)) {
@@ -34,14 +39,27 @@
 :where(.p-selectbutton .p-button.p-highlight) {
   border-color: transparent;
   background: rgba($primaryColor, 0.3);
-  color: lighten($primaryColor, 30%);
+  color: $softGreenText;
 
-  &:hover { background: rgba($primaryColor, 0.38); }
+  &:hover { background: rgba($primaryColor, 0.38); color: $softGreenTextHover; }
 }
 
 // the current page of a list is a choice like a pill
 :where(.p-paginator .p-paginator-page.p-highlight) {
   border-color: transparent;
   background: rgba($primaryColor, 0.3);
-  color: lighten($primaryColor, 30%);
+  color: $softGreenText;
+}
+
+// not available yet: plain grey with faint text, whatever kind of button it is,
+// instead of a faded colour that is hard to read
+:where(.p-button:disabled, .p-button.p-disabled) {
+  border-color: transparent;
+  background: $surfaceHighColor;
+  color: $textFaintColor;
+  opacity: 1;
+}
+
+:where(.p-button.p-button-text:disabled, .p-button.p-button-link:disabled, .p-button.p-button-text.p-disabled) {
+  background: transparent;
 }
