@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
-import { TiInfoLarge } from "react-icons/ti";
 
 /**
  * How to enter darts, behind a small help button.
@@ -9,7 +8,7 @@ import { TiInfoLarge } from "react-icons/ti";
  * plainSingles: a plain number is a single and 50 the bullseye (X01)
  * compact: just the line and the button, for a header
  */
-const ScoreInputBoardHelp = ({ label = 'Click the dartboard or enter score', plainSingles = false, compact = false }) => {
+const ScoreInputBoardHelp = ({ label = 'Tap the board or type', plainSingles = false, compact = false }) => {
     const [visible, setVisible] = useState(false);
     const [position, setPosition] = useState('center');
 
@@ -45,16 +44,7 @@ const ScoreInputBoardHelp = ({ label = 'Click the dartboard or enter score', pla
                             {label}
                         </span>
                         <div className="col-2 d-flex justify-content-end">
-                            <Button
-                                type="button"
-                                severity="help"
-                                size="small"
-                                rounded
-                                className="p-1 me-2 fw-semibold fs-6"
-                                onClick={() => showHelp('bottom-right')}
-                            >
-                                <TiInfoLarge />
-                            </Button>
+                            <Button type="button" icon="pi pi-question-circle" text rounded severity="secondary" className="score-help-button me-1" aria-label="How to enter darts" title="How to enter darts" onClick={() => showHelp('bottom-right')} />
                         </div>
                     </div>
                 )
