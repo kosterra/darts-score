@@ -1,17 +1,22 @@
-import { Fragment, useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { Panel } from 'primereact/panel';
+import { Button } from 'primereact/button';
 import { useNavigate } from "react-router-dom";
 
 import X01Context from '../../../utils/x01.context';
-import X01ScoreBoard from './x01.scoreboard';
-import X01StatisticsBoard from './x01.statisticsboard';
+import X01LiveHeader from './x01.live.header';
+import X01LiveFigures from './x01.live.figures';
+import X01LegVisits from './x01.leg.visits';
+import X01MoreStats from './x01.more.stats';
+import X01FormCard from './x01.form.card';
+import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import X01ScoreInputBoard from './x01.score.input.board';
-import X01GameHeader from './x01.game.header';
 import PageLoader from '../../elements/page.loader';
-import { hasHandicap } from '../../../utils/x01.rules';
 
 const X01Game = () => {
     const { game, players, loading } = useContext(X01Context);
     const navigate = useNavigate();
+    const [more, setMore] = useState(false);
 
     useEffect(() => {
         if (game?.hasWinner) {
@@ -31,30 +36,58 @@ const X01Game = () => {
         );
     }
 
-    return (
-        <Fragment>
-            <X01GameHeader
-                setMode={game.setMode}
-                numberOfSets={game.numberOfSets}
-                legMode={game.legMode}
-                numberOfLegs={game.numberOfLegs}
-                legInMode={game.legInMode}
-                legOutMode={game.legOutMode}
-                handicap={hasHandicap(game)}
-            />
+    const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
 
-            {/* --- Scoreboard Section --- */}
-            <div className={`x01-players count-${game.players.length}`}>
-                {game.players.map(playerId => <X01ScoreBoard key={`score-board-${playerId}`} playerId={playerId} />)}
-            </div>
+    return (
+        <div className="game-stats-page x01-live">
+            <X01LiveHeader />
 
             <X01ScoreInputBoard />
 
-            {/* --- Statistics Section --- */}
-            <div className={`x01-players x01-stats-grid count-${game.players.length}`}>
-                {game.players.map(playerId => <X01StatisticsBoard key={`statistics-board-${playerId}`} playerId={playerId} />)}
+            <div className="row g-4 mb-4">
+                <div className="col-12 col-xl-7">
+                    <Panel header="This leg" className="h-100">
+                        <X01LegVisits game={game} players={ordered} />
+                    </Panel>
+                </div>
+                <div className="col-12 col-xl-5">
+                    <Panel header="Key figures" className="h-100">
+                        <div className="x01-live-figures">
+                            <X01LiveFigures game={game} players={ordered} />
+                        </div>
+                    </Panel>
+                </div>
             </div>
-        </Fragment>
+
+            <div className="row g-4 mb-4">
+                <div className="col-12">
+                    <Panel header="Form">
+                        <div className={`x01-form-list count-${ordered.length}`}>
+                            {ordered.map((player, index) => (
+                                <div key={player.id}>
+                                    <span className="d-inline-flex align-items-center fw-semibold text-default fs-7 mb-1">
+                                        <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />{player.nickname}
+                                    </span>
+                                    <X01FormCard game={game} playerId={player.id} />
+                                </div>
+                            ))}
+                        </div>
+                    </Panel>
+                </div>
+            </div>
+
+            <div className="text-center mb-3">
+                <Button
+                    type="button"
+                    label={more ? 'Fewer statistics' : 'More statistics'}
+                    icon={more ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
+                    text
+                    aria-expanded={more}
+                    onClick={() => setMore(!more)}
+                />
+            </div>
+            {more && <X01MoreStats game={game} players={ordered} />}
+        </div>
     );
 };
 

@@ -1,129 +1,68 @@
-// The X01 game page: a card per player, the dart input next to the board
+// The X01 game page in the look of the statistics page: the hero with the
+// players, the board and the visit in panels, the leg and the form below
 
 .x01-game-page { padding: 0 1.5rem 1.5rem; }
 
-.x01-game-header-wrap {
-  display: flex;
-  justify-content: center;
+// the player at the oche: the score bright, a halo in their colour
+.x01-live-hero {
   margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  border-radius: $borderRadius;
+
+  .result-hero-player.is-turn .result-hero-score { color: var(--text-default); }
+  .result-hero-player .result-hero-score.is-bust { color: #ff8a80; }
 }
 
-.x01-game-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem 1.5rem;
+.x01-turn-halo {
+  position: absolute;
+  inset: -0.9rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--player-colour) 50%, transparent) 0%, color-mix(in srgb, var(--player-colour) 14%, transparent) 55%, transparent 72%);
+  animation: result-hero-halo 2.8s ease-in-out infinite;
+  pointer-events: none;
 }
 
-.x01-game-header-format { font-size: 1rem; }
-.x01-game-header-rules { padding-top: 0.25rem; font-size: 0.8rem; }
-
-.x01-play { margin-top: 1.5rem; }
-
-.x01-board-col {
+.x01-live-tags {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-
-  @media (min-width: 1400px) { justify-content: flex-start; }
-}
-
-.x01-players {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.75rem;
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 0 0.75rem;
-
-  &.count-1 { max-width: 26rem; }
-  &.count-2 { max-width: 52rem; }
-}
-
-.x01-player {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-width: 0;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
-  background: var(--surface);
-  transition: border-color 0.2s, background 0.2s;
-
-  // the player at the oche: lighter border and background, no colour
-  &.is-current {
-    border-color: rgba(255, 255, 255, 0.35);
-    background: color-mix(in srgb, #fff 6%, var(--surface));
-  }
-}
-
-.x01-player-head {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-}
-
-.x01-player-name {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  min-width: 0;
-}
-
-.x01-player-nickname {
-  overflow: hidden;
-  color: var(--text-default);
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.x01-player-detail {
-  overflow: hidden;
-  color: var(--text-faint);
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  .is-current & { color: var(--text-subtle); }
-}
-
-// who threw first in this leg
-.x01-player-starter {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 0.25rem;
+  gap: 0.25rem 0.6rem;
+  min-height: 1.1rem;
   color: var(--text-faint);
   font-size: 0.7rem;
 }
 
-.x01-player-score {
-  color: var(--text-default);
-  font-size: clamp(3rem, 7vw, 4.5rem);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  text-align: center;
-
-  &.is-bust { color: #ff8a80; }
+.x01-live-turn {
+  color: var(--text-subtle);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-// the way out, e.g. "T20 · T19 · D12"
-.x01-player-route {
-  min-height: 1.2rem;
+.x01-live-starter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+// the usual way out, and how many more there are
+.x01-live-route {
+  min-height: 1.3rem;
   color: #ffc94d;
   font-size: 0.85rem;
   font-weight: 600;
-  text-align: center;
   white-space: nowrap;
 }
 
-.x01-player-leg {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
+.x01-live-route-more {
+  margin-left: 0.4rem;
+  padding: 0 0.35rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 201, 77, 0.14);
+  font-size: 0.7rem;
+}
+
+.x01-live-leg {
   color: var(--text-faint);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
@@ -131,15 +70,13 @@
   strong { color: var(--text-default); font-weight: 600; }
 }
 
-.x01-player-won {
+.x01-live-won {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 0.25rem;
+  gap: 1.25rem;
 }
 
 .x01-won {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
 }
@@ -163,23 +100,21 @@
   font-weight: 600;
 }
 
-// the darts of the visit
-.x01-input {
-  padding: 1rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
-  background: var(--surface);
+// the key figures in a panel, in the table look of the statistics page
+.x01-live-figures {
+  overflow-x: auto;
+
+  .result-hero-figures { max-width: none; }
 }
 
-.x01-input-head {
+.x01-play { margin-bottom: 1.5rem; }
+
+.x01-board-col {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  justify-content: center;
 }
 
+// the darts of the visit
 .x01-darts {
   display: flex;
   flex-direction: column;
@@ -225,6 +160,12 @@
   &:hover, &:focus-visible { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
 }
 
+.x01-visit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .x01-visit-total {
   margin: 0.85rem 0;
   color: var(--text-subtle);
@@ -236,75 +177,27 @@
   &.is-bust, &.is-bust strong { color: #ff8a80; }
 }
 
-// a phone: compact cards two by two, the board, then the darts in one row, so
-// a whole visit fits on the screen above the menu bar
-@media (max-width: 767.98px) {
-  .x01-game-page { padding: 0 0.5rem 5rem; }
-  .x01-game-header-wrap { margin-bottom: 0.5rem; }
-  .x01-game-header { padding: 0.35rem 1rem; }
-  .x01-game-header-format { font-size: 0.85rem; }
-  .x01-game-header-rules { padding-top: 0; font-size: 0.7rem; }
-
-  .x01-players {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-    padding: 0;
-
-    &.count-1 { grid-template-columns: 1fr; }
-  }
-
-  // the statistics one below the other: two side by side are too narrow
-  .x01-players.x01-stats-grid { grid-template-columns: 1fr; margin-top: 1rem; }
-
-  .x01-player {
-    gap: 0.1rem;
-    padding: 0.5rem 0.65rem;
-
-    .p-avatar, .x01-player-detail, .x01-player-leg { display: none; }
-  }
-
-  .x01-player-score { font-size: 2.4rem; }
-  .x01-player-route { min-height: 1rem; font-size: 0.75rem; }
-  .x01-player-won { gap: 0.75rem; margin-top: 0; }
-
-  .x01-play { margin-top: 0.5rem; }
-  // a little smaller, so the darts and Enter score stay above the menu bar
-  .x01-board-col .dartboard-img { max-width: 19rem; }
-  .x01-board-col.is-hidden { display: none; }
-
-  .x01-input { margin-top: 0.5rem; padding: 0.65rem 0.75rem; }
-  .x01-input-head { margin-bottom: 0.4rem; }
-
-  .x01-darts { flex-direction: row; }
-  .x01-dart-field { flex: 1 1 0; min-width: 0; }
-  .x01-dart-input.p-inputtext { padding: 0.55rem 1.6rem 0.55rem 0.6rem; font-size: 1rem; }
-  .x01-dart-clear { right: 0.1rem; bottom: 0.4rem; width: 1.5rem; height: 1.5rem; }
-  .x01-visit-total { margin: 0.5rem 0; }
-}
-
-// how each player is doing, below the board
-.x01-stats-grid { margin-top: 1.5rem; }
-
-.x01-stats {
+// every way out, grouped by the number of darts
+.x01-ways {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  min-width: 0;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
-  background: var(--surface);
-
-  .x01-form-card { background: var(--surface-raised); }
+  gap: 0.85rem;
 }
 
-.x01-stats-name {
-  color: var(--text-default);
-  font-weight: 600;
-  text-align: center;
+.x01-ways-best {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.x01-stats-title {
+.x01-ways-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.x01-ways-label {
   color: var(--text-faint);
   font-size: 0.65rem;
   font-weight: 700;
@@ -312,61 +205,39 @@
   text-transform: uppercase;
 }
 
-.x01-stats-table {
-  width: 100%;
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
-
-  th, td { padding: 0.2rem 0.25rem; }
-
-  thead th {
-    color: var(--text-faint);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-align: right;
-    text-transform: uppercase;
-  }
-
-  tbody th {
-    color: var(--text-subtle);
-    font-weight: 500;
-  }
-
-  td {
-    color: var(--text-default);
-    text-align: right;
-  }
-
-  tbody tr + tr { border-top: 1px solid rgba(255, 255, 255, 0.05); }
-}
-
-.x01-visit-list {
+.x01-ways-list {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  max-height: 14rem;
-  margin: 0.35rem 0 0;
-  padding: 0;
-  overflow-y: auto;
-  list-style: none;
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
-
-  li {
-    display: grid;
-    grid-template-columns: 1.5rem 1fr 2.5rem 2.75rem;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  li.is-bust .x01-visit-score { color: #ff8a80; }
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
-.x01-visit-number { color: var(--text-faint); }
+.x01-ways-route {
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.5rem;
+  background: var(--surface-raised);
+  color: var(--text-default);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &.is-preferred {
+    background: rgba(255, 201, 77, 0.14);
+    color: #ffc94d;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+}
+
+// the visits of the leg in the table look of the statistics page
+.x01-leg-visits {
+  max-height: 22rem;
+  overflow-y: auto;
+
+  .is-latest td { background: color-mix(in srgb, #fff 5%, var(--surface-raised)); }
+}
 
 .x01-visit-darts {
-  display: flex;
+  display: inline-flex;
   gap: 0.25rem;
   color: var(--text-subtle);
 
@@ -378,16 +249,63 @@
   }
 }
 
-.x01-visit-score { color: var(--text-subtle); text-align: right; }
-.x01-visit-left { color: var(--text-default); font-weight: 600; text-align: right; }
+.x01-bust-text { color: #ff8a80 !important; }
+
+.x01-form-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem 1.25rem;
+
+  .x01-form-card { background: var(--surface-raised); }
+}
+
+.x01-doubles-player + .x01-doubles-player { margin-top: 0.75rem; }
 
 .x01-stats-doubles {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem 0.75rem;
+  margin-top: 0.25rem;
   color: var(--text-subtle);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 
   strong { color: var(--text-default); }
+}
+
+// a phone: a compact header, the board can be hidden, the darts in one row,
+// the key figures below the board, and room for the menu bar
+@media (max-width: 767.98px) {
+  .x01-game-page { padding: 0 0.5rem 5rem; }
+
+  .x01-live-hero {
+    gap: 0.75rem;
+    padding: 0.85rem;
+    margin-bottom: 0.75rem;
+
+    .result-hero-portrait, .x01-live-leg, .x01-live-route.is-empty { display: none; }
+    .result-hero-score { font-size: 2.4rem; }
+  }
+
+  // the panels of the board and the visit a little tighter
+  .x01-play .p-panel {
+    .p-panel-header { padding: 0.5rem 0.85rem; }
+    .p-panel-content { padding: 0.5rem 0.85rem 0.75rem; }
+  }
+
+
+  .x01-play { --bs-gutter-y: 0.75rem; margin-bottom: 0.75rem; }
+  .x01-board-panel.is-hidden { display: none; }
+  .x01-board-col .dartboard-img { max-width: 16rem; }
+
+  .x01-darts { flex-direction: row; }
+  .x01-dart-field { flex: 1 1 0; min-width: 0; }
+  .x01-dart-input.p-inputtext { padding: 0.55rem 1.6rem 0.55rem 0.6rem; font-size: 1rem; }
+  .x01-dart-clear { right: 0.1rem; bottom: 0.4rem; width: 1.5rem; height: 1.5rem; }
+  .x01-visit-total { margin: 0.5rem 0; }
+
+  // Enter score and Undo side by side
+  .x01-visit-actions { flex-direction: row; }
+  .x01-enter { flex: 1 1 auto; }
+  .x01-undo { flex: 0 0 auto; }
 }
