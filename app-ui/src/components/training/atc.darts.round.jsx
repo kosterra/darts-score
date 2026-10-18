@@ -95,13 +95,13 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
             {rings
                 ? <div className="atc-round-buttons is-rings">
                     <Button type="button" label="Miss" icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
-                    <Button type="button" label="Single" severity="success" className="atc-round-button" onClick={() => onDart(1)} />
-                    <Button type="button" label="Double" severity="success" className="atc-round-button" onClick={() => onDart(2)} />
-                    <Button type="button" label="Treble" severity="success" className="atc-round-button" onClick={() => onDart(3)} />
+                    <Button type="button" label="Single" className="atc-round-button" onClick={() => onDart(1)} />
+                    <Button type="button" label="Double" className="atc-round-button" onClick={() => onDart(2)} />
+                    <Button type="button" label="Treble" className="atc-round-button" onClick={() => onDart(3)} />
                 </div>
                 : <div className="atc-round-buttons">
                     <Button type="button" label="Miss" icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
-                    <Button type="button" label="Hit" icon="pi pi-check" severity="success" className="atc-round-button" onClick={() => onDart(1)} />
+                    <Button type="button" label="Hit" icon="pi pi-check" className="atc-round-button" onClick={() => onDart(1)} />
                 </div>
             }
 
