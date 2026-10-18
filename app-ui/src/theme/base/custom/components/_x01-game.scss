@@ -448,3 +448,85 @@
   .x01-visit-total { margin: 0.5rem 0; }
 
 }
+
+// the switch between the board and the keypad, in the header of the visit
+.x01-input-switch.p-selectbutton .p-button {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+// the keypad: one big button per dart, Double or Treble first for that dart
+.x01-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+.x01-keypad-rings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.x01-keypad-numbers {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+}
+
+.x01-keypad-extras {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.x01-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 3.6rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.6rem;
+  background: var(--surface-raised);
+  color: var(--text-default);
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover:not(:disabled) { background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
+  &:active:not(:disabled) { transform: scale(0.97); }
+  &:focus-visible { outline: 2px solid #4aa8ff; outline-offset: 2px; }
+  &:disabled { opacity: 0.35; cursor: default; }
+
+  // just pressed: the same blue as the board's feedback
+  &.is-pressed { border-color: #4aa8ff; background: color-mix(in srgb, #4aa8ff 35%, var(--surface-raised)); }
+
+  &.is-ring {
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    &.is-active { border-color: var(--primary-color); background: var(--primary-color); color: var(--primary-color-text); }
+  }
+
+  &.is-miss, &.is-back { color: var(--text-subtle); font-size: 1rem; }
+}
+
+// with Double or Treble chosen the numbers say so
+.x01-keypad.is-double, .x01-keypad.is-treble {
+  .x01-keypad-numbers .x01-key { border-color: color-mix(in srgb, var(--primary-color) 70%, transparent); }
+}
+
+@media (max-width: 767.98px) {
+  .x01-keypad { gap: 0.4rem; }
+  .x01-keypad-numbers, .x01-keypad-extras { gap: 0.3rem; }
+  .x01-key { min-height: 2.9rem; font-size: 1rem; }
+}

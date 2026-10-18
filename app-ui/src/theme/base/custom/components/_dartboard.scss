@@ -90,3 +90,67 @@ $dartboard-opacity: 0.4;
 @media (prefers-reduced-motion: reduce) {
   .dartboard-img .dart-marker-pulse { animation: none; opacity: 0.5; }
 }
+
+// with a finger on the board, sliding moves the magnifier instead of the page
+.dartboard-img {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+
+  // the field just hit lights up blue for a moment
+  .item.is-flash { animation: dartboard-flash 0.5s ease-out; }
+}
+
+@keyframes dartboard-flash {
+  0% { fill: #4aa8ff; opacity: 1; }
+  100% { opacity: 1; }
+}
+
+// the magnifier above the finger: the board enlarged around it, the field named
+.dartboard-loupe {
+  position: fixed;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.dartboard-loupe-board {
+  max-width: none;
+  max-height: none;
+  border: 3px solid #4aa8ff;
+  border-radius: 50%;
+  background: $surfaceColor;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+
+  .item:hover { opacity: 1; }
+}
+
+// the point under the finger
+.dartboard-loupe-cross {
+  position: absolute;
+  top: calc(64px - 4px);
+  left: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #4aa8ff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.dartboard-loupe-label {
+  padding: 0.15rem 0.6rem;
+  border-radius: 1rem;
+  background: #4aa8ff;
+  color: #0b1620;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dartboard-img .item.is-flash { animation-duration: 0.01s; }
+}

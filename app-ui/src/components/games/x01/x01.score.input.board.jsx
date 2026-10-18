@@ -2,26 +2,36 @@ import { useContext, useState, useEffect } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
+import { SelectButton } from 'primereact/selectbutton';
 
 import X01Context from '../../../utils/x01.context';
 import X01DartBoard from './x01.dartboard';
 import X01WaysOut from './x01.ways.out';
+import X01Keypad from './x01.keypad';
 import ScoreInputBoardHelp from '../common/score.input.board.help';
 
 
-const BOARD_KEY = 'oche.x01Board';
-const readShowBoard = () => {
+// how the darts are entered, chosen per device: the board, or the keypad
+// (the default on a phone, where the fields of the board are small)
+const INPUT_KEY = 'oche.x01Input';
+const INPUTS = [
+    { label: 'Board', value: 'board', icon: 'pi pi-bullseye' },
+    { label: 'Keypad', value: 'keypad', icon: 'pi pi-th-large' },
+];
+const readInput = () => {
     try {
-        return localStorage.getItem(BOARD_KEY) !== 'hidden';
+        const saved = localStorage.getItem(INPUT_KEY);
+        if (saved === 'board' || saved === 'keypad') return saved;
     } catch {
-        return true;
+        // storage unavailable: the default below
     }
+    return window.matchMedia?.('(max-width: 767.98px)').matches ? 'keypad' : 'board';
 };
-const writeShowBoard = (show) => {
+const writeInput = (input) => {
     try {
-        localStorage.setItem(BOARD_KEY, show ? 'shown' : 'hidden');
+        localStorage.setItem(INPUT_KEY, input);
     } catch {
-        // storage unavailable: the board shows again next time
+        // storage unavailable: the default again next time
     }
 };
 
@@ -41,11 +51,11 @@ const X01ScoreInputBoard = () => {
     // the score left after the darts entered so far, worked out on every render: a copy in
     // state lagged one render behind, and a quick Enter submitted the score before the last dart
     const score = game.playerModels[game.currentPlayerTurn].score - getCurrentThrowScore();
-    // on a phone the board can be hidden to type only; remembered on the device
-    const [showBoard, setShowBoard] = useState(() => readShowBoard());
-    const toggleBoard = () => {
-        setShowBoard(!showBoard);
-        writeShowBoard(!showBoard);
+    const [input, setInput] = useState(() => readInput());
+    const chooseInput = (value) => {
+        if (!value) return;
+        setInput(value);
+        writeInput(value);
     };
 
     // s, d and t work as well: the dart is written in capitals once typed
@@ -118,30 +128,27 @@ const X01ScoreInputBoard = () => {
     const visitHeader = (
         <div className="p-panel-header">
             <span className="p-panel-title">{nickname}&apos;s visit</span>
-            <span className="d-inline-flex align-items-center gap-1">
-                {/* on a phone the board can make way for typing */}
-                <Button
-                    type="button"
-                    label={showBoard ? 'Type only' : 'Board'}
-                    icon={showBoard ? 'pi pi-pencil' : 'pi pi-bullseye'}
-                    text
-                    size="small"
-                    className="d-md-none p-1"
-                    aria-pressed={!showBoard}
-                    onClick={toggleBoard}
+            <span className="d-inline-flex align-items-center gap-2">
+                <SelectButton
+                    value={input}
+                    options={INPUTS}
+                    onChange={(e) => chooseInput(e.value)}
+                    itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-1"><i className={option.icon} aria-hidden="true" />{option.label}</span>}
+                    className="p-selectbutton-pills pills-inline x01-input-switch"
+                    aria-label="Enter the darts with"
                 />
-                <ScoreInputBoardHelp label={<span className="d-none d-sm-inline">Tap the board or type</span>} plainSingles compact />
+                <ScoreInputBoardHelp label="" plainSingles compact />
             </span>
         </div>
     );
 
     return (
         <div className="row g-4 x01-play">
-            {/* the board on its own, without a panel around it */}
-            <div className={`col-12 col-lg-7 x01-board-plain ${showBoard ? '' : 'is-hidden'}`}>
-                <div className="x01-board-col">
-                    <X01DartBoard />
-                </div>
+            {/* the board on its own, without a panel around it, or the keypad */}
+            <div className="col-12 col-lg-7 x01-board-plain">
+                {input === 'keypad'
+                    ? <X01Keypad />
+                    : <div className="x01-board-col"><X01DartBoard /></div>}
             </div>
             <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                 <Panel headerTemplate={() => visitHeader} className="x01-input">
@@ -159,6 +166,8 @@ const X01ScoreInputBoard = () => {
                                         validateOnly
                                         onInput={validateInput}
                                         autoComplete="off"
+                                        // with the keypad, tapping a field opens no keyboard on a phone
+                                        inputMode={input === 'keypad' ? 'none' : 'text'}
                                         className="x01-dart-input"
                                     />
                                     {darts[index] !== '' &&
