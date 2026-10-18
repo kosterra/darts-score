@@ -455,14 +455,29 @@
   font-size: 0.8rem;
 }
 
-// the help next to it: a quiet icon of the same height, centred with the pills
+// the help next to it: just the icon, of the height of the pills and centred
+// with them; no background, ring or shadow when hovered, pressed or clicked
 .score-help-button.p-button.p-button-icon-only {
   width: 2rem;
   height: 2rem;
   padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--text-subtle);
 
   .p-button-icon { font-size: 1.1rem; }
+
+  &:hover, &:active, &:focus, &:enabled:hover, &:enabled:active, &:not(:disabled):focus {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  &:hover { color: var(--text-default); }
+
+  // with the keyboard it still shows where the focus is
+  &:focus-visible { outline: 2px solid #4aa8ff; outline-offset: 2px; }
 }
 
 // the keypad: one big button per dart, Double or Treble first for that dart
