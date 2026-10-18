@@ -9,6 +9,8 @@ $badgeMetals: (
     "legend": #ff7a59,
 );
 
+// like the level icons: a soft tint of the metal with a thin ring and the icon
+// in that colour
 .badge-medal {
     position: relative;
     display: inline-flex;
@@ -19,17 +21,15 @@ $badgeMetals: (
     height: 3.5rem;
     border-radius: 50%;
     font-size: 1.5rem;
-    border: 3px solid currentColor;
-    // the metal colour is set per tier below and tints ring, icon and glow
-    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 60%), $surfaceHighColor;
-    box-shadow: 0 0 0 3px $surfaceColor, 0 0 14px -2px currentColor;
+    // the metal colour is set per tier below and tints background, ring and icon
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, currentColor 55%, transparent);
 
     &.badge-medal-sm {
         width: 2.25rem;
         height: 2.25rem;
         font-size: 0.95rem;
-        border-width: 2px;
-        box-shadow: 0 0 0 2px $surfaceColor, 0 0 8px -2px currentColor;
+        box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 55%, transparent);
     }
 
     @each $metal, $color in $badgeMetals {
@@ -38,10 +38,9 @@ $badgeMetals: (
         }
     }
 
+    // not earned yet: grey, with a lock
     &.badge-locked {
         color: $shade600;
-        background: $surfaceRaisedColor;
-        box-shadow: none;
 
         .badge-lock {
             position: absolute;
