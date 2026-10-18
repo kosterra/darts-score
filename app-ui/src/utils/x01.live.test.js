@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkoutRouteOf, legSummaryOf } from './x01.live';
+import { legSummaryOf } from './x01.live';
 
 const game = (currentLegThrows, extra = {}) => ({ startingScore: 501, legOutMode: 'Double Out', players: ['a', 'b'], currentLegThrows, ...extra });
 
@@ -24,17 +24,5 @@ describe('legSummaryOf', () => {
 
     it('has nothing before the first visit', () => {
         expect(legSummaryOf(game([]), 'a')).toEqual({ lastVisit: null, darts: 0, average: null });
-    });
-});
-
-describe('checkoutRouteOf', () => {
-    it('gives the double-out route in short', () => {
-        expect(checkoutRouteOf(game([]), 'a', 170)).toBe('T20 · T20 · D25');
-    });
-
-    it('has none without a checkout or without double out', () => {
-        expect(checkoutRouteOf(game([]), 'a', 169)).toBeNull();
-        expect(checkoutRouteOf(game([]), 'a', 300)).toBeNull();
-        expect(checkoutRouteOf(game([], { legOutMode: 'Straight Out' }), 'a', 170)).toBeNull();
     });
 });

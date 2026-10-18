@@ -1,8 +1,7 @@
-// What the scoreboard of a running X01 game shows besides the score: the
-// player's last visit, darts and average in the current leg, and the way out.
+// What the header of a running X01 game shows besides the score: the player's
+// last visit, darts and average in the current leg.
 
-import checkout from './checkout';
-import { outModeOf, startingScoreOf } from './x01.rules';
+import { startingScoreOf } from './x01.rules';
 
 /**
  * The current leg of a player: their last visit ({ score, bust } or null),
@@ -23,15 +22,4 @@ export const legSummaryOf = (game, playerId) => {
         darts: visits.reduce((sum, visit) => sum + (visit.darts?.filter(dart => String(dart).trim() !== '').length ?? 0), 0),
         average: scores.length ? scores.reduce((sum, visit) => sum + visit.score, 0) / scores.length : null,
     };
-};
-
-/**
- * The suggested way out of a score with a double finish, e.g. "T20 · T19 · D12",
- * or null when there is none (or the player does not finish on a double).
- */
-export const checkoutRouteOf = (game, playerId, score) => {
-    if (outModeOf(game, playerId) !== 'Double Out') return null;
-    const route = checkout[score]?.[0];
-    if (!route || route.startsWith('---')) return null;
-    return route.trim().split(/\s*-\s*/).join(' · ');
 };
