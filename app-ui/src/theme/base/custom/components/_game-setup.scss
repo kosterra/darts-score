@@ -217,21 +217,23 @@
 }
 
 .quick-format {
-  padding: 0.4rem 0.85rem;
+  // the look of the other pills: grey, the chosen one soft green
+  padding: 0.45rem 0.9rem;
+  border: 0;
   border-radius: 999px;
-  border: 1px solid var(--border-default);
-  background: var(--surface-raised);
+  background: $toggleButtonPillsBg;
   color: var(--text-default);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 
-  &:hover { border-color: rgba(255, 255, 255, 0.35); }
+  &:hover { background: color-mix(in srgb, #fff 6%, $toggleButtonPillsBg); }
   &:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 
   &.is-active {
-    border-color: var(--primary-color);
-    background: color-mix(in srgb, var(--primary-color) 18%, var(--surface-raised));
+    background: rgba($primaryColor, 0.3);
+    color: $softGreenText;
   }
 }
 

@@ -71,9 +71,10 @@
         color: $textSubtleColor;
         box-shadow: none;
 
+        // the row is grey on hover itself: a light tint on top of it shows the button
         &:enabled:hover,
         &:focus-visible {
-            background: $surfaceHighColor;
+            background: rgba(255, 255, 255, 0.1);
             color: $textDefaultColor;
         }
 
@@ -86,6 +87,8 @@
         // e.g. a player with a login or a public nickname
         &:not(.p-button-secondary):not(.p-button-info):not(.p-button-danger) {
             color: $primaryColor;
+
+            &:enabled:hover { background: rgba($primaryColor, 0.25); color: $softGreenTextHover; }
         }
     }
 
@@ -101,7 +104,7 @@
 
         &:hover,
         &:focus-visible {
-            background: $surfaceHighColor;
+            background: rgba(255, 255, 255, 0.1);
             color: $textDefaultColor;
         }
     }
