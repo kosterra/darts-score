@@ -31,7 +31,8 @@ const WonCount = ({ label, won, mode, count }) => {
 /**
  * The top of a running X01 game in the look of the statistics page: what is
  * played, every player with the score left (live while the darts are entered),
- * the way out, legs and sets. The player at the oche has a halo in their colour;
+ * the way out with the legs and sets under it; with two players the second is
+ * mirrored, so the scores face each other. The player at the oche has a halo;
  * the key figures are in a panel below, so the board stays in view.
  */
 const X01LiveHeader = () => {
@@ -66,7 +67,7 @@ const X01LiveHeader = () => {
                     const setup = busted || routes.length ? null : setupSuggestions(score, throwing)[0];
                     const leg = legSummaryOf(game, player.id);
                     return (
-                        <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''}`} aria-current={isTurn ? 'true' : undefined}>
+                        <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${ordered.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
                             <span className="result-hero-portrait x01-hero-portrait">
                                 {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
                                 <Avatar
@@ -84,10 +85,6 @@ const X01LiveHeader = () => {
                                     {game.startingPlayerLeg === player.id && <span className="x01-live-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>}
                                     {handicap && <span className="x01-handicap-rules">{describeRules(rulesOf(game, player.id))}</span>}
                                 </span>
-                                <span className="x01-live-won">
-                                    <WonCount label="Legs" won={model.currentSetLegsWon} mode={game.legMode} count={game.numberOfLegs} />
-                                    {game.numberOfSets > 1 && <WonCount label="Sets" won={model.setsWon} mode={game.setMode} count={game.numberOfSets} />}
-                                </span>
                                 <span className="x01-live-leg">
                                     Last visit <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
                                 </span>
@@ -98,6 +95,10 @@ const X01LiveHeader = () => {
                                     {routes[0]
                                         ? <>{formatRoute(routes[0])}{routes.length > 1 && <span className="x01-live-route-more">+{routes.length - 1}</span>}</>
                                         : setup ? <>{formatRoute(setup.darts)}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />leaves {setup.leaves}</span></> : '\u00a0'}
+                                </span>
+                                <span className="x01-live-won">
+                                    <WonCount label="Legs" won={model.currentSetLegsWon} mode={game.legMode} count={game.numberOfLegs} />
+                                    {game.numberOfSets > 1 && <WonCount label="Sets" won={model.setsWon} mode={game.setMode} count={game.numberOfSets} />}
                                 </span>
                             </div>
                         </div>

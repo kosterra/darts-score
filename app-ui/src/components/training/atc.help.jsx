@@ -22,6 +22,7 @@ const ATCHelp = () => {
             <Dialog
                 header="Around the Clock"
                 visible={visible}
+                position="bottom-right"
                 style={{ width: '40vw' }}
                 breakpoints={{ '960px': '60vw', '641px': '100vw' }}
                 onHide={hideDialog}

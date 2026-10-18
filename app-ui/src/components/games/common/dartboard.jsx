@@ -418,8 +418,8 @@ const DartBoard = (props) => {
             <g className="dart-markers" pointerEvents="none" aria-hidden="true">
                 {shown.map(marker => (
                     <g key={marker.index} transform={`translate(${marker.x}, ${marker.y})`}>
-                        {marker === last && <circle className="dart-marker-pulse" r="7" />}
-                        <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="5" />
+                        {marker === last && <circle className="dart-marker-pulse" r="5" />}
+                        <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
                     </g>
                 ))}
             </g>

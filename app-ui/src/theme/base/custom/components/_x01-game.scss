@@ -59,12 +59,22 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  align-items: flex-end;
-  gap: 0.15rem;
-  min-width: 7rem;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 9rem;
 
-  .result-hero-score { font-size: 3.25rem; }
+  .result-hero-score { font-size: 3.5rem; }
 }
+
+// two players: the second mirrored, so the scores sit side by side in the middle
+.x01-hero-player.is-mirrored {
+  flex-direction: row-reverse;
+
+  .x01-hero-info { align-items: flex-end; text-align: right; }
+  .x01-live-tags { justify-content: flex-end; }
+}
+
+.x01-hero-players.count-2 { gap: 1rem 3rem; }
 
 .x01-turn-halo {
   position: absolute;
@@ -388,7 +398,7 @@
     gap: 0.75rem;
   }
 
-  .x01-hero-player {
+  .x01-hero-player, .x01-hero-player.is-mirrored {
     flex-direction: column;
     gap: 0.15rem;
   }
