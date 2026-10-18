@@ -279,7 +279,11 @@ describe('Hall of Shame', () => {
     });
 
     it('counts empty visits and three busts in a leg', () => {
-        expect(shameOf([x01Game({}, { model: { scoreRanges: { game: { ZERO: 2 } } } })])).toContain('nothingDoing');
+        expect(shameOf([x01Game({ 'leg-1': [v(['0', '0', '0'], 0, 501)] })])).toContain('nothingDoing');
+        // three misses at the double on 32 left: stuck on the double, not nothing doing
+        const onDouble = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T19', 'S12'], 129, 32), v(['0', '0', '0'], 0, 32)];
+        expect(shameOf([x01Game({ 'leg-1': onDouble })])).not.toContain('nothingDoing');
+        expect(shameOf([x01Game({ 'leg-1': onDouble }, { extra: { legOutMode: 'Straight Out' } })])).toContain('nothingDoing');
         const busts = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T20', 'D10'], 140, 1),
             v(['S20', 'S20', 'S1'], 41, 1), v(['S5', '', ''], 5, 1), v(['D1', '', ''], 2, 1)];
         // 1 left can't be finished: the last three are busts... only those that took nothing off

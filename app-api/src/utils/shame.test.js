@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clubShameHolders, personalShame } from './shame.js';
+import { clubShameHolders, isShameChild, personalShame, shameCountsFrom } from './shame.js';
 
 const day = (n) => new Date(2026, 0, n);
 const player = (id, shame = [], shameWashes = []) => ({ _id: id, shame, shameWashes });
@@ -30,5 +30,26 @@ describe('clubShameHolders', () => {
     it('leaves it free when the holder washed it off', () => {
         const holders = clubShameHolders([player('a', [madhouse(1)]), player('b', [madhouse(4)], [{ badge: 'madhouse', at: day(6), sourceId: 'g6' }])], 'c1');
         expect(holders.find(e => e.id === 'madhouse').holder).toBeNull();
+    });
+});
+
+describe('children', () => {
+    const child = { ...player('k', [madhouse(8)]), dateOfBirth: new Date(2015, 5, 1) };
+    const turned16 = { ...player('t', [madhouse(2), madhouse(20)]), dateOfBirth: new Date(2010, 0, 10) };
+
+    it('counts players from their 16th birthday when the club leaves children out', () => {
+        expect(shameCountsFrom(child, false)).toBeNull();
+        expect(shameCountsFrom(player('x'), true)).toBeNull();
+        expect(shameCountsFrom(turned16, true)).toEqual(new Date(2026, 0, 10));
+        expect(isShameChild(child, true, day(1))).toBe(true);
+        expect(isShameChild(child, false, day(1))).toBe(false);
+    });
+
+    it('never gives a child the trophy, and forgets what was done before 16', () => {
+        const players = [player('a', [madhouse(1)]), child];
+        expect(clubShameHolders(players, 'c1').find(e => e.id === 'madhouse').holder).toBe('k');
+        expect(clubShameHolders(players, 'c1', { withoutChildren: true }).find(e => e.id === 'madhouse').holder).toBe('a');
+        const entry = personalShame(turned16, { from: shameCountsFrom(turned16, true) }).find(e => e.id === 'madhouse');
+        expect(entry.count).toBe(1);
     });
 });

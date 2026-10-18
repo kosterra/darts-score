@@ -260,7 +260,7 @@ export const SHAME_BADGES = [
     },
     {
         id: 'nothingDoing', title: 'Nothing Doing', metric: 'nothingDoings', washMetric: 'tonFortyVisits',
-        description: 'Three darts in a visit and no score',
+        description: 'Three darts in a visit and no score, while not throwing at a double',
         wash: `Score ${TON_FORTY} or more in a visit`,
     },
     {
@@ -410,12 +410,15 @@ const applyAnyVisit = (metrics, visit) => {
 };
 
 /**
- * What an X01 visit of the player shows: bed and breakfast, three in a bed and
- * a bag of nuts. "before" is what the player had left before the visit, so a
- * bust (nothing taken off) does not count as a score.
+ * What an X01 visit of the player shows: bed and breakfast, three in a bed, a
+ * bag of nuts and nothing doing. "before" is what the player had left before
+ * the visit, so a bust (nothing taken off) does not count as a score; missing
+ * at a double is not nothing doing, that is what stuck on the double is for.
  */
-const applyX01Visit = (metrics, visit, before) => {
+const applyX01Visit = (metrics, visit, before, doubleOut) => {
     applyAnyVisit(metrics, visit);
+    const empty = upperDarts(visit.darts).length === 3 && upperDarts(visit.darts).every(dart => dartValue(dart) === 0);
+    if (empty && !(doubleOut && before !== undefined && dartsAtDouble(visit.darts, before) > 0)) metrics.nothingDoings += 1;
     if (sameDarts(visit.darts, BED_AND_BREAKFAST)) metrics.bedAndBreakfasts += 1;
     const thrown = upperDarts(visit.darts);
     if (thrown.length === 3 && thrown[0].startsWith('T') && thrown[0] !== 'T20' && thrown.every(dart => dart === thrown[0])) {
@@ -477,7 +480,7 @@ const applyVisits = (metrics, game, playerId, won, lost) => {
         let atDouble = 0;
         for (const visit of leg) {
             if (visit?.playerId !== playerId) continue;
-            applyX01Visit(metrics, visit, left);
+            applyX01Visit(metrics, visit, left, doubleOut);
             if (doubleOut) atDouble += dartsAtDouble(visit.darts, left);
             if (visit.scoreLeft === left && left > 0 && visitScore(visit) > 0) busts += 1;
             if (Number.isFinite(visit.scoreLeft)) left = visit.scoreLeft;
@@ -621,7 +624,6 @@ const applyGame = (metrics, type, game, playerId) => {
     const ranges = model.scoreRanges?.game ?? {};
     const visitsIn = (keys) => keys.reduce((sum, key) => sum + (Number(ranges[key]) || 0), 0);
     metrics.tonPlusVisits += visitsIn(['100-119', '120-139', '140-159', '160-179', '180']);
-    metrics.nothingDoings += visitsIn(['ZERO']);
     metrics.tonFortyVisits += visitsIn(['140-159', '160-179', '180']);
     metrics.num180s += model.scoreRanges?.game?.['180'] ?? 0;
     for (const [score, count] of Object.entries(model.checkoutScores?.game ?? {})) {

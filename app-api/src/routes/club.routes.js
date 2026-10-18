@@ -19,7 +19,7 @@ export default (app) => {
     router.post('/', clubValidator, validate, ClubController.create);
     router.put('/:id',
         clubValidator,
-        ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges'].map(setting =>
+        ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren'].map(setting =>
             body(setting).optional().isBoolean({ strict: true }).withMessage(`${setting} must be true or false.`)),
         body('description').optional().isString().trim().isLength({ max: 500 }).withMessage('The description can have at most 500 characters.'),
         body('dashboardWidgets').optional().isArray({ max: 40 }).withMessage('dashboardWidgets must be a list.'),
