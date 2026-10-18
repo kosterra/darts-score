@@ -4,6 +4,7 @@ import { ROLES } from '../models/user.model.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { addToClub, removeFromClub } from './player.controller.js';
 import { removeProfileImageFile } from './file.controller.js';
+import { withPlayers } from './atc.controller.js';
 
 const GAME_MODELS = [db.x01, db.cricket, db.elimination];
 
@@ -195,5 +196,5 @@ export const trainings = async (req, res) => {
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
     const found = await db.atc.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
-    res.json(found.map(withClub(clubsById)));
+    res.json(await withPlayers(found.map(withClub(clubsById))));
 };

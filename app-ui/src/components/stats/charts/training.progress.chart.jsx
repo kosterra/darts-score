@@ -4,16 +4,10 @@ import dayjs from 'dayjs';
 import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
+import { formatTrainingTime } from '../../../utils/training.time';
 
 const MODES = ['Single', 'Double', 'Triple', 'All'];
 
-// training times are stored in hundredths of a second
-const formatTime = (hundredths) => {
-    if (hundredths == null) return '';
-    const seconds = hundredths / 100;
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}:${(seconds % 60).toFixed(1).padStart(4, '0')}`;
-};
 
 /**
  * Best Around the Clock time per mode as it improved over time.
@@ -40,8 +34,8 @@ const TrainingProgressChart = ({ progress = {} }) => {
                         <LineChart data={rows} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid {...GRID} />
                             <XAxis dataKey="label" {...AXIS} minTickGap={16} />
-                            <YAxis {...AXIS} tickFormatter={formatTime} reversed={false} domain={['auto', 'auto']} width={56} />
-                            <Tooltip {...TOOLTIP} formatter={(value) => formatTime(value)} />
+                            <YAxis {...AXIS} tickFormatter={(value) => formatTrainingTime(value, 1)} reversed={false} domain={['auto', 'auto']} width={56} />
+                            <Tooltip {...TOOLTIP} formatter={(value) => formatTrainingTime(value, 1)} />
                             {modes.map((mode, index) => (
                                 <Line key={mode} type="stepAfter" dataKey={mode} name={mode} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden(mode)} />
                             ))}

@@ -31,8 +31,9 @@ const PlayerAvatar = ({ player, className = 'avatar-md' }) => (
  * selected: the chosen players in throwing order
  * onChange(players)
  * initialIds: the players of the last game, chosen once the list has loaded
+ * single: one player only, e.g. for a training: a tap chooses that player
  */
-const PlayerPicker = ({ selected, onChange, initialIds = [] }) => {
+const PlayerPicker = ({ selected, onChange, initialIds = [], single = false }) => {
     const { isClubAdmin } = useAuth();
     const [players, setPlayers] = useState([]);
     const [lastPlayed, setLastPlayed] = useState({});
@@ -54,7 +55,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [] }) => {
             // the players of the last game, those still in the club, in the same order
             if (!restored.current) {
                 restored.current = true;
-                const again = initialIds.map(id => list.find(player => player.id === id)).filter(Boolean);
+                const again = initialIds.map(id => list.find(player => player.id === id)).filter(Boolean).slice(0, single ? 1 : MAX_PLAYERS);
                 if (again.length && !selected.length) onChange(again);
             }
         } finally {
@@ -76,16 +77,17 @@ const PlayerPicker = ({ selected, onChange, initialIds = [] }) => {
     [offered, showAll, search, selected]);
     const hidden = offered.length - shown.length;
     const positionOf = (player) => selected.findIndex(chosen => chosen.id === player.id);
-    const isFull = selected.length >= MAX_PLAYERS;
+    const isFull = !single && selected.length >= MAX_PLAYERS;
 
     const choose = (player) => {
-        onChange(toggled(selected, player));
+        onChange(single ? toggled(selected, player, 1).length ? [player] : [] : toggled(selected, player));
         setBullOff(false);
     };
 
     const addGuest = (guest) => {
         setPlayers(list => [...list, guest]);
-        if (!isFull) onChange([...selected, guest]);
+        if (single) onChange([guest]);
+        else if (!isFull) onChange([...selected, guest]);
     };
 
     const move = (from, to) => onChange(moveItem(selected, from, to));
@@ -123,7 +125,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [] }) => {
                             title={!chosen && isFull ? `Up to ${MAX_PLAYERS} players` : undefined}
                             onClick={() => choose(player)}
                         >
-                            {chosen && <span className="player-pick-number" aria-label={`Throws ${position + 1}.`}>{position + 1}</span>}
+                            {chosen && !single && <span className="player-pick-number" aria-label={`Throws ${position + 1}.`}>{position + 1}</span>}
                             <PlayerAvatar player={player} />
                             <span className="player-pick-name">{player.nickname}</span>
                             <span className="player-pick-detail">
@@ -150,7 +152,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [] }) => {
             }
             {!loading && !offered.length && search && <div className="text-faint fs-7 mt-2">No player matches “{search}”.</div>}
 
-            <div className="player-order mt-4" aria-label="Throwing order">
+            {!single && <div className="player-order mt-4" aria-label="Throwing order">
                 <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                     <span className="text-subtle fs-7 fw-semibold">
                         Throwing order
@@ -219,7 +221,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [] }) => {
                     : <div className="text-faint fs-7">Tap the players who play, in the order they throw.</div>
                 }
                 {selected.length === 1 && <div className="text-faint fs-8 mt-2">Choose {missing} more player to start.</div>}
-            </div>
+            </div>}
         </div>
     );
 };

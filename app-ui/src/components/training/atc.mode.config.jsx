@@ -2,24 +2,23 @@ import { SelectButton } from 'primereact/selectbutton';
 import ATCConfigOptions from './atc.config.options';
 import ATCHelp from './atc.help';
 
-const ATCModeConfig = ({ atcModeOption, onATCModeChange }) => {
+const ATCModeConfig = ({ atcModeOption, onATCModeChange, disabled = false }) => {
+    const options = ATCConfigOptions.modeOptions.values;
     return (
-        <div className="container p-0">
-            <div className="d-flex align-items-center justify-content-center gap-3 mb-3">
-                <span className="text-faint fs-7 fw-semibold">Training Mode</span>
+        <div className="d-flex flex-column align-items-center gap-2">
+            <SelectButton
+                value={atcModeOption}
+                onChange={(e) => e.value && onATCModeChange(e.value)}
+                optionLabel="value"
+                options={options}
+                disabled={disabled}
+                className="p-selectbutton-pills flex-wrap justify-content-center"
+                aria-label="Training mode"
+            />
+            <span className="text-faint fs-8 text-center">
+                {options.find(option => option.value === atcModeOption)?.description}
                 <ATCHelp />
-            </div>
-            <div className="row border border-default rounded m-0 py-3 mb-3 gx-0 px-2">
-                <div className="col d-flex justify-content-center">
-                    <SelectButton
-                        value={atcModeOption}
-                        onChange={(e) => onATCModeChange(e.value)}
-                        optionLabel="value"
-                        options={ATCConfigOptions.modeOptions.values}
-                        aria-label="Select Training Mode"
-                    />
-                </div>
-            </div>
+            </span>
         </div>
     );
 };

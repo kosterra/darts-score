@@ -86,8 +86,13 @@ export const validateCricketCreate = [
     validatePlayers,
 ];
 
+const VALID_ATC_MODES = ['Single', 'Double', 'Triple', 'All'];
+
+// timeMs is in hundredths of a second
 export const validateATCCreate = [
     check('timeMs').isInt({ min: 1 }).withMessage('timeMs must be a positive integer.'),
+    check('mode').isIn(VALID_ATC_MODES).withMessage(`mode must be one of: ${VALID_ATC_MODES.join(', ')}.`),
+    check('player.id').isMongoId().withMessage('player.id must be a player id.'),
 ];
 
 export const validatePlayerIds = [

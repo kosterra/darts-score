@@ -1,0 +1,57 @@
+// Around the Clock: the stopwatch and the times on the scoreboard
+
+// player and mode are locked while the stopwatch has a time
+.atc-setup-lock {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  // the chosen player stays clear, the others fade
+  &:disabled .player-pick-card.is-chosen { opacity: 1; cursor: default; }
+}
+
+.atc-stopwatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
+  transition: border-color 0.2s;
+
+  &.is-running { border-color: var(--primary-color); }
+}
+
+.atc-stopwatch-time {
+  color: var(--text-default);
+  font-size: clamp(3rem, 15vw, 5.5rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.atc-stopwatch-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 18rem;
+}
+
+.atc-stopwatch-main.p-button {
+  justify-content: center;
+  padding-block: 0.9rem;
+  font-size: 1.1rem;
+}
+
+.atc-entry-time {
+  color: var(--text-default);
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

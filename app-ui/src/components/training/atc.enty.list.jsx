@@ -5,7 +5,8 @@ import { DataView } from 'primereact/dataview';
 import { Badge } from 'primereact/badge';
 
 import dayjs from "dayjs";
-import { resolvePlayerImg } from '../../utils/image.utils';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { formatTrainingTime } from '../../utils/training.time';
 
 const ATCEntryList = (props) => {
     const {
@@ -38,41 +39,35 @@ const ATCEntryList = (props) => {
     }
 
     const itemTemplate = (entry, index) => {
+        const player = entry.player ?? {};
+        const fullName = [player.firstname, player.lastname].filter(Boolean).join(' ');
         return (
             <div className="col-12" key={entry.id}>
                 <div className={`row bg-surface-raised m-3 p-3 ${hasBorder(entry.createdAt) ? 'border border-gold border-2' : ''}`}>
-                    <div className="col-3">
+                    <div className="col-7 col-sm-6">
                         <div className="d-flex align-items-center text-default fs-7 fw-semibold">
                             <Avatar
-                                label={(entry.player || {}).firstname || 'N' + ' ' + ((entry.player || {}).lastname || 'A').split(" ").map((n) => n[0]).join("")}
-                                image={resolvePlayerImg((entry.player || {}).profileImg)}
+                                label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname ?? player.nickname ?? '?', player.lastname ?? '')}
+                                image={resolvePlayerImg(player.profileImg)}
                                 shape="circle"
-                                className="avatar-md bg-surface-high m-2 me-4"
+                                className="avatar-md bg-surface-high m-2 me-3 flex-shrink-0"
                             />
-                            <div className="d-flex flex-column justify-content-start align-items-start">
-                                <span className="text-default fw-semibold fs-6">{(entry.player || {}).nickname || 'N / A'}</span>
-                                <span className="text-faint fs-7">{((entry.player || {}).firstname || 'N') + ' ' + ((entry.player || {}).lastname || 'A')}</span>
+                            <div className="d-flex flex-column justify-content-start align-items-start text-truncate">
+                                <span className="text-default fw-semibold fs-6 text-truncate mw-100">{player.nickname || 'Unknown player'}</span>
+                                {fullName && <span className="text-faint fs-7 text-truncate mw-100">{fullName}</span>}
                             </div>
                         </div>
-                        <div className="d-flex align-self-bottom justify-content-between align-items-end mt-4">
-                            <span className="fs-8 text-faint">{dayjs(entry.createdAt).format("DD.MM.YYYY HH:mm")}</span>
-                        </div>
+                        <div className="fs-8 text-faint mt-2">{dayjs(entry.createdAt).format("DD.MM.YYYY HH:mm")}</div>
                     </div>
-                    <div className="col-6 d-flex align-items-center justify-content-center">
-                        <span className="fw-semibold fs-4">{entry.hours}</span>
-                        <span className="fw-semibold fs-6 ms-1 me-3">Hr</span>
-                        <span className="fw-semibold fs-4">{entry.minutes.toString().padStart(2, "0")}</span>
-                        <span className="fw-semibold fs-6 ms-1 me-3">Min</span>
-                        <span className="fw-semibold fs-4">{entry.seconds.toString().padStart(2, "0")}</span>
-                        <span className="fw-semibold fs-6 ms-1 me-3">Sec</span>
-                        <span className="fw-semibold fs-4">{entry.milliseconds.toString().padStart(2, "0")}</span>
+                    <div className="col-3 col-sm-4 d-flex align-items-center justify-content-center">
+                        <span className="atc-entry-time">{formatTrainingTime(entry.timeMs)}</span>
                     </div>
-                    <div className="col-3 d-flex align-items-center justify-content-end fs-1">
+                    <div className="col-2 d-flex align-items-center justify-content-end">
                         <Badge
                             value={index + 1}
                             size="xlarge"
                             severity="success"
-                            className={index + 1 == 1 ? 'bg-gold' : (index + 1 == 2 ? 'bg-silver': (index + 1 == 3 ? 'bg-bronze' : ''))}
+                            className={['bg-gold', 'bg-silver', 'bg-bronze'][index] ?? ''}
                         />
                     </div>
                 </div>

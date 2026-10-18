@@ -87,6 +87,19 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-atc-player-reference',
+        description: 'Training entries keep the player id and nickname instead of a copy of the whole player',
+        run: async () => {
+            // straight on the collection, so each entry keeps its own timestamps
+            const { modifiedCount } = await db.atc.collection.updateMany(
+                { 'player.id': { $exists: true } },
+                [{ $set: { player: { id: '$player.id', nickname: '$player.nickname' } } }]
+            );
+            logger.info(`Trimmed the player of ${modifiedCount} training entries`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {
