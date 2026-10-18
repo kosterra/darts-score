@@ -150,6 +150,7 @@ const X01ScoreInputBoard = () => {
                             {shown.map((visible, index) => visible && (
                                 <label key={index} className="x01-dart-field">
                                     <span className="x01-dart-label">Dart {index + 1}</span>
+                                    <span className="x01-dart-box">
                                     <InputText
                                         name={`d-${index + 1}`}
                                         placeholder={index === 0 ? 'e.g. T20' : ''}
@@ -171,6 +172,7 @@ const X01ScoreInputBoard = () => {
                                             <i className="pi pi-times" aria-hidden="true" />
                                         </button>
                                     }
+                                    </span>
                                 </label>
                             ))}
                         </div>

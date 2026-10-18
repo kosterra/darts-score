@@ -23,6 +23,7 @@ const X01WaysOut = () => {
     const routes = busted ? [] : checkoutRoutes(score, { dartsLeft, outMode });
 
     if (busted) return <p className="text-subtle fs-8 m-0">Bust: the score stays as it was.</p>;
+    if (dartsLeft === 0) return <p className="text-subtle fs-8 m-0">All three darts are in: Enter score finishes the visit{score === 0 ? ' and the leg' : ''}.</p>;
     if (!routes.length) {
         const setups = setupSuggestions(score, { dartsLeft, outMode });
         return (
