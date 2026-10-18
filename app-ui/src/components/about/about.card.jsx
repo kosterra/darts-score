@@ -110,7 +110,7 @@ const AboutCard = () => {
                         <section className="d-flex flex-column gap-3">
                             <h2 className="fs-5 fw-semibold text-default m-0">Hall of Shame</h2>
                             <p className="text-subtle fs-7 m-0">
-                                Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01 games. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP. A club admin can switch them off in the club settings, or keep them and leave children under 16 out.
+                                Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01 games. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP. A club admin can switch them off in the club settings, or keep them and leave children out (under 16, or another age the club chooses).
                             </p>
                             <ul className="list-unstyled m-0 d-flex flex-column gap-3">
                                 {catalogue.shame.map(badge => (

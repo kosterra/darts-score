@@ -82,6 +82,7 @@ export const update = async (req, res) => {
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
     }
+    if (Number.isInteger(req.body.shameMinAge)) club.shameMinAge = req.body.shameMinAge;
     if (Array.isArray(req.body.dashboardWidgets)) club.dashboardWidgets = req.body.dashboardWidgets;
     await club.save();
     res.json(await withAdmins(club));

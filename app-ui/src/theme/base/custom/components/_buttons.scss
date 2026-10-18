@@ -1,7 +1,9 @@
 // One look per kind of button throughout the app:
 // - the main action of an area: filled green (the theme's default button)
 // - secondary actions: soft green with the light text of the main button
-//   (outlined and secondary buttons)
+//   (outlined buttons)
+// - tools and the way back (edit, settings, Cancel, Close): neutral grey
+//   (secondary buttons), so not everything around a card is green
 // - destructive actions and undo: soft red (danger buttons)
 // - small options: green text (text and link buttons)
 // - the chosen pill of a choice: soft green, the others grey
@@ -27,11 +29,17 @@ $softGreenTextHover: #95d6b4;
   &:enabled:active { background: rgba($color, $tint + 0.18); }
 }
 
-:where(.p-button.p-button-outlined:not(.p-button-danger):not(.p-button-text):not(.p-button-link)),
-:where(.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link)) {
+:where(.p-button.p-button-outlined:not(.p-button-danger):not(.p-button-secondary):not(.p-button-text):not(.p-button-link)) {
   // the light text of the main button, so the two sit together as a pair and
   // differ only in how strong their green is
   @include soft-button($primaryColor, $buttonTextColor, $buttonTextColor, 0.42);
+}
+
+// a light tint on top, so it shows on panels and on cards alike; the arrows of
+// a number field are tools like these
+:where(.p-button.p-button-secondary:not(.p-button-text):not(.p-button-link)),
+:where(.p-inputnumber .p-inputnumber-button) {
+  @include soft-button(#ffffff, $textDefaultColor, $shade000, 0.1);
 }
 
 :where(.p-button.p-button-danger:not(.p-button-text):not(.p-button-link)) {

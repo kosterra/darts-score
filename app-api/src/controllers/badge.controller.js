@@ -1,12 +1,11 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { BADGES, BADGE_CATEGORIES, SHAME_BADGES, currentWeekStreak, getBadge } from '../utils/badges.js';
-import { clubShameHolders, isShameChild, personalShame, shameCountsFrom } from '../utils/shame.js';
+import { clubShameHolders, isShameChild, personalShame, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
 import { GAME_MODELS, syncPlayerBadges, syncGameBadges } from '../utils/badge.service.js';
 import { knownInClub } from '../models/player.model.js';
 
 const shameEnabled = (club) => club?.shameBadges !== false;
-const withoutChildren = (club) => club?.shameWithoutChildren === true;
 const getShame = (id) => SHAME_BADGES.find(badge => badge.id === id);
 // eslint-disable-next-line no-unused-vars
 export const publicShameBadge = ({ metric, washMetric, ...badge }) => badge;
@@ -36,8 +35,8 @@ export const getPlayerBadges = async (req, res) => {
         weekStreak: { current: currentWeekStreak(metrics), best: metrics.bestWeekStreak },
         earnedCount: BADGES.filter(badge => earnedById.has(badge.id)).length,
         // the Hall of Shame, unless the club switched it off or leaves this child out
-        shame: shameEnabled(req.club) && !isShameChild(player, withoutChildren(req.club))
-            ? personalShame(player, { from: shameCountsFrom(player, withoutChildren(req.club)) }).map(entry => ({ ...publicShameBadge(getShame(entry.id)), ...entry }))
+        shame: shameEnabled(req.club) && !isShameChild(player, shameMinAgeOf(req.club))
+            ? personalShame(player, { from: shameCountsFrom(player, shameMinAgeOf(req.club)) }).map(entry => ({ ...publicShameBadge(getShame(entry.id)), ...entry }))
             : null,
         total: BADGES.length,
         badges: BADGES.map(badge => {
@@ -130,8 +129,8 @@ export const getClubShame = async (req, res) => {
 
     res.json({
         enabled: true,
-        withoutChildren: withoutChildren(req.club),
-        badges: clubShameHolders(players, req.club._id, { withoutChildren: withoutChildren(req.club) }).map(entry => {
+        minAge: shameMinAgeOf(req.club),
+        badges: clubShameHolders(players, req.club._id, { minAge: shameMinAgeOf(req.club) }).map(entry => {
             const player = entry.holder ? byId.get(entry.holder) : null;
             return {
                 ...publicShameBadge(getShame(entry.id)),

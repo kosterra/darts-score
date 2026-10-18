@@ -15,6 +15,8 @@ export default (mongoose) => {
       shameBadges:     { type: Boolean, default: true },
       // ... or keep it and leave children under 16 out of it
       shameWithoutChildren: { type: Boolean, default: false },
+      // ... children being the players under this age
+      shameMinAge:          { type: Number, min: 6, max: 21, default: 16 },
       // Widgets on the club dashboard, in display order. Empty means the default set;
       // the UI owns the list of available widgets.
       dashboardWidgets: { type: [String], default: undefined },

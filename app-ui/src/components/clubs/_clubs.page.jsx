@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputSwitch } from 'primereact/inputswitch';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
@@ -22,7 +23,7 @@ const ClubsPage = () => {
     const { clubs, activeClub, refreshClubs, selectClub } = useAuth();
 
     const [newName, setNewName] = useState('');
-    // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults, shameBadges, shameWithoutChildren }
+    // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults, shameBadges, shameWithoutChildren, shameMinAge }
     const [editing, setEditing] = useState(null);
     const [adminsOfClubId, setAdminsOfClubId] = useState(null); // club whose admins dialog is open
     const [editingClubId, setEditingClubId] = useState(null); // club whose name, description and logo are edited
@@ -139,10 +140,11 @@ const ClubsPage = () => {
                                             {club.admins.length === 1 ? 'Admin' : 'Admins'}: {club.admins.map(admin => `${admin.firstname} ${admin.lastname}`).join(', ')}
                                         </span>
                                         <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mt-3">
+                                            {/* the tools stay together in one row; when the card is narrow they wrap as a group */}
                                             {activeClub?.id !== club.id &&
                                                 <Button label="Switch to this club" size="small" outlined onClick={() => onSelect(club)} />
                                             }
-                                            {club.role === CLUB_ROLES.ADMIN && <>
+                                            {club.role === CLUB_ROLES.ADMIN && <span className="d-flex gap-2">
                                             <Button
                                                 icon="pi pi-users"
                                                 severity="secondary"
@@ -172,7 +174,8 @@ const ClubsPage = () => {
                                                     publicLiveGames: club.publicLiveGames !== false,
                                                     publicResults: club.publicResults !== false,
                                                     shameBadges: club.shameBadges !== false,
-                                                    shameWithoutChildren: club.shameWithoutChildren === true
+                                                    shameWithoutChildren: club.shameWithoutChildren === true,
+                                                    shameMinAge: club.shameMinAge ?? 16
                                                 })}
                                             />
                                             <DeletePopup
@@ -181,7 +184,7 @@ const ClubsPage = () => {
                                                 message={'club ' + club.name + ' with all its games'}
                                                 handleDelete={onDelete}
                                             />
-                                            </>}
+                                            </span>}
                                         </div>
                                     </div>
                                 </Panel>
@@ -203,7 +206,25 @@ const ClubsPage = () => {
                         </span>
                         <span className="text-default fw-semibold">Fun</span>
                         {settingSwitch('shameBadges', 'Hall of Shame', 'Badges nobody wants, like Bed and Breakfast or Madhouse, with who holds them on the dashboard and in X01 games.')}
-                        {settingSwitch('shameWithoutChildren', 'Leave out children under 16', 'Children never hold a shame badge and have no Hall of Shame on their profile; what they threw before turning 16 never counts. Players without a date of birth count as adults.', !editing.shameBadges)}
+                        {settingSwitch('shameWithoutChildren', `Leave out children under ${editing.shameMinAge ?? 16}`, 'Children never hold a shame badge and have no Hall of Shame on their profile; what they threw as children never counts. Players without a date of birth count as adults.', !editing.shameBadges)}
+                        <div className="d-flex justify-content-between align-items-center gap-3">
+                            <label htmlFor="club-shameMinAge" className="d-flex flex-column">
+                                <span className={editing.shameBadges && editing.shameWithoutChildren ? 'text-default' : 'text-faint'}>Age limit</span>
+                                <span className="text-faint fs-8">Players count from this birthday on.</span>
+                            </label>
+                            <InputNumber
+                                inputId="club-shameMinAge"
+                                value={editing.shameMinAge}
+                                onValueChange={(e) => setEditing({ ...editing, shameMinAge: e.value ?? 16 })}
+                                min={6}
+                                max={21}
+                                showButtons
+                                suffix=" years"
+                                disabled={!editing.shameBadges || !editing.shameWithoutChildren}
+                                inputClassName="text-center"
+                                inputStyle={{ width: '6.5rem' }}
+                            />
+                        </div>
                         <div className="d-flex justify-content-end gap-3">
                             <Button type="button" label="Cancel" severity="secondary" size="small" onClick={() => setEditing(null)} />
                             <Button type="submit" label="Save" icon="pi pi-save" size="small" />
