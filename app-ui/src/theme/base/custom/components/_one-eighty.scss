@@ -1,5 +1,5 @@
 // The 180 celebration over a running game. It never catches a click or a key
-// (pointer-events: none) and plays for 2.6s, so the game goes on underneath.
+// (pointer-events: none) and plays for about 3.5s, so the game goes on underneath.
 
 $oneEightyGold: #ffc94d;
 
@@ -156,11 +156,68 @@ $oneEightyGold: #ffc94d;
     100% { opacity: 0; transform: rotate(var(--angle)) translateY(calc(-1 * var(--distance))); }
 }
 
+// fantasy figures with cardboard signs: they come up out of the bottom edge,
+// wobble a little and sink back into it
+.one-eighty-crowd {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    padding: 0 3%;
+}
+
+.one-eighty-figure {
+    width: clamp(5.25rem, 12vw, 9.5rem);
+    transform: translateY(105%);
+    animation: one-eighty-figure 2.9s var(--delay) cubic-bezier(0.3, 0.8, 0.4, 1) forwards;
+
+    svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        filter: drop-shadow(0 -0.25rem 0.75rem rgba(0, 0, 0, 0.45));
+    }
+}
+
+.one-eighty-figure-wobble {
+    transform-origin: 50% 100%;
+
+    &.is-rock { animation: one-eighty-rock 0.7s calc(var(--delay) + 0.45s) ease-in-out infinite alternate; }
+    &.is-bob { animation: one-eighty-bob 0.42s calc(var(--delay) + 0.45s) ease-in-out infinite alternate; }
+}
+
+@keyframes one-eighty-figure {
+    0% { transform: translateY(105%); }
+    16% { transform: translateY(-4%); }
+    22% { transform: translateY(0); }
+    80% { transform: translateY(0); }
+    100% { transform: translateY(105%); }
+}
+
+@keyframes one-eighty-rock {
+    from { transform: rotate(-5deg); }
+    to { transform: rotate(5deg); }
+}
+
+@keyframes one-eighty-bob {
+    from { transform: translateY(0); }
+    to { transform: translateY(-7%); }
+}
+
+// on a phone three figures are enough
+@media (max-width: 575.98px) {
+    .one-eighty-figure:nth-child(4) { display: none; }
+}
+
 // no flying parts for people who asked for less motion: the number just fades in and out
 @media (prefers-reduced-motion: reduce) {
     .one-eighty-flash,
     .one-eighty-ring,
-    .one-eighty-spark {
+    .one-eighty-spark,
+    .one-eighty-crowd {
         display: none;
     }
 
