@@ -4,7 +4,7 @@ import X01Game from './x01.game';
 const X01GamePage = () => {
 
   return (
-    <div className="container-fluid p-4 pt-0 bg-transparent border-0">
+    <div className="container-fluid bg-transparent border-0 x01-game-page">
       <div className="row justify-content-md-center align-items-center">
         <X01State>
           <X01Game />

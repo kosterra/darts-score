@@ -1,5 +1,32 @@
 // The X01 game page: a card per player, the dart input next to the board
 
+.x01-game-page { padding: 0 1.5rem 1.5rem; }
+
+.x01-game-header-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.x01-game-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1.5rem;
+}
+
+.x01-game-header-format { font-size: 1rem; }
+.x01-game-header-rules { padding-top: 0.25rem; font-size: 0.8rem; }
+
+.x01-play { margin-top: 1.5rem; }
+
+.x01-board-col {
+  display: flex;
+  justify-content: center;
+
+  @media (min-width: 1400px) { justify-content: flex-start; }
+}
+
 .x01-players {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
@@ -207,4 +234,47 @@
 
   strong { color: var(--text-default); }
   &.is-bust, &.is-bust strong { color: #ff8a80; }
+}
+
+// a phone: compact cards two by two, the board, then the darts in one row, so
+// a whole visit fits on the screen above the menu bar
+@media (max-width: 767.98px) {
+  .x01-game-page { padding: 0 0.5rem 5rem; }
+  .x01-game-header-wrap { margin-bottom: 0.5rem; }
+  .x01-game-header { padding: 0.35rem 1rem; }
+  .x01-game-header-format { font-size: 0.85rem; }
+  .x01-game-header-rules { padding-top: 0; font-size: 0.7rem; }
+
+  .x01-players {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    padding: 0;
+
+    &.count-1 { grid-template-columns: 1fr; }
+  }
+
+  .x01-player {
+    gap: 0.1rem;
+    padding: 0.5rem 0.65rem;
+
+    .p-avatar, .x01-player-detail, .x01-player-leg { display: none; }
+  }
+
+  .x01-player-score { font-size: 2.4rem; }
+  .x01-player-route { min-height: 1rem; font-size: 0.75rem; }
+  .x01-player-won { gap: 0.75rem; margin-top: 0; }
+
+  .x01-play { margin-top: 0.5rem; }
+  // a little smaller, so the darts and Enter score stay above the menu bar
+  .x01-board-col .dartboard-img { max-width: 19rem; }
+  .x01-board-col.is-hidden { display: none; }
+
+  .x01-input { margin-top: 0.5rem; padding: 0.65rem 0.75rem; }
+  .x01-input-head { margin-bottom: 0.4rem; }
+
+  .x01-darts { flex-direction: row; }
+  .x01-dart-field { flex: 1 1 0; min-width: 0; }
+  .x01-dart-input.p-inputtext { padding: 0.55rem 1.6rem 0.55rem 0.6rem; font-size: 1rem; }
+  .x01-dart-clear { right: 0.1rem; bottom: 0.4rem; width: 1.5rem; height: 1.5rem; }
+  .x01-visit-total { margin: 0.5rem 0; }
 }

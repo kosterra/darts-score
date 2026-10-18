@@ -8,6 +8,22 @@ import ScoreInputBoardHelp from '../common/score.input.board.help';
 import { startingScoreOf } from '../../../utils/x01.rules';
 
 
+const BOARD_KEY = 'oche.x01Board';
+const readShowBoard = () => {
+    try {
+        return localStorage.getItem(BOARD_KEY) !== 'hidden';
+    } catch {
+        return true;
+    }
+};
+const writeShowBoard = (show) => {
+    try {
+        localStorage.setItem(BOARD_KEY, show ? 'shown' : 'hidden');
+    } catch {
+        // storage unavailable: the board shows again next time
+    }
+};
+
 const X01ScoreInputBoard = () => {
     const {
         game,
@@ -22,6 +38,12 @@ const X01ScoreInputBoard = () => {
     } = useContext(X01Context);
 
     const [score, setScore] = useState(startingScoreOf(game, game.currentPlayerTurn));
+    // on a phone the board can be hidden to type only; remembered on the device
+    const [showBoard, setShowBoard] = useState(() => readShowBoard());
+    const toggleBoard = () => {
+        setShowBoard(!showBoard);
+        writeShowBoard(!showBoard);
+    };
 
     // s, d and t work as well: the dart is written in capitals once typed
     const keyfilterPattern = /^[SDTsdt0-9]{1,3}$/;
@@ -99,16 +121,28 @@ const X01ScoreInputBoard = () => {
     const nickname = players.find(player => player.id === game.currentPlayerTurn)?.nickname ?? '';
 
     return (
-        <div className="container mt-4">
+        <div className="container x01-play">
             <div className="row justify-content-center">
-                <div className="col col-12 col-md-8 col-xl-5 col-xxl-4 d-flex justify-content-center justify-content-xxl-start">
+                <div className={`col col-12 col-md-8 col-xl-5 col-xxl-4 x01-board-col ${showBoard ? '' : 'is-hidden'}`}>
                     <X01DartBoard />
                 </div>
                 <div className="col col-12 col-md-4 col-xl-3 col-xxl-3">
                     <div className="x01-input">
                         <div className="x01-input-head">
                             <span className="text-default fw-semibold">{nickname}&apos;s visit</span>
-                            <ScoreInputBoardHelp label="Tap the board or type" plainSingles compact />
+                            <span className="d-inline-flex align-items-center gap-1">
+                                <Button
+                                    type="button"
+                                    label={showBoard ? 'Type only' : 'Board'}
+                                    icon={showBoard ? 'pi pi-pencil' : 'pi pi-bullseye'}
+                                    text
+                                    size="small"
+                                    className="d-md-none p-1"
+                                    aria-pressed={!showBoard}
+                                    onClick={toggleBoard}
+                                />
+                                <ScoreInputBoardHelp label={<span className="d-none d-md-inline">Tap the board or type</span>} plainSingles compact />
+                            </span>
                         </div>
                         <form onSubmit={submitHandler}>
                             <div className="x01-darts">
