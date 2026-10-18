@@ -21,6 +21,9 @@ const review = (type, id, status) => requestJSON(`${API_URL}/${type}/${id}/revie
 // deletes it, and the badges earned in it
 const remove = (type, id) => requestJSON(`${API_URL}/${type}/${id}`, { method: 'DELETE' });
 
-const IntegrityService = { loadFindings, loadSummary, review, remove };
+// deletes several at once: [{ type, id }] → { deleted, skipped }
+const removeMany = (items) => requestJSON(`${API_URL}/delete`, { method: 'POST', body: { items } });
+
+const IntegrityService = { loadFindings, loadSummary, review, remove, removeMany };
 
 export default IntegrityService;

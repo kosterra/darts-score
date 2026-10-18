@@ -19,6 +19,13 @@ export default (app) => {
     router.get('/', scope, IntegrityController.scan);
     router.get('/summary', scope, IntegrityController.summary);
     router.put('/:type/:id/review', target, body('status').isIn(['ok', 'watch']).withMessage('The status is ok or watch.'), validate, IntegrityController.review);
+    router.post('/delete',
+        body('items').isArray({ min: 1, max: 1000 }).withMessage('Choose what to delete.'),
+        body('items.*.type').isIn(TYPES),
+        body('items.*.id').isMongoId(),
+        validate,
+        IntegrityController.removeMany
+    );
     router.delete('/:type/:id', target, validate, IntegrityController.remove);
 
     app.use('/api/integrity', router);

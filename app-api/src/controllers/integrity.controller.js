@@ -162,6 +162,43 @@ export const review = async (req, res) => {
 };
 
 /**
+ * Deletes games and trainings: { items: [{ type, id }] }. Each one the user may
+ * manage goes, with the badges earned in it; every player concerned has their
+ * badges worked out once at the end. { deleted, skipped }
+ */
+export const removeMany = async (req, res) => {
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+    const playerIds = new Set();
+    const deletedIds = new Set();
+    let skipped = 0;
+    try {
+        for (const { type, id } of items) {
+            const model = SOURCES[type];
+            const doc = model && db.mongoose.isValidObjectId(id) ? await model().findById(id) : null;
+            if (!doc) { skipped += 1; continue; }
+            const club = await db.club.findById(doc.club);
+            if (!isGlobalAdmin(req.user) && !(club && canManageClub(req.user, club))) { skipped += 1; continue; }
+            playersOf(type, doc).filter(playerId => db.mongoose.isValidObjectId(playerId)).forEach(playerId => playerIds.add(playerId));
+            await doc.deleteOne();
+            await db.integrityReview.deleteMany({ sourceType: type, sourceId: String(id) });
+            deletedIds.add(String(id));
+        }
+        const players = await db.player.find({ _id: { $in: [...playerIds] } });
+        for (const player of players) {
+            const before = player.badges.length;
+            player.badges = player.badges.filter(entry => !deletedIds.has(entry.sourceId));
+            if (player.badges.length !== before) await player.save();
+            await syncPlayerBadges(player);
+        }
+        logger.warn(`${req.user.email} deleted ${deletedIds.size} games and trainings for fair play`);
+        res.json({ deleted: deletedIds.size, skipped });
+    } catch (err) {
+        logger.error(err, 'Failed to delete for fair play');
+        res.status(500).json({ message: 'Not everything could be deleted.', deleted: deletedIds.size });
+    }
+};
+
+/**
  * Deletes a game or training that cannot be real, and takes away the badges
  * earned in it (they come back if the player still earned them elsewhere).
  */

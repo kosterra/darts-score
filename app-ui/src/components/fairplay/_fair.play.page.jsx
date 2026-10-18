@@ -73,6 +73,18 @@ const FairPlayPage = ({ all = false }) => {
             setBusy(null);
         }
     };
+    // every entry of the list shown (and the clubs chosen) at once
+    const removeAll = async () => {
+        const items = entries.map(entry => ({ type: entry.type, id: entry.id }));
+        setBusy('all');
+        try {
+            await IntegrityService.removeMany(items);
+        } finally {
+            setBusy(null);
+            announceFairPlayChange();
+            load();
+        }
+    };
     const remove = async (entry) => {
         setBusy(entry.id);
         try {
@@ -94,6 +106,16 @@ const FairPlayPage = ({ all = false }) => {
                 </p>
                 <div className="fair-play-filters">
                     <SelectButton value={shown} options={options} onChange={(e) => e.value && setList(e.value)} className="p-selectbutton-pills pills-inline flex-wrap" aria-label="List" />
+                    {shown === 'impossible' && entries.length > 1 &&
+                        <DeletePopup
+                            data={entries}
+                            header="Delete all for fair play"
+                            message={`all ${entries.length} games and trainings that cannot be real${all && clubFilter.length ? ' of the chosen clubs' : ''}, with the badges earned in them`}
+                            handleDelete={removeAll}
+                            label={busy === 'all' ? 'Deleting…' : `Delete all ${entries.length}`}
+                            size="small"
+                        />
+                    }
                     {all && clubs.length > 0 &&
                         <ClubFilter clubs={clubs} selectedIds={clubFilter} onChange={(ids) => setClubFilter(ids ?? [])} optional />
                     }
