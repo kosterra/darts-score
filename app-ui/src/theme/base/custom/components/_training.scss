@@ -21,7 +21,8 @@
   background: var(--surface-raised);
   transition: border-color 0.2s;
 
-  &.is-running { border-color: var(--primary-color); }
+  // running: a lighter border, no colour
+  &.is-running { border-color: rgba(255, 255, 255, 0.35); }
 }
 
 .atc-stopwatch-time {
@@ -231,7 +232,11 @@
   transition: border-color 0.15s, opacity 0.15s;
 
   .p-avatar { grid-area: avatar; }
-  &.is-current { border-color: var(--primary-color); }
+  // whose turn it is: lighter border and background, no colour
+  &.is-current {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: color-mix(in srgb, #fff 6%, var(--surface-raised));
+  }
   &.is-finished { opacity: 0.6; }
 }
 
@@ -274,7 +279,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 1rem;
-  border: 1px solid var(--primary-color);
+  border: 1px solid var(--border-default);
   border-radius: 0.75rem;
   background: var(--surface-raised);
 }
