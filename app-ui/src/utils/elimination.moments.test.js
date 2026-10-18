@@ -10,9 +10,24 @@ describe('knockOutScene', () => {
         expect(scene).toMatchObject({ kind: 'strike', by: 'Anna', victims: [{ name: 'Ben' }, { name: 'Cleo' }] });
     });
 
-    it('is so close when the one sent back was on a finish', () => {
+    it('is so close only when the one sent back needed a single dart', () => {
         const scene = knockOutScene({ game: game(), players, playerId: 'a', eliminations: ['b'], scoresBefore: { a: 200, b: 261 } });
         expect(scene).toMatchObject({ kind: 'close', victims: [{ name: 'Ben', left: 40 }] });
+        // the bull is one dart too
+        expect(knockOutScene({ game: game(), players, playerId: 'a', eliminations: ['b'], scoresBefore: { a: 200, b: 251 } }).kind).toBe('close');
+        // 121 left is a finish, but not a single dart: a plain kick
+        expect(knockOutScene({ game: game(), players, playerId: 'a', eliminations: ['b'], scoresBefore: { a: 100, b: 180 } }).kind).toBe('kick');
+        // an odd 41 needs two darts with a double out
+        expect(knockOutScene({ game: game(), players, playerId: 'a', eliminations: ['b'], scoresBefore: { a: 200, b: 260 } }).kind).toBe('kick');
+    });
+
+    it('lets revenge show when the one sent back still needed more than one dart', () => {
+        const earlier = [
+            { playerId: 'a', darts: ['T20', '0', '0'], roundScore: 60 },
+            { playerId: 'b', darts: ['T20', '0', '0'], roundScore: 60 },
+        ];
+        const scene = knockOutScene({ game: game(earlier), players, playerId: 'a', eliminations: ['b'], scoresBefore: { a: 100, b: 180 } });
+        expect(scene.kind).toBe('revenge');
     });
 
     it('is revenge when the one sent back had sent this player back before', () => {
