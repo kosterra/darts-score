@@ -15,14 +15,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.25rem 1rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
-  background: var(--surface-raised);
-  transition: border-color 0.2s;
-
-  // running: a lighter border, no colour
-  &.is-running { border-color: rgba(255, 255, 255, 0.35); }
+  // straight in the panel, no box of its own
+  padding: 0.5rem 1rem 0.25rem;
 }
 
 .atc-stopwatch-time {
@@ -179,8 +173,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.55rem 0.85rem;
-  border: 1px solid transparent;
-  border-radius: 0.75rem;
+  border-radius: $borderRadius;
   background: var(--surface-raised);
 
   // the latest time of today
@@ -289,16 +282,14 @@
   column-gap: 0.5rem;
   align-items: center;
   padding: 0.45rem 0.6rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.6rem;
+  border-radius: $borderRadius;
   background: var(--surface-raised);
-  transition: border-color 0.15s, opacity 0.15s;
+  transition: background 0.15s, opacity 0.15s;
 
   .p-avatar { grid-area: avatar; }
   // whose turn it is: lighter border and background, no colour
   &.is-current {
-    border-color: rgba(255, 255, 255, 0.35);
-    background: color-mix(in srgb, #fff 6%, var(--surface-raised));
+    background: color-mix(in srgb, #fff 10%, var(--surface-raised));
   }
   &.is-finished { opacity: 0.6; }
 }
@@ -342,8 +333,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 1rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
+  border-radius: $borderRadius;
   background: var(--surface-raised);
 }
 
@@ -490,7 +480,7 @@
 
 .atc-result-player {
   padding: 0.7rem 0.85rem;
-  border-radius: 0.75rem;
+  border-radius: $borderRadius;
   background: var(--surface-raised);
 }
 
@@ -544,7 +534,7 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding: 0.6rem 0.85rem;
-  border-radius: 0.75rem;
+  border-radius: $borderRadius;
   background: var(--surface-raised);
 }
 
@@ -616,9 +606,8 @@
   gap: 0.85rem 1.25rem;
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  // no fill of its own: the pills keep their background
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
 }
 
 .atc-filter-group {
@@ -670,7 +659,7 @@
 // e.g. "Last round: everybody gets as many turns"
 .atc-round-notice {
   padding: 0.5rem 0.75rem;
-  border-radius: 0.6rem;
+  border-radius: $borderRadius;
   background: color-mix(in srgb, #ffc94d 16%, transparent);
   color: #ffc94d;
   font-size: 0.8rem;
@@ -686,8 +675,8 @@
   margin: 0 auto 1rem;
   padding: 0.7rem 0.9rem;
   max-width: 30rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
   cursor: pointer;
 
   .p-inputswitch { flex-shrink: 0; }

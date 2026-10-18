@@ -7,8 +7,7 @@
 .chart-tooltip {
     min-width: 11rem;
     padding: 0.55rem 0.75rem;
-    border: 1px solid $shade650;
-    border-radius: 0.5rem;
+    border-radius: $borderRadius;
     background: $shade800;
     box-shadow: 0 0.75rem 1.5rem -0.5rem rgba(0, 0, 0, 0.8);
     font-size: 0.8rem;
@@ -52,7 +51,7 @@
     align-items: center;
     gap: 0.3rem;
     padding: 0.1rem 0.45rem;
-    border-radius: 0.5rem;
+    border-radius: $borderRadius;
     background: color-mix(in srgb, var(--level-color) 14%, transparent);
     color: var(--level-color);
     font-size: 0.7rem;

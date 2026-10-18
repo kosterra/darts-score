@@ -232,7 +232,7 @@ $navRailWidth: 4.75rem;
         min-width: 1.35rem;
         height: 1.35rem;
         padding: 0 0.4rem;
-        border-radius: 0.7rem;
+        border-radius: $borderRadius;
         background: $shade600;
         color: $textDefaultColor;
         font-size: 0.7rem;
@@ -458,7 +458,7 @@ $navRailWidth: 4.75rem;
 
     &.club-logo-sm { width: 2.25rem; height: 2.25rem; font-size: 0.85rem; }
     &.club-logo-md { width: 3.5rem; height: 3.5rem; font-size: 1.2rem; }
-    &.club-logo-lg { width: 5rem; height: 5rem; font-size: 1.7rem; border-radius: 0.6rem; }
+    &.club-logo-lg { width: 5rem; height: 5rem; font-size: 1.7rem; border-radius: $borderRadius; }
 }
 
 // The collapse handle: a small round button on the menu's right edge, at the
@@ -474,9 +474,10 @@ $navRailWidth: 4.75rem;
     width: 1.6rem;
     height: 1.6rem;
     padding: 0;
-    border: 1px solid $shade600;
+    border: 0;
     border-radius: 50%;
-    background: $surfaceRaisedColor;
+    // a lighter fill sets it off from the menu and the page, like the other tools
+    background: $surfaceHighColor;
     color: $textSubtleColor;
     font-size: 0.65rem;
     cursor: pointer;

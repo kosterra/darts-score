@@ -14,7 +14,7 @@ const X01InOutConfig = (props) => {
             <div className="row">
                 <div className="col-12 col-xl-6">
                     <p className="text-center text-faint fs-7 fw-semibold">Starting In</p>
-                    <div className="row border border-default rounded m-0 py-3 mb-3">
+                    <div className="row m-0 mb-3">
                         <div className="col">
                             <SelectButton
                                 value={legInOption}
@@ -28,7 +28,7 @@ const X01InOutConfig = (props) => {
                 </div>
                 <div className="col-12 col-xl-6">
                     <p className="text-center text-faint fs-7 fw-semibold">Checkout</p>
-                    <div className="row border border-default rounded m-0 py-3 mb-3">
+                    <div className="row m-0 mb-3">
                         <div className="col">
                             <SelectButton
                                 value={legOutOption}

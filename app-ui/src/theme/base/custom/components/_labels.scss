@@ -13,7 +13,7 @@ $labelRed: #ec8b80;
     align-items: center;
     justify-content: center;
     padding: 0.2rem 0.55rem;
-    border-radius: 0.5rem;
+    border-radius: $borderRadius;
     font-size: 0.8rem;
     font-weight: 600;
     line-height: 1.3;
@@ -37,7 +37,7 @@ $labelRed: #ec8b80;
     @include label-shape;
     @include label-neutral;
 
-    &.p-tag-rounded { border-radius: 0.5rem; }
+    &.p-tag-rounded { border-radius: $borderRadius; }
     &.p-tag-success { @include label-tone($labelGreen); }
     &.p-tag-info { @include label-tone($labelBlue); }
     &.p-tag-warning { @include label-tone($labelOrange); }

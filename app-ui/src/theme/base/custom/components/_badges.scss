@@ -127,9 +127,8 @@ $badgeMetals: (
         margin: auto;
         padding: 2rem 1.5rem;
         text-align: center;
-        border-radius: 0.75rem;
+        border-radius: $borderRadius;
         background: $surfaceRaisedColor;
-        border: 1px solid $surfaceHighColor;
         box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.6);
         animation: celebration-card 0.3s ease-out both;
     }
@@ -394,9 +393,8 @@ $tar: #17110c;
     margin: auto;
     padding: 2rem 1.5rem;
     text-align: center;
-    border-radius: 0.75rem;
+    border-radius: $borderRadius;
     background: $surfaceRaisedColor;
-    border: 1px solid rgba($shameColor, 0.35);
     box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.7);
     animation: celebration-card 0.3s 0.35s ease-out both;
 }

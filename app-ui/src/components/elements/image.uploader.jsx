@@ -89,7 +89,7 @@ const ImageUploader = (props) => {
                 }
             </div>
             <div
-                className={`drop-zone m-3 p-4 border border-default rounded-1 pe-auto ${isDragging ? 'is-dragging' : ''}`}
+                className={`drop-zone m-3 p-4 pe-auto ${isDragging ? 'is-dragging' : ''}`}
                 onDragOver={handleOnDragOver}
                 onDragLeave={handleOnDragLeave}
                 onDrop={handleOnDrop}

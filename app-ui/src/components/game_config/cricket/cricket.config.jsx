@@ -66,7 +66,7 @@ const CricketConfig = () => {
                     <p className="game-setup-section-title mt-4">Game</p>
                     <div className="container">
                         <p className="text-center text-faint fs-7 fw-semibold">Variant</p>
-                        <div className="row border border-default rounded m-0 py-3 mb-3">
+                        <div className="row m-0 mb-3">
                             <div className="col d-flex flex-column align-items-center gap-2">
                                 <SelectButton
                                     value={variant}

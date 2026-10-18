@@ -360,7 +360,7 @@
 
 .x01-ways-route {
   padding: 0.2rem 0.55rem;
-  border-radius: 0.5rem;
+  border-radius: $borderRadius;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-default);
   font-size: 0.8rem;
@@ -540,8 +540,7 @@
     column-gap: 0.6rem;
     row-gap: 0.1rem;
     padding: 0.45rem 0.6rem 0.45rem 0.85rem;
-    border: 1px solid var(--border-default);
-    border-radius: 0.75rem;
+    border-radius: $borderRadius;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
     box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(6px);
@@ -611,8 +610,8 @@
   justify-content: center;
   gap: 0.35rem;
   min-height: 3.6rem;
-  border: 1px solid var(--border-default);
-  border-radius: 0.6rem;
+  border: 0;
+  border-radius: $borderRadius;
   background: var(--surface-raised);
   color: var(--text-default);
   font-size: 1.15rem;
@@ -629,7 +628,7 @@
   &:disabled { opacity: 0.35; cursor: default; }
 
   // just pressed: the same blue as the board's feedback
-  &.is-pressed { border-color: #4aa8ff; background: color-mix(in srgb, #4aa8ff 35%, var(--surface-raised)); }
+  &.is-pressed { background: color-mix(in srgb, #4aa8ff 40%, var(--surface-raised)); }
 
   &.is-ring {
     font-size: 0.9rem;
