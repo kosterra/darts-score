@@ -3,7 +3,6 @@ import { Panel } from 'primereact/panel';
 import { ProgressBar } from 'primereact/progressbar';
 
 import StatsService from '../../services/stats.service';
-import PageLoader from '../elements/page.loader';
 import dayjs from 'dayjs';
 
 import BadgeMedal from './badge.medal';
@@ -96,7 +95,8 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
     }, [playerId]);
 
     if (failed) return <p className="text-subtle">The badges could not be loaded.</p>;
-    if (!data) return <PageLoader />;
+    // a quiet line: the statistics above show the page's loader at the same time
+    if (!data) return <p className="text-faint">Loading badges…</p>;
 
     // category -> series -> badges, in catalogue order
     const categories = data.categories.map(({ category, title }) => {
