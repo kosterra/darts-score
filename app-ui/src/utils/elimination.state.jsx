@@ -45,6 +45,24 @@ const EliminationState = ({ children }) => {
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
 
+    // a visit (or an undo) asks for a save of the game as it is afterwards;
+    // the saves run one after the other, so they arrive in order
+    const [saveRequest, setSaveRequest] = useState(0);
+    const saving = useRef(Promise.resolve());
+    // the winning visit is saved: the statistics page can show the finished game
+    const [winnerSaved, setWinnerSaved] = useState(false);
+    const requestSave = () => setSaveRequest(request => request + 1);
+
+    useEffect(() => {
+        if (!saveRequest) return;
+        const game = state.game;
+        saving.current = saving.current
+            .then(() => EliminationService.updateEliminationGame(game))
+            .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last visit could not be saved. Check the connection: the next visit saves everything.', life: 4000 }))
+            .then(() => { if (game.hasWinner) setWinnerSaved(true); });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [saveRequest]);
+
     // -------------------- API Fetch --------------------
     useEffect(() => {
         const fetchGame = async () => {
@@ -293,6 +311,7 @@ const EliminationState = ({ children }) => {
             dispatch({ type: RESET_CURRENT_THROW });
             manageCurrentPlayerChange();
             setLoading('validateThrow', false);
+            requestSave();
             return;
         }
 
@@ -352,6 +371,7 @@ const EliminationState = ({ children }) => {
             });
             dispatch({ type: RESET_CURRENT_THROW });
             setLoading('validateThrow', false);
+            requestSave();
             return;
         }
 
@@ -364,6 +384,7 @@ const EliminationState = ({ children }) => {
         dispatch({ type: RESET_CURRENT_THROW });
         manageCurrentPlayerChange();
         setLoading('validateThrow', false);
+        requestSave();
     };
 
     /**
@@ -408,6 +429,7 @@ const EliminationState = ({ children }) => {
         if (!state.game.allThrows || state.game.allThrows.length === 0) return;
         const newGame = EliminationReturnToPreviousPlayer(state.game);
         dispatch({ type: RETURN_PREV_PLAYER, payload: newGame });
+        requestSave();
     };
 
     // -------------------- Context Provider --------------------
@@ -417,6 +439,7 @@ const EliminationState = ({ children }) => {
                 game: state.game,
                 players: state.players,
                 loading: state.loading,
+                winnerSaved,
                 updateCurrentThrowManual,
                 updateCurrentThrowDartBoard,
                 getCurrentThrowScore,

@@ -428,9 +428,7 @@
 
 // a narrow header (e.g. a small laptop with the menu open): each player a column,
 // the photo on top, then the name and the last visit, then the score and the legs
-@container (max-width: 860px) {
-  .x01-hero-players.count-2 { gap: 1rem 1.5rem; }
-
+@mixin hero-players-in-columns {
   .x01-hero-player, .x01-hero-player.is-mirrored {
     flex-direction: column;
     gap: 0.2rem;
@@ -441,12 +439,28 @@
 
   .x01-hero-portrait, .is-mirrored .x01-hero-portrait { order: 0; margin: 0 0 0.6rem; }
   .x01-hero-avatar.p-avatar { width: 4.5rem; height: 4.5rem; font-size: 1.5rem; }
-  .x01-hero-name { order: 1; }
+  .x01-hero-name { order: 1; max-width: 100%; }
   .x01-live-leg { order: 2; }
   .x01-live-tags, .is-mirrored .x01-live-tags { order: 3; justify-content: center; }
   .x01-hero-score .result-hero-score { order: 4; }
   .x01-live-route { order: 5; }
   .x01-live-won { order: 6; }
+}
+
+@container (max-width: 860px) {
+  .x01-hero-players.count-2 { gap: 1rem 1.5rem; }
+
+  @include hero-players-in-columns;
+}
+
+// three or four players never fit side by side in a row each: every player a
+// column, however wide the screen
+.x01-hero-players.count-3,
+.x01-hero-players.count-4 {
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem 1.5rem;
+
+  @include hero-players-in-columns;
 }
 
 // a phone: a compact header, the board can be hidden, the darts in one row,
@@ -635,4 +649,62 @@
 .x01-ways-note {
   color: var(--text-faint);
   font-size: 0.75rem;
+}
+
+// ---------------------------------------------------------------------------
+// Cricket and Elimination in the look of the X01 page
+
+// Cricket only needs 15 to 20: three bigger keys in a row
+.x01-keypad-numbers.is-few {
+  grid-template-columns: repeat(3, 1fr);
+
+  .x01-key { min-height: 3.6rem; font-size: 1.25rem; }
+}
+
+// the marks of the running game; the darts of the visit in gold
+.cricket-live-board {
+  thead th.is-turn { color: var(--text-default); }
+
+  tbody td:last-child { border-radius: 0 $borderRadius $borderRadius 0; }
+
+  .cricket-marks.is-new { color: #ffc94d; }
+
+  // a number everyone closed is out of play
+  tr.is-dead th,
+  tr.is-dead td { opacity: 0.4; }
+
+  tr.is-dead th { text-decoration: line-through; }
+}
+
+// the race to the target in Elimination
+.elimination-standings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+
+  li.is-turn .text-default.fw-semibold { color: var(--primary-color); }
+}
+
+.elimination-track {
+  display: block;
+  height: 0.35rem;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease-out;
+  }
+}
+
+// the dart that sends a player back to 0
+.elimination-knock {
+  @include label-shape;
+  @include label-tone(#e9ac2f);
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
 }

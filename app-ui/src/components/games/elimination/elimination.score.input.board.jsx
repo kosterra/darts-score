@@ -1,208 +1,90 @@
-import { useContext, useState, useEffect } from 'react';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { FaUndo } from "react-icons/fa";
-import { FaPaperPlane } from "react-icons/fa6";
+import { useContext } from 'react';
 
 import EliminationContext from '../../../utils/elimination.context';
-import EliminationService from '../../../services/elimination.service';
 import EliminationDartBoard from './elimination.dartboard';
-import ScoreInputBoardHelp from '../common/score.input.board.help';
+import EliminationStandings from './elimination.standings';
+import VisitInput from '../common/visit.input';
+import DartKeypad from '../common/dart.keypad';
+import useInputMode from '../common/use.input.mode';
+import { liveScores } from './elimination.live';
 
+/**
+ * The playing area of Elimination as on the X01 page: the board or the
+ * keypad, the visit with what it scores, and the race to the target below.
+ */
 const EliminationScoreInputBoard = () => {
     const {
         game,
+        players,
         updateCurrentThrowManual,
+        updateCurrentThrowDartBoard,
         onClickValidateThrow,
         getCurrentThrowScore,
         onClickReturnToPreviousPlayer,
         checkCanThrowMoreDarts,
+        checkIfScoreIsBusted,
         loading
     } = useContext(EliminationContext);
-
-    const [currentScore, setCurrentScore] = useState(0);
-    const [pendingSave, setPendingSave] = useState(false);
-
-    const keyfilterPattern = /^[SDT0-9]{1,3}$/;
-
-    const validateInput = (event, validatePattern) => {
-        const target = event.target;
-        if (validatePattern) {
-            const throwIndex = Number(target.name.split('-')[1]) - 1;
-            updateCurrentThrowManual(currentScore, target.value.length > 0 ? target.value : '', throwIndex);
-        }
-    };
-
-    const handleSubmitThrows = (e) => {
-        e.preventDefault();
-        onClickValidateThrow(currentScore);
-        setPendingSave(true);
-        e.target.reset();
-    };
-
-    const handleUndo = () => {
-        onClickReturnToPreviousPlayer();
-        setPendingSave(true);
-    };
-
-    // Save game to API whenever currentPlayerTurn changes (i.e. after a throw is committed)
-    // or when the game gets a winner
-    useEffect(() => {
-        if (pendingSave) {
-            setPendingSave(false);
-            EliminationService.updateEliminationGame(game);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [game.currentPlayerTurn, game.hasWinner]);
-
-    // Recalculate the displayed current score whenever the throw changes
-    useEffect(() => {
-        if (!game.playerModels || !game.currentPlayerTurn) return;
-        const throwScore = getCurrentThrowScore();
-        const playerScore = game.playerModels[game.currentPlayerTurn]?.score ?? 0;
-        setCurrentScore(playerScore + throwScore);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [game.currentThrow]);
-
-    // Keyboard shortcut: Enter submits
-    useEffect(() => {
-        const handleEnter = (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('submitThrows')?.click();
-            }
-        };
-        document.addEventListener('keyup', handleEnter);
-        return () => document.removeEventListener('keyup', handleEnter);
-    }, []);
-
-    const d1 = game.currentThrow?.[0] ?? '';
-    const d2 = game.currentThrow?.[1] ?? '';
-    const d3 = game.currentThrow?.[2] ?? '';
-    const showD2 = checkCanThrowMoreDarts(currentScore) || d2.trim() !== '' || (d2.trim() === '' && d3.trim() !== '');
-    const showD3 = checkCanThrowMoreDarts(currentScore) || d3.trim() !== '';
-    const canUndo = (game.allThrows?.length ?? 0) > 0;
+    const [input, chooseInput] = useInputMode();
 
     if (game.hasWinner) return null;
 
+    const darts = game.currentThrow;
+    const throwScore = getCurrentThrowScore();
+    const before = game.playerModels[game.currentPlayerTurn]?.score ?? 0;
+    const score = before + throwScore;
+    const busted = checkIfScoreIsBusted(score);
+    // on the target the game is won: no more darts
+    const canThrow = checkCanThrowMoreDarts(score) && score !== game.targetScore;
+    const shown = [
+        true,
+        canThrow || darts[1].trim() !== '' || darts[2].trim() !== '',
+        canThrow || darts[2].trim() !== '',
+    ];
+    const entered = darts.filter(dart => dart.trim() !== '').length;
+    const nickname = (id) => players.find(player => player.id === id)?.nickname ?? '';
+    // whom the score so far would send back to 0
+    const scores = liveScores(game, throwScore);
+    const sentBack = game.players.filter(id => id !== game.currentPlayerTurn && throwScore > 0 && game.playerModels[id]?.score === scores[game.currentPlayerTurn]);
+
+    const clearLast = () => {
+        const index = darts.map(dart => dart.trim() !== '').lastIndexOf(true);
+        if (index >= 0) updateCurrentThrowManual(score, '', index);
+    };
+
+    const summary = busted
+        ? <span><strong>Bust</strong> · the score stays at {before}</span>
+        : score === game.targetScore
+            ? <span><strong>Game shot</strong> · enter the score to win</span>
+            : <span>Visit <strong>{throwScore}</strong> · total <strong>{score}</strong>{sentBack.length > 0 && <> · <strong>{sentBack.map(nickname).join(', ')}</strong> back to 0</>}</span>;
+
     return (
-        <div className="container mt-4">
-                    <div className="row justify-content-center">
-                        <div className="col col-12 col-md-8 col-xl-5 col-xxl-4 d-flex justify-content-center justify-content-xxl-start">
-                            <EliminationDartBoard />
-                        </div>
-                        <div className="col col-12 col-md-4 col-xl-3 col-xxl-2 d-flex flex-column justify-content-start gap-3">
-                            <div className="d-flex flex-column gap-1">
-                                <ScoreInputBoardHelp />
-                                <form className="mt-1" onSubmit={handleSubmitThrows}>
-                                    <div className="d-flex flex-column gap-3">
-                                        <div className="d-flex flex-column gap-2">
-                                            {/* Dart 1 — always visible */}
-                                            <div className="p-inputgroup flex-1">
-                                                <InputText
-                                                    name="d-1"
-                                                    placeholder="D1"
-                                                    value={d1}
-                                                    keyfilter={keyfilterPattern}
-                                                    validateOnly
-                                                    onInput={validateInput}
-                                                    className="focused-bg-only"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    icon="pi pi-times"
-                                                    title="Clear this dart"
-                                                    aria-label="Clear this dart"
-                                                    severity="danger"
-                                                    onClick={() => updateCurrentThrowManual(currentScore, '', 0)}
-                                                />
-                                            </div>
-
-                                            {/* Dart 2 */}
-                                            {showD2 && (
-                                                <div className="p-inputgroup flex-1">
-                                                    <InputText
-                                                        name="d-2"
-                                                        placeholder="D2"
-                                                        value={d2}
-                                                        keyfilter={keyfilterPattern}
-                                                        validateOnly
-                                                        onInput={validateInput}
-                                                        className="focused-bg-only"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        icon="pi pi-times"
-                                                        title="Clear this dart"
-                                                        aria-label="Clear this dart"
-                                                        severity="danger"
-                                                        onClick={() => updateCurrentThrowManual(currentScore, '', 1)}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* Dart 3 */}
-                                            {showD3 && (
-                                                <div className="p-inputgroup flex-1">
-                                                    <InputText
-                                                        name="d-3"
-                                                        placeholder="D3"
-                                                        value={d3}
-                                                        keyfilter={keyfilterPattern}
-                                                        validateOnly
-                                                        onInput={validateInput}
-                                                        className="focused-bg-only"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        icon="pi pi-times"
-                                                        title="Clear this dart"
-                                                        aria-label="Clear this dart"
-                                                        severity="danger"
-                                                        onClick={() => updateCurrentThrowManual(currentScore, '', 2)}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="d-flex gap-2">
-                                            {loading.validateThrow ? (
-                                                <Button disabled>
-                                                    <ProgressSpinner
-                                                        style={{ width: '20px', height: '20px' }}
-                                                        strokeWidth="8"
-                                                        fill="var(--surface-ground)"
-                                                        animationDuration=".8s"
-                                                    />
-                                                    <span className="visually-hidden">Loading...</span>
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    id="submitThrows"
-                                                    type="submit"
-                                                    severity="primary"
-                                                    title="Submit throw"
-                                                >
-                                                    <FaPaperPlane />
-                                                </Button>
-                                            )}
-                                            {canUndo && (
-                                                <Button
-                                                    type="button"
-                                                    severity="danger"
-                                                    onClick={handleUndo}
-                                                    title="Undo last throw"
-                                                >
-                                                    <FaUndo />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <VisitInput
+            nickname={nickname(game.currentPlayerTurn)}
+            input={input}
+            onChooseInput={chooseInput}
+            board={<EliminationDartBoard />}
+            keypad={
+                <DartKeypad
+                    canThrow={canThrow}
+                    onDart={(value) => updateCurrentThrowDartBoard(score, value)}
+                    onClearLast={clearLast}
+                    entered={entered}
+                />
+            }
+            aside={<EliminationStandings />}
+            asideTitle="Race to the target"
+            darts={darts}
+            shown={shown}
+            onDart={(index, value) => updateCurrentThrowManual(score, value, index)}
+            onClearDart={(index) => updateCurrentThrowManual(score, '', index)}
+            summary={summary}
+            busted={busted}
+            onSubmit={() => onClickValidateThrow(score)}
+            onUndo={onClickReturnToPreviousPlayer}
+            canUndo={(game.allThrows?.length ?? 0) > 0}
+            loading={loading.validateThrow}
+        />
     );
 };
 

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useReducer } from 'react';
+import { Fragment, useEffect, useRef, useReducer, useState } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import { Toast } from 'primereact/toast';
 
@@ -44,6 +44,23 @@ const CricketState = props => {
     };
 
     const [state, dispatch] = useReducer(CricketReducer, initialState);
+
+    // a visit (or an undo) asks for a save of the game as it is afterwards;
+    // the saves run one after the other, so they arrive in order
+    const [saveRequest, setSaveRequest] = useState(0);
+    const saving = useRef(Promise.resolve());
+    // the winning visit is saved: the statistics page can show the finished game
+    const [winnerSaved, setWinnerSaved] = useState(false);
+
+    useEffect(() => {
+        if (!saveRequest) return;
+        const game = state.game;
+        saving.current = saving.current
+            .then(() => CricketService.updateCricketGame(game))
+            .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last visit could not be saved. Check the connection: the next visit saves everything.', life: 4000 }))
+            .then(() => { if (game.hasWinner) setWinnerSaved(true); });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [saveRequest]);
 
     // fetch a cricket game from the API
     useEffect(() => {
@@ -174,12 +191,14 @@ const CricketState = props => {
         if (checkIfHasWonGame(sectionHit, currentScore)) {
             gameHasWinner();
             setLoading('validateThrow', false);
+            setSaveRequest(request => request + 1);
             return
         }
 
         manageCurrentPlayerChange();
 
         setLoading('validateThrow', false);
+        setSaveRequest(request => request + 1);
     }
 
     const validateWholeThrow = (values, currentScore, sectionHit) => {
@@ -452,6 +471,7 @@ const CricketState = props => {
             type: RETURN_PREV_PLAYER,
             payload: newMatchData
         })
+        setSaveRequest(request => request + 1);
     }
 
     const setLoading = (eventName, setTo) => dispatch({
@@ -469,6 +489,7 @@ const CricketState = props => {
                     game: state.game,
                     players: state.players,
                     loading: state.loading,
+                    winnerSaved,
                     onClickValidateThrow,
                     updateCurrentThrowManual,
                     updateCurrentThrowDartBoard,
