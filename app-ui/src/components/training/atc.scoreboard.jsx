@@ -8,8 +8,7 @@ import dayjs from 'dayjs';
 
 import Confetti from '../badges/confetti';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { formatTrainingTime } from '../../utils/training.time';
-import { LISTS, PERIODS, ordinal, scoreboardRows } from '../../utils/atc.scoreboard';
+import { LISTS, PERIODS, formatScore, ordinal, scoreboardRows } from '../../utils/atc.scoreboard';
 
 // rows shown before "Show all"
 const SHOWN_ROWS = 10;
@@ -45,26 +44,27 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
                 <span className="atc-row-name">{player.nickname || 'Unknown player'}</span>
                 <span className="atc-row-detail">{showDate ? dayjs(entry.createdAt).format('DD.MM.YYYY HH:mm') : dayjs(entry.createdAt).format('HH:mm')}</span>
             </span>
-            <span className="atc-row-time">{formatTrainingTime(entry.timeMs)}</span>
+            <span className="atc-row-time">{formatScore(entry)}</span>
         </li>
     );
 };
 
 /**
  * The scoreboard of a mode: each player's best (or every attempt) of today,
- * this month or all time. A time just saved shows up at the bottom and moves
- * up to its place; on the podium it is celebrated.
+ * this month or all time. The times just saved show up at the bottom and move
+ * up to their places; on the podium they are celebrated.
  *
- * entries: every training of the mode
- * mode: shown in the header
- * arrival: { id } of the time just saved, or null
+ * entries: every training of the mode and scoring
+ * subtitle: shown in the header, e.g. "Double · fewest darts"
+ * noun: what the entries are called in the empty list, e.g. "times"
+ * arrival: { ids } of the trainings just saved, or null
  * view, onViewChange: { period, list }
- * myPlayerId: the player of the logged-in user in this club, for "Mine" 
- * onArrived(row): once the new time reached its place (row null when it is not listed)
+ * myPlayerId: the player of the logged-in user in this club, for "Mine"
+ * onArrived(rows): once the new trainings reached their places (only those listed)
  */
-const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId, onArrived }) => {
+const ATCScoreboard = ({ entries, subtitle, noun = 'times', arrival, view, onViewChange, myPlayerId, onArrived }) => {
     const [expanded, setExpanded] = useState(false);
-    // the time just saved: 'enter' at the bottom, then 'slide' up, then 'landed'
+    // the trainings just saved: 'enter' at the bottom, then 'slide' up, then 'landed'
     const [phase, setPhase] = useState(null);
     const [celebrate, setCelebrate] = useState(false);
 
@@ -76,21 +76,21 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
 
     const rows = useMemo(() => scoreboardRows(entries, { ...view, myPlayerId }), [entries, view, myPlayerId]);
     const lists = myPlayerId ? LISTS : LISTS.filter(option => option.value !== 'mine');
-    const arrivingRow = arrival ? rows.find(({ entry }) => entry.id === arrival.id) : null;
+    const arrivingIds = useMemo(() => new Set(arrival?.ids ?? []), [arrival]);
+    const arrivingRows = useMemo(() => rows.filter(({ entry }) => arrivingIds.has(entry.id)), [rows, arrivingIds]);
     const latestId = useMemo(() => entries.reduce((latest, entry) => !latest || new Date(entry.createdAt) > new Date(latest.createdAt) ? entry : latest, null)?.id, [entries]);
 
-    // a new time: first at the bottom, then up to its place; before the browser paints,
-    // so the row never flashes at its place first
+    // new trainings: first at the bottom, then up to their places; before the browser
+    // paints, so a row never flashes at its place first
     useLayoutEffect(() => {
         if (!arrival) return undefined;
-        const row = rows.find(({ entry }) => entry.id === arrival.id);
-        if (!row) {
+        if (!arrivingRows.length) {
             setPhase(null);
-            arrived.current(null);
+            arrived.current([]);
             return undefined;
         }
-        if (row.rank > SHOWN_ROWS) setExpanded(false);
-        // no movement: straight to its place (which reports the arrival)
+        setExpanded(false);
+        // no movement: straight to their places (which reports the arrival)
         if (reducedMotion()) {
             setPhase('landed');
             return undefined;
@@ -101,26 +101,26 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
             setPhase('slide');
         }, ENTER_MS);
         return () => clearTimeout(timer);
-    // only when a new time arrives (the entries with it are loaded by then)
+    // only when new trainings arrive (the entries with them are loaded by then)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [arrival]);
 
-    // the rows shown: the first ten (or all), the new time pinned below when further down
+    // the rows shown: the first ten (or all), new trainings further down pinned below
     const visible = useMemo(() => {
-        let list = expanded ? rows : rows.slice(0, SHOWN_ROWS);
-        if (arrivingRow && !list.includes(arrivingRow)) list = [...list, arrivingRow];
-        if (phase === 'enter' && arrivingRow) list = [...list.filter(row => row !== arrivingRow), arrivingRow];
-        return list;
-    }, [rows, expanded, arrivingRow, phase]);
-    const pinnedBelow = arrivingRow && !expanded && arrivingRow.rank > SHOWN_ROWS;
+        const top = expanded ? rows : rows.slice(0, SHOWN_ROWS);
+        const list = [...top, ...arrivingRows.filter(row => !top.includes(row))];
+        return phase === 'enter' ? [...list.filter(row => !arrivingIds.has(row.entry.id)), ...arrivingRows] : list;
+    }, [rows, expanded, arrivingRows, arrivingIds, phase]);
+    const firstPinned = !expanded ? arrivingRows.find(row => row.rank > SHOWN_ROWS) : null;
 
     // every row slides from where it was to where it is now (FLIP)
     useLayoutEffect(() => {
         const now = new Map([...rowRefs.current].filter(([, element]) => element).map(([id, element]) => [id, element.offsetTop]));
         if (animateNext.current) {
             animateNext.current = false;
-            const distance = Math.abs((positions.current.get(arrival?.id) ?? 0) - (now.get(arrival?.id) ?? 0));
-            const duration = Math.min(1800, 500 + distance * 1.5);
+            const distanceOf = (id) => Math.abs((positions.current.get(id) ?? 0) - (now.get(id) ?? 0));
+            const farthest = [...arrivingIds].sort((a, b) => distanceOf(b) - distanceOf(a))[0];
+            const duration = Math.min(1800, 500 + distanceOf(farthest) * 1.5);
             let moving = null;
             now.forEach((top, id) => {
                 const before = positions.current.get(id);
@@ -129,7 +129,7 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
                     [{ transform: `translateY(${before - top}px)` }, { transform: 'none' }],
                     { duration, easing: 'cubic-bezier(0.3, 0.7, 0.2, 1)' }
                 );
-                if (id === arrival?.id) moving = animation;
+                if (id === farthest) moving = animation;
             });
             const land = () => setPhase('landed');
             if (moving) moving.onfinish = land;
@@ -139,9 +139,9 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
     });
 
     useEffect(() => {
-        if (phase !== 'landed' || !arrivingRow) return undefined;
-        arrived.current(arrivingRow);
-        if (arrivingRow.rank > 3 || reducedMotion()) return undefined;
+        if (phase !== 'landed' || !arrivingRows.length) return undefined;
+        arrived.current(arrivingRows);
+        if (!arrivingRows.some(row => row.rank <= 3) || reducedMotion()) return undefined;
         setCelebrate(true);
         const timer = setTimeout(() => setCelebrate(false), 4600);
         return () => clearTimeout(timer);
@@ -158,7 +158,7 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
         <div className="p-panel-header">
             <span className="p-panel-title">
                 <span>Scoreboard</span>
-                <span className="text-faint fs-8 fw-normal">{mode}</span>
+                <span className="text-faint fs-8 fw-normal">{subtitle}</span>
             </span>
         </div>
     );
@@ -167,7 +167,7 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
         <Panel headerTemplate={() => header} className="atc-scoreboard">
             <div className="d-flex flex-wrap justify-content-between gap-2 mb-3">
                 <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
-                <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Times listed" />
+                <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Listed" />
             </div>
 
             {rows.length
@@ -175,13 +175,13 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
                     <ol className="atc-rows">
                         {visible.map((row, index) => (
                             <Fragment key={row.entry.id}>
-                                {pinnedBelow && row === arrivingRow && index > 0 && <li className="atc-rows-gap" aria-hidden="true">⋯</li>}
+                                {row === firstPinned && index > 0 && <li className="atc-rows-gap" aria-hidden="true">⋯</li>}
                                 <ScoreboardRow
                                     row={row}
                                     rowRef={(element) => { if (element) rowRefs.current.set(row.entry.id, element); else rowRefs.current.delete(row.entry.id); }}
                                     latest={row.entry.id === latestId && dayjs(row.entry.createdAt).isSame(dayjs(), 'day')}
-                                    phase={row === arrivingRow ? phase : null}
-                                    podium={row === arrivingRow && phase === 'landed' && row.rank <= 3}
+                                    phase={arrivingIds.has(row.entry.id) ? phase : null}
+                                    podium={arrivingIds.has(row.entry.id) && phase === 'landed' && row.rank <= 3}
                                     showDate={view.period !== 'today'}
                                 />
                             </Fragment>
@@ -190,8 +190,8 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId,
                 )
                 : <div className="text-faint fs-7 text-center py-4">
                     {view.list === 'mine'
-                        ? `You have no times in ${mode}${view.period === 'today' ? ' today' : view.period === 'month' ? ' this month' : ''} yet.`
-                        : view.period === 'today' ? 'No times today yet. Be the first!' : view.period === 'month' ? 'No times this month yet.' : 'No times yet.'}
+                        ? `You have no ${noun} here${view.period === 'today' ? ' today' : view.period === 'month' ? ' this month' : ''} yet.`
+                        : view.period === 'today' ? `No ${noun} today yet. Be the first!` : view.period === 'month' ? `No ${noun} this month yet.` : `No ${noun} yet.`}
                 </div>
             }
 

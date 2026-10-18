@@ -5,6 +5,11 @@ import { noteCreated, checkLater } from '../utils/spam.guard.js';
 
 const ATC = db.atc;
 
+// entries from before the fewest-darts trainings have no scoring: they are against the clock
+const scoringFilter = (scoring) => scoring === 'Darts' ? { scoring: 'Darts' } : { scoring: { $ne: 'Darts' } };
+// lower is better in both
+const scoreField = (scoring) => scoring === 'Darts' ? 'darts' : 'timeMs';
+
 const PLAYER_FIELDS = 'nickname firstname lastname profileImg guest';
 
 /**
@@ -34,13 +39,19 @@ export const create = async (req, res) => {
             : null;
         if (!player) return res.status(400).json({ message: 'The player is not a member of this club.' });
 
-        const previousBest = await ATC.findOne({ club: req.club._id, mode: req.body.mode, 'player.id': playerId }).sort({ timeMs: 1 }).lean();
+        const scoring = req.body.scoring === 'Darts' ? 'Darts' : 'Time';
+        const field = scoreField(scoring);
+        const previousBest = await ATC.findOne({ club: req.club._id, mode: req.body.mode, 'player.id': playerId, ...scoringFilter(scoring) }).sort({ [field]: 1 }).lean();
 
         // the player by id, with the nickname for when the player is deleted later
         const atc = new ATC({
             club: req.club._id,
             mode: req.body.mode,
-            timeMs: req.body.timeMs,
+            scoring,
+            ...(scoring === 'Darts'
+                ? { darts: req.body.darts, dartsPerTarget: req.body.dartsPerTarget }
+                : { timeMs: req.body.timeMs }),
+            ...(req.body.session && { session: req.body.session }),
             player: { id: String(player._id), nickname: player.nickname },
         });
         const data = await atc.save();
@@ -56,8 +67,8 @@ export const create = async (req, res) => {
 
         res.status(201).json({
             ...(await withPlayers([data.toJSON()]))[0],
-            isRecord: Boolean(previousBest) && data.timeMs < previousBest.timeMs,
-            previousBestMs: previousBest?.timeMs ?? null,
+            isRecord: Boolean(previousBest) && data[field] < previousBest[field],
+            previousBest: previousBest?.[field] ?? null,
             newBadges,
         });
     } catch (err) {
@@ -73,6 +84,7 @@ export const findByQuery = async (req, res) => {
             ? { mode: { $regex: new RegExp(req.query.mode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } }
             : {};
         condition.club = req.club._id;
+        if (req.query.scoring) Object.assign(condition, scoringFilter(req.query.scoring));
         const data = await ATC.find(condition);
         res.json(await withPlayers(data.map(entry => entry.toJSON())));
     } catch (err) {

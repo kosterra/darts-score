@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, recentForm, threeDartAverage } from './chart.data.js';
+import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, trainingDarts, recentForm, threeDartAverage } from './chart.data.js';
 
 const P = 'p1';
 const O = 'p2';
@@ -56,6 +56,24 @@ describe('chart data', () => {
         const progress = trainingProgress([entry('2026-01-03', 'Single', 500), entry('2026-01-01', 'Single', 600), entry('2026-01-02', 'Double', 900), entry('2026-01-04', 'Single', 550)]);
         expect(progress.Single.map(e => e.best)).toEqual([600, 500, 500]);
         expect(progress.Double).toHaveLength(1);
+    });
+
+    it('leaves the fewest-darts trainings out of the times', () => {
+        const progress = trainingProgress([
+            { createdAt: new Date('2026-01-01'), mode: 'Single', timeMs: 500 },
+            { createdAt: new Date('2026-01-02'), mode: 'Single', scoring: 'Darts', darts: 40 },
+        ]);
+        expect(progress.Single).toHaveLength(1);
+    });
+
+    it('keeps the fewest darts so far per mode and the average darts per target', () => {
+        const targets = (first) => [first, ...Array(20).fill(1)];
+        const entry = (date, darts, first) => ({ createdAt: new Date(date), mode: 'Double', scoring: 'Darts', darts, dartsPerTarget: targets(first) });
+        const result = trainingDarts([entry('2026-01-02', 22, 2), entry('2026-01-01', 25, 5), { createdAt: new Date('2026-01-03'), mode: 'Double', timeMs: 900 }]);
+        expect(result.trainings).toBe(2);
+        expect(result.progress.Double.map(e => e.best)).toEqual([25, 22]);
+        expect(result.perTarget[0]).toBe(3.5);
+        expect(result.perTarget[20]).toBe(1);
     });
 });
 

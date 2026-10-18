@@ -17,7 +17,7 @@ import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import useClubSelection from './use.club.selection';
 import { formatDateTime } from './admin.format';
-import { formatTrainingTime } from '../../utils/training.time';
+import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
 
 // "All" is itself a training mode (every segment), so the filter for every mode is called "Any"
 const MODE_OPTIONS = [
@@ -74,8 +74,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const bestIds = useMemo(() => {
         const best = new Map();
         (entries ?? []).forEach(entry => {
-            const key = `${entry.player?.id}-${entry.mode}`;
-            if (entry.timeMs && (!best.has(key) || entry.timeMs < best.get(key).timeMs)) best.set(key, entry);
+            // times and fewest darts each have their own best
+            const key = `${entry.player?.id}-${entry.mode}-${entry.scoring === 'Darts' ? 'darts' : 'time'}`;
+            if (scoreOf(entry) && (!best.has(key) || scoreOf(entry) < scoreOf(best.get(key)))) best.set(key, entry);
         });
         return new Set([...best.values()].map(entry => entry.id));
     }, [entries]);
@@ -96,7 +97,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
 
     const timeBody = (entry) => (
         <span className="text-default fw-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
-            {formatTrainingTime(entry.timeMs)}
+            {formatScore(entry)}
             {bestIds.has(entry.id) && <FaTrophy className="ms-2 text-gold" title="Personal best in this mode" aria-label="Personal best" />}
         </span>
     );
@@ -156,7 +157,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         {acrossClubs && <Column field="club.name" header="Club" sortable body={(entry) => <ClubCell club={entry.club} />} />}
                         <Column header="Player" body={(entry) => <PlayerCell player={playerOf(entry)} />} style={{ minWidth: '14rem' }} />
                         <Column field="mode" header="Mode" sortable body={(entry) => <span className="text-default fs-7">{entry.mode}</span>} />
-                        <Column field="timeMs" header="Time" sortable body={timeBody} />
+                        <Column field="timeMs" header="Result" body={timeBody} />
                         {canManage && <Column body={actionsBody} />}
                     </DataTable>
                 )

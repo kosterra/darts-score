@@ -69,12 +69,16 @@ const RULES = [
         icon: PiClockCountdownBold,
         body: (
             <>
-                <p>A training against the stopwatch: hit 1 to 20 in order, then the bull. Start the stopwatch, play, and stop it when you are done.</p>
+                <p>A training: hit 1 to 20 in order, then the bull. Play it in one of two ways:</p>
+                <ul>
+                    <li><strong>Against the clock:</strong> start the stopwatch, play, and stop it with your last hit. The fastest time wins.</li>
+                    <li><strong>Fewest darts:</strong> tap Hit or Miss for every dart. Up to four players take turns of three darts; the fewest darts win, 21 is perfect.</li>
+                </ul>
                 <ul>
                     <li><strong>Single, Double or Triple:</strong> only that ring counts. Single mode ends on the outer bull, Double and Triple on the bullseye.</li>
                     <li><strong>All:</strong> any ring counts, and you finish on either bull.</li>
                 </ul>
-                <p className="m-0">Every mode keeps its own best time, and beating it is celebrated.</p>
+                <p className="m-0">Every mode keeps its own best time and its own fewest darts, and beating them is celebrated.</p>
             </>
         ),
     },

@@ -10,6 +10,13 @@ export default (mongoose) => {
       seconds:      Number,
       milliseconds: Number,
       mode:         String,
+      // against the clock (timeMs) or with the fewest darts (darts)
+      scoring:      { type: String, enum: ['Time', 'Darts'], default: 'Time' },
+      // fewest darts: all darts, and the darts at each target from 1 to 20 and the bull
+      darts:          { type: Number, min: 21 },
+      dartsPerTarget: { type: [Number], default: undefined },
+      // the trainings of one round played by several players together
+      session:      String,
       // { id, nickname }: the nickname for when the player is deleted later
       player:       mongoose.Schema.Types.Mixed,
     },

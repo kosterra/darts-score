@@ -88,9 +88,22 @@ export const validateCricketCreate = [
 
 const VALID_ATC_MODES = ['Single', 'Double', 'Triple', 'All'];
 
+const VALID_ATC_SCORINGS = ['Time', 'Darts'];
+// 1 to 20 and the bull
+export const ATC_TARGETS = 21;
+const isDarts = body('scoring').equals('Darts');
+
 // timeMs is in hundredths of a second
 export const validateATCCreate = [
-    check('timeMs').isInt({ min: 1 }).withMessage('timeMs must be a positive integer.'),
+    check('scoring').optional().isIn(VALID_ATC_SCORINGS).withMessage(`scoring must be one of: ${VALID_ATC_SCORINGS.join(', ')}.`),
+    check('timeMs').if(body('scoring').not().equals('Darts')).isInt({ min: 1 }).withMessage('timeMs must be a positive integer.'),
+    check('darts').if(isDarts).isInt({ min: ATC_TARGETS }).withMessage(`darts must be at least ${ATC_TARGETS}.`),
+    check('dartsPerTarget').if(isDarts)
+        .isArray({ min: ATC_TARGETS, max: ATC_TARGETS }).withMessage(`dartsPerTarget must list ${ATC_TARGETS} targets.`)
+        .bail()
+        .custom((list, { req }) => list.every(n => Number.isInteger(n) && n >= 1) && list.reduce((sum, n) => sum + n, 0) === req.body.darts)
+        .withMessage('dartsPerTarget must be at least 1 per target and add up to darts.'),
+    check('session').optional().isString().isLength({ max: 64 }).withMessage('session must be a short text.'),
     check('mode').isIn(VALID_ATC_MODES).withMessage(`mode must be one of: ${VALID_ATC_MODES.join(', ')}.`),
     check('player.id').isMongoId().withMessage('player.id must be a player id.'),
 ];

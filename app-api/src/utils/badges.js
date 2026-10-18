@@ -292,10 +292,14 @@ const applyGame = (metrics, type, game, playerId) => {
 
 const applyTraining = (metrics, entry) => {
     metrics.trainings += 1;
-    const mode = entry.mode ?? '';
-    const best = metrics.bestTrainingTimes[mode];
-    if (best !== undefined && entry.timeMs < best) metrics.trainingRecords += 1;
-    if (best === undefined || entry.timeMs < best) metrics.bestTrainingTimes[mode] = entry.timeMs;
+    // the best time per mode, and the fewest darts per mode next to it
+    const darts = entry.scoring === 'Darts';
+    const key = darts ? `darts:${entry.mode ?? ''}` : entry.mode ?? '';
+    const score = darts ? entry.darts : entry.timeMs;
+    if (!score) return;
+    const best = metrics.bestTrainingTimes[key];
+    if (best !== undefined && score < best) metrics.trainingRecords += 1;
+    if (best === undefined || score < best) metrics.bestTrainingTimes[key] = score;
 };
 
 /**

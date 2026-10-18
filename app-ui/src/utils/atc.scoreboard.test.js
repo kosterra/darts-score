@@ -47,6 +47,18 @@ describe('resultLine', () => {
     });
 });
 
+describe('fewest darts', () => {
+    const darts = (id, playerId, n) => ({ ...entry(id, playerId, undefined), scoring: 'Darts', darts: n });
+
+    it('ranks by darts and counts the gap in darts', () => {
+        const all = [darts('d1', 'anna', 30), darts('d2', 'ben', 27), darts('d3', 'cleo', 26)];
+        const rows = scoreboardRows(all, { now });
+        expect(rows.map(({ entry: { id } }) => id)).toEqual(['d3', 'd2', 'd1']);
+        expect(resultLine(rows, all[0])).toBe('3rd of 3 · 3 darts behind 2nd');
+        expect(resultLine(rows, all[2])).toBe('1st of 3 · 1 dart ahead of 2nd');
+    });
+});
+
 describe('ordinal', () => {
     it('uses the right ending', () => {
         expect([1, 2, 3, 4, 11, 12, 13, 21, 22, 101].map(ordinal))

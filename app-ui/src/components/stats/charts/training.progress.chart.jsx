@@ -10,10 +10,16 @@ const MODES = ['Single', 'Double', 'Triple', 'All'];
 
 
 /**
- * Best Around the Clock time per mode as it improved over time.
- * progress: { Single: [{ date, timeMs, best }], … }
+ * Best Around the Clock result per mode as it improved over time: the time,
+ * or with format and texts the fewest darts.
+ * progress: { Single: [{ date, best }], … }
  */
-const TrainingProgressChart = ({ progress = {} }) => {
+const TrainingProgressChart = ({
+    progress = {},
+    title = 'Around the Clock',
+    description = 'Best time per mode, and how it improved with every training. Lower is better.',
+    format = (value) => formatTrainingTime(value, 1),
+}) => {
     const series = useHiddenSeries();
     const modes = MODES.filter(mode => progress[mode]?.length);
     // one row per training, carrying each mode's best time so far
@@ -26,7 +32,7 @@ const TrainingProgressChart = ({ progress = {} }) => {
     });
 
     return (
-        <ChartCard title="Around the Clock" description="Best time per mode, and how it improved with every training. Lower is better.">
+        <ChartCard title={title} description={description}>
             {rows.length === 0
                 ? <p className="text-faint fs-7">No trainings yet.</p>
                 : (
@@ -34,8 +40,8 @@ const TrainingProgressChart = ({ progress = {} }) => {
                         <LineChart data={rows} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid {...GRID} />
                             <XAxis dataKey="label" {...AXIS} minTickGap={16} />
-                            <YAxis {...AXIS} tickFormatter={(value) => formatTrainingTime(value, 1)} reversed={false} domain={['auto', 'auto']} width={56} />
-                            <Tooltip {...TOOLTIP} formatter={(value) => formatTrainingTime(value, 1)} />
+                            <YAxis {...AXIS} tickFormatter={format} reversed={false} domain={['auto', 'auto']} width={56} />
+                            <Tooltip {...TOOLTIP} formatter={format} />
                             {modes.map((mode, index) => (
                                 <Line key={mode} type="stepAfter" dataKey={mode} name={mode} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden(mode)} />
                             ))}

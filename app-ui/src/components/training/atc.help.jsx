@@ -29,10 +29,11 @@ const ATCHelp = () => {
                 draggable={false}
                 resizable={false}
             >
-                <p>
-                    Hit every number from 1 to 20 in order, then the bull. Start the stopwatch with your first dart
-                    and stop it with your last hit; there is no dartboard to enter your darts.
-                </p>
+                <p>Hit every number from 1 to 20 in order, then the bull.</p>
+                <ul>
+                    <li><strong>Against the clock:</strong> start the stopwatch with your first dart and stop it with your last hit. The fastest time wins.</li>
+                    <li><strong>Fewest darts:</strong> tap Hit or Miss for every dart (or H and M on a keyboard). Up to four players take turns of three darts; whoever hits the bull is done. The fewest darts win, 21 is perfect.</li>
+                </ul>
                 <p className="fw-semibold mb-2">Modes</p>
                 <ul className="mb-0">
                     <li><strong>Single:</strong> only singles count, doubles and trebles do not. Finish on the outer bull.</li>

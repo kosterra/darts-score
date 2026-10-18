@@ -137,6 +137,14 @@ describe('replayBadges', () => {
         expect(result.earned.map(e => e.badge)).toEqual(expect.arrayContaining(['training-1', 'records-1']));
     });
 
+    it('keeps the records of times and of fewest darts apart', () => {
+        const training = (data) => ({ type: 'atc', id: `t${clock}`, at: at(), data: { mode: 'Double', ...data } });
+        const result = replayBadges([training({ timeMs: 500 }), training({ scoring: 'Darts', darts: 40 }), training({ scoring: 'Darts', darts: 35 }), training({ timeMs: 600 })], P);
+        expect(result.metrics.trainings).toBe(4);
+        expect(result.metrics.trainingRecords).toBe(1);
+        expect(result.metrics.bestTrainingTimes).toEqual({ Double: 500, 'darts:Double': 35 });
+    });
+
     it('replays in time order whatever the input order', () => {
         const first = x01(true); const second = x01(true); const third = x01(true);
         expect(replayBadges([third, first, second], P).earned.find(e => e.badge === 'streak-3').sourceId).toBe(third.id);

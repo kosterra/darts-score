@@ -111,12 +111,33 @@ export const dartsPerLegDistribution = (x01Games, playerId) => {
  */
 export const trainingProgress = (entries) => {
     const byMode = {};
-    for (const entry of [...entries].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))) {
+    for (const entry of [...entries].filter(entry => entry.scoring !== 'Darts' && entry.timeMs).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))) {
         const list = (byMode[entry.mode ?? 'All'] ??= []);
         const best = Math.min(entry.timeMs, list.at(-1)?.best ?? Infinity);
         list.push({ date: entry.createdAt, timeMs: entry.timeMs, best });
     }
     return byMode;
+};
+
+/**
+ * Around the Clock with the fewest darts: the darts per mode, oldest first,
+ * each with the best so far, and the average darts at each target (1 to 20,
+ * then the bull) over all those trainings.
+ */
+export const trainingDarts = (entries) => {
+    const played = [...entries].filter(entry => entry.scoring === 'Darts' && entry.darts)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    const progress = {};
+    for (const entry of played) {
+        const list = (progress[entry.mode ?? 'All'] ??= []);
+        const best = Math.min(entry.darts, list.at(-1)?.best ?? Infinity);
+        list.push({ date: entry.createdAt, darts: entry.darts, best });
+    }
+    const withTargets = played.filter(entry => entry.dartsPerTarget?.length === 21);
+    const perTarget = Array.from({ length: 21 }, (_, index) => withTargets.length
+        ? Math.round(withTargets.reduce((sum, entry) => sum + entry.dartsPerTarget[index], 0) / withTargets.length * 100) / 100
+        : null);
+    return { progress, perTarget, trainings: played.length };
 };
 
 // how much the average must change to count as rising or falling

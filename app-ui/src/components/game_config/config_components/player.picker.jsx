@@ -32,8 +32,9 @@ const PlayerAvatar = ({ player, className = 'avatar-md' }) => (
  * onChange(players)
  * initialIds: the players of the last game, chosen once the list has loaded
  * single: one player only, e.g. for a training: a tap chooses that player
+ * minPlayers: how many players are needed, e.g. 1 for a training
  */
-const PlayerPicker = ({ selected, onChange, initialIds = [], single = false }) => {
+const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, minPlayers = MIN_PLAYERS }) => {
     const { isClubAdmin } = useAuth();
     const [players, setPlayers] = useState([]);
     const [lastPlayed, setLastPlayed] = useState({});
@@ -92,7 +93,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false }) =
 
     const move = (from, to) => onChange(moveItem(selected, from, to));
 
-    const missing = MIN_PLAYERS - selected.length;
+    const missing = minPlayers - selected.length;
 
     return (
         <div className="player-picker">
@@ -220,7 +221,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false }) =
                     )
                     : <div className="text-faint fs-7">Tap the players who play, in the order they throw.</div>
                 }
-                {selected.length === 1 && <div className="text-faint fs-8 mt-2">Choose {missing} more player to start.</div>}
+                {selected.length > 0 && missing > 0 && <div className="text-faint fs-8 mt-2">Choose {missing} more {missing === 1 ? 'player' : 'players'} to start.</div>}
             </div>}
         </div>
     );

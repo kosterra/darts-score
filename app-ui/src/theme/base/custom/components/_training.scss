@@ -200,3 +200,193 @@
   .atc-row.is-entering,
   .atc-medal.badge-pop { animation: none; }
 }
+
+// fewest darts: the players of the round, whose turn it is, Hit and Miss
+.atc-round {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.atc-round-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atc-round-player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "avatar name" "avatar state" "bar bar";
+  column-gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.6rem;
+  background: var(--surface-raised);
+  transition: border-color 0.15s, opacity 0.15s;
+
+  .p-avatar { grid-area: avatar; }
+  &.is-current { border-color: var(--primary-color); }
+  &.is-finished { opacity: 0.6; }
+}
+
+.atc-round-player-name {
+  grid-area: name;
+  overflow: hidden;
+  color: var(--text-default);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atc-round-player-state {
+  grid-area: state;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.atc-round-player-bar {
+  grid-area: bar;
+  height: 3px;
+  margin-top: 0.4rem;
+  border-radius: 2px;
+  background: $surfaceHighColor;
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.25s;
+  }
+}
+
+.atc-round-current {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--primary-color);
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
+}
+
+.atc-round-target {
+  color: var(--text-default);
+  font-size: clamp(3rem, 15vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  animation: atc-target 0.3s ease-out both;
+}
+
+@keyframes atc-target {
+  from { transform: scale(0.8); opacity: 0.3; }
+  to { transform: none; opacity: 1; }
+}
+
+.atc-round-progress {
+  display: grid;
+  grid-template-columns: repeat(21, 1fr);
+  gap: 3px;
+  width: 100%;
+  max-width: 22rem;
+
+  span {
+    height: 0.45rem;
+    border-radius: 2px;
+    background: $surfaceHighColor;
+
+    &.is-hit { background: var(--primary-color); }
+    &.is-current { background: color-mix(in srgb, var(--primary-color) 45%, $surfaceHighColor); }
+  }
+}
+
+.atc-round-visit {
+  display: inline-flex;
+  gap: 0.3rem;
+
+  span {
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1px solid var(--border-default);
+    border-radius: 50%;
+
+    &.is-hit { border-color: var(--primary-color); background: var(--primary-color); }
+    &.is-miss { border-color: $shade600; background: $shade600; }
+  }
+}
+
+.atc-round-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.atc-round-button.p-button {
+  justify-content: center;
+  min-height: 4.5rem;
+  font-size: 1.25rem;
+  // quick taps one after the other must not zoom the page
+  touch-action: manipulation;
+}
+
+// the result of a round
+.atc-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atc-result-player {
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
+}
+
+.atc-target-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 2rem;
+  margin-top: 0.6rem;
+
+  span {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    background: color-mix(in srgb, var(--primary-color) 45%, $surfaceHighColor);
+
+    &.is-hard { background: $orange; }
+  }
+}
+
+.atc-result-place {
+  margin-top: 0.4rem;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.atc-result-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-round-target { animation: none; }
+}

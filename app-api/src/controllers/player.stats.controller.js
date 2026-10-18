@@ -2,7 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import dayjs from 'dayjs';
 import { playerStatsModel, checkoutItemModel } from '../models/player.stats.models.js';
-import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, threeDartAverage } from '../utils/chart.data.js';
+import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, trainingDarts, threeDartAverage } from '../utils/chart.data.js';
 import { x01Kpis, cricketKpis, eliminationKpis } from '../utils/kpi.data.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
 import { createGameFilterQuery, findFilteredGames, profileFiltersOf, isUnfiltered } from '../utils/game.utils.js';
@@ -136,7 +136,9 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
     ], playerId);
     playerStats.scoring = scoringVsFinishing(x01Games, playerId);
     playerStats.dartsPerLeg = dartsPerLegDistribution(x01Games, playerId);
-    playerStats.training = trainingProgress(await db.atc.find(trainingQuery).sort({ createdAt: 1 }).lean());
+    const trainings = await db.atc.find(trainingQuery).sort({ createdAt: 1 }).lean();
+    playerStats.training = trainingProgress(trainings);
+    playerStats.trainingDarts = trainingDarts(trainings);
 
     return playerStats;
 }
