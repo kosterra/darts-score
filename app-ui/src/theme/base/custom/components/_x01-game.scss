@@ -118,14 +118,14 @@
 .x01-live-route {
   min-height: 1.3rem;
   margin: 0.45rem 0 0.55rem;
-  color: #ffc94d;
+  color: #e9ac2f;
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
 // no finish: what to set up instead, quieter than a finish, and what it leaves
-.x01-live-route.is-setup { color: rgba(255, 201, 77, 0.7); font-weight: 500; }
+.x01-live-route.is-setup { color: rgba(233, 172, 47, 0.7); font-weight: 500; }
 
 .x01-route-leaves {
   display: inline-flex;
@@ -142,7 +142,7 @@
   margin-left: 0.4rem;
   padding: 0 0.35rem;
   border-radius: 0.6rem;
-  background: rgba(255, 201, 77, 0.14);
+  background: rgba(233, 172, 47, 0.14);
   font-size: 0.7rem;
 }
 
@@ -333,8 +333,8 @@
   white-space: nowrap;
 
   &.is-preferred {
-    background: rgba(255, 201, 77, 0.14);
-    color: #ffc94d;
+    background: rgba(233, 172, 47, 0.14);
+    color: #e9ac2f;
     font-size: 0.95rem;
     font-weight: 600;
   }
@@ -455,6 +455,16 @@
   font-size: 0.8rem;
 }
 
+// the help next to it: a quiet icon of the same height, centred with the pills
+.score-help-button.p-button.p-button-icon-only {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--text-subtle);
+
+  .p-button-icon { font-size: 1.1rem; }
+}
+
 // the keypad: one big button per dart, Double or Treble first for that dart
 .x01-keypad {
   display: flex;
@@ -467,7 +477,7 @@
 
 .x01-keypad-rings {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
 }
 
@@ -520,10 +530,6 @@
   &.is-miss, &.is-back { color: var(--text-subtle); font-size: 1rem; }
 }
 
-// with Double or Treble chosen the numbers say so
-.x01-keypad.is-double, .x01-keypad.is-treble {
-  .x01-keypad-numbers .x01-key { border-color: color-mix(in srgb, var(--primary-color) 70%, transparent); }
-}
 
 @media (max-width: 767.98px) {
   .x01-keypad { gap: 0.4rem; }

@@ -35,10 +35,8 @@ const ScoreInputBoardHelp = ({ label = 'Click the dartboard or enter score', pla
             {compact
                 ? (
                     <span className="d-inline-flex align-items-center gap-2">
-                        <span className="text-faint fs-8">{label}</span>
-                        <Button type="button" severity="help" size="small" rounded className="p-1 fw-semibold fs-7" aria-label="How to enter darts" onClick={() => showHelp('bottom-right')}>
-                            <TiInfoLarge />
-                        </Button>
+                        {label && <span className="text-faint fs-8">{label}</span>}
+                        <Button type="button" icon="pi pi-question-circle" text rounded severity="secondary" className="score-help-button" aria-label="How to enter darts" title="How to enter darts" onClick={() => showHelp('bottom-right')} />
                     </span>
                 )
                 : (

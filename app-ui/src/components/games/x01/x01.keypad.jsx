@@ -20,7 +20,8 @@ const Key = ({ id, pressed, label, onClick, className = '', disabled = false, ar
 
 /**
  * The darts of a visit on big buttons, one tap per dart: a number is a single,
- * with Double or Treble chosen first a double or treble (for that dart only).
+ * with Double or Treble chosen first a double or treble; after the dart it is
+ * Single again.
  * 25 is the outer bull, Bull the bullseye (with or without Double), Miss a dart
  * that scored nothing.
  */
@@ -57,9 +58,20 @@ const X01Keypad = () => {
 
     return (
         <div className={`x01-keypad ${ring ? `is-${ring === 'D' ? 'double' : 'treble'}` : ''}`} aria-label="Keypad">
-            <div className="x01-keypad-rings">
-                <Key pressed={pressed} id="D" label="Double" className={`is-ring ${ring === 'D' ? 'is-active' : ''}`} onClick={() => setRing(ring === 'D' ? null : 'D')} ariaLabel="Double for the next dart" />
-                <Key pressed={pressed} id="T" label="Treble" className={`is-ring ${ring === 'T' ? 'is-active' : ''}`} onClick={() => setRing(ring === 'T' ? null : 'T')} ariaLabel="Treble for the next dart" />
+            {/* the ring of the next dart: Single is always there to go back to */}
+            <div className="x01-keypad-rings" role="radiogroup" aria-label="Ring of the next dart">
+                {[[null, 'Single'], ['D', 'Double'], ['T', 'Treble']].map(([value, label]) => (
+                    <button
+                        key={label}
+                        type="button"
+                        role="radio"
+                        aria-checked={ring === value}
+                        className={`x01-key is-ring ${ring === value ? 'is-active' : ''}`}
+                        onClick={() => setRing(value)}
+                    >
+                        {label}
+                    </button>
+                ))}
             </div>
             <div className="x01-keypad-numbers">
                 {NUMBERS.map(n => (
