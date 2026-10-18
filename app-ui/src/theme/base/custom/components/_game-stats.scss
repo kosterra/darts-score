@@ -312,8 +312,9 @@ $winnerGold: #ffc94d;
     }
 }
 
-// a heading above a group of charts
-.stats-section-title {
+// a heading above a group of charts, and above a part of a game setup
+.stats-section-title,
+.game-setup-section-title {
     display: flex;
     align-items: center;
     gap: 0.75rem;
