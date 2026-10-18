@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 
 import { DARTS_PER_VISIT, TARGETS, targetLabel } from '../../utils/atc.darts';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import ATCTargetBoard from './atc.target.board';
 
 const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
     <Avatar
@@ -25,13 +26,33 @@ const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
  * rings: Single, Double and Treble instead of Hit (S, D and T on a keyboard)
  * notice: a line above the buttons, e.g. that this is the last round
  * onCancel: without it the round cannot be cancelled here
+ * bests: { [playerId]: fewest darts so far in this mode }, to show whether the
+ * record is still in reach
  */
-const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel, rings = false, notice }) => {
+const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel, rings = false, notice, bests = {} }) => {
     const [confirmCancel, setConfirmCancel] = useState(false);
     const playerOf = (id) => players.find(player => player.id === id) ?? { nickname: 'Unknown player' };
     const currentId = round.order[round.current];
     const current = round.players[currentId];
     const solo = round.order.length === 1;
+    const onTheBull = !current.finished && current.target === TARGETS - 1;
+
+    // who is furthest on, alone; a player who takes the lead flashes gold
+    const progressOf = (id) => round.players[id].finished ? TARGETS + 1 : round.players[id].target;
+    const top = Math.max(...round.order.map(progressOf));
+    const leaders = round.order.filter(id => progressOf(id) === top);
+    const leader = !solo && top > 0 && leaders.length === 1 ? leaders[0] : null;
+    const previousLeader = useRef(undefined);
+    const [flash, setFlash] = useState(null);
+    useEffect(() => {
+        if (previousLeader.current !== undefined && leader && leader !== previousLeader.current) setFlash({ id: leader, key: Date.now() });
+        previousLeader.current = leader;
+    }, [leader]);
+
+    // the record with the fewest darts: still in reach while the darts so far and
+    // one per target left do not go past it
+    const best = bests[currentId];
+    const recordInReach = best ? current.darts + (TARGETS - current.target) <= best : null;
 
     useEffect(() => {
         const onKey = (event) => {
@@ -52,7 +73,10 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
                     {round.order.map((id, index) => {
                         const state = round.players[id];
                         return (
-                            <li key={id} className={`atc-round-player ${index === round.current ? 'is-current' : ''} ${state.finished ? 'is-finished' : ''}`}>
+                            <li
+                                key={flash?.id === id ? `${id}-${flash.key}` : id}
+                                className={`atc-round-player ${index === round.current ? 'is-current' : ''} ${state.finished ? 'is-finished' : ''} ${flash?.id === id ? 'is-taking-lead' : ''}`}
+                            >
                                 <PlayerAvatar player={playerOf(id)} />
                                 <span className="atc-round-player-name">{playerOf(id).nickname}</span>
                                 <span className="atc-round-player-state">
@@ -72,7 +96,14 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
                     <PlayerAvatar player={playerOf(currentId)} />
                     <span className="text-default fw-semibold">{solo ? playerOf(currentId).nickname : `${playerOf(currentId).nickname}'s turn`}</span>
                 </div>
-                <div className="atc-round-target" key={`${currentId}-${current.target}`}>{targetLabel(current.target, mode)}</div>
+                <div className="atc-round-aim">
+                    <div className="d-flex flex-column align-items-center">
+                        {/* the next target ticks in like the hand of a clock */}
+                        <div className={`atc-round-target ${onTheBull ? 'is-bull' : ''}`} key={`${currentId}-${current.target}`}>{targetLabel(current.target, mode)}</div>
+                        {onTheBull && <span className="atc-bull-to-win">{solo ? 'Bull to finish' : 'Bull to win'}</span>}
+                    </div>
+                    <ATCTargetBoard target={current.target} mode={mode} />
+                </div>
                 <div className="atc-round-progress" aria-label={`${current.target} of ${TARGETS} targets hit`}>
                     {Array.from({ length: TARGETS }, (_, index) => (
                         <span key={index} className={index < current.target ? 'is-hit' : index === current.target ? 'is-current' : ''} />
@@ -87,6 +118,7 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
                         ))}
                     </span>
                     <span>{current.darts} {current.darts === 1 ? 'dart' : 'darts'}</span>
+                    {best && <span className={`atc-record-pace ${recordInReach ? 'is-ahead' : 'is-behind'}`}>Best {best} · {recordInReach ? 'record in reach' : 'record out of reach'}</span>}
                 </div>
             </div>
 

@@ -7,6 +7,8 @@ import PageLoader from '../../elements/page.loader';
 import ClockService from '../../../services/clock.service';
 import PlayerService from '../../../services/player.service';
 import { replayClock, skipsAhead, withClockState } from '../../../utils/clock.game';
+import useClockMoment from '../../../utils/use.clock.moment';
+import ClockMoment from '../common/clock.moments';
 
 /**
  * An Around the Clock game being played: whose turn it is and their target,
@@ -40,12 +42,22 @@ const ClockGame = () => {
     }, [id, navigate]);
 
     const state = useMemo(() => game ? replayClock(game) : null, [game]);
+    const [moment, endMoment] = useClockMoment(state, {
+        nameOf: (playerId) => players.find(player => player.id === playerId)?.nickname ?? '',
+        indexOf: (playerId) => game?.players.indexOf(playerId) ?? 0,
+        rings: game ? skipsAhead(game) : false,
+    });
+    // the game is over and saved: the result opens once a moment of the last dart has played
+    const [savedOver, setSavedOver] = useState(null);
+    useEffect(() => {
+        if (savedOver && !moment) navigate(`/stats/games/clock/${savedOver}`, { replace: true, state: { justFinished: true } });
+    }, [savedOver, moment, navigate]);
 
     const save = useCallback((next) => {
         saving.current = saving.current
             .then(() => ClockService.updateClockGame(next))
             .then(() => {
-                if (next.hasWinner) navigate(`/stats/games/clock/${next.id}`, { replace: true, state: { justFinished: true } });
+                if (next.hasWinner) setSavedOver(next.id);
             })
             .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last dart could not be saved. Check the connection and throw on: the next dart saves everything.', life: 5000 }));
     }, [navigate]);
@@ -93,6 +105,7 @@ const ClockGame = () => {
                     notice={notice}
                 />
             </div>
+            <ClockMoment moment={moment} onDone={endMoment} mode={game.mode} />
             <Toast ref={toast} position="bottom-right" />
         </div>
     );

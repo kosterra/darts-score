@@ -1050,3 +1050,174 @@ $oneEightyGold: #ffc94d;
 @media (prefers-reduced-motion: reduce) {
     .big-fish-water, .big-fish-leap, .big-fish-splash, .firework, .bull-target, .bed-scene { display: none; }
 }
+
+// ---------------------------------------------------------------------------
+// The big moments of Around the Clock
+
+.clock-face {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 0.5rem 1rem rgba(0, 0, 0, 0.55));
+
+    .clock-hand-hour,
+    .clock-hand-minute {
+        transform-box: view-box;
+        transform-origin: 100px 120px;
+    }
+
+    .clock-bells {
+        transform-box: view-box;
+        transform-origin: 100px 30px;
+    }
+
+    // the strike: the hands race round and stop at twelve, the bells ring
+    &.is-ringing {
+        .clock-hand-minute { animation: clock-minute 1.3s 0.4s cubic-bezier(0.3, 0.1, 0.3, 1) both; }
+        .clock-hand-hour { animation: clock-hour 1.3s 0.4s cubic-bezier(0.3, 0.1, 0.3, 1) both; }
+        .clock-bells { animation: clock-bells 0.12s 1.7s linear 14 alternate; }
+    }
+
+    // on a roll: the minute hand jumps three ticks
+    &.is-ticking .clock-hand-minute { animation: clock-ticks 1.2s 0.5s steps(1, end) both; }
+}
+
+.clock-strike {
+    position: absolute;
+    left: calc(50% - clamp(8rem, 20vw, 11rem) / 2);
+    bottom: 1rem;
+    width: clamp(8rem, 20vw, 11rem);
+    animation: water-rise 0.5s ease-out both;
+}
+
+.clock-ring {
+    position: absolute;
+    left: 50%;
+    top: 55%;
+    width: 6rem;
+    height: 6rem;
+    margin: -3rem 0 0 -3rem;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 201, 77, 0.85);
+    opacity: 0;
+    animation: one-eighty-ring 1s 1.7s ease-out both;
+
+    &.is-late { border-color: rgba(255, 255, 255, 0.8); animation-delay: 2.1s; }
+}
+
+.clock-roll {
+    position: absolute;
+    left: calc(50% - 4rem);
+    bottom: 1rem;
+    width: 8rem;
+    animation: one-eighty-figure 4s cubic-bezier(0.3, 0.8, 0.4, 1) both;
+}
+
+// above the highest point of the jump
+.stage-moment.is-clock-leap .stage-moment-banner { bottom: 18.5rem; }
+
+.stage-moment.is-clock-strike .stage-moment-banner,
+.stage-moment.is-clock-roll .stage-moment-banner { bottom: calc(clamp(8rem, 20vw, 11rem) * 1.1 + 2.5rem); }
+
+@keyframes clock-minute {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(1080deg); }
+}
+
+@keyframes clock-hour {
+    from { transform: rotate(-90deg); }
+    to { transform: rotate(0deg); }
+}
+
+@keyframes clock-bells {
+    from { transform: rotate(-10deg); }
+    to { transform: rotate(10deg); }
+}
+
+@keyframes clock-ticks {
+    0% { transform: rotate(0deg); }
+    33% { transform: rotate(30deg); }
+    66% { transform: rotate(60deg); }
+    100% { transform: rotate(90deg); }
+}
+
+// the giant leap: tiles of the numbers skipped, the figure jumps over them
+.clock-leap {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    width: min(34rem, 92vw);
+    height: 13rem;
+    transform: translateX(-50%);
+}
+
+.clock-leap-tiles {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    animation: water-rise 0.4s ease-out both;
+}
+
+.clock-leap-tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.2rem;
+    height: 3rem;
+    border-radius: 0.6rem;
+    background: rgba(20, 16, 12, 0.85);
+    color: #efe6d0;
+    font-size: 1.3rem;
+    font-weight: 800;
+    box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.5);
+
+    &.is-landing {
+        background: rgba(233, 172, 47, 0.25);
+        color: #ffc94d;
+        animation: tile-land 0.4s 1.7s ease-out both;
+    }
+}
+
+.clock-leap-jumper {
+    position: absolute;
+    left: 0;
+    bottom: 3rem;
+    width: 4.2rem;
+    animation: leap-x 1.3s 0.5s cubic-bezier(0.4, 0.1, 0.6, 1) both;
+}
+
+.clock-leap-figure {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 0.4rem 0.6rem rgba(0, 0, 0, 0.5));
+    animation: leap-arc 1.3s 0.5s ease-in-out both;
+}
+
+@keyframes leap-x {
+    from { left: 0; }
+    to { left: calc(100% - 4.2rem); }
+}
+
+@keyframes leap-arc {
+    0% { transform: translateY(0) rotate(0deg) scale(1, 0.85); }
+    10% { transform: translateY(0) scale(1, 1.05); }
+    50% { transform: translateY(-5rem) rotate(20deg); }
+    90% { transform: translateY(0) rotate(0deg) scale(1.05, 0.9); }
+    100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes tile-land {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.9, 0.8); }
+    100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .clock-strike, .clock-roll, .clock-leap { display: none; }
+}

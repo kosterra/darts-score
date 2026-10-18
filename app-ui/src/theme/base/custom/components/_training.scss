@@ -27,12 +27,71 @@
 
 .atc-stopwatch-time {
   color: var(--text-default);
-  font-size: clamp(3rem, 15vw, 5.5rem);
+  font-size: clamp(2rem, 9vw, 3rem);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+
+// a real stopwatch above the digits
+.atc-watch-wrap {
+  position: relative;
+  width: clamp(11rem, 42vw, 14rem);
+  margin-bottom: 0.5rem;
+}
+
+.atc-watch {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0.5rem 1rem rgba(0, 0, 0, 0.45));
+}
+
+// the glow of the pace against the best time
+.atc-watch-pace {
+  fill: transparent;
+  transition: fill 0.3s;
+
+  .atc-watch.is-ahead & { fill: rgba(126, 204, 165, 0.55); }
+  .atc-watch.is-behind & { fill: rgba(236, 139, 128, 0.55); }
+}
+
+// 3-2-1 on the dial
+.atc-watch-countdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10%;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: clamp(3rem, 12vw, 4.5rem);
+  font-weight: 800;
+  text-shadow: 0 0 1rem rgba(246, 242, 232, 0.9);
+}
+
+.atc-watch-best {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-bottom: 1rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+
+  &.is-ahead { color: #7ecca5; }
+  &.is-behind { color: #ec8b80; }
+}
+
+.atc-watch-best-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #e9ac2f;
 }
 
 .atc-stopwatch-actions {
@@ -292,9 +351,81 @@
   animation: atc-target 0.3s ease-out both;
 }
 
+// the next target ticks in like the hand of a clock: swings in, overshoots, settles
 @keyframes atc-target {
-  from { transform: scale(0.8); opacity: 0.3; }
-  to { transform: none; opacity: 1; }
+  0% { transform: rotate(-24deg) scale(0.85); opacity: 0.3; }
+  55% { transform: rotate(6deg) scale(1.04); opacity: 1; }
+  80% { transform: rotate(-2deg); }
+  100% { transform: none; opacity: 1; }
+}
+
+// the target next to its place on a small board
+.atc-round-aim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.atc-round-target {
+  transform-origin: 50% 85%;
+
+  // on the bull: gold, it decides the round
+  &.is-bull {
+    color: #ffc94d;
+    text-shadow: 0 0 1.2rem rgba(255, 201, 77, 0.55);
+  }
+}
+
+.atc-bull-to-win {
+  @include label-shape;
+  @include label-tone(#e9ac2f);
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  animation: match-dart-pulse 1.6s ease-in-out infinite;
+}
+
+.atc-target-board {
+  width: clamp(5.5rem, 22vw, 7.5rem);
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0.3rem 0.6rem rgba(0, 0, 0, 0.45));
+
+  .is-dark { fill: #2a2826; }
+  .is-light { fill: #4a4640; }
+  .is-red { fill: #6e3a33; }
+  .is-green { fill: #34503f; }
+  .is-number { fill: #8a857c; }
+  .is-lit-number { fill: #ffc94d; }
+
+  // the target: gold and glowing
+  .is-lit {
+    fill: #ffc94d;
+    filter: drop-shadow(0 0 1.5px rgba(255, 201, 77, 0.9));
+    animation: target-glow 1.4s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes target-glow {
+  from { fill-opacity: 0.75; }
+  to { fill-opacity: 1; }
+}
+
+// the record with the fewest darts: still in reach (green) or not any more (red)
+.atc-record-pace {
+  &.is-ahead { color: #7ecca5; }
+  &.is-behind { color: #ec8b80; }
+}
+
+// a player who takes the lead flashes gold
+.atc-round-player.is-taking-lead {
+  animation: atc-lead 1.4s ease-out both;
+}
+
+@keyframes atc-lead {
+  0% { box-shadow: 0 0 0 rgba(255, 201, 77, 0); }
+  25% { box-shadow: 0 0 0 2px rgba(255, 201, 77, 0.9), 0 0 1rem rgba(255, 201, 77, 0.5); }
+  100% { box-shadow: 0 0 0 rgba(255, 201, 77, 0); }
 }
 
 .atc-round-progress {
@@ -394,7 +525,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atc-round-target { animation: none; }
+  .atc-round-target, .atc-bull-to-win, .atc-target-board .is-lit, .atc-round-player.is-taking-lead { animation: none; }
 }
 
 // scrolled into view below the sticky top bar

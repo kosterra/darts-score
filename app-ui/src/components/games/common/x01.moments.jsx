@@ -6,7 +6,7 @@ const DURATION_MS = 4400;
 const FIGURES = [Gnome, Monster, Dragon, Troll];
 
 // the frame of every moment: over the game, a banner, and the scene below it
-const Stage = ({ moment, onDone, className = '', title, detail, children }) => {
+export const Stage = ({ moment, onDone, className = '', title, detail, children }) => {
     const leaving = useFleeting(moment, onDone, DURATION_MS);
     if (!moment) return null;
     return (

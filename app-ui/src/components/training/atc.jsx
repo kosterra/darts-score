@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
@@ -18,6 +18,8 @@ import { useAuth } from '../../utils/auth.context';
 import ATCConfigOptions from './atc.config.options';
 import Celebration from '../badges/celebration';
 import useStopwatch from '../../utils/use.stopwatch';
+import useClockMoment from '../../utils/use.clock.moment';
+import ClockMoment from '../games/common/clock.moments';
 import useWakeLock from '../../utils/use.wake.lock';
 import useCountdown from '../../utils/use.countdown';
 import useAtcRound from '../../utils/use.atc.round';
@@ -99,7 +101,15 @@ const ATC = () => {
             if (request !== entriesRequest.current) return;
             setATCEntries(entries);
             if (pendingArrival.current) {
-                setArrival(pendingArrival.current);
+                const coming = pendingArrival.current;
+                // "best per player" only lists personal bests: a training that is not
+                // one would not be seen moving up, so the scoreboard shows all attempts
+                setScoreboardView(view => {
+                    if (view.list !== 'best') return view;
+                    const listed = new Set(scoreboardRows(entries, view).map(row => row.entry.id));
+                    return coming.ids.every(id => listed.has(id)) ? view : { ...view, list: 'all' };
+                });
+                setArrival(coming);
                 pendingArrival.current = null;
             }
         }).catch(() => {});
@@ -118,6 +128,23 @@ const ATC = () => {
     }, [user?.id, activeClub?.id]);
 
     const rows = useMemo(() => scoreboardRows(atcEntries, { ...scoreboardView, myPlayerId }), [atcEntries, scoreboardView, myPlayerId]);
+
+    // the big moments of a round with the fewest darts: the clock strikes twelve, on a roll
+    const [clockMoment, endClockMoment] = useClockMoment(active?.round ?? null, {
+        nameOf: (playerId) => active?.players.find(entry => entry.id === playerId)?.nickname ?? '',
+        indexOf: (playerId) => active?.round.order.indexOf(playerId) ?? 0,
+    });
+
+    // every player's personal best in the mode and scoring being played, from the
+    // scoreboard (which follows the setup): the time in hundredths, or the fewest darts
+    const bestOf = useCallback((wanted, playerId) => {
+        if (scoreboardView.mode !== mode || scoreboardView.scoring !== wanted) return null;
+        const values = atcEntries
+            .filter(entry => entry.player?.id === playerId && (entry.mode ?? mode) === mode)
+            .map(entry => wanted === 'Time' ? entry.timeMs : entry.darts)
+            .filter(value => Number.isFinite(value) && value > 0);
+        return values.length ? Math.min(...values) : null;
+    }, [atcEntries, scoreboardView.mode, scoreboardView.scoring, mode]);
 
     // against the clock: where the time just saved ended up
     const timeResult = useMemo(() => {
@@ -298,6 +325,7 @@ const ATC = () => {
                                             onUndo={roundState.undo}
                                             canUndo={active.past.length > 0}
                                             onCancel={cancelRound}
+                                            bests={Object.fromEntries(active.players.map(entry => [entry.id, bestOf('Darts', entry.id)]).filter(([, best]) => best))}
                                         />
                                         : <div className="atc-stopwatch">
                                             <div className="atc-stopwatch-actions">
@@ -317,6 +345,7 @@ const ATC = () => {
                                         onStart={() => setArrival(null)}
                                         saving={saving}
                                         onSave={saveChallenge}
+                                        best={player ? bestOf('Time', player.id) : null}
                                     />
                                     {timeResult && !inProgress && <div className="atc-result" role="status">{timeResult}</div>}
                                 </>
@@ -339,6 +368,7 @@ const ATC = () => {
                 </div>
             </div>
             {celebration && <Celebration {...celebration} onClose={() => setCelebration(null)} />}
+            <ClockMoment moment={clockMoment} onDone={endClockMoment} mode={active?.mode ?? mode} />
             <Toast ref={toast} position="bottom-right" />
         </div>
     );
