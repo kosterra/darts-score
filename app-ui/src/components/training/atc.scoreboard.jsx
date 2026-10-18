@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
+import { FaMedal } from 'react-icons/fa6';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
@@ -8,17 +9,14 @@ import dayjs from 'dayjs';
 import Confetti from '../badges/confetti';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { formatTrainingTime } from '../../utils/training.time';
-import { PERIODS, scoreboardRows } from '../../utils/atc.scoreboard';
+import { LISTS, PERIODS, ordinal, scoreboardRows } from '../../utils/atc.scoreboard';
 
 // rows shown before "Show all"
 const SHOWN_ROWS = 10;
 // how long a new time shows at the bottom before it moves up to its place
 const ENTER_MS = 700;
 
-const VIEWS = [
-    { label: 'Best per player', value: true },
-    { label: 'All attempts', value: false },
-];
+const MEDALS = ['gold', 'silver', 'bronze'];
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -30,7 +28,13 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
             ref={rowRef}
             className={`atc-row ${latest ? 'is-latest' : ''} ${phase === 'enter' || phase === 'slide' ? 'is-arriving' : ''} ${phase === 'enter' ? 'is-entering' : ''}`}
         >
-            <span className={`atc-rank ${['is-gold', 'is-silver', 'is-bronze'][rank - 1] ?? ''} ${podium ? 'is-pop' : ''}`}>{rank}</span>
+            {rank <= 3
+                // the podium as medals, like the badges
+                ? <span className={`badge-medal badge-medal-sm badge-${MEDALS[rank - 1]} atc-medal ${podium ? 'badge-pop' : ''}`} role="img" aria-label={`${ordinal(rank)} place`} title={`${ordinal(rank)} place`}>
+                    <FaMedal aria-hidden="true" />
+                </span>
+                : <span className="atc-rank" aria-label={`${ordinal(rank)} place`}>{rank}</span>
+            }
             <Avatar
                 image={resolvePlayerImg(player.profileImg)}
                 label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname ?? player.nickname ?? '?', player.lastname ?? '')}
@@ -54,10 +58,11 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
  * entries: every training of the mode
  * mode: shown in the header
  * arrival: { id } of the time just saved, or null
- * view, onViewChange: { period, bestOnly }
+ * view, onViewChange: { period, list }
+ * myPlayerId: the player of the logged-in user in this club, for "Mine" 
  * onArrived(row): once the new time reached its place (row null when it is not listed)
  */
-const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, onArrived }) => {
+const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, myPlayerId, onArrived }) => {
     const [expanded, setExpanded] = useState(false);
     // the time just saved: 'enter' at the bottom, then 'slide' up, then 'landed'
     const [phase, setPhase] = useState(null);
@@ -69,7 +74,8 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, onArrived }
     const arrived = useRef(onArrived);
     arrived.current = onArrived;
 
-    const rows = useMemo(() => scoreboardRows(entries, view), [entries, view]);
+    const rows = useMemo(() => scoreboardRows(entries, { ...view, myPlayerId }), [entries, view, myPlayerId]);
+    const lists = myPlayerId ? LISTS : LISTS.filter(option => option.value !== 'mine');
     const arrivingRow = arrival ? rows.find(({ entry }) => entry.id === arrival.id) : null;
     const latestId = useMemo(() => entries.reduce((latest, entry) => !latest || new Date(entry.createdAt) > new Date(latest.createdAt) ? entry : latest, null)?.id, [entries]);
 
@@ -161,7 +167,7 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, onArrived }
         <Panel headerTemplate={() => header} className="atc-scoreboard">
             <div className="d-flex flex-wrap justify-content-between gap-2 mb-3">
                 <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
-                <SelectButton value={view.bestOnly} options={VIEWS} onChange={(e) => e.value !== null && e.value !== undefined && setView({ bestOnly: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Times listed" />
+                <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Times listed" />
             </div>
 
             {rows.length
@@ -182,7 +188,11 @@ const ATCScoreboard = ({ entries, mode, arrival, view, onViewChange, onArrived }
                         ))}
                     </ol>
                 )
-                : <div className="text-faint fs-7 text-center py-4">{view.period === 'today' ? 'No times today yet. Be the first!' : view.period === 'month' ? 'No times this month yet.' : 'No times yet.'}</div>
+                : <div className="text-faint fs-7 text-center py-4">
+                    {view.list === 'mine'
+                        ? `You have no times in ${mode}${view.period === 'today' ? ' today' : view.period === 'month' ? ' this month' : ''} yet.`
+                        : view.period === 'today' ? 'No times today yet. Be the first!' : view.period === 'month' ? 'No times this month yet.' : 'No times yet.'}
+                </div>
             }
 
             {rows.length > SHOWN_ROWS && !expanded &&

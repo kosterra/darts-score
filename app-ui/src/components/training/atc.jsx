@@ -8,6 +8,8 @@ import ATCScoreboard from './atc.scoreboard';
 import ATCModeConfig from './atc.mode.config';
 import ATCStopwatch from './atc.stopwatch';
 import ATCService from "../../services/atc.service";
+import ClubService from '../../services/club.service';
+import { useAuth } from '../../utils/auth.context';
 import ATCConfigOptions from './atc.config.options';
 import Celebration from '../badges/celebration';
 import useStopwatch from '../../utils/use.stopwatch';
@@ -17,6 +19,9 @@ import { resultLine, scoreboardRows } from '../../utils/atc.scoreboard';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 
 const ATC = () => {
+    const { user, activeClub } = useAuth();
+    // the player the logged-in user plays as in this club, for "Mine" on the scoreboard
+    const [myPlayerId, setMyPlayerId] = useState(null);
     // the page starts set up like the last training
     const [remembered, setRemembered] = useState(() => loadSetup('atc'));
     const [players, setPlayers] = useState([]);
@@ -27,7 +32,7 @@ const ATC = () => {
     const [celebration, setCelebration] = useState(null);
     // shown once the new time has reached its place on the scoreboard
     const pendingCelebration = useRef(null);
-    const [scoreboardView, setScoreboardView] = useState({ period: 'all', bestOnly: true });
+    const [scoreboardView, setScoreboardView] = useState({ period: 'all', list: 'best' });
     // the time just saved: it moves up the scoreboard, and a line says where it ended up
     const [arrival, setArrival] = useState(null);
     const toast = useRef(null);
@@ -46,11 +51,16 @@ const ATC = () => {
         loadATCEntries();
     }, [mode]);
 
+    useEffect(() => {
+        if (!user || !activeClub) return;
+        ClubService.findPlayerOfUser(activeClub.id, user.id).then(player => setMyPlayerId(player?.id ?? null)).catch(() => setMyPlayerId(null));
+    }, [user?.id, activeClub?.id]);
+
     const result = useMemo(() => {
         if (!arrival) return null;
-        const line = resultLine(scoreboardRows(atcEntries, scoreboardView), arrival);
+        const line = resultLine(scoreboardRows(atcEntries, { ...scoreboardView, myPlayerId }), arrival);
         return arrival.isRecord ? ['New personal best', line].filter(Boolean).join(' · ') : line;
-    }, [arrival, atcEntries, scoreboardView]);
+    }, [arrival, atcEntries, scoreboardView, myPlayerId]);
 
     const onArrived = (row) => {
         const waiting = pendingCelebration.current;
@@ -138,6 +148,7 @@ const ATC = () => {
                         arrival={arrival}
                         view={scoreboardView}
                         onViewChange={setScoreboardView}
+                        myPlayerId={myPlayerId}
                         onArrived={onArrived}
                     />
                 </div>

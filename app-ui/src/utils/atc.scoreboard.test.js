@@ -18,8 +18,14 @@ describe('scoreboardRows', () => {
     });
 
     it('lists every attempt on request', () => {
-        expect(scoreboardRows(entries, { bestOnly: false, now }).map(({ entry: { id } }) => id))
+        expect(scoreboardRows(entries, { list: 'all', now }).map(({ entry: { id } }) => id))
             .toEqual(['a2', 'c1', 'b1', 'a1']);
+    });
+
+    it('lists the own attempts on request', () => {
+        expect(scoreboardRows(entries, { list: 'mine', myPlayerId: 'anna', now }).map(({ entry: { id }, rank }) => [id, rank]))
+            .toEqual([['a2', 1], ['a1', 2]]);
+        expect(scoreboardRows(entries, { list: 'mine', now })).toEqual([]);
     });
 
     it('keeps the times of the period only', () => {

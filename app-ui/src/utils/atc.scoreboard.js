@@ -19,13 +19,21 @@ const playerKey = (entry) => entry.player?.id ?? entry.player?.nickname ?? entry
 // the faster time first; the same time: who set it first
 const faster = (a, b) => a.timeMs - b.timeMs || new Date(a.createdAt) - new Date(b.createdAt);
 
+// which times are listed: each player's best, every attempt, or the own attempts
+export const LISTS = [
+    { label: 'Best per player', value: 'best' },
+    { label: 'All attempts', value: 'all' },
+    { label: 'Mine', value: 'mine' },
+];
+
 /**
  * The listed times of the period, fastest first, with their place.
- * bestOnly: each player's best time only
+ * list: 'best' (each player's best), 'all' or 'mine' (every attempt of myPlayerId)
  */
-export const scoreboardRows = (entries, { period = 'all', bestOnly = true, now = new Date() } = {}) => {
+export const scoreboardRows = (entries, { period = 'all', list = 'best', myPlayerId = null, now = new Date() } = {}) => {
     let listed = entries.filter(entry => entry.timeMs && inPeriod(entry, period, now));
-    if (bestOnly) {
+    if (list === 'mine') listed = listed.filter(entry => myPlayerId && entry.player?.id === myPlayerId);
+    if (list === 'best') {
         const best = new Map();
         for (const entry of listed) {
             const key = playerKey(entry);
