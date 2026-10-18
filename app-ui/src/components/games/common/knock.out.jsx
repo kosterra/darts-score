@@ -64,6 +64,10 @@ const KnockOut = ({ knockOut, onDone }) => {
                     </div>
                 </div>
                 <span className="knock-puff" />
+                {/* the dust where they land at home */}
+                <span className="knock-landing">
+                    <span /><span /><span />
+                </span>
                 <div className="knock-attacker">
                     <svg viewBox="0 0 120 170" className="knock-figure">
                         {/* the kicking leg, behind the body until it swings out */}

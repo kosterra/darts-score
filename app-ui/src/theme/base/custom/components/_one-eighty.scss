@@ -293,6 +293,33 @@ $oneEightyGold: #ffc94d;
     right: 1%;
     bottom: 0;
     width: 5em;
+    // it shakes when the kicked figure lands on it
+    transform-origin: 40% 100%;
+    animation: knock-shake 0.5s 2.2s ease-in-out both;
+}
+
+// three clouds of dust puffing out where the kicked figure lands
+.knock-landing {
+    position: absolute;
+    right: calc(1% + 0.5em);
+    bottom: 0;
+    width: 4em;
+    height: 2em;
+
+    span {
+        position: absolute;
+        bottom: 0;
+        width: 1.8em;
+        height: 1.8em;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(239, 230, 208, 0.85), rgba(239, 230, 208, 0) 70%);
+        opacity: 0;
+        animation: knock-dust 0.8s 2.2s ease-out both;
+
+        &:nth-child(1) { left: 0; --drift: -1.6em; }
+        &:nth-child(2) { left: 1.1em; --drift: 0em; animation-delay: 2.25s; }
+        &:nth-child(3) { left: 2.2em; --drift: 1.6em; }
+    }
 }
 
 .knock-figure {
@@ -396,6 +423,20 @@ $oneEightyGold: #ffc94d;
     0% { opacity: 0; transform: scale(0.3); }
     30% { opacity: 1; }
     100% { opacity: 0; transform: scale(1.8); }
+}
+
+@keyframes knock-shake {
+    0%, 100% { transform: rotate(0deg); }
+    20% { transform: rotate(-7deg) translateY(0.1em); }
+    40% { transform: rotate(5deg); }
+    60% { transform: rotate(-3deg); }
+    80% { transform: rotate(1.5deg); }
+}
+
+@keyframes knock-dust {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+    25% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--drift), -1.2em) scale(1.7); }
 }
 
 @keyframes knock-banner {
