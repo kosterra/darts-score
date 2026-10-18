@@ -52,9 +52,10 @@ const ATCStopwatch = ({ watch, countdown, withCountdown, onWithCountdownChange, 
                 }
                 {stopped && <>
                     <Button type="button" label="Save time" icon="pi pi-check" className="atc-stopwatch-main" loading={saving} onClick={() => onSave(toHundredths(elapsedMs))} />
-                    <div className="d-flex justify-content-center gap-2">
-                        <Button type="button" label="Go on" icon="pi pi-play" size="small" outlined disabled={saving} onClick={start} />
-                        <Button type="button" label="Discard" icon="pi pi-times" size="small" text severity="danger" disabled={saving} onClick={reset} />
+                    {/* the way back on (a tool, grey) and the one to throw the time away (soft red), side by side */}
+                    <div className="atc-stopwatch-secondary">
+                        <Button type="button" label="Go on" icon="pi pi-play" severity="secondary" disabled={saving} onClick={start} />
+                        <Button type="button" label="Discard" icon="pi pi-trash" severity="danger" disabled={saving} onClick={reset} />
                     </div>
                 </>}
             </div>

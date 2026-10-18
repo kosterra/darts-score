@@ -77,8 +77,10 @@ const ATC = () => {
 
     const darts = scoring === 'Darts';
     const player = players[0];
-    // while a training runs (and its result shows) the setup folds into one line
-    const playing = inProgress || Boolean(finished);
+    // the setup, then the training: it stays after a time is saved or a round is
+    // over, for the next attempt, until "Settings" goes back
+    const [stage, setStage] = useState(() => active ? 'training' : 'setup');
+    const playing = stage === 'training' || inProgress || Boolean(finished);
     const panelRef = useRef(null);
 
     // the play area moves up when the setup folds: bring it into view
@@ -275,7 +277,14 @@ const ATC = () => {
                     <div ref={panelRef} className="atc-panel-anchor">
                     <Panel header="Around the Clock">
                         <div className="container">
-                            {playing && <ATCTrainingSummary players={active?.players ?? finished?.players ?? players} mode={active?.mode ?? finished?.mode ?? mode} scoring={scoring} />}
+                            {playing &&
+                                <ATCTrainingSummary
+                                    players={active?.players ?? finished?.players ?? players}
+                                    mode={active?.mode ?? finished?.mode ?? mode}
+                                    scoring={scoring}
+                                    onSettings={inProgress || finished?.saving ? undefined : () => { setFinished(null); setArrival(null); setStage('setup'); }}
+                                />
+                            }
                             {!playing && <>
                             {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
                             <p className="game-setup-section-title">Player</p>
@@ -304,9 +313,17 @@ const ATC = () => {
                                 <span className="text-faint fs-8 text-center">{SCORINGS.find(option => option.value === scoring).description}</span>
                             </div>
                             <ATCModeConfig atcModeOption={mode} onATCModeChange={setMode} disabled={inProgress} />
+                            {/* the setup only: the stopwatch or the round come once the training starts */}
+                            <div className="atc-stopwatch mt-4">
+                                <div className="atc-stopwatch-actions">
+                                    <Button type="button" label="Start training" icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => { rememberSetup(); setStage('training'); }} />
+                                </div>
+                                {!players.length && <div className="text-faint fs-8 text-center mt-2">Choose a player to start.</div>}
+                            </div>
                             </>}
 
-                            <p className={`game-setup-section-title ${playing ? '' : 'mt-4'}`}>{darts ? (finished ? 'Result' : 'Round') : 'Stopwatch'}</p>
+                            {playing && <>
+                            <p className="game-setup-section-title">{darts ? (finished ? 'Result' : 'Round') : 'Stopwatch'}</p>
                             {darts
                                 ? finished
                                     ? <ATCDartsResult
@@ -350,6 +367,7 @@ const ATC = () => {
                                     {timeResult && !inProgress && <div className="atc-result" role="status">{timeResult}</div>}
                                 </>
                             }
+                            </>}
                         </div>
                     </Panel>
                     </div>

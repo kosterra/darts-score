@@ -694,3 +694,17 @@
   max-width: 44rem;
   margin: 0 auto;
 }
+
+// under Save time: Go on and Discard side by side, the same size
+.atc-stopwatch-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+
+  .p-button { justify-content: center; }
+}
+
+// the filter of the scoreboard: a grey tool, a little lighter while open
+.atc-filter-toggle .p-button.is-open {
+  background: rgba(255, 255, 255, 0.18);
+}

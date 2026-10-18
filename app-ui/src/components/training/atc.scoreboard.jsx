@@ -13,6 +13,9 @@ import { LISTS, PERIODS, formatScore, ordinal, scoreboardRows } from '../../util
 
 // rows shown before "Show all"
 const SHOWN_ROWS = 10;
+// a training arriving below the top ten: the podium, then this many places around it
+const PODIUM = 3;
+const AROUND = 2;
 // how long a new time shows at the bottom before it moves up to its place
 const ENTER_MS = 700;
 
@@ -139,13 +142,24 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [arrival]);
 
-    // the rows shown: the first ten (or all), new trainings further down pinned below
+    // the rows shown: the first ten (or all); a new training further down shows the
+    // podium and the places around it instead, so it moves up in view and not at
+    // the far end of a long list
+    const around = useMemo(() => {
+        if (expanded || !arrivingRows.some(row => rows.indexOf(row) >= SHOWN_ROWS)) return null;
+        const keep = new Set(rows.slice(0, PODIUM));
+        arrivingRows.forEach(row => {
+            const index = rows.indexOf(row);
+            rows.slice(Math.max(0, index - AROUND), index + AROUND + 1).forEach(near => keep.add(near));
+        });
+        return rows.filter(row => keep.has(row));
+    }, [rows, expanded, arrivingRows]);
     const visible = useMemo(() => {
-        const top = expanded ? rows : rows.slice(0, SHOWN_ROWS);
-        const list = [...top, ...arrivingRows.filter(row => !top.includes(row))];
+        const list = around ?? (expanded ? rows : rows.slice(0, SHOWN_ROWS));
         return phase === 'enter' ? [...list.filter(row => !arrivingIds.has(row.entry.id)), ...arrivingRows] : list;
-    }, [rows, expanded, arrivingRows, arrivingIds, phase]);
-    const firstPinned = !expanded ? arrivingRows.find(row => row.rank > SHOWN_ROWS) : null;
+    }, [rows, expanded, around, arrivingRows, arrivingIds, phase]);
+    // the gap in the list: before the first row that does not follow the one above
+    const gapBefore = (row, index) => index > 0 && rows.indexOf(row) !== rows.indexOf(visible[index - 1]) + 1 && phase !== 'enter';
 
     // every row slides from where it was to where it is now (FLIP)
     useLayoutEffect(() => {
@@ -165,7 +179,11 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                 );
                 if (id === farthest) moving = animation;
             });
-            const land = () => setPhase('landed');
+            const land = () => {
+                setPhase('landed');
+                // make sure the new card is in view once it has landed
+                rowRefs.current.get(farthest)?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
+            };
             if (moving) moving.onfinish = land;
             else land();
         }
@@ -212,9 +230,8 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                 <Button
                     type="button"
                     icon="pi pi-filter"
-                    rounded
-                    text={!filtersOpen}
-                    outlined={filtersOpen}
+                    severity="secondary"
+                    className={filtersOpen ? 'is-open' : ''}
                     aria-label={filtersOpen ? 'Hide the filters' : 'Show the filters'}
                     aria-expanded={filtersOpen}
                     title="Filter"
@@ -259,7 +276,7 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                     <ol className="atc-rows">
                         {visible.map((row, index) => (
                             <Fragment key={row.entry.id}>
-                                {row === firstPinned && index > 0 && <li className="atc-rows-gap" aria-hidden="true">⋯</li>}
+                                {gapBefore(row, index) && <li className="atc-rows-gap" aria-hidden="true">⋯</li>}
                                 <ScoreboardRow
                                     row={row}
                                     rowRef={(element) => { if (element) rowRefs.current.set(row.entry.id, element); else rowRefs.current.delete(row.entry.id); }}
@@ -279,7 +296,7 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                 </div>
             }
 
-            {rows.length > SHOWN_ROWS && !expanded &&
+            {rows.length > (around ? around.length : SHOWN_ROWS) && !expanded &&
                 <div className="text-center mt-2">
                     <Button type="button" label={`Show all ${rows.length}`} icon="pi pi-chevron-down" size="small" text onClick={() => setExpanded(true)} />
                 </div>
