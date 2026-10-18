@@ -1,5 +1,6 @@
 import CricketModels from '../models/cricket.models';
 import { shufflePlayers } from './game.utils';
+import { variantOf } from './cricket.variants';
 
 /**
  * A new Cricket game with the players of "game": in the same order, the
@@ -13,6 +14,7 @@ export const cricketRematch = (game, { switchPlayers = false, shuffle = false } 
         ...CricketModels.CricketGameModel,
         isSoloGame: players.length === 1,
         startingScore: game.startingScore,
+        variant: variantOf(game),
         numberOfPlayers: players.length,
         players,
         currentPlayerTurn: players[0],

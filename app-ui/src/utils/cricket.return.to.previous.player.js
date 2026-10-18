@@ -16,8 +16,18 @@ const CricketReturnToPreviousPlayer = game => {
         prevThrowInfo.darts.length
     );
 
-    updateSectionHit(game.playerModels[prevThrowInfo.playerId], prevThrowInfo.darts);
     updateHit(game.playerModels[prevThrowInfo.playerId], prevThrowInfo.darts);
+
+    // visits since the variants keep what they changed
+    if (prevThrowInfo.sectionHitBefore) {
+        game.playerModels[prevThrowInfo.playerId].sectionHit = { ...prevThrowInfo.sectionHitBefore };
+        Object.entries(prevThrowInfo.scoresBefore ?? {}).forEach(([playerId, score]) => {
+            if (game.playerModels[playerId]) game.playerModels[playerId].score = score;
+        });
+        return game;
+    }
+
+    updateSectionHit(game.playerModels[prevThrowInfo.playerId], prevThrowInfo.darts);
 
     let prevScore = cricketGetCurrentScore(game.currentThrow, game.playerModels[prevThrowInfo.playerId], game.playerModels[prevThrowInfo.playerId].sectionHit);
     game.playerModels[prevThrowInfo.playerId].score = prevScore;

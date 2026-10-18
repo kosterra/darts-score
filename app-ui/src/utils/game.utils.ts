@@ -11,6 +11,24 @@ const validateDartValue = (dart: string): boolean => {
     return false;
 };
 
+/**
+ * A dart as typed, in the notation the game works with: a plain number is a
+ * single ("20" is S20, "25" the outer bull), "50" is the bullseye (D25), and
+ * S, D and T are written in capitals. Anything else stays as typed.
+ */
+const normalizeDart = (value: string): string => {
+    const dart = String(value ?? '').trim().toUpperCase();
+    if (/^\d{1,2}$/.test(dart)) {
+        const number = Number(dart);
+        if (number === 0) return '0';
+        if (number === 50) return 'D25';
+        if ((number >= 1 && number <= 20) || number === 25) return `S${number}`;
+        return dart;
+    }
+    if (dart === 'S50') return 'D25';
+    return dart;
+};
+
 const dartIsDouble = (value: string): boolean => /^d/i.test(value);
 
 const dartIsTriple = (value: string): boolean => /^t/i.test(value);
@@ -77,6 +95,7 @@ const shufflePlayers = (players: string[]): string[] => {
 };
 
 export {
+    normalizeDart,
     validateDartValue,
     dartIsDouble,
     dartIsTriple,

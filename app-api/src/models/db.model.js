@@ -4,6 +4,7 @@ import playerModel from './player.model.js';
 import x01Model from './x01.model.js';
 import cricketModel from './cricket.model.js';
 import eliminationModel from './elimination.model.js';
+import clockModel from './clock.model.js';
 import atcModel from './atc.model.js';
 import userModel from './user.model.js';
 import clubModel from './club.model.js';
@@ -11,6 +12,7 @@ import settingModel from './setting.model.js';
 import logEntryModel from './log.entry.model.js';
 import alertModel from './alert.model.js';
 import blockedIpModel from './blocked.ip.model.js';
+import integrityReviewModel from './integrity.review.model.js';
 
 const db = {
   mongoose,
@@ -19,6 +21,7 @@ const db = {
   x01: x01Model(mongoose),
   cricket: cricketModel(mongoose),
   elimination: eliminationModel(mongoose),
+  clock: clockModel(mongoose),
   atc: atcModel(mongoose),
   user: userModel(mongoose),
   club: clubModel(mongoose),
@@ -26,6 +29,7 @@ const db = {
   logEntry: logEntryModel(mongoose),
   alert: alertModel(mongoose),
   blockedIp: blockedIpModel(mongoose),
+  integrityReview: integrityReviewModel(mongoose),
 };
 
 export default db;

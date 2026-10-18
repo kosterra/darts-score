@@ -10,6 +10,9 @@ export default (mongoose) => {
       lastname:   { type: String, required: true, trim: true },
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
+      // For the handicap suggestion between players of different ages; required
+      // when a player is added or edited, older players may still be without one
+      dateOfBirth: { type: Date, default: null },
       // The clubs the player is a member of: one person can play in several clubs
       clubs:       { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'club' }], default: [] },
       // Clubs the player was removed from; their games there keep showing the name
@@ -22,6 +25,24 @@ export default (mongoose) => {
         sourceType: String,
         sourceId:   String,
       }],
+      // The Hall of Shame, worked out again with the badges: every time one
+      // happened (in which club), and the good deeds that washed one off
+      shame: [{
+        _id: false,
+        badge:      { type: String, required: true },
+        at:         { type: Date, required: true },
+        count:      { type: Number, default: 1 },
+        club:       String,
+        sourceType: String,
+        sourceId:   String,
+      }],
+      shameWashes: [{
+        _id: false,
+        badge:      { type: String, required: true },
+        at:         { type: Date, required: true },
+        sourceType: String,
+        sourceId:   String,
+      }],
       // Weeks played in a row, kept up to date with the badges
       activity: {
         lastWeek:       { type: Number, default: null },
@@ -31,6 +52,12 @@ export default (mongoose) => {
       // Whether the nickname may be shown on the public start page; otherwise
       // the player appears there without a name
       publicProfile: { type: Boolean, default: false },
+      // How the player finishes and scores, for the ways out during a game:
+      // "auto" learns it from their games, otherwise e.g. "D16" or "T19"
+      preferences: {
+        favouriteDouble: { type: String, default: 'auto' },
+        mainTreble:      { type: String, default: 'auto' },
+      },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
       guest:      { type: Boolean, default: false },

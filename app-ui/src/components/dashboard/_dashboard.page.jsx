@@ -19,6 +19,7 @@ import GamesPerMonthWidget from './widgets/games.per.month.widget';
 import ClubFormWidget from './widgets/club.form.widget';
 import RunningGamesWidget from './widgets/running.games.widget';
 import TimelineWidget from './widgets/timeline.widget';
+import HallOfShameWidget from './widgets/hall.of.shame.widget';
 
 const formatDate = (date) => date ? dayjs(date).format('DD.MM.YYYY') : '–';
 
@@ -45,7 +46,7 @@ const Dashboard = () => {
     }, []);
 
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
-    const widgets = resolveWidgets(activeClub?.dashboardWidgets);
+    const widgets = resolveWidgets(activeClub?.dashboardWidgets, { shameBadges: activeClub?.shameBadges !== false });
 
     if (failed) {
         return <div className="container-fluid p-4 text-subtle">The dashboard could not be loaded. Please reload the page.</div>;
@@ -71,6 +72,7 @@ const Dashboard = () => {
             case 'gamesPerMonth': return <GamesPerMonthWidget widget={widget} gameLog={stats.gameLog} />;
             case 'clubForm': return <ClubFormWidget widget={widget} gameLog={stats.gameLog} />;
             case 'runningGames': return <RunningGamesWidget widget={widget} games={stats.runningGames} total={totals.running} players={players} />;
+            case 'hallOfShame': return <HallOfShameWidget widget={widget} />;
             case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
             case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;
             default: return null;

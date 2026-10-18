@@ -8,8 +8,10 @@ import PlayerService from '../../services/player.service';
 
 /**
  * Adds a guest for the game being set up. Guests do not become club members.
+ *
+ * trigger(open): what opens the dialog, a button when not given
  */
-const GuestForm = ({ onGuestAdd }) => {
+const GuestForm = ({ onGuestAdd, trigger }) => {
     const [showDialog, setShowDialog] = useState(false);
     const [name, setName] = useState('');
     const [error, setError] = useState('');
@@ -51,7 +53,10 @@ const GuestForm = ({ onGuestAdd }) => {
                     </div>
                 </form>
             </Dialog>
-            <Button type="button" label="Guest" icon="pi pi-plus" severity="secondary" aria-label="Add a guest for this game" onClick={() => setShowDialog(true)} />
+            {trigger
+                ? trigger(() => setShowDialog(true))
+                : <Button type="button" label="Guest" icon="pi pi-plus" severity="secondary" aria-label="Add a guest for this game" onClick={() => setShowDialog(true)} />
+            }
         </div>
     );
 };

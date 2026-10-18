@@ -69,12 +69,17 @@ const RULES = [
         icon: PiClockCountdownBold,
         body: (
             <>
-                <p>A training against the stopwatch: hit 1 to 20 in order, then the bull. Start the stopwatch, play, and stop it when you are done.</p>
+                <p>Hit 1 to 20 in order, then the bull, as a training or as a game.</p>
+                <ul>
+                    <li><strong>Training against the clock:</strong> start the stopwatch, play, and stop it with your last hit. The fastest time counts.</li>
+                    <li><strong>Training with the fewest darts:</strong> tap Hit or Miss for every dart; 21 is perfect.</li>
+                    <li><strong>Game:</strong> two to four players take turns of three darts. The first to finish wins, but the round is completed, so everybody has had as many turns. Finished in the same round, fewer darts win; the others are placed by how far they got. As an option, when every ring counts, a double moves on two numbers and a treble three; the bull still has to be hit.</li>
+                </ul>
                 <ul>
                     <li><strong>Single, Double or Triple:</strong> only that ring counts. Single mode ends on the outer bull, Double and Triple on the bullseye.</li>
                     <li><strong>All:</strong> any ring counts, and you finish on either bull.</li>
                 </ul>
-                <p className="m-0">Every mode keeps its own best time, and beating it is celebrated.</p>
+                <p className="m-0">In training every mode keeps its own best time and its own fewest darts, and beating them is celebrated. Games do not count for the training scoreboard.</p>
             </>
         ),
     },

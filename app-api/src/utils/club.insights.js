@@ -1,5 +1,6 @@
 import { legsInOrder, thrownDarts } from './badges.js';
 import { legVisits } from './kpi.data.js';
+import { startingScoreOf } from './x01.rules.js';
 
 // Club-wide figures for the dashboard: key figures, who beats whom, records
 // and a small log of when games were played (the browser groups it by day and
@@ -38,7 +39,7 @@ export const clubKpis = ({ finishedByType, allGames, members, now = new Date() }
         for (const leg of legsInOrder(game)) {
             legs += 1;
             const finish = leg.find(visit => Number(visit?.scoreLeft) === 0);
-            if (finish && Number(game.startingScore) === 501) {
+            if (finish && startingScoreOf(game, finish.playerId) === 501) {
                 const legDarts = legVisits(game, leg, finish.playerId).reduce((sum, visit) => sum + visit.darts, 0);
                 if (legDarts > 0 && (!bestLeg || legDarts < bestLeg.value)) bestLeg = { value: legDarts, player: finish.playerId };
             }
@@ -48,7 +49,7 @@ export const clubKpis = ({ finishedByType, allGames, members, now = new Date() }
         for (const game of games) {
             for (const playerId of game.players ?? []) {
                 const playerModel = model(game, playerId);
-                darts += (type === 'elimination' ? playerModel.totalThrow?.darts : playerModel.totalThrow?.game?.darts) ?? 0;
+                darts += (type === 'clock' ? playerModel.darts : type === 'elimination' ? playerModel.totalThrow?.darts : playerModel.totalThrow?.game?.darts) ?? 0;
             }
         }
     }
@@ -129,10 +130,9 @@ export const clubRecords = (x01Games) => {
             const average = playerModel.averages?.game?.overall ?? 0;
             if (average > 0 && (playerModel.totalThrow?.game?.rounds ?? 0) >= 3) better('bestGameAverage', { ...base, player, value: round(average, 1) });
         }
-        if (Number(game.startingScore) !== 501) continue;
         for (const leg of legsInOrder(game)) {
             const finish = leg.find(visit => Number(visit?.scoreLeft) === 0);
-            if (!finish) continue;
+            if (!finish || startingScoreOf(game, finish.playerId) !== 501) continue;
             const darts = leg.filter(visit => visit?.playerId === finish.playerId)
                 .reduce((sum, visit) => sum + thrownDarts(visit.darts).length, 0);
             if (darts > 0) better('bestLeg', { ...base, player: String(finish.playerId), value: darts }, true);

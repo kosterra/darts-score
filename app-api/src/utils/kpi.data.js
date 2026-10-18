@@ -1,4 +1,5 @@
 import { legsInOrder, thrownDarts } from './badges.js';
+import { startingScoreOf } from './x01.rules.js';
 
 // Key figures of a player per game type, for the statistics page.
 
@@ -13,7 +14,7 @@ const min = (values) => values.length ? Math.min(...values) : null;
  * points it took off, so a busted visit scores 0.
  */
 export const legVisits = (game, leg, playerId) => {
-    let left = Number(game.startingScore);
+    let left = startingScoreOf(game, playerId);
     return leg.filter(visit => visit?.playerId === playerId).map(visit => {
         const scoreLeft = Number(visit.scoreLeft);
         const score = Math.max(0, left - scoreLeft);
@@ -40,7 +41,7 @@ export const x01Kpis = (x01Games, playerId) => {
             const finish = leg.find(visit => Number(visit?.scoreLeft) === 0);
             if (finish?.playerId !== playerId) continue;
             legsWon += 1;
-            if (Number(game.startingScore) === 501) best501Legs.push(own.reduce((sum, visit) => sum + visit.darts, 0));
+            if (startingScoreOf(game, playerId) === 501) best501Legs.push(own.reduce((sum, visit) => sum + visit.darts, 0));
         }
     }
 
@@ -57,7 +58,7 @@ const CRICKET_SECTIONS = new Set([15, 16, 17, 18, 19, 20, 25]);
 const MULTIPLIER = { S: 1, D: 2, T: 3 };
 
 // marks of one Cricket game from its hits ({ T20: 2, S25: 1, … }); only 15–20 and the bull count
-const cricketMarks = (hits = {}) => Object.entries(hits).reduce((sum, [dart, count]) => {
+export const cricketMarks = (hits = {}) => Object.entries(hits).reduce((sum, [dart, count]) => {
     const section = Number(dart.slice(1));
     return CRICKET_SECTIONS.has(section) ? sum + (MULTIPLIER[dart[0]] ?? 0) * Number(count || 0) : sum;
 }, 0);
@@ -85,6 +86,25 @@ export const cricketKpis = (cricketGames, playerId) => {
         marksPerRound: rounds ? round(marks / rounds, 2) : null,
         bestMarksPerRound: perGame.length ? round(Math.max(...perGame), 2) : null,
         averagePoints: average(points),
+    };
+};
+
+/**
+ * Around the Clock: games and wins, the fewest darts of a finished game, the
+ * darts on average, the hit rate and darts thrown.
+ */
+export const clockKpis = (clockGames, playerId) => {
+    const models = clockGames.map(game => model(game, playerId));
+    const finished = models.filter(entry => entry.finished && entry.darts);
+    const darts = models.reduce((sum, entry) => sum + (entry.darts ?? 0), 0);
+    const hits = models.reduce((sum, entry) => sum + (entry.hits ?? 0), 0);
+    return {
+        games: clockGames.length,
+        wins: models.filter(entry => entry.hasWonGame === true).length,
+        fewestDarts: finished.length ? Math.min(...finished.map(entry => entry.darts)) : null,
+        averageDarts: average(finished.map(entry => entry.darts)),
+        hitRate: darts ? Math.round(hits / darts * 1000) / 10 : null,
+        dartsThrown: darts,
     };
 };
 

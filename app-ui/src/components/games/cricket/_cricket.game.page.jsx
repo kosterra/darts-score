@@ -4,12 +4,11 @@ import CricketGame from './cricket.game';
 const CricketGamePage = () => {
 
   return (
-    <div className="container-fluid p-4 pt-0 bg-transparent border-0">
-      <div className="row justify-content-md-center align-items-center">
-        <CricketState>
-          <CricketGame />
-        </CricketState>
-      </div>
+    <div className="container-fluid bg-transparent border-0 x01-game-page">
+      {/* the same frame as X01, without a Bootstrap row: its negative margin made the page wider than a phone */}
+      <CricketState>
+        <CricketGame />
+      </CricketState>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { BADGES, BADGE_CATEGORIES } from '../utils/badges.js';
+import { BADGES, BADGE_CATEGORIES, SHAME_BADGES } from '../utils/badges.js';
+import { publicShameBadge } from '../controllers/badge.controller.js';
 
 export default (app) => {
     const router = Router();
@@ -10,6 +11,8 @@ export default (app) => {
             categories: BADGE_CATEGORIES,
             // eslint-disable-next-line no-unused-vars
             badges: BADGES.map(({ metric, ...badge }) => badge),
+            // the Hall of Shame: what nobody wants, and how to wash it off
+            shame: SHAME_BADGES.map(publicShameBadge),
         });
     });
 

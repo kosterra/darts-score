@@ -5,7 +5,7 @@ const initials = (name = '') =>
 
 /**
  * A club's logo, or its initials on the brand green when it has none.
- * size: 'sm' (2.25rem), 'md' (3.5rem) or 'lg' (5rem).
+ * size: 'xs' (1.5rem), 'sm' (2.25rem), 'md' (3.5rem) or 'lg' (5rem).
  */
 const ClubLogo = ({ club, size = 'sm', className = '' }) => {
     const logo = resolveClubLogo(club?.logo);

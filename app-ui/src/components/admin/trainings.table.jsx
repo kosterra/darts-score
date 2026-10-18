@@ -17,6 +17,7 @@ import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import useClubSelection from './use.club.selection';
 import { formatDateTime } from './admin.format';
+import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
 
 // "All" is itself a training mode (every segment), so the filter for every mode is called "Any"
 const MODE_OPTIONS = [
@@ -24,13 +25,6 @@ const MODE_OPTIONS = [
     ...['Single', 'Double', 'Triple', 'All'].map(mode => ({ label: mode, value: mode })),
 ];
 
-// training times are stored in hundredths of a second
-const formatTime = (hundredths) => {
-    if (hundredths == null) return '–';
-    const seconds = hundredths / 100;
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}:${(seconds % 60).toFixed(2).padStart(5, '0')}`;
-};
 
 /**
  * Around the Clock trainings in one table, filtered by mode and player, with
@@ -72,7 +66,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [acrossClubs, selectedIds]);
 
-    // the player as they are now; the entry keeps a copy from when it was played
+    // the player as they are now; the entry keeps only the id and the nickname
     const playersById = useMemo(() => new Map(players.map(player => [player.id, player])), [players]);
     const playerOf = (entry) => playersById.get(entry.player?.id) ?? entry.player;
 
@@ -80,8 +74,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const bestIds = useMemo(() => {
         const best = new Map();
         (entries ?? []).forEach(entry => {
-            const key = `${entry.player?.id}-${entry.mode}`;
-            if (entry.timeMs && (!best.has(key) || entry.timeMs < best.get(key).timeMs)) best.set(key, entry);
+            // times and fewest darts each have their own best
+            const key = `${entry.player?.id}-${entry.mode}-${entry.scoring === 'Darts' ? 'darts' : 'time'}`;
+            if (scoreOf(entry) && (!best.has(key) || scoreOf(entry) < scoreOf(best.get(key)))) best.set(key, entry);
         });
         return new Set([...best.values()].map(entry => entry.id));
     }, [entries]);
@@ -102,7 +97,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
 
     const timeBody = (entry) => (
         <span className="text-default fw-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
-            {formatTime(entry.timeMs)}
+            {formatScore(entry)}
             {bestIds.has(entry.id) && <FaTrophy className="ms-2 text-gold" title="Personal best in this mode" aria-label="Personal best" />}
         </span>
     );
@@ -162,7 +157,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         {acrossClubs && <Column field="club.name" header="Club" sortable body={(entry) => <ClubCell club={entry.club} />} />}
                         <Column header="Player" body={(entry) => <PlayerCell player={playerOf(entry)} />} style={{ minWidth: '14rem' }} />
                         <Column field="mode" header="Mode" sortable body={(entry) => <span className="text-default fs-7">{entry.mode}</span>} />
-                        <Column field="timeMs" header="Time" sortable body={timeBody} />
+                        <Column field="timeMs" header="Result" body={timeBody} />
                         {canManage && <Column body={actionsBody} />}
                     </DataTable>
                 )

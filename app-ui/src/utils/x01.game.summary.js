@@ -49,9 +49,11 @@ export const legsOf = (game) => {
 /**
  * The race to zero of one leg: the score each player had left after each of
  * their visits, as rows [{ visit, [playerId]: scoreLeft }] starting at visit 0.
+ * startingScore: one for all, or a function of the player id (handicap)
  */
 export const raceOf = (leg, playerIds, startingScore) => {
-    const lefts = Object.fromEntries(playerIds.map(id => [id, [Number(startingScore)]]));
+    const startOf = typeof startingScore === 'function' ? startingScore : () => startingScore;
+    const lefts = Object.fromEntries(playerIds.map(id => [id, [Number(startOf(id))]]));
     (leg?.visits ?? []).forEach(visit => {
         if (lefts[visit.playerId]) lefts[visit.playerId].push(visit.scoreLeft);
     });

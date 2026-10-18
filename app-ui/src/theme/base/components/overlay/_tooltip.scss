@@ -1,33 +1,37 @@
 .p-tooltip {
+    // the same card as the app tooltip and the charts
     .p-tooltip-text {
-        background: $tooltipBg;
-        color: $tooltipTextColor;
-        padding: $tooltipPadding;
-        box-shadow: $inputOverlayShadow;
-        border-radius: $borderRadius;
+        background: $shade800;
+        color: $textDefaultColor;
+        padding: 0.4rem 0.65rem;
+        border: 1px solid $shade650;
+        box-shadow: 0 0.75rem 1.5rem -0.5rem rgba(0, 0, 0, 0.8);
+        border-radius: 0.5rem;
+        font-size: 0.78rem;
+        line-height: 1.35;
     }
 
     &.p-tooltip-right {
         .p-tooltip-arrow {
-            border-right-color: $tooltipBg;
+            border-right-color: $shade650;
         }
     }
 
     &.p-tooltip-left {
         .p-tooltip-arrow {
-            border-left-color: $tooltipBg;
+            border-left-color: $shade650;
         }
     }
 
     &.p-tooltip-top {
         .p-tooltip-arrow {
-            border-top-color: $tooltipBg;
+            border-top-color: $shade650;
         }
     }
 
     &.p-tooltip-bottom {
         .p-tooltip-arrow {
-            border-bottom-color: $tooltipBg;
+            border-bottom-color: $shade650;
         }
     }
 }

@@ -9,9 +9,10 @@ const EliminationScoreConfig = (props) => {
     } = props;
 
     return (
-        <div className="container">
-            <p className="text-center text-faint fs-7 fw-semibold">Target Score</p>
-            <div className="row border border-default rounded m-0 py-3 mb-3">
+        // no container of its own: the boxes line up with the other boxes of the setup
+        <div>
+            <p className="setting-title">Target Score</p>
+            <div className="row mx-0 mt-0 setting-body">
                 <div className="col">
                     <SelectButton
                         value={scoreOption}

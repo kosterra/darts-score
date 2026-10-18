@@ -20,11 +20,12 @@ const SetsLegsConfig = (props) => {
     } = SetsLegsConfigOptions;
 
     return (
-        <div className="container">
+        // no container of its own: the boxes line up with the other boxes of the setup
+        <div>
             <div className="row">
                 <div className="col-12 col-xl-6">
-                    <p className="text-center text-faint fs-7 fw-semibold">Sets</p>
-                    <div className="row gap-1 border border-default rounded m-0 py-3 mb-3">
+                    <p className="setting-title">Sets</p>
+                    <div className="row gap-1 mx-0 mt-0 setting-body">
                         <div className="col">
                             <Dropdown
                                 value={setModeOption}
@@ -48,8 +49,8 @@ const SetsLegsConfig = (props) => {
                     </div>
                 </div>
                 <div className="col-12 col-xl-6">
-                    <p className="text-center text-faint fs-7 fw-semibold">Legs</p>
-                    <div className="row gap-1 border border-default rounded m-0 py-3 mb-3">
+                    <p className="setting-title">Legs</p>
+                    <div className="row gap-1 mx-0 mt-0 setting-body">
                         <div className="col">
                             <Dropdown
                                 value={legModeOption}

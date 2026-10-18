@@ -10,6 +10,13 @@ export default (mongoose) => {
       isPublic:        { type: Boolean, default: false },
       publicLiveGames: { type: Boolean, default: true },
       publicResults:   { type: Boolean, default: true },
+      // The Hall of Shame (Bed and Breakfast, Madhouse, ...); a club with
+      // children may rather switch it off
+      shameBadges:     { type: Boolean, default: true },
+      // ... or keep it and leave children under 16 out of it
+      shameWithoutChildren: { type: Boolean, default: false },
+      // ... children being the players under this age
+      shameMinAge:          { type: Number, min: 6, max: 21, default: 16 },
       // Widgets on the club dashboard, in display order. Empty means the default set;
       // the UI owns the list of available widgets.
       dashboardWidgets: { type: [String], default: undefined },

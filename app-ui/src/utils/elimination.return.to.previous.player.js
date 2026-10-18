@@ -11,7 +11,7 @@ const EliminationReturnToPreviousPlayer = (game) => {
     const prevThrow = newGame.allThrows[newGame.allThrows.length - 1];
     newGame.allThrows = newGame.allThrows.slice(0, -1);
 
-    const { playerId, darts, roundScore } = prevThrow;
+    const { playerId, darts, roundScore, bust, scoresBefore } = prevThrow;
 
     // Restore previous player turn
     newGame.currentPlayerTurn = playerId;
@@ -19,10 +19,17 @@ const EliminationReturnToPreviousPlayer = (game) => {
     // Restore the dart inputs so the player can see what they threw
     newGame.currentThrow = [...darts];
 
-    // Restore player score
+    // Restore the scores: from the snapshot of every player's score before the
+    // visit (also those it sent back to 0); visits from before the snapshot
+    // only take the thrower's points back
     const playerModel = newGame.playerModels[playerId];
+    if (scoresBefore) {
+        Object.entries(scoresBefore).forEach(([id, score]) => {
+            if (newGame.playerModels[id]) newGame.playerModels[id].score = score;
+        });
+    }
     if (playerModel) {
-        playerModel.score = Math.max(0, (playerModel.score ?? 0) - roundScore);
+        if (!scoresBefore) playerModel.score = Math.max(0, (playerModel.score ?? 0) - roundScore);
 
         // Update totalThrow stats
         if (playerModel.totalThrow) {
@@ -32,13 +39,13 @@ const EliminationReturnToPreviousPlayer = (game) => {
         }
 
         // Update bestThreeDarts: recalculate from remaining throws for this player
-        const playerThrows = newGame.allThrows.filter(t => t.playerId === playerId);
+        const playerThrows = newGame.allThrows.filter(t => t.playerId === playerId && !t.bust);
         playerModel.bestThreeDarts = playerThrows.length > 0
             ? Math.max(...playerThrows.map(t => t.roundScore))
             : 0;
 
-        // Update scoreRanges: remove the entry for the reverted throw
-        if (playerModel.scoreRanges) {
+        // Update scoreRanges: remove the entry for the reverted throw (a bust has none)
+        if (playerModel.scoreRanges && !bust) {
             const label = getScoreRangeLabel(roundScore);
             if (label && playerModel.scoreRanges[label] > 0) {
                 playerModel.scoreRanges[label]--;
@@ -49,8 +56,7 @@ const EliminationReturnToPreviousPlayer = (game) => {
         }
     }
 
-    // If the eliminated player's score was reset because of this throw, we can't
-    // easily restore it — so we just leave it. This edge case is documented.
+    // games from before the snapshot: a player sent back to 0 by the visit stays at 0
 
     return newGame;
 };

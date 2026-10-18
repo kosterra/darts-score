@@ -9,11 +9,12 @@ const EliminationInOutConfig = (props) => {
     } = props;
 
     return (
-        <div className="container">
+        // no container of its own: the boxes line up with the other boxes of the setup
+        <div>
             <div className="row">
                 <div className="col-12 col-xl-6">
-                    <p className="text-center text-faint fs-7 fw-semibold">Starting In</p>
-                    <div className="row border border-default rounded m-0 py-3 mb-3">
+                    <p className="setting-title">Starting In</p>
+                    <div className="row mx-0 mt-0 setting-body">
                         <div className="col">
                             <SelectButton
                                 value={gameInOption}
@@ -26,8 +27,8 @@ const EliminationInOutConfig = (props) => {
                     </div>
                 </div>
                 <div className="col-12 col-xl-6">
-                    <p className="text-center text-faint fs-7 fw-semibold">Checkout</p>
-                    <div className="row border border-default rounded m-0 py-3 mb-3">
+                    <p className="setting-title">Checkout</p>
+                    <div className="row mx-0 mt-0 setting-body">
                         <div className="col">
                             <SelectButton
                                 value={gameOutOption}

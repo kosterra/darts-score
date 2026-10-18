@@ -9,6 +9,12 @@ const updateRole = (userId, role) =>
 
 const deleteUser = (userId) => requestJSON(`${API_URL}/${userId}`, { method: 'DELETE' });
 
+// for users who cannot help themselves: correct the account, set a password,
+// or get a "choose your password" link to pass on
+const updateUser = (userId, account) => requestJSON(`${API_URL}/${userId}`, { method: 'PUT', body: account });
+const setPassword = (userId, password) => requestJSON(`${API_URL}/${userId}/password`, { method: 'PUT', body: { password } });
+const createPasswordLink = (userId) => requestJSON(`${API_URL}/${userId}/password-link`, { method: 'POST' });
+
 export const ROLES = {
     GLOBAL_ADMIN: 'globalAdmin',
     USER: 'user'
@@ -28,7 +34,10 @@ export const CLUB_ROLES = {
 const UserService = {
     loadUsers,
     updateRole,
-    deleteUser
+    deleteUser,
+    updateUser,
+    setPassword,
+    createPasswordLink,
 };
 
 export default UserService;

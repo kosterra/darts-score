@@ -8,6 +8,8 @@
 @import './components/input/_editor';
 
 // Custom Components
+@import 'custom/components/_buttons';
+@import 'custom/components/_labels';
 @import 'custom/components/_navigation';
 @import 'custom/components/_charts';
 @import 'custom/components/_dartboard';
@@ -20,6 +22,10 @@
 @import 'custom/components/_kpi';
 @import 'custom/components/_badges';
 @import 'custom/components/_game-stats';
+@import 'custom/components/_game-setup';
+@import 'custom/components/_training';
+@import 'custom/components/_x01-game';
+@import 'custom/components/_help-button';
 
 @layer bootstrap {
     @import '_bootstrap';

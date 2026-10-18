@@ -114,3 +114,13 @@
         @include scaledPadding($inputPadding, $scaleLG);
     }
 }
+// a date field always shows its pattern ("dd.mm.yyyy"), so its label stays up as when filled
+.p-float-label input[type="date"] ~ label {
+    top: -0.75rem;
+    font-size: 12px;
+}
+
+// the calendar icon of a date field, light on the dark field
+input[type="date"].p-inputtext {
+    color-scheme: dark;
+}

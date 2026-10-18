@@ -133,6 +133,7 @@
     &.game-type-x01 { --game-type-color: #7ecca5; }
     &.game-type-cricket { --game-type-color: #d4c783; }
     &.game-type-elimination { --game-type-color: #c3a9e6; }
+    &.game-type-clock { --game-type-color: #86bfe6; }
 }
 
 // Player picker on the statistics page
@@ -241,6 +242,36 @@
         font-size: 0.7rem;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
+    }
+}
+
+// the card of a hovered stop sits outside the scrolling line, so it is never cut off
+.h2h-timeline-wrap {
+    position: relative;
+}
+
+.h2h-timeline .h2h-stop:focus-visible {
+    outline: none;
+
+    .h2h-winner.p-avatar {
+        transform: translateY(-3px) scale(1.08);
+    }
+}
+
+.h2h-tooltip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    white-space: nowrap;
+
+    &.is-middle { transform: translateX(-50%); }
+    &.is-start { transform: translateX(-1.5rem); }
+    &.is-end { transform: translateX(calc(-100% + 1.5rem)); }
+
+    .h2h-tooltip-trophy {
+        margin-left: 0.4rem;
+        color: #ffc94d;
+        font-size: 0.7rem;
     }
 }
 
@@ -527,14 +558,10 @@ $momentGoldColor: #ffc94d;
     min-width: 0;
 }
 
+// a label for each filter in use
 .filter-chip {
-    padding: 0.2rem 0.65rem;
-    border-radius: 1rem;
-    background: $surfaceHighColor;
-    color: $textSubtleColor;
-    font-size: 0.75rem;
-    font-weight: 600;
-    white-space: nowrap;
+    @include label-shape;
+    @include label-neutral;
 }
 
 .filter-panel-toggle.p-button {

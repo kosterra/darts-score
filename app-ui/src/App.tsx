@@ -4,6 +4,7 @@ import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
@@ -18,6 +19,9 @@ const CricketGameStats = lazy(() => import('./components/stats/cricket/cricket.g
 const EliminationConfigPage = lazy(() => import('./components/game_config/elimination/_elimination.config.page'));
 const EliminationGamePage = lazy(() => import('./components/games/elimination/_elimination.game.page'));
 const EliminationGameStats = lazy(() => import('./components/stats/elimination/elimination.game.stats'));
+const ClockConfigPage = lazy(() => import('./components/game_config/clock/_clock.config.page'));
+const ClockGamePage = lazy(() => import('./components/games/clock/_clock.game.page'));
+const ClockGameStats = lazy(() => import('./components/stats/clock/clock.game.stats'));
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
@@ -25,6 +29,7 @@ const PlayerProfilePage = lazy(() => import('./components/players/_player.profil
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
+const FairPlayPage = lazy(() => import('./components/fairplay/_fair.play.page'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
@@ -44,7 +49,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs'];
+const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading } = useAuth();
@@ -94,6 +99,8 @@ function AppContent() {
                     <Route path="/cricket/:id" element={<CricketGamePage />} />
                     <Route path="/elimination" element={<EliminationConfigPage />} />
                     <Route path="/elimination/:id" element={<EliminationGamePage />} />
+                    <Route path="/clock" element={<ClockConfigPage />} />
+                    <Route path="/clock/:id" element={<ClockGamePage />} />
                     <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
                     <Route path="/stats/:id" element={<StatsPage />} />
                     <Route path="/stats/games/:id" element={<GameListRedirect />} />
@@ -104,6 +111,7 @@ function AppContent() {
                     <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
                     <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
                     <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
+                    <Route path="/stats/games/clock/:id" element={<ClockGameStats />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/training/atc" element={<TrainingPage />} />
                     <Route path="/about" element={<AboutPage />} />
@@ -112,6 +120,8 @@ function AppContent() {
                     <Route path="/clubs" element={<ClubsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/administration" element={<AdministrationPage />} />
+                    <Route path="/fair-play" element={<FairPlayPage />} />
+                    <Route path="/admin/fair-play" element={<FairPlayPage all />} />
                     <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
                     <Route path="/admin/:id" element={<AdminPage />} />
                     <Route path="/admin/games/:id" element={<AdminPage />} />
@@ -131,6 +141,7 @@ function App() {
             <AuthState>
                 <Router>
                     <AppContent />
+                    <AppTooltip />
                 </Router>
             </AuthState>
         </PrimeReactProvider>

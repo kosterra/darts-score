@@ -23,9 +23,11 @@ const createATCEntry = async (atc) => {
     }
 }
 
-const loadATCEntries = async (mode) => {
+// scoring: 'Time' or 'Darts'; without it both
+const loadATCEntries = async (mode, scoring) => {
     try {
-        let queryString = mode ? '?mode=' + mode : '';
+        const params = new URLSearchParams({ ...(mode && { mode }), ...(scoring && { scoring }) }).toString();
+        const queryString = params ? '?' + params : '';
         const response = await fetch(API_URL + 'training/atc' + queryString, {
             method: 'GET',
             headers: getHeaders(false)

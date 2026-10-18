@@ -13,6 +13,7 @@ import ClubService from '../../services/club.service';
 import PlayerService from '../../services/player.service';
 import { ROLE_LABELS, CLUB_ROLES } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
+import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -194,6 +195,14 @@ const ProfilePage = () => {
                                                             onChange={(e) => onTogglePublic(club, e.value)}
                                                         />
                                                     </span>
+                                                    <div className="w-100">
+                                                        <PlayerCheckoutPreferences
+                                                            player={playerByClub[club.id]}
+                                                            clubId={club.id}
+                                                            onSaved={(player) => setPlayerByClub(current => ({ ...current, [club.id]: player }))}
+                                                            onError={(error) => showError('Ways out', error)}
+                                                        />
+                                                    </div>
                                                 </div>
                                             )
                                             : (

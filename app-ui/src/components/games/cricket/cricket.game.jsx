@@ -1,127 +1,79 @@
-import { Fragment, useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef } from 'react';
+import { Panel } from 'primereact/panel';
 import { useNavigate } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { SplitButton } from 'primereact/splitbutton';
-import { PiShuffle, PiUserSwitch } from "react-icons/pi";
-import { MdReplay } from "react-icons/md";
 
 import CricketContext from '../../../utils/cricket.context';
-import CricketService from '../../../services/cricket.service';
-import { cricketRematch } from '../../../utils/cricket.rematch';
-import CricketScoreBoard from './cricket.scoreboard';
+import CricketLiveHeader from './cricket.live.header';
 import CricketScoreInputBoard from './cricket.score.input.board';
+import CricketVisitsPanel from './cricket.visits.panel';
+import LiveFigures from '../common/live.figures';
 import PageLoader from '../../elements/page.loader';
-import GameBadges from '../../badges/game.badges';
+import { cricketFigures, replayCricket } from '../../../utils/cricket.game.summary';
+import { variantOf } from '../../../utils/cricket.variants';
 
+/**
+ * A running Cricket game in the look of the X01 page: the players on top, the
+ * board and the visit, then the visits and the key figures. Once it is won
+ * (and saved) the statistics page takes over and celebrates.
+ */
 const CricketGame = () => {
     const navigate = useNavigate();
-    const { game, players, loading } = useContext(CricketContext);
+    const { game, players, loading, winnerSaved, celebrating } = useContext(CricketContext);
 
-    // Celebrate only a win that happens while this page is open, not a finished game opened later
+    // only a game won on this page is celebrated; a finished game opened later just shows its statistics
     const wasRunning = useRef(false);
-    const [justFinished, setJustFinished] = useState(false);
-
     useEffect(() => {
-        if (loading.initGameLoading) return;
+        if (loading.initGameLoading || !game?.id) return;
         if (!game.hasWinner) {
             wasRunning.current = true;
-            setJustFinished(false);
-        } else if (wasRunning.current) {
-            wasRunning.current = false;
-            setJustFinished(true);
+            return;
         }
-    }, [game.hasWinner, game.id, loading.initGameLoading]);
-
-    const onNewGame = () => navigate("/cricket", { replace: true });
-    const onFinishGame = () => navigate("/", { replace: true });
-
-    const onRestartGame = async (switchPlayers = false, shufflePlayers = false) => {
-        const newGame = await CricketService.createCricketGame(cricketRematch(game, { switchPlayers, shuffle: shufflePlayers }));
-        navigate('/cricket/' + newGame.id);
-    };
+        if (!wasRunning.current) navigate(`/stats/games/cricket/${game.id}`, { replace: true });
+        // a moment of the winning visit (e.g. the shut-out) plays to its end first
+        else if (winnerSaved && !celebrating) navigate(`/stats/games/cricket/${game.id}`, { replace: true, state: { justFinished: true } });
+    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, celebrating, navigate]);
 
     if (loading.initGameLoading) return <PageLoader />;
 
-    return (
-        <Fragment>
-            <div className="d-flex justify-content-center mb-4">
-                <div className="d-flex flex-column align-items-center rounded-bottom-4 bg-surface-translucent p-2 px-4">
-                    <div className="text-default fw-semibold fs-7">Cricket</div>
-                </div>
-            </div>
+    if (!game?.players?.length || !players?.length) {
+        return <div className="text-center text-subtle fs-6 mt-5">Game data not available.</div>;
+    }
 
-            <div className="container-fluid">
-                <div className="row justify-content-md-center">
-                    {game.players.map((playerId, idx) => (
-                        <div
-                            key={`score-board-col-${idx}`}
-                            className={`col-12 col-md-6 col-xxl-3 border-top border-bottom border-opacity-50 ${idx < players.length - 1 ? 'border-end-md' : ''}`}
-                        >
-                            <CricketScoreBoard playerId={playerId} idx={idx} />
-                        </div>
-                    ))}
-                </div>
-            </div>
+    const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
+    const replay = replayCricket(game);
+    const figures = Object.fromEntries(ordered.map(player => [player.id, cricketFigures(game, player.id, replay)]));
+    const standard = variantOf(game) === 'Standard';
+    const rows = [
+        { label: 'Marks per round', value: (id) => figures[id].marksPerRound ?? null },
+        { label: 'Marks', value: (id) => figures[id].marks },
+        { label: 'Best round', value: (id) => figures[id].bestRound ? `${figures[id].bestRound} marks` : null },
+        ...(standard ? [{ label: 'Most points in a round', value: (id) => figures[id].bestPoints || null }] : []),
+        { label: 'Triples', value: (id) => figures[id].triples },
+        { label: 'Bull marks', value: (id) => figures[id].bulls },
+        { label: 'Closed first', value: (id) => figures[id].closedFirst },
+        { label: 'Darts thrown', value: (id) => figures[id].dartsThrown, neutral: true },
+    ];
+
+    return (
+        <div className="game-stats-page x01-live">
+            <CricketLiveHeader />
 
             <CricketScoreInputBoard />
 
-            {game.hasWinner && (
-                <div className="container-fluid mt-4">
-                    <div className="row justify-content-center mb-4">
-                        <div className="col-12 col-md-10 col-lg-8">
-                            <GameBadges
-                                gameType="cricket"
-                                gameId={game.id}
-                                players={players}
-                                winner={players.find(player => game.playerModels?.[player.id]?.hasWonGame)}
-                                celebrate={justFinished}
-                            />
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col d-flex justify-content-center align-items-center gap-2">
-                            <SplitButton
-                                label="PLAY AGAIN"
-                                icon={<MdReplay className="me-2 fs-5" />}
-                                onClick={() => onRestartGame()}
-                                size="small"
-                                severity="primary"
-                                menuClassName="p-splitbutton-menu-primary"
-                                model={[
-                                    { label: 'Switch Players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
-                                    { label: 'Shuffle Players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
-                                ]}
-                            />
-                            <Button
-                                label="STATISTICS"
-                                icon="pi pi-chart-bar"
-                                onClick={() => navigate(`/stats/games/cricket/${game.id}`)}
-                                size="small"
-                                outlined
-                                severity="primary"
-                            />
-                            <Button
-                                label="NEW GAME"
-                                icon="pi pi-plus"
-                                onClick={onNewGame}
-                                size="small"
-                                outlined
-                                severity="primary"
-                            />
-                            <Button
-                                label="BACK HOME"
-                                icon="pi pi-home"
-                                onClick={onFinishGame}
-                                size="small"
-                                outlined
-                                severity="primary"
-                            />
-                        </div>
-                    </div>
+            <div className="row g-4 mb-4">
+                <div className="col-12 col-xl-7">
+                    <CricketVisitsPanel game={game} players={ordered} />
                 </div>
-            )}
-        </Fragment>
+                <div className="col-12 col-xl-5">
+                    <Panel header="Key figures" className="h-100">
+                        <div className="x01-live-figures">
+                            <LiveFigures players={ordered} rows={rows} />
+                        </div>
+                    </Panel>
+                </div>
+            </div>
+        </div>
     );
-}
+};
 
 export default CricketGame;

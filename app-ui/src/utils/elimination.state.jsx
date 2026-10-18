@@ -5,9 +5,11 @@ import { Toast } from 'primereact/toast';
 import EliminationContext from './elimination.context';
 import EliminationReducer from './elimination.reducer';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
+import KnockOut from '../components/games/common/knock.out';
 import EliminationService from '../services/elimination.service';
 import EliminationReturnToPreviousPlayer, { getScoreRangeLabel } from './elimination.return.to.previous.player';
 import PlayerService from '../services/player.service';
+import { knockOutScene } from './elimination.moments';
 
 import {
     validateDartValue,
@@ -44,6 +46,29 @@ const EliminationState = ({ children }) => {
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
+    // { key, kind, by, byIndex, victims } while players are sent back to 0
+    const [knockOut, setKnockOut] = useState(null);
+    const endKnockOut = useCallback(() => setKnockOut(null), []);
+    const knockOutTimer = useRef(null);
+    useEffect(() => () => clearTimeout(knockOutTimer.current), []);
+
+    // a visit (or an undo) asks for a save of the game as it is afterwards;
+    // the saves run one after the other, so they arrive in order
+    const [saveRequest, setSaveRequest] = useState(0);
+    const saving = useRef(Promise.resolve());
+    // the winning visit is saved: the statistics page can show the finished game
+    const [winnerSaved, setWinnerSaved] = useState(false);
+    const requestSave = () => setSaveRequest(request => request + 1);
+
+    useEffect(() => {
+        if (!saveRequest) return;
+        const game = state.game;
+        saving.current = saving.current
+            .then(() => EliminationService.updateEliminationGame(game))
+            .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last visit could not be saved. Check the connection: the next visit saves everything.', life: 4000 }))
+            .then(() => { if (game.hasWinner) setWinnerSaved(true); });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [saveRequest]);
 
     // -------------------- API Fetch --------------------
     useEffect(() => {
@@ -219,6 +244,11 @@ const EliminationState = ({ children }) => {
             return;
         }
 
+        // every player's score before the visit, so that undo restores it exactly,
+        // also for those this visit sends back to 0
+        const scoresBefore = Object.fromEntries((state.game.players || []).map(pid => [pid, playerModels[pid]?.score ?? 0]));
+        const dartCount = currentThrow.filter(d => d && d.trim() !== '').length;
+
         // Work through darts one by one to detect eliminations, busts, and wins
         let runningScore = playerModels[playerId]?.score ?? 0;
         // We need a mutable snapshot of all player scores for elimination checks
@@ -290,23 +320,51 @@ const EliminationState = ({ children }) => {
                 detail: `Throw is bust. Score stays at ${originalScore}.`,
                 life: 3000
             });
+            // a bust is a visit too: its darts count, and undo takes it back first
+            dispatch({
+                type: UPDATE_PLAYER_SCORE,
+                payload: {
+                    playerId,
+                    score: originalScore,
+                    playerModel: {
+                        ...playerModels[playerId],
+                        score: originalScore,
+                        totalThrow: {
+                            darts: (playerModels[playerId]?.totalThrow?.darts ?? 0) + dartCount,
+                            rounds: (playerModels[playerId]?.totalThrow?.rounds ?? 0) + 1
+                        }
+                    }
+                }
+            });
+            dispatch({
+                type: SAVE_ALL_GAME_THROWS,
+                payload: [...allThrows, {
+                    darts: currentThrow,
+                    playerId,
+                    roundScore: 0,
+                    scoreLeft: Math.max(state.game.targetScore - originalScore, 0),
+                    bust: true,
+                    scoresBefore
+                }]
+            });
             dispatch({ type: RESET_CURRENT_THROW });
             manageCurrentPlayerChange();
             setLoading('validateThrow', false);
+            requestSave();
             return;
         }
 
-        // Apply eliminations
+        // Apply eliminations: the first one sent back is kicked out of their house
         eliminations.forEach(pid => {
-            const playerObj = state.players?.find(p => p.id === pid);
             dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId: pid, score: 0 } });
-            toast.current.show({
-                severity: 'warn',
-                summary: 'Eliminated!',
-                detail: `${playerObj?.nickname || playerObj?.name || 'A player'} was reset to 0!`,
-                life: 3000
-            });
         });
+        if (eliminations.length) {
+            const scene = { key: Date.now(), ...knockOutScene({ game: state.game, players: state.players, playerId, eliminations, scoresBefore }) };
+            // after a 180 the maximum has its moment first
+            clearTimeout(knockOutTimer.current);
+            if (totalRoundScore === 180) knockOutTimer.current = setTimeout(() => setKnockOut(scene), 2700);
+            else setKnockOut(scene);
+        }
 
         if (!busted && totalRoundScore === 180) {
             const player = state.players?.find(p => p.id === playerId);
@@ -314,7 +372,6 @@ const EliminationState = ({ children }) => {
         }
 
         // Apply stats updates
-        const dartCount = currentThrow.filter(d => d && d.trim() !== '').length;
         const updatedPlayerModel = {
             ...playerModels[playerId],
             score: runningScore,
@@ -334,12 +391,13 @@ const EliminationState = ({ children }) => {
             darts: currentThrow,
             playerId,
             roundScore: totalRoundScore,
-            scoreLeft: Math.max(state.game.targetScore - runningScore, 0)
+            scoreLeft: Math.max(state.game.targetScore - runningScore, 0),
+            scoresBefore
         });
 
         if (winner) {
             // Dispatch winner state
-            dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId, score: runningScore } });
+            dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId, score: runningScore, playerModel: updatedPlayerModel } });
             dispatch({ type: SAVE_ALL_GAME_THROWS, payload: allThrows });
             dispatch({ type: GAME_HAS_WINNER, payload: playerId });
 
@@ -352,6 +410,7 @@ const EliminationState = ({ children }) => {
             });
             dispatch({ type: RESET_CURRENT_THROW });
             setLoading('validateThrow', false);
+            requestSave();
             return;
         }
 
@@ -364,6 +423,7 @@ const EliminationState = ({ children }) => {
         dispatch({ type: RESET_CURRENT_THROW });
         manageCurrentPlayerChange();
         setLoading('validateThrow', false);
+        requestSave();
     };
 
     /**
@@ -408,6 +468,7 @@ const EliminationState = ({ children }) => {
         if (!state.game.allThrows || state.game.allThrows.length === 0) return;
         const newGame = EliminationReturnToPreviousPlayer(state.game);
         dispatch({ type: RETURN_PREV_PLAYER, payload: newGame });
+        requestSave();
     };
 
     // -------------------- Context Provider --------------------
@@ -417,6 +478,9 @@ const EliminationState = ({ children }) => {
                 game: state.game,
                 players: state.players,
                 loading: state.loading,
+                winnerSaved,
+                // a moment of the winning visit plays to its end before the statistics page
+                celebrating: Boolean(knockOut || oneEighty),
                 updateCurrentThrowManual,
                 updateCurrentThrowDartBoard,
                 getCurrentThrowScore,
@@ -429,6 +493,7 @@ const EliminationState = ({ children }) => {
                 {children}
             </EliminationContext.Provider>
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
+            <KnockOut knockOut={knockOut} onDone={endKnockOut} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>
     );

@@ -6,17 +6,21 @@ import X01Context from './x01.context';
 import X01Reducer from './x01.reducer';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import GameMoment from '../components/games/common/game.moment';
+import { BigFish, BedAndBreakfast, BullFinish, PerfectLeg } from '../components/games/common/x01.moments';
+import { x01VisitMoment } from './x01.moments';
 import X01Service from '../services/x01.service';
 import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
 
 import {
+    normalizeDart,
     validateDartValue,
     dartIsDouble,
     dartIsTriple,
     lastDartIsDouble,
     lastDartIsTriple
 } from './game.utils';
+import { inModeOf, outModeOf, startingScoreOf } from './x01.rules';
 
 import {
     FETCH_GAME_SUCCESS,
@@ -71,12 +75,27 @@ const X01State = props => {
     };
 
     const [state, dispatch] = useReducer(X01Reducer, initialState);
+    // one message at a time: a new one replaces the last instead of piling up
+    const showError = (summary, detail) => {
+        toast.current?.clear();
+        toast.current?.show({ severity: 'error', summary, detail, life: 3000 });
+    };
+    // how each player finishes and scores, for the ways out: { [playerId]: profile }
+    const [checkoutProfiles, setCheckoutProfiles] = useState({});
+    // bumped after every visit and every undo: the game is saved then
+    const [saveRequest, setSaveRequest] = useState(0);
+    // the saves run one after the other, in the order of the visits
+    const saving = useRef(Promise.resolve());
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
     // { key, kind, winner, … } while a leg or set win is shown
     const [moment, setMoment] = useState(null);
     const endMoment = useCallback(() => setMoment(null), []);
+    // { key, kind, name, … } while a big moment of a visit plays (a high finish, the
+    // big fish, a bull finish, the nine-darter, bed and breakfast)
+    const [highlight, setHighlight] = useState(null);
+    const endHighlight = useCallback(() => setHighlight(null), []);
 
     // fetch a x01 game from the API
     useEffect(() => {
@@ -108,6 +127,8 @@ const X01State = props => {
             fetchPlayers(game).then(() => {
                 setLoading('initGameLoading', false);
             });
+            // the ways out work without them, so a failure only means the usual order
+            PlayerService.loadCheckoutProfiles(game.players).then(setCheckoutProfiles).catch(() => {});
         }).catch(error => {
             toast.current.show(
                 {
@@ -121,14 +142,21 @@ const X01State = props => {
         });
     }, [id, navigate]);
 
+    // the rules of the player at the oche: with a handicap they differ per player
+    const currentInMode = () => inModeOf(state.game, state.game.currentPlayerTurn);
+    const currentOutMode = () => outModeOf(state.game, state.game.currentPlayerTurn);
+    // nothing scored in this leg yet: the in mode decides whether a dart counts
+    const hasNotStarted = (score) => Number(score) === startingScoreOf(state.game, state.game.currentPlayerTurn);
+
     const updateCurrentThrowManual = (score, value, index) => {
-        if (state.game.gameType === score && value !== '' && validateDartValue(value)) {
-            if (state.game.legInMode === 'Double In') {
+        value = normalizeDart(value);
+        if (hasNotStarted(score) && value !== '' && validateDartValue(value)) {
+            if (currentInMode() === 'Double In') {
                 let startedInDouble = dartIsDouble(value);
                 if (!startedInDouble) {
                     value = '0'
                 }
-            } else if (state.game.legInMode === 'Master In') {
+            } else if (currentInMode() === 'Master In') {
                 let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
                 if (!startedInMaster) {
                     value = '0';
@@ -153,13 +181,13 @@ const X01State = props => {
         const newCurrentThrow = [...state.game.currentThrow];
 
         for (let index = 0; index < newCurrentThrow.length; index++) {
-            if (state.game.gameType === score && validateDartValue(value)) {
-                if (state.game.legInMode === 'Double In') {
+            if (hasNotStarted(score) && validateDartValue(value)) {
+                if (currentInMode() === 'Double In') {
                     let startedInDouble = dartIsDouble(value);
                     if (!startedInDouble) {
                         value = '0'
                     }
-                } else if (state.game.legInMode === 'Master In') {
+                } else if (currentInMode() === 'Master In') {
                     let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
                     if (!startedInMaster) {
                         value = '0';
@@ -187,14 +215,7 @@ const X01State = props => {
 
         for (let i = 0; i < currentThrow.length; i++) {
             if (!validateDartValue(currentThrow[i])) {
-                toast.current.show(
-                    {
-                        severity: 'error',
-                        summary: 'Validate Throw',
-                        detail: 'One or more of your darts have an invalid value',
-                        life: 3000
-                    }
-                );
+                showError('Check the darts', 'One or more darts are not valid: use e.g. 20, D16, T19, 25 or 50 (bullseye).');
                 setLoading('validateThrow', false);
                 return
             }
@@ -216,9 +237,24 @@ const X01State = props => {
         }];
 
         let hasBusted = checkIfScoreIsBusted(currentScore)
-        if (!hasBusted && roundScore === 180) {
-            const player = state.players.find(p => p.id === state.game.currentPlayerTurn);
-            setOneEighty({ key: Date.now(), name: player?.nickname ?? '' });
+        // the big moment of the visit, the biggest one if there are several
+        const visitMoment = x01VisitMoment({
+            game: state.game,
+            playerId: state.game.currentPlayerTurn,
+            darts: currentThrow,
+            roundScore,
+            legThrows: currentLegThrows,
+            won: !hasBusted && currentScore === 0,
+            busted: hasBusted,
+        });
+        const thrower = state.players.find(p => p.id === state.game.currentPlayerTurn);
+        if (visitMoment?.kind === 'oneEighty') {
+            setOneEighty({ key: Date.now(), name: thrower?.nickname ?? '' });
+        } else if (visitMoment?.kind === 'checkout') {
+            // a high finish: the gold burst of the 180 with the finish on the signs
+            setOneEighty({ key: Date.now(), name: thrower?.nickname ?? '', number: String(visitMoment.checkout), words: 'Checkout!', sign: String(visitMoment.checkout) });
+        } else if (visitMoment) {
+            setHighlight({ key: Date.now(), name: thrower?.nickname ?? '', playerIndex: state.game.players.indexOf(state.game.currentPlayerTurn), ...visitMoment });
         }
         let hasWonLeg = false;
         let hasWonSet = false;
@@ -262,17 +298,29 @@ const X01State = props => {
         if (hasWonGame) {
             gameHasWinner();
             setLoading('validateThrow', false);
+            setSaveRequest(request => request + 1);
             return
         }
 
         const nextStarter = manageCurrentPlayerChange(hasWonLeg, hasWonSet);
         if (hasWonLeg) {
-            setOneEighty(null);
             setMoment(buildMoment(hasWonSet, nextStarter));
         }
 
         setLoading('validateThrow', false);
+        setSaveRequest(request => request + 1);
     }
+
+    // the game as it is after the visit (or undo) that asked for it
+    useEffect(() => {
+        if (!saveRequest) return;
+        const game = state.game;
+        saving.current = saving.current
+            .then(() => X01Service.updateX01Game(game))
+            .then(saved => { if (!saved) throw new Error('not saved'); })
+            .catch(() => showError('Not saved', 'The last visit could not be saved. Check the connection: the next visit saves everything.'));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [saveRequest]);
 
     /**
      * What the banner for a won leg or set shows, from the state before this
@@ -309,14 +357,7 @@ const X01State = props => {
             values[0] === '' ||
             (values[1] === '' && values[2] !== '')
         ) {
-            toast.current.show(
-                {
-                    severity: 'error',
-                    summary: 'Validate Throw',
-                    detail: 'You need to add a value for each dart',
-                    life: 3000
-                }
-            );
+            showError('Check the darts', 'Enter a value for each dart; 0 for a miss.');
             return false;
         }
 
@@ -327,9 +368,9 @@ const X01State = props => {
         let isBusted = currentScore < 0;
 
         if (!isBusted) {
-            if (state.game.legOutMode === 'Double Out') {
+            if (currentOutMode() === 'Double Out') {
                 isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow));
-            } else if (state.game.legOutMode === 'Master Out') {
+            } else if (currentOutMode() === 'Master Out') {
                 isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow) && !lastDartIsTriple(state.game.currentThrow));
             }
         }
@@ -889,7 +930,7 @@ const X01State = props => {
                 };
             }
 
-            if (state.game.legOutMode === 'Double Out' && couldCheckoutInDouble(newCurrentScore)) {
+            if (currentOutMode() === 'Double Out' && couldCheckoutInDouble(newCurrentScore)) {
                 let possibleDoubleOut = newCurrentScore / 2;
                 let hasDouble = newCurrentScore - dartScore === 0 && /d/i.test(dart[0]);
 
@@ -924,7 +965,7 @@ const X01State = props => {
                 // Per leg checkout quote
                 !hasDouble && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].miss++;
                 hasDouble && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hit++;
-            } else if (state.game.legOutMode === 'Master Out'
+            } else if (currentOutMode() === 'Master Out'
                 && (couldCheckoutInDouble(newCurrentScore) || couldCheckoutInTriple(newCurrentScore))) {
                 let hasMaster = newCurrentScore - dartScore === 0 && (/d/i.test(dart[0]) || /t/i.test(dart[0]));
 
@@ -934,7 +975,7 @@ const X01State = props => {
                 checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].total++;
                 !hasMaster && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].miss++;
                 hasMaster && checkout['set-' + state.game.currentSet]['leg-' + state.game.currentSetLeg].hit++;
-            } else if (state.game.legOutMode === 'Straight Out'
+            } else if (currentOutMode() === 'Straight Out'
                 && (couldCheckoutInSingle(newCurrentScore)
                     || couldCheckoutInDouble(newCurrentScore)
                     || couldCheckoutInTriple(newCurrentScore))) {
@@ -1097,6 +1138,7 @@ const X01State = props => {
             type: RETURN_PREV_PLAYER,
             payload: newMatchData
         })
+        setSaveRequest(request => request + 1);
     }
 
     const setLoading = (eventName, setTo) => dispatch({
@@ -1111,8 +1153,11 @@ const X01State = props => {
         <Fragment>
             <X01Context.Provider
                 value={{
+                    // a moment of the winning visit plays to its end before the statistics page
+                    celebrating: Boolean(oneEighty || highlight),
                     game: state.game,
                     players: state.players,
+                    checkoutProfiles,
                     loading: state.loading,
                     resetScores,
                     onClickValidateThrow,
@@ -1127,6 +1172,10 @@ const X01State = props => {
                 {props.children}
             </X01Context.Provider>
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
+            <BigFish moment={highlight?.kind === 'bigFish' ? highlight : null} onDone={endHighlight} />
+            <PerfectLeg moment={highlight?.kind === 'nineDarter' ? highlight : null} onDone={endHighlight} />
+            <BullFinish moment={highlight?.kind === 'bull' ? highlight : null} onDone={endHighlight} />
+            <BedAndBreakfast moment={highlight?.kind === 'bedAndBreakfast' ? highlight : null} onDone={endHighlight} />
             <GameMoment moment={moment} onDone={endMoment} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>

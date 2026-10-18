@@ -1,5 +1,7 @@
 // Badges and the celebration shown after a win or a new record
 
+$shameColor: #c7745f;
+
 $badgeMetals: (
     "bronze": #cd7f32,
     "silver": #c0c0c0,
@@ -9,6 +11,8 @@ $badgeMetals: (
     "legend": #ff7a59,
 );
 
+// like the level icons: a soft tint of the metal with a thin ring and the icon
+// in that colour
 .badge-medal {
     position: relative;
     display: inline-flex;
@@ -19,17 +23,23 @@ $badgeMetals: (
     height: 3.5rem;
     border-radius: 50%;
     font-size: 1.5rem;
-    border: 3px solid currentColor;
-    // the metal colour is set per tier below and tints ring, icon and glow
-    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 60%), $surfaceHighColor;
-    box-shadow: 0 0 0 3px $surfaceColor, 0 0 14px -2px currentColor;
+    // the metal colour is set per tier below and tints background, ring and icon
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, currentColor 55%, transparent);
+
+    // in a line of text, e.g. next to a player in a game
+    &.badge-medal-xs {
+        width: 1.3rem;
+        height: 1.3rem;
+        font-size: 0.6rem;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 55%, transparent);
+    }
 
     &.badge-medal-sm {
         width: 2.25rem;
         height: 2.25rem;
         font-size: 0.95rem;
-        border-width: 2px;
-        box-shadow: 0 0 0 2px $surfaceColor, 0 0 8px -2px currentColor;
+        box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 55%, transparent);
     }
 
     @each $metal, $color in $badgeMetals {
@@ -38,10 +48,14 @@ $badgeMetals: (
         }
     }
 
+    // the Hall of Shame: a dull rust, nothing anyone wants
+    &.badge-shame {
+        color: $shameColor;
+    }
+
+    // not earned yet: grey, with a lock
     &.badge-locked {
         color: $shade600;
-        background: $surfaceRaisedColor;
-        box-shadow: none;
 
         .badge-lock {
             position: absolute;
@@ -113,9 +127,8 @@ $badgeMetals: (
         margin: auto;
         padding: 2rem 1.5rem;
         text-align: center;
-        border-radius: 0.75rem;
+        border-radius: $borderRadius;
         background: $surfaceRaisedColor;
-        border: 1px solid $surfaceHighColor;
         box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.6);
         animation: celebration-card 0.3s ease-out both;
     }
@@ -214,4 +227,270 @@ $badgeMetals: (
     background: $primaryColor;
     color: $primaryTextColor;
     font-size: 1.15rem;
+}
+
+// The Hall of Shame: each shame badge with who holds it, in two columns when
+// there is room
+.hall-of-shame {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.hall-of-shame-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+// The Hall of Shame on a player's profile. What is on them right now: cards
+// with a rust edge that stand out
+.shame-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 1rem;
+}
+
+.shame-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1rem;
+    border-radius: $borderRadius;
+    border-left: 3px solid $shameColor;
+    background: rgba($shameColor, 0.08);
+}
+
+// the status as a label, like every label in the app
+.shame-label {
+    @include label-shape;
+    @include label-tone($shameColor);
+    font-size: 0.75rem;
+
+    &.is-washed { @include label-neutral; color: var(--text-subtle); }
+}
+
+.shame-times {
+    color: $shameColor;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+// the good deed: its own line, in the normal text colour, so it does not mix
+// with the description
+.shame-wash {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+    color: $textDefaultColor;
+    font-size: 0.8rem;
+
+    svg { color: $softGreenText; flex-shrink: 0; align-self: center; }
+}
+
+.shame-others-title {
+    margin: 1.5rem 0 0.75rem;
+    color: $textSubtleColor;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+// the rest, washed off or never had: a quiet list
+.shame-others {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.shame-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+// Tarred and feathered: the opposite of the celebration, for whoever just
+// landed in the Hall of Shame. Tar runs down from the top, feathers float down.
+$tar: #17110c;
+
+.tarred {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+    background: rgba(#0e0b08, 0.9);
+}
+
+.tarred-tar {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2.5rem;
+    background: linear-gradient(to bottom, $tar 70%, darken($tar, 2%));
+    box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    transform-origin: top;
+    animation: tarred-pour 0.5s ease-out both;
+}
+
+.tarred-drip {
+    position: absolute;
+    top: 100%;
+    height: var(--length);
+    margin-top: -1px;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(to right, darken($tar, 3%), #2b2119 40%, $tar);
+    transform-origin: top;
+    animation: tarred-drip 2.4s cubic-bezier(0.3, 0.6, 0.4, 1) both;
+
+    // the glossy drop at the end
+    &::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -0.2rem;
+        width: 115%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #4b3c2f 0 8%, $tar 45%);
+        transform: translateX(-50%);
+    }
+}
+
+.tarred-feathers {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.tarred-feather {
+    position: absolute;
+    top: -3rem;
+    color: #efe6d0;
+    opacity: 0.9;
+    filter: drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
+    animation: tarred-fall linear infinite both;
+}
+
+.tarred-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 36rem;
+    margin: auto;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.7);
+    animation: celebration-card 0.3s 0.35s ease-out both;
+}
+
+.tarred-title {
+    color: $shameColor;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.tarred-avatar {
+    position: relative;
+    display: inline-flex;
+
+    // tar poured over the head: a cap on top with a few drips running down
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(ellipse 75% 32% at 50% 0%, rgba($tar, 0.97) 70%, transparent 72%);
+        pointer-events: none;
+    }
+}
+
+.tarred-avatar-drip {
+    position: absolute;
+    top: 18%;
+    z-index: 1;
+    width: 0.45rem;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(to right, darken($tar, 3%), #2b2119 45%, $tar);
+    transform-origin: top;
+    animation: tarred-drip 1.8s 0.4s cubic-bezier(0.3, 0.6, 0.4, 1) both;
+}
+
+.tarred-stuck {
+    position: absolute;
+    z-index: 1;
+    color: #efe6d0;
+    font-size: 1.3rem;
+    filter: drop-shadow(0 0.1rem 0.2rem rgba(0, 0, 0, 0.6));
+}
+
+.tarred-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: $borderRadius;
+    border-left: 3px solid $shameColor;
+    background: rgba($shameColor, 0.08);
+}
+
+.tarred-wash {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: $textSubtleColor;
+    font-size: 0.8rem;
+
+    svg { color: $softGreenText; flex-shrink: 0; }
+}
+
+@keyframes tarred-pour {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+
+@keyframes tarred-drip {
+    0%, 15% { transform: scaleY(0); }
+    100% { transform: scaleY(1); }
+}
+
+@keyframes tarred-fall {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(calc(var(--sway) * 2.5rem), 25vh) rotate(calc(var(--sway) * 40deg)); }
+    50% { transform: translate(calc(var(--sway) * -1.5rem), 50vh) rotate(calc(var(--sway) * -25deg)); }
+    75% { transform: translate(calc(var(--sway) * 2rem), 75vh) rotate(calc(var(--sway) * 35deg)); }
+    100% { transform: translate(0, calc(100vh + 4rem)) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tarred-tar,
+    .tarred-drip,
+    .tarred-card {
+        animation: none;
+    }
+
+    .tarred-feathers {
+        display: none;
+    }
+}
+
+// the soap in front of a shame badge washed off in a game
+.game-shame-soap {
+    margin-right: 0.25rem;
+    color: $softGreenText;
 }

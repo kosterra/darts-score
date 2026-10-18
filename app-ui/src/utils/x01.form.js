@@ -1,6 +1,8 @@
 // How a player is doing in a running X01 game: every visit's score in order,
 // recent and overall averages, and whether they are getting better or worse.
 
+import { startingScoreOf } from './x01.rules';
+
 const RECENT_VISITS = 3;
 const TREND_VISITS = 5;
 // points of 3-dart average a player must be above or below their game average to count as a trend
@@ -12,7 +14,7 @@ const numbered = (key, prefix) => Number(String(key).replace(prefix, ''));
  * The legs of a game in the order they were played, the running one last:
  * [{ set, leg, throws }]. Keys other than "set-<n>" / "leg-<n>" are ignored.
  */
-const legsInOrder = (game) => {
+export const legsInOrder = (game) => {
     const legs = [];
     Object.entries(game.allSetsThrows ?? {})
         .filter(([setKey, legsOfSet]) => /^set-\d+$/.test(setKey) && legsOfSet && typeof legsOfSet === 'object' && !Array.isArray(legsOfSet))
@@ -32,7 +34,7 @@ const legsInOrder = (game) => {
 export const visitsOf = (game, playerId) => {
     const visits = [];
     for (const { set, leg, throws, running } of legsInOrder(game)) {
-        let left = Number(game.startingScore);
+        let left = startingScoreOf(game, playerId);
         for (const visit of throws) {
             if (visit.playerId !== playerId) continue;
             const scoreLeft = Number(visit.scoreLeft);

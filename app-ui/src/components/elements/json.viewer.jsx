@@ -40,7 +40,8 @@ const JSONViewer = (props) => {
                 <Button
                     severity="info"
                     icon="pi pi-code"
-                    title="Show _raw data"
+                    title="Show the raw data"
+                    aria-label="Show the raw data"
                     onClick={() => setShowDialog(true)}
                 />
             </div>

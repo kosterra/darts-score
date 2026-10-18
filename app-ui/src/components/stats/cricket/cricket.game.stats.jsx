@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { SplitButton } from 'primereact/splitbutton';
 import { PiShuffle, PiUserSwitch } from 'react-icons/pi';
@@ -17,6 +17,7 @@ import CricketBoardPanel from './cricket.board.panel';
 import RoundsLineChart from '../charts/rounds.line.chart';
 import { CRICKET_NUMBERS, replayCricket, cricketFigures, cricketProgress, cricketMoments, hitsBySection } from '../../../utils/cricket.game.summary';
 import { cricketRematch } from '../../../utils/cricket.rematch';
+import { variantOf } from '../../../utils/cricket.variants';
 
 // the key figures of every player in the header
 const FIGURES = [
@@ -45,6 +46,13 @@ const CricketGameStats = () => {
     const [game, setGame] = useState(null);
     const [players, setPlayers] = useState(null);
     const [failed, setFailed] = useState(false);
+    // straight from a game that was just won: celebrate once
+    const [justFinished] = useState(Boolean(useLocation().state?.justFinished));
+
+    useEffect(() => {
+        // forget the marker, so reloading the page does not celebrate again
+        if (justFinished) window.history.replaceState({ ...window.history.state, usr: null }, '');
+    }, [justFinished]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -104,7 +112,7 @@ const CricketGameStats = () => {
                 <GameResultHeader
                     game={game}
                     players={players}
-                    title="Cricket · 15 to 20 and the bull"
+                    title={variantOf(game) === 'Standard' ? 'Cricket · 15 to 20 and the bull' : `Cricket ${variantOf(game)} · 15 to 20 and the bull`}
                     subtitle={whenPlayed(game)}
                     scoreOf={(player) => figures[player.id]?.points ?? 0}
                     // the points are the score; under them how much of the board the player closed
@@ -119,6 +127,7 @@ const CricketGameStats = () => {
                     gameId={game.id}
                     players={players}
                     winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
+                    celebrate={justFinished && game.hasWinner}
                     className="mb-4"
                 />
 
@@ -127,7 +136,8 @@ const CricketGameStats = () => {
                 <CricketBoardPanel board={replay.board} players={players} closing={progress.closing} />
 
                 <div className="row g-4">
-                    <div className="col-12 col-xl-6">
+                    {/* the points over the game follow the standard rules */}
+                    {variantOf(game) === 'Standard' && <div className="col-12 col-xl-6">
                         <RoundsLineChart
                             title="Points over the game"
                             description="Each player's points after every round: they come from marks on numbers the others have not closed yet."
@@ -135,8 +145,8 @@ const CricketGameStats = () => {
                             players={players}
                             unit="points"
                         />
-                    </div>
-                    <div className="col-12 col-xl-6">
+                    </div>}
+                    <div className={variantOf(game) === 'Standard' ? 'col-12 col-xl-6' : 'col-12'}>
                         <HitsHeatmapChart hitsByPlayer={players.map(player => hitsBySection(game.playerModels[player.id]?.hit))} players={players} gameName="this game" />
                     </div>
                 </div>

@@ -79,9 +79,10 @@ export const update = async (req, res) => {
     club.name = req.body.name;
     if (typeof req.body.description === 'string') club.description = req.body.description;
     // Visibility settings are optional, so a plain rename leaves them alone
-    for (const setting of ['isPublic', 'publicLiveGames', 'publicResults']) {
+    for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
     }
+    if (Number.isInteger(req.body.shameMinAge)) club.shameMinAge = req.body.shameMinAge;
     if (Array.isArray(req.body.dashboardWidgets)) club.dashboardWidgets = req.body.dashboardWidgets;
     await club.save();
     res.json(await withAdmins(club));
@@ -107,6 +108,7 @@ export const remove = async (req, res) => {
         db.x01.deleteMany({ club: club._id }),
         db.cricket.deleteMany({ club: club._id }),
         db.elimination.deleteMany({ club: club._id }),
+        db.clock.deleteMany({ club: club._id }),
         db.atc.deleteMany({ club: club._id }),
     ]);
     await club.deleteOne();

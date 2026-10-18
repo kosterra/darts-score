@@ -32,6 +32,7 @@ import {
     FETCH_GAME_SUCCESS,
     FETCH_PLAYERS_SUCCESS
 } from './constants';
+import { startingScoreOf } from './x01.rules';
 
 // Hilfsfunktion für Updates an einem Spieler
 const updatePlayerModel = (state, playerId, update) => ({
@@ -94,7 +95,7 @@ const X01Reducer = (state, action) => {
             return updatePlayerModel(state, action.payload.playerId, { score: action.payload.score });
 
         case RESET_SCORES:
-            return updatePlayerModel(state, action.payload, { score: state.game.startingScore });
+            return updatePlayerModel(state, action.payload, { score: startingScoreOf(state.game, action.payload) });
 
         case UPDATE_AVERAGES:
             return updatePlayerModel(state, action.payload.playerId, { averages: action.payload.averages });

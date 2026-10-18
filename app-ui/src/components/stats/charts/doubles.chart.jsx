@@ -35,6 +35,13 @@ const DoublesChart = ({ ratesByPlayer = [], players = [] }) => (
                                 onlyDoubles
                                 color={PLAYER_COLORS[index]}
                                 label={`Checkout attempts of ${player.nickname} per double`}
+                                name={player.nickname}
+                                tooltip={(section) => {
+                                    const entry = bySection.get(String(section));
+                                    return entry?.total
+                                        ? { label: doubleName(section), value: `${Math.round(entry.rate)} %`, detail: `${entry.hit} of ${entry.total} attempts went in` }
+                                        : { label: doubleName(section), value: '–', detail: 'Not tried' };
+                                }}
                                 valueOf={(section, ring) => ring === 'D' ? bySection.get(String(section))?.total ?? 0 : 0}
                                 describe={(section) => {
                                     const entry = bySection.get(String(section));

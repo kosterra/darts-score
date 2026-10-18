@@ -4,9 +4,9 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
-import { PiClockCountdownBold } from "react-icons/pi";
+import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
 import { BsPersonFillCheck } from "react-icons/bs";
 
@@ -16,6 +16,7 @@ import { resolvePlayerInitials } from '../../utils/image.utils';
 import ClubLogo from '../elements/club.logo';
 import AdminService from '../../services/admin.service';
 import { ALERTS_CHANGED } from '../admin/alert.events';
+import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.service';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -41,15 +42,42 @@ const useOpenAlerts = (enabled) => {
 };
 
 /**
+ * What fair play has waiting (impossible, and suspicious not looked at yet),
+ * for the count next to "Fair play": of the selected club for its admins, of
+ * every club for global admins ("all"). Follows page changes, the fair play
+ * page and a few minutes' timer.
+ */
+const useFairPlay = (enabled, all, clubId) => {
+    const { pathname } = useLocation();
+    const [summary, setSummary] = useState(null);
+
+    useEffect(() => {
+        if (!enabled) return undefined;
+        const load = () => IntegrityService.loadSummary(all).then(setSummary).catch(() => {});
+        load();
+        const timer = setInterval(load, 5 * 60 * 1000);
+        window.addEventListener(FAIR_PLAY_CHANGED, load);
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener(FAIR_PLAY_CHANGED, load);
+        };
+    }, [enabled, all, clubId, pathname]);
+
+    return enabled ? summary : null;
+};
+
+/**
  * The menu, built for the logged-in user. Everything under "Club" belongs to
  * the selected club; its players see everything there, only its admins can change it. "Admin"
  * spans all clubs and is for global admins only.
  */
 const useSections = () => {
-    const { activeClub, isGlobalAdmin } = useAuth();
+    const { activeClub, isGlobalAdmin, isClubAdmin } = useAuth();
     // a global admin without a club of their own only looks after the app
     const hasClub = !!activeClub;
     const openAlerts = useOpenAlerts(isGlobalAdmin);
+    const clubFairPlay = useFairPlay(isClubAdmin && hasClub, false, activeClub?.id);
+    const allFairPlay = useFairPlay(isGlobalAdmin, true, null);
 
     const sections = [
         {
@@ -62,6 +90,15 @@ const useSections = () => {
                 { label: 'Games', icon: FaTrophy, to: '/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
                 { label: 'Badges', icon: FaMedal, to: '/badges' },
+                // for the club's admins: games and trainings that cannot be real or are worth a look
+                ...(isClubAdmin ? [{
+                    label: 'Fair play',
+                    icon: FaScaleBalanced,
+                    to: '/fair-play',
+                    badge: clubFairPlay?.open || null,
+                    // red while something impossible waits to be deleted
+                    badgeCritical: clubFairPlay?.impossible > 0,
+                }] : []),
             ],
         },
         {
@@ -71,6 +108,7 @@ const useSections = () => {
                 { label: 'X01', icon: FaBullseye, to: '/x01', end: true },
                 { label: 'Cricket', icon: MdSportsCricket, to: '/cricket', end: true },
                 { label: 'Elimination', icon: BiTargetLock, to: '/elimination', end: true },
+                { label: 'Around the Clock', icon: PiClockClockwiseBold, to: '/clock', end: true },
             ],
         },
         { title: 'Training', visible: hasClub, items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
@@ -80,9 +118,17 @@ const useSections = () => {
             visible: isGlobalAdmin,
             items: [
                 { label: 'Clubs', icon: FaPeopleGroup, to: '/admin/clubs' },
+                { label: 'Users', icon: FaUserGear, to: '/admin/users' },
                 { label: 'Players', icon: FaUserPen, to: '/admin/players' },
                 { label: 'Games', icon: GiDart, to: '/admin/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
+                {
+                    label: 'Fair play',
+                    icon: FaScaleBalanced,
+                    to: '/admin/fair-play',
+                    badge: allFairPlay?.open || null,
+                    badgeCritical: allFairPlay?.impossible > 0,
+                },
                 {
                     label: 'Alerts',
                     icon: FaBell,

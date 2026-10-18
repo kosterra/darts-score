@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
+import { Calendar } from 'primereact/calendar';
 import { classNames } from 'primereact/utils';
 import { Toast } from 'primereact/toast';
 
@@ -11,11 +12,26 @@ import ImageUploader from './image.uploader';
 import PlayerService from '../../services/player.service';
 import PlayerModel from '../../models/player.model';
 import { resolvePlayerImg } from '../../utils/image.utils';
+import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
 
 /**
  * Adds or edits a player. With "clubs" (global admins) a new player can be
  * added to any of these clubs, "defaultClubId" first; otherwise to the selected club.
  */
+// a date as the date field wants it: "2016-05-24"
+const toDateInput = (value) => value ? String(value).slice(0, 10) : '';
+const today = () => new Date().toISOString().slice(0, 10);
+// "2016-05-24" and back for the calendar, in local time so the day stays the day
+const toDate = (value) => {
+    const [year, month, day] = (value || '').split('-').map(Number);
+    return year && month && day ? new Date(year, month - 1, day) : null;
+};
+const fromDate = (date) => date instanceof Date && !Number.isNaN(date.getTime())
+    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    : '';
+// with no date yet the calendar opens ten years back: most new players with a date that matters are children
+const tenYearsAgo = () => new Date(new Date().getFullYear() - 10, 0, 1);
+
 const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defaultClubId, label }) => {
     const toast = useRef(null);
     const choosesClub = !edit && Array.isArray(clubs);
@@ -36,6 +52,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
             firstname:  initialState.firstname  ?? '',
             lastname:   initialState.lastname   ?? '',
             nickname:   initialState.nickname   ?? '',
+            dateOfBirth: toDateInput(initialState.dateOfBirth),
             profileImg: '',
             id:         initialState.id         ?? ''
         }
@@ -48,6 +65,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                 firstname:  updatePlayer.firstname  ?? '',
                 lastname:   updatePlayer.lastname   ?? '',
                 nickname:   updatePlayer.nickname   ?? '',
+                dateOfBirth: toDateInput(updatePlayer.dateOfBirth),
                 profileImg: '',
                 id:         updatePlayer.id         ?? ''
             });
@@ -72,6 +90,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
         formData.append('firstname', data.firstname);
         formData.append('lastname',  data.lastname);
         formData.append('nickname',  data.nickname);
+        formData.append('dateOfBirth', data.dateOfBirth);
 
         if (imageAction === 'new' && data.profileImg instanceof File) {
             // New file selected — upload it
@@ -248,16 +267,65 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                 </span>
                                 {getFormErrorMessage('nickname')}
                             </div>
+                            <div className="py-1 w-100 w-sm-50">
+                                <span className="p-float-label w-100">
+                                    <Controller
+                                        name="dateOfBirth"
+                                        control={control}
+                                        rules={{
+                                            required: 'Date of birth is required',
+                                            validate: (value) => value <= today() || 'Date of birth must be in the past',
+                                        }}
+                                        render={({ field }) => (
+                                            // typed as 14.03.2012 (the dots come by themselves), or picked:
+                                            // a click on the month or year in the header jumps to choosing those
+                                            <Calendar
+                                                inputId="dateOfBirth"
+                                                value={toDate(field.value)}
+                                                onChange={(e) => field.onChange(fromDate(e.value))}
+                                                onBlur={field.onBlur}
+                                                dateFormat="dd.mm.yy"
+                                                mask="99.99.9999"
+                                                maxDate={new Date()}
+                                                viewDate={field.value ? undefined : tenYearsAgo()}
+                                                showIcon
+                                                icon="pi pi-calendar"
+                                                pt={{ input: { root: { inputMode: 'numeric', autoComplete: 'bday' } } }}
+                                                className={classNames('w-100', { 'p-invalid': errors.dateOfBirth })}
+                                                inputClassName={classNames({ 'p-invalid': errors.dateOfBirth })}
+                                            />
+                                        )}
+                                    />
+                                    <label htmlFor="dateOfBirth">Date of birth</label>
+                                </span>
+                                {errors.dateOfBirth
+                                    ? getFormErrorMessage('dateOfBirth')
+                                    : <small className="text-faint">For fair handicaps between players of different ages.</small>}
+                            </div>
                         </div>
+                        {/* saved right away, apart from the rest of the form */}
+                        {edit && updatePlayer?.id && !updatePlayer.guest &&
+                            <div className="mt-3">
+                                <p className="game-setup-section-title">Ways out in X01</p>
+                                <PlayerCheckoutPreferences
+                                    player={updatePlayer}
+                                    onError={(error) => toast.current?.show({ severity: 'error', summary: 'Ways out', detail: error.message, life: 4000 })}
+                                />
+                            </div>
+                        }
                         {footerContent}
                     </div>
                 </form>
             </Dialog>
 
             <div className="d-flex justify-content-center">
+                {/* with a label (e.g. next to the players of a game) it is a secondary action: soft */}
                 <Button
                     severity="primary"
+                    outlined={Boolean(label)}
                     icon={edit ? 'pi pi-user-edit' : 'pi pi-user-plus'}
+                    title={label ? undefined : edit ? 'Edit player' : 'Add a player'}
+                    aria-label={label ? undefined : edit ? 'Edit player' : 'Add a player'}
                     label={label}
                     size={label ? 'small' : undefined}
                     onClick={handleOpen}

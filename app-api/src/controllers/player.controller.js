@@ -6,6 +6,8 @@ import { CLUB_ROLES } from '../models/user.model.js';
 import { inClub, knownInClub } from '../models/player.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
+import { checkoutProfile } from '../utils/checkout.profile.js';
+import { relocateHistory } from '../utils/history.relocation.js';
 
 const Player = db.player;
 
@@ -37,6 +39,7 @@ export const create = async (req, res) => {
         firstname: req.body.firstname,
         lastname: req.body.lastname,
         nickname: req.body.nickname,
+        dateOfBirth: req.body.dateOfBirth,
         profileImg: req.file ? req.file.filename : '',
         clubs: [req.club._id],
     });
@@ -116,11 +119,49 @@ export const findBySearchTerm = async (req, res) => {
     res.send(await toClient(players, req));
 };
 
+const RECENT_GAMES = 100;
+
+/**
+ * When each player last played in the club, { [playerId]: date }, from the
+ * latest games of every type: the game setup offers recent players first.
+ */
+export const lastPlayed = async (req, res) => {
+    logger.debug('players last played called!');
+    const latest = await Promise.all([db.x01, db.cricket, db.elimination, db.clock].map(model =>
+        model.find({ club: req.club._id }, 'players createdAt').sort({ createdAt: -1 }).limit(RECENT_GAMES).lean()
+    ));
+    const lastPlayedById = {};
+    for (const game of latest.flat()) {
+        for (const playerId of game.players ?? []) {
+            if (!lastPlayedById[playerId] || game.createdAt > lastPlayedById[playerId]) lastPlayedById[playerId] = game.createdAt;
+        }
+    }
+    res.send(lastPlayedById);
+};
+
 export const findByIds = async (req, res) => {
     logger.debug('players find by ids called!');
     const ids = req.body.playerIds.filter(id => db.mongoose.isValidObjectId(id));
     const players = await Player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) });
     res.send(players.map(p => p.toJSON()));
+};
+
+/**
+ * How the players finish and score, for the ways out of a game:
+ * { [playerId]: checkout profile }, learned from all their X01 games (it is
+ * the person's skill, whichever club they played in) and their preferences.
+ */
+export const checkoutProfiles = async (req, res) => {
+    logger.debug('players checkout profiles called');
+    const ids = req.body.playerIds.filter(id => db.mongoose.isValidObjectId(id));
+    const players = await Player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) }, 'preferences guest').lean();
+    const profiles = {};
+    for (const player of players) {
+        const id = String(player._id);
+        const games = await db.x01.find({ players: id }, { [`playerModels.${id}.checkout.sections`]: 1, [`playerModels.${id}.hit`]: 1 }).lean();
+        profiles[id] = checkoutProfile(games, id, player.preferences);
+    }
+    res.send(profiles);
 };
 
 export const findOne = async (req, res) => {
@@ -146,6 +187,7 @@ export const update = async (req, res) => {
     player.firstname = req.body.firstname;
     player.lastname = req.body.lastname;
     player.nickname = req.body.nickname;
+    player.dateOfBirth = req.body.dateOfBirth;
     if (req.file) player.profileImg = req.file.filename;
     else if (req.body.clearProfileImg === 'true') player.profileImg = '';
     await player.save();
@@ -179,6 +221,8 @@ export const removeFromClub = async (player, clubId) => {
     player.clubs = player.clubs.filter(id => !id.equals(clubId));
     if (!player.formerClubs.some(id => id.equals(clubId))) player.formerClubs.push(clubId);
     await player.save();
+    // games among players who all left for the same club go along with them
+    await relocateHistory([player._id]);
 };
 
 /**
@@ -195,6 +239,8 @@ export const addToClub = async (player, club) => {
     player.clubs.push(club._id);
     player.formerClubs = player.formerClubs.filter(id => !id.equals(club._id));
     await player.save();
+    // joining after leaving: the games left behind can follow now
+    await relocateHistory([player._id]);
     return null;
 };
 
@@ -267,6 +313,28 @@ export const setVisibility = async (req, res) => {
     player.publicProfile = req.body.publicProfile;
     await player.save();
     res.send((await toClient([player], req))[0]);
+};
+
+/**
+ * A player's favourite double and main treble for the ways out ("auto" learns
+ * them from the games). Club admins, or the player themselves.
+ */
+export const setPreferences = async (req, res) => {
+    logger.debug('players set preferences called');
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+
+    const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+        return res.status(403).send({ message: 'Only club admins can change this for other players.' });
+    }
+
+    player.preferences = {
+        favouriteDouble: req.body.favouriteDouble ?? player.preferences?.favouriteDouble ?? 'auto',
+        mainTreble: req.body.mainTreble ?? player.preferences?.mainTreble ?? 'auto',
+    };
+    await player.save();
+    res.send(player.toJSON());
 };
 
 /**

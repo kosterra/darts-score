@@ -252,9 +252,15 @@ const PlayersTable = ({ scope = 'club' }) => {
                             header="Player"
                             sortable
                             // in the club's own list the name opens the player's profile
-                            body={(player) => acrossClubs
-                                ? <PlayerCell player={player} />
-                                : <Link to={`/players/${player.id}`} className="player-link"><PlayerCell player={player} /></Link>}
+                            body={(player) => {
+                                // members still without a date of birth are marked for the club's admins
+                                const missingBirth = canManage && !player.guest && !player.dateOfBirth && (
+                                    <i className="pi pi-calendar-times text-warning ms-2 fs-8" title="No date of birth yet: edit the player to add it, it is needed for handicap suggestions" aria-label="No date of birth yet" />
+                                );
+                                return acrossClubs
+                                    ? <PlayerCell player={player}>{missingBirth}</PlayerCell>
+                                    : <Link to={`/players/${player.id}`} className="player-link"><PlayerCell player={player}>{missingBirth}</PlayerCell></Link>;
+                            }}
                             style={{ minWidth: '14rem' }}
                         />
                         {acrossClubs && <Column header="Clubs" body={(player) => (

@@ -1,0 +1,73 @@
+// Labels: words that describe something and are never clicked (a status, a
+// role, the way out). All look alike: a soft tint of their colour with the text
+// in that colour and small corners, so they never pass for the pill buttons.
+
+$labelGreen: #7cc6a0;
+$labelGold: #e9ac2f;
+$labelBlue: $statusFinishedColor;
+$labelOrange: $statusRunningColor;
+$labelRed: #ec8b80;
+
+@mixin label-shape {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: $borderRadius;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+@mixin label-tone($color) {
+    background: rgba($color, 0.14);
+    color: $color;
+}
+
+// a light tint on top, so it shows on panels and on cards alike
+@mixin label-neutral {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-default);
+}
+
+.p-tag {
+    @include label-shape;
+    @include label-neutral;
+
+    &.p-tag-rounded { border-radius: $borderRadius; }
+    &.p-tag-success { @include label-tone($labelGreen); }
+    &.p-tag-info { @include label-tone($labelBlue); }
+    &.p-tag-warning { @include label-tone($labelOrange); }
+    &.p-tag-danger { @include label-tone($labelRed); }
+
+    .p-tag-value { line-height: inherit; }
+}
+
+// the chosen entries in a multi select (e.g. the clubs of a filter): labels,
+// not round pills, with a small cross
+:where(.p-multiselect .p-multiselect-token) {
+  @include label-shape;
+  @include label-neutral;
+  gap: 0.35rem;
+  margin-right: 0.35rem;
+  padding: 0.2rem 0.45rem 0.2rem 0.55rem;
+
+  .p-multiselect-token-icon {
+    width: 0.65rem;
+    height: 0.65rem;
+    margin-left: 0;
+    opacity: 0.7;
+    cursor: pointer;
+
+    &:hover { opacity: 1; }
+  }
+}
+
+// a chosen entry in the list of a multi select: the soft green of a chosen pill
+:where(.p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight) {
+  background: rgba($primaryColor, 0.42);
+  color: $buttonTextColor;
+}

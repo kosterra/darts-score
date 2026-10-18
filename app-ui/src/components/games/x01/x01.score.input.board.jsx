@@ -1,17 +1,39 @@
 import { useContext, useState, useEffect } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { FaUndo } from "react-icons/fa";
-import { FaPaperPlane } from "react-icons/fa6";
+import { Panel } from 'primereact/panel';
+import { SelectButton } from 'primereact/selectbutton';
 
 import X01Context from '../../../utils/x01.context';
-import X01Service from '../../../services/x01.service';
 import X01DartBoard from './x01.dartboard';
-import Checkout from './x01.checkout';
-import checkout from '../../../utils/checkout';
+import X01WaysOut from './x01.ways.out';
+import X01Keypad from './x01.keypad';
 import ScoreInputBoardHelp from '../common/score.input.board.help';
 
+
+// how the darts are entered, chosen per device: the board, or the keypad
+// (the default on a phone, where the fields of the board are small)
+const INPUT_KEY = 'oche.x01Input';
+const INPUTS = [
+    { label: 'Board', value: 'board', icon: 'pi pi-bullseye' },
+    { label: 'Keypad', value: 'keypad', icon: 'pi pi-th-large' },
+];
+const readInput = () => {
+    try {
+        const saved = localStorage.getItem(INPUT_KEY);
+        if (saved === 'board' || saved === 'keypad') return saved;
+    } catch {
+        // storage unavailable: the default below
+    }
+    return window.matchMedia?.('(max-width: 767.98px)').matches ? 'keypad' : 'board';
+};
+const writeInput = (input) => {
+    try {
+        localStorage.setItem(INPUT_KEY, input);
+    } catch {
+        // storage unavailable: the default again next time
+    }
+};
 
 const X01ScoreInputBoard = () => {
     const {
@@ -21,13 +43,23 @@ const X01ScoreInputBoard = () => {
         getCurrentThrowScore,
         onClickReturnToPreviousPlayer,
         checkCanThrowMoreDarts,
+        checkIfScoreIsBusted,
+        players,
         loading
     } = useContext(X01Context);
 
-    const [score, setScore] = useState(game.startingScore);
-    const [submit, setSubmit] = useState(false);
+    // the score left after the darts entered so far, worked out on every render: a copy in
+    // state lagged one render behind, and a quick Enter submitted the score before the last dart
+    const score = game.playerModels[game.currentPlayerTurn].score - getCurrentThrowScore();
+    const [input, setInput] = useState(() => readInput());
+    const chooseInput = (value) => {
+        if (!value) return;
+        setInput(value);
+        writeInput(value);
+    };
 
-    const keyfilterPattern = /^[SDT0-9]{1,3}$/;
+    // s, d and t work as well: the dart is written in capitals once typed
+    const keyfilterPattern = /^[SDTsdt0-9]{1,3}$/;
 
     const handlers = {
         submitThrows: handleSubmitThrows,
@@ -42,14 +74,12 @@ const X01ScoreInputBoard = () => {
     function handleSubmitThrows(e) {
         e.preventDefault();
         onClickValidateThrow(score);
-        setSubmit(true);
         e.target.reset();
     }
 
     function handleSubmitReturn(e) {
         e.preventDefault();
         onClickReturnToPreviousPlayer();
-        setSubmit(true);
         e.target.reset();
     }
 
@@ -66,11 +96,12 @@ const X01ScoreInputBoard = () => {
         }
     };
 
+    // Enter submits the visit, also after darts were tapped on the dartboard; in a
+    // dart field the browser submits the form itself
     useEffect(() => {
         const clickEnterSubmitForm = (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('submit-throws').click();
-            }
+            if (e.key !== 'Enter' || e.target.closest?.('form, button, [role="dialog"]')) return;
+            document.getElementById('submitThrows')?.click();
         }
 
         document.addEventListener('keyup', clickEnterSubmitForm);
@@ -80,132 +111,125 @@ const X01ScoreInputBoard = () => {
         }
     }, []);
 
-    useEffect(() => {
-        let totalScore = getCurrentThrowScore();
-        let currentPlayerScore = game.playerModels[game.currentPlayerTurn].score;
-        let newCurrentScore = currentPlayerScore - totalScore;
-        setScore(newCurrentScore);
-
-        // eslint-disable-next-line
-    }, [game.currentThrow]);
-
-    useEffect(() => {
-        if (submit) {
-            setSubmit(false);
-            X01Service.updateX01Game(game);
-        }
-        // eslint-disable-next-line
-    }, [game.currentPlayerTurn, game.hasWinner]);
 
     if (game.hasWinner) return null;
 
+    // the dart fields: the second and third only while the visit can go on
+    const darts = game.currentThrow;
+    const shown = [
+        true,
+        checkCanThrowMoreDarts(score) || darts[1].trim() !== '' || (darts[1].trim() === '' && darts[2].trim() !== ''),
+        checkCanThrowMoreDarts(score) || darts[2].trim() !== '',
+    ];
+    const visitScore = getCurrentThrowScore();
+    const busted = checkIfScoreIsBusted(score);
+    const nickname = players.find(player => player.id === game.currentPlayerTurn)?.nickname ?? '';
+
+    const visitHeader = (
+        <div className="p-panel-header">
+            <span className="p-panel-title">{nickname}&apos;s visit</span>
+            <span className="d-inline-flex align-items-center gap-2">
+                <SelectButton
+                    value={input}
+                    options={INPUTS}
+                    onChange={(e) => chooseInput(e.value)}
+                    itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-1"><i className={option.icon} aria-hidden="true" />{option.label}</span>}
+                    className="p-selectbutton-pills pills-inline x01-input-switch"
+                    aria-label="Enter the darts with"
+                />
+                <ScoreInputBoardHelp label="" plainSingles compact />
+            </span>
+        </div>
+    );
+
     return (
-        <div className="container mt-4">
-                    <div className="row justify-content-center">
-                        <div className="col col-12 col-md-8 col-xl-5 col-xxl-4 d-flex justify-content-center justify-content-xxl-start">
-                            <X01DartBoard />
+        <div className="row g-4 x01-play">
+            {/* the board on its own, without a panel around it, or the keypad */}
+            <div className="col-12 col-lg-7 x01-board-plain">
+                {input === 'keypad'
+                    ? <X01Keypad />
+                    : <div className="x01-board-col"><X01DartBoard /></div>}
+            </div>
+            <div className="col-12 col-lg-5 d-flex flex-column gap-4">
+                <Panel headerTemplate={() => visitHeader} className="x01-input">
+                    <form onSubmit={submitHandler}>
+                        <div className="x01-darts">
+                            {shown.map((visible, index) => visible && (
+                                <label key={index} className="x01-dart-field">
+                                    <span className="x01-dart-label">Dart {index + 1}</span>
+                                    <span className="x01-dart-box">
+                                    <InputText
+                                        name={`d-${index + 1}`}
+                                        placeholder={index === 0 ? 'e.g. T20' : ''}
+                                        value={darts[index]}
+                                        keyfilter={keyfilterPattern}
+                                        validateOnly
+                                        onInput={validateInput}
+                                        autoComplete="off"
+                                        // with the keypad, tapping a field opens no keyboard on a phone
+                                        inputMode={input === 'keypad' ? 'none' : 'text'}
+                                        className="x01-dart-input"
+                                    />
+                                    {darts[index] !== '' &&
+                                        <button
+                                            type="button"
+                                            className="x01-dart-clear"
+                                            title="Clear this dart"
+                                            aria-label={`Clear dart ${index + 1}`}
+                                            onClick={() => updateCurrentThrowManual(score, '', index)}
+                                        >
+                                            <i className="pi pi-times" aria-hidden="true" />
+                                        </button>
+                                    }
+                                    </span>
+                                </label>
+                            ))}
                         </div>
-                        <div className="col col-12 col-md-4 col-xl-3 col-xxl-2 d-flex flex-column justify-content-start gap-3">
-                            <div className="d-flex flex-column gap-1">
-                                <ScoreInputBoardHelp />
-                                <form className="mt-1" onSubmit={submitHandler}>
-                                    <div className="d-flex flex-column gap-3">
-                                        <div className="d-flex flex-column gap-2">
-                                            <div className="p-inputgroup flex-1">
-                                                <InputText
-                                                    name="d-1"
-                                                    placeholder="D1"
-                                                    value={game.currentThrow[0]}
-                                                    keyfilter={keyfilterPattern}
-                                                    validateOnly
-                                                    onInput={validateInput}
-                                                    className="focused-bg-only"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    icon="pi pi-times"
-                                                    severity="danger"
-                                                    onClick={() => updateCurrentThrowManual(score, '', 0)}
-                                                />
-                                            </div>
-                                            {(checkCanThrowMoreDarts(score) || game.currentThrow[1].trim() !== '' || (game.currentThrow[1].trim() === '' && game.currentThrow[2].trim() !== '')) && (
-                                                <div className="p-inputgroup flex-1">
-                                                    <InputText
-                                                        name="d-2"
-                                                        placeholder="D2"
-                                                        value={game.currentThrow[1]}
-                                                        keyfilter={keyfilterPattern}
-                                                        validateOnly
-                                                        onInput={validateInput}
-                                                        className="focused-bg-only"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        icon="pi pi-times"
-                                                        severity="danger"
-                                                        onClick={() => updateCurrentThrowManual(score, '', 1)}
-                                                    />
-                                                </div>
-                                            )}
-                                            {(checkCanThrowMoreDarts(score) || game.currentThrow[2].trim() !== '') && (
-                                                <div className="p-inputgroup flex-1">
-                                                    <InputText
-                                                        name="d-3"
-                                                        placeholder="D3"
-                                                        value={game.currentThrow[2]}
-                                                        keyfilter={keyfilterPattern}
-                                                        validateOnly
-                                                        onInput={validateInput}
-                                                        className="focused-bg-only"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        icon="pi pi-times"
-                                                        severity="danger"
-                                                        onClick={() => updateCurrentThrowManual(score, '', 2)}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="d-flex gap-2">
-                                            {loading.validateThrow ? (
-                                                <Button disabled>
-                                                    <ProgressSpinner
-                                                        style={{ width: '20px', height: '20px' }}
-                                                        strokeWidth="8"
-                                                        fill="var(--surface-ground)"
-                                                        animationDuration=".8s"
-                                                    />
-                                                    <span className="visually-hidden">Loading...</span>
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    id="submitThrows"
-                                                    type="submit"
-                                                    severity="primary"
-                                                >
-                                                    <FaPaperPlane />
-                                                </Button>
-                                            )}
-                                            {game.currentLegThrows.length !== 0 && (
-                                                <Button
-                                                    id="submitReturn"
-                                                    severity="danger"
-                                                    type="submit"
-                                                >
-                                                    <FaUndo />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            {checkout[score] && (
-                                <Checkout score={score} />
-                            )}
+
+                        {/* on a phone with the board this floats above the menu bar, always in reach */}
+                        <div className={`x01-visit-bar ${input === 'board' ? 'is-floating' : ''}`}>
+                        {/* the darts of the visit, only shown in the floating bar */}
+                        <div className="x01-visit-bar-darts" aria-hidden="true">
+                            {darts.map((dart, index) => <span key={index} className={dart ? '' : 'is-empty'}>{dart || '–'}</span>)}
                         </div>
-                    </div>
-                </div>
+                        <div className={`x01-visit-total ${busted ? 'is-bust' : ''}`} aria-live="polite">
+                            {busted
+                                ? <span><strong>Bust</strong> · the score stays at {game.playerModels[game.currentPlayerTurn].score}</span>
+                                : <span>Visit <strong>{visitScore}</strong> · leaves <strong>{score}</strong></span>
+                            }
+                        </div>
+
+                        <div className="x01-visit-actions">
+                        <Button
+                            id="submitThrows"
+                            type="submit"
+                            label="Enter score"
+                            icon="pi pi-check"
+                            loading={loading.validateThrow}
+                            className="justify-content-center x01-enter"
+                        />
+                        {game.currentLegThrows.length !== 0 &&
+                            // small next to the main action: an exception, not a second choice
+                            <Button
+                                id="submitReturn"
+                                type="submit"
+                                aria-label="Undo last visit"
+                                tooltip="Undo last visit"
+                                tooltipOptions={{ position: 'top' }}
+                                icon="pi pi-undo"
+                                severity="danger"
+                                className="x01-undo"
+                            />
+                        }
+                        </div>
+                        </div>
+                    </form>
+                </Panel>
+                <Panel header="Ways out" className="x01-ways-panel">
+                    <X01WaysOut />
+                </Panel>
+            </div>
+        </div>
     )
 }
 

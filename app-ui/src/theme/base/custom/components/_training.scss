@@ -1,0 +1,713 @@
+// Around the Clock: the stopwatch, the countdown and the scoreboard
+
+// player and mode are locked while the stopwatch has a time
+.atc-setup-lock {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  // the chosen player stays clear, the others fade
+  &:disabled .player-pick-card.is-chosen { opacity: 1; cursor: default; }
+}
+
+.atc-stopwatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // straight in the panel, no box of its own
+  padding: 0.5rem 1rem 0.25rem;
+}
+
+.atc-stopwatch-time {
+  color: var(--text-default);
+  font-size: clamp(2rem, 9vw, 3rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
+}
+
+// a real stopwatch above the digits
+.atc-watch-wrap {
+  position: relative;
+  width: clamp(11rem, 42vw, 14rem);
+  margin-bottom: 0.5rem;
+}
+
+.atc-watch {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0.5rem 1rem rgba(0, 0, 0, 0.45));
+}
+
+// the glow of the pace against the best time
+.atc-watch-pace {
+  fill: transparent;
+  transition: fill 0.3s;
+
+  .atc-watch.is-ahead & { fill: rgba(126, 204, 165, 0.55); }
+  .atc-watch.is-behind & { fill: rgba(236, 139, 128, 0.55); }
+}
+
+// 3-2-1 on the dial
+.atc-watch-countdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10%;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: clamp(3rem, 12vw, 4.5rem);
+  font-weight: 800;
+  text-shadow: 0 0 1rem rgba(246, 242, 232, 0.9);
+}
+
+.atc-watch-best {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+
+  &.is-ahead { color: #7ecca5; }
+  &.is-behind { color: #ec8b80; }
+}
+
+.atc-watch-best-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #e9ac2f;
+}
+
+.atc-stopwatch-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 18rem;
+}
+
+.atc-stopwatch-main.p-button {
+  justify-content: center;
+  padding-block: 0.9rem;
+  font-size: 1.1rem;
+}
+
+.atc-countdown {
+  color: var(--primary-color);
+  animation: atc-countdown 1s ease-out both;
+}
+
+@keyframes atc-countdown {
+  0% { transform: scale(1.6); opacity: 0; }
+  25% { transform: scale(1); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.2; }
+}
+
+.atc-countdown-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-countdown { animation: none; }
+}
+
+// where the time just saved ended up, under the stopwatch
+.atc-result {
+  margin-top: 0.75rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+// the scoreboard: a compact row per time, medals for the podium
+.atc-scoreboard {
+  position: relative;
+}
+
+.atc-scoreboard-confetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.atc-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atc-rows-gap {
+  color: var(--text-faint);
+  text-align: center;
+  line-height: 1;
+}
+
+.atc-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+
+  // the latest time of today
+  // the training just saved: a soft gold tint with a gold edge on the left and a
+  // "New" label, no border
+  &.is-latest,
+  &.is-arriving {
+    background: linear-gradient(90deg, rgba(233, 172, 47, 0.16), rgba(233, 172, 47, 0.04) 70%), var(--surface-raised);
+    box-shadow: inset 3px 0 0 #e9ac2f;
+  }
+
+  // on its way up: floating above the rows it passes
+  &.is-arriving {
+    z-index: 1;
+    box-shadow: inset 3px 0 0 #e9ac2f, 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
+  }
+
+  &.is-entering { animation: atc-row-enter 0.45s ease-out both; }
+}
+
+@keyframes atc-row-enter {
+  from { transform: translateY(1.5rem); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.atc-rank {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: $surfaceHighColor;
+  color: var(--text-default);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+// the podium as badge medals, a little smaller than the small badges
+.atc-medal.badge-medal-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.85rem;
+  // the ring around the medal in the colour of the row
+  box-shadow: 0 0 0 2px var(--surface-raised), 0 0 8px -2px currentColor;
+}
+
+.atc-row-player {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.atc-row-name,
+.atc-row-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atc-row-name {
+  color: var(--text-default);
+  font-weight: 600;
+}
+
+.atc-row-detail {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.atc-row-time {
+  flex-shrink: 0;
+  color: var(--text-default);
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-row.is-entering,
+  .atc-medal.badge-pop { animation: none; }
+}
+
+// fewest darts: the players of the round, whose turn it is, Hit and Miss
+.atc-round {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.atc-round-players {
+  display: grid;
+  // two per row on a phone, so four players leave Hit and Miss in view
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atc-round-player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "avatar name" "avatar state" "bar bar";
+  column-gap: 0.5rem;
+  align-items: center;
+  padding: 0.45rem 0.6rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+  transition: background 0.15s, opacity 0.15s;
+
+  .p-avatar { grid-area: avatar; }
+  // whose turn it is: lighter border and background, no colour
+  &.is-current {
+    background: color-mix(in srgb, #fff 10%, var(--surface-raised));
+  }
+  &.is-finished { opacity: 0.6; }
+}
+
+.atc-round-player-name {
+  grid-area: name;
+  overflow: hidden;
+  color: var(--text-default);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atc-round-player-state {
+  grid-area: state;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.atc-round-player-bar {
+  grid-area: bar;
+  height: 3px;
+  margin-top: 0.4rem;
+  border-radius: 2px;
+  background: $surfaceHighColor;
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 0.25s;
+  }
+}
+
+.atc-round-current {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.atc-round-target {
+  color: var(--text-default);
+  font-size: clamp(3rem, 15vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  animation: atc-target 0.3s ease-out both;
+}
+
+// the next target ticks in like the hand of a clock: swings in, overshoots, settles
+@keyframes atc-target {
+  0% { transform: rotate(-24deg) scale(0.85); opacity: 0.3; }
+  55% { transform: rotate(6deg) scale(1.04); opacity: 1; }
+  80% { transform: rotate(-2deg); }
+  100% { transform: none; opacity: 1; }
+}
+
+// the target next to its place on a small board
+.atc-round-aim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.atc-round-target {
+  transform-origin: 50% 85%;
+
+  // on the bull: gold, it decides the round
+  &.is-bull {
+    color: #ffc94d;
+    text-shadow: 0 0 1.2rem rgba(255, 201, 77, 0.55);
+  }
+}
+
+.atc-bull-to-win {
+  @include label-shape;
+  @include label-tone(#e9ac2f);
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  animation: match-dart-pulse 1.6s ease-in-out infinite;
+}
+
+.atc-target-board {
+  width: clamp(5.5rem, 22vw, 7.5rem);
+  height: auto;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0.3rem 0.6rem rgba(0, 0, 0, 0.45));
+
+  .is-dark { fill: #2a2826; }
+  .is-light { fill: #4a4640; }
+  .is-red { fill: #6e3a33; }
+  .is-green { fill: #34503f; }
+  .is-number { fill: #8a857c; }
+  .is-lit-number { fill: #ffc94d; }
+
+  // the target: gold and glowing
+  .is-lit {
+    fill: #ffc94d;
+    filter: drop-shadow(0 0 1.5px rgba(255, 201, 77, 0.9));
+    animation: target-glow 1.4s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes target-glow {
+  from { fill-opacity: 0.75; }
+  to { fill-opacity: 1; }
+}
+
+// the record with the fewest darts: still in reach (green) or not any more (red)
+.atc-record-pace {
+  &.is-ahead { color: #7ecca5; }
+  &.is-behind { color: #ec8b80; }
+}
+
+// a player who takes the lead flashes gold
+.atc-round-player.is-taking-lead {
+  animation: atc-lead 1.4s ease-out both;
+}
+
+@keyframes atc-lead {
+  0% { box-shadow: 0 0 0 rgba(255, 201, 77, 0); }
+  25% { box-shadow: 0 0 0 2px rgba(255, 201, 77, 0.9), 0 0 1rem rgba(255, 201, 77, 0.5); }
+  100% { box-shadow: 0 0 0 rgba(255, 201, 77, 0); }
+}
+
+.atc-round-progress {
+  display: grid;
+  grid-template-columns: repeat(21, 1fr);
+  gap: 3px;
+  width: 100%;
+  max-width: 22rem;
+
+  span {
+    height: 0.45rem;
+    border-radius: 2px;
+    background: $surfaceHighColor;
+
+    &.is-hit { background: var(--primary-color); }
+    &.is-current { background: color-mix(in srgb, var(--primary-color) 45%, $surfaceHighColor); }
+  }
+}
+
+.atc-round-visit {
+  display: inline-flex;
+  gap: 0.3rem;
+
+  span {
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1px solid var(--border-default);
+    border-radius: 50%;
+
+    &.is-hit { border-color: var(--primary-color); background: var(--primary-color); }
+    &.is-miss { border-color: $shade600; background: $shade600; }
+  }
+}
+
+.atc-round-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.atc-round-button.p-button {
+  justify-content: center;
+  min-height: 4.5rem;
+  font-size: 1.25rem;
+  // quick taps one after the other must not zoom the page
+  touch-action: manipulation;
+}
+
+// the result of a round
+.atc-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atc-result-player {
+  padding: 0.7rem 0.85rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.atc-target-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 2rem;
+  margin-top: 0.6rem;
+
+  span {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    background: color-mix(in srgb, var(--primary-color) 45%, $surfaceHighColor);
+
+    &.is-hard { background: $orange; }
+  }
+}
+
+.atc-result-place {
+  margin-top: 0.4rem;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.atc-result-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-round-target, .atc-bull-to-win, .atc-target-board .is-lit, .atc-round-player.is-taking-lead { animation: none; }
+}
+
+// scrolled into view below the sticky top bar
+.atc-panel-anchor {
+  scroll-margin-top: 5rem;
+}
+
+// the setup of a running training in one line
+.atc-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.atc-summary-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.atc-summary-names {
+  overflow: hidden;
+  color: var(--text-default);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atc-summary-detail {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.atc-summary-avatars {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.25rem;
+}
+
+// icon and label together in the middle of the big buttons
+.atc-round-button.p-button .p-button-label,
+.atc-stopwatch-main.p-button .p-button-label {
+  flex: 0 0 auto;
+}
+
+// on the result card the hit rate and the hardest numbers may wrap
+.atc-result-player .atc-row-detail {
+  white-space: normal;
+}
+
+// the scoreboard header: the title with what is shown, and the filter button
+.atc-scoreboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.atc-filter-toggle {
+  position: relative;
+  flex-shrink: 0;
+}
+
+// the view differs from the usual one
+.atc-filter-dot {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--primary-color);
+  pointer-events: none;
+}
+
+.atc-filters {
+  display: grid;
+  // two groups side by side where there is room, one below the other on a phone
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.85rem 1.25rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.atc-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.atc-filter-label {
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.atc-filter-reset {
+  grid-column: 1 / -1;
+  text-align: right;
+}
+
+// pills that do not fit go to the next line instead of past the edge
+.atc-filter-group .p-selectbutton {
+  flex-wrap: wrap;
+}
+
+// a little smaller than the pills of the setup, so each group fits on one line
+.atc-filter-group .p-selectbutton.pills-inline .p-button {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+// with doubles and trebles moving on: four buttons, two by two on a phone
+.atc-round-buttons.is-rings {
+  grid-template-columns: repeat(4, 1fr);
+
+  @media (max-width: 575.98px) { grid-template-columns: 1fr 1fr; }
+}
+
+.atc-round-visit span {
+  display: inline-grid;
+  place-items: center;
+  color: var(--primary-color-text);
+  font-size: 0.5rem;
+  font-weight: 700;
+}
+
+// e.g. "Last round: everybody gets as many turns"
+.atc-round-notice {
+  padding: 0.5rem 0.75rem;
+  border-radius: $borderRadius;
+  background: color-mix(in srgb, #ffc94d 16%, transparent);
+  color: #ffc94d;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+// the setup of an Around the Clock game: doubles and trebles moving on
+.clock-skip-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 auto 1rem;
+  padding: 0.7rem 0.9rem;
+  max-width: 30rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+  cursor: pointer;
+
+  .p-inputswitch { flex-shrink: 0; }
+}
+
+// the Around the Clock game: the round in the middle of the page
+.clock-game-board {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+// under Save time: Go on and Discard side by side, the same size
+.atc-stopwatch-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+
+  .p-button { justify-content: center; }
+}
+
+// the filter of the scoreboard: a grey tool, a little lighter while open
+.atc-filter-toggle .p-button.is-open {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+// the label of the training just saved
+.atc-row-new {
+  @include label-shape;
+  @include label-tone(#e9ac2f);
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.65rem;
+  vertical-align: middle;
+}

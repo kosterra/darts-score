@@ -1,0 +1,920 @@
+// The X01 game page in the look of the statistics page: the hero with the
+// players, the board and the visit in panels, the leg and the form below
+
+.x01-game-page { padding: 1.5rem; }
+
+// the header: compact, so the board stays in view; a row per player with the
+// photo, the name and the legs, and the score on the right
+.x01-live-hero {
+  // the players' layout follows the width of the header, not of the screen
+  container-type: inline-size;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+  padding: 1.1rem 1.5rem;
+  border-radius: $borderRadius;
+}
+
+.x01-hero-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1rem 2.5rem;
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+.x01-hero-player {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+
+  // the others step back a little, the player at the oche is bright
+  .result-hero-score { color: var(--text-subtle); }
+  &.is-turn .result-hero-score { color: var(--text-default); }
+  .result-hero-score.is-bust { color: #ff8a80; }
+}
+
+.x01-hero-portrait {
+  position: relative;
+  flex-shrink: 0;
+  // the halo reaches about 1rem beyond the photo: the text keeps clear of it
+  margin-right: 0.75rem;
+
+  .is-mirrored & { margin-right: 0; margin-left: 0.75rem; }
+
+  // the photo above the halo: the halo is positioned, so it would be drawn over it
+  .p-avatar { position: relative; z-index: 1; }
+}
+
+.x01-hero-avatar.p-avatar {
+  width: 6rem;
+  height: 6rem;
+  font-size: 2rem;
+}
+
+.x01-hero-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.x01-hero-name {
+  color: var(--text-default);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.x01-hero-score {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 7.5rem;
+
+  .result-hero-score { font-size: 3.5rem; }
+}
+
+// two players: the second mirrored, so the scores sit side by side in the middle
+.x01-hero-player.is-mirrored {
+  flex-direction: row-reverse;
+
+  .x01-hero-info { align-items: flex-end; text-align: right; }
+  .x01-live-tags { justify-content: flex-end; }
+}
+
+.x01-hero-players.count-2 { gap: 1rem 3rem; }
+
+.x01-turn-halo {
+  position: absolute;
+  inset: -1rem;
+  border-radius: 50%;
+  // the photo covers the middle (to about 75 %): the glow is the ring around it
+  background: radial-gradient(circle closest-side, color-mix(in srgb, var(--player-colour) 60%, transparent) 72%, color-mix(in srgb, var(--player-colour) 28%, transparent) 84%, transparent 100%);
+  animation: result-hero-halo 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.x01-live-tags {
+  display: flex;
+  // many tags (throwing, started, match dart, the shame badges) go onto a second
+  // line instead of running into the score next to them
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  min-height: 1.1rem;
+  max-width: 100%;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+
+  > * { white-space: nowrap; }
+}
+
+.x01-shame {
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
+.x01-live-turn {
+  color: var(--text-subtle);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.x01-live-starter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+// the usual way out (or what to set up or score), with room above and below;
+// always the same height, so the legs of the players stay in line
+.x01-live-route {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.3rem;
+  margin: 0.45rem 0 0.55rem;
+  color: #e9ac2f;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// no finish: what to set up instead, quieter than a finish, and what it leaves
+.x01-live-route.is-setup { color: rgba(233, 172, 47, 0.7); font-weight: 500; }
+
+.x01-route-leaves {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.4rem;
+  color: var(--text-subtle);
+  vertical-align: middle;
+
+  .pi { font-size: 0.65em; }
+}
+
+
+.x01-live-leg {
+  color: var(--text-faint);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+
+  strong { color: var(--text-default); font-weight: 600; }
+}
+
+.x01-live-won {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.x01-won {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.x01-won-label {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.x01-won-circles {
+  display: inline-flex;
+  gap: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.x01-won-number {
+  color: var(--text-default);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+// the key figures in a panel, in the table look of the statistics page
+.x01-live-figures {
+  overflow-x: auto;
+
+  .result-hero-figures { max-width: none; }
+}
+
+.x01-play { margin-bottom: 1.5rem; }
+
+.x01-board-col {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  // never taller than the window below the header, so it is tapped without
+  // scrolling; the width follows from the height
+  .dartboard-img {
+    width: auto;
+    max-width: 100%;
+    height: min(30em, calc(100vh - 19rem));
+    max-height: none;
+  }
+}
+
+// the darts of the visit
+.x01-darts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.x01-dart-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.x01-dart-label {
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.x01-dart-box {
+  position: relative;
+  display: block;
+}
+
+.x01-dart-input.p-inputtext {
+  width: 100%;
+  padding: 0.45rem 2.25rem 0.45rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+// clears the dart, inside the field on the right, centred on it
+.x01-dart-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+
+  &:hover, &:focus-visible { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
+}
+
+.x01-visit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// the darts of the visit belong to the floating bar of a phone only
+.x01-visit-bar-darts { display: none; }
+
+// Enter score over the width, Undo a small square next to it
+.x01-enter.p-button { flex: 1 1 auto; }
+
+// Undo in the red of the delete actions in the lists: a soft red background and
+// a light red icon and label, a little stronger on hover
+.x01-undo.p-button {
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: rgba($dangerButtonBg, 0.18);
+  color: lighten($dangerButtonBg, 15%);
+  white-space: nowrap;
+
+  &:enabled:hover { border: 0; background: rgba($dangerButtonBg, 0.3); color: lighten($dangerButtonBg, 22%); }
+  &:enabled:active, &:focus { border: 0; background: rgba($dangerButtonBg, 0.3); box-shadow: none; }
+  &:focus-visible { outline: 2px solid lighten($dangerButtonBg, 15%); outline-offset: 2px; }
+}
+
+.x01-visit-total {
+  margin: 0.85rem 0;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+
+  strong { color: var(--text-default); }
+  &.is-bust, &.is-bust strong { color: #ff8a80; }
+}
+
+// every way out, grouped by the number of darts
+.x01-ways {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.x01-ways-best {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.x01-ways-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.x01-ways-label {
+  color: var(--text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.x01-ways-setup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.x01-ways-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.x01-ways-route {
+  padding: 0.2rem 0.55rem;
+  border-radius: $borderRadius;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-default);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &.is-preferred {
+    background: rgba(233, 172, 47, 0.14);
+    color: #e9ac2f;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+}
+
+// the visits of a leg, the players side by side
+.x01-visits {
+  max-height: 24rem;
+  overflow-y: auto;
+
+  thead th { position: sticky; top: 0; z-index: 1; background: var(--surface); }
+}
+
+.x01-visit-left {
+  display: inline-block;
+  min-width: 2.25rem;
+  margin-left: 0.6rem;
+  color: var(--text-default);
+  font-weight: 600;
+}
+
+.x01-visits-leg.p-dropdown {
+  .p-dropdown-label { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+}
+
+.x01-visit-darts {
+  display: inline-flex;
+  gap: 0.25rem;
+  color: var(--text-subtle);
+
+  span {
+    padding: 0 0.3rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 0.72rem;
+  }
+}
+
+.x01-bust-text { color: #ff8a80 !important; }
+
+.x01-form-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem 1.25rem;
+
+  .x01-form-card { background: var(--surface-raised); }
+}
+
+.x01-doubles-player + .x01-doubles-player { margin-top: 0.75rem; }
+
+.x01-stats-doubles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.25rem;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+
+  strong { color: var(--text-default); }
+}
+
+// a narrow header (e.g. a small laptop with the menu open): each player a column,
+// the photo on top, then the name and the last visit, then the score and the legs
+@mixin hero-players-in-columns {
+  .x01-hero-player, .x01-hero-player.is-mirrored {
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: center;
+  }
+
+  .x01-hero-info, .x01-hero-score { display: contents; }
+
+  .x01-hero-portrait, .is-mirrored .x01-hero-portrait { order: 0; margin: 0 0 0.6rem; }
+  .x01-hero-avatar.p-avatar { width: 4.5rem; height: 4.5rem; font-size: 1.5rem; }
+  .x01-hero-name { order: 1; max-width: 100%; }
+  .x01-live-leg { order: 2; }
+  .x01-live-tags, .is-mirrored .x01-live-tags { order: 3; justify-content: center; }
+  .x01-hero-score .result-hero-score { order: 4; }
+  .x01-live-route { order: 5; }
+  .x01-live-won { order: 6; }
+}
+
+@container (max-width: 860px) {
+  .x01-hero-players.count-2 { gap: 1rem 1.5rem; }
+
+  @include hero-players-in-columns;
+}
+
+// three or four players never fit side by side in a row each: every player a
+// column, however wide the screen
+.x01-hero-players.count-3,
+.x01-hero-players.count-4 {
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem 1.5rem;
+
+  @include hero-players-in-columns;
+}
+
+// a phone: a compact header, the board can be hidden, the darts in one row,
+// the key figures below the board, and room for the menu bar
+@media (max-width: 767.98px) {
+  .x01-game-page { padding: 0.75rem 0.5rem 5rem; }
+
+  .x01-live-hero {
+    gap: 0.75rem;
+    padding: 0.85rem;
+    margin-bottom: 0.75rem;
+
+    .x01-hero-portrait, .x01-live-leg { display: none; }
+  }
+
+  // on a phone each player is a column: name, score, way out, legs
+  .x01-hero-players {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .x01-hero-player, .x01-hero-player.is-mirrored {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .x01-hero-info, .x01-hero-score { display: contents; }
+  .x01-hero-name { order: 1; font-size: 1rem; }
+  .x01-live-tags { order: 2; justify-content: center; }
+  .x01-hero-score .result-hero-score { order: 3; font-size: 2.4rem; }
+  .x01-live-route { order: 4; margin: 0.15rem 0 0.25rem; font-size: 0.72rem; }
+  .x01-route-leaves { margin-left: 0.25rem; gap: 0.2rem; }
+  .x01-live-won { order: 5; gap: 0.75rem; }
+  .x01-won-label { font-size: 0.65rem; }
+  .x01-won-circles { font-size: 0.75rem; }
+
+  // the panels of the board and the visit a little tighter
+  .x01-play .p-panel {
+    .p-panel-header { padding: 0.5rem 0.85rem; }
+    .p-panel-content { padding: 0.5rem 0.85rem 0.75rem; }
+  }
+
+
+  // the rows' margin matches the page padding: the board reaches exactly from edge to
+  // edge and nothing is wider than the screen
+  .x01-live .row { --bs-gutter-x: 1rem; }
+  .x01-play { --bs-gutter-y: 0.75rem; margin-bottom: 0.75rem; }
+  .x01-board-plain.is-hidden { display: none; }
+  // the board over the whole width, the column without its side padding
+  .x01-board-plain { padding-right: 0; padding-left: 0; }
+  .x01-board-col .dartboard-img { height: auto; width: 100%; max-width: none; }
+
+  .x01-darts { flex-direction: row; }
+  .x01-dart-field { flex: 1 1 0; min-width: 0; }
+  .x01-dart-input.p-inputtext { padding: 0.45rem 1.6rem 0.45rem 0.6rem; }
+  .x01-dart-clear { right: 0.1rem; width: 1.5rem; height: 1.5rem; }
+  .x01-visit-total { margin: 0.5rem 0; }
+
+  // with the board: the visit total, Enter score and Undo float above the menu bar
+  .x01-visit-bar.is-floating {
+    position: fixed;
+    right: 0.5rem;
+    bottom: calc(46px + env(safe-area-inset-bottom, 0px) + 0.4rem);
+    left: 0.5rem;
+    z-index: 899;
+    // the darts above the visit total on the left, the buttons on the right
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "darts actions" "total actions";
+    align-items: center;
+    column-gap: 0.6rem;
+    row-gap: 0.1rem;
+    padding: 0.45rem 0.6rem 0.45rem 0.85rem;
+    border-radius: $borderRadius;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+
+    .x01-visit-bar-darts {
+      grid-area: darts;
+      display: flex;
+      gap: 0.3rem;
+      color: var(--text-default);
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+
+      span + span::before { content: '·'; margin-right: 0.3rem; color: var(--text-faint); font-weight: 400; }
+      .is-empty { color: var(--text-faint); font-weight: 400; }
+    }
+
+    .x01-visit-total { grid-area: total; margin: 0; font-size: 0.75rem; text-align: left; }
+    .x01-visit-actions { grid-area: actions; }
+    .x01-enter.p-button { flex: 0 0 auto; padding: 0.55rem 1rem; }
+    .x01-undo.p-button { width: 2.5rem; height: 2.5rem; }
+  }
+
+  // room at the bottom of the page for the floating bar
+  .x01-game-page:has(.x01-visit-bar.is-floating) { padding-bottom: 9rem; }
+
+}
+
+// the switch between the board and the keypad, in the header of the visit
+.x01-input-switch.p-selectbutton .p-button {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+
+// the keypad: one big button per dart, Double or Treble first for that dart
+.x01-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+.x01-keypad-rings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.x01-keypad-numbers {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.4rem;
+}
+
+.x01-keypad-extras {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.x01-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 3.6rem;
+  border: 0;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+  color: var(--text-default);
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover:not(:disabled) { background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
+  &:active:not(:disabled) { transform: scale(0.97); }
+  &:focus-visible { outline: 2px solid #4aa8ff; outline-offset: 2px; }
+  &:disabled { opacity: 0.35; cursor: default; }
+
+  // just pressed: the same blue as the board's feedback
+  &.is-pressed { background: color-mix(in srgb, #4aa8ff 40%, var(--surface-raised)); }
+
+  &.is-ring {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    // the chosen ring looks like a chosen pill
+    &.is-active { border-color: transparent; background: rgba($primaryColor, 0.42); color: $buttonTextColor; }
+  }
+
+  &.is-miss, &.is-back { color: var(--text-subtle); font-size: 1rem; }
+}
+
+
+@media (max-width: 767.98px) {
+  .x01-keypad { gap: 0.4rem; }
+  .x01-keypad-numbers, .x01-keypad-extras { gap: 0.3rem; }
+  .x01-key { min-height: 2.9rem; font-size: 1rem; }
+}
+
+// why the ways are in this order
+.x01-ways-note {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+// ---------------------------------------------------------------------------
+// Cricket and Elimination in the look of the X01 page
+
+// Cricket only needs 15 to 20: three bigger keys in a row
+.x01-keypad-numbers.is-few {
+  grid-template-columns: repeat(3, 1fr);
+
+  .x01-key { min-height: 3.6rem; font-size: 1.25rem; }
+}
+
+// the marks of the running game, flat: the numbers across, a row per player;
+// the darts of the visit in gold
+.cricket-strip-wrap { overflow-x: auto; }
+
+.cricket-strip {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.3rem;
+  table-layout: fixed;
+
+  thead th {
+    padding: 0 0.2rem 0.1rem;
+    color: var(--text-default);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+
+    &:first-child { width: 28%; }
+  }
+
+  tbody th,
+  tbody td {
+    padding: 0.4rem 0.2rem;
+    background: $surfaceRaisedColor;
+    text-align: center;
+  }
+
+  tbody th {
+    border-radius: $borderRadius 0 0 $borderRadius;
+    color: var(--text-subtle);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 0.6rem;
+  }
+
+  tbody td:last-child { border-radius: 0 $borderRadius $borderRadius 0; }
+
+  tr.is-turn th { color: var(--text-default); }
+
+  .cricket-marks.is-new { color: #ffc94d; }
+
+  // the third mark lands like a stamp on paper
+  .cricket-marks.is-stamped {
+    animation: cricket-stamp 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+
+  // a number everyone closed is out of play
+  th.is-dead { color: var(--text-faint); }
+  td.is-dead .cricket-marks { opacity: 0.35; }
+}
+
+// the race to the target in Elimination
+.elimination-standings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+
+  li.is-turn .text-default.fw-semibold { color: var(--primary-color); }
+}
+
+.elimination-track {
+  display: block;
+  height: 0.35rem;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease-out;
+  }
+}
+
+// the dart that sends a player back to 0
+.elimination-knock {
+  @include label-shape;
+  @include label-tone(#e9ac2f);
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
+}
+
+@keyframes cricket-stamp {
+  0% { opacity: 0; transform: scale(2.6) rotate(-25deg); }
+  55% { opacity: 1; transform: scale(0.85) rotate(4deg); }
+  75% { transform: scale(1.08) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cricket-strip .cricket-marks.is-stamped { animation: none; }
+}
+
+// a number out of play is crossed out with a stroke of chalk; drawn while it
+// happens, there already for numbers closed before
+.cricket-strip-number {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.15rem;
+}
+
+.cricket-chalk {
+  position: absolute;
+  left: -0.2rem;
+  right: -0.2rem;
+  top: 50%;
+  height: 0.18rem;
+  margin-top: -0.09rem;
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg, rgba(240, 236, 226, 0.95) 0 0.35rem, rgba(240, 236, 226, 0.65) 0.35rem 0.5rem);
+  transform: rotate(-12deg);
+  transform-origin: left center;
+
+  &.is-drawn { animation: chalk-draw 0.4s ease-out both; }
+}
+
+@keyframes chalk-draw {
+  from { transform: rotate(-12deg) scaleX(0); }
+  to { transform: rotate(-12deg) scaleX(1); }
+}
+
+// the score of a player who just took the lead flashes gold
+.result-hero-score.is-taking-lead {
+  animation: lead-flash 1.4s ease-out both;
+}
+
+@keyframes lead-flash {
+  0% { color: #ffc94d; transform: scale(1); text-shadow: 0 0 0 rgba(255, 201, 77, 0); }
+  20% { color: #ffc94d; transform: scale(1.12); text-shadow: 0 0 1.4rem rgba(255, 201, 77, 0.7); }
+  100% { transform: scale(1); text-shadow: 0 0 0 rgba(255, 201, 77, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cricket-chalk.is-drawn,
+  .result-hero-score.is-taking-lead { animation: none; }
+}
+
+// Elimination: a player one dart away from being sent back glows red
+.result-hero-score.is-in-danger {
+  color: #ff8a80;
+  text-shadow: 0 0 1.2rem rgba(255, 110, 100, 0.45);
+  animation: danger-pulse 1.4s ease-in-out infinite;
+}
+
+.elimination-danger-tag {
+  @include label-shape;
+  @include label-tone(#ec8b80);
+  font-size: 0.65rem;
+}
+
+.elimination-standings li.is-in-danger .elimination-track {
+  box-shadow: 0 0 0.6rem rgba(255, 110, 100, 0.55);
+  background: rgba(236, 139, 128, 0.18);
+}
+
+// sent back: the bar empties with a fall and the row wobbles
+.elimination-standings li.is-dropped {
+  animation: bar-wobble 0.6s ease-in-out;
+
+  .elimination-track span {
+    transition: width 0.7s cubic-bezier(0.6, 0, 0.9, 0.6);
+  }
+
+  .elimination-track { background: rgba(236, 139, 128, 0.25); }
+}
+
+@keyframes danger-pulse {
+  0%, 100% { text-shadow: 0 0 0.6rem rgba(255, 110, 100, 0.3); }
+  50% { text-shadow: 0 0 1.4rem rgba(255, 110, 100, 0.7); }
+}
+
+@keyframes bar-wobble {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-0.4rem); }
+  40% { transform: translateX(0.35rem); }
+  60% { transform: translateX(-0.25rem); }
+  80% { transform: translateX(0.15rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-hero-score.is-in-danger,
+  .elimination-standings li.is-dropped { animation: none; }
+}
+
+// X01: the visit could win the match (or the set): the way out glows gold
+.x01-dart-for {
+  @include label-shape;
+  @include label-tone(#e9ac2f);
+  font-size: 0.65rem;
+
+  &.is-match { animation: match-dart-pulse 1.6s ease-in-out infinite; }
+}
+
+.x01-live-route.is-match-dart {
+  color: #ffc94d;
+  text-shadow: 0 0 0.8rem rgba(255, 201, 77, 0.6);
+}
+
+@keyframes match-dart-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(233, 172, 47, 0); }
+  50% { box-shadow: 0 0 0.7rem rgba(233, 172, 47, 0.6); }
+}
+
+// a visit of 100 or more: a short pop next to the score
+.x01-hero-score { position: relative; }
+
+.x01-ton-pop {
+  position: absolute;
+  top: -0.2rem;
+  right: -1.2rem;
+  z-index: 2;
+  color: #ffc94d;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 0.8rem rgba(255, 201, 77, 0.6), 0 0.15rem 0.3rem rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  animation: ton-pop 1.8s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes ton-pop {
+  0% { opacity: 0; transform: scale(0.3) rotate(-15deg); }
+  18% { opacity: 1; transform: scale(1.25) rotate(6deg); }
+  30% { transform: scale(1) rotate(-4deg); }
+  75% { opacity: 1; transform: translateY(-0.4rem) rotate(-4deg); }
+  100% { opacity: 0; transform: translateY(-1.4rem) rotate(-4deg); }
+}
+
+// a bust shakes for a moment
+.result-hero-score.is-bust {
+  display: inline-block;
+  animation: bust-shake 0.5s ease-in-out;
+}
+
+@keyframes bust-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-0.5rem) rotate(-3deg); }
+  30% { transform: translateX(0.45rem) rotate(3deg); }
+  45% { transform: translateX(-0.35rem) rotate(-2deg); }
+  60% { transform: translateX(0.25rem) rotate(1deg); }
+  75% { transform: translateX(-0.1rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .x01-ton-pop, .result-hero-score.is-bust, .x01-dart-for.is-match { animation: none; }
+}

@@ -87,6 +87,42 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-atc-player-reference',
+        description: 'Training entries keep the player id and nickname instead of a copy of the whole player',
+        run: async () => {
+            // straight on the collection, so each entry keeps its own timestamps
+            const { modifiedCount } = await db.atc.collection.updateMany(
+                { 'player.id': { $exists: true } },
+                [{ $set: { player: { id: '$player.id', nickname: '$player.nickname' } } }]
+            );
+            logger.info(`Trimmed the player of ${modifiedCount} training entries`);
+            return true;
+        },
+    },
+    {
+        id: '2026-10-history-follows-moved-players',
+        description: 'Move games among players who all left a club for the same other club, and the trainings of players who left for one club, to where the players are now',
+        run: async () => {
+            const { relocateHistory } = await import('./history.relocation.js');
+            const players = await db.player.find({ 'formerClubs.0': { $exists: true } }, '_id').lean();
+            const moved = await relocateHistory(players.map(player => player._id));
+            logger.info(`Checked the history of ${players.length} moved players: ${moved.games} games and ${moved.trainings} trainings moved`);
+            return true;
+        },
+    },
+    {
+        id: '2026-10-new-badges-hall-of-shame',
+        description: 'Award the 16 new badge series from past games and trainings, and fill every player\'s Hall of Shame, so the club holders are right from the start',
+        run: async () => {
+            const { syncPlayerBadges } = await import('./badge.service.js');
+            const players = await db.player.find({ guest: { $ne: true }, 'clubs.0': { $exists: true } });
+            let awarded = 0;
+            for (const player of players) awarded += (await syncPlayerBadges(player)).newBadges.length;
+            logger.info(`Checked the badges and the Hall of Shame of ${players.length} players: ${awarded} new badges`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Panel } from 'primereact/panel';
+import { Button } from 'primereact/button';
 import { ProgressBar } from 'primereact/progressbar';
 
 import StatsService from '../../services/stats.service';
-import PageLoader from '../elements/page.loader';
+import dayjs from 'dayjs';
+
 import BadgeMedal from './badge.medal';
+import ShameMedal from './shame.medal';
+import { FaSoap } from 'react-icons/fa6';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
 
@@ -28,7 +32,10 @@ const BadgeSeries = ({ badges }) => {
                     ? (
                         <>
                             <span className="text-faint fs-7">Next: {next.title} · {next.description}</span>
-                            {next.target > 1 &&
+                            {next.lower && next.progress > 0 &&
+                                <span className="text-faint fs-8">Your best so far: {formatNumber(next.progress)} darts</span>
+                            }
+                            {!next.lower && next.target > 1 &&
                                 <div className="d-flex align-items-center gap-2">
                                     <ProgressBar value={Math.round(next.progress / next.target * 100)} showValue={false} className="flex-grow-1" style={{ height: '0.35rem', maxWidth: '16rem' }} />
                                     <span className="text-faint fs-8" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(next.progress)} / {formatNumber(next.target)}</span>
@@ -51,6 +58,98 @@ const BadgeSeries = ({ badges }) => {
     );
 };
 
+const lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
+
+const formatDate = (date) => dayjs(date).format('DD.MM.YYYY');
+
+/**
+ * A shame badge the player has right now: a card that stands out, with since
+ * when and the good deed that washes it off.
+ */
+const ShameCard = ({ badge }) => (
+    <li className="shame-card">
+        <ShameMedal badge={badge} />
+        <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+            <span className="d-flex flex-wrap align-items-center gap-2">
+                <span className="text-default fw-semibold">{badge.title}</span>
+                <span className="shame-label">Since {formatDate(badge.lastAt)}</span>
+                {badge.count > 1 && <span className="shame-times">{badge.count} times</span>}
+            </span>
+            <span className="text-faint fs-8">{badge.description}</span>
+            <span className="shame-wash"><FaSoap aria-hidden="true" /> Wash it off: {lowerFirst(badge.wash)}</span>
+        </div>
+    </li>
+);
+
+/**
+ * A shame badge the player does not have right now: washed off, or never had.
+ */
+const ShameEntry = ({ badge }) => (
+    <li className="shame-entry">
+        <ShameMedal badge={badge} size="sm" washed />
+        <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+            <span className="d-flex flex-wrap align-items-center gap-2">
+                <span className={badge.count > 0 ? 'text-default fw-semibold' : 'text-subtle fw-semibold'}>{badge.title}</span>
+                {badge.count > 0
+                    ? <span className="shame-label is-washed">Washed off {formatDate(badge.washedAt)}</span>
+                    : <span className="text-faint fs-8">Never</span>}
+                {badge.count > 1 && <span className="shame-times">{badge.count} times</span>}
+            </span>
+            <span className="text-faint fs-8">{badge.description}</span>
+        </div>
+    </li>
+);
+
+/**
+ * The player's Hall of Shame, always above the badges: what is on them right
+ * now, then the rest. With nothing on them it is a single line that opens the
+ * whole list on request.
+ */
+const HallOfShameSection = ({ shame, name }) => {
+    const [open, setOpen] = useState(false);
+    const active = shame.filter(badge => badge.active);
+    const others = shame.filter(badge => !badge.active);
+    const showList = active.length > 0 || open;
+    return (
+        <section className="d-flex flex-column gap-3">
+            <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
+                <h2 className="fs-4 fw-semibold text-default m-0">Hall of Shame</h2>
+                <span className="text-subtle">{active.length ? `${active.length} on ${name} right now` : `Nothing on ${name} right now`}</span>
+                {active.length === 0 &&
+                    <Button
+                        type="button"
+                        label={open ? 'Hide' : `Show all ${shame.length}`}
+                        icon={open ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
+                        iconPos="right"
+                        text
+                        size="small"
+                        aria-expanded={open}
+                        onClick={() => setOpen(!open)}
+                    />
+                }
+            </div>
+            {showList &&
+            <Panel header={active.length ? 'Right now' : 'All shame badges'}>
+                <p className="text-faint fs-7 mt-0 mb-3">
+                    What nobody wants to throw. These badges add no XP. Each one stays on the player until they wash it off with its good deed, and in the club it belongs to whoever got it last.
+                </p>
+                {active.length > 0 &&
+                    <>
+                        <ul className="shame-cards list-unstyled m-0">
+                            {active.map(badge => <ShameCard key={badge.id} badge={badge} />)}
+                        </ul>
+                        <h3 className="shame-others-title">The others</h3>
+                    </>
+                }
+                <ul className="shame-others list-unstyled m-0">
+                    {others.map(badge => <ShameEntry key={badge.id} badge={badge} />)}
+                </ul>
+            </Panel>
+            }
+        </section>
+    );
+};
+
 /**
  * One player's badge collection, by category and series, with how much of it
  * they have collected. Part of the player's profile.
@@ -68,7 +167,8 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
     }, [playerId]);
 
     if (failed) return <p className="text-subtle">The badges could not be loaded.</p>;
-    if (!data) return <PageLoader />;
+    // a quiet line: the statistics above show the page's loader at the same time
+    if (!data) return <p className="text-faint">Loading badges…</p>;
 
     // category -> series -> badges, in catalogue order
     const categories = data.categories.map(({ category, title }) => {
@@ -81,8 +181,11 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
         return { category, title, series, earned: badges.filter(b => b.earned).length, total: badges.length };
     });
 
+    const name = data.player?.nickname ?? 'the player';
+
     return (
         <div className="d-flex flex-column gap-4">
+            {data.shame && <HallOfShameSection shame={data.shame} name={name} />}
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
                 <h2 className="fs-4 fw-semibold text-default m-0">Badges</h2>
                 <span className="text-subtle">{data.earnedCount} of {data.total} collected</span>

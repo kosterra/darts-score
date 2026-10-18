@@ -3,6 +3,7 @@ import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
 import * as PlayerController from '../controllers/player.controller.js';
+import { DOUBLES, MAIN_TREBLES } from '../utils/checkout.profile.js';
 import { uploadProfileImage } from '../controllers/file.controller.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { emailValidator, passwordValidator } from './auth.routes.js';
@@ -23,6 +24,18 @@ const playerValidator = [
         .notEmpty().withMessage('Nickname is required.')
         .isLength({ min: 3, max: 25 }).withMessage('Nickname must be between 3 and 25 characters.')
         .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Nickname contains invalid characters.'),
+    // a real day in the past, at most 110 years ago
+    body('dateOfBirth')
+        .notEmpty().withMessage('Date of birth is required.')
+        .bail()
+        .isISO8601({ strict: true }).withMessage('Date of birth must be a date.')
+        .custom((value) => {
+            const date = new Date(value);
+            const oldest = new Date();
+            oldest.setFullYear(oldest.getFullYear() - 110);
+            if (date > new Date() || date < oldest) throw new Error('Date of birth must be a day in the past.');
+            return true;
+        }),
 ];
 
 export default (app) => {
@@ -65,8 +78,14 @@ export default (app) => {
     // Search players by name/nickname
     router.get('/search', PlayerController.findBySearchTerm);
 
+    // When each player last played in the club
+    router.get('/last-played', PlayerController.lastPlayed);
+
     // Find players by IDs
     router.post('/find', validatePlayerIds, validate, PlayerController.findByIds);
+
+    // How the players of a game finish and score, for its ways out
+    router.post('/checkout-profiles', validatePlayerIds, validate, PlayerController.checkoutProfiles);
 
     // Retrieve a single player
     router.get('/:id', PlayerController.findOne);
@@ -88,6 +107,14 @@ export default (app) => {
         body('publicProfile').isBoolean({ strict: true }).withMessage('publicProfile must be true or false.'),
         validate,
         PlayerController.setVisibility
+    );
+
+    // A player's favourite double and main treble (admins, or the player themselves)
+    router.put('/:id/preferences',
+        body('favouriteDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('favouriteDouble must be auto or a double, e.g. D16.'),
+        body('mainTreble').optional().isIn(['auto', ...MAIN_TREBLES]).withMessage(`mainTreble must be auto or one of ${MAIN_TREBLES.join(', ')}.`),
+        validate,
+        PlayerController.setPreferences
     );
 
     // Give a player a login (or take it away again)

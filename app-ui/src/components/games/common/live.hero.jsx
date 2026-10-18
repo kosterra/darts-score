@@ -1,0 +1,67 @@
+import { Avatar } from 'primereact/avatar';
+
+import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { heldBy, useClubShame } from '../../badges/hall.of.shame';
+import ShameMedal from '../../badges/shame.medal';
+
+/**
+ * The top of a running game in the look of the X01 page: what is played, and
+ * every player with their portrait (a halo for the one at the oche), a line
+ * about their play, the tags, and the score with what goes under it. With two
+ * players the second is mirrored, so the scores face each other.
+ *
+ * rows: [{ player, isTurn, line, tags, score, scoreClass, scoreKey, below }];
+ * a new scoreKey plays the score's animation again (e.g. taking the lead).
+ */
+const LiveHero = ({ title, subtitle, rows }) => {
+    // the shame badges each player holds in the club, shown small next to the tags
+    const shame = useClubShame();
+
+    return (
+        <header className="hero-header result-hero x01-live-hero">
+            <div className="result-hero-top">
+                <div className="d-flex flex-column">
+                    <span className="text-default fw-semibold">{title}</span>
+                    {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
+                </div>
+            </div>
+
+            <div className={`x01-hero-players count-${rows.length}`}>
+                {rows.map(({ player, isTurn, line, tags, score, scoreClass = '', scoreKey, below }, index) => (
+                    <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${rows.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
+                        <span className="result-hero-portrait x01-hero-portrait">
+                            {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
+                            <Avatar
+                                label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname, player.lastname)}
+                                image={resolvePlayerImg(player.profileImg)}
+                                shape="circle"
+                                className="bg-surface-high result-hero-avatar x01-hero-avatar"
+                                style={{ '--player-colour': PLAYER_COLORS[index] }}
+                            />
+                        </span>
+                        <div className="x01-hero-info">
+                            <span className="x01-hero-name text-truncate" title={player.nickname}>{player.nickname}</span>
+                            {line && <span className="x01-live-leg">{line}</span>}
+                            <span className="x01-live-tags">
+                                {isTurn && <span className="x01-live-turn">Throwing</span>}
+                                {tags}
+                                {heldBy(shame, player.id).map(badge => (
+                                    <span key={badge.id} className="x01-shame">
+                                        <ShameMedal badge={badge} size="xs" title={`Holds the ${badge.title} in the club. Wash it off: ${badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}`} />
+                                    </span>
+                                ))}
+                            </span>
+                        </div>
+                        <div className="x01-hero-score">
+                            <span key={scoreKey} className={`result-hero-score ${scoreClass}`}>{score}</span>
+                            {below}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </header>
+    );
+};
+
+export default LiveHero;

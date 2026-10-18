@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+    normalizeDart,
     validateDartValue,
     dartIsDouble,
     dartIsTriple,
@@ -9,6 +10,16 @@ import {
     cricketGetCurrentScore,
     shufflePlayers,
 } from './game.utils';
+
+describe('normalizeDart', () => {
+    it('reads a plain number as a single and 50 as the bullseye', () => {
+        expect(['20', '1', '25', '50', 'S50', '0', '00'].map(normalizeDart)).toEqual(['S20', 'S1', 'S25', 'D25', 'D25', '0', '0']);
+    });
+
+    it('writes the ring in capitals and leaves the rest as typed', () => {
+        expect(['t20', 'd16', 'S', '30', '', 'T21'].map(normalizeDart)).toEqual(['T20', 'D16', 'S', '30', '', 'T21']);
+    });
+});
 
 describe('validateDartValue', () => {
     it('returns true for empty string', () => {

@@ -1,22 +1,29 @@
-import { Fragment, useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { Panel } from 'primereact/panel';
+import { Button } from 'primereact/button';
 import { useNavigate } from "react-router-dom";
 
 import X01Context from '../../../utils/x01.context';
-import X01ScoreBoard from './x01.scoreboard';
-import X01StatisticsBoard from './x01.statisticsboard';
+import X01LiveHeader from './x01.live.header';
+import X01LiveFigures from './x01.live.figures';
+import X01VisitsPanel from './x01.visits.panel';
+import X01MoreStats from './x01.more.stats';
+import X01FormCard from './x01.form.card';
+import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import X01ScoreInputBoard from './x01.score.input.board';
-import X01GameHeader from './x01.game.header';
 import PageLoader from '../../elements/page.loader';
 
 const X01Game = () => {
-    const { game, players, loading } = useContext(X01Context);
+    const { game, players, loading, celebrating } = useContext(X01Context);
     const navigate = useNavigate();
+    const [more, setMore] = useState(false);
 
+    // a moment of the winning visit (e.g. the big fish) plays to its end first
     useEffect(() => {
-        if (game?.hasWinner) {
+        if (game?.hasWinner && !celebrating) {
             navigate(`/stats/games/x01/${game.id}`, { replace: true, state: { justFinished: true } });
         }
-    }, [game?.hasWinner, game?.id, navigate]);
+    }, [game?.hasWinner, game?.id, celebrating, navigate]);
 
     if (loading?.initGameLoading) {
         return <PageLoader />;
@@ -30,49 +37,56 @@ const X01Game = () => {
         );
     }
 
-    return (
-        <Fragment>
-            <X01GameHeader
-                setMode={game.setMode}
-                numberOfSets={game.numberOfSets}
-                legMode={game.legMode}
-                numberOfLegs={game.numberOfLegs}
-                legInMode={game.legInMode}
-                legOutMode={game.legOutMode}
-            />
+    const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
 
-            {/* --- Scoreboard Section --- */}
-            <div className="container-fluid">
-                <div className="row justify-content-md-center">
-                    {game.players.map((playerId, idx) => (
-                        <div
-                            key={`score-board-col-${playerId}`}
-                            className={`col-12 col-md-6 col-xxl-3 border-top border-bottom border-opacity-50 ${idx < players.length - 1 ? 'border-end-md' : ''
-                                }`}
-                        >
-                            <X01ScoreBoard playerId={playerId} idx={idx} />
-                        </div>
-                    ))}
-                </div>
-            </div>
+    return (
+        <div className="game-stats-page x01-live">
+            <X01LiveHeader />
 
             <X01ScoreInputBoard />
 
-            {/* --- Statistics Section --- */}
-            <div className="container-fluid mt-4">
-                <div className="row justify-content-md-center">
-                    {game.players.map((playerId, idx) => (
-                        <div
-                            key={`statistics-board-col-${playerId}`}
-                            className={`col-6 col-lg-3 p-0 py-2 border-top border-bottom border-opacity-50 ${idx < players.length - 1 ? 'border-end-md' : ''
-                                }`}
-                        >
-                            <X01StatisticsBoard playerId={playerId} />
+            <div className="row g-4 mb-4">
+                <div className="col-12 col-xl-7">
+                    <X01VisitsPanel game={game} players={ordered} />
+                </div>
+                <div className="col-12 col-xl-5">
+                    <Panel header="Key figures" className="h-100">
+                        <div className="x01-live-figures">
+                            <X01LiveFigures game={game} players={ordered} />
                         </div>
-                    ))}
+                    </Panel>
                 </div>
             </div>
-        </Fragment>
+
+            <div className="row g-4 mb-4">
+                <div className="col-12">
+                    <Panel header="Form">
+                        <div className={`x01-form-list count-${ordered.length}`}>
+                            {ordered.map((player, index) => (
+                                <div key={player.id}>
+                                    <span className="d-inline-flex align-items-center fw-semibold text-default fs-7 mb-1">
+                                        <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />{player.nickname}
+                                    </span>
+                                    <X01FormCard game={game} playerId={player.id} />
+                                </div>
+                            ))}
+                        </div>
+                    </Panel>
+                </div>
+            </div>
+
+            <div className="text-center mb-3">
+                <Button
+                    type="button"
+                    label={more ? 'Fewer statistics' : 'More statistics'}
+                    icon={more ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
+                    text
+                    aria-expanded={more}
+                    onClick={() => setMore(!more)}
+                />
+            </div>
+            {more && <X01MoreStats game={game} players={ordered} />}
+        </div>
     );
 };
 

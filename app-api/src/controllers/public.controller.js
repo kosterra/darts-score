@@ -15,12 +15,14 @@ const GAME_TYPES = [
     { type: 'x01', label: 'X01', model: () => db.x01 },
     { type: 'cricket', label: 'Cricket', model: () => db.cricket },
     { type: 'elimination', label: 'Elimination', model: () => db.elimination },
+    { type: 'clock', label: 'Around the Clock', model: () => db.clock },
 ];
 
 const describeFormat = (type, game) => {
     switch (type) {
         case 'x01': return `${game.startingScore} · ${game.setMode} ${game.numberOfSets} sets · ${game.legMode} ${game.numberOfLegs} legs`;
         case 'elimination': return `Target ${game.targetScore}`;
+        case 'clock': return `Around the Clock · ${game.mode ?? 'All'}`;
         default: return 'Cricket';
     }
 };

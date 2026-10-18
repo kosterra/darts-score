@@ -1,6 +1,10 @@
 // Fileuploader
 .file-upload {
+    // a place to drop an image: the dashed outline says so (one of the few
+    // outlines left in the app, next to the guest card)
     .drop-zone {
+        border: 1px dashed var(--border-default);
+        border-radius: $borderRadius;
         cursor: pointer;
     
         &.is-dragging, &:hover {
