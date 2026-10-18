@@ -68,6 +68,7 @@ const ATCScoreboard = ({ entries, subtitle, noun = 'times', arrival, view, onVie
     const [phase, setPhase] = useState(null);
     const [celebrate, setCelebrate] = useState(false);
 
+    const boardRef = useRef(null);
     const rowRefs = useRef(new Map());
     const positions = useRef(new Map());
     const animateNext = useRef(false);
@@ -90,6 +91,11 @@ const ATCScoreboard = ({ entries, subtitle, noun = 'times', arrival, view, onVie
             return undefined;
         }
         setExpanded(false);
+        // on a narrow screen the scoreboard is further down: bring it into view first
+        const board = boardRef.current?.getBoundingClientRect();
+        if (board && (board.top < 0 || board.top > window.innerHeight * 0.5)) {
+            boardRef.current.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+        }
         // no movement: straight to their places (which reports the arrival)
         if (reducedMotion()) {
             setPhase('landed');
@@ -164,6 +170,7 @@ const ATCScoreboard = ({ entries, subtitle, noun = 'times', arrival, view, onVie
     );
 
     return (
+        <div ref={boardRef} className="atc-panel-anchor">
         <Panel headerTemplate={() => header} className="atc-scoreboard">
             <div className="d-flex flex-wrap justify-content-between gap-2 mb-3">
                 <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
@@ -202,6 +209,7 @@ const ATCScoreboard = ({ entries, subtitle, noun = 'times', arrival, view, onVie
             }
             {celebrate && <Confetti className="atc-scoreboard-confetti" />}
         </Panel>
+        </div>
     );
 };
 

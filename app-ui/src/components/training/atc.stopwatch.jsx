@@ -30,7 +30,7 @@ const ATCStopwatch = ({ watch, countdown, withCountdown, onWithCountdownChange, 
                     <Button type="button" label="Start" icon="pi pi-play" className="atc-stopwatch-main" disabled={!canStart} onClick={() => { onStart?.(); if (withCountdown) countdown.begin(); else start(); }} />
                 }
                 {counting &&
-                    <Button type="button" label="Cancel" icon="pi pi-times" severity="secondary" outlined className="atc-stopwatch-main" onClick={countdown.cancel} />
+                    <Button type="button" label="Cancel" icon="pi pi-times" outlined className="atc-stopwatch-main" onClick={countdown.cancel} />
                 }
                 {running &&
                     <Button type="button" label="Stop" icon="pi pi-stop" severity="danger" className="atc-stopwatch-main" onClick={stop} />

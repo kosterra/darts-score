@@ -11,6 +11,7 @@ import ATCModeConfig from './atc.mode.config';
 import ATCStopwatch from './atc.stopwatch';
 import ATCDartsRound from './atc.darts.round';
 import ATCDartsResult from './atc.darts.result';
+import ATCTrainingSummary from './atc.training.summary';
 import ATCService from "../../services/atc.service";
 import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
@@ -68,6 +69,16 @@ const ATC = () => {
 
     const darts = scoring === 'Darts';
     const player = players[0];
+    // while a training runs (and its result shows) the setup folds into one line
+    const playing = inProgress || Boolean(finished);
+    const panelRef = useRef(null);
+
+    // the play area moves up when the setup folds: bring it into view
+    useEffect(() => {
+        if (!playing) return;
+        const top = panelRef.current?.getBoundingClientRect().top ?? 0;
+        if (top < 0) panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, [playing]);
 
     useEffect(() => {
         setArrival(null);
@@ -215,9 +226,12 @@ const ATC = () => {
         <div className="col-12">
             <div className="row g-4">
                 <div className="col-12 col-xl-6">
+                    <div ref={panelRef} className="atc-panel-anchor">
                     <Panel header="Around the Clock">
                         <div className="container">
-                            {remembered && !inProgress && !finished && <GameSetupMemory what="training" onReset={startFresh} />}
+                            {playing && <ATCTrainingSummary players={active?.players ?? finished?.players ?? players} mode={active?.mode ?? finished?.mode ?? mode} scoring={scoring} />}
+                            {!playing && <>
+                            {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
                             <p className="game-setup-section-title">{darts ? 'Players' : 'Player'}</p>
                             {/* a fieldset locks every card while a training runs */}
                             <fieldset disabled={inProgress} className="atc-setup-lock">
@@ -244,8 +258,9 @@ const ATC = () => {
                                 <span className="text-faint fs-8 text-center">{SCORINGS.find(option => option.value === scoring).description}</span>
                             </div>
                             <ATCModeConfig atcModeOption={mode} onATCModeChange={setMode} disabled={inProgress} />
+                            </>}
 
-                            <p className="game-setup-section-title mt-4">{darts ? 'Round' : 'Stopwatch'}</p>
+                            <p className={`game-setup-section-title ${playing ? '' : 'mt-4'}`}>{darts ? (finished ? 'Result' : 'Round') : 'Stopwatch'}</p>
                             {darts
                                 ? finished
                                     ? <ATCDartsResult
@@ -289,6 +304,7 @@ const ATC = () => {
                             }
                         </div>
                     </Panel>
+                    </div>
                 </div>
                 <div className="col-12 col-xl-6">
                     <ATCScoreboard

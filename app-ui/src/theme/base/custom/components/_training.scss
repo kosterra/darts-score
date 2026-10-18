@@ -210,7 +210,8 @@
 
 .atc-round-players {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  // two per row on a phone, so four players leave Hit and Miss in view
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
   gap: 0.4rem;
   margin: 0;
   padding: 0;
@@ -389,4 +390,56 @@
 
 @media (prefers-reduced-motion: reduce) {
   .atc-round-target { animation: none; }
+}
+
+// scrolled into view below the sticky top bar
+.atc-panel-anchor {
+  scroll-margin-top: 5rem;
+}
+
+// the setup of a running training in one line
+.atc-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
+}
+
+.atc-summary-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.atc-summary-names {
+  overflow: hidden;
+  color: var(--text-default);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atc-summary-detail {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.atc-summary-avatars {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.25rem;
+}
+
+// icon and label together in the middle of the big buttons
+.atc-round-button.p-button .p-button-label,
+.atc-stopwatch-main.p-button .p-button-label {
+  flex: 0 0 auto;
+}
+
+// on the result card the hit rate and the hardest numbers may wrap
+.atc-result-player .atc-row-detail {
+  white-space: normal;
 }
