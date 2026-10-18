@@ -99,7 +99,7 @@ const FairPlayPage = ({ all = false }) => {
     return (
         <div className="container-fluid p-4 border-0">
             <Panel header={all ? 'Fair play · all clubs' : 'Fair play'}>
-                <p className="text-subtle fs-7 mt-0 mb-3" style={{ maxWidth: '75ch' }}>
+                <p className="text-subtle fs-7 mt-0 mb-3">
                     Games and trainings checked for what cannot be real or is far out of the ordinary.
                     <strong className="text-default"> Impossible</strong> ones (e.g. Around the Clock in a few seconds, a visit that does not match its darts) cannot come from a real game: delete them, with the badges earned in them.
                     <strong className="text-default"> Suspicious</strong> ones are possible but worth a look (e.g. a world-class time, an opponent who never threw): mark them as fine, or keep them on the watch list.
