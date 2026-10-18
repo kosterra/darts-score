@@ -7,6 +7,7 @@ import { inClub, knownInClub } from '../models/player.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
 import { checkoutProfile } from '../utils/checkout.profile.js';
+import { relocateHistory } from '../utils/history.relocation.js';
 
 const Player = db.player;
 
@@ -220,6 +221,8 @@ export const removeFromClub = async (player, clubId) => {
     player.clubs = player.clubs.filter(id => !id.equals(clubId));
     if (!player.formerClubs.some(id => id.equals(clubId))) player.formerClubs.push(clubId);
     await player.save();
+    // games among players who all left for the same club go along with them
+    await relocateHistory([player._id]);
 };
 
 /**
@@ -236,6 +239,8 @@ export const addToClub = async (player, club) => {
     player.clubs.push(club._id);
     player.formerClubs = player.formerClubs.filter(id => !id.equals(club._id));
     await player.save();
+    // joining after leaving: the games left behind can follow now
+    await relocateHistory([player._id]);
     return null;
 };
 

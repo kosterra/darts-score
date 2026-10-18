@@ -101,6 +101,17 @@ const migrations = [
         },
     },
     {
+        id: '2026-10-history-follows-moved-players',
+        description: 'Move games among players who all left a club for the same other club, and the trainings of players who left for one club, to where the players are now',
+        run: async () => {
+            const { relocateHistory } = await import('./history.relocation.js');
+            const players = await db.player.find({ 'formerClubs.0': { $exists: true } }, '_id').lean();
+            const moved = await relocateHistory(players.map(player => player._id));
+            logger.info(`Checked the history of ${players.length} moved players: ${moved.games} games and ${moved.trainings} trainings moved`);
+            return true;
+        },
+    },
+    {
         id: '2026-10-new-badges-hall-of-shame',
         description: 'Award the 16 new badge series from past games and trainings, and fill every player\'s Hall of Shame, so the club holders are right from the start',
         run: async () => {
