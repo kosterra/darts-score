@@ -11,7 +11,8 @@ import ShameMedal from '../../badges/shame.medal';
  * about their play, the tags, and the score with what goes under it. With two
  * players the second is mirrored, so the scores face each other.
  *
- * rows: [{ player, isTurn, line, tags, score, scoreClass, below }]
+ * rows: [{ player, isTurn, line, tags, score, scoreClass, scoreKey, below }];
+ * a new scoreKey plays the score's animation again (e.g. taking the lead).
  */
 const LiveHero = ({ title, subtitle, rows }) => {
     // the shame badges each player holds in the club, shown small next to the tags
@@ -27,7 +28,7 @@ const LiveHero = ({ title, subtitle, rows }) => {
             </div>
 
             <div className={`x01-hero-players count-${rows.length}`}>
-                {rows.map(({ player, isTurn, line, tags, score, scoreClass = '', below }, index) => (
+                {rows.map(({ player, isTurn, line, tags, score, scoreClass = '', scoreKey, below }, index) => (
                     <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${rows.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
                         <span className="result-hero-portrait x01-hero-portrait">
                             {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
@@ -53,7 +54,7 @@ const LiveHero = ({ title, subtitle, rows }) => {
                             </span>
                         </div>
                         <div className="x01-hero-score">
-                            <span className={`result-hero-score ${scoreClass}`}>{score}</span>
+                            <span key={scoreKey} className={`result-hero-score ${scoreClass}`}>{score}</span>
                             {below}
                         </div>
                     </div>

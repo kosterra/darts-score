@@ -712,7 +712,7 @@
   }
 
   // a number everyone closed is out of play
-  th.is-dead { color: var(--text-faint); text-decoration: line-through; }
+  th.is-dead { color: var(--text-faint); }
   td.is-dead .cricket-marks { opacity: 0.35; }
 }
 
@@ -758,4 +758,48 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cricket-strip .cricket-marks.is-stamped { animation: none; }
+}
+
+// a number out of play is crossed out with a stroke of chalk; drawn while it
+// happens, there already for numbers closed before
+.cricket-strip-number {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.15rem;
+}
+
+.cricket-chalk {
+  position: absolute;
+  left: -0.2rem;
+  right: -0.2rem;
+  top: 50%;
+  height: 0.18rem;
+  margin-top: -0.09rem;
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg, rgba(240, 236, 226, 0.95) 0 0.35rem, rgba(240, 236, 226, 0.65) 0.35rem 0.5rem);
+  transform: rotate(-12deg);
+  transform-origin: left center;
+
+  &.is-drawn { animation: chalk-draw 0.4s ease-out both; }
+}
+
+@keyframes chalk-draw {
+  from { transform: rotate(-12deg) scaleX(0); }
+  to { transform: rotate(-12deg) scaleX(1); }
+}
+
+// the score of a player who just took the lead flashes gold
+.result-hero-score.is-taking-lead {
+  animation: lead-flash 1.4s ease-out both;
+}
+
+@keyframes lead-flash {
+  0% { color: #ffc94d; transform: scale(1); text-shadow: 0 0 0 rgba(255, 201, 77, 0); }
+  20% { color: #ffc94d; transform: scale(1.12); text-shadow: 0 0 1.4rem rgba(255, 201, 77, 0.7); }
+  100% { transform: scale(1); text-shadow: 0 0 0 rgba(255, 201, 77, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cricket-chalk.is-drawn,
+  .result-hero-score.is-taking-lead { animation: none; }
 }

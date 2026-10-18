@@ -21,6 +21,8 @@ const CricketNumbersPanel = () => {
     const before = liveMarks(game, null);
     const closedBy = (number) => ordered.filter(player => marks[player.id][number] >= 3);
     const dead = (number) => closedBy(number).length === ordered.length;
+    // out of play only through the darts being entered: the chalk line is drawn now
+    const killed = (number) => dead(number) && !ordered.every(player => before[player.id][number] >= 3);
 
     return (
         <div className="cricket-strip-wrap">
@@ -35,7 +37,10 @@ const CricketNumbersPanel = () => {
                                 className={dead(number) ? 'is-dead' : ''}
                                 title={dead(number) ? 'Closed by everyone: out of play' : `Closed by ${closedBy(number).map(player => player.nickname).join(', ') || 'nobody yet'}`}
                             >
-                                {numberLabel(number)}
+                                <span className="cricket-strip-number">
+                                    {numberLabel(number)}
+                                    {dead(number) && <span key={killed(number) ? 'drawn' : 'there'} className={`cricket-chalk ${killed(number) ? 'is-drawn' : ''}`} aria-hidden="true" />}
+                                </span>
                             </th>
                         ))}
                     </tr>

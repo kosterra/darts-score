@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import CricketContext from '../../../utils/cricket.context';
 import LiveHero from '../common/live.hero';
@@ -26,6 +26,19 @@ const CricketLiveHeader = () => {
     const { visits } = replayCricket(game);
     const round = visits.filter(visit => visit.playerId === game.currentPlayerTurn).length + 1;
 
+    // who leads on points right now (the lowest score in cut-throat), nobody when level;
+    // a player who takes the lead sees their score flash gold
+    const values = game.players.map(id => scores[id]);
+    const best = variant === 'Cut-throat' ? Math.min(...values) : Math.max(...values);
+    const leaders = game.players.filter(id => scores[id] === best);
+    const leader = variant !== 'No-score' && leaders.length === 1 && values.some(value => value !== best) ? leaders[0] : null;
+    const previousLeader = useRef(undefined);
+    const [flash, setFlash] = useState(null);
+    useEffect(() => {
+        if (previousLeader.current !== undefined && leader && leader !== previousLeader.current) setFlash({ id: leader, key: Date.now() });
+        previousLeader.current = leader;
+    }, [leader]);
+
     const rows = ordered.map(player => {
         const mine = visits.filter(visit => visit.playerId === player.id);
         const last = mine.at(-1);
@@ -37,6 +50,8 @@ const CricketLiveHeader = () => {
             isTurn: game.currentPlayerTurn === player.id,
             line: <>Last visit <strong>{last ? `${visitMarks(last.darts)} marks` : '–'}</strong> · <strong>{mine.length ? (allMarks / mine.length).toFixed(1) : '–'}</strong> per round</>,
             score: variant === 'No-score' ? `${closed}/7` : scores[player.id],
+            scoreClass: flash?.id === player.id ? 'is-taking-lead' : '',
+            scoreKey: flash?.id === player.id ? flash.key : 'score',
             below: (
                 <>
                     <span className="x01-live-route" title={tip?.title}>{tip?.text ?? 'All closed'}</span>

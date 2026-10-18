@@ -9,6 +9,7 @@ import CricketReturnToPreviousPlayer from './cricket.return.to.previous.player';
 import PlayerService from '../services/player.service';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import WhiteHorse from '../components/games/common/white.horse';
+import { HatTrick, ShutOut } from '../components/games/cricket/cricket.moments';
 
 import { validateDartValue, cricketGetCurrentScore } from './game.utils';
 import { cutThroatPoints, variantOf, winsWithScore } from './cricket.variants';
@@ -53,6 +54,12 @@ const CricketState = props => {
     const [whiteHorse, setWhiteHorse] = useState(null);
     const endNineMarks = useCallback(() => setNineMarks(null), []);
     const endWhiteHorse = useCallback(() => setWhiteHorse(null), []);
+    const [hatTrick, setHatTrick] = useState(null);
+    const [shutOut, setShutOut] = useState(null);
+    const endHatTrick = useCallback(() => setHatTrick(null), []);
+    const endShutOut = useCallback(() => setShutOut(null), []);
+    // while one plays, a won game waits for it before the statistics page opens
+    const celebrating = Boolean(nineMarks || whiteHorse || hatTrick || shutOut);
 
     // a visit (or an undo) asks for a save of the game as it is afterwards;
     // the saves run one after the other, so they arrive in order
@@ -191,7 +198,7 @@ const CricketState = props => {
             }));
         }
 
-        celebrateVisit(playerId, currentThrow);
+        celebrateVisit(playerId, currentThrow, sectionHit);
 
         updateTotalThrow();
         updatePlayerScore(currentScore);
@@ -213,19 +220,32 @@ const CricketState = props => {
     }
 
     /**
-     * Three trebles on 15 to 20 in one visit: nine marks, the most a visit can
-     * bring. Three different ones are the White Horse.
+     * The big moments of a visit, the biggest one if there are several: the
+     * shut-out (all seven closed while an opponent closed none), the White
+     * Horse (three different trebles on 15 to 20), nine marks (three trebles),
+     * the hat trick (three bulls).
      */
-    const celebrateVisit = (playerId, darts) => {
-        const trebles = darts.map(dart => String(dart).trim().toUpperCase()).filter(dart => /^T(1[5-9]|20)$/.test(dart));
-        if (trebles.length !== 3) return;
+    const celebrateVisit = (playerId, darts, sectionHit) => {
+        const thrown = darts.map(dart => String(dart).trim().toUpperCase());
+        const trebles = thrown.filter(dart => /^T(1[5-9]|20)$/.test(dart));
+        const bulls = thrown.filter(dart => dart === 'S25' || dart === 'D25');
         const name = state.players.find(player => player.id === playerId)?.nickname ?? '';
-        if (new Set(trebles).size === 3) {
-            setNineMarks(null);
-            setWhiteHorse({ key: Date.now(), name, darts: trebles });
-        } else {
-            setWhiteHorse(null);
-            setNineMarks({ key: Date.now(), name, number: '9', words: 'Nine marks!', sign: '9 marks' });
+        const playerIndex = state.game.players.indexOf(playerId);
+        const key = Date.now();
+        const closedCount = (hits = {}) => ['15', '16', '17', '18', '19', '20', '25'].filter(n => (hits[n] ?? 0) >= 3).length;
+        const shutOutVictims = closedCount(sectionHit) === 7 && closedCount(state.game.playerModels[playerId].sectionHit) < 7
+            ? state.game.players.filter(id => id !== playerId && closedCount(state.game.playerModels[id].sectionHit) === 0)
+            : [];
+
+        if (shutOutVictims.length) {
+            const nickname = (id) => state.players.find(player => player.id === id)?.nickname ?? '';
+            setShutOut({ key, name, playerIndex, victims: shutOutVictims.map(nickname) });
+        } else if (trebles.length === 3 && new Set(trebles).size === 3) {
+            setWhiteHorse({ key, name, darts: trebles });
+        } else if (trebles.length === 3) {
+            setNineMarks({ key, name, number: '9', words: 'Nine marks!', sign: '9 marks' });
+        } else if (bulls.length === 3) {
+            setHatTrick({ key, name, playerIndex, darts: bulls });
         }
     };
 
@@ -518,6 +538,7 @@ const CricketState = props => {
                     players: state.players,
                     loading: state.loading,
                     winnerSaved,
+                    celebrating,
                     onClickValidateThrow,
                     updateCurrentThrowManual,
                     updateCurrentThrowDartBoard,
@@ -533,6 +554,8 @@ const CricketState = props => {
             </CricketContext.Provider>
             <OneEightyCelebration celebration={nineMarks} onDone={endNineMarks} />
             <WhiteHorse moment={whiteHorse} onDone={endWhiteHorse} />
+            <HatTrick moment={hatTrick} onDone={endHatTrick} />
+            <ShutOut moment={shutOut} onDone={endShutOut} />
             <Toast ref={toast} position="bottom-right" />
         </Fragment>
     );

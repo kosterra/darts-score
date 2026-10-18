@@ -18,7 +18,7 @@ import { variantOf } from '../../../utils/cricket.variants';
  */
 const CricketGame = () => {
     const navigate = useNavigate();
-    const { game, players, loading, winnerSaved } = useContext(CricketContext);
+    const { game, players, loading, winnerSaved, celebrating } = useContext(CricketContext);
 
     // only a game won on this page is celebrated; a finished game opened later just shows its statistics
     const wasRunning = useRef(false);
@@ -29,8 +29,9 @@ const CricketGame = () => {
             return;
         }
         if (!wasRunning.current) navigate(`/stats/games/cricket/${game.id}`, { replace: true });
-        else if (winnerSaved) navigate(`/stats/games/cricket/${game.id}`, { replace: true, state: { justFinished: true } });
-    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, navigate]);
+        // a moment of the winning visit (e.g. the shut-out) plays to its end first
+        else if (winnerSaved && !celebrating) navigate(`/stats/games/cricket/${game.id}`, { replace: true, state: { justFinished: true } });
+    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, celebrating, navigate]);
 
     if (loading.initGameLoading) return <PageLoader />;
 
