@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Panel } from 'primereact/panel';
+import { Button } from 'primereact/button';
 import { ProgressBar } from 'primereact/progressbar';
 
 import StatsService from '../../services/stats.service';
@@ -100,17 +101,34 @@ const ShameEntry = ({ badge }) => (
 );
 
 /**
- * The player's Hall of Shame: what is on them right now, then the rest.
+ * The player's Hall of Shame, always above the badges: what is on them right
+ * now, then the rest. With nothing on them it is a single line that opens the
+ * whole list on request.
  */
 const HallOfShameSection = ({ shame, name }) => {
+    const [open, setOpen] = useState(false);
     const active = shame.filter(badge => badge.active);
     const others = shame.filter(badge => !badge.active);
+    const showList = active.length > 0 || open;
     return (
         <section className="d-flex flex-column gap-3">
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
                 <h2 className="fs-4 fw-semibold text-default m-0">Hall of Shame</h2>
                 <span className="text-subtle">{active.length ? `${active.length} on ${name} right now` : `Nothing on ${name} right now`}</span>
+                {active.length === 0 &&
+                    <Button
+                        type="button"
+                        label={open ? 'Hide' : `Show all ${shame.length}`}
+                        icon={open ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
+                        iconPos="right"
+                        text
+                        size="small"
+                        aria-expanded={open}
+                        onClick={() => setOpen(!open)}
+                    />
+                }
             </div>
+            {showList &&
             <Panel header={active.length ? 'Right now' : 'All shame badges'}>
                 <p className="text-faint fs-7 mt-0 mb-3">
                     What nobody wants to throw. These badges add no XP. Each one stays on the player until they wash it off with its good deed, and in the club it belongs to whoever got it last.
@@ -127,6 +145,7 @@ const HallOfShameSection = ({ shame, name }) => {
                     {others.map(badge => <ShameEntry key={badge.id} badge={badge} />)}
                 </ul>
             </Panel>
+            }
         </section>
     );
 };
@@ -163,14 +182,10 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
     });
 
     const name = data.player?.nickname ?? 'the player';
-    // what is on the player right now comes first, so it is seen; a clean
-    // record waits at the end
-    const activeShame = data.shame?.some(badge => badge.active);
-    const shame = data.shame && <HallOfShameSection shame={data.shame} name={name} />;
 
     return (
         <div className="d-flex flex-column gap-4">
-            {activeShame && shame}
+            {data.shame && <HallOfShameSection shame={data.shame} name={name} />}
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
                 <h2 className="fs-4 fw-semibold text-default m-0">Badges</h2>
                 <span className="text-subtle">{data.earnedCount} of {data.total} collected</span>
@@ -183,7 +198,6 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
                     </ul>
                 </Panel>
             ))}
-            {!activeShame && shame}
         </div>
     );
 };
