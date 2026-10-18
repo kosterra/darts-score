@@ -6,21 +6,28 @@ import { Panel } from 'primereact/panel';
 import StatsService from '../../services/stats.service';
 import BadgeMedal from './badge.medal';
 import Celebration from './celebration';
+import ShameMedal from './shame.medal';
+import TarredAndFeathered from './tarred.and.feathered';
+import { FaSoap } from 'react-icons/fa6';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 
 const RETRIES = 3;
 const RETRY_MS = 1200;
 
 /**
- * The badges players earned in one game. With "celebrate" (right after the
- * game was won) it also opens the winner celebration.
+ * The badges players earned in one game, and their Hall of Shame of the game
+ * (what they got and what they washed off). With "celebrate" (right after the
+ * game was won) it also opens the winner celebration, and after it the
+ * tarred and feathered for whoever landed in the Hall of Shame.
  */
 const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false, className = '' }) => {
     const [groups, setGroups] = useState([]);
-    const [celebrating, setCelebrating] = useState(celebrate);
+    const [shame, setShame] = useState([]);
+    // 'celebrating' → 'tarring' → null
+    const [moment, setMoment] = useState(celebrate ? 'celebrating' : null);
 
     useEffect(() => {
-        if (celebrate) setCelebrating(true);
+        if (celebrate) setMoment('celebrating');
     }, [celebrate]);
 
     useEffect(() => {
@@ -36,6 +43,9 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                 }
                 setGroups(result.players
                     .map(entry => ({ player: players.find(player => player.id === entry.player), badges: entry.badges }))
+                    .filter(group => group.player));
+                setShame((result.shame ?? [])
+                    .map(entry => ({ ...entry, player: players.find(player => player.id === entry.player) }))
                     .filter(group => group.player));
             } catch (error) {
                 console.error('Failed to load the badges of this game', error);
@@ -75,13 +85,52 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                     </div>
                 </Panel>
             }
-            {celebrating && winner &&
+            {shame.length > 0 &&
+                <Panel header="Hall of Shame in this game" className={className}>
+                    <div className="d-flex flex-column gap-3 p-2">
+                        {shame.map(group => (
+                            <div key={group.player.id} className="d-flex flex-wrap align-items-center gap-3">
+                                <Link to={`/players/${group.player.id}#badges`} className="d-flex align-items-center gap-2 text-default fw-semibold" style={{ minWidth: '10rem' }}>
+                                    <Avatar
+                                        label={resolvePlayerInitials(group.player.firstname, group.player.lastname)}
+                                        image={resolvePlayerImg(group.player.profileImg)}
+                                        shape="circle"
+                                        className="avatar-sm bg-surface-high"
+                                    />
+                                    {group.player.nickname}
+                                </Link>
+                                <ul className="list-unstyled m-0 d-flex flex-wrap gap-3">
+                                    {group.got.map(badge => (
+                                        <li key={`got-${badge.id}`} className="d-flex align-items-center gap-2">
+                                            <ShameMedal badge={badge} size="sm" />
+                                            <span className="text-subtle fs-7">{badge.title}{badge.count > 1 ? ` × ${badge.count}` : ''}</span>
+                                        </li>
+                                    ))}
+                                    {group.washed.map(badge => (
+                                        <li key={`washed-${badge.id}`} className="d-flex align-items-center gap-2">
+                                            <ShameMedal badge={badge} size="sm" washed />
+                                            <span className="text-subtle fs-7"><FaSoap className="game-shame-soap" aria-hidden="true" /> Washed off {badge.title}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                </Panel>
+            }
+            {moment === 'celebrating' && winner &&
                 <Celebration
                     title="Game shot!"
                     subtitle="wins the game"
                     player={winner}
                     badgeGroups={groups}
-                    onClose={() => setCelebrating(false)}
+                    onClose={() => setMoment('tarring')}
+                />
+            }
+            {moment === 'tarring' && shame.some(group => group.got.length > 0) &&
+                <TarredAndFeathered
+                    groups={shame.filter(group => group.got.length > 0)}
+                    onClose={() => setMoment(null)}
                 />
             }
         </>

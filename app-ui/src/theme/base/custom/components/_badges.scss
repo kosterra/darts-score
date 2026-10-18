@@ -315,3 +315,184 @@ $badgeMetals: (
     gap: 0.75rem;
     min-width: 0;
 }
+
+// Tarred and feathered: the opposite of the celebration, for whoever just
+// landed in the Hall of Shame. Tar runs down from the top, feathers float down.
+$tar: #17110c;
+
+.tarred {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+    background: rgba(#0e0b08, 0.9);
+}
+
+.tarred-tar {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2.5rem;
+    background: linear-gradient(to bottom, $tar 70%, darken($tar, 2%));
+    box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    transform-origin: top;
+    animation: tarred-pour 0.5s ease-out both;
+}
+
+.tarred-drip {
+    position: absolute;
+    top: 100%;
+    height: var(--length);
+    margin-top: -1px;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(to right, darken($tar, 3%), #2b2119 40%, $tar);
+    transform-origin: top;
+    animation: tarred-drip 2.4s cubic-bezier(0.3, 0.6, 0.4, 1) both;
+
+    // the glossy drop at the end
+    &::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -0.2rem;
+        width: 115%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #4b3c2f 0 8%, $tar 45%);
+        transform: translateX(-50%);
+    }
+}
+
+.tarred-feathers {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.tarred-feather {
+    position: absolute;
+    top: -3rem;
+    color: #efe6d0;
+    opacity: 0.9;
+    filter: drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
+    animation: tarred-fall linear infinite both;
+}
+
+.tarred-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 36rem;
+    margin: auto;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-radius: 0.75rem;
+    background: $surfaceRaisedColor;
+    border: 1px solid rgba($shameColor, 0.35);
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.7);
+    animation: celebration-card 0.3s 0.35s ease-out both;
+}
+
+.tarred-title {
+    color: $shameColor;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.tarred-avatar {
+    position: relative;
+    display: inline-flex;
+
+    // tar poured over the head: a cap on top with a few drips running down
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(ellipse 75% 32% at 50% 0%, rgba($tar, 0.97) 70%, transparent 72%);
+        pointer-events: none;
+    }
+}
+
+.tarred-avatar-drip {
+    position: absolute;
+    top: 18%;
+    z-index: 1;
+    width: 0.45rem;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(to right, darken($tar, 3%), #2b2119 45%, $tar);
+    transform-origin: top;
+    animation: tarred-drip 1.8s 0.4s cubic-bezier(0.3, 0.6, 0.4, 1) both;
+}
+
+.tarred-stuck {
+    position: absolute;
+    z-index: 1;
+    color: #efe6d0;
+    font-size: 1.3rem;
+    filter: drop-shadow(0 0.1rem 0.2rem rgba(0, 0, 0, 0.6));
+}
+
+.tarred-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: $borderRadius;
+    border-left: 3px solid $shameColor;
+    background: rgba($shameColor, 0.08);
+}
+
+.tarred-wash {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: $textSubtleColor;
+    font-size: 0.8rem;
+
+    svg { color: $softGreenText; flex-shrink: 0; }
+}
+
+@keyframes tarred-pour {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+
+@keyframes tarred-drip {
+    0%, 15% { transform: scaleY(0); }
+    100% { transform: scaleY(1); }
+}
+
+@keyframes tarred-fall {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(calc(var(--sway) * 2.5rem), 25vh) rotate(calc(var(--sway) * 40deg)); }
+    50% { transform: translate(calc(var(--sway) * -1.5rem), 50vh) rotate(calc(var(--sway) * -25deg)); }
+    75% { transform: translate(calc(var(--sway) * 2rem), 75vh) rotate(calc(var(--sway) * 35deg)); }
+    100% { transform: translate(0, calc(100vh + 4rem)) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tarred-tar,
+    .tarred-drip,
+    .tarred-card {
+        animation: none;
+    }
+
+    .tarred-feathers {
+        display: none;
+    }
+}
+
+// the soap in front of a shame badge washed off in a game
+.game-shame-soap {
+    margin-right: 0.25rem;
+    color: $softGreenText;
+}

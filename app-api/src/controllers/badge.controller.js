@@ -6,7 +6,7 @@ import { GAME_MODELS, syncPlayerBadges, syncGameBadges } from '../utils/badge.se
 import { knownInClub } from '../models/player.model.js';
 
 const shameEnabled = (club) => club?.shameBadges !== false;
-const getShame = (id) => SHAME_BADGES.find(badge => badge.id === id);
+const getShame = (id) => SHAME_BADGES.find(badge => badge.id === id) ?? { id, title: id, description: '', wash: '' };
 // eslint-disable-next-line no-unused-vars
 export const publicShameBadge = ({ metric, washMetric, ...badge }) => badge;
 
@@ -67,7 +67,7 @@ export const getGameBadges = async (req, res) => {
     if (game.hasWinner) await syncGameBadges(req.club._id, game);
 
     const ids = (game.players ?? []).filter(playerId => db.mongoose.isValidObjectId(playerId));
-    const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) }, 'badges').lean();
+    const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) }, 'badges dateOfBirth shame shameWashes').lean();
 
     res.json({
         finished: Boolean(game.hasWinner),
@@ -77,8 +77,30 @@ export const getGameBadges = async (req, res) => {
                 badges: (player.badges ?? []).filter(entry => entry.sourceId === id).map(entry => getBadge(entry.badge)).filter(Boolean),
             }))
             .filter(entry => entry.badges.length > 0),
+        // the Hall of Shame of this game: what each player got in it and what they washed off
+        shame: shameEnabled(req.club) ? gameShame(players, id, shameMinAgeOf(req.club)) : [],
     });
 };
+
+/**
+ * Per player the shame badges they got in one game and the ones they washed
+ * off in it. Children of a club that leaves them out are not listed.
+ */
+export const gameShame = (players, gameId, minAge) => players
+    .filter(player => !isShameChild(player, minAge))
+    .map(player => {
+        const from = shameCountsFrom(player, minAge);
+        return {
+            player: String(player._id),
+            got: (player.shame ?? [])
+                .filter(entry => entry.sourceId === gameId && (!from || new Date(entry.at) >= from))
+                .map(entry => ({ ...publicShameBadge(getShame(entry.badge)), count: entry.count ?? 1 })),
+            washed: (player.shameWashes ?? [])
+                .filter(entry => entry.sourceId === gameId)
+                .map(entry => publicShameBadge(getShame(entry.badge))),
+        };
+    })
+    .filter(entry => entry.got.length > 0 || entry.washed.length > 0);
 
 const LATEST_BADGES = 3;
 
