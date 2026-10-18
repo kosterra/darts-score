@@ -12,6 +12,7 @@ import settingModel from './setting.model.js';
 import logEntryModel from './log.entry.model.js';
 import alertModel from './alert.model.js';
 import blockedIpModel from './blocked.ip.model.js';
+import integrityReviewModel from './integrity.review.model.js';
 
 const db = {
   mongoose,
@@ -28,6 +29,7 @@ const db = {
   logEntry: logEntryModel(mongoose),
   alert: alertModel(mongoose),
   blockedIp: blockedIpModel(mongoose),
+  integrityReview: integrityReviewModel(mongoose),
 };
 
 export default db;

@@ -8,7 +8,10 @@ const DeletePopup = (props) => {
         header = 'Delete Object',
         message = 'unknown',
         data,
-        handleDelete
+        handleDelete,
+        // optional: a label and a size for the button (an icon button otherwise)
+        label,
+        size
     } = props;
 
     const [showDialog, setShowDialog] = useState(false);
@@ -54,6 +57,8 @@ const DeletePopup = (props) => {
                 <Button
                     severity="danger"
                     icon="pi pi-trash"
+                    label={label}
+                    size={size}
                     title={header}
                     aria-label={header}
                     onClick={() => setShowDialog(true)}

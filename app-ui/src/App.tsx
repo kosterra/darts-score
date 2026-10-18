@@ -29,6 +29,7 @@ const PlayerProfilePage = lazy(() => import('./components/players/_player.profil
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
+const FairPlayPage = lazy(() => import('./components/fairplay/_fair.play.page'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
@@ -48,7 +49,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs'];
+const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading } = useAuth();
@@ -119,6 +120,8 @@ function AppContent() {
                     <Route path="/clubs" element={<ClubsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/administration" element={<AdministrationPage />} />
+                    <Route path="/fair-play" element={<FairPlayPage />} />
+                    <Route path="/admin/fair-play" element={<FairPlayPage all />} />
                     <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
                     <Route path="/admin/:id" element={<AdminPage />} />
                     <Route path="/admin/games/:id" element={<AdminPage />} />

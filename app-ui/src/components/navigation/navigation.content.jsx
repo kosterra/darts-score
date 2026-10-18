@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -46,7 +46,7 @@ const useOpenAlerts = (enabled) => {
  * spans all clubs and is for global admins only.
  */
 const useSections = () => {
-    const { activeClub, isGlobalAdmin } = useAuth();
+    const { activeClub, isGlobalAdmin, isClubAdmin } = useAuth();
     // a global admin without a club of their own only looks after the app
     const hasClub = !!activeClub;
     const openAlerts = useOpenAlerts(isGlobalAdmin);
@@ -62,6 +62,8 @@ const useSections = () => {
                 { label: 'Games', icon: FaTrophy, to: '/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
                 { label: 'Badges', icon: FaMedal, to: '/badges' },
+                // for the club's admins: games and trainings that cannot be real or are worth a look
+                ...(isClubAdmin ? [{ label: 'Fair play', icon: FaScaleBalanced, to: '/fair-play' }] : []),
             ],
         },
         {
@@ -85,6 +87,7 @@ const useSections = () => {
                 { label: 'Players', icon: FaUserPen, to: '/admin/players' },
                 { label: 'Games', icon: GiDart, to: '/admin/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
+                { label: 'Fair play', icon: FaScaleBalanced, to: '/admin/fair-play' },
                 {
                     label: 'Alerts',
                     icon: FaBell,

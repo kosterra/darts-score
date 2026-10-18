@@ -30,6 +30,7 @@ import userRoutes      from './src/routes/user.routes.js';
 import adminRoutes     from './src/routes/admin.routes.js';
 import publicRoutes    from './src/routes/public.routes.js';
 import badgeRoutes     from './src/routes/badge.routes.js';
+import integrityRoutes from './src/routes/integrity.routes.js';
 import { isAllowedOrigin } from './src/utils/origin.utils.js';
 import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
@@ -150,6 +151,7 @@ clubRoutes(app);
 userRoutes(app);
 adminRoutes(app);
 badgeRoutes(app);
+integrityRoutes(app);
 
 // ... and players, games, training and statistics also need a selected club
 app.use(['/api/players', '/api/games', '/api/training', '/api/stats'], requireClub);

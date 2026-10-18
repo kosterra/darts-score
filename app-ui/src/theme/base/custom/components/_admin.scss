@@ -178,3 +178,74 @@
     height: 1px;
     overflow: hidden;
 }
+
+// Fair play: a card per game or training, the level as a label, the findings
+// below, the actions at the end
+.fair-play-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.fair-play-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+
+  &.is-impossible { box-shadow: inset 3px 0 0 #ec8b80; }
+  &.is-suspicious { box-shadow: inset 3px 0 0 #e9ac2f; }
+}
+
+.fair-play-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+}
+
+.fair-play-level {
+  @include label-shape;
+  font-size: 0.7rem;
+
+  &.is-impossible { @include label-tone(#ec8b80); }
+  &.is-suspicious { @include label-tone(#e9ac2f); }
+}
+
+.fair-play-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+
+.fair-play-findings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+
+  li { padding-left: 0.9rem; position: relative; }
+
+  li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+  }
+
+  li.is-impossible::before { background: #ec8b80; }
+  li.is-suspicious::before { background: #e9ac2f; }
+}
+
+.fair-play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
