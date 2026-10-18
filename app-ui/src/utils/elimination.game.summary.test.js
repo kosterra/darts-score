@@ -71,3 +71,19 @@ describe('eliminationMoments', () => {
         expect(moments.comeback).toMatchObject({ playerId: 'a' });
     });
 });
+
+describe('replayElimination with busts', () => {
+    it('lets a bust change nothing', () => {
+        const game = {
+            players: ['a', 'b'],
+            allThrows: [
+                { playerId: 'a', darts: ['T20', '0', '0'], roundScore: 60 },
+                { playerId: 'b', darts: ['T20', 'S20', 'S20'], roundScore: 0, bust: true },
+            ],
+        };
+        const { visits, eliminations, finalScores } = replayElimination(game);
+        expect(visits[1]).toMatchObject({ score: 0, before: 0, after: 0, bust: true });
+        expect(eliminations).toEqual([]);
+        expect(finalScores).toEqual({ a: 60, b: 0 });
+    });
+});

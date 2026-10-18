@@ -2,8 +2,8 @@
  * What the statistics page of one Elimination game shows, worked out by
  * replaying its visits with the rules of the game: everyone climbs from 0 to
  * the target score, and a dart that lands exactly on an opponent's score
- * sends that opponent back to 0. Busted visits are not stored, so they do
- * not appear here.
+ * sends that opponent back to 0. A bust changes nothing; busts are stored
+ * since 2026-10, so older games do not show them.
  */
 
 const round1 = (value) => Math.round(value * 10) / 10;
@@ -34,6 +34,7 @@ export const replayElimination = (game) => {
         const { playerId } = visit;
         const before = scores[playerId];
         turns[playerId] += 1;
+        if (visit.bust) return { index, playerId, turn: turns[playerId], darts: thrown(visit.darts), score: 0, before, after: before, bust: true };
         let running = before;
         thrown(visit.darts).forEach(dart => {
             running += dartValue(dart);

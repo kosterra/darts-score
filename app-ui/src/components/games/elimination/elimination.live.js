@@ -36,7 +36,7 @@ export const knockBacks = (game, scores, playerId) => game.players
 
 /**
  * A player's visits with what they scored and their total after each:
- * [{ darts, roundScore, total }].
+ * [{ darts, roundScore, total, bust }].
  */
 export const visitsOf = (game, playerId) => (game.allThrows ?? [])
     .filter(visit => visit?.playerId === playerId)
@@ -44,4 +44,5 @@ export const visitsOf = (game, playerId) => (game.allThrows ?? [])
         darts: (visit.darts ?? []).filter(dart => dart && dart.trim() !== ''),
         roundScore: Number(visit.roundScore ?? 0),
         total: game.targetScore - Number(visit.scoreLeft ?? 0),
+        bust: Boolean(visit.bust),
     }));

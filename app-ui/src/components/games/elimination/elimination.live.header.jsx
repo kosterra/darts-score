@@ -32,7 +32,7 @@ const EliminationLiveHeader = () => {
         return {
             player,
             isTurn,
-            line: <>Last visit <strong>{last ? last.roundScore : '–'}</strong> · <strong>{darts}</strong> darts</>,
+            line: <>Last visit <strong>{last ? (last.bust ? 'Bust' : last.roundScore) : '–'}</strong> · <strong>{darts}</strong> darts</>,
             score: busted ? 'BUST' : score,
             scoreClass: busted ? 'is-bust' : '',
             below: (

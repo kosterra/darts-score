@@ -41,7 +41,7 @@ const EliminationVisitsPanel = ({ game, players }) => {
                                                     <span className="x01-visit-darts">{visit.darts.map((dart, d) => <span key={d}>{dart}</span>)}</span>
                                                 </td>,
                                                 <td key={`${i}-s`} className="text-end text-nowrap">
-                                                    <span className="text-subtle">{visit.roundScore}</span>
+                                                    <span className={visit.bust ? 'x01-bust-text' : 'text-subtle'}>{visit.bust ? 'Bust' : visit.roundScore}</span>
                                                     <span className="x01-visit-left">{visit.total}</span>
                                                 </td>,
                                             ];

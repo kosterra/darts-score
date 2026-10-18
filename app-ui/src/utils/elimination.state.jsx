@@ -237,6 +237,11 @@ const EliminationState = ({ children }) => {
             return;
         }
 
+        // every player's score before the visit, so that undo restores it exactly,
+        // also for those this visit sends back to 0
+        const scoresBefore = Object.fromEntries((state.game.players || []).map(pid => [pid, playerModels[pid]?.score ?? 0]));
+        const dartCount = currentThrow.filter(d => d && d.trim() !== '').length;
+
         // Work through darts one by one to detect eliminations, busts, and wins
         let runningScore = playerModels[playerId]?.score ?? 0;
         // We need a mutable snapshot of all player scores for elimination checks
@@ -308,6 +313,33 @@ const EliminationState = ({ children }) => {
                 detail: `Throw is bust. Score stays at ${originalScore}.`,
                 life: 3000
             });
+            // a bust is a visit too: its darts count, and undo takes it back first
+            dispatch({
+                type: UPDATE_PLAYER_SCORE,
+                payload: {
+                    playerId,
+                    score: originalScore,
+                    playerModel: {
+                        ...playerModels[playerId],
+                        score: originalScore,
+                        totalThrow: {
+                            darts: (playerModels[playerId]?.totalThrow?.darts ?? 0) + dartCount,
+                            rounds: (playerModels[playerId]?.totalThrow?.rounds ?? 0) + 1
+                        }
+                    }
+                }
+            });
+            dispatch({
+                type: SAVE_ALL_GAME_THROWS,
+                payload: [...allThrows, {
+                    darts: currentThrow,
+                    playerId,
+                    roundScore: 0,
+                    scoreLeft: Math.max(state.game.targetScore - originalScore, 0),
+                    bust: true,
+                    scoresBefore
+                }]
+            });
             dispatch({ type: RESET_CURRENT_THROW });
             manageCurrentPlayerChange();
             setLoading('validateThrow', false);
@@ -333,7 +365,6 @@ const EliminationState = ({ children }) => {
         }
 
         // Apply stats updates
-        const dartCount = currentThrow.filter(d => d && d.trim() !== '').length;
         const updatedPlayerModel = {
             ...playerModels[playerId],
             score: runningScore,
@@ -353,12 +384,13 @@ const EliminationState = ({ children }) => {
             darts: currentThrow,
             playerId,
             roundScore: totalRoundScore,
-            scoreLeft: Math.max(state.game.targetScore - runningScore, 0)
+            scoreLeft: Math.max(state.game.targetScore - runningScore, 0),
+            scoresBefore
         });
 
         if (winner) {
             // Dispatch winner state
-            dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId, score: runningScore } });
+            dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId, score: runningScore, playerModel: updatedPlayerModel } });
             dispatch({ type: SAVE_ALL_GAME_THROWS, payload: allThrows });
             dispatch({ type: GAME_HAS_WINNER, payload: playerId });
 

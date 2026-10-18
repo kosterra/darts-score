@@ -41,6 +41,7 @@ const EliminationGame = () => {
     const stats = Object.fromEntries(ordered.map(player => {
         const visits = visitsOf(game, player.id);
         const model = game.playerModels[player.id] ?? {};
+        // a bust scores 0, as in X01
         const scored = visits.reduce((sum, visit) => sum + visit.roundScore, 0);
         const darts = model.totalThrow?.darts ?? visits.reduce((sum, visit) => sum + visit.darts.length, 0);
         const ranges = model.scoreRanges ?? {};

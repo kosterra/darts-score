@@ -1,16 +1,15 @@
 import EliminationState from '../../../utils/elimination.state';
 import EliminationGame from './elimination.game';
 
-const X01GamePage = () => {
+const EliminationGamePage = () => {
   return (
-    <div className="container-fluid p-4 pt-0 bg-transparent border-0">
-      <div className="row justify-content-md-center align-items-center">
-        <EliminationState>
-          <EliminationGame />
-        </EliminationState>
-      </div>
+    <div className="container-fluid bg-transparent border-0 x01-game-page">
+      {/* the same frame as X01, without a Bootstrap row: its negative margin made the page wider than a phone */}
+      <EliminationState>
+        <EliminationGame />
+      </EliminationState>
     </div>
   );
 };
 
-export default X01GamePage;
+export default EliminationGamePage;

@@ -27,6 +27,6 @@ describe('elimination live', () => {
     });
 
     it('lists the visits with the total after each', () => {
-        expect(visitsOf(game, 'a')).toEqual([{ darts: ['S20', 'S20', 'S1'], roundScore: 41, total: 41 }]);
+        expect(visitsOf(game, 'a')).toEqual([{ darts: ['S20', 'S20', 'S1'], roundScore: 41, total: 41, bust: false }]);
     });
 });
