@@ -7,12 +7,16 @@ import EliminationScoreConfig from '../config_components/elimination.score.confi
 import EliminationInOutConfig from '../config_components/elimination.inout.config';
 import PlayerPicker from '../config_components/player.picker';
 import GameSetupStart from '../config_components/game.setup.start';
+import GameSetupMemory from '../config_components/game.setup.memory';
 import { missingPlayers, playersSummary } from '../config_components/game.setup.summary';
 import EliminationModels from '../../../models/elimination.models';
 import EliminationService from '../../../services/elimination.service';
+import { clearSetup, loadSetup, saveSetup } from '../../../utils/setup.memory';
 
 const EliminationConfig = () => {
-    const [game, setGame] = useState({ ...EliminationModels.EliminationModel });
+    // the page starts set up like the last game
+    const [remembered, setRemembered] = useState(() => loadSetup('elimination'));
+    const [game, setGame] = useState(() => ({ ...EliminationModels.EliminationModel, ...remembered?.settings }));
     const [players, setPlayers] = useState([]);
     const [starting, setStarting] = useState(false);
     const toast = useRef(null);
@@ -27,11 +31,19 @@ const EliminationConfig = () => {
     };
 
     const missing = missingPlayers(players);
+
+    const startFresh = () => {
+        clearSetup('elimination');
+        setRemembered(null);
+        setGame({ ...EliminationModels.EliminationModel });
+        setPlayers([]);
+    };
     const summary = `${game.targetScore} · ${game.gameInMode} / ${game.gameOutMode} · ${playersSummary(players)}`;
 
     const handleSubmit = async () => {
         if (missing) return;
         setStarting(true);
+        saveSetup('elimination', { settings: { targetScore: game.targetScore, gameInMode: game.gameInMode, gameOutMode: game.gameOutMode }, players });
         const playerIds = players.map(p => p.id);
         const playerModels = {};
         playerIds.forEach(pid => {
@@ -64,8 +76,9 @@ const EliminationConfig = () => {
         <>
             <Panel header="Elimination" className="w-100 w-md-75 w-xxl-50 mx-auto">
                 <div className="container">
+                    {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">Players</p>
-                    <PlayerPicker selected={players} onChange={setPlayers} />
+                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">Game</p>
                     <EliminationScoreConfig

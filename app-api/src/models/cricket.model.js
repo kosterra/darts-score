@@ -7,6 +7,8 @@ export default (mongoose) => {
       hasWinner:         { type: Boolean, default: false },
       // Cricket starts at 0 points
       startingScore:     { type: Number, min: 0, default: 0 },
+      // Standard, Cut-throat (points go to the opponents, lowest wins) or No-score (closing only)
+      variant:           { type: String, enum: ['Standard', 'Cut-throat', 'No-score'], default: 'Standard' },
       numberOfPlayers:   { type: Number, enum: [1, 2, 3, 4] },
       currentPlayerTurn: String,
       currentThrow:      [String],

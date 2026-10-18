@@ -12,6 +12,7 @@ import CricketScoreBoard from './cricket.scoreboard';
 import CricketScoreInputBoard from './cricket.score.input.board';
 import PageLoader from '../../elements/page.loader';
 import GameBadges from '../../badges/game.badges';
+import { variantOf } from '../../../utils/cricket.variants';
 
 const CricketGame = () => {
     const navigate = useNavigate();
@@ -46,7 +47,9 @@ const CricketGame = () => {
         <Fragment>
             <div className="d-flex justify-content-center mb-4">
                 <div className="d-flex flex-column align-items-center rounded-bottom-4 bg-surface-translucent p-2 px-4">
-                    <div className="text-default fw-semibold fs-7">Cricket</div>
+                    <div className="text-default fw-semibold fs-7">Cricket{variantOf(game) === 'Standard' ? '' : ` · ${variantOf(game)}`}</div>
+                    {variantOf(game) === 'Cut-throat' && <div className="text-faint fs-8">Extra marks score for the others · lowest score wins</div>}
+                    {variantOf(game) === 'No-score' && <div className="text-faint fs-8">Only closing counts</div>}
                 </div>
             </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
@@ -30,8 +30,9 @@ const PlayerAvatar = ({ player, className = 'avatar-md' }) => (
  *
  * selected: the chosen players in throwing order
  * onChange(players)
+ * initialIds: the players of the last game, chosen once the list has loaded
  */
-const PlayerPicker = ({ selected, onChange }) => {
+const PlayerPicker = ({ selected, onChange, initialIds = [] }) => {
     const { isClubAdmin } = useAuth();
     const [players, setPlayers] = useState([]);
     const [lastPlayed, setLastPlayed] = useState({});
@@ -40,6 +41,7 @@ const PlayerPicker = ({ selected, onChange }) => {
     const [dragged, setDragged] = useState(null);
     const [bullOff, setBullOff] = useState(false);
     const [showAll, setShowAll] = useState(false);
+    const restored = useRef(false);
 
     const load = async () => {
         try {
@@ -49,6 +51,12 @@ const PlayerPicker = ({ selected, onChange }) => {
             ]);
             setPlayers(list);
             setLastPlayed(played);
+            // the players of the last game, those still in the club, in the same order
+            if (!restored.current) {
+                restored.current = true;
+                const again = initialIds.map(id => list.find(player => player.id === id)).filter(Boolean);
+                if (again.length && !selected.length) onChange(again);
+            }
         } finally {
             setLoading(false);
         }

@@ -78,6 +78,14 @@ export const validateGameCreate = [
     validatePlayers,
 ];
 
+const VALID_CRICKET_VARIANTS = ['Standard', 'Cut-throat', 'No-score'];
+
+export const validateCricketCreate = [
+    check('variant').optional().isIn(VALID_CRICKET_VARIANTS).withMessage(`variant must be one of: ${VALID_CRICKET_VARIANTS.join(', ')}.`),
+    validateNumberOfPlayers,
+    validatePlayers,
+];
+
 export const validateATCCreate = [
     check('timeMs').isInt({ min: 1 }).withMessage('timeMs must be a positive integer.'),
 ];

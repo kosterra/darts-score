@@ -9,17 +9,26 @@ import SetsLegsConfig from '../config_components/sets.legs.config';
 import PlayerPicker from '../config_components/player.picker';
 import X01HandicapConfig from '../config_components/x01.handicap.config';
 import GameSetupStart from '../config_components/game.setup.start';
+import GameSetupMemory from '../config_components/game.setup.memory';
+import QuickFormats from '../config_components/quick.formats';
 import X01Models from '../../../models/x01.models';
 import X01Service from '../../../services/x01.service';
 import { MIN_PLAYERS } from '../../../utils/player.picker';
+import { clearSetup, fitToPlayers, loadSetup, saveSetup, X01_QUICK_FORMATS } from '../../../utils/setup.memory';
 import { missingPlayers, playersSummary, setsLegsSummary } from '../config_components/game.setup.summary';
 
+const SETTINGS = ['startingScore', 'legInMode', 'legOutMode', 'setMode', 'numberOfSets', 'legMode', 'numberOfLegs'];
+
 const X01Config = () => {
-    const [game, setGame] = useState({ ...X01Models.X01GameModel });
+    // the page starts set up like the last game
+    const [remembered, setRemembered] = useState(() => loadSetup('x01'));
+    const [game, setGame] = useState(() => ({ ...X01Models.X01GameModel, ...remembered?.settings }));
     const [players, setPlayers] = useState([]);
     // the own rules of every player, null without a handicap
     const [handicap, setHandicap] = useState(null);
     const [starting, setStarting] = useState(false);
+    // the handicap of the last game comes back with its players
+    const pendingHandicap = useRef(remembered?.handicap ?? null);
 
     const toast = useRef(null);
     const navigate = useNavigate();
@@ -34,10 +43,22 @@ const X01Config = () => {
 
     const onPlayersChange = (chosen) => {
         setPlayers(chosen);
-        // "best of" needs two players: with more the first to win the sets or legs wins
-        if (chosen.length > 2) setGame(current => ({ ...current, setMode: 'First to', legMode: 'First to' }));
+        setGame(current => fitToPlayers(current, chosen.length));
+        const restoring = pendingHandicap.current;
+        pendingHandicap.current = null;
         if (chosen.length < MIN_PLAYERS) setHandicap(null);
+        else if (restoring && chosen.every(player => restoring[player.id])) setHandicap(restoring);
         else if (handicap) setHandicap(Object.fromEntries(chosen.filter(player => handicap[player.id]).map(player => [player.id, handicap[player.id]])));
+    };
+
+    const applyFormat = (settings) => setGame(current => ({ ...current, ...fitToPlayers(settings, players.length) }));
+
+    const startFresh = () => {
+        clearSetup('x01');
+        setRemembered(null);
+        setGame({ ...X01Models.X01GameModel });
+        setPlayers([]);
+        setHandicap(null);
     };
 
     const rulesOf = (playerId) => handicap?.[playerId] ?? { startingScore: Number(game.startingScore), legInMode: game.legInMode, legOutMode: game.legOutMode };
@@ -52,6 +73,7 @@ const X01Config = () => {
     const handleSubmit = async () => {
         if (missing) return;
         setStarting(true);
+        saveSetup('x01', { settings: Object.fromEntries(SETTINGS.map(name => [name, game[name]])), players, handicap });
         const playerIds = players.map(player => player.id);
         const playerModels = Object.fromEntries(playerIds.map(playerId => {
             const rules = rulesOf(playerId);
@@ -83,10 +105,12 @@ const X01Config = () => {
         <>
             <Panel header="X01" className="w-100 w-md-75 w-xxl-50 mx-auto">
                 <div className="container">
+                    {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">Players</p>
-                    <PlayerPicker selected={players} onChange={onPlayersChange} />
+                    <PlayerPicker selected={players} onChange={onPlayersChange} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">Game</p>
+                    <QuickFormats formats={X01_QUICK_FORMATS} settings={game} playerCount={players.length} onApply={applyFormat} />
                     <X01ScoreConfig
                         scoreOption={game.startingScore}
                         onScoreChange={handleConfigChange}

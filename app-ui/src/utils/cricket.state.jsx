@@ -9,6 +9,7 @@ import CricketReturnToPreviousPlayer from './cricket.return.to.previous.player';
 import PlayerService from '../services/player.service';
 
 import { validateDartValue, cricketGetCurrentScore } from './game.utils';
+import { cutThroatPoints, variantOf, winsWithScore } from './cricket.variants';
 
 import {
     FETCH_GAME_SUCCESS,
@@ -143,12 +144,26 @@ const CricketState = props => {
             return
         }
 
+        const playerId = state.game.currentPlayerTurn;
+        // what the visit changes, so that it can be taken back exactly
+        const scoresBefore = Object.fromEntries(state.game.players.map(id => [id, state.game.playerModels[id].score ?? 0]));
         let allThrows = [...state.game.allThrows,
         {
             darts: currentThrow,
-            playerId: state.game.currentPlayerTurn
+            playerId,
+            sectionHitBefore: { ...state.game.playerModels[playerId].sectionHit },
+            scoresBefore
         }];
         updateAllThrows(allThrows)
+
+        // cut-throat: the points go to the opponents who still have the number open
+        if (variantOf(state.game) === 'Cut-throat') {
+            const points = cutThroatPoints(state.game, playerId, state.game.playerModels[playerId].sectionHit, sectionHit);
+            Object.entries(points).filter(([, value]) => value > 0).forEach(([id, value]) => dispatch({
+                type: UPDATE_PLAYER_SCORE,
+                payload: { playerId: id, score: scoresBefore[id] + value }
+            }));
+        }
 
         updateTotalThrow();
         updatePlayerScore(currentScore);
@@ -312,6 +327,8 @@ const CricketState = props => {
             }
         });
 
+        // the own score only grows in Standard: cut-throat points go to the others, no-score has none
+        if (variantOf(state.game) !== 'Standard') return playerModel.score ?? 0;
         return cricketGetCurrentScore(state.game.currentThrow, playerModel.score, sectionHit);
     }
 
@@ -352,8 +369,8 @@ const CricketState = props => {
                     if (/d/i.test(dart[0])) sectionHit[section.toString()] += 2;
                     if (/s/i.test(dart[0])) sectionHit[section.toString()]++;
 
-                    if (!checkSectionClosed(section.toString())
-                        && checkSectionClosedByOthers(section.toString())
+                    if (((!checkSectionClosed(section.toString()) && checkSectionClosedByOthers(section.toString()))
+                        || variantOf(state.game) === 'No-score')
                         && sectionHit[section.toString()] > 3) {
                         sectionHit[section.toString()] = 3;
                     }
@@ -364,19 +381,18 @@ const CricketState = props => {
         return sectionHit;
     }
 
+    // whether this score wins once every number is closed: by the variant, with
+    // the points the current visit gives the others in cut-throat
     const checkIfScoreIsHighestScore = (score) => {
-        let highestScore = false;
-
-        for (let i = 0; i < state.game.players.length; i++) {
-            if (state.game.players[i] !== state.game.currentPlayerTurn) {
-                let playerModel = state.game.playerModels[state.game.players[i]];
-                if (playerModel.score > highestScore) {
-                    highestScore = playerModel.score;
-                }
-            }
-        }
-
-        return score > highestScore;
+        const variant = variantOf(state.game);
+        const current = state.game.currentPlayerTurn;
+        const given = variant === 'Cut-throat'
+            ? cutThroatPoints(state.game, current, state.game.playerModels[current].sectionHit, getCurrentSectionHit())
+            : {};
+        const others = state.game.players
+            .filter(id => id !== current)
+            .map(id => (state.game.playerModels[id].score ?? 0) + (given[id] ?? 0));
+        return winsWithScore(variant, score, others);
     }
 
     const checkIfAllSectionsClosed = (sectionHit) => {
