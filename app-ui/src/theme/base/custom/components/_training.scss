@@ -184,14 +184,18 @@
   background: var(--surface-raised);
 
   // the latest time of today
-  &.is-latest { border-color: color-mix(in srgb, var(--primary-color) 55%, transparent); }
+  // the training just saved: a soft gold tint with a gold edge on the left and a
+  // "New" label, no border
+  &.is-latest,
+  &.is-arriving {
+    background: linear-gradient(90deg, rgba(233, 172, 47, 0.16), rgba(233, 172, 47, 0.04) 70%), var(--surface-raised);
+    box-shadow: inset 3px 0 0 #e9ac2f;
+  }
 
-  // the time just saved, on its way up: above the rows it passes
+  // on its way up: floating above the rows it passes
   &.is-arriving {
     z-index: 1;
-    border-color: var(--primary-color);
-    background: color-mix(in srgb, var(--primary-color) 18%, var(--surface-raised));
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
+    box-shadow: inset 3px 0 0 #e9ac2f, 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
   }
 
   &.is-entering { animation: atc-row-enter 0.45s ease-out both; }
@@ -707,4 +711,14 @@
 // the filter of the scoreboard: a grey tool, a little lighter while open
 .atc-filter-toggle .p-button.is-open {
   background: rgba(255, 255, 255, 0.18);
+}
+
+// the label of the training just saved
+.atc-row-new {
+  @include label-shape;
+  @include label-tone(#e9ac2f);
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.65rem;
+  vertical-align: middle;
 }

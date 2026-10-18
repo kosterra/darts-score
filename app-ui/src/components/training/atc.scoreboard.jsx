@@ -68,7 +68,10 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
                 className="avatar-sm flex-shrink-0"
             />
             <span className="atc-row-player">
-                <span className="atc-row-name">{player.nickname || 'Unknown player'}</span>
+                <span className="atc-row-name">
+                    {player.nickname || 'Unknown player'}
+                    {(latest || phase) && <span className="atc-row-new">New</span>}
+                </span>
                 <span className="atc-row-detail">{showDate ? dayjs(entry.createdAt).format('DD.MM.YYYY HH:mm') : dayjs(entry.createdAt).format('HH:mm')}</span>
             </span>
             <span className="atc-row-time">{formatScore(entry)}</span>
