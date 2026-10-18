@@ -33,7 +33,7 @@ const ATCStopwatch = ({ watch, countdown, withCountdown, onWithCountdownChange, 
                     <Button type="button" label="Cancel" icon="pi pi-times" outlined className="atc-stopwatch-main" onClick={countdown.cancel} />
                 }
                 {running &&
-                    <Button type="button" label="Stop" icon="pi pi-stop" severity="danger" className="atc-stopwatch-main" onClick={stop} />
+                    <Button type="button" label="Stop" icon="pi pi-stop" className="atc-stopwatch-main" onClick={stop} />
                 }
                 {stopped && <>
                     <Button type="button" label="Save time" icon="pi pi-check" className="atc-stopwatch-main" loading={saving} onClick={() => onSave(toHundredths(elapsedMs))} />

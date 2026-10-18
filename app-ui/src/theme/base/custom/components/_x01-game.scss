@@ -274,13 +274,16 @@
 // the darts of the visit belong to the floating bar of a phone only
 .x01-visit-bar-darts { display: none; }
 
-// Enter score about two thirds, Undo the rest
-.x01-enter.p-button { flex: 2 1 0; }
+// Enter score over the width, Undo a small square next to it
+.x01-enter.p-button { flex: 1 1 auto; }
 
 // Undo in the red of the delete actions in the lists: a soft red background and
 // a light red icon and label, a little stronger on hover
 .x01-undo.p-button {
-  flex: 1 1 0;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
   border: 0;
   background: rgba($dangerButtonBg, 0.18);
   color: lighten($dangerButtonBg, 15%);
@@ -533,9 +536,7 @@
     .x01-visit-total { grid-area: total; margin: 0; font-size: 0.75rem; text-align: left; }
     .x01-visit-actions { grid-area: actions; }
     .x01-enter.p-button { flex: 0 0 auto; padding: 0.55rem 1rem; }
-    // just the icon for Undo: the bar is narrow
-    .x01-undo.p-button { flex: 0 0 auto; width: 2.5rem; padding: 0.5rem 0; }
-    .x01-undo .p-button-label { display: none; }
+    .x01-undo.p-button { width: 2.5rem; height: 2.5rem; }
   }
 
   // room at the bottom of the page for the floating bar

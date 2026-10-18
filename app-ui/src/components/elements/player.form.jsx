@@ -298,8 +298,10 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
             </Dialog>
 
             <div className="d-flex justify-content-center">
+                {/* with a label (e.g. next to the players of a game) it is a secondary action: soft */}
                 <Button
                     severity="primary"
+                    outlined={Boolean(label)}
                     icon={edit ? 'pi pi-user-edit' : 'pi pi-user-plus'}
                     title={label ? undefined : edit ? 'Edit player' : 'Add a player'}
                     aria-label={label ? undefined : edit ? 'Edit player' : 'Add a player'}

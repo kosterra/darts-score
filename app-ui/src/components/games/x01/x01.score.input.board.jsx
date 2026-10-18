@@ -209,15 +209,16 @@ const X01ScoreInputBoard = () => {
                             className="justify-content-center x01-enter"
                         />
                         {game.currentLegThrows.length !== 0 &&
+                            // small next to the main action: an exception, not a second choice
                             <Button
                                 id="submitReturn"
                                 type="submit"
-                                label="Undo last visit"
                                 aria-label="Undo last visit"
-                                title="Undo last visit"
+                                tooltip="Undo last visit"
+                                tooltipOptions={{ position: 'top' }}
                                 icon="pi pi-undo"
                                 severity="danger"
-                                className="justify-content-center x01-undo"
+                                className="x01-undo"
                             />
                         }
                         </div>

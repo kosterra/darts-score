@@ -1,0 +1,47 @@
+// One look per kind of button throughout the app:
+// - the main action of an area: filled green (the theme's default button)
+// - secondary actions: soft green (outlined and secondary buttons)
+// - destructive actions and undo: soft red (danger buttons)
+// - small options: green text (text and link buttons)
+// - the chosen pill of a choice: soft green, the others grey
+// The rules weigh nothing (:where), so a component's own look (the actions in
+// the lists, the keypad, the help icon) stays as it is.
+
+@mixin soft-button($color) {
+  border-color: transparent;
+  background: rgba($color, 0.2);
+  color: lighten($color, 22%);
+
+  &:enabled:hover {
+    border-color: transparent;
+    background: rgba($color, 0.3);
+    color: lighten($color, 28%);
+  }
+
+  &:enabled:active { background: rgba($color, 0.38); }
+}
+
+:where(.p-button.p-button-outlined:not(.p-button-danger):not(.p-button-text):not(.p-button-link)),
+:where(.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text):not(.p-button-link)) {
+  @include soft-button($primaryColor);
+}
+
+:where(.p-button.p-button-danger:not(.p-button-text):not(.p-button-link)) {
+  @include soft-button($dangerButtonBg);
+}
+
+// the chosen pill: a choice, not an action, so soft rather than filled
+:where(.p-selectbutton .p-button.p-highlight) {
+  border-color: transparent;
+  background: rgba($primaryColor, 0.3);
+  color: lighten($primaryColor, 30%);
+
+  &:hover { background: rgba($primaryColor, 0.38); }
+}
+
+// the current page of a list is a choice like a pill
+:where(.p-paginator .p-paginator-page.p-highlight) {
+  border-color: transparent;
+  background: rgba($primaryColor, 0.3);
+  color: lighten($primaryColor, 30%);
+}
