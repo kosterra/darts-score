@@ -25,6 +25,24 @@ export default (mongoose) => {
         sourceType: String,
         sourceId:   String,
       }],
+      // The Hall of Shame, worked out again with the badges: every time one
+      // happened (in which club), and the good deeds that washed one off
+      shame: [{
+        _id: false,
+        badge:      { type: String, required: true },
+        at:         { type: Date, required: true },
+        count:      { type: Number, default: 1 },
+        club:       String,
+        sourceType: String,
+        sourceId:   String,
+      }],
+      shameWashes: [{
+        _id: false,
+        badge:      { type: String, required: true },
+        at:         { type: Date, required: true },
+        sourceType: String,
+        sourceId:   String,
+      }],
       // Weeks played in a row, kept up to date with the badges
       activity: {
         lastWeek:       { type: Number, default: null },

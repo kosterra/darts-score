@@ -1,4 +1,4 @@
-import { startingScoreOf } from './x01.rules.js';
+import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
 
 /**
@@ -35,6 +35,12 @@ const CRICKET_TREBLES = new Set([15, 16, 17, 18, 19, 20]);
 // the Around the Clock modes there are; finishing each once is the full set
 const TRAINING_MODES = ['Single', 'Double', 'Triple', 'All'];
 const DAY_MS = 24 * 60 * 60 * 1000;
+const BUSTS_IN_A_LEG = 3;
+const DARTS_AT_DOUBLE = 10;
+const LOSING_STREAK = 5;
+const WINS_TO_WARM_UP = 2;
+const BIG_CHECKOUT = 60;
+const MIN_PLAYERS_FOR_LAST = 3;
 const formatCount = (n) => new Intl.NumberFormat('en').format(n);
 
 // Series are shown in these categories, in this order
@@ -93,11 +99,6 @@ export const BADGE_GROUPS = [
         tiers: [[1, 'Nine-Darter']],
     },
     {
-        group: 'madhouse', category: 'finishing', title: 'Madhouse', metric: 'madhouses',
-        describe: () => 'Check out on double 1, the most dreaded finish',
-        tiers: [[1, 'Madhouse']],
-    },
-    {
         group: 'whitewash', category: 'winning', title: 'Whitewashes', metric: 'whitewashes',
         describe: (n) => n === 1 ? 'Win an X01 match without losing a leg' : `Win ${n} X01 matches without losing a leg`,
         tiers: [[1, 'Whitewash'], [5, 'Clean Sweeper'], [10, 'No Mercy']],
@@ -106,11 +107,6 @@ export const BADGE_GROUPS = [
         group: 'maxHatTrick', category: 'scoring', title: 'Hattrick of maximums', metric: 'maxHatTricks',
         describe: () => 'Throw three 180s in one game',
         tiers: [[1, 'Hattrick of Maximums']],
-    },
-    {
-        group: 'bedAndBreakfast', category: 'scoring', title: 'Bed and breakfast', metric: 'bedAndBreakfasts',
-        describe: () => 'Score 26 in one visit with single 20, single 5 and single 1: aiming at the treble 20 and landing in its neighbours, the most common unlucky visit in darts',
-        tiers: [[1, 'Bed and Breakfast']],
     },
     {
         group: 'average', category: 'scoring', title: 'Game average', metric: 'bestAverage',
@@ -246,6 +242,62 @@ export const BADGE_GROUPS = [
 ];
 
 /**
+ * The Hall of Shame: what nobody wants to throw. Each one is counted every
+ * time it happens, and in every club one player holds it, the one who did it
+ * last, until someone else takes it over or they wash it off with the good
+ * deed ("wash", a metric that has to grow after the shame). They add no XP.
+ */
+export const SHAME_BADGES = [
+    {
+        id: 'bedAndBreakfast', title: 'Bed and Breakfast', metric: 'bedAndBreakfasts', washMetric: 'tonPlusVisits',
+        description: 'Score 26 with single 20, single 5 and single 1: aiming at the treble 20 and landing in its neighbours',
+        wash: `Score ${TON} or more in a visit`,
+    },
+    {
+        id: 'madhouse', title: 'Madhouse', metric: 'madhouses', washMetric: 'highFinishes',
+        description: 'Check out on double 1, after splitting the doubles all the way down',
+        wash: `Check out ${HIGH_FINISH} or more`,
+    },
+    {
+        id: 'nothingDoing', title: 'Nothing Doing', metric: 'nothingDoings', washMetric: 'tonFortyVisits',
+        description: 'Three darts in a visit and no score',
+        wash: `Score ${TON_FORTY} or more in a visit`,
+    },
+    {
+        id: 'bustMaster', title: 'Bust Master', metric: 'bustMasters', washMetric: 'bigCheckouts',
+        description: `Bust ${BUSTS_IN_A_LEG} times in one leg`,
+        wash: `Check out ${BIG_CHECKOUT} or more`,
+    },
+    {
+        id: 'stuckOnTheDouble', title: 'Stuck on the Double', metric: 'stuckOnDoubles', washMetric: 'firstDartCheckouts',
+        description: `Throw ${DARTS_AT_DOUBLE} or more darts at a double in one leg`,
+        wash: 'Check out with your first dart at a double in a leg',
+    },
+    {
+        id: 'whitewashed', title: 'Whitewashed', metric: 'whitewashedLosses', washMetric: 'winsX01',
+        description: 'Lose an X01 match without winning a single leg',
+        wash: 'Win an X01 match',
+    },
+    {
+        id: 'bottledIt', title: 'Bottled It', metric: 'bottledIts', washMetric: 'clutchWins',
+        description: `Lose an X01 match after leading by ${COMEBACK_DEFICIT} legs`,
+        wash: 'Win an X01 match in the deciding leg',
+    },
+    {
+        id: 'woodenSpoon', title: 'Wooden Spoon', metric: 'woodenSpoons', washMetric: 'bigGameWins',
+        description: `Finish last in a game of ${MIN_PLAYERS_FOR_LAST} or more players`,
+        wash: `Win a game of ${MIN_PLAYERS_FOR_LAST} or more players`,
+    },
+    {
+        id: 'coldSpell', title: 'Cold Spell', metric: 'coldSpells', washMetric: 'warmUps',
+        description: `Lose ${LOSING_STREAK} games in a row`,
+        wash: `Win ${WINS_TO_WARM_UP} games in a row`,
+    },
+];
+
+export const getShameBadge = (id) => SHAME_BADGES.find(badge => badge.id === id);
+
+/**
  * Every single badge, flattened from the groups.
  */
 // the target as the app shows it next to a badge's name
@@ -270,6 +322,12 @@ export const BADGES = BADGE_GROUPS.flatMap(({ group, category, title, metric, lo
 export const getBadge = (id) => BADGES.find(badge => badge.id === id);
 
 /**
+ * How many of the stored badges still exist (Madhouse and Bed and Breakfast
+ * moved to the Hall of Shame and no longer count).
+ */
+export const countBadges = (entries = []) => entries.filter(entry => getBadge(entry.badge)).length;
+
+/**
  * Whether a metric reached a badge: at least the target, or for "lower"
  * badges a value at or below it (0 means nothing yet).
  */
@@ -285,6 +343,9 @@ const newMetrics = () => ({
     whiteHorses: 0, bullHatTricks: 0, bestMarksPerRound: 0,
     trainingDays: 0, lastTrainingDay: null, trainingWeekStreak: 0, bestTrainingWeekStreak: 0, lastTrainingWeek: null,
     trainingModes: 0, trainingModesDone: new Set(), bestSinglesDarts: 0,
+    // the Hall of Shame and the good deeds that wash it off
+    nothingDoings: 0, bustMasters: 0, stuckOnDoubles: 0, whitewashedLosses: 0, bottledIts: 0, woodenSpoons: 0, coldSpells: 0,
+    lossStreak: 0, bigCheckouts: 0, firstDartCheckouts: 0, bigGameWins: 0, warmUps: 0,
 });
 
 const number = (key) => Number(String(key).replace(/\D/g, '')) || 0;
@@ -308,6 +369,31 @@ const sameDarts = (darts, wanted) => {
 };
 
 const upperDarts = (darts) => thrownDarts(darts).map(dart => String(dart).toUpperCase());
+
+const MULTIPLIERS = { S: 1, D: 2, T: 3 };
+// 'T20' → 60, 'D25' → 50, '0' → 0
+const dartValue = (dart) => {
+    const text = String(dart).toUpperCase();
+    return (MULTIPLIERS[text[0]] ?? 0) * (Number(text.slice(1)) || 0);
+};
+const visitScore = (visit) => Number.isFinite(visit.roundScore) ? visit.roundScore : upperDarts(visit.darts).reduce((sum, dart) => sum + dartValue(dart), 0);
+// what can be checked out with one dart at a double (or the bull)
+const onADouble = (left) => left === 50 || (left >= 2 && left <= 40 && left % 2 === 0);
+
+/**
+ * How many darts of a visit were thrown at a double: those thrown while what
+ * was left could be checked out with one dart.
+ */
+const dartsAtDouble = (darts, before) => {
+    let left = before;
+    let count = 0;
+    for (const dart of upperDarts(darts)) {
+        if (onADouble(left)) count += 1;
+        left -= dartValue(dart);
+        if (left <= 1) break;
+    }
+    return count;
+};
 
 // all three darts of a visit on the bull, outer or inner
 const isBullHatTrick = (darts) => {
@@ -378,18 +464,26 @@ export const wonInDecidingLeg = (game, playerId) => {
  * Adds what can only be seen dart by dart: the visits, special finishes, the
  * nine-darter and short legs, and coming back from two legs down.
  */
-const applyVisits = (metrics, game, playerId, won) => {
+const applyVisits = (metrics, game, playerId, won, lost) => {
     const legsWon = new Map();
     let wasBehind = false;
+    let wasAhead = false;
     const startingScore = startingScoreOf(game, playerId);
+    const doubleOut = outModeOf(game, playerId) === 'Double Out';
 
     for (const leg of legsInOrder(game)) {
         let left = startingScore;
+        let busts = 0;
+        let atDouble = 0;
         for (const visit of leg) {
             if (visit?.playerId !== playerId) continue;
             applyX01Visit(metrics, visit, left);
+            if (doubleOut) atDouble += dartsAtDouble(visit.darts, left);
+            if (visit.scoreLeft === left && left > 0 && visitScore(visit) > 0) busts += 1;
             if (Number.isFinite(visit.scoreLeft)) left = visit.scoreLeft;
         }
+        if (busts >= BUSTS_IN_A_LEG) metrics.bustMasters += 1;
+        if (atDouble >= DARTS_AT_DOUBLE) metrics.stuckOnDoubles += 1;
 
         const finish = leg.find(visit => visit?.scoreLeft === 0);
         if (!finish) continue;
@@ -403,6 +497,7 @@ const applyVisits = (metrics, game, playerId, won) => {
             const dartsInLeg = leg.filter(visit => visit?.playerId === playerId)
                 .reduce((sum, visit) => sum + thrownDarts(visit.darts).length, 0);
             if (startingScore === NINE_DARTER_SCORE && dartsInLeg <= NINE_DARTS) metrics.nineDarters += 1;
+            if (doubleOut && atDouble === 1) metrics.firstDartCheckouts += 1;
             if (startingScore === SHORT_LEG_SCORE && dartsInLeg > 0 && (!metrics.bestLegDarts || dartsInLeg < metrics.bestLegDarts)) {
                 metrics.bestLegDarts = dartsInLeg;
             }
@@ -411,9 +506,11 @@ const applyVisits = (metrics, game, playerId, won) => {
         const mine = legsWon.get(playerId) ?? 0;
         const bestOpponent = Math.max(0, ...[...legsWon].filter(([id]) => id !== playerId).map(([, legs]) => legs));
         if (bestOpponent - mine >= COMEBACK_DEFICIT) wasBehind = true;
+        if (mine - bestOpponent >= COMEBACK_DEFICIT) wasAhead = true;
     }
 
     if (won && wasBehind) metrics.comebacks += 1;
+    if (lost && wasAhead) metrics.bottledIts += 1;
     if (won && wonInDecidingLeg(game, playerId)) metrics.clutchWins += 1;
 };
 
@@ -464,6 +561,27 @@ const applyWeek = (metrics, date) => {
 export const currentWeekStreak = (metrics, now = new Date()) =>
     metrics.lastWeek !== null && metrics.lastWeek >= weekOf(now) - 1 ? metrics.weekStreak : 0;
 
+/**
+ * Whether the player finished alone in last place of a game of three or more:
+ * fewest legs in X01, fewest points in Cricket and Elimination, the last rank
+ * in Around the Clock. A shared last place is nobody's.
+ */
+export const isLast = (type, game, playerId) => {
+    const players = game.players ?? [];
+    if (players.length < MIN_PLAYERS_FOR_LAST) return false;
+    const model = (id) => game.playerModels?.[id] ?? {};
+    const value = {
+        x01: (id) => model(id).legsWon?.game ?? 0,
+        cricket: (id) => Number(model(id).score ?? 0),
+        elimination: (id) => Number(model(id).score ?? 0),
+        // a higher rank is worse: turn it around so the lowest value is last
+        clock: (id) => -(model(id).rank ?? 0),
+    }[type];
+    if (!value || model(playerId).hasWonGame) return false;
+    const mine = value(playerId);
+    return players.filter(id => id !== playerId).every(id => value(id) > mine);
+};
+
 const applyGame = (metrics, type, game, playerId) => {
     const model = game.playerModels?.[playerId] ?? {};
     const opponents = (game.players ?? []).filter(id => id !== playerId);
@@ -480,11 +598,17 @@ const applyGame = (metrics, type, game, playerId) => {
         if (won) {
             metrics.wins += 1;
             metrics.streak += 1;
+            metrics.lossStreak = 0;
+            if (metrics.streak === WINS_TO_WARM_UP) metrics.warmUps += 1;
+            if (opponents.length >= MIN_PLAYERS_FOR_LAST - 1) metrics.bigGameWins += 1;
             metrics.bestStreak = Math.max(metrics.bestStreak, metrics.streak);
             metrics[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock' }[type]] += 1;
             metrics.gameTypesWon = ['winsX01', 'winsCricket', 'winsElimination'].filter(key => metrics[key] > 0).length;
         } else {
             metrics.streak = 0;
+            metrics.lossStreak += 1;
+            if (metrics.lossStreak === LOSING_STREAK) metrics.coldSpells += 1;
+            if (isLast(type, game, playerId)) metrics.woodenSpoons += 1;
         }
     }
 
@@ -497,12 +621,14 @@ const applyGame = (metrics, type, game, playerId) => {
     const ranges = model.scoreRanges?.game ?? {};
     const visitsIn = (keys) => keys.reduce((sum, key) => sum + (Number(ranges[key]) || 0), 0);
     metrics.tonPlusVisits += visitsIn(['100-119', '120-139', '140-159', '160-179', '180']);
+    metrics.nothingDoings += visitsIn(['ZERO']);
     metrics.tonFortyVisits += visitsIn(['140-159', '160-179', '180']);
     metrics.num180s += model.scoreRanges?.game?.['180'] ?? 0;
     for (const [score, count] of Object.entries(model.checkoutScores?.game ?? {})) {
         const times = Number(count) || 0;
         if (Number(score) >= HIGH_FINISH) metrics.highFinishes += times;
         if (Number(score) === BIG_FISH) metrics.bigFishes += times;
+        if (Number(score) >= BIG_CHECKOUT) metrics.bigCheckouts += times;
     }
     metrics.bullFinishes += model.checkout?.sections?.['25']?.hit ?? 0;
 
@@ -511,11 +637,14 @@ const applyGame = (metrics, type, game, playerId) => {
     }
 
     if ((model.scoreRanges?.game?.['180'] ?? 0) >= 3) metrics.maxHatTricks += 1;
-    applyVisits(metrics, game, playerId, competitive && won);
+    applyVisits(metrics, game, playerId, competitive && won, competitive && !won);
 
     const legs = (id) => game.playerModels?.[id]?.legsWon?.game ?? 0;
     if (competitive && won && legs(playerId) >= MIN_LEGS_FOR_WHITEWASH && opponents.every(id => legs(id) === 0)) {
         metrics.whitewashes += 1;
+    }
+    if (competitive && !won && legs(playerId) === 0 && Math.max(0, ...opponents.map(legs)) >= MIN_LEGS_FOR_WHITEWASH) {
+        metrics.whitewashedLosses += 1;
     }
 };
 
@@ -566,11 +695,33 @@ export const replayBadges = (events, playerId) => {
     const metrics = newMetrics();
     const earned = [];
     const earnedIds = new Set();
+    // the Hall of Shame: each time it happened, and the good deeds that washed it off
+    const shame = [];
+    const washes = [];
+    // per shame badge: whether the last one is still unwashed
+    const open = new Set();
 
     for (const event of [...events].sort((a, b) => a.at - b.at)) {
+        const before = Object.fromEntries(SHAME_BADGES.flatMap(badge => [[badge.metric, metrics[badge.metric]], [badge.washMetric, metrics[badge.washMetric]]]));
         if (event.type === 'atc') applyTraining(metrics, event.data, event.at);
         else applyGame(metrics, event.type, event.data, playerId);
         applyWeek(metrics, event.at);
+
+        const source = { at: event.at, sourceType: event.type, sourceId: event.id };
+        // a good deed first, so a shame in the same game stays
+        for (const badge of SHAME_BADGES) {
+            if (open.has(badge.id) && metrics[badge.washMetric] > before[badge.washMetric]) {
+                washes.push({ badge: badge.id, ...source });
+                open.delete(badge.id);
+            }
+        }
+        for (const badge of SHAME_BADGES) {
+            const count = metrics[badge.metric] - before[badge.metric];
+            if (count > 0) {
+                shame.push({ badge: badge.id, count, club: event.data?.club ? String(event.data.club) : null, ...source });
+                open.add(badge.id);
+            }
+        }
 
         for (const badge of BADGES) {
             if (!earnedIds.has(badge.id) && reached(badge, metrics[badge.metric])) {
@@ -580,5 +731,5 @@ export const replayBadges = (events, playerId) => {
         }
     }
 
-    return { earned, metrics };
+    return { earned, metrics, shame, washes };
 };

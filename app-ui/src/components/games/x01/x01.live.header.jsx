@@ -9,6 +9,8 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.ut
 import { describeRules, hasHandicap, outModeOf, rulesOf } from '../../../utils/x01.rules';
 import { legSummaryOf } from '../../../utils/x01.live';
 import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../../../utils/checkout.routes';
+import { heldBy, useClubShame } from '../../badges/hall.of.shame';
+import ShameMedal from '../../badges/shame.medal';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
@@ -37,6 +39,8 @@ const WonCount = ({ label, won, mode, count }) => {
  */
 const X01LiveHeader = () => {
     const { game, players, checkoutProfiles = {}, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
+    // the shame badges each player holds in the club, shown small next to the tags
+    const shame = useClubShame();
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const handicap = hasHandicap(game);
@@ -93,6 +97,11 @@ const X01LiveHeader = () => {
                                     {isTurn && <span className="x01-live-turn">Throwing</span>}
                                     {game.startingPlayerLeg === player.id && <span className="x01-live-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>}
                                     {handicap && <span className="x01-handicap-rules">{describeRules(rulesOf(game, player.id))}</span>}
+                                    {heldBy(shame, player.id).map(badge => (
+                                        <span key={badge.id} className="x01-shame">
+                                            <ShameMedal badge={badge} size="xs" title={`Holds the ${badge.title} in the club. Wash it off: ${badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}`} />
+                                        </span>
+                                    ))}
                                 </span>
                             </div>
                             <div className="x01-hero-score">

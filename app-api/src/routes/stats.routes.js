@@ -6,7 +6,7 @@ import { getX01Stats } from '../controllers/x01.stats.controller.js';
 import { getPlayersX01Stats } from '../controllers/players.x01.stats.controller.js';
 import { getHeadToHead } from '../controllers/head.to.head.controller.js';
 import { getClubStats, getPlayerGames, getPlayerLevels, getPlayersForm } from '../controllers/club.stats.controller.js';
-import { getClubBadges, getPlayerBadges, getGameBadges } from '../controllers/badge.controller.js';
+import { getClubBadges, getClubShame, getPlayerBadges, getGameBadges } from '../controllers/badge.controller.js';
 import { playersKnownInClub } from '../controllers/game.controller.js';
 import db from '../models/db.model.js';
 
@@ -41,6 +41,7 @@ export default (app) => {
     router.get('/levels', getPlayerLevels);
     // Badges of a player, and the badges earned in one game
     router.get('/badges', getClubBadges);
+    router.get('/shame', getClubShame);
     router.get('/badges/player/:id', playerInClub, getPlayerBadges);
     router.get('/badges/game/:type/:id', getGameBadges);
     // Retrieve stats for a player

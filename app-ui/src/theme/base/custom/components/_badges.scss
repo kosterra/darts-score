@@ -1,5 +1,7 @@
 // Badges and the celebration shown after a win or a new record
 
+$shameColor: #c7745f;
+
 $badgeMetals: (
     "bronze": #cd7f32,
     "silver": #c0c0c0,
@@ -25,6 +27,14 @@ $badgeMetals: (
     background: color-mix(in srgb, currentColor 18%, transparent);
     box-shadow: inset 0 0 0 2px color-mix(in srgb, currentColor 55%, transparent);
 
+    // in a line of text, e.g. next to a player in a game
+    &.badge-medal-xs {
+        width: 1.3rem;
+        height: 1.3rem;
+        font-size: 0.6rem;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 55%, transparent);
+    }
+
     &.badge-medal-sm {
         width: 2.25rem;
         height: 2.25rem;
@@ -36,6 +46,11 @@ $badgeMetals: (
         &.badge-#{$metal} {
             color: $color;
         }
+    }
+
+    // the Hall of Shame: a dull rust, nothing anyone wants
+    &.badge-shame {
+        color: $shameColor;
     }
 
     // not earned yet: grey, with a lock
@@ -213,4 +228,33 @@ $badgeMetals: (
     background: $primaryColor;
     color: $primaryTextColor;
     font-size: 1.15rem;
+}
+
+// The Hall of Shame: each shame badge with who holds it, in two columns when
+// there is room
+.hall-of-shame {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.hall-of-shame-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+// a shame badge on a player's profile: how often, and whether it is still on them
+.shame-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.shame-count {
+    color: $shameColor;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
 }

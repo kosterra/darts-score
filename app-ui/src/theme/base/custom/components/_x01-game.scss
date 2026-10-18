@@ -107,6 +107,12 @@
   font-size: 0.7rem;
 }
 
+.x01-shame {
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
 .x01-live-turn {
   color: var(--text-subtle);
   font-weight: 700;

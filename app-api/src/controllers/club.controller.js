@@ -79,7 +79,7 @@ export const update = async (req, res) => {
     club.name = req.body.name;
     if (typeof req.body.description === 'string') club.description = req.body.description;
     // Visibility settings are optional, so a plain rename leaves them alone
-    for (const setting of ['isPublic', 'publicLiveGames', 'publicResults']) {
+    for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
     }
     if (Array.isArray(req.body.dashboardWidgets)) club.dashboardWidgets = req.body.dashboardWidgets;

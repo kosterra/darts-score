@@ -37,15 +37,23 @@ const loadPlayerEvents = async (player) => {
  * Resolves to the newly earned badges and the player's current metrics.
  */
 export const syncPlayerBadges = async (player) => {
-    const { earned, metrics } = replayBadges(await loadPlayerEvents(player), String(player._id));
+    const { earned, metrics, shame, washes } = replayBadges(await loadPlayerEvents(player), String(player._id));
     const known = new Set((player.badges ?? []).map(entry => entry.badge));
     const fresh = earned.filter(entry => !known.has(entry.badge));
     const activity = { lastWeek: metrics.lastWeek, weekStreak: metrics.weekStreak, bestWeekStreak: metrics.bestWeekStreak };
     const activityChanged = Object.entries(activity).some(([key, value]) => player.activity?.[key] !== value);
 
+    // the Hall of Shame follows the games as they are now: a deleted game takes its shame along
+    const shameKey = (entries) => JSON.stringify(entries.map(({ badge, at, count, sourceId }) => [badge, new Date(at).getTime(), count, sourceId]));
+    const shameChanged = shameKey(player.shame ?? []) !== shameKey(shame) || shameKey(player.shameWashes ?? []) !== shameKey(washes);
+
     if (fresh.length > 0) player.badges.push(...fresh);
     if (activityChanged) player.activity = activity;
-    if (fresh.length > 0 || activityChanged) await player.save();
+    if (shameChanged) {
+        player.shame = shame;
+        player.shameWashes = washes;
+    }
+    if (fresh.length > 0 || activityChanged || shameChanged) await player.save();
     if (fresh.length > 0) {
         logger.info(`${player.nickname} earned ${fresh.map(entry => entry.badge).join(', ')}`);
     }

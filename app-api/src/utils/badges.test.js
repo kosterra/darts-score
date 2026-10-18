@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { BADGES, BADGE_CATEGORIES, BADGE_GROUPS, currentWeekStreak, replayBadges, wonInDecidingLeg } from './badges.js';
+import { BADGES, BADGE_CATEGORIES, BADGE_GROUPS, SHAME_BADGES, countBadges, currentWeekStreak, isLast, replayBadges, wonInDecidingLeg } from './badges.js';
 
 const P = 'player-1';
 const O = 'player-2';
@@ -92,8 +92,11 @@ describe('replayBadges', () => {
         const nine = { 'leg-1': [v(['T20', 'T20', 'T20'], 321), v(['S1', 'S1', 'S1'], 498, O), v(['T20', 'T20', 'T20'], 141), v(['S1', 'S1', 'S1'], 495, O), v(['T20', 'T19', 'D12'], 0)] };
         expect(ids([game(nine)])).toContain('nineDarter-1');
         expect(ids([game(nine, 301)])).not.toContain('nineDarter-1');
-        expect(ids([game({ 'leg-1': [v(['S1', '0', 'D1'], 0)] })])).toContain('madhouse-1');
-        expect(ids([game({ 'leg-1': [v(['S5', 'S20', 'S1'], 475)] })])).toContain('bedAndBreakfast-1');
+        // madhouse and bed and breakfast are in the Hall of Shame now
+        const shame = (legs) => replayBadges([game(legs)], P).shame.map(e => e.badge);
+        expect(shame({ 'leg-1': [v(['S1', '0', 'D1'], 0)] })).toContain('madhouse');
+        expect(shame({ 'leg-1': [v(['S5', 'S20', 'S1'], 475)] })).toContain('bedAndBreakfast');
+        expect(ids([game({ 'leg-1': [v(['S5', 'S20', 'S1'], 475)] })])).not.toContain('bedAndBreakfast-1');
     });
 
     it('awards a comeback only after being two legs down', () => {
@@ -255,5 +258,82 @@ describe('replayBadges', () => {
     it('replays in time order whatever the input order', () => {
         const first = x01(true); const second = x01(true); const third = x01(true);
         expect(replayBadges([third, first, second], P).earned.find(e => e.badge === 'streak-3').sourceId).toBe(third.id);
+    });
+});
+
+describe('Hall of Shame', () => {
+    const v = (darts, roundScore, scoreLeft, playerId = P) => ({ playerId, darts, roundScore, scoreLeft });
+    const x01Game = (legs, { won = false, extra = {}, model = {}, opponentModel = {} } = {}) => {
+        const base = x01(won, model, opponentModel);
+        return { ...base, data: { ...base.data, club: 'c1', startingScore: 501, legOutMode: 'Double Out', allSetsThrows: { 'set-1': legs }, ...extra } };
+    };
+    const shameOf = (events) => replayBadges(events, P).shame.map(e => e.badge);
+
+    it('has unique ids, a description and a way to wash each off', () => {
+        expect(new Set(SHAME_BADGES.map(b => b.id)).size).toBe(SHAME_BADGES.length);
+        for (const badge of SHAME_BADGES) expect(badge.description && badge.wash, badge.id).toBeTruthy();
+    });
+
+    it('no longer counts the stored madhouse as a badge', () => {
+        expect(countBadges([{ badge: 'madhouse-1' }, { badge: 'games-1' }])).toBe(1);
+    });
+
+    it('counts empty visits and three busts in a leg', () => {
+        expect(shameOf([x01Game({}, { model: { scoreRanges: { game: { ZERO: 2 } } } })])).toContain('nothingDoing');
+        const busts = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T20', 'D10'], 140, 1),
+            v(['S20', 'S20', 'S1'], 41, 1), v(['S5', '', ''], 5, 1), v(['D1', '', ''], 2, 1)];
+        // 1 left can't be finished: the last three are busts... only those that took nothing off
+        expect(shameOf([x01Game({ 'leg-1': busts })])).toContain('bustMaster');
+        expect(shameOf([x01Game({ 'leg-1': busts.slice(0, 5) })])).not.toContain('bustMaster');
+    });
+
+    it('counts ten darts at a double in a leg, and washes it off with a first-dart checkout', () => {
+        const stuck = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T19', 'S4'], 121, 20),
+            v(['S10', 'S5', 'S1'], 16, 4), v(['S2', 'S1', 'S1'], 4, 0)];
+        // at a double: 20 (1 dart), 10 (1), 4 (1), 2 (1) = 4 darts; not stuck
+        expect(shameOf([x01Game({ 'leg-1': stuck })])).not.toContain('stuckOnTheDouble');
+        const misses = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T19', 'S4'], 121, 20),
+            v(['0', '0', '0'], 0, 20), v(['0', '0', '0'], 0, 20), v(['0', '0', '0'], 0, 20), v(['0', '0', 'D10'], 20, 0)];
+        const result = replayBadges([x01Game({ 'leg-1': misses })], P);
+        expect(result.shame.map(e => e.badge)).toContain('stuckOnTheDouble');
+        expect(result.shame.find(e => e.badge === 'stuckOnTheDouble')).toMatchObject({ club: 'c1', count: 1 });
+        const clean = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T19', 'D12'], 141, 0)];
+        const later = replayBadges([x01Game({ 'leg-1': misses }), x01Game({ 'leg-1': clean })], P);
+        expect(later.washes.map(e => e.badge)).toContain('stuckOnTheDouble');
+    });
+
+    it('does not count darts at a double with straight out', () => {
+        const misses = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T19', 'S4'], 121, 20),
+            v(['0', '0', '0'], 0, 20), v(['0', '0', '0'], 0, 20), v(['0', '0', '0'], 0, 20), v(['0', '0', 'D10'], 20, 0)];
+        expect(shameOf([x01Game({ 'leg-1': misses }, { extra: { legOutMode: 'Straight Out' } })])).not.toContain('stuckOnTheDouble');
+    });
+
+    it('knows a whitewashed loss and a bottled lead', () => {
+        expect(shameOf([x01Game({}, { model: { legsWon: { game: 0 } }, opponentModel: { legsWon: { game: 3 } } })])).toContain('whitewashed');
+        expect(shameOf([x01Game({}, { model: { legsWon: { game: 1 } }, opponentModel: { legsWon: { game: 3 } } })])).not.toContain('whitewashed');
+        const leg = (winner) => [{ playerId: winner, darts: ['D20'], scoreLeft: 0 }];
+        const legs = Object.fromEntries([P, P, O, O, O].map((w, i) => [`leg-${i + 1}`, leg(w)]));
+        expect(shameOf([x01Game(legs)])).toContain('bottledIt');
+    });
+
+    it('gives the wooden spoon to the only one in last place', () => {
+        const three = (models) => ({ players: ['a', 'b', 'c'], playerModels: models });
+        expect(isLast('x01', three({ a: { legsWon: { game: 0 } }, b: { legsWon: { game: 1 } }, c: { legsWon: { game: 3 }, hasWonGame: true } }), 'a')).toBe(true);
+        expect(isLast('x01', three({ a: { legsWon: { game: 1 } }, b: { legsWon: { game: 1 } }, c: { legsWon: { game: 3 }, hasWonGame: true } }), 'a')).toBe(false);
+        expect(isLast('clock', three({ a: { rank: 3 }, b: { rank: 2 }, c: { rank: 1, hasWonGame: true } }), 'a')).toBe(true);
+        expect(isLast('x01', { players: ['a', 'b'], playerModels: { a: {}, b: { hasWonGame: true } } }, 'a')).toBe(false);
+    });
+
+    it('counts five losses in a row once, and washes them off with two wins in a row', () => {
+        const losses = Array.from({ length: 6 }, () => x01(false));
+        const { shame } = replayBadges(losses, P);
+        expect(shame.filter(e => e.badge === 'coldSpell')).toHaveLength(1);
+        const { washes } = replayBadges([...losses, x01(true), x01(false), x01(true), x01(true)], P);
+        expect(washes.filter(e => e.badge === 'coldSpell')).toHaveLength(1);
+    });
+
+    it('only washes off what is still on the player', () => {
+        const ton = () => x01(true, { scoreRanges: { game: { '100-119': 1 } } });
+        expect(replayBadges([ton()], P).washes).toEqual([]);
     });
 });

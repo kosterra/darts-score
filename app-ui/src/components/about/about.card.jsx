@@ -6,6 +6,7 @@ import { FaGithub } from "react-icons/fa6";
 import CHANGELOG from './changelog';
 import RULES from './rules';
 import BadgeMedal from '../badges/badge.medal';
+import ShameMedal from '../badges/shame.medal';
 import { requestJSON } from '../../utils/service.utils';
 
 const REPOSITORY = 'https://github.com/kosterra/darts-score';
@@ -105,6 +106,25 @@ const AboutCard = () => {
                             </ul>
                         </section>
                     ))}
+                    {catalogue?.shame?.length > 0 &&
+                        <section className="d-flex flex-column gap-3">
+                            <h2 className="fs-5 fw-semibold text-default m-0">Hall of Shame</h2>
+                            <p className="text-subtle fs-7 m-0">
+                                Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01 games. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP, and a club admin can switch them off in the club settings, e.g. for a club with children.
+                            </p>
+                            <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+                                {catalogue.shame.map(badge => (
+                                    <li key={badge.id} className="d-flex align-items-center gap-3">
+                                        <ShameMedal badge={badge} size="sm" />
+                                        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                                            <span className="text-default fw-semibold">{badge.title}</span>
+                                            <span className="text-faint fs-7">{badge.description} · Wash it off: {badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}</span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    }
                 </div>
             </Panel>
         </div>

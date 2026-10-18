@@ -22,7 +22,7 @@ const ClubsPage = () => {
     const { clubs, activeClub, refreshClubs, selectClub } = useAuth();
 
     const [newName, setNewName] = useState('');
-    // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults }
+    // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults, shameBadges }
     const [editing, setEditing] = useState(null);
     const [adminsOfClubId, setAdminsOfClubId] = useState(null); // club whose admins dialog is open
     const [editingClubId, setEditingClubId] = useState(null); // club whose name, description and logo are edited
@@ -170,7 +170,8 @@ const ClubsPage = () => {
                                                     name: club.name,
                                                     isPublic: !!club.isPublic,
                                                     publicLiveGames: club.publicLiveGames !== false,
-                                                    publicResults: club.publicResults !== false
+                                                    publicResults: club.publicResults !== false,
+                                                    shameBadges: club.shameBadges !== false
                                                 })}
                                             />
                                             <DeletePopup
@@ -199,6 +200,8 @@ const ClubsPage = () => {
                         <span className="text-faint fs-8">
                             Players are shown without their name unless their nickname is set to public, by an admin on the players page or by the players themselves in their profile.
                         </span>
+                        <span className="text-default fw-semibold">Fun</span>
+                        {settingSwitch('shameBadges', 'Hall of Shame', 'Badges nobody wants, like Bed and Breakfast or Madhouse, with who holds them on the dashboard and in X01 games. Switch it off e.g. for a club with children.')}
                         <div className="d-flex justify-content-end gap-3">
                             <Button type="button" label="Cancel" severity="secondary" size="small" onClick={() => setEditing(null)} />
                             <Button type="submit" label="Save" icon="pi pi-save" size="small" />

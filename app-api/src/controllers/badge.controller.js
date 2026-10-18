@@ -1,8 +1,14 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { BADGES, BADGE_CATEGORIES, currentWeekStreak, getBadge } from '../utils/badges.js';
+import { BADGES, BADGE_CATEGORIES, SHAME_BADGES, currentWeekStreak, getBadge } from '../utils/badges.js';
+import { clubShameHolders, personalShame } from '../utils/shame.js';
 import { GAME_MODELS, syncPlayerBadges, syncGameBadges } from '../utils/badge.service.js';
 import { knownInClub } from '../models/player.model.js';
+
+const shameEnabled = (club) => club?.shameBadges !== false;
+const getShame = (id) => SHAME_BADGES.find(badge => badge.id === id);
+// eslint-disable-next-line no-unused-vars
+export const publicShameBadge = ({ metric, washMetric, ...badge }) => badge;
 
 /**
  * All badges for one player: the earned ones with their date and the open
@@ -28,6 +34,10 @@ export const getPlayerBadges = async (req, res) => {
         categories: BADGE_CATEGORIES,
         weekStreak: { current: currentWeekStreak(metrics), best: metrics.bestWeekStreak },
         earnedCount: BADGES.filter(badge => earnedById.has(badge.id)).length,
+        // the Hall of Shame, unless the club switched it off
+        shame: shameEnabled(req.club)
+            ? personalShame(player).map(entry => ({ ...publicShameBadge(getShame(entry.id)), ...entry }))
+            : null,
         total: BADGES.length,
         badges: BADGES.map(badge => {
             const earned = earnedById.get(badge.id);
@@ -102,5 +112,32 @@ export const getClubBadges = async (req, res) => {
                 };
             })
             .sort((a, b) => b.earnedCount - a.earnedCount || a.nickname.localeCompare(b.nickname)),
+    });
+};
+
+/**
+ * The Hall of Shame of the club: who holds each shame badge right now, with
+ * the game they got it in. Empty when the club switched it off.
+ */
+export const getClubShame = async (req, res) => {
+    logger.debug('club shame called');
+    if (!shameEnabled(req.club)) return res.json({ enabled: false, badges: [] });
+    const players = await db.player
+        .find({ clubs: req.club._id, guest: { $ne: true } }, 'firstname lastname nickname profileImg shame shameWashes')
+        .lean();
+    const byId = new Map(players.map(player => [String(player._id), player]));
+
+    res.json({
+        enabled: true,
+        badges: clubShameHolders(players, req.club._id).map(entry => {
+            const player = entry.holder ? byId.get(entry.holder) : null;
+            return {
+                ...publicShameBadge(getShame(entry.id)),
+                ...entry,
+                holder: player
+                    ? { id: String(player._id), nickname: player.nickname, firstname: player.firstname, lastname: player.lastname, profileImg: player.profileImg }
+                    : null,
+            };
+        }),
     });
 };

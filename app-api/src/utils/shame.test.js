@@ -1,0 +1,34 @@
+import { describe, it, expect } from 'vitest';
+import { clubShameHolders, personalShame } from './shame.js';
+
+const day = (n) => new Date(2026, 0, n);
+const player = (id, shame = [], shameWashes = []) => ({ _id: id, shame, shameWashes });
+const madhouse = (n, club = 'c1', count = 1) => ({ badge: 'madhouse', at: day(n), club, count, sourceId: `g${n}` });
+
+describe('personalShame', () => {
+    it('adds up the count and knows whether it is still on the player', () => {
+        const entry = personalShame(player('a', [madhouse(1), madhouse(5, 'c1', 2)])).find(e => e.id === 'madhouse');
+        expect(entry).toMatchObject({ count: 3, active: true, washedAt: null });
+        expect(entry.lastAt).toEqual(day(5));
+    });
+
+    it('is washed off by a good deed after the last one', () => {
+        const washed = player('a', [madhouse(1)], [{ badge: 'madhouse', at: day(3), sourceId: 'g3' }]);
+        expect(personalShame(washed).find(e => e.id === 'madhouse')).toMatchObject({ count: 1, active: false });
+        const again = player('a', [madhouse(1), madhouse(4)], [{ badge: 'madhouse', at: day(3), sourceId: 'g3' }]);
+        expect(personalShame(again).find(e => e.id === 'madhouse').active).toBe(true);
+    });
+});
+
+describe('clubShameHolders', () => {
+    it('gives each badge to the last one who got it in the club', () => {
+        const holders = clubShameHolders([player('a', [madhouse(1)]), player('b', [madhouse(4)]), player('c', [madhouse(9, 'other')])], 'c1');
+        expect(holders.find(e => e.id === 'madhouse')).toMatchObject({ holder: 'b', sourceId: 'g4' });
+        expect(holders.find(e => e.id === 'coldSpell').holder).toBeNull();
+    });
+
+    it('leaves it free when the holder washed it off', () => {
+        const holders = clubShameHolders([player('a', [madhouse(1)]), player('b', [madhouse(4)], [{ badge: 'madhouse', at: day(6), sourceId: 'g6' }])], 'c1');
+        expect(holders.find(e => e.id === 'madhouse').holder).toBeNull();
+    });
+});

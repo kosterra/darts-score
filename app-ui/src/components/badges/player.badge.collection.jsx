@@ -4,7 +4,10 @@ import { ProgressBar } from 'primereact/progressbar';
 
 import StatsService from '../../services/stats.service';
 import PageLoader from '../elements/page.loader';
+import dayjs from 'dayjs';
+
 import BadgeMedal from './badge.medal';
+import ShameMedal from './shame.medal';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
 
@@ -54,6 +57,28 @@ const BadgeSeries = ({ badges }) => {
     );
 };
 
+const lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
+
+/**
+ * One badge of the Hall of Shame on the profile: how often it happened and
+ * whether it is still on the player or washed off.
+ */
+const ShameEntry = ({ badge }) => (
+    <li className="shame-entry">
+        <ShameMedal badge={badge} washed={!badge.active} />
+        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+            <span className="text-default fw-semibold">
+                {badge.title}
+                {badge.count > 0 && <span className="shame-count ms-2">× {badge.count}</span>}
+            </span>
+            <span className="text-faint fs-8">{badge.description}</span>
+            {badge.active && <span className="text-subtle fs-8">Since {dayjs(badge.lastAt).format('DD.MM.YYYY')} · wash it off: {lowerFirst(badge.wash)}</span>}
+            {!badge.active && badge.count > 0 && <span className="text-subtle fs-8">Washed off on {dayjs(badge.washedAt).format('DD.MM.YYYY')}</span>}
+            {badge.count === 0 && <span className="text-subtle fs-8">Never happened, keep it that way</span>}
+        </div>
+    </li>
+);
+
 /**
  * One player's badge collection, by category and series, with how much of it
  * they have collected. Part of the player's profile.
@@ -98,6 +123,16 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
                     </ul>
                 </Panel>
             ))}
+            {data.shame &&
+                <Panel header={`Hall of Shame · ${data.shame.filter(badge => badge.active).length} on ${data.player?.nickname ?? 'the player'} right now`}>
+                    <p className="text-subtle fs-7 mt-0 mb-3">
+                        What nobody wants to throw. These badges add no XP. Each one stays on the player until they wash it off with the good deed below it, and in the club it belongs to whoever got it last.
+                    </p>
+                    <ul className="list-unstyled m-0 d-grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(18rem, 1fr))' }}>
+                        {data.shame.map(badge => <ShameEntry key={badge.id} badge={badge} />)}
+                    </ul>
+                </Panel>
+            }
         </div>
     );
 };

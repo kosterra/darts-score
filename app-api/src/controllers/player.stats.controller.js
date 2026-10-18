@@ -5,6 +5,7 @@ import { playerStatsModel, checkoutItemModel } from '../models/player.stats.mode
 import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution, trainingProgress, trainingDarts, threeDartAverage } from '../utils/chart.data.js';
 import { x01Kpis, cricketKpis, eliminationKpis, clockKpis } from '../utils/kpi.data.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
+import { countBadges } from '../utils/badges.js';
 import { createGameFilterQuery, findFilteredGames, profileFiltersOf, isUnfiltered } from '../utils/game.utils.js';
 
 const X01 = db.x01;
@@ -100,7 +101,7 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
     // the player's level, from games, wins, badges and skill
     const player = await db.player.findById(playerId, 'badges').lean();
     playerStats.level = playerLevel(levelInputs({
-        ...everything, playerId, badgeCount: player?.badges?.length ?? 0,
+        ...everything, playerId, badgeCount: countBadges(player?.badges),
     }));
 
     // key figures per game type for the statistics page

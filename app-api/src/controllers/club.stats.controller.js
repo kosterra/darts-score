@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { knownInClub } from '../models/player.model.js';
 import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insights.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
+import { countBadges } from '../utils/badges.js';
 import { recentForm } from '../utils/chart.data.js';
 
 const LEADERBOARD_SIZE = 5;
@@ -232,7 +233,7 @@ export const getPlayerLevels = async (req, res) => {
         const id = String(player._id);
         const { level, xp } = playerLevel(levelInputs({
             x01Games: of(x01, id), cricketGames: of(cricket, id), eliminationGames: of(elimination, id), clockGames: of(clock, id),
-            playerId: id, badgeCount: player.badges?.length ?? 0,
+            playerId: id, badgeCount: countBadges(player.badges),
         }));
         levels[id] = { id: level.id, name: level.name, index: level.index, xp };
     }

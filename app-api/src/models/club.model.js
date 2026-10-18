@@ -10,6 +10,9 @@ export default (mongoose) => {
       isPublic:        { type: Boolean, default: false },
       publicLiveGames: { type: Boolean, default: true },
       publicResults:   { type: Boolean, default: true },
+      // The Hall of Shame (Bed and Breakfast, Madhouse, ...); a club with
+      // children may rather switch it off
+      shameBadges:     { type: Boolean, default: true },
       // Widgets on the club dashboard, in display order. Empty means the default set;
       // the UI owns the list of available widgets.
       dashboardWidgets: { type: [String], default: undefined },

@@ -17,7 +17,7 @@ const DashboardCustomizeDialog = ({ club, visible, onHide, onSaved }) => {
 
     useEffect(() => {
         if (visible) {
-            setSelected(resolveWidgets(club.dashboardWidgets).map(widget => widget.id));
+            setSelected(resolveWidgets(club.dashboardWidgets, { shameBadges: club.shameBadges !== false }).map(widget => widget.id));
             setError('');
         }
     }, [visible, club]);
@@ -86,7 +86,7 @@ const DashboardCustomizeDialog = ({ club, visible, onHide, onSaved }) => {
     };
 
     // widgets that are not shown yet and can be added at the end
-    const available = DASHBOARD_WIDGETS.filter(widget => !selected.includes(widget.id));
+    const available = DASHBOARD_WIDGETS.filter(widget => !selected.includes(widget.id) && (club?.shameBadges !== false || widget.kind !== 'hallOfShame'));
 
     return (
         <Dialog header="Customize Dashboard" visible={visible} blockScroll onHide={onHide} draggable={false} className="m-4" style={{ width: '38rem', maxWidth: '100%' }}>
