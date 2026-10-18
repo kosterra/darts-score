@@ -54,7 +54,7 @@ const X01LiveHeader = () => {
                 </div>
             </div>
 
-            <div className={`result-hero-players count-${ordered.length}`}>
+            <div className={`x01-hero-players count-${ordered.length}`}>
                 {ordered.map((player, index) => {
                     const model = game.playerModels[player.id];
                     const isTurn = game.currentPlayerTurn === player.id;
@@ -66,36 +66,40 @@ const X01LiveHeader = () => {
                     const setup = busted || routes.length ? null : setupSuggestions(score, throwing)[0];
                     const leg = legSummaryOf(game, player.id);
                     return (
-                        <div key={player.id} className={`result-hero-player ${isTurn ? 'is-turn' : ''}`} aria-current={isTurn ? 'true' : undefined}>
-                            <span className="result-hero-portrait">
+                        <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''}`} aria-current={isTurn ? 'true' : undefined}>
+                            <span className="result-hero-portrait x01-hero-portrait">
                                 {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
                                 <Avatar
                                     label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname, player.lastname)}
                                     image={resolvePlayerImg(player.profileImg)}
                                     shape="circle"
-                                    className="avatar-lg bg-surface-high result-hero-avatar"
+                                    className="bg-surface-high result-hero-avatar x01-hero-avatar"
                                     style={{ '--player-colour': PLAYER_COLORS[index] }}
                                 />
                             </span>
-                            <span className="result-hero-name fw-semibold text-default text-center text-truncate" title={player.nickname}>{player.nickname}</span>
-                            <span className="x01-live-tags">
-                                {isTurn && <span className="x01-live-turn">Throwing</span>}
-                                {game.startingPlayerLeg === player.id && <span className="x01-live-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>}
-                                {handicap && <span className="x01-handicap-rules">{describeRules(rulesOf(game, player.id))}</span>}
-                            </span>
-                            <span className={`result-hero-score ${busted ? 'is-bust' : ''}`}>{busted ? 'BUST' : score}</span>
-                            <span className={`x01-live-route ${routes[0] || setup ? '' : 'is-empty'} ${setup ? 'is-setup' : ''}`} title={routes.length > 1 ? `${routes.length} ways to finish` : setup ? `No finish: set up ${setup.leaves}` : undefined}>
-                                {routes[0]
-                                    ? <>{formatRoute(routes[0])}{routes.length > 1 && <span className="x01-live-route-more">+{routes.length - 1}</span>}</>
-                                    : setup ? <>{formatRoute(setup.darts)} <span className="x01-live-route-leaves">→ {setup.leaves}</span></> : '\u00a0'}
-                            </span>
-                            <span className="x01-live-leg">
-                                Last <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
-                            </span>
-                            <span className="x01-live-won">
-                                <WonCount label="Legs" won={model.currentSetLegsWon} mode={game.legMode} count={game.numberOfLegs} />
-                                {game.numberOfSets > 1 && <WonCount label="Sets" won={model.setsWon} mode={game.setMode} count={game.numberOfSets} />}
-                            </span>
+                            <div className="x01-hero-info">
+                                <span className="x01-hero-name text-truncate" title={player.nickname}>{player.nickname}</span>
+                                <span className="x01-live-tags">
+                                    {isTurn && <span className="x01-live-turn">Throwing</span>}
+                                    {game.startingPlayerLeg === player.id && <span className="x01-live-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>}
+                                    {handicap && <span className="x01-handicap-rules">{describeRules(rulesOf(game, player.id))}</span>}
+                                </span>
+                                <span className="x01-live-won">
+                                    <WonCount label="Legs" won={model.currentSetLegsWon} mode={game.legMode} count={game.numberOfLegs} />
+                                    {game.numberOfSets > 1 && <WonCount label="Sets" won={model.setsWon} mode={game.setMode} count={game.numberOfSets} />}
+                                </span>
+                                <span className="x01-live-leg">
+                                    Last visit <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
+                                </span>
+                            </div>
+                            <div className="x01-hero-score">
+                                <span className={`result-hero-score ${busted ? 'is-bust' : ''}`}>{busted ? 'BUST' : score}</span>
+                                <span className={`x01-live-route ${routes[0] || setup ? '' : 'is-empty'} ${setup ? 'is-setup' : ''}`} title={routes.length > 1 ? `${routes.length} ways to finish` : setup ? `No finish: set up ${setup.leaves}` : undefined}>
+                                    {routes[0]
+                                        ? <>{formatRoute(routes[0])}{routes.length > 1 && <span className="x01-live-route-more">+{routes.length - 1}</span>}</>
+                                        : setup ? <>{formatRoute(setup.darts)}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />leaves {setup.leaves}</span></> : '\u00a0'}
+                                </span>
+                            </div>
                         </div>
                     );
                 })}

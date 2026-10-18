@@ -38,7 +38,7 @@ const X01WaysOut = () => {
                         {setups.map((setup, index) => (
                             <div key={setup.darts.join()} className="x01-ways-setup">
                                 <span className={`x01-ways-route ${index === 0 ? 'is-preferred' : ''}`}>{formatRoute(setup.darts)}</span>
-                                <span className="text-subtle fs-8">leaves <strong className="text-default">{setup.leaves}</strong>{setup.note ? `, ${setup.note}` : ''}</span>
+                                <span className="x01-route-leaves text-subtle fs-8"><i className="pi pi-arrow-right" aria-hidden="true" />leaves <strong className="text-default">{setup.leaves}</strong>{setup.note ? `, ${setup.note}` : ''}</span>
                             </div>
                         ))}
                     </div>

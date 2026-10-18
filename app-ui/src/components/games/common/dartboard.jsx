@@ -1,11 +1,32 @@
-import { createRef } from 'react';
+import { useRef } from 'react';
 
+/**
+ * The dartboard to tap: handleClick(field, point) with the field that was hit
+ * (e.g. "T20") and where, in the board's own coordinates. markers: points of
+ * darts to show on the board, the last one pulsing.
+ */
 const DartBoard = (props) => {
     const {
-        handleClick
+        handleClick,
+        markers = []
     } = props;
 
-    const svgRef = createRef();
+    const svgRef = useRef(null);
+
+    // where the board was tapped, in the coordinates of its viewBox
+    const pointOf = (event) => {
+        const svg = svgRef.current;
+        const matrix = svg?.getScreenCTM?.();
+        if (!matrix) return null;
+        const point = svg.createSVGPoint();
+        point.x = event.clientX;
+        point.y = event.clientY;
+        const { x, y } = point.matrixTransform(matrix.inverse());
+        return { x, y };
+    };
+
+    const shown = markers.map((marker, index) => marker && { ...marker, index }).filter(Boolean);
+    const last = shown.at(-1);
 
     return (
         <svg ref={svgRef}
@@ -13,7 +34,7 @@ const DartBoard = (props) => {
             className="dartboard-img"
             pointerEvents="all"
             cursor='pointer'
-            onClick={(e) => handleClick(e.target.id)}>
+            onClick={(e) => handleClick(e.target.id, pointOf(e))}>
 
             <g transform="translate(210, 210) scale(1, -1)">
                 <circle id="0"
@@ -391,6 +412,16 @@ const DartBoard = (props) => {
                 <text id="0" className="number" x="112" y="160">2</text>
                 <text id="0" className="number" x="157" y="118">15</text>
                 <text id="0" className="number" x="180" y="66">10</text>
+            </g>
+
+            {/* where the darts of this visit landed */}
+            <g className="dart-markers" pointerEvents="none" aria-hidden="true">
+                {shown.map(marker => (
+                    <g key={marker.index} transform={`translate(${marker.x}, ${marker.y})`}>
+                        {marker === last && <circle className="dart-marker-pulse" r="7" />}
+                        <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="5" />
+                    </g>
+                ))}
             </g>
         </svg>
     )

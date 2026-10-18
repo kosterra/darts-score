@@ -3,14 +3,67 @@
 
 .x01-game-page { padding: 1.5rem; }
 
-// the player at the oche: the score bright, a halo in their colour
+// the header: compact, so the board stays in view; a row per player with the
+// photo, the name and the legs, and the score on the right
 .x01-live-hero {
+  gap: 0.85rem;
   margin-bottom: 1.5rem;
-  padding: 1.5rem;
+  padding: 1.1rem 1.5rem;
   border-radius: $borderRadius;
+}
 
-  .result-hero-player.is-turn .result-hero-score { color: var(--text-default); }
-  .result-hero-player .result-hero-score.is-bust { color: #ff8a80; }
+.x01-hero-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1rem 2.5rem;
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+}
+
+.x01-hero-player {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+
+  // the others step back a little, the player at the oche is bright
+  .result-hero-score { color: var(--text-subtle); }
+  &.is-turn .result-hero-score { color: var(--text-default); }
+  .result-hero-score.is-bust { color: #ff8a80; }
+}
+
+.x01-hero-portrait { flex-shrink: 0; }
+
+.x01-hero-avatar.p-avatar {
+  width: 4rem;
+  height: 4rem;
+  font-size: 1.4rem;
+}
+
+.x01-hero-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.x01-hero-name {
+  color: var(--text-default);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.x01-hero-score {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: flex-end;
+  gap: 0.15rem;
+  min-width: 7rem;
+
+  .result-hero-score { font-size: 3.25rem; }
 }
 
 .x01-turn-halo {
@@ -25,7 +78,6 @@
 .x01-live-tags {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 0.25rem 0.6rem;
   min-height: 1.1rem;
   color: var(--text-faint);
@@ -54,9 +106,19 @@
   white-space: nowrap;
 }
 
-// no finish: what to set up instead, quieter than a finish
+// no finish: what to set up instead, quieter than a finish, and what it leaves
 .x01-live-route.is-setup { color: rgba(255, 201, 77, 0.7); font-weight: 500; }
-.x01-live-route-leaves { color: var(--text-subtle); }
+
+.x01-route-leaves {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.4rem;
+  color: var(--text-subtle);
+  vertical-align: middle;
+
+  .pi { font-size: 0.65em; }
+}
 
 .x01-live-route-more {
   margin-left: 0.4rem;
@@ -87,7 +149,7 @@
 
 .x01-won-label {
   color: var(--text-faint);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -95,12 +157,13 @@
 
 .x01-won-circles {
   display: inline-flex;
-  gap: 0.2rem;
-  font-size: 0.7rem;
+  gap: 0.25rem;
+  font-size: 0.95rem;
 }
 
 .x01-won-number {
   color: var(--text-default);
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -115,9 +178,17 @@
 
 .x01-board-col {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  height: 100%;
+
+  // never taller than the window below the header, so it is tapped without
+  // scrolling; the width follows from the height
+  .dartboard-img {
+    width: auto;
+    max-width: 100%;
+    height: min(30em, calc(100vh - 16rem));
+    max-height: none;
+  }
 }
 
 // the darts of the visit
@@ -308,9 +379,28 @@
     padding: 0.85rem;
     margin-bottom: 0.75rem;
 
-    .result-hero-portrait, .x01-live-leg, .x01-live-route.is-empty { display: none; }
-    .result-hero-score { font-size: 2.4rem; }
+    .x01-hero-portrait, .x01-live-leg, .x01-live-route.is-empty { display: none; }
   }
+
+  // on a phone each player is a column: name, score, way out, legs
+  .x01-hero-players {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .x01-hero-player {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .x01-hero-info, .x01-hero-score { display: contents; }
+  .x01-hero-name { order: 1; font-size: 1rem; }
+  .x01-live-tags { order: 2; justify-content: center; }
+  .x01-hero-score .result-hero-score { order: 3; font-size: 2.4rem; }
+  .x01-live-route { order: 4; }
+  .x01-live-won { order: 5; gap: 0.75rem; }
+  .x01-won-label { font-size: 0.65rem; }
+  .x01-won-circles { font-size: 0.75rem; }
 
   // the panels of the board and the visit a little tighter
   .x01-play .p-panel {
@@ -321,7 +411,7 @@
 
   .x01-play { --bs-gutter-y: 0.75rem; margin-bottom: 0.75rem; }
   .x01-board-plain.is-hidden { display: none; }
-  .x01-board-col .dartboard-img { max-width: 16rem; }
+  .x01-board-col .dartboard-img { height: auto; width: 100%; max-width: 16rem; }
 
   .x01-darts { flex-direction: row; }
   .x01-dart-field { flex: 1 1 0; min-width: 0; }

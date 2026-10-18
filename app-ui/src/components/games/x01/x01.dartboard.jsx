@@ -1,4 +1,4 @@
-import { useContext, useRef } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Toast } from 'primereact/toast';
 
 import DartBoard from '../common/dartboard';
@@ -13,8 +13,16 @@ const X01DartBoard = () => {
   } = useContext(X01Context);
 
   const toast = useRef(null);
+  // where each dart of the visit was tapped, by its place in the visit: { x, y, dart }
+  const [taps, setTaps] = useState([]);
+  // a new visit starts without marks
+  const visitKey = `${game.currentSet}-${game.currentSetLeg}-${game.currentLegThrows.length}-${game.currentPlayerTurn}`;
+  useEffect(() => setTaps([]), [visitKey]);
+  // a dart cleared or typed over: its mark goes
+  // (a dart that does not count before the double in is stored as 0, its mark stays)
+  const markers = game.currentThrow.map((dart, index) => taps[index] && (taps[index].dart === dart || dart === '0') ? taps[index] : null);
 
-  const setDartValue = (value) => {
+  const setDartValue = (value, point) => {
     let totalScore = getCurrentThrowScore();
     let currentPlayerScore = game.playerModels[game.currentPlayerTurn].score;
 
@@ -32,12 +40,15 @@ const X01DartBoard = () => {
       return
     }
 
+    // the dart goes into the first empty place of the visit
+    const slot = game.currentThrow.findIndex(dart => dart.trim() === '');
+    if (point) setTaps(Object.assign([...markers], { [slot]: { ...point, dart: value } }));
     updateCurrentThrowDartBoard(newCurrentScore, value);
   }
 
   return (
     <>
-      <DartBoard handleClick={setDartValue} />
+      <DartBoard handleClick={setDartValue} markers={markers} />
       <Toast ref={toast} position="bottom-right" />
     </>
   )
