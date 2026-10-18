@@ -18,7 +18,7 @@ const OVER_100 = ['101-120', '121-140', '141-160', '161-180', '180'];
  * (and saved) the statistics page takes over and celebrates.
  */
 const EliminationGame = () => {
-    const { game, players, loading, winnerSaved } = useContext(EliminationContext);
+    const { game, players, loading, winnerSaved, celebrating } = useContext(EliminationContext);
     const navigate = useNavigate();
 
     // only a game won on this page is celebrated; a finished game opened later just shows its statistics
@@ -30,8 +30,8 @@ const EliminationGame = () => {
             return;
         }
         if (!wasRunning.current) navigate(`/stats/games/elimination/${game.id}`, { replace: true });
-        else if (winnerSaved) navigate(`/stats/games/elimination/${game.id}`, { replace: true, state: { justFinished: true } });
-    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, navigate]);
+        else if (winnerSaved && !celebrating) navigate(`/stats/games/elimination/${game.id}`, { replace: true, state: { justFinished: true } });
+    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, celebrating, navigate]);
 
     if (loading.initGameLoading || !players?.length || !game.playerModels || !game.players?.length) {
         return <PageLoader />;

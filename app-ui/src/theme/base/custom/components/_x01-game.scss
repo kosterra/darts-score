@@ -803,3 +803,50 @@
   .cricket-chalk.is-drawn,
   .result-hero-score.is-taking-lead { animation: none; }
 }
+
+// Elimination: a player one dart away from being sent back glows red
+.result-hero-score.is-in-danger {
+  color: #ff8a80;
+  text-shadow: 0 0 1.2rem rgba(255, 110, 100, 0.45);
+  animation: danger-pulse 1.4s ease-in-out infinite;
+}
+
+.elimination-danger-tag {
+  @include label-shape;
+  @include label-tone(#ec8b80);
+  font-size: 0.65rem;
+}
+
+.elimination-standings li.is-in-danger .elimination-track {
+  box-shadow: 0 0 0.6rem rgba(255, 110, 100, 0.55);
+  background: rgba(236, 139, 128, 0.18);
+}
+
+// sent back: the bar empties with a fall and the row wobbles
+.elimination-standings li.is-dropped {
+  animation: bar-wobble 0.6s ease-in-out;
+
+  .elimination-track span {
+    transition: width 0.7s cubic-bezier(0.6, 0, 0.9, 0.6);
+  }
+
+  .elimination-track { background: rgba(236, 139, 128, 0.25); }
+}
+
+@keyframes danger-pulse {
+  0%, 100% { text-shadow: 0 0 0.6rem rgba(255, 110, 100, 0.3); }
+  50% { text-shadow: 0 0 1.4rem rgba(255, 110, 100, 0.7); }
+}
+
+@keyframes bar-wobble {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-0.4rem); }
+  40% { transform: translateX(0.35rem); }
+  60% { transform: translateX(-0.25rem); }
+  80% { transform: translateX(0.15rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-hero-score.is-in-danger,
+  .elimination-standings li.is-dropped { animation: none; }
+}

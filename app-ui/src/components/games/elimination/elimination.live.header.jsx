@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import EliminationContext from '../../../utils/elimination.context';
 import LiveHero from '../common/live.hero';
@@ -17,6 +17,19 @@ const EliminationLiveHeader = () => {
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const nickname = (id) => players.find(player => player.id === id)?.nickname ?? '';
     const round = visitsOf(game, game.currentPlayerTurn).length + 1;
+    // whom the player at the oche can send back with one dart: their score glows red
+    const inDanger = new Set(knockBacks(game, scores, game.currentPlayerTurn).map(entry => entry.playerId));
+
+    // who leads (alone) right now; a player who takes the lead sees their score flash gold
+    const best = Math.max(...game.players.map(id => scores[id]));
+    const leaders = game.players.filter(id => scores[id] === best);
+    const leader = best > 0 && leaders.length === 1 ? leaders[0] : null;
+    const previousLeader = useRef(undefined);
+    const [flash, setFlash] = useState(null);
+    useEffect(() => {
+        if (previousLeader.current !== undefined && leader && leader !== previousLeader.current) setFlash({ id: leader, key: Date.now() });
+        previousLeader.current = leader;
+    }, [leader]);
 
     const rows = ordered.map(player => {
         const isTurn = game.currentPlayerTurn === player.id;
@@ -34,7 +47,9 @@ const EliminationLiveHeader = () => {
             isTurn,
             line: <>Last visit <strong>{last ? (last.bust ? 'Bust' : last.roundScore) : '–'}</strong> · <strong>{darts}</strong> darts</>,
             score: busted ? 'BUST' : score,
-            scoreClass: busted ? 'is-bust' : '',
+            scoreClass: [busted ? 'is-bust' : '', inDanger.has(player.id) ? 'is-in-danger' : '', flash?.id === player.id ? 'is-taking-lead' : ''].filter(Boolean).join(' '),
+            scoreKey: flash?.id === player.id ? flash.key : 'score',
+            tags: inDanger.has(player.id) ? <span className="elimination-danger-tag">In reach</span> : null,
             below: (
                 <>
                     <span

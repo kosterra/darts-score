@@ -252,18 +252,35 @@ $oneEightyGold: #ffc94d;
     left: 50%;
     // just above the stage, which is 13em of its own font size
     bottom: calc(clamp(9px, 2.4vw, 16px) * 13 + 1rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
     width: max-content;
     max-width: 92vw;
-    margin: 0;
+    text-align: center;
+    transform: translateX(-50%);
+    animation: knock-banner 0.45s 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+
+    // the ladder reaches higher than the house
+    .is-close & { bottom: calc(clamp(9px, 2.4vw, 16px) * 21 + 1rem); }
+}
+
+.knock-title {
+    color: #ffc94d;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 0 1.5rem rgba(255, 201, 77, 0.45), 0 0.3rem 0.6rem rgba(0, 0, 0, 0.7);
+}
+
+.knock-detail {
     padding: 0.5rem 1.1rem;
     border-radius: 999px;
     background: rgba(20, 16, 12, 0.85);
     color: #efe6d0;
     font-size: clamp(1rem, 2.6vw, 1.5rem);
-    text-align: center;
-    transform: translateX(-50%);
     box-shadow: 0 0.4rem 1.2rem rgba(0, 0, 0, 0.5);
-    animation: knock-banner 0.45s 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
     font-variant-numeric: tabular-nums;
 
     strong { color: #ffc94d; }
@@ -445,6 +462,105 @@ $oneEightyGold: #ffc94d;
 }
 
 // less motion: only the message
+// So close: the victim stands at the top of the ladder to the target, the
+// ladder is kicked, they fall all the way back home
+.knock-ladder {
+    position: absolute;
+    left: calc(38% + 3em);
+    bottom: 0;
+    width: 4.5em;
+    transform-origin: 50% 100%;
+    animation: knock-ladder 0.9s 1.05s ease-in-out both;
+}
+
+.is-close {
+    .knock-victim { left: calc(38% + 2.6em); bottom: 11.5em; }
+    .knock-victim-arc { animation: knock-tremble 0.18s 0.4s ease-in-out 4 alternate, knock-fall-arc 1.15s 1.15s linear both; }
+    .knock-puff { left: calc(38% + 3.5em); bottom: 0.5em; }
+}
+
+@keyframes knock-ladder {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-9deg); }
+    55% { transform: rotate(6deg); }
+    80% { transform: rotate(-3deg); }
+}
+
+@keyframes knock-fall-arc {
+    0% { transform: translateY(0) rotate(0deg) scale(1); }
+    30% { transform: translateY(-3em) rotate(220deg) scale(0.9); }
+    85% { transform: translateY(10.5em) rotate(690deg) scale(0.6); }
+    93% { transform: translateY(11.7em) rotate(720deg) scale(0.55); }
+    100% { transform: translateY(11.5em) rotate(720deg) scale(0.55); }
+}
+
+// Revenge: the kicker dusts off its hands once the job is done
+.knock-hand-dust {
+    position: absolute;
+    bottom: 30%;
+    width: 2em;
+    height: 2em;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(239, 230, 208, 0.85), rgba(239, 230, 208, 0) 70%);
+    opacity: 0;
+    animation: knock-dust 0.6s 2.35s ease-out 3;
+
+    &.is-left { left: 0; --drift: -0.8em; }
+    &.is-right { right: 0; --drift: 0.8em; }
+}
+
+// Strike: the ball rolls in, the players fall like bowling pins
+.is-strike .knock-scene { height: 10em; }
+
+.knock-bowler {
+    position: absolute;
+    left: 4%;
+    bottom: 0;
+    width: 5.5em;
+    animation: one-eighty-figure 4s cubic-bezier(0.3, 0.8, 0.4, 1) both;
+}
+
+.knock-ball-run {
+    position: absolute;
+    left: 14%;
+    bottom: 0;
+    width: 3em;
+    animation: knock-roll-x 0.9s 0.7s linear both;
+}
+
+.knock-ball {
+    display: block;
+    width: 100%;
+    height: auto;
+    animation: knock-roll-spin 0.3s linear infinite;
+}
+
+.knock-pin {
+    position: absolute;
+    left: calc(52% + var(--slot) * 4.2em);
+    bottom: 0;
+    width: 4.6em;
+    transform-origin: 50% 100%;
+    animation:
+        knock-tremble 0.18s 0.2s ease-in-out 4 alternate,
+        knock-pin-fall 1.3s calc(1.02s + var(--slot) * 0.07s) cubic-bezier(0.3, 0.6, 0.5, 1) both;
+}
+
+@keyframes knock-roll-x {
+    from { left: 14%; }
+    to { left: 110%; }
+}
+
+@keyframes knock-roll-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes knock-pin-fall {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    35% { transform: translate(calc(var(--dir) * 2.5em + 1.5em), -6em) rotate(calc(var(--dir) * 220deg)); opacity: 1; }
+    100% { transform: translate(calc(var(--dir) * 5em + 4em), 3em) rotate(calc(var(--dir) * 540deg)); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .knock-scene { display: none; }
     .knock-banner { bottom: 6rem; animation: none; }

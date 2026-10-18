@@ -9,6 +9,7 @@ import KnockOut from '../components/games/common/knock.out';
 import EliminationService from '../services/elimination.service';
 import EliminationReturnToPreviousPlayer, { getScoreRangeLabel } from './elimination.return.to.previous.player';
 import PlayerService from '../services/player.service';
+import { knockOutScene } from './elimination.moments';
 
 import {
     validateDartValue,
@@ -45,7 +46,7 @@ const EliminationState = ({ children }) => {
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
-    // { key, by, byIndex, victim, victimIndex, score, others } while a player is kicked back to 0
+    // { key, kind, by, byIndex, victims } while players are sent back to 0
     const [knockOut, setKnockOut] = useState(null);
     const endKnockOut = useCallback(() => setKnockOut(null), []);
     const knockOutTimer = useRef(null);
@@ -358,17 +359,7 @@ const EliminationState = ({ children }) => {
             dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId: pid, score: 0 } });
         });
         if (eliminations.length) {
-            const nicknameOf = (pid) => state.players?.find(p => p.id === pid)?.nickname ?? '';
-            const [victim] = eliminations;
-            const scene = {
-                key: Date.now(),
-                by: nicknameOf(playerId),
-                byIndex: state.game.players.indexOf(playerId),
-                victim: nicknameOf(victim),
-                victimIndex: state.game.players.indexOf(victim),
-                score: scoresBefore[victim],
-                others: eliminations.length - 1,
-            };
+            const scene = { key: Date.now(), ...knockOutScene({ game: state.game, players: state.players, playerId, eliminations, scoresBefore }) };
             // after a 180 the maximum has its moment first
             clearTimeout(knockOutTimer.current);
             if (totalRoundScore === 180) knockOutTimer.current = setTimeout(() => setKnockOut(scene), 2700);
@@ -488,6 +479,8 @@ const EliminationState = ({ children }) => {
                 players: state.players,
                 loading: state.loading,
                 winnerSaved,
+                // a moment of the winning visit plays to its end before the statistics page
+                celebrating: Boolean(knockOut || oneEighty),
                 updateCurrentThrowManual,
                 updateCurrentThrowDartBoard,
                 getCurrentThrowScore,
