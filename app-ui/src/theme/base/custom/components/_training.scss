@@ -443,3 +443,20 @@
 .atc-result-player .atc-row-detail {
   white-space: normal;
 }
+
+// the scoreboard header: the title, and time or darts on the right
+.atc-scoreboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+// the modes of the scoreboard share the width
+.atc-scoreboard-modes.p-selectbutton {
+  display: flex;
+  width: 100%;
+
+  .p-button { flex: 1 1 0; justify-content: center; }
+}

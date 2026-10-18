@@ -54,7 +54,13 @@ const ATC = () => {
     const [celebration, setCelebration] = useState(null);
     // shown once the new trainings have reached their places on the scoreboard
     const pendingCelebration = useRef(null);
-    const [scoreboardView, setScoreboardView] = useState({ period: 'all', list: 'best' });
+    // the scoreboard has its own mode and scoring; it follows the setup and the training just saved
+    const [scoreboardView, setScoreboardView] = useState(() => ({ period: 'all', list: 'best', mode, scoring }));
+    // reloads the scoreboard, e.g. after a training was saved
+    const [entriesVersion, setEntriesVersion] = useState(0);
+    // the trainings just saved, shown moving up once the scoreboard has loaded them
+    const pendingArrival = useRef(null);
+    const entriesRequest = useRef(0);
     // the trainings just saved: they move up the scoreboard; { ids, entries }
     const [arrival, setArrival] = useState(null);
     const finishing = useRef(false);
@@ -80,10 +86,31 @@ const ATC = () => {
         if (top < 0) panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, [playing]);
 
+    // a new mode or scoring in the setup: the scoreboard shows it too
     useEffect(() => {
-        setArrival(null);
-        loadATCEntries();
+        setScoreboardView(view => ({ ...view, mode, scoring }));
     }, [mode, scoring]);
+
+    useEffect(() => {
+        const request = ++entriesRequest.current;
+        if (!pendingArrival.current) setArrival(null);
+        ATCService.loadATCEntries(scoreboardView.mode, scoreboardView.scoring).then(entries => {
+            // only the answer to the latest request counts
+            if (request !== entriesRequest.current) return;
+            setATCEntries(entries);
+            if (pendingArrival.current) {
+                setArrival(pendingArrival.current);
+                pendingArrival.current = null;
+            }
+        }).catch(() => {});
+    }, [scoreboardView.mode, scoreboardView.scoring, entriesVersion]);
+
+    // shows the trainings just saved on the scoreboard of their mode and scoring
+    const showOnScoreboard = (savedMode, savedScoring, entries) => {
+        pendingArrival.current = { ids: entries.map(entry => entry.id), entries };
+        setScoreboardView(view => ({ ...view, mode: savedMode, scoring: savedScoring }));
+        setEntriesVersion(version => version + 1);
+    };
 
     useEffect(() => {
         if (!user || !activeClub) return;
@@ -105,10 +132,6 @@ const ATC = () => {
         pendingCelebration.current = null;
         // after the podium moment, if there was one
         if (waiting) setTimeout(() => setCelebration(waiting), arrivedRows.some(row => row.rank <= 3) ? 2200 : 400);
-    };
-
-    const loadATCEntries = async () => {
-        setATCEntries(await ATCService.loadATCEntries(mode, scoring));
     };
 
     // records first, then new badges; nothing to celebrate gives null
@@ -152,8 +175,7 @@ const ATC = () => {
             const saved = await ATCService.createATCEntry({ scoring: 'Time', timeMs, mode, player: { id: player.id } });
             watch.reset();
             pendingCelebration.current = celebrationFor([{ player, saved }]);
-            await loadATCEntries();
-            setArrival({ ids: [saved.id], entries: [saved] });
+            showOnScoreboard(mode, 'Time', [saved]);
         } catch {
             toast.current.show({ severity: 'error', summary: 'Training not saved', detail: 'The time is still here: try saving again.', life: 4000 });
         } finally {
@@ -192,8 +214,7 @@ const ATC = () => {
         setFinished({ ...result, saved, saving: false, error: false });
         const playerOf = (id) => result.players.find(({ id: playerId }) => playerId === id);
         pendingCelebration.current = celebrationFor(result.order.map(id => ({ player: playerOf(id), saved: saved[id] })));
-        await loadATCEntries();
-        setArrival({ ids: result.order.map(id => saved[id].id), entries: result.order.map(id => saved[id]) });
+        showOnScoreboard(result.mode, 'Darts', result.order.map(id => saved[id]));
     };
 
     // the last player is done: save the round
@@ -309,8 +330,7 @@ const ATC = () => {
                 <div className="col-12 col-xl-6">
                     <ATCScoreboard
                         entries={atcEntries}
-                        subtitle={`${mode} · ${darts ? 'fewest darts' : 'against the clock'}`}
-                        noun={darts ? 'rounds' : 'times'}
+                        noun={scoreboardView.scoring === 'Darts' ? 'rounds' : 'times'}
                         arrival={arrival}
                         view={scoreboardView}
                         onViewChange={setScoreboardView}

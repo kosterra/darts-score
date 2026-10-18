@@ -7,6 +7,7 @@ import { SelectButton } from 'primereact/selectbutton';
 import dayjs from 'dayjs';
 
 import Confetti from '../badges/confetti';
+import ATCConfigOptions from './atc.config.options';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { LISTS, PERIODS, formatScore, ordinal, scoreboardRows } from '../../utils/atc.scoreboard';
 
@@ -16,6 +17,12 @@ const SHOWN_ROWS = 10;
 const ENTER_MS = 700;
 
 const MEDALS = ['gold', 'silver', 'bronze'];
+
+const SCORINGS = [
+    { label: 'Time', value: 'Time' },
+    { label: 'Darts', value: 'Darts' },
+];
+const MODES = ATCConfigOptions.modeOptions.values.map(({ value }) => ({ label: value, value }));
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -55,14 +62,14 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
  * up to their places; on the podium they are celebrated.
  *
  * entries: every training of the mode and scoring
- * subtitle: shown in the header, e.g. "Double · fewest darts"
  * noun: what the entries are called in the empty list, e.g. "times"
  * arrival: { ids } of the trainings just saved, or null
- * view, onViewChange: { period, list }
+ * view, onViewChange: { period, list, mode, scoring }; mode and scoring pick the
+ *   trainings, which the page loads into entries
  * myPlayerId: the player of the logged-in user in this club, for "Mine"
  * onArrived(rows): once the new trainings reached their places (only those listed)
  */
-const ATCScoreboard = ({ entries, subtitle, noun = 'times', arrival, view, onViewChange, myPlayerId, onArrived }) => {
+const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, myPlayerId, onArrived }) => {
     const [expanded, setExpanded] = useState(false);
     // the trainings just saved: 'enter' at the bottom, then 'slide' up, then 'landed'
     const [phase, setPhase] = useState(null);
@@ -161,17 +168,28 @@ const ATCScoreboard = ({ entries, subtitle, noun = 'times', arrival, view, onVie
     };
 
     const header = (
-        <div className="p-panel-header">
-            <span className="p-panel-title">
-                <span>Scoreboard</span>
-                <span className="text-faint fs-8 fw-normal">{subtitle}</span>
-            </span>
+        <div className="p-panel-header atc-scoreboard-header">
+            <span className="p-panel-title">Scoreboard</span>
+            <SelectButton
+                value={view.scoring}
+                options={SCORINGS}
+                onChange={(e) => e.value && setView({ scoring: e.value })}
+                className="p-selectbutton-pills pills-inline"
+                aria-label="Scoring"
+            />
         </div>
     );
 
     return (
         <div ref={boardRef} className="atc-panel-anchor">
         <Panel headerTemplate={() => header} className="atc-scoreboard">
+            <SelectButton
+                value={view.mode}
+                options={MODES}
+                onChange={(e) => e.value && setView({ mode: e.value })}
+                className="p-selectbutton-pills atc-scoreboard-modes mb-2"
+                aria-label="Mode"
+            />
             <div className="d-flex flex-wrap justify-content-between gap-2 mb-3">
                 <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
                 <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Listed" />
