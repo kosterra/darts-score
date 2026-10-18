@@ -23,20 +23,6 @@ const X01ScoreBoard = (props) => {
     const [score, setScore] = useState(game.playerModels[playerId].score);
 
     useEffect(() => {
-        const clickEnterSubmitForm = (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('submit-throws').click();
-            }
-        }
-
-        document.addEventListener('keyup', clickEnterSubmitForm);
-
-        return () => {
-            document.removeEventListener('keyup', clickEnterSubmitForm);
-        }
-    }, [])
-
-    useEffect(() => {
         let totalScore = getCurrentThrowScore();
         let currentPlayerScore = game.playerModels[game.currentPlayerTurn].score;
         let newCurrentScore = currentPlayerScore - totalScore;

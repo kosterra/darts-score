@@ -6,7 +6,6 @@ import { FaUndo } from "react-icons/fa";
 import { FaPaperPlane } from "react-icons/fa6";
 
 import X01Context from '../../../utils/x01.context';
-import X01Service from '../../../services/x01.service';
 import X01DartBoard from './x01.dartboard';
 import Checkout from './x01.checkout';
 import checkout from '../../../utils/checkout';
@@ -26,9 +25,9 @@ const X01ScoreInputBoard = () => {
     } = useContext(X01Context);
 
     const [score, setScore] = useState(startingScoreOf(game, game.currentPlayerTurn));
-    const [submit, setSubmit] = useState(false);
 
-    const keyfilterPattern = /^[SDT0-9]{1,3}$/;
+    // s, d and t work as well: the dart is written in capitals once typed
+    const keyfilterPattern = /^[SDTsdt0-9]{1,3}$/;
 
     const handlers = {
         submitThrows: handleSubmitThrows,
@@ -43,14 +42,12 @@ const X01ScoreInputBoard = () => {
     function handleSubmitThrows(e) {
         e.preventDefault();
         onClickValidateThrow(score);
-        setSubmit(true);
         e.target.reset();
     }
 
     function handleSubmitReturn(e) {
         e.preventDefault();
         onClickReturnToPreviousPlayer();
-        setSubmit(true);
         e.target.reset();
     }
 
@@ -67,11 +64,12 @@ const X01ScoreInputBoard = () => {
         }
     };
 
+    // Enter submits the visit, also after darts were tapped on the dartboard; in a
+    // dart field the browser submits the form itself
     useEffect(() => {
         const clickEnterSubmitForm = (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('submit-throws').click();
-            }
+            if (e.key !== 'Enter' || e.target.closest?.('form, button, [role="dialog"]')) return;
+            document.getElementById('submitThrows')?.click();
         }
 
         document.addEventListener('keyup', clickEnterSubmitForm);
@@ -89,14 +87,6 @@ const X01ScoreInputBoard = () => {
 
         // eslint-disable-next-line
     }, [game.currentThrow]);
-
-    useEffect(() => {
-        if (submit) {
-            setSubmit(false);
-            X01Service.updateX01Game(game);
-        }
-        // eslint-disable-next-line
-    }, [game.currentPlayerTurn, game.hasWinner]);
 
     if (game.hasWinner) return null;
 

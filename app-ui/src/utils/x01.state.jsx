@@ -11,6 +11,7 @@ import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
 
 import {
+    normalizeDart,
     validateDartValue,
     dartIsDouble,
     dartIsTriple,
@@ -72,6 +73,15 @@ const X01State = props => {
     };
 
     const [state, dispatch] = useReducer(X01Reducer, initialState);
+    // one message at a time: a new one replaces the last instead of piling up
+    const showError = (summary, detail) => {
+        toast.current?.clear();
+        toast.current?.show({ severity: 'error', summary, detail, life: 3000 });
+    };
+    // bumped after every visit and every undo: the game is saved then
+    const [saveRequest, setSaveRequest] = useState(0);
+    // the saves run one after the other, in the order of the visits
+    const saving = useRef(Promise.resolve());
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
@@ -129,6 +139,7 @@ const X01State = props => {
     const hasNotStarted = (score) => Number(score) === startingScoreOf(state.game, state.game.currentPlayerTurn);
 
     const updateCurrentThrowManual = (score, value, index) => {
+        value = normalizeDart(value);
         if (hasNotStarted(score) && value !== '' && validateDartValue(value)) {
             if (currentInMode() === 'Double In') {
                 let startedInDouble = dartIsDouble(value);
@@ -194,14 +205,7 @@ const X01State = props => {
 
         for (let i = 0; i < currentThrow.length; i++) {
             if (!validateDartValue(currentThrow[i])) {
-                toast.current.show(
-                    {
-                        severity: 'error',
-                        summary: 'Validate Throw',
-                        detail: 'One or more of your darts have an invalid value',
-                        life: 3000
-                    }
-                );
+                showError('Check the darts', 'One or more darts are not valid: use e.g. 20, D16, T19, 25 or 50 (bullseye).');
                 setLoading('validateThrow', false);
                 return
             }
@@ -269,6 +273,7 @@ const X01State = props => {
         if (hasWonGame) {
             gameHasWinner();
             setLoading('validateThrow', false);
+            setSaveRequest(request => request + 1);
             return
         }
 
@@ -279,7 +284,19 @@ const X01State = props => {
         }
 
         setLoading('validateThrow', false);
+        setSaveRequest(request => request + 1);
     }
+
+    // the game as it is after the visit (or undo) that asked for it
+    useEffect(() => {
+        if (!saveRequest) return;
+        const game = state.game;
+        saving.current = saving.current
+            .then(() => X01Service.updateX01Game(game))
+            .then(saved => { if (!saved) throw new Error('not saved'); })
+            .catch(() => showError('Not saved', 'The last visit could not be saved. Check the connection: the next visit saves everything.'));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [saveRequest]);
 
     /**
      * What the banner for a won leg or set shows, from the state before this
@@ -316,14 +333,7 @@ const X01State = props => {
             values[0] === '' ||
             (values[1] === '' && values[2] !== '')
         ) {
-            toast.current.show(
-                {
-                    severity: 'error',
-                    summary: 'Validate Throw',
-                    detail: 'You need to add a value for each dart',
-                    life: 3000
-                }
-            );
+            showError('Check the darts', 'Enter a value for each dart; 0 for a miss.');
             return false;
         }
 
@@ -1104,6 +1114,7 @@ const X01State = props => {
             type: RETURN_PREV_PLAYER,
             payload: newMatchData
         })
+        setSaveRequest(request => request + 1);
     }
 
     const setLoading = (eventName, setTo) => dispatch({
