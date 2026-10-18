@@ -97,7 +97,7 @@ const AboutCard = () => {
                                             <span className="text-faint fs-7">
                                                 {badges.length === 1
                                                     ? badges[0].description
-                                                    : badges.map(badge => `${badge.title} (${new Intl.NumberFormat().format(badge.target)})`).join(' · ')}
+                                                    : badges.map(badge => `${badge.title} (${badge.targetLabel ?? new Intl.NumberFormat().format(badge.target)})`).join(' · ')}
                                             </span>
                                         </div>
                                     </li>

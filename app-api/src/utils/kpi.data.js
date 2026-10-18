@@ -58,7 +58,7 @@ const CRICKET_SECTIONS = new Set([15, 16, 17, 18, 19, 20, 25]);
 const MULTIPLIER = { S: 1, D: 2, T: 3 };
 
 // marks of one Cricket game from its hits ({ T20: 2, S25: 1, … }); only 15–20 and the bull count
-const cricketMarks = (hits = {}) => Object.entries(hits).reduce((sum, [dart, count]) => {
+export const cricketMarks = (hits = {}) => Object.entries(hits).reduce((sum, [dart, count]) => {
     const section = Number(dart.slice(1));
     return CRICKET_SECTIONS.has(section) ? sum + (MULTIPLIER[dart[0]] ?? 0) * Number(count || 0) : sum;
 }, 0);

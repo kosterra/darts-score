@@ -1,4 +1,4 @@
-import { FaTrophy, FaFire, FaBolt, FaFlagCheckered, FaBullseye, FaFish, FaBroom, FaChartLine, FaBaseballBatBall, FaSkull, FaStar, FaRoute, FaClock, FaStopwatch, FaLock, FaDragon, FaGem, FaHouseCrack, FaBed, FaArrowTrendUp, FaCalendarCheck, FaBoltLightning, FaArrowsSpin } from "react-icons/fa6";
+import { FaTrophy, FaFire, FaBolt, FaFlagCheckered, FaBullseye, FaFish, FaBroom, FaChartLine, FaBaseballBatBall, FaSkull, FaStar, FaRoute, FaClock, FaStopwatch, FaLock, FaDragon, FaGem, FaHouseCrack, FaBed, FaArrowTrendUp, FaCalendarCheck, FaBoltLightning, FaArrowsSpin, FaDumbbell, FaCalendarWeek, FaLayerGroup, FaCrosshairs, FaArrowUpRightDots, FaRocket, FaCubesStacked, FaBagShopping, FaForwardFast, FaCircleDot, FaHandFist, FaHorse, FaHatCowboy, FaChartColumn, FaUserGroup, FaCakeCandles } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
 
 const GROUP_ICONS = {
@@ -25,6 +25,22 @@ const GROUP_ICONS = {
     darts: FaRoute,
     training: FaClock,
     records: FaStopwatch,
+    trainingDays: FaDumbbell,
+    trainingStreak: FaCalendarWeek,
+    trainingModes: FaLayerGroup,
+    trainingDarts: FaCrosshairs,
+    tonPlus: FaArrowUpRightDots,
+    tonForty: FaRocket,
+    threeInABed: FaCubesStacked,
+    bagOfNuts: FaBagShopping,
+    shortLeg: FaForwardFast,
+    doubleTop: FaCircleDot,
+    clutch: FaHandFist,
+    whiteHorse: FaHorse,
+    bullHatTrick: FaHatCowboy,
+    marksPerRound: FaChartColumn,
+    rivals: FaUserGroup,
+    anniversary: FaCakeCandles,
 };
 
 const METALS = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'legend'];

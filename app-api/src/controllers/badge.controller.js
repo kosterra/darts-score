@@ -34,7 +34,8 @@ export const getPlayerBadges = async (req, res) => {
             return {
                 ...badge,
                 earned: earned ? { earnedAt: earned.earnedAt, sourceType: earned.sourceType, sourceId: earned.sourceId } : null,
-                progress: Math.min(Math.floor(metrics[badge.metric] ?? 0), badge.target),
+                // for "lower" badges (fewest darts) the best so far, 0 when there is none yet
+                progress: badge.lower ? Math.floor(metrics[badge.metric] ?? 0) : Math.min(Math.floor(metrics[badge.metric] ?? 0), badge.target),
             };
         }),
     });

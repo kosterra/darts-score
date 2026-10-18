@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { BADGES, BADGE_CATEGORIES, BADGE_GROUPS, currentWeekStreak, replayBadges } from './badges.js';
+import { BADGES, BADGE_CATEGORIES, BADGE_GROUPS, currentWeekStreak, replayBadges, wonInDecidingLeg } from './badges.js';
 
 const P = 'player-1';
 const O = 'player-2';
@@ -21,11 +21,18 @@ describe('badge catalogue', () => {
         for (const { group, category } of BADGE_GROUPS) expect(categories, group).toContain(category);
     });
 
-    it('has rising targets within each group', () => {
-        for (const { tiers } of BADGE_GROUPS) {
+    it('has targets that get harder within each group', () => {
+        for (const { tiers, lower } of BADGE_GROUPS) {
             const targets = tiers.map(([target]) => target);
-            expect(targets).toEqual([...targets].sort((a, b) => a - b));
+            // fewest darts: the next tier needs fewer
+            expect(targets).toEqual([...targets].sort((a, b) => lower ? b - a : a - b));
         }
+    });
+
+    it('gives every badge a label for its target', () => {
+        expect(BADGES.find(b => b.id === 'shortLeg-15').targetLabel).toBe('≤ 15 darts');
+        expect(BADGES.find(b => b.id === 'anniversary-730').targetLabel).toBe('2 years');
+        expect(BADGES.find(b => b.id === 'darts-100000').targetLabel).toBe('100,000');
     });
 });
 
@@ -150,6 +157,99 @@ describe('replayBadges', () => {
         expect(result.metrics.trainings).toBe(4);
         expect(result.metrics.trainingRecords).toBe(1);
         expect(result.metrics.bestTrainingTimes).toEqual({ Double: 500, 'darts:Double': 35 });
+    });
+
+    it('counts ton-plus and ton-forty visits from the score ranges', () => {
+        const ranges = { '100-119': 4, '120-139': 3, '140-159': 2, '160-179': 0, 180: 1, '80-99': 9 };
+        const { metrics } = replayBadges([x01(true, { scoreRanges: { game: ranges } })], P);
+        expect(metrics).toMatchObject({ tonPlusVisits: 10, tonFortyVisits: 3 });
+        expect(ids([x01(true, { scoreRanges: { game: ranges } })])).toEqual(expect.arrayContaining(['tonPlus-10', 'tonForty-1']));
+    });
+
+    describe('visits of an X01 game', () => {
+        const v = (darts, roundScore, scoreLeft, playerId = P) => ({ playerId, darts, roundScore, scoreLeft });
+        const game = (legs, extra = {}) => {
+            const base = x01(true);
+            return { ...base, data: { ...base.data, startingScore: 501, allSetsThrows: { 'set-1': legs }, ...extra } };
+        };
+
+        it('finds three in a bed, but not in treble 20', () => {
+            expect(ids([game({ 'leg-1': [v(['T19', 'T19', 'T19'], 171, 330)] })])).toContain('threeInABed-1');
+            expect(ids([game({ 'leg-1': [v(['T20', 'T20', 'T20'], 180, 321)] })])).not.toContain('threeInABed-1');
+            expect(ids([game({ 'leg-1': [v(['T19', 'T19', 'S19'], 133, 368)] })])).not.toContain('threeInABed-1');
+        });
+
+        it('finds a bag of nuts, but not in a bust', () => {
+            expect(ids([game({ 'leg-1': [v(['S15', 'S15', 'S15'], 45, 456)] })])).toContain('bagOfNuts-1');
+            // 40 left, 45 thrown: bust, nothing taken off
+            const bust = { 'leg-1': [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'S20', 'S1'], 81, 60), v(['S20', 'S20', 'S5'], 45, 60)] };
+            expect(ids([game(bust)])).not.toContain('bagOfNuts-1');
+        });
+
+        it('finds a hat trick of bulls', () => {
+            expect(ids([game({ 'leg-1': [v(['S25', 'D25', 'D25'], 125, 376)] })])).toContain('bullHatTrick-1');
+            expect(ids([game({ 'leg-1': [v(['S25', 'D25', 'S20'], 95, 406)] })])).not.toContain('bullHatTrick-1');
+        });
+
+        it('counts double top finishes and keeps the shortest 501 leg', () => {
+            const visits = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'T19', 'S4'], 121, 20), v(['S0', 'S0', 'D10'], 20, 0)];
+            const { metrics } = replayBadges([game({ 'leg-1': visits })], P);
+            expect(metrics.bestLegDarts).toBe(12);
+            expect(ids([game({ 'leg-1': visits })])).toEqual(expect.arrayContaining(['shortLeg-18', 'shortLeg-15', 'shortLeg-12']));
+            const top = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'S41', 'D20'], 141, 0)];
+            expect(replayBadges([game({ 'leg-1': top })], P).metrics.doubleTops).toBe(1);
+        });
+    });
+
+    it('knows a win in the deciding leg', () => {
+        const leg = (winner) => [{ playerId: winner, darts: ['D20'], scoreLeft: 0 }];
+        const match = (sets, format = {}) => ({
+            players: [P, O], legMode: 'Best of', numberOfLegs: 5, setMode: 'Best of', numberOfSets: 1, ...format,
+            allSetsThrows: Object.fromEntries(sets.map((winners, s) => [`set-${s + 1}`, Object.fromEntries(winners.map((w, i) => [`leg-${i + 1}`, leg(w)]))])),
+        });
+        expect(wonInDecidingLeg(match([[P, O, P, O, P]]), P)).toBe(true);
+        expect(wonInDecidingLeg(match([[P, P, O, P]]), P)).toBe(false);
+        expect(wonInDecidingLeg(match([[P]], { numberOfLegs: 1 }), P)).toBe(false);
+        // sets: 1–1 in sets and 1–1 in legs of the last set, best of 3 legs per set
+        const sets = { numberOfSets: 3, numberOfLegs: 3 };
+        expect(wonInDecidingLeg(match([[P, P], [O, O], [P, O, P]], sets), P)).toBe(true);
+        expect(wonInDecidingLeg(match([[P, P], [P, O, P]], sets), P)).toBe(false);
+    });
+
+    it('finds the white horse and the marks per round in Cricket', () => {
+        const cricket = (allThrows, model = {}) => ({
+            type: 'cricket', id: `k${clock}`, at: at(),
+            data: { players: [P, O], allThrows, playerModels: { [P]: { hasWonGame: true, ...model } } },
+        });
+        expect(ids([cricket([{ playerId: P, darts: ['T20', 'T19', 'T18'] }])])).toContain('whiteHorse-1');
+        expect(ids([cricket([{ playerId: P, darts: ['T20', 'T20', 'T18'] }])])).not.toContain('whiteHorse-1');
+        expect(ids([cricket([{ playerId: P, darts: ['S25', 'S25', 'D25'] }])])).toContain('bullHatTrick-1');
+        const strong = { hit: { T20: 4, T19: 3, D25: 3, S18: 3 }, totalThrow: { game: { rounds: 6 } } };
+        expect(replayBadges([cricket([], strong)], P).metrics.bestMarksPerRound).toBe(5);
+        expect(ids([cricket([], { ...strong, totalThrow: { game: { rounds: 3 } } })])).not.toContain('marksPerRound-3');
+    });
+
+    it('counts different opponents and the time since the first game', () => {
+        const game = (opponent, date) => ({ type: 'x01', id: `r${clock++}`, at: new Date(date), data: { players: [P, opponent], playerModels: { [P]: { hasWonGame: false } } } });
+        const events = ['a', 'b', 'a', 'c', 'd', 'e'].map((o, i) => game(o, `2025-0${i + 1}-01`));
+        expect(replayBadges(events, P).metrics.opponents).toBe(5);
+        expect(ids(events)).toContain('rivals-5');
+        expect(ids([game('a', '2025-01-01'), game('a', '2025-12-31')])).not.toContain('anniversary-365');
+        expect(ids([game('a', '2025-01-01'), game('a', '2026-01-01')])).toContain('anniversary-365');
+    });
+
+    it('counts training days, training weeks, the full set and the fewest darts on singles', () => {
+        const training = (date, data = {}) => ({ type: 'atc', id: `d${clock++}`, at: new Date(date), data: { mode: 'Single', timeMs: 100, ...data } });
+        const events = [
+            training('2026-01-05T18:00Z'), training('2026-01-05T19:00Z', { mode: 'Double' }), training('2026-01-12T18:00Z', { mode: 'Triple' }),
+            training('2026-01-19T18:00Z', { mode: 'All' }), training('2026-01-26T18:00Z', { scoring: 'Darts', darts: 38 }),
+            training('2026-01-27T18:00Z', { scoring: 'Darts', darts: 52, mode: 'Double' }),
+        ];
+        const { metrics, earned } = replayBadges(events, P);
+        expect(metrics).toMatchObject({ trainingDays: 5, bestTrainingWeekStreak: 4, trainingModes: 4, bestSinglesDarts: 38 });
+        const got = earned.map(e => e.badge);
+        expect(got).toEqual(expect.arrayContaining(['trainingDays-5', 'trainingStreak-4', 'trainingModes-4', 'trainingDarts-40']));
+        expect(got).not.toContain('trainingDarts-30');
     });
 
     it('replays in time order whatever the input order', () => {

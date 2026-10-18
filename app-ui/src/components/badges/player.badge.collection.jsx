@@ -28,7 +28,10 @@ const BadgeSeries = ({ badges }) => {
                     ? (
                         <>
                             <span className="text-faint fs-7">Next: {next.title} · {next.description}</span>
-                            {next.target > 1 &&
+                            {next.lower && next.progress > 0 &&
+                                <span className="text-faint fs-8">Your best so far: {formatNumber(next.progress)} darts</span>
+                            }
+                            {!next.lower && next.target > 1 &&
                                 <div className="d-flex align-items-center gap-2">
                                     <ProgressBar value={Math.round(next.progress / next.target * 100)} showValue={false} className="flex-grow-1" style={{ height: '0.35rem', maxWidth: '16rem' }} />
                                     <span className="text-faint fs-8" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(next.progress)} / {formatNumber(next.target)}</span>

@@ -6,6 +6,7 @@ const CHANGELOG = [
     {
         version: '2026.10.9',
         changes: [
+            '16 new badge series: training days, training streak, the full set of training modes and the sharp shooter (fewest darts on singles); ton-plus and ton-forty visits, three in a bed, bag of nuts, short legs (18, 15 and 12 darts), double top and winning the deciding leg; in Cricket the white horse, the hat trick of bulls and the marks per round; rivals (different opponents), the anniversary and 100,000 darts thrown. They count from your whole history, so many players get some right away.',
             'Global admins help users who cannot log in, e.g. because their email address does not exist: correct their name and email, set a new password, or create a link to choose one and pass it on.',
             'The users have their own page in the Admin menu, like the clubs, with a search by name or email and a club filter; Administration keeps the totals, the banner and the system.',
             'Average levels from Beginner to Elite: the average over time marks every change of level, up and down, with lines for the level reached and the next one and the level in the tooltip; the profile names the level of the 3-dart average.',
