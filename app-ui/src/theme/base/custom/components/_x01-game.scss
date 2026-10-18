@@ -253,6 +253,9 @@
     &.count-1 { grid-template-columns: 1fr; }
   }
 
+  // the statistics one below the other: two side by side are too narrow
+  .x01-players.x01-stats-grid { grid-template-columns: 1fr; margin-top: 1rem; }
+
   .x01-player {
     gap: 0.1rem;
     padding: 0.5rem 0.65rem;
@@ -277,4 +280,114 @@
   .x01-dart-input.p-inputtext { padding: 0.55rem 1.6rem 0.55rem 0.6rem; font-size: 1rem; }
   .x01-dart-clear { right: 0.1rem; bottom: 0.4rem; width: 1.5rem; height: 1.5rem; }
   .x01-visit-total { margin: 0.5rem 0; }
+}
+
+// how each player is doing, below the board
+.x01-stats-grid { margin-top: 1.5rem; }
+
+.x01-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  background: var(--surface);
+
+  .x01-form-card { background: var(--surface-raised); }
+}
+
+.x01-stats-name {
+  color: var(--text-default);
+  font-weight: 600;
+  text-align: center;
+}
+
+.x01-stats-title {
+  color: var(--text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.x01-stats-table {
+  width: 100%;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+
+  th, td { padding: 0.2rem 0.25rem; }
+
+  thead th {
+    color: var(--text-faint);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: right;
+    text-transform: uppercase;
+  }
+
+  tbody th {
+    color: var(--text-subtle);
+    font-weight: 500;
+  }
+
+  td {
+    color: var(--text-default);
+    text-align: right;
+  }
+
+  tbody tr + tr { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+}
+
+.x01-visit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: 14rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+
+  li {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr 2.5rem 2.75rem;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  li.is-bust .x01-visit-score { color: #ff8a80; }
+}
+
+.x01-visit-number { color: var(--text-faint); }
+
+.x01-visit-darts {
+  display: flex;
+  gap: 0.25rem;
+  color: var(--text-subtle);
+
+  span {
+    padding: 0 0.3rem;
+    border-radius: 0.3rem;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 0.72rem;
+  }
+}
+
+.x01-visit-score { color: var(--text-subtle); text-align: right; }
+.x01-visit-left { color: var(--text-default); font-weight: 600; text-align: right; }
+
+.x01-stats-doubles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  color: var(--text-subtle);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+
+  strong { color: var(--text-default); }
 }

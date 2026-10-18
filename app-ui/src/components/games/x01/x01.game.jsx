@@ -51,18 +51,8 @@ const X01Game = () => {
             <X01ScoreInputBoard />
 
             {/* --- Statistics Section --- */}
-            <div className="container-fluid mt-4">
-                <div className="row justify-content-md-center">
-                    {game.players.map((playerId, idx) => (
-                        <div
-                            key={`statistics-board-col-${playerId}`}
-                            className={`col-6 col-lg-3 p-0 py-2 border-top border-bottom border-opacity-50 ${idx < players.length - 1 ? 'border-end-md' : ''
-                                }`}
-                        >
-                            <X01StatisticsBoard playerId={playerId} />
-                        </div>
-                    ))}
-                </div>
+            <div className={`x01-players x01-stats-grid count-${game.players.length}`}>
+                {game.players.map(playerId => <X01StatisticsBoard key={`statistics-board-${playerId}`} playerId={playerId} />)}
             </div>
         </Fragment>
     );

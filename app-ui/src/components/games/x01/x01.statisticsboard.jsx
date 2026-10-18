@@ -1,148 +1,163 @@
-import { useContext, useMemo } from 'react';
-import { Accordion, AccordionTab } from 'primereact/accordion';
+import { useContext, useMemo, useState } from 'react';
+import { Button } from 'primereact/button';
+
 import X01Context from '../../../utils/x01.context';
 import X01FormCard from './x01.form.card';
 import { startingScoreOf } from '../../../utils/x01.rules';
 
+const RANGES = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
+const TON_PLUS = ['180', '160-179', '140-159', '120-139', '100-119'];
+
 const getNested = (obj, path, fallback = 0) =>
     path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj) ?? fallback;
 
-const StatRow = ({ label, values }) => (
-    <div className="d-flex justify-content-between text-faint fs-9">
-        <span className="col-4">{label}</span>
-        {values.map((v, i) => (
-            <span key={i} className="col-2 text-center">{v}</span>
-        ))}
-    </div>
+const oneDecimal = (value) => value ? value.toFixed(1) : '–';
+const highestCheckout = (scores) => Math.max(0, ...Object.keys(scores ?? {}).map(Number).filter(Number.isFinite)) || '–';
+
+/**
+ * A figure for the leg, the set and the game in a table with headings; the set
+ * column only when more than one set is played.
+ */
+const FigureTable = ({ rows, withSet }) => (
+    <table className="x01-stats-table">
+        <thead>
+            <tr>
+                <th scope="col"><span className="visually-hidden">Figure</span></th>
+                <th scope="col">Leg</th>
+                {withSet && <th scope="col">Set</th>}
+                <th scope="col">Game</th>
+            </tr>
+        </thead>
+        <tbody>
+            {rows.map(([label, leg, set, game, hint]) => (
+                <tr key={label}>
+                    <th scope="row" title={hint}>{label}</th>
+                    <td>{leg}</td>
+                    {withSet && <td>{set}</td>}
+                    <td>{game}</td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
 );
 
+/**
+ * How a player is doing in the running game: the form, the key figures for
+ * leg, set and game, the visits of this leg, and more behind a button.
+ */
 const X01StatisticsBoard = ({ playerId }) => {
     const { game, players } = useContext(X01Context);
+    const [more, setMore] = useState(false);
     const pm = game.playerModels[playerId] || {};
-    const currentSet = `set-${game.currentSet}`;
-    const currentLeg = `leg-${game.currentSetLeg}`;
+    const set = `set-${game.currentSet}`;
+    const leg = `leg-${game.currentSetLeg}`;
+    const withSet = game.numberOfSets > 1;
     const player = useMemo(() => players.find(p => p.id === playerId), [players, playerId]);
 
-    const ranges = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
+    // the three scopes of a stored figure: [leg, set, game]
+    const scopes = (path, leaf) => [
+        getNested(pm, [path, set, leg, ...leaf]),
+        getNested(pm, [path, set, ...leaf]),
+        getNested(pm, [path, 'game', ...leaf]),
+    ];
+    const averages = (kind) => [
+        getNested(pm, ['averages', set, leg, kind === 'overall' ? 'overall' : `${kind}Leg`]),
+        getNested(pm, ['averages', set, kind === 'overall' ? 'overall' : `${kind}Set`]),
+        getNested(pm, ['averages', 'game', kind === 'overall' ? 'overall' : `${kind}Game`]),
+    ].map(oneDecimal);
+    const count = (ranges) => [
+        getNested(pm, ['scoreRanges', set, leg], {}),
+        getNested(pm, ['scoreRanges', set], {}),
+        getNested(pm, ['scoreRanges', 'game'], {}),
+    ].map(scope => ranges.reduce((sum, range) => sum + (Number(scope?.[range]) || 0), 0));
+
+    const rows = [
+        ['Average', ...averages('overall'), 'Points per visit of three darts'],
+        ['Scoring', ...averages('begMid'), 'Average per visit while above 140'],
+        ['Finishing', ...averages('end'), 'Average per visit at 140 and below'],
+        ['Best visit', ...scopes('bestThreeDarts', ['value']).map(value => value || '–')],
+        ['100+', ...count(TON_PLUS)],
+        ['180s', ...count(['180'])],
+    ];
+
+    // the visits of this leg with what they left; a visit that took nothing off despite scoring is a bust
+    let left = startingScoreOf(game, playerId);
+    const visits = game.currentLegThrows.filter(visit => visit.playerId === playerId).map((visit, index) => {
+        const scoreLeft = Number(visit.scoreLeft);
+        const bust = left === scoreLeft && Number(visit.roundScore) > 0;
+        left = scoreLeft;
+        return { index: index + 1, darts: visit.darts, score: bust ? 0 : visit.roundScore, scoreLeft, bust };
+    });
+
+    const doubles = [...Array(20)].map((_, i) => [`D${i + 1}`, getNested(pm, ['checkout', 'sections', i + 1], null)])
+        .concat([['Bull', getNested(pm, ['checkout', 'sections', '25'], null)]])
+        .filter(([, section]) => section?.total > 0);
 
     return (
-        <div className="container-fluid">
-            <div className="row justify-content-md-center">
-                <div className="d-flex justify-content-center align-items-center">
-                    <span className="text-default fs-6 fw-semibold text-center pb-2">{player?.nickname}</span>
-                </div>
+        <div className="x01-stats">
+            <div className="x01-stats-name">{player?.nickname}</div>
+            <X01FormCard game={game} playerId={playerId} />
 
-                <div className="col-12 p-0 px-1 px-md-2">
-                    <X01FormCard game={game} playerId={playerId} />
-                </div>
+            <FigureTable rows={rows} withSet={withSet} />
 
-                {/* === LEFT COLUMN === */}
-                <div className="col-12 col-xxl-6 p-0 px-1 px-md-2 pb-0">
-                    <Accordion multiple activeIndex={[0]}>
-                        {/* Averages */}
-                        <AccordionTab header="Averages">
-                            {['overall', 'begMid', 'end'].map((type) => (
-                                <StatRow
-                                    key={type}
-                                    label={type === 'begMid' ? 'Beg / Mid' : type.charAt(0).toUpperCase() + type.slice(1)}
-                                    values={[
-                                        Math.round(getNested(pm, ['averages', currentSet, currentLeg, `${type}Leg`])),
-                                        Math.round(getNested(pm, ['averages', currentSet, `${type}Set`])),
-                                        Math.round(getNested(pm, ['averages', 'game', `${type}Game`])),
-                                    ]}
-                                />
+            <div className="x01-stats-visits">
+                <div className="x01-stats-title">This leg</div>
+                {visits.length
+                    ? (
+                        <ol className="x01-visit-list">
+                            {visits.map(visit => (
+                                <li key={visit.index} className={visit.bust ? 'is-bust' : ''}>
+                                    <span className="x01-visit-number">{visit.index}</span>
+                                    <span className="x01-visit-darts">{visit.darts.map((dart, i) => <span key={i}>{dart}</span>)}</span>
+                                    <span className="x01-visit-score">{visit.bust ? 'Bust' : visit.score}</span>
+                                    <span className="x01-visit-left">{visit.scoreLeft}</span>
+                                </li>
                             ))}
-                        </AccordionTab>
-
-                        {/* Amount */}
-                        <AccordionTab header="Amount">
-                            <StatRow
-                                label="Best Three"
-                                values={[
-                                    getNested(pm, ['bestThreeDarts', currentSet, currentLeg, 'value']),
-                                    getNested(pm, ['bestThreeDarts', currentSet, 'value']),
-                                    getNested(pm, ['bestThreeDarts', 'game', 'value']),
-                                ]}
-                            />
-                            {ranges.map((r) => (
-                                <StatRow
-                                    key={r}
-                                    label={r}
-                                    values={[
-                                        getNested(pm, ['scoreRanges', currentSet, currentLeg, r]),
-                                        getNested(pm, ['scoreRanges', currentSet, r]),
-                                        getNested(pm, ['scoreRanges', 'game', r]),
-                                    ]}
-                                />
-                            ))}
-                        </AccordionTab>
-
-                        {/* Checkout */}
-                        <AccordionTab header="Checkout">
-                            <StatRow
-                                label="Highest"
-                                values={[
-                                    Math.max(0, ...Object.keys(getNested(pm, ['checkoutScores', currentSet, currentLeg], {})).filter(k => !isNaN(k))),
-                                    Math.max(0, ...Object.keys(getNested(pm, ['checkoutScores', currentSet], {})).filter(k => !isNaN(k))),
-                                    Math.max(0, ...Object.keys(getNested(pm, ['checkoutScores', 'game'], {})).filter(k => !isNaN(k))),
-                                ]}
-                            />
-                            <StatRow
-                                label="Doubles Hit"
-                                values={[
-                                    Object.values(getNested(pm, ['checkoutScores', currentSet, currentLeg], {})).filter(k => !isNaN(k)).reduce((a, b) => a + b, 0),
-                                    Object.values(getNested(pm, ['checkoutScores', currentSet], {})).filter(k => !isNaN(k)).reduce((a, b) => a + b, 0),
-                                    Object.values(getNested(pm, ['checkoutScores', 'game'], {})).filter(k => !isNaN(k)).reduce((a, b) => a + b, 0),
-                                ]}
-                            />
-
-                            {[...Array(20)].map((_, i) => {
-                                const section = getNested(pm, ['checkout', 'sections', i + 1]);
-                                return section ? (
-                                    <StatRow
-                                        key={i}
-                                        label={`Double ${i + 1}`}
-                                        values={[`${section.hit || 0} / ${section.total || 0}`]}
-                                    />
-                                ) : null;
-                            })}
-
-                            {getNested(pm, ['checkout', 'sections', '25', 'total']) > 0 && (
-                                <StatRow
-                                    label="BULLSEYE"
-                                    values={[`${getNested(pm, ['checkout', 'sections', '25', 'hit'])} / ${getNested(pm, ['checkout', 'sections', '25', 'total'])}`]}
-                                />
-                            )}
-                        </AccordionTab>
-                    </Accordion>
-                </div>
-
-                {/* === RIGHT COLUMN === */}
-                <div className="col-12 col-xxl-6 p-0 px-1 px-md-2 pt-0">
-                    <Accordion multiple activeIndex={[0]}>
-                        <AccordionTab header="Per Round Score">
-                            <div className="container">
-                                <div className="row mb-1">
-                                    <span className="col-4 p-0 fs-8 text-default fw-semibold">Initial</span>
-                                    <span className="col-8 p-0 fs-8 text-default fw-semibold text-end">{startingScoreOf(game, playerId)}</span>
-                                </div>
-                                {game.currentLegThrows
-                                    .filter(e => e.playerId === playerId)
-                                    .map((t, i) => (
-                                        <div key={i} className="row mb-1">
-                                            <span className="col-2 p-0 fs-8 text-default fw-semibold">R{i + 1}</span>
-                                            {t.darts.map((d, j) => (
-                                                <span key={j} className="col-2 p-0 fs-9 text-faint fst-italic text-end">{d}</span>
-                                            ))}
-                                            <span className="col-2 p-0 fs-9 text-faint fw-semibold text-end">{t.roundScore}</span>
-                                            <span className="col-2 p-0 fs-8 text-default fw-semibold text-end">{t.scoreLeft}</span>
-                                        </div>
-                                    ))}
-                            </div>
-                        </AccordionTab>
-                    </Accordion>
-                </div>
+                        </ol>
+                    )
+                    : <div className="text-faint fs-8">Starts at {startingScoreOf(game, playerId)}; no visits yet.</div>
+                }
             </div>
+
+            <Button
+                type="button"
+                label={more ? 'Less' : 'More statistics'}
+                icon={more ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
+                text
+                size="small"
+                className="w-100 justify-content-center"
+                aria-expanded={more}
+                onClick={() => setMore(!more)}
+            />
+            {more && <>
+                <div className="x01-stats-title mt-2">Score per visit</div>
+                <FigureTable
+                    withSet={withSet}
+                    rows={RANGES.map(range => [range === 'ZERO' ? '0' : range.replace('-', '–'), ...[
+                        getNested(pm, ['scoreRanges', set, leg, range]),
+                        getNested(pm, ['scoreRanges', set, range]),
+                        getNested(pm, ['scoreRanges', 'game', range]),
+                    ]])}
+                />
+                <div className="x01-stats-title mt-2">Checkout</div>
+                <FigureTable
+                    withSet={withSet}
+                    rows={[['Highest', ...[
+                        getNested(pm, ['checkoutScores', set, leg], {}),
+                        getNested(pm, ['checkoutScores', set], {}),
+                        getNested(pm, ['checkoutScores', 'game'], {}),
+                    ].map(highestCheckout)]]}
+                />
+                {doubles.length > 0 &&
+                    <div className="x01-stats-doubles">
+                        {doubles.map(([label, section]) => (
+                            <span key={label} title={`${section.hit} of ${section.total} darts at ${label} hit`}>
+                                <strong>{label}</strong> {section.hit}/{section.total}
+                            </span>
+                        ))}
+                    </div>
+                }
+            </>}
         </div>
     );
 };

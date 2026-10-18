@@ -51,7 +51,7 @@ const X01FormCard = ({ game, playerId }) => {
     ];
 
     return (
-        <div className="x01-form-card bg-surface rounded-2 p-2 mb-2">
+        <div className="x01-form-card rounded-2 p-2">
             <div className="d-flex justify-content-between align-items-center mb-1">
                 <span className="text-subtle fs-8 fw-semibold">Form</span>
                 {trend && (
