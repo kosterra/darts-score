@@ -100,6 +100,18 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-new-badges-hall-of-shame',
+        description: 'Award the 16 new badge series from past games and trainings, and fill every player\'s Hall of Shame, so the club holders are right from the start',
+        run: async () => {
+            const { syncPlayerBadges } = await import('./badge.service.js');
+            const players = await db.player.find({ guest: { $ne: true }, 'clubs.0': { $exists: true } });
+            let awarded = 0;
+            for (const player of players) awarded += (await syncPlayerBadges(player)).newBadges.length;
+            logger.info(`Checked the badges and the Hall of Shame of ${players.length} players: ${awarded} new badges`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {
