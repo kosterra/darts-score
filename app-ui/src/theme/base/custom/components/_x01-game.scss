@@ -6,6 +6,8 @@
 // the header: compact, so the board stays in view; a row per player with the
 // photo, the name and the legs, and the score on the right
 .x01-live-hero {
+  // the players' layout follows the width of the header, not of the screen
+  container-type: inline-size;
   gap: 0.85rem;
   margin-bottom: 1.5rem;
   padding: 1.1rem 1.5rem;
@@ -24,8 +26,7 @@
 .x01-hero-player {
   display: flex;
   align-items: center;
-  // the halo reaches about 1rem beyond the photo: the text keeps clear of it
-  gap: 1.75rem;
+  gap: 1rem;
   min-width: 0;
 
   // the others step back a little, the player at the oche is bright
@@ -37,6 +38,10 @@
 .x01-hero-portrait {
   position: relative;
   flex-shrink: 0;
+  // the halo reaches about 1rem beyond the photo: the text keeps clear of it
+  margin-right: 0.75rem;
+
+  .is-mirrored & { margin-right: 0; margin-left: 0.75rem; }
 
   // the photo above the halo: the halo is positioned, so it would be drawn over it
   .p-avatar { position: relative; z-index: 1; }
@@ -68,7 +73,7 @@
   flex-shrink: 0;
   align-items: center;
   gap: 0.2rem;
-  min-width: 9rem;
+  min-width: 7.5rem;
 
   .result-hero-score { font-size: 3.5rem; }
 }
@@ -95,7 +100,7 @@
 
 .x01-live-tags {
   display: flex;
-  flex-wrap: wrap;
+  white-space: nowrap;
   gap: 0.25rem 0.6rem;
   min-height: 1.1rem;
   color: var(--text-faint);
@@ -146,6 +151,7 @@
 
 .x01-live-leg {
   color: var(--text-faint);
+  white-space: nowrap;
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 
@@ -396,6 +402,29 @@
   font-variant-numeric: tabular-nums;
 
   strong { color: var(--text-default); }
+}
+
+// a narrow header (e.g. a small laptop with the menu open): each player a column,
+// the photo on top, then the name and the last visit, then the score and the legs
+@container (max-width: 860px) {
+  .x01-hero-players.count-2 { gap: 1rem 1.5rem; }
+
+  .x01-hero-player, .x01-hero-player.is-mirrored {
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: center;
+  }
+
+  .x01-hero-info, .x01-hero-score { display: contents; }
+
+  .x01-hero-portrait, .is-mirrored .x01-hero-portrait { order: 0; margin: 0 0 0.6rem; }
+  .x01-hero-avatar.p-avatar { width: 4.5rem; height: 4.5rem; font-size: 1.5rem; }
+  .x01-hero-name { order: 1; }
+  .x01-live-leg { order: 2; }
+  .x01-live-tags, .is-mirrored .x01-live-tags { order: 3; justify-content: center; }
+  .x01-hero-score .result-hero-score { order: 4; }
+  .x01-live-route { order: 5; }
+  .x01-live-won { order: 6; }
 }
 
 // a phone: a compact header, the board can be hidden, the darts in one row,
