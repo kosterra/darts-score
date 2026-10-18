@@ -756,9 +756,18 @@ $oneEightyGold: #ffc94d;
 .hat-trick-hat {
     transform-box: view-box;
     transform-origin: 60px var(--head);
-    animation:
-        hat-fly 0.9s 0.7s cubic-bezier(0.3, 0.6, 0.4, 1) both,
-        hat-lift 0.5s 1.9s ease-in-out 4 alternate;
+
+    // the hat trick: the hat flies in, lands, then it is lifted
+    &.is-landing {
+        animation:
+            hat-fly 0.9s 0.7s cubic-bezier(0.3, 0.6, 0.4, 1) both,
+            hat-lift 0.5s 1.9s ease-in-out 4 alternate;
+    }
+
+    // on from the start and tipped in greeting (the nine-darter)
+    &.is-tipping {
+        animation: hat-lift 0.5s 1s ease-in-out 6 alternate;
+    }
 }
 
 @keyframes hat-fly {

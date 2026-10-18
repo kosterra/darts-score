@@ -1,5 +1,6 @@
 import { Dragon, Gnome, Monster, Troll } from './one.eighty.figures';
 import useFleeting from './use.fleeting';
+import HatFigure from './hat.figure';
 
 const DURATION_MS = 4400;
 const FIGURES = [Gnome, Monster, Dragon, Troll];
@@ -53,14 +54,17 @@ const Burst = ({ x, y, delay, colour }) => (
 );
 
 /**
- * The nine-darter, the perfect leg: fireworks over the whole screen.
- * moment: { key, name }
+ * The nine-darter, the perfect leg: fireworks over the whole screen, and the
+ * player's figure tipping its top hat. moment: { key, name, playerIndex }
  */
 export const PerfectLeg = ({ moment, onDone }) => (
     <Stage moment={moment} onDone={onDone} className="is-perfect" title="Perfect leg!" detail={<>A nine-darter by <strong>{moment?.name}</strong></>}>
         {[[18, 28, 0, '#ffc94d'], [78, 22, 0.35, '#7ecca5'], [50, 16, 0.7, '#fff3c4'], [30, 50, 1.05, '#c3a9e6'], [70, 48, 1.4, '#ffc94d'], [12, 62, 1.75, '#86bfe6'], [88, 60, 2.1, '#ff8a6b'], [50, 38, 2.45, '#7ecca5']].map(([x, y, delay, colour]) => (
             <Burst key={`${x}-${y}`} x={x} y={y} delay={delay} colour={colour} />
         ))}
+        <div className="hat-trick-stage">
+            <HatFigure playerIndex={moment?.playerIndex ?? 0} />
+        </div>
     </Stage>
 );
 

@@ -1,10 +1,9 @@
 import { Dragon, Gnome, Monster, Troll } from '../common/one.eighty.figures';
 import useFleeting from '../common/use.fleeting';
+import HatFigure from '../common/hat.figure';
 
 const DURATION_MS = 4200;
 const FIGURES = [Gnome, Monster, Dragon, Troll];
-// where the top of each figure's head is in its 120 × 170 box, for the hat
-const HEAD_TOP = [4, 18, 22, 20];
 
 /**
  * A top hat lands on the player's figure, which lifts it in greeting: the
@@ -14,9 +13,6 @@ const HEAD_TOP = [4, 18, 22, 20];
 export const HatTrick = ({ moment, onDone }) => {
     const leaving = useFleeting(moment, onDone, DURATION_MS);
     if (!moment) return null;
-    const index = moment.playerIndex % FIGURES.length;
-    const Figure = FIGURES[index];
-    const top = HEAD_TOP[index];
 
     return (
         <div key={moment.key} className={`stage-moment ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
@@ -25,17 +21,7 @@ export const HatTrick = ({ moment, onDone }) => {
                 <span className="stage-moment-detail"><strong>{moment.name}</strong> · {moment.darts.join(' · ')}</span>
             </p>
             <div className="hat-trick-stage" aria-hidden="true">
-                <svg viewBox="0 0 120 170" className="hat-trick-figure">
-                    <Figure sign={false} />
-                    <g className="hat-trick-hat" style={{ '--head': `${top}px` }}>
-                        <g transform={`translate(0 ${top - 34})`}>
-                            <ellipse cx="60" cy="32" rx="30" ry="6" fill="#1b1714" />
-                            <rect x="42" y="2" width="36" height="30" rx="3" fill="#24201c" />
-                            <rect x="42" y="22" width="36" height="6" fill="#e9ac2f" />
-                            <ellipse cx="60" cy="2" rx="18" ry="3.5" fill="#34302b" />
-                        </g>
-                    </g>
-                </svg>
+                <HatFigure playerIndex={moment.playerIndex} landing />
             </div>
         </div>
     );
