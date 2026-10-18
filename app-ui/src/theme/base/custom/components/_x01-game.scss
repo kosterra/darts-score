@@ -36,9 +36,9 @@
 .x01-hero-portrait { flex-shrink: 0; }
 
 .x01-hero-avatar.p-avatar {
-  width: 4rem;
-  height: 4rem;
-  font-size: 1.4rem;
+  width: 5rem;
+  height: 5rem;
+  font-size: 1.75rem;
 }
 
 .x01-hero-info {
@@ -196,7 +196,7 @@
   .dartboard-img {
     width: auto;
     max-width: 100%;
-    height: min(30em, calc(100vh - 16rem));
+    height: min(30em, calc(100vh - 17rem));
     max-height: none;
   }
 }
