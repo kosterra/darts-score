@@ -334,6 +334,7 @@ const ATC = () => {
                         arrival={arrival}
                         view={scoreboardView}
                         onViewChange={setScoreboardView}
+                        defaults={{ mode, scoring }}
                         myPlayerId={myPlayerId}
                         onArrived={onArrived}
                     />

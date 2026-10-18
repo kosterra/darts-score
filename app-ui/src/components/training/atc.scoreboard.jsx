@@ -24,6 +24,23 @@ const SCORINGS = [
 ];
 const MODES = ATCConfigOptions.modeOptions.values.map(({ value }) => ({ label: value, value }));
 
+// whether the filters are open, per device
+const FILTERS_KEY = 'oche.atcScoreboardFilters';
+const readFiltersOpen = () => {
+    try {
+        return localStorage.getItem(FILTERS_KEY) === 'open';
+    } catch {
+        return false;
+    }
+};
+const writeFiltersOpen = (open) => {
+    try {
+        localStorage.setItem(FILTERS_KEY, open ? 'open' : 'closed');
+    } catch {
+        // storage unavailable: the filters start folded next time
+    }
+};
+
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
@@ -66,10 +83,14 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
  * arrival: { ids } of the trainings just saved, or null
  * view, onViewChange: { period, list, mode, scoring }; mode and scoring pick the
  *   trainings, which the page loads into entries
+ * defaults: { mode, scoring } of the setup; with best per player and all time the
+ *   view nobody has to change, the filter button shows a dot otherwise
  * myPlayerId: the player of the logged-in user in this club, for "Mine"
  * onArrived(rows): once the new trainings reached their places (only those listed)
  */
-const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, myPlayerId, onArrived }) => {
+const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, defaults, myPlayerId, onArrived }) => {
+    // the filters are folded away unless this device left them open
+    const [filtersOpen, setFiltersOpen] = useState(() => readFiltersOpen());
     const [expanded, setExpanded] = useState(false);
     // the trainings just saved: 'enter' at the bottom, then 'slide' up, then 'landed'
     const [phase, setPhase] = useState(null);
@@ -167,33 +188,63 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, m
         onViewChange({ ...view, ...change });
     };
 
+    const toggleFilters = () => {
+        setFiltersOpen(!filtersOpen);
+        writeFiltersOpen(!filtersOpen);
+    };
+
+    const defaultView = { period: 'all', list: 'best', mode: defaults.mode, scoring: defaults.scoring };
+    const filtered = Object.keys(defaultView).some(key => view[key] !== defaultView[key]);
+    const summary = [
+        view.mode,
+        view.scoring === 'Darts' ? 'fewest darts' : 'against the clock',
+        PERIODS.find(option => option.value === view.period)?.label.toLowerCase(),
+        view.list === 'mine' ? 'my attempts' : LISTS.find(option => option.value === view.list)?.label.toLowerCase(),
+    ].join(' · ');
+
     const header = (
         <div className="p-panel-header atc-scoreboard-header">
-            <span className="p-panel-title">Scoreboard</span>
-            <SelectButton
-                value={view.scoring}
-                options={SCORINGS}
-                onChange={(e) => e.value && setView({ scoring: e.value })}
-                className="p-selectbutton-pills pills-inline"
-                aria-label="Scoring"
-            />
+            <span className="p-panel-title">
+                <span>Scoreboard</span>
+                <span className="text-faint fs-8 fw-normal">{summary}</span>
+            </span>
+            <span className="atc-filter-toggle">
+                <Button
+                    type="button"
+                    icon="pi pi-filter"
+                    rounded
+                    text={!filtersOpen}
+                    outlined={filtersOpen}
+                    aria-label={filtersOpen ? 'Hide the filters' : 'Show the filters'}
+                    aria-expanded={filtersOpen}
+                    title="Filter"
+                    onClick={toggleFilters}
+                />
+                {filtered && <span className="atc-filter-dot" aria-label="Filtered" />}
+            </span>
         </div>
     );
 
     return (
         <div ref={boardRef} className="atc-panel-anchor">
         <Panel headerTemplate={() => header} className="atc-scoreboard">
-            <SelectButton
-                value={view.mode}
-                options={MODES}
-                onChange={(e) => e.value && setView({ mode: e.value })}
-                className="p-selectbutton-pills atc-scoreboard-modes mb-2"
-                aria-label="Mode"
-            />
-            <div className="d-flex flex-wrap justify-content-between gap-2 mb-3">
-                <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
-                <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Listed" />
-            </div>
+            {filtersOpen &&
+                <div className="atc-filters">
+                    <div className="d-flex flex-wrap justify-content-between gap-2">
+                        <SelectButton value={view.scoring} options={SCORINGS} onChange={(e) => e.value && setView({ scoring: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Scoring" />
+                        <SelectButton value={view.mode} options={MODES} onChange={(e) => e.value && setView({ mode: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Mode" />
+                    </div>
+                    <div className="d-flex flex-wrap justify-content-between gap-2">
+                        <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
+                        <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Listed" />
+                    </div>
+                    {filtered &&
+                        <div className="text-end">
+                            <Button type="button" label="Reset" icon="pi pi-filter-slash" size="small" link className="p-0" onClick={() => setView(defaultView)} />
+                        </div>
+                    }
+                </div>
+            }
 
             {rows.length
                 ? (

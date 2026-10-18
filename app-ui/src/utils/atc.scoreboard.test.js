@@ -12,9 +12,9 @@ const entries = [
 ];
 
 describe('scoreboardRows', () => {
-    it('lists each player once with their best time, fastest first', () => {
+    it('lists each player once with their best time, fastest first; the same time shares a place', () => {
         expect(scoreboardRows(entries, { now }).map(({ entry: { id }, rank }) => [id, rank]))
-            .toEqual([['a2', 1], ['c1', 2], ['b1', 3]]);
+            .toEqual([['a2', 1], ['c1', 2], ['b1', 2]]);
     });
 
     it('lists every attempt on request', () => {
@@ -37,8 +37,8 @@ describe('scoreboardRows', () => {
 describe('resultLine', () => {
     const rows = scoreboardRows(entries, { now });
 
-    it('says the place and the gap to the place above', () => {
-        expect(resultLine(rows, entries[2])).toBe('3rd of 3 · 0.00 s behind 2nd');
+    it('says the place and the gap to the place above, or who it is level with', () => {
+        expect(resultLine(rows, entries[2])).toBe('2nd of 3 · level with 2nd');
         expect(resultLine(rows, entries[1])).toBe('1st of 3 · 10.00 s ahead of 2nd');
     });
 
@@ -56,6 +56,14 @@ describe('fewest darts', () => {
         expect(rows.map(({ entry: { id } }) => id)).toEqual(['d3', 'd2', 'd1']);
         expect(resultLine(rows, all[0])).toBe('3rd of 3 · 3 darts behind 2nd');
         expect(resultLine(rows, all[2])).toBe('1st of 3 · 1 dart ahead of 2nd');
+    });
+
+    it('gives the same darts the same place, and the next one the place after them', () => {
+        const all = [darts('d1', 'anna', 21), darts('d2', 'ben', 21), darts('d3', 'cleo', 30)];
+        const rows = scoreboardRows(all, { now });
+        expect(rows.map(({ rank }) => rank)).toEqual([1, 1, 3]);
+        expect(resultLine(rows, all[1])).toBe('1st of 3 · level with the best');
+        expect(resultLine(rows, all[2])).toBe('3rd of 3 · 9 darts behind 1st');
     });
 });
 

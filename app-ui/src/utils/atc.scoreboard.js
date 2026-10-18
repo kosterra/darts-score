@@ -35,7 +35,9 @@ export const LISTS = [
 ];
 
 /**
- * The listed times of the period, fastest first, with their place.
+ * The listed times of the period, fastest first, with their place. The same
+ * score shares a place (two at 21 darts are both 1st, the next is 3rd); among
+ * them who set it first is listed first.
  * list: 'best' (each player's best), 'all' or 'mine' (every attempt of myPlayerId)
  */
 export const scoreboardRows = (entries, { period = 'all', list = 'best', myPlayerId = null, now = new Date() } = {}) => {
@@ -49,7 +51,12 @@ export const scoreboardRows = (entries, { period = 'all', list = 'best', myPlaye
         }
         listed = [...best.values()];
     }
-    return listed.sort(faster).map((entry, index) => ({ entry, rank: index + 1 }));
+    const sorted = listed.sort(faster);
+    let rank = 0;
+    return sorted.map((entry, index) => {
+        if (index === 0 || scoreOf(entry) !== scoreOf(sorted[index - 1])) rank = index + 1;
+        return { entry, rank };
+    });
 };
 
 // 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st
@@ -77,10 +84,14 @@ export const resultLine = (rows, saved) => {
         return best ? `Your best stays ${formatScore(best.entry)} · ${ordinal(best.rank)} of ${rows.length}` : null;
     }
     const place = `${ordinal(row.rank)} of ${rows.length}`;
+    const tied = rows.some(other => other !== row && scoreOf(other.entry) === scoreOf(saved));
     if (row.rank === 1) {
-        const second = rows[1];
-        return second ? `${place} · ${gap(scoreOf(second.entry) - scoreOf(saved), darts)} ahead of 2nd` : place;
+        if (tied) return `${place} · level with the best`;
+        const next = rows.find(other => scoreOf(other.entry) > scoreOf(saved));
+        return next ? `${place} · ${gap(scoreOf(next.entry) - scoreOf(saved), darts)} ahead of ${ordinal(next.rank)}` : place;
     }
-    const above = rows[row.rank - 2];
+    if (tied) return `${place} · level with ${ordinal(row.rank)}`;
+    // the nearest better score
+    const above = rows.filter(other => scoreOf(other.entry) < scoreOf(saved)).at(-1);
     return `${place} · ${gap(scoreOf(saved) - scoreOf(above.entry), darts)} behind ${ordinal(above.rank)}`;
 };

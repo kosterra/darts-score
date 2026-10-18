@@ -444,19 +444,37 @@
   white-space: normal;
 }
 
-// the scoreboard header: the title, and time or darts on the right
+// the scoreboard header: the title with what is shown, and the filter button
 .atc-scoreboard-header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
 }
 
-// the modes of the scoreboard share the width
-.atc-scoreboard-modes.p-selectbutton {
-  display: flex;
-  width: 100%;
+.atc-filter-toggle {
+  position: relative;
+  flex-shrink: 0;
+}
 
-  .p-button { flex: 1 1 0; justify-content: center; }
+// the view differs from the usual one
+.atc-filter-dot {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--primary-color);
+  pointer-events: none;
+}
+
+.atc-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
 }
