@@ -245,16 +245,73 @@ $badgeMetals: (
     min-width: 0;
 }
 
-// a shame badge on a player's profile: how often, and whether it is still on them
-.shame-entry {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-width: 0;
+// The Hall of Shame on a player's profile. What is on them right now: cards
+// with a rust edge that stand out
+.shame-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 1rem;
 }
 
-.shame-count {
+.shame-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1rem;
+    border-radius: $borderRadius;
+    border-left: 3px solid $shameColor;
+    background: rgba($shameColor, 0.08);
+}
+
+// the status as a label, like every label in the app
+.shame-label {
+    @include label-shape;
+    @include label-tone($shameColor);
+    font-size: 0.75rem;
+
+    &.is-washed { @include label-neutral; color: var(--text-subtle); }
+}
+
+.shame-times {
     color: $shameColor;
+    font-size: 0.8rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+}
+
+// the good deed: its own line, in the normal text colour, so it does not mix
+// with the description
+.shame-wash {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+    color: $textDefaultColor;
+    font-size: 0.8rem;
+
+    svg { color: $softGreenText; flex-shrink: 0; align-self: center; }
+}
+
+.shame-others-title {
+    margin: 1.5rem 0 0.75rem;
+    color: $textSubtleColor;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+// the rest, washed off or never had: a quiet list
+.shame-others {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.shame-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
 }

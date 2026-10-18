@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 
 import BadgeMedal from './badge.medal';
 import ShameMedal from './shame.medal';
+import { FaSoap } from 'react-icons/fa6';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
 
@@ -58,25 +59,77 @@ const BadgeSeries = ({ badges }) => {
 
 const lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
 
+const formatDate = (date) => dayjs(date).format('DD.MM.YYYY');
+
 /**
- * One badge of the Hall of Shame on the profile: how often it happened and
- * whether it is still on the player or washed off.
+ * A shame badge the player has right now: a card that stands out, with since
+ * when and the good deed that washes it off.
  */
-const ShameEntry = ({ badge }) => (
-    <li className="shame-entry">
-        <ShameMedal badge={badge} washed={!badge.active} />
-        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
-            <span className="text-default fw-semibold">
-                {badge.title}
-                {badge.count > 0 && <span className="shame-count ms-2">× {badge.count}</span>}
+const ShameCard = ({ badge }) => (
+    <li className="shame-card">
+        <ShameMedal badge={badge} />
+        <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+            <span className="d-flex flex-wrap align-items-center gap-2">
+                <span className="text-default fw-semibold">{badge.title}</span>
+                <span className="shame-label">Since {formatDate(badge.lastAt)}</span>
+                {badge.count > 1 && <span className="shame-times">{badge.count} times</span>}
             </span>
             <span className="text-faint fs-8">{badge.description}</span>
-            {badge.active && <span className="text-subtle fs-8">Since {dayjs(badge.lastAt).format('DD.MM.YYYY')} · wash it off: {lowerFirst(badge.wash)}</span>}
-            {!badge.active && badge.count > 0 && <span className="text-subtle fs-8">Washed off on {dayjs(badge.washedAt).format('DD.MM.YYYY')}</span>}
-            {badge.count === 0 && <span className="text-subtle fs-8">Never happened, keep it that way</span>}
+            <span className="shame-wash"><FaSoap aria-hidden="true" /> Wash it off: {lowerFirst(badge.wash)}</span>
         </div>
     </li>
 );
+
+/**
+ * A shame badge the player does not have right now: washed off, or never had.
+ */
+const ShameEntry = ({ badge }) => (
+    <li className="shame-entry">
+        <ShameMedal badge={badge} size="sm" washed />
+        <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+            <span className="d-flex flex-wrap align-items-center gap-2">
+                <span className={badge.count > 0 ? 'text-default fw-semibold' : 'text-subtle fw-semibold'}>{badge.title}</span>
+                {badge.count > 0
+                    ? <span className="shame-label is-washed">Washed off {formatDate(badge.washedAt)}</span>
+                    : <span className="text-faint fs-8">Never</span>}
+                {badge.count > 1 && <span className="shame-times">{badge.count} times</span>}
+            </span>
+            <span className="text-faint fs-8">{badge.description}</span>
+        </div>
+    </li>
+);
+
+/**
+ * The player's Hall of Shame: what is on them right now, then the rest.
+ */
+const HallOfShameSection = ({ shame, name }) => {
+    const active = shame.filter(badge => badge.active);
+    const others = shame.filter(badge => !badge.active);
+    return (
+        <section className="d-flex flex-column gap-3">
+            <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
+                <h2 className="fs-4 fw-semibold text-default m-0">Hall of Shame</h2>
+                <span className="text-subtle">{active.length ? `${active.length} on ${name} right now` : `Nothing on ${name} right now`}</span>
+            </div>
+            <Panel header={active.length ? 'Right now' : 'All shame badges'}>
+                <p className="text-faint fs-7 mt-0 mb-3">
+                    What nobody wants to throw. These badges add no XP. Each one stays on the player until they wash it off with its good deed, and in the club it belongs to whoever got it last.
+                </p>
+                {active.length > 0 &&
+                    <>
+                        <ul className="shame-cards list-unstyled m-0">
+                            {active.map(badge => <ShameCard key={badge.id} badge={badge} />)}
+                        </ul>
+                        <h3 className="shame-others-title">The others</h3>
+                    </>
+                }
+                <ul className="shame-others list-unstyled m-0">
+                    {others.map(badge => <ShameEntry key={badge.id} badge={badge} />)}
+                </ul>
+            </Panel>
+        </section>
+    );
+};
 
 /**
  * One player's badge collection, by category and series, with how much of it
@@ -109,8 +162,15 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
         return { category, title, series, earned: badges.filter(b => b.earned).length, total: badges.length };
     });
 
+    const name = data.player?.nickname ?? 'the player';
+    // what is on the player right now comes first, so it is seen; a clean
+    // record waits at the end
+    const activeShame = data.shame?.some(badge => badge.active);
+    const shame = data.shame && <HallOfShameSection shame={data.shame} name={name} />;
+
     return (
         <div className="d-flex flex-column gap-4">
+            {activeShame && shame}
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
                 <h2 className="fs-4 fw-semibold text-default m-0">Badges</h2>
                 <span className="text-subtle">{data.earnedCount} of {data.total} collected</span>
@@ -123,16 +183,7 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
                     </ul>
                 </Panel>
             ))}
-            {data.shame &&
-                <Panel header={`Hall of Shame · ${data.shame.filter(badge => badge.active).length} on ${data.player?.nickname ?? 'the player'} right now`}>
-                    <p className="text-subtle fs-7 mt-0 mb-3">
-                        What nobody wants to throw. These badges add no XP. Each one stays on the player until they wash it off with the good deed below it, and in the club it belongs to whoever got it last.
-                    </p>
-                    <ul className="list-unstyled m-0 d-grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(18rem, 1fr))' }}>
-                        {data.shame.map(badge => <ShameEntry key={badge.id} badge={badge} />)}
-                    </ul>
-                </Panel>
-            }
+            {!activeShame && shame}
         </div>
     );
 };
