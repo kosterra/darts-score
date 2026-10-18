@@ -267,6 +267,9 @@
   gap: 0.5rem;
 }
 
+// the darts of the visit belong to the floating bar of a phone only
+.x01-visit-bar-darts { display: none; }
+
 // Enter score about two thirds, Undo the rest
 .x01-enter.p-button { flex: 2 1 0; }
 .x01-undo.p-button { flex: 1 1 0; white-space: nowrap; }
@@ -459,18 +462,35 @@
     bottom: calc(46px + env(safe-area-inset-bottom, 0px) + 0.4rem);
     left: 0.5rem;
     z-index: 899;
-    display: flex;
+    // the darts above the visit total on the left, the buttons on the right
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "darts actions" "total actions";
     align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 0.6rem 0.5rem 0.85rem;
+    column-gap: 0.6rem;
+    row-gap: 0.1rem;
+    padding: 0.45rem 0.6rem 0.45rem 0.85rem;
     border: 1px solid var(--border-default);
     border-radius: 0.75rem;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
     box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(6px);
 
-    .x01-visit-total { flex: 1 1 auto; margin: 0; font-size: 0.8rem; text-align: left; }
-    .x01-visit-actions { flex: 0 0 auto; }
+    .x01-visit-bar-darts {
+      grid-area: darts;
+      display: flex;
+      gap: 0.3rem;
+      color: var(--text-default);
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+
+      span + span::before { content: '·'; margin-right: 0.3rem; color: var(--text-faint); font-weight: 400; }
+      .is-empty { color: var(--text-faint); font-weight: 400; }
+    }
+
+    .x01-visit-total { grid-area: total; margin: 0; font-size: 0.75rem; text-align: left; }
+    .x01-visit-actions { grid-area: actions; }
     .x01-enter.p-button { flex: 0 0 auto; padding: 0.55rem 1rem; }
     // just the icon for Undo: the bar is narrow
     .x01-undo.p-button { flex: 0 0 auto; width: 2.5rem; padding: 0.5rem 0; }

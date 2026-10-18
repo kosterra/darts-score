@@ -188,6 +188,10 @@ const X01ScoreInputBoard = () => {
 
                         {/* on a phone with the board this floats above the menu bar, always in reach */}
                         <div className={`x01-visit-bar ${input === 'board' ? 'is-floating' : ''}`}>
+                        {/* the darts of the visit, only shown in the floating bar */}
+                        <div className="x01-visit-bar-darts" aria-hidden="true">
+                            {darts.map((dart, index) => <span key={index} className={dart ? '' : 'is-empty'}>{dart || '–'}</span>)}
+                        </div>
                         <div className={`x01-visit-total ${busted ? 'is-bust' : ''}`} aria-live="polite">
                             {busted
                                 ? <span><strong>Bust</strong> · the score stays at {game.playerModels[game.currentPlayerTurn].score}</span>
