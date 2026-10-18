@@ -607,10 +607,12 @@
 
   &.is-ring {
     font-size: 0.9rem;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 
-    &.is-active { border-color: var(--primary-color); background: var(--primary-color); color: var(--primary-color-text); }
+    // the chosen ring looks like a chosen pill
+    &.is-active { border-color: transparent; background: rgba($primaryColor, 0.42); color: $buttonTextColor; }
   }
 
   &.is-miss, &.is-back { color: var(--text-subtle); font-size: 1rem; }

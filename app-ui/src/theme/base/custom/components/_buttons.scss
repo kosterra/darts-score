@@ -35,23 +35,28 @@ $softGreenTextHover: #95d6b4;
 }
 
 :where(.p-button.p-button-danger:not(.p-button-text):not(.p-button-link)) {
-  @include soft-button($dangerButtonBg);
+  // the light text of the other buttons too: the red background is the signal
+  @include soft-button($dangerButtonBg, $buttonTextColor, $buttonTextColor, 0.3);
 }
 
-// the chosen pill: a choice, not an action, so soft rather than filled
+// every pill in the same weight, also those with an icon of their own
+:where(.p-selectbutton .p-button) { font-weight: 700; }
+
+// the chosen pill: a choice, not an action, so soft rather than filled, with
+// the light text of the buttons
 :where(.p-selectbutton .p-button.p-highlight) {
   border-color: transparent;
-  background: rgba($primaryColor, 0.3);
-  color: $softGreenText;
+  background: rgba($primaryColor, 0.42);
+  color: $buttonTextColor;
 
-  &:hover { background: rgba($primaryColor, 0.38); color: $softGreenTextHover; }
+  &:hover { background: rgba($primaryColor, 0.5); }
 }
 
 // the current page of a list is a choice like a pill
 :where(.p-paginator .p-paginator-page.p-highlight) {
   border-color: transparent;
-  background: rgba($primaryColor, 0.3);
-  color: $softGreenText;
+  background: rgba($primaryColor, 0.42);
+  color: $buttonTextColor;
 }
 
 // not available yet: plain grey with faint text, whatever kind of button it is,

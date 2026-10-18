@@ -232,8 +232,8 @@
   &:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 
   &.is-active {
-    background: rgba($primaryColor, 0.3);
-    color: $softGreenText;
+    background: rgba($primaryColor, 0.42);
+    color: $buttonTextColor;
   }
 }
 
