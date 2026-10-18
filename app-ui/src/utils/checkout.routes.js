@@ -43,7 +43,7 @@ const finishesWith = (dart, outMode) => {
 // "T20  -  T20  -  D25" from the checkout table as ["T20", "T20", "D25"]
 const tableRoute = (score) => {
     const entry = checkout[score]?.[0];
-    if (!entry || entry.startsWith('---')) return null;
+    if (!entry || entry.trim().startsWith('---')) return null;
     return entry.trim().split(/\s*-\s*/);
 };
 
@@ -105,3 +105,58 @@ const findRoutes = (score, dartsLeft, outMode) => {
 
 // "T20 · T19 · D12"
 export const formatRoute = (route) => route.join(' · ');
+
+// the scores worth leaving for the next visit, best first: the common doubles
+const GOOD_LEAVES = [40, 32, 36, 24, 16, 20, 8, 12, 50, 28, 18, 10, 4, 38, 34, 30, 26, 22, 14, 6, 2];
+
+// "T19 - T20 - S12 leaves 40" from the checkout table as { darts, leaves, note }
+const tableSuggestions = (score) => {
+    const entry = checkout[score];
+    if (!entry || !entry[0].trim().startsWith('---')) return [];
+    return entry.slice(2).map(line => {
+        const match = line.match(/^(.*?)\s+leaves\s+(\d+)(.*)$/);
+        if (!match) return null;
+        return { darts: match[1].trim().split(/\s*-\s*/), leaves: Number(match[2]), note: match[3].replace(/^\s*,\s*/, '').trim() || null };
+    }).filter(Boolean);
+};
+
+/**
+ * What to throw when there is no finish with the darts left: a setup that
+ * leaves a good double for the next visit, e.g. [{ darts: ["T19", "T20", "S12"],
+ * leaves: 40, note: null }]. From the checkout table with a full visit,
+ * worked out otherwise; none when a finish is possible or the score is too
+ * high to set up in this visit.
+ */
+export const setupSuggestions = (score, { dartsLeft = 3, outMode = 'Double Out' } = {}) => {
+    // above 170 the way is simply to score: no setup to suggest, as in the checkout table
+    if (outMode !== 'Double Out' || !Number.isInteger(score) || score < 3 || score > 170 || dartsLeft < 1) return [];
+    if (checkoutRoutes(score, { dartsLeft, outMode }).length) return [];
+    if (dartsLeft === 3) {
+        const fromTable = tableSuggestions(score);
+        if (fromTable.length) return fromTable;
+    }
+    const found = [];
+    for (const leaves of GOOD_LEAVES) {
+        const target = score - leaves;
+        if (target < 1 || target > 60 * dartsLeft) continue;
+        const candidates = [];
+        for (const first of DARTS) {
+            if (first.value === target) candidates.push([first]);
+            if (dartsLeft < 2) continue;
+            for (const second of DARTS) {
+                if (first.value + second.value === target && first.value >= second.value) candidates.push([first, second]);
+                if (dartsLeft < 3) continue;
+                for (const third of DARTS) {
+                    if (first.value + second.value + third.value === target && first.value >= second.value && second.value >= third.value) candidates.push([first, second, third]);
+                }
+            }
+        }
+        if (!candidates.length) continue;
+        // natural darts first, and the fewer the better: a dart left over is a free try
+        const cost = (darts) => darts.reduce((sum, dart) => sum + setupCost(dart), 0) * 3 + darts.length;
+        const best = candidates.sort((a, b) => cost(a) - cost(b))[0];
+        found.push({ darts: best.map(dart => dart.name), leaves, note: null });
+        if (found.length === 2) break;
+    }
+    return found;
+};

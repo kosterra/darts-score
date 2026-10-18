@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkoutRoutes, formatRoute } from './checkout.routes';
+import { checkoutRoutes, formatRoute, setupSuggestions } from './checkout.routes';
 
 describe('checkoutRoutes', () => {
     it('knows the only way to finish 170', () => {
@@ -43,5 +43,30 @@ describe('checkoutRoutes', () => {
 describe('formatRoute', () => {
     it('writes the darts with dots', () => {
         expect(formatRoute(['T20', 'T19', 'D12'])).toBe('T20 · T19 · D12');
+    });
+});
+
+describe('setupSuggestions', () => {
+    it('takes the suggestion of the checkout table for a score without a finish', () => {
+        expect(setupSuggestions(169)).toEqual([
+            { darts: ['T19', 'T20', 'S12'], leaves: 40, note: null },
+            { darts: ['T19', 'T19', 'S19'], leaves: 36, note: null },
+        ]);
+        expect(setupSuggestions(168)[0]).toEqual({ darts: ['T20', 'T20'], leaves: 48, note: 'then pick S8 or S16' });
+        expect(setupSuggestions(163)[0].leaves).toBe(40);
+    });
+
+    it('works out a setup with fewer darts left, leaving a good double', () => {
+        const [first] = setupSuggestions(99, { dartsLeft: 2 });
+        expect(first.leaves).toBe(40);
+        expect(first.darts.reduce((sum, dart) => sum + ({ S: 1, D: 2, T: 3 }[dart[0]]) * Number(dart.slice(1)), 0)).toBe(59);
+    });
+
+    it('has none when a finish is possible, the score is too high, or without double out', () => {
+        expect(setupSuggestions(170)).toEqual([]);
+        expect(setupSuggestions(40)).toEqual([]);
+        expect(setupSuggestions(301, { dartsLeft: 1 })).toEqual([]);
+        expect(setupSuggestions(200)).toEqual([]);
+        expect(setupSuggestions(169, { outMode: 'Straight Out' })).toEqual([]);
     });
 });

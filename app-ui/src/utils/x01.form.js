@@ -14,7 +14,7 @@ const numbered = (key, prefix) => Number(String(key).replace(prefix, ''));
  * The legs of a game in the order they were played, the running one last:
  * [{ set, leg, throws }]. Keys other than "set-<n>" / "leg-<n>" are ignored.
  */
-const legsInOrder = (game) => {
+export const legsInOrder = (game) => {
     const legs = [];
     Object.entries(game.allSetsThrows ?? {})
         .filter(([setKey, legsOfSet]) => /^set-\d+$/.test(setKey) && legsOfSet && typeof legsOfSet === 'object' && !Array.isArray(legsOfSet))

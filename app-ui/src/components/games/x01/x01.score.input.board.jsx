@@ -115,37 +115,33 @@ const X01ScoreInputBoard = () => {
     const busted = checkIfScoreIsBusted(score);
     const nickname = players.find(player => player.id === game.currentPlayerTurn)?.nickname ?? '';
 
-    const boardHeader = (
-        <div className="p-panel-header">
-            <span className="p-panel-title">Dartboard</span>
-            <Button
-                type="button"
-                label={showBoard ? 'Type only' : 'Show board'}
-                icon={showBoard ? 'pi pi-pencil' : 'pi pi-bullseye'}
-                text
-                size="small"
-                className="d-md-none p-1"
-                aria-pressed={!showBoard}
-                onClick={toggleBoard}
-            />
-        </div>
-    );
-
     const visitHeader = (
         <div className="p-panel-header">
             <span className="p-panel-title">{nickname}&apos;s visit</span>
-            <ScoreInputBoardHelp label={<span className="d-none d-sm-inline">Tap the board or type</span>} plainSingles compact />
+            <span className="d-inline-flex align-items-center gap-1">
+                {/* on a phone the board can make way for typing */}
+                <Button
+                    type="button"
+                    label={showBoard ? 'Type only' : 'Board'}
+                    icon={showBoard ? 'pi pi-pencil' : 'pi pi-bullseye'}
+                    text
+                    size="small"
+                    className="d-md-none p-1"
+                    aria-pressed={!showBoard}
+                    onClick={toggleBoard}
+                />
+                <ScoreInputBoardHelp label={<span className="d-none d-sm-inline">Tap the board or type</span>} plainSingles compact />
+            </span>
         </div>
     );
 
     return (
         <div className="row g-4 x01-play">
-            <div className="col-12 col-lg-7">
-                <Panel headerTemplate={() => boardHeader} className={`h-100 x01-board-panel ${showBoard ? '' : 'is-hidden'}`}>
-                    <div className="x01-board-col">
-                        <X01DartBoard />
-                    </div>
-                </Panel>
+            {/* the board on its own, without a panel around it */}
+            <div className={`col-12 col-lg-7 x01-board-plain ${showBoard ? '' : 'is-hidden'}`}>
+                <div className="x01-board-col">
+                    <X01DartBoard />
+                </div>
             </div>
             <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                 <Panel headerTemplate={() => visitHeader} className="x01-input">

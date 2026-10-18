@@ -1,7 +1,7 @@
 // The X01 game page in the look of the statistics page: the hero with the
 // players, the board and the visit in panels, the leg and the form below
 
-.x01-game-page { padding: 0 1.5rem 1.5rem; }
+.x01-game-page { padding: 1.5rem; }
 
 // the player at the oche: the score bright, a halo in their colour
 .x01-live-hero {
@@ -53,6 +53,10 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+// no finish: what to set up instead, quieter than a finish
+.x01-live-route.is-setup { color: rgba(255, 201, 77, 0.7); font-weight: 500; }
+.x01-live-route-leaves { color: var(--text-subtle); }
 
 .x01-live-route-more {
   margin-left: 0.4rem;
@@ -111,7 +115,9 @@
 
 .x01-board-col {
   display: flex;
+  align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 // the darts of the visit
@@ -205,6 +211,13 @@
   text-transform: uppercase;
 }
 
+.x01-ways-setup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .x01-ways-list {
   display: flex;
   flex-wrap: wrap;
@@ -228,12 +241,24 @@
   }
 }
 
-// the visits of the leg in the table look of the statistics page
-.x01-leg-visits {
-  max-height: 22rem;
+// the visits of a leg, the players side by side
+.x01-visits {
+  max-height: 24rem;
   overflow-y: auto;
 
-  .is-latest td { background: color-mix(in srgb, #fff 5%, var(--surface-raised)); }
+  thead th { position: sticky; top: 0; z-index: 1; background: var(--surface); }
+}
+
+.x01-visit-left {
+  display: inline-block;
+  min-width: 2.25rem;
+  margin-left: 0.6rem;
+  color: var(--text-default);
+  font-weight: 600;
+}
+
+.x01-visits-leg.p-dropdown {
+  .p-dropdown-label { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
 }
 
 .x01-visit-darts {
@@ -276,7 +301,7 @@
 // a phone: a compact header, the board can be hidden, the darts in one row,
 // the key figures below the board, and room for the menu bar
 @media (max-width: 767.98px) {
-  .x01-game-page { padding: 0 0.5rem 5rem; }
+  .x01-game-page { padding: 0.75rem 0.5rem 5rem; }
 
   .x01-live-hero {
     gap: 0.75rem;
@@ -295,7 +320,7 @@
 
 
   .x01-play { --bs-gutter-y: 0.75rem; margin-bottom: 0.75rem; }
-  .x01-board-panel.is-hidden { display: none; }
+  .x01-board-plain.is-hidden { display: none; }
   .x01-board-col .dartboard-img { max-width: 16rem; }
 
   .x01-darts { flex-direction: row; }

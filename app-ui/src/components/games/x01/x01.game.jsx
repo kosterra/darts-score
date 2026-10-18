@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import X01Context from '../../../utils/x01.context';
 import X01LiveHeader from './x01.live.header';
 import X01LiveFigures from './x01.live.figures';
-import X01LegVisits from './x01.leg.visits';
+import X01VisitsPanel from './x01.visits.panel';
 import X01MoreStats from './x01.more.stats';
 import X01FormCard from './x01.form.card';
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
@@ -46,9 +46,7 @@ const X01Game = () => {
 
             <div className="row g-4 mb-4">
                 <div className="col-12 col-xl-7">
-                    <Panel header="This leg" className="h-100">
-                        <X01LegVisits game={game} players={ordered} />
-                    </Panel>
+                    <X01VisitsPanel game={game} players={ordered} />
                 </div>
                 <div className="col-12 col-xl-5">
                     <Panel header="Key figures" className="h-100">

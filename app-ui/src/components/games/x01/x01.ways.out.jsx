@@ -3,7 +3,7 @@ import { Button } from 'primereact/button';
 
 import X01Context from '../../../utils/x01.context';
 import { outModeOf } from '../../../utils/x01.rules';
-import { checkoutRoutes, formatRoute } from '../../../utils/checkout.routes';
+import { checkoutRoutes, formatRoute, setupSuggestions } from '../../../utils/checkout.routes';
 
 // routes shown per number of darts before "Show all"
 const SHOWN = 6;
@@ -24,12 +24,26 @@ const X01WaysOut = () => {
 
     if (busted) return <p className="text-subtle fs-8 m-0">Bust: the score stays as it was.</p>;
     if (!routes.length) {
+        const setups = setupSuggestions(score, { dartsLeft, outMode });
         return (
-            <p className="text-subtle fs-8 m-0">
-                {score > 170
-                    ? `${score} left: no finish in one visit (170 is the highest).`
-                    : `No finish for ${score} with ${dartsLeft} ${dartsLeft === 1 ? 'dart' : 'darts'}${outMode === 'Double Out' ? ' and a double' : ''}.`}
-            </p>
+            <div className="x01-ways">
+                <p className="text-subtle fs-8 m-0">
+                    {score > 170
+                        ? `${score} left: no finish in one visit (170 is the highest).`
+                        : `No finish for ${score} with ${dartsLeft} ${dartsLeft === 1 ? 'dart' : 'darts'}${outMode === 'Double Out' ? ' and a double' : ''}.`}
+                </p>
+                {setups.length > 0 &&
+                    <div className="x01-ways-group">
+                        <span className="x01-ways-label">Set up instead</span>
+                        {setups.map((setup, index) => (
+                            <div key={setup.darts.join()} className="x01-ways-setup">
+                                <span className={`x01-ways-route ${index === 0 ? 'is-preferred' : ''}`}>{formatRoute(setup.darts)}</span>
+                                <span className="text-subtle fs-8">leaves <strong className="text-default">{setup.leaves}</strong>{setup.note ? `, ${setup.note}` : ''}</span>
+                            </div>
+                        ))}
+                    </div>
+                }
+            </div>
         );
     }
 

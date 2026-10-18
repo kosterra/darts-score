@@ -8,7 +8,7 @@ import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { describeRules, hasHandicap, outModeOf, rulesOf } from '../../../utils/x01.rules';
 import { legSummaryOf } from '../../../utils/x01.live';
-import { checkoutRoutes, formatRoute } from '../../../utils/checkout.routes';
+import { checkoutRoutes, formatRoute, setupSuggestions } from '../../../utils/checkout.routes';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
@@ -60,7 +60,10 @@ const X01LiveHeader = () => {
                     const isTurn = game.currentPlayerTurn === player.id;
                     const score = isTurn ? model.score - getCurrentThrowScore() : model.score;
                     const busted = isTurn && checkIfScoreIsBusted(score);
-                    const routes = busted ? [] : checkoutRoutes(score, { dartsLeft: isTurn ? 3 - dartsEntered : 3, outMode: outModeOf(game, player.id) });
+                    const throwing = { dartsLeft: isTurn ? 3 - dartsEntered : 3, outMode: outModeOf(game, player.id) };
+                    const routes = busted ? [] : checkoutRoutes(score, throwing);
+                    // no finish: what to set up instead, as the checkout table suggests
+                    const setup = busted || routes.length ? null : setupSuggestions(score, throwing)[0];
                     const leg = legSummaryOf(game, player.id);
                     return (
                         <div key={player.id} className={`result-hero-player ${isTurn ? 'is-turn' : ''}`} aria-current={isTurn ? 'true' : undefined}>
@@ -81,8 +84,10 @@ const X01LiveHeader = () => {
                                 {handicap && <span className="x01-handicap-rules">{describeRules(rulesOf(game, player.id))}</span>}
                             </span>
                             <span className={`result-hero-score ${busted ? 'is-bust' : ''}`}>{busted ? 'BUST' : score}</span>
-                            <span className={`x01-live-route ${routes[0] ? '' : 'is-empty'}`} title={routes.length > 1 ? `${routes.length} ways to finish` : undefined}>
-                                {routes[0] ? <>{formatRoute(routes[0])}{routes.length > 1 && <span className="x01-live-route-more">+{routes.length - 1}</span>}</> : ' '}
+                            <span className={`x01-live-route ${routes[0] || setup ? '' : 'is-empty'} ${setup ? 'is-setup' : ''}`} title={routes.length > 1 ? `${routes.length} ways to finish` : setup ? `No finish: set up ${setup.leaves}` : undefined}>
+                                {routes[0]
+                                    ? <>{formatRoute(routes[0])}{routes.length > 1 && <span className="x01-live-route-more">+{routes.length - 1}</span>}</>
+                                    : setup ? <>{formatRoute(setup.darts)} <span className="x01-live-route-leaves">→ {setup.leaves}</span></> : '\u00a0'}
                             </span>
                             <span className="x01-live-leg">
                                 Last <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
