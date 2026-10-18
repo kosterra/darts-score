@@ -276,7 +276,20 @@
 
 // Enter score about two thirds, Undo the rest
 .x01-enter.p-button { flex: 2 1 0; }
-.x01-undo.p-button { flex: 1 1 0; white-space: nowrap; }
+
+// Undo in the red of the delete actions in the lists: a soft red background and
+// a light red icon and label, a little stronger on hover
+.x01-undo.p-button {
+  flex: 1 1 0;
+  border: 0;
+  background: rgba($dangerButtonBg, 0.18);
+  color: lighten($dangerButtonBg, 15%);
+  white-space: nowrap;
+
+  &:enabled:hover { border: 0; background: rgba($dangerButtonBg, 0.3); color: lighten($dangerButtonBg, 22%); }
+  &:enabled:active, &:focus { border: 0; background: rgba($dangerButtonBg, 0.3); box-shadow: none; }
+  &:focus-visible { outline: 2px solid lighten($dangerButtonBg, 15%); outline-offset: 2px; }
+}
 
 .x01-visit-total {
   margin: 0.85rem 0;

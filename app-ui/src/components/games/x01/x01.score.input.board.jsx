@@ -216,8 +216,7 @@ const X01ScoreInputBoard = () => {
                                 aria-label="Undo last visit"
                                 title="Undo last visit"
                                 icon="pi pi-undo"
-                                text
-                                size="small"
+                                severity="danger"
                                 className="justify-content-center x01-undo"
                             />
                         }
