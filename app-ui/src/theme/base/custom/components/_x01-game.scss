@@ -33,7 +33,13 @@
   .result-hero-score.is-bust { color: #ff8a80; }
 }
 
-.x01-hero-portrait { flex-shrink: 0; }
+.x01-hero-portrait {
+  position: relative;
+  flex-shrink: 0;
+
+  // the photo above the halo: the halo is positioned, so it would be drawn over it
+  .p-avatar { position: relative; z-index: 1; }
+}
 
 .x01-hero-avatar.p-avatar {
   width: 6rem;
@@ -78,9 +84,10 @@
 
 .x01-turn-halo {
   position: absolute;
-  inset: -0.9rem;
+  inset: -1rem;
   border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--player-colour) 50%, transparent) 0%, color-mix(in srgb, var(--player-colour) 14%, transparent) 55%, transparent 72%);
+  // the photo covers the middle (to about 75 %): the glow is the ring around it
+  background: radial-gradient(circle closest-side, color-mix(in srgb, var(--player-colour) 60%, transparent) 72%, color-mix(in srgb, var(--player-colour) 28%, transparent) 84%, transparent 100%);
   animation: result-hero-halo 2.8s ease-in-out infinite;
   pointer-events: none;
 }
