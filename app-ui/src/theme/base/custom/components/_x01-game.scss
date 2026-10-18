@@ -100,11 +100,17 @@
 
 .x01-live-tags {
   display: flex;
-  white-space: nowrap;
+  // many tags (throwing, started, match dart, the shame badges) go onto a second
+  // line instead of running into the score next to them
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.25rem 0.6rem;
   min-height: 1.1rem;
+  max-width: 100%;
   color: var(--text-faint);
   font-size: 0.7rem;
+
+  > * { white-space: nowrap; }
 }
 
 .x01-shame {
