@@ -44,18 +44,8 @@ const X01Game = () => {
             />
 
             {/* --- Scoreboard Section --- */}
-            <div className="container-fluid">
-                <div className="row justify-content-md-center">
-                    {game.players.map((playerId, idx) => (
-                        <div
-                            key={`score-board-col-${playerId}`}
-                            className={`col-12 col-md-6 col-xxl-3 border-top border-bottom border-opacity-50 ${idx < players.length - 1 ? 'border-end-md' : ''
-                                }`}
-                        >
-                            <X01ScoreBoard playerId={playerId} idx={idx} />
-                        </div>
-                    ))}
-                </div>
+            <div className={`x01-players count-${game.players.length}`}>
+                {game.players.map(playerId => <X01ScoreBoard key={`score-board-${playerId}`} playerId={playerId} />)}
             </div>
 
             <X01ScoreInputBoard />

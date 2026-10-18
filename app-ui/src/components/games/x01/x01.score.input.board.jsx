@@ -1,14 +1,9 @@
 import { useContext, useState, useEffect } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { FaUndo } from "react-icons/fa";
-import { FaPaperPlane } from "react-icons/fa6";
 
 import X01Context from '../../../utils/x01.context';
 import X01DartBoard from './x01.dartboard';
-import Checkout from './x01.checkout';
-import checkout from '../../../utils/checkout';
 import ScoreInputBoardHelp from '../common/score.input.board.help';
 import { startingScoreOf } from '../../../utils/x01.rules';
 
@@ -21,6 +16,8 @@ const X01ScoreInputBoard = () => {
         getCurrentThrowScore,
         onClickReturnToPreviousPlayer,
         checkCanThrowMoreDarts,
+        checkIfScoreIsBusted,
+        players,
         loading
     } = useContext(X01Context);
 
@@ -90,119 +87,90 @@ const X01ScoreInputBoard = () => {
 
     if (game.hasWinner) return null;
 
+    // the dart fields: the second and third only while the visit can go on
+    const darts = game.currentThrow;
+    const shown = [
+        true,
+        checkCanThrowMoreDarts(score) || darts[1].trim() !== '' || (darts[1].trim() === '' && darts[2].trim() !== ''),
+        checkCanThrowMoreDarts(score) || darts[2].trim() !== '',
+    ];
+    const visitScore = getCurrentThrowScore();
+    const busted = checkIfScoreIsBusted(score);
+    const nickname = players.find(player => player.id === game.currentPlayerTurn)?.nickname ?? '';
+
     return (
         <div className="container mt-4">
-                    <div className="row justify-content-center">
-                        <div className="col col-12 col-md-8 col-xl-5 col-xxl-4 d-flex justify-content-center justify-content-xxl-start">
-                            <X01DartBoard />
+            <div className="row justify-content-center">
+                <div className="col col-12 col-md-8 col-xl-5 col-xxl-4 d-flex justify-content-center justify-content-xxl-start">
+                    <X01DartBoard />
+                </div>
+                <div className="col col-12 col-md-4 col-xl-3 col-xxl-3">
+                    <div className="x01-input">
+                        <div className="x01-input-head">
+                            <span className="text-default fw-semibold">{nickname}&apos;s visit</span>
+                            <ScoreInputBoardHelp label="Tap the board or type" plainSingles compact />
                         </div>
-                        <div className="col col-12 col-md-4 col-xl-3 col-xxl-2 d-flex flex-column justify-content-start gap-3">
-                            <div className="d-flex flex-column gap-1">
-                                <ScoreInputBoardHelp />
-                                <form className="mt-1" onSubmit={submitHandler}>
-                                    <div className="d-flex flex-column gap-3">
-                                        <div className="d-flex flex-column gap-2">
-                                            <div className="p-inputgroup flex-1">
-                                                <InputText
-                                                    name="d-1"
-                                                    placeholder="D1"
-                                                    value={game.currentThrow[0]}
-                                                    keyfilter={keyfilterPattern}
-                                                    validateOnly
-                                                    onInput={validateInput}
-                                                    className="focused-bg-only"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    icon="pi pi-times"
-                                                    title="Clear this dart"
-                                                    aria-label="Clear this dart"
-                                                    severity="danger"
-                                                    onClick={() => updateCurrentThrowManual(score, '', 0)}
-                                                />
-                                            </div>
-                                            {(checkCanThrowMoreDarts(score) || game.currentThrow[1].trim() !== '' || (game.currentThrow[1].trim() === '' && game.currentThrow[2].trim() !== '')) && (
-                                                <div className="p-inputgroup flex-1">
-                                                    <InputText
-                                                        name="d-2"
-                                                        placeholder="D2"
-                                                        value={game.currentThrow[1]}
-                                                        keyfilter={keyfilterPattern}
-                                                        validateOnly
-                                                        onInput={validateInput}
-                                                        className="focused-bg-only"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        icon="pi pi-times"
-                                                        title="Clear this dart"
-                                                        aria-label="Clear this dart"
-                                                        severity="danger"
-                                                        onClick={() => updateCurrentThrowManual(score, '', 1)}
-                                                    />
-                                                </div>
-                                            )}
-                                            {(checkCanThrowMoreDarts(score) || game.currentThrow[2].trim() !== '') && (
-                                                <div className="p-inputgroup flex-1">
-                                                    <InputText
-                                                        name="d-3"
-                                                        placeholder="D3"
-                                                        value={game.currentThrow[2]}
-                                                        keyfilter={keyfilterPattern}
-                                                        validateOnly
-                                                        onInput={validateInput}
-                                                        className="focused-bg-only"
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        icon="pi pi-times"
-                                                        title="Clear this dart"
-                                                        aria-label="Clear this dart"
-                                                        severity="danger"
-                                                        onClick={() => updateCurrentThrowManual(score, '', 2)}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="d-flex gap-2">
-                                            {loading.validateThrow ? (
-                                                <Button disabled>
-                                                    <ProgressSpinner
-                                                        style={{ width: '20px', height: '20px' }}
-                                                        strokeWidth="8"
-                                                        fill="var(--surface-ground)"
-                                                        animationDuration=".8s"
-                                                    />
-                                                    <span className="visually-hidden">Loading...</span>
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    id="submitThrows"
-                                                    type="submit"
-                                                    severity="primary"
-                                                >
-                                                    <FaPaperPlane />
-                                                </Button>
-                                            )}
-                                            {game.currentLegThrows.length !== 0 && (
-                                                <Button
-                                                    id="submitReturn"
-                                                    severity="danger"
-                                                    type="submit"
-                                                >
-                                                    <FaUndo />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </form>
+                        <form onSubmit={submitHandler}>
+                            <div className="x01-darts">
+                                {shown.map((visible, index) => visible && (
+                                    <label key={index} className="x01-dart-field">
+                                        <span className="x01-dart-label">Dart {index + 1}</span>
+                                        <InputText
+                                            name={`d-${index + 1}`}
+                                            placeholder={index === 0 ? 'e.g. T20' : ''}
+                                            value={darts[index]}
+                                            keyfilter={keyfilterPattern}
+                                            validateOnly
+                                            onInput={validateInput}
+                                            autoComplete="off"
+                                            className="x01-dart-input"
+                                        />
+                                        {darts[index] !== '' &&
+                                            <button
+                                                type="button"
+                                                className="x01-dart-clear"
+                                                title="Clear this dart"
+                                                aria-label={`Clear dart ${index + 1}`}
+                                                onClick={() => updateCurrentThrowManual(score, '', index)}
+                                            >
+                                                <i className="pi pi-times" aria-hidden="true" />
+                                            </button>
+                                        }
+                                    </label>
+                                ))}
                             </div>
-                            {checkout[score] && (
-                                <Checkout score={score} />
-                            )}
-                        </div>
+
+                            <div className={`x01-visit-total ${busted ? 'is-bust' : ''}`} aria-live="polite">
+                                {busted
+                                    ? <span><strong>Bust</strong> · the score stays at {game.playerModels[game.currentPlayerTurn].score}</span>
+                                    : <span>Visit <strong>{visitScore}</strong> · leaves <strong>{score}</strong></span>
+                                }
+                            </div>
+
+                            <Button
+                                id="submitThrows"
+                                type="submit"
+                                label="Enter score"
+                                icon="pi pi-check"
+                                loading={loading.validateThrow}
+                                className="w-100 justify-content-center"
+                            />
+                            {game.currentLegThrows.length !== 0 &&
+                                <Button
+                                    id="submitReturn"
+                                    type="submit"
+                                    label="Undo last visit"
+                                    icon="pi pi-undo"
+                                    text
+                                    size="small"
+                                    className="w-100 justify-content-center mt-1"
+                                />
+                            }
+                        </form>
                     </div>
                 </div>
+            </div>
+        </div>
     )
 }
 

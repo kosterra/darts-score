@@ -1,0 +1,210 @@
+// The X01 game page: a card per player, the dart input next to the board
+
+.x01-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 0.75rem;
+
+  &.count-1 { max-width: 26rem; }
+  &.count-2 { max-width: 52rem; }
+}
+
+.x01-player {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  transition: border-color 0.2s, background 0.2s;
+
+  // the player at the oche: lighter border and background, no colour
+  &.is-current {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: color-mix(in srgb, #fff 6%, var(--surface));
+  }
+}
+
+.x01-player-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.x01-player-name {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.x01-player-nickname {
+  overflow: hidden;
+  color: var(--text-default);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.x01-player-detail {
+  overflow: hidden;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .is-current & { color: var(--text-subtle); }
+}
+
+// who threw first in this leg
+.x01-player-starter {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+}
+
+.x01-player-score {
+  color: var(--text-default);
+  font-size: clamp(3rem, 7vw, 4.5rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
+
+  &.is-bust { color: #ff8a80; }
+}
+
+// the way out, e.g. "T20 · T19 · D12"
+.x01-player-route {
+  min-height: 1.2rem;
+  color: #ffc94d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.x01-player-leg {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+
+  strong { color: var(--text-default); font-weight: 600; }
+}
+
+.x01-player-won {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.25rem;
+}
+
+.x01-won {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.x01-won-label {
+  color: var(--text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.x01-won-circles {
+  display: inline-flex;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+}
+
+.x01-won-number {
+  color: var(--text-default);
+  font-weight: 600;
+}
+
+// the darts of the visit
+.x01-input {
+  padding: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.x01-input-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.x01-darts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.x01-dart-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.x01-dart-label {
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.x01-dart-input.p-inputtext {
+  width: 100%;
+  padding-right: 2.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+// clears the dart, inside the field on the right
+.x01-dart-clear {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.45rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+
+  &:hover, &:focus-visible { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
+}
+
+.x01-visit-total {
+  margin: 0.85rem 0;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+
+  strong { color: var(--text-default); }
+  &.is-bust, &.is-bust strong { color: #ff8a80; }
+}

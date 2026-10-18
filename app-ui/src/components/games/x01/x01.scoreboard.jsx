@@ -1,166 +1,91 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext } from 'react';
 import { Avatar } from 'primereact/avatar';
-import { Tag } from 'primereact/tag';
 import { FaCircle, FaRegCircle } from "react-icons/fa";
+import { GiDart } from "react-icons/gi";
 
 import X01Context from '../../../utils/x01.context';
-import CheckoutOverlay from './x01.checkout.overlay';
-import checkout from '../../../utils/checkout';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
+import { checkoutRouteOf, legSummaryOf } from '../../../utils/x01.live';
 
-const X01ScoreBoard = (props) => {
-    const { playerId, idx } = props
-    const {
-        game,
-        players,
-        getCurrentThrowScore,
-        checkIfScoreIsBusted
-    } = useContext(X01Context);
-
-    const [player] = useState(players.find(player => player.id === playerId));
-    const [playerModel, setPlayerModel] = useState(game.playerModels[playerId]);
-    const [score, setScore] = useState(game.playerModels[playerId].score);
-
-    useEffect(() => {
-        let totalScore = getCurrentThrowScore();
-        let currentPlayerScore = game.playerModels[game.currentPlayerTurn].score;
-        let newCurrentScore = currentPlayerScore - totalScore;
-        setScore(newCurrentScore);
-        setPlayerModel(game.playerModels[playerId])
-        // eslint-disable-next-line
-    }, [game.currentThrow]);
-
+/**
+ * Legs or sets won as filled circles out of those needed, or as a number when
+ * there are too many for circles.
+ */
+const WonCount = ({ label, won, mode, count }) => {
+    const needed = mode === 'Best of' ? Math.round(count / 2) : count;
+    const circles = mode === 'Best of' ? count <= 5 : count <= 4;
     return (
-        <div className="container-fluid py-xl-2 px-xl-2">
-            {players && player &&
-                <div className={`row pt-2 pb-2 ${game.players.length === 2 && Number(idx) === 1 ? 'flex-md-row-reverse' : ''}`}>
-                    <div className="col-7 col-xl-6 d-flex flex-column align-items-center justify-content-center p-0">
-                        <div className="col-12 d-flex flex-row flex-xxl-column justify-content-center">
-                            <div className="col-3 col-md-4 col-xxl-12 d-flex justify-content-center mb-xl-2">
-                                <Avatar
-                                    label={resolvePlayerInitials(player.firstname, player.lastname)}
-                                    image={resolvePlayerImg(player.profileImg)}
-                                    shape="circle"
-                                    className="avatar-fluid"
-                                />
-                            </div>
-                            <div className="col-7 col-md-8 col-xxl-12 d-flex flex-column justify-content-center align-items-center">
-                                <div>
-                                    <span className="fs-6 text-default fw-semibold">{player.nickname}</span>
-                                </div>
-                                <div>
-                                    <span className="fs-7 text-faint text-truncate" title={player.firstname + ' ' + player.lastname}>
-                                        {player.firstname + ' ' + player.lastname}
-                                    </span>
-                                </div>
-                                {hasHandicap(game) &&
-                                    <div>
-                                        <span className="x01-handicap-rules" title={`Handicap: ${rulesOf(game, playerId).startingScore}, ${rulesOf(game, playerId).legInMode} / ${rulesOf(game, playerId).legOutMode}`}>
-                                            {describeRules(rulesOf(game, playerId))}
-                                        </span>
-                                    </div>
-                                }
-                            </div>
-                            <div className="col-1 d-flex d-md-none d-flex flex-column justify-content-center align-items-center gap-1">
-                                {game.startingPlayerLeg === playerId && (
-                                    <Tag value="L" severity="info" rounded className="fs-9" />
-                                )}
-                                {game.currentPlayerTurn === playerId && (
-                                    <Tag value="P" severity="success" rounded className="fs-9" />
-                                )}
-                            </div>
-                        </div>
-                        <div className="d-none d-md-flex col-12 d-flex justify-content-center align-items-center mt-3 gap-1">
-                            {game.startingPlayerLeg === playerId && (
-                                <Tag value="&nbsp;Leg Owner&nbsp;" severity="info" rounded className="text-truncate fs-9"/>
-                            )}
-                            {game.currentPlayerTurn === playerId && (
-                                <Tag value="&nbsp;Current Player&nbsp;" severity="success" rounded className="text-truncate fs-9" />
-                            )}
-                            {game.startingPlayerLeg !== playerId && game.currentPlayerTurn !== playerId && (
-                                <Tag value="&nbsp;" severity="" rounded className="text-truncate bg-transparent fs-9" />
-                            )}
-                            {checkout[game.currentPlayerTurn === playerId ? score : playerModel.score] && (
-                                <CheckoutOverlay score={game.currentPlayerTurn === playerId ? score : playerModel.score} />
-                            )}
-                        </div>
-                    </div>
-                    <div className="col-5 col-xl-6 d-flex flex-row flex-md-column align-items-center justify-content-center p-0">
-                        <div className="col-6 col-xl-12 d-flex justify-content-center align-items-center">
-                            <div className="display-3 text-default fw-semibold" >
-                                {game.currentPlayerTurn === playerId ?
-                                    checkIfScoreIsBusted(score) ? 'BUST' : score : playerModel.score
-                                }
-                            </div>
-                        </div>
-                        <div className="col-6 col-xl-12 d-flex flex-column flex-md-row align-items-center justify-content-center gap-1 gap-md-3 mt-xl-2">
-                            <div>
-                                <div className="d-flex justify-content-center text-default fw-semibold mb-02">
-                                    LEGS
-                                </div>
-                                {game.numberOfLegs <= 5 && game.legMode === 'Best of' &&
-                                    <div className="d-flex justify-content-center gap-1 fs-7 mt-1">
-                                        {[...Array(game.playerModels[playerId].currentSetLegsWon)].map((e, i) => (
-                                            <FaCircle key={`leg-filled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                        {[...Array(Math.round(game.numberOfLegs / 2) - game.playerModels[playerId].currentSetLegsWon)].map((e, i) => (
-                                            <FaRegCircle key={`leg-unfilled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                    </div>
-                                }
-                                {game.numberOfLegs <= 4 && game.legMode === 'First to' &&
-                                    <div className="d-flex justify-content-center gap-1 fs-7 mt-1">
-                                        {[...Array(game.playerModels[playerId].currentSetLegsWon)].map((e, i) => (
-                                            <FaCircle key={`set-filled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                        {[...Array(game.numberOfLegs - game.playerModels[playerId].currentSetLegsWon)].map((e, i) => (
-                                            <FaRegCircle key={`leg-unfilled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                    </div>
-                                }
-                                {((game.numberOfLegs > 4 && game.legMode === 'First to') || (game.numberOfLegs > 5 && game.legMode === 'Best of')) &&
-                                    <div className="d-flex justify-content-center">
-                                        <span className="text-default">{game.playerModels[playerId].currentSetLegsWon}</span>
-                                    </div>
-                                }
-                            </div>
-                            <div>
-                                <div className="d-flex justify-content-center text-default fw-semibold mb-02">
-                                    SETS
-                                </div>
-                                {game.numberOfSets <= 5 && game.setMode === 'Best of' &&
-                                    <div className="d-flex justify-content-center gap-1 fs-7 mt-1">
-                                        {[...Array(game.playerModels[playerId].setsWon)].map((e, i) => (
-                                            <FaCircle key={`set-filled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                        {[...Array(Math.round(game.numberOfSets / 2) - game.playerModels[playerId].setsWon)].map((e, i) => (
-                                            <FaRegCircle key={`set-unfilled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                    </div>
-                                }
-                                {game.numberOfSets <= 4 && game.setMode === 'First to' &&
-                                    <div className="d-flex justify-content-center gap-1 fs-7 mt-1">
-                                        {[...Array(game.playerModels[playerId].setsWon)].map((e, i) => (
-                                            <FaCircle key={`set-filled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                        {[...Array(game.numberOfSets - game.playerModels[playerId].setsWon)].map((e, i) => (
-                                            <FaRegCircle key={`set-unfilled-${i}`} className="m-01 text-gold" />
-                                        ))}
-                                    </div>
-                                }
-                                {((game.numberOfSets > 4 && game.setMode === 'First to') || (game.numberOfSets > 5 && game.setMode === 'Best of')) &&
-                                    <div className="d-flex justify-content-center">
-                                        <span className="text-default">{game.playerModels[playerId].setsWon}</span>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div className="x01-won">
+            <span className="x01-won-label">{label}</span>
+            {circles
+                ? (
+                    <span className="x01-won-circles" aria-label={`${won} of ${needed}`}>
+                        {Array.from({ length: needed }, (_, index) => index < won
+                            ? <FaCircle key={index} className="text-gold" />
+                            : <FaRegCircle key={index} className="text-gold" />)}
+                    </span>
+                )
+                : <span className="x01-won-number">{won}</span>
             }
         </div>
     );
-}
+};
 
-export default X01ScoreBoard
+/**
+ * One player of a running X01 game: the score left (live while the darts of
+ * the visit are entered), the way out, the last visit, darts and average in
+ * the leg, and the legs and sets won. The player at the oche is highlighted.
+ */
+const X01ScoreBoard = ({ playerId }) => {
+    const { game, players, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
+
+    const player = players.find(entry => entry.id === playerId);
+    if (!player) return null;
+
+    const model = game.playerModels[playerId];
+    const isCurrent = game.currentPlayerTurn === playerId;
+    const score = isCurrent ? model.score - getCurrentThrowScore() : model.score;
+    const busted = isCurrent && checkIfScoreIsBusted(score);
+    const route = busted ? null : checkoutRouteOf(game, playerId, score);
+    const leg = legSummaryOf(game, playerId);
+
+    return (
+        <div className={`x01-player ${isCurrent ? 'is-current' : ''}`} aria-current={isCurrent ? 'true' : undefined}>
+            <div className="x01-player-head">
+                <Avatar
+                    label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname, player.lastname)}
+                    image={resolvePlayerImg(player.profileImg)}
+                    shape="circle"
+                    className="avatar-md flex-shrink-0"
+                />
+                <div className="x01-player-name">
+                    <span className="x01-player-nickname">{player.nickname}</span>
+                    {hasHandicap(game)
+                        ? <span className="x01-handicap-rules" title={`Handicap: ${rulesOf(game, playerId).startingScore}, ${rulesOf(game, playerId).legInMode} / ${rulesOf(game, playerId).legOutMode}`}>{describeRules(rulesOf(game, playerId))}</span>
+                        : <span className="x01-player-detail">{isCurrent ? 'Throwing' : `${player.firstname ?? ''} ${player.lastname ?? ''}`.trim()}</span>
+                    }
+                </div>
+                {game.startingPlayerLeg === playerId &&
+                    <span className="x01-player-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>
+                }
+            </div>
+
+            <div className={`x01-player-score ${busted ? 'is-bust' : ''}`}>{busted ? 'BUST' : score}</div>
+            <div className="x01-player-route" aria-label={route ? `Checkout ${route}` : undefined}>{route ?? ' '}</div>
+
+            <div className="x01-player-leg">
+                <span>Last <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong></span>
+                <span><strong>{leg.darts}</strong> darts</span>
+                <span>Avg <strong>{leg.average == null ? '–' : leg.average.toFixed(1)}</strong></span>
+            </div>
+
+            <div className="x01-player-won">
+                <WonCount label="Legs" won={model.currentSetLegsWon} mode={game.legMode} count={game.numberOfLegs} />
+                {game.numberOfSets > 1 && <WonCount label="Sets" won={model.setsWon} mode={game.setMode} count={game.numberOfSets} />}
+            </div>
+        </div>
+    );
+};
+
+export default X01ScoreBoard;
