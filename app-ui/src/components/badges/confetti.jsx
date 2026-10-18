@@ -8,7 +8,7 @@ const DURATION_MS = 4500;
  * A burst of confetti over its parent, drawn on a canvas. Renders nothing for
  * people who asked their system to reduce motion.
  */
-const Confetti = () => {
+const Confetti = ({ className = 'celebration-confetti' }) => {
     const canvasRef = useRef(null);
 
     useEffect(() => {
@@ -70,7 +70,7 @@ const Confetti = () => {
         };
     }, []);
 
-    return <canvas ref={canvasRef} className="celebration-confetti" aria-hidden="true" />;
+    return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
 };
 
 export default Confetti;

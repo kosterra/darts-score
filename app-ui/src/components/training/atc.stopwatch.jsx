@@ -1,4 +1,5 @@
 import { Button } from 'primereact/button';
+import { InputSwitch } from 'primereact/inputswitch';
 import { formatTrainingTime, toHundredths } from '../../utils/training.time';
 
 /**
@@ -6,22 +7,30 @@ import { formatTrainingTime, toHundredths } from '../../utils/training.time';
  * at each moment (start, stop, then save the time or go on).
  *
  * watch: from useStopwatch
+ * countdown: from useCountdown, starts the watch when it reaches zero
+ * withCountdown, onWithCountdownChange: whether Start counts down 3-2-1 first
  * canStart: a player is chosen
+ * onStart: when a new run begins
  * onSave(hundredths)
  */
-const ATCStopwatch = ({ watch, canStart, saving, onSave }) => {
+const ATCStopwatch = ({ watch, countdown, withCountdown, onWithCountdownChange, canStart, onStart, saving, onSave }) => {
     const { elapsedMs, running, start, stop, reset } = watch;
     const stopped = !running && elapsedMs > 0;
+    const counting = countdown.count !== null;
 
     return (
-        <div className={`atc-stopwatch ${running ? 'is-running' : ''}`}>
-            <div className="atc-stopwatch-time" role="timer" aria-live="off">
-                {formatTrainingTime(elapsedMs ? toHundredths(elapsedMs) : 0)}
-            </div>
+        <div className={`atc-stopwatch ${running ? 'is-running' : ''} ${counting ? 'is-counting' : ''}`}>
+            {counting
+                ? <div className="atc-stopwatch-time atc-countdown" key={countdown.count} aria-live="assertive">{countdown.count}</div>
+                : <div className="atc-stopwatch-time" role="timer" aria-live="off">{formatTrainingTime(elapsedMs ? toHundredths(elapsedMs) : 0)}</div>
+            }
 
             <div className="atc-stopwatch-actions">
-                {!running && !stopped &&
-                    <Button type="button" label="Start" icon="pi pi-play" className="atc-stopwatch-main" disabled={!canStart} onClick={start} />
+                {!running && !stopped && !counting &&
+                    <Button type="button" label="Start" icon="pi pi-play" className="atc-stopwatch-main" disabled={!canStart} onClick={() => { onStart?.(); if (withCountdown) countdown.begin(); else start(); }} />
+                }
+                {counting &&
+                    <Button type="button" label="Cancel" icon="pi pi-times" severity="secondary" outlined className="atc-stopwatch-main" onClick={countdown.cancel} />
                 }
                 {running &&
                     <Button type="button" label="Stop" icon="pi pi-stop" severity="danger" className="atc-stopwatch-main" onClick={stop} />
@@ -34,7 +43,13 @@ const ATCStopwatch = ({ watch, canStart, saving, onSave }) => {
                     </div>
                 </>}
             </div>
-            {!canStart && !running && !stopped && <div className="text-faint fs-8 text-center mt-2">Choose a player to start.</div>}
+            {!running && !stopped && !counting && <>
+                {!canStart && <div className="text-faint fs-8 text-center mt-2">Choose a player to start.</div>}
+                <label className="atc-countdown-switch">
+                    <InputSwitch checked={withCountdown} onChange={(e) => onWithCountdownChange(e.value)} />
+                    <span>3-2-1 countdown</span>
+                </label>
+            </>}
         </div>
     );
 };

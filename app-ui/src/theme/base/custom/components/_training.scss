@@ -1,4 +1,4 @@
-// Around the Clock: the stopwatch and the times on the scoreboard
+// Around the Clock: the stopwatch, the countdown and the scoreboard
 
 // player and mode are locked while the stopwatch has a time
 .atc-setup-lock {
@@ -49,9 +49,155 @@
   font-size: 1.1rem;
 }
 
-.atc-entry-time {
+.atc-countdown {
+  color: var(--primary-color);
+  animation: atc-countdown 1s ease-out both;
+}
+
+@keyframes atc-countdown {
+  0% { transform: scale(1.6); opacity: 0; }
+  25% { transform: scale(1); opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.2; }
+}
+
+.atc-countdown-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  color: var(--text-subtle);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-countdown { animation: none; }
+}
+
+// where the time just saved ended up, under the stopwatch
+.atc-result {
+  margin-top: 0.75rem;
+  color: var(--text-subtle);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+// the scoreboard: a compact row per time, medals for the podium
+.atc-scoreboard {
+  position: relative;
+}
+
+.atc-scoreboard-confetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.atc-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atc-rows-gap {
+  color: var(--text-faint);
+  text-align: center;
+  line-height: 1;
+}
+
+.atc-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background: var(--surface-raised);
+
+  // the latest time of today
+  &.is-latest { border-color: color-mix(in srgb, var(--primary-color) 55%, transparent); }
+
+  // the time just saved, on its way up: above the rows it passes
+  &.is-arriving {
+    z-index: 1;
+    border-color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 18%, var(--surface-raised));
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
+  }
+
+  &.is-entering { animation: atc-row-enter 0.45s ease-out both; }
+}
+
+@keyframes atc-row-enter {
+  from { transform: translateY(1.5rem); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.atc-rank {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: $surfaceHighColor;
   color: var(--text-default);
-  font-size: 1.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+
+  &.is-gold { background: $gold; color: #2a2410; }
+  &.is-silver { background: $silver; color: #222; }
+  &.is-bronze { background: $bronze; color: #2a1606; }
+
+  // a medal just won
+  &.is-pop {
+    animation: badge-pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+    box-shadow: 0 0 1.25rem rgba(255, 215, 120, 0.55);
+  }
+}
+
+.atc-row-player {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.atc-row-name,
+.atc-row-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atc-row-name {
+  color: var(--text-default);
+  font-weight: 600;
+}
+
+.atc-row-detail {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.atc-row-time {
+  flex-shrink: 0;
+  color: var(--text-default);
+  font-size: 1.15rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atc-row.is-entering,
+  .atc-rank.is-pop { animation: none; }
 }
