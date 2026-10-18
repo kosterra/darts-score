@@ -72,6 +72,7 @@ const CricketScoreInputBoard = () => {
             }
             aside={<CricketNumbersPanel />}
             asideTitle="Marks"
+            asideFirstOnPhone
             darts={darts}
             shown={shown}
             onDart={(index, value) => updateCurrentThrowManual(value, index)}

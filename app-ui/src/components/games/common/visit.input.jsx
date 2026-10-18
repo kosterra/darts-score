@@ -18,10 +18,11 @@ const KEYFILTER = /^[SDTsdt0-9]{1,3}$/;
  * darts: the three darts of the visit; shown: which dart fields to show;
  * onDart(index, value) types one, onClearDart(index) clears one; summary: the
  * line with what the visit does; busted: whether it is a bust; onSubmit() and
- * onUndo() enter the visit and take the last one back.
+ * onUndo() enter the visit and take the last one back. "asideFirstOnPhone"
+ * puts the aside above the board on a phone, so it is seen without scrolling.
  */
 const VisitInput = ({
-    nickname, input, onChooseInput, board, keypad, aside, asideTitle,
+    nickname, input, onChooseInput, board, keypad, aside, asideTitle, asideFirstOnPhone = false,
     darts, shown, onDart, onClearDart, summary, busted = false,
     onSubmit, onUndo, canUndo, loading = false,
 }) => {
@@ -62,6 +63,11 @@ const VisitInput = ({
 
     return (
         <div className="row g-4 x01-play">
+            {aside && asideFirstOnPhone &&
+                <div className="col-12 d-lg-none">
+                    <Panel header={asideTitle} className="x01-ways-panel">{aside}</Panel>
+                </div>
+            }
             <div className="col-12 col-lg-7 x01-board-plain">
                 {input === 'keypad' ? keypad : <div className="x01-board-col">{board}</div>}
             </div>
@@ -133,7 +139,7 @@ const VisitInput = ({
                         </div>
                     </form>
                 </Panel>
-                {aside && <Panel header={asideTitle} className="x01-ways-panel">{aside}</Panel>}
+                {aside && <Panel header={asideTitle} className={`x01-ways-panel ${asideFirstOnPhone ? 'd-none d-lg-block' : ''}`}>{aside}</Panel>}
             </div>
         </div>
     );

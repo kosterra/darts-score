@@ -661,19 +661,54 @@
   .x01-key { min-height: 3.6rem; font-size: 1.25rem; }
 }
 
-// the marks of the running game; the darts of the visit in gold
-.cricket-live-board {
-  thead th.is-turn { color: var(--text-default); }
+// the marks of the running game, flat: the numbers across, a row per player;
+// the darts of the visit in gold
+.cricket-strip-wrap { overflow-x: auto; }
+
+.cricket-strip {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.3rem;
+  table-layout: fixed;
+
+  thead th {
+    padding: 0 0.2rem 0.1rem;
+    color: var(--text-default);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+
+    &:first-child { width: 28%; }
+  }
+
+  tbody th,
+  tbody td {
+    padding: 0.4rem 0.2rem;
+    background: $surfaceRaisedColor;
+    text-align: center;
+  }
+
+  tbody th {
+    border-radius: $borderRadius 0 0 $borderRadius;
+    color: var(--text-subtle);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 0.6rem;
+  }
 
   tbody td:last-child { border-radius: 0 $borderRadius $borderRadius 0; }
+
+  tr.is-turn th { color: var(--text-default); }
 
   .cricket-marks.is-new { color: #ffc94d; }
 
   // a number everyone closed is out of play
-  tr.is-dead th,
-  tr.is-dead td { opacity: 0.4; }
-
-  tr.is-dead th { text-decoration: line-through; }
+  th.is-dead { color: var(--text-faint); text-decoration: line-through; }
+  td.is-dead .cricket-marks { opacity: 0.35; }
 }
 
 // the race to the target in Elimination
