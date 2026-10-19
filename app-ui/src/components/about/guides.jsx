@@ -113,7 +113,7 @@ export const ADMIN_GUIDE = [
                 <p>Add the club&apos;s players under <strong>Club → Players</strong>: a nickname, the name, a picture and the date of birth (for the handicap suggestion and the Hall of Shame of children).</p>
                 <ul>
                     <li><strong>Login:</strong> give a player a login with their email, so they can start games and trainings on their own. With mail set up they get a mail to choose their password; otherwise set an initial password and pass it on.</li>
-                    <li>A player with a login keeps their name (from their account), nickname and picture up to date themselves; you still set the date of birth, which adults may correct (never to a child's). Removing the login hands everything back to you.</li>
+                    <li>A player with a login keeps their name (from their account), nickname and picture up to date themselves; you still set the date of birth, which adults may correct (never to a child&apos;s). Removing the login hands everything back to you.</li>
                     <li>You can add yourself as a player of a club you manage, under My clubs, to be picked for games like anyone else.</li>
                     <li>A nickname only appears on the public start page when it is set to public, by you or by the player.</li>
                 </ul>
