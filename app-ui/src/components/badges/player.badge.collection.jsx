@@ -111,7 +111,7 @@ const HallOfShameSection = ({ shame, name }) => {
     const others = shame.filter(badge => !badge.active);
     const showList = active.length > 0 || open;
     return (
-        <section className="d-flex flex-column gap-3">
+        <section id="hall-of-shame" className="d-flex flex-column gap-3" style={{ scrollMarginTop: '1rem' }}>
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
                 <h2 className="fs-4 fw-semibold text-default m-0">Hall of Shame</h2>
                 <span className="text-subtle">{active.length ? `${active.length} on ${name} right now` : `Nothing on ${name} right now`}</span>
