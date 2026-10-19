@@ -54,9 +54,9 @@ const X01WaysOut = () => {
             <div className="x01-ways">
                 <p className="text-subtle fs-8 m-0">All three darts are in: Enter score finishes the visit{score === 0 ? ' and the leg' : ''}.</p>
                 {next &&
-                    <div className="x01-ways-best">
+                    <div className="x01-ways-group">
                         <span className="x01-ways-label">Next visit</span>
-                        <span className="x01-ways-route is-preferred">{formatRoute(next)}</span>
+                        <div className="x01-ways-setup"><span className="x01-ways-route is-preferred">{formatRoute(next)}</span></div>
                     </div>
                 }
             </div>
@@ -68,9 +68,9 @@ const X01WaysOut = () => {
         const others = routes.slice(1, 1 + OTHER_WAYS);
         return (
             <div className="x01-ways">
-                <div className="x01-ways-best">
+                <div className="x01-ways-group">
                     <span className="x01-ways-label">Usual way</span>
-                    <span className="x01-ways-route is-preferred">{formatRoute(routes[0])}</span>
+                    <div className="x01-ways-setup"><span className="x01-ways-route is-preferred">{formatRoute(routes[0])}</span></div>
                 </div>
                 {others.length > 0 &&
                     <div className="x01-ways-group">
@@ -87,28 +87,41 @@ const X01WaysOut = () => {
 
     const setups = setupSuggestions(score, { dartsLeft, outMode, ...own });
     const tip = setups.length ? null : scoringTip(score, { dartsLeft, outMode, ...own });
+    // too far for a plan: the treble to stay on, and the one to switch to when it is blocked
+    const main = own.mainTreble === 'T19' || own.mainTreble === 'T18' ? own.mainTreble : 'T20';
+    const other = main === 'T20' ? 'T19' : 'T20';
+    const status = score > 170
+        ? `${score} left: no finish in one visit (170 is the highest).`
+        : `No finish for ${score} with ${dartsLeft} ${dartsLeft === 1 ? 'dart' : 'darts'}${outMode === 'Double Out' ? ' and a double' : ''}.`;
+    // like the ways out: a label, the darts as chips, and short notes below
     return (
         <div className="x01-ways">
-            <p className="text-subtle fs-8 m-0">
-                {score > 170
-                    ? `${score} left: no finish in one visit (170 is the highest).`
-                    : `No finish for ${score} with ${dartsLeft} ${dartsLeft === 1 ? 'dart' : 'darts'}${outMode === 'Double Out' ? ' and a double' : ''}.`}
-            </p>
             {setups.length > 0 &&
                 <div className="x01-ways-group">
                     <span className="x01-ways-label">Set up instead</span>
                     {setups.map((setup, index) => <Plan key={setup.darts.join()} {...setup} preferred={index === 0} />)}
                 </div>
             }
-            {tip &&
+            {tip?.darts &&
                 <div className="x01-ways-group">
-                    <span className="x01-ways-label">Tip</span>
-                    {tip.darts && <Plan darts={tip.darts} leaves={tip.leaves} preferred />}
-                    {tip.advice && <span className="text-subtle fs-8">{tip.advice}</span>}
-                    {tip.darts && !tip.advice && <span className="text-subtle fs-8">Leaves a finish for the next visit.</span>}
+                    <span className="x01-ways-label">Score</span>
+                    <Plan darts={tip.darts} leaves={tip.leaves} preferred />
                 </div>
             }
-            <ProfileNote profile={profile} about={setups.length ? 'double' : 'treble'} />
+            {tip && !tip.darts &&
+                <div className="x01-ways-group">
+                    <span className="x01-ways-label">Aim at</span>
+                    <div className="x01-ways-setup">
+                        <span className="x01-ways-route is-preferred">{main}</span>
+                        <span className="x01-ways-route">{other}</span>
+                        <span className="text-subtle fs-8">if the {main.slice(1)} is blocked</span>
+                    </div>
+                </div>
+            }
+            <div className="d-flex flex-column gap-1">
+                <span className="x01-ways-note">{status}{tip?.darts ? (tip.advice ? ` ${tip.advice}` : ' This leaves a finish for the next visit.') : ''}</span>
+                <ProfileNote profile={profile} about={setups.length ? 'double' : 'treble'} />
+            </div>
         </div>
     );
 };
