@@ -15,6 +15,8 @@ import X01ScoreConfig from '../game_config/config_components/x01.score.config';
 import X01InOutConfig from '../game_config/config_components/x01.inout.config';
 import SetsLegsConfig from '../game_config/config_components/sets.legs.config';
 import GameSetupStart from '../game_config/config_components/game.setup.start';
+import GameSetupMemory from '../game_config/config_components/game.setup.memory';
+import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { setsLegsSummary } from '../game_config/config_components/game.setup.summary';
 import { useAuth } from '../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
@@ -26,6 +28,10 @@ const TRAINING_SCORES = [101, 170, 301, 501, 701].map(value => ({ value }));
 // two rows: the fixed bots, and the ones as strong as the player
 const PRESET_MODES = BOT_PRESETS.map(({ value, label }) => ({ value, label }));
 const PLAYER_MODES = BOT_LEVELS.map(({ value }) => ({ value: `${LIKE_ME}-${value}`, label: { easier: 'Easier than me', same: 'Like me', harder: 'Harder than me' }[value] }));
+
+// what a training starts with, and what of it is remembered for the next one
+const MEMORY = 'x01Bot';
+const DEFAULT_GAME = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'First to', numberOfSets: 1, legMode: 'First to', numberOfLegs: 2 };
 
 // the result of a training from the player's side: { won, legs, average, botAverage }
 const resultOf = (training, playerId) => {
@@ -50,11 +56,13 @@ const X01BotPage = () => {
     const { activeClub, isGlobalAdmin } = useAuth();
     const myPlayer = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
 
+    // set up like the last training, until the player starts fresh
+    const [remembered, setRemembered] = useState(() => loadSetup(MEMORY));
     const [players, setPlayers] = useState([]);
-    const [game, setGame] = useState({ ...X01Models.X01GameModel, startingScore: 501, setMode: 'First to', numberOfSets: 1, legMode: 'First to', numberOfLegs: 2 });
-    const [botStarts, setBotStarts] = useState('player');
+    const [game, setGame] = useState(() => ({ ...X01Models.X01GameModel, ...DEFAULT_GAME, ...remembered?.settings?.game }));
+    const [botStarts, setBotStarts] = useState(() => remembered?.settings?.botStarts ?? 'player');
     // a fixed bot ('easy' … 'pro') or one like the player ('me-easier', 'me-same', 'me-harder')
-    const [choice, setChoice] = useState(null);
+    const [choice, setChoice] = useState(() => remembered?.settings?.choice ?? null);
     const [mode, level] = choice?.startsWith(`${LIKE_ME}-`) ? [LIKE_ME, choice.slice(LIKE_ME.length + 1)] : [choice, 'same'];
     const [figures, setFigures] = useState(null);
     const [trainings, setTrainings] = useState(null);
@@ -96,9 +104,22 @@ const X01BotPage = () => {
         `${player?.nickname} vs Bot ${strength ? strength.average.toFixed(0) : ''}`.trim(),
     ].join(' · ');
 
+    const startFresh = () => {
+        clearSetup(MEMORY);
+        setRemembered(null);
+        setPlayers([]);
+        setGame({ ...X01Models.X01GameModel, ...DEFAULT_GAME });
+        setBotStarts('player');
+        setChoice(null);
+    };
+
     const start = async () => {
         if (missing) return;
         setStarting(true);
+        saveSetup(MEMORY, {
+            settings: { game: Object.fromEntries(Object.keys(DEFAULT_GAME).map(name => [name, game[name]])), choice, botStarts },
+            players,
+        });
         const order = botStarts === 'bot' ? [BOT_ID, player.id] : [player.id, BOT_ID];
         try {
             const training = await X01TrainingService.createX01Game({
@@ -126,9 +147,16 @@ const X01BotPage = () => {
         <div className="container-fluid p-4 border-0">
             <Panel header="X01 against the bot" className="w-100 w-md-75 w-xxl-50 mx-auto">
                 <div className="container">
+                    {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
                     <p className="game-setup-section-title">Player</p>
-                    {/* restarted once the own player is known, so it starts chosen */}
-                    <PlayerPicker single selected={players} onChange={setPlayers} initialIds={myPlayer ? [myPlayer.id] : []} key={myPlayer?.id ?? 'none'} />
+                    {/* the player of the last training, else the own one (restarted once it is known) */}
+                    <PlayerPicker
+                        single
+                        selected={players}
+                        onChange={setPlayers}
+                        initialIds={remembered?.playerIds?.length ? remembered.playerIds : myPlayer ? [myPlayer.id] : []}
+                        key={remembered?.playerIds?.length ? 'remembered' : `own-${myPlayer?.id ?? 'none'}`}
+                    />
 
                     <p className="game-setup-section-title mt-4">Bot</p>
                     <div>
