@@ -39,10 +39,11 @@ const ClubMembership = ({ club, onSuccess, onError }) => {
         }
     };
 
-    // badges belong to a club, so the app switches to it first
-    const showBadges = () => {
+    // the profile belongs to a club, so the app switches to it first
+    const showProfile = (event) => {
+        event.preventDefault();
         selectClub(club.id);
-        navigate(`/badges/${player.id}`);
+        navigate(`/players/${player.id}`);
     };
 
     const togglePublic = async (publicProfile) => {
@@ -78,8 +79,8 @@ const ClubMembership = ({ club, onSuccess, onError }) => {
         <div className="my-club-part flex-column align-items-stretch">
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <span className="text-subtle">
-                    You play as <span className="text-default fw-semibold">{player.nickname}</span>
-                    <Button type="button" label="My badges" icon="pi pi-star" size="small" text className="ms-2" onClick={showBadges} />
+                    You play as{' '}
+                    <a href={`/players/${player.id}`} className="fw-semibold" onClick={showProfile} title="Your player profile, with your badges">{player.nickname}</a>
                 </span>
                 <span className="my-club-public">
                     <label htmlFor={`my-club-public-${club.id}`} className="text-subtle fs-7">Show my nickname on the public page</label>

@@ -81,7 +81,7 @@ export const PLAYER_GUIDE = [
                 <p>Tap your name at the bottom of the menu: it opens Profile settings, My clubs, Notifications and Log out. The number on your avatar counts the notifications you have not read.</p>
                 <ul>
                     <li><strong>Profile settings:</strong> your name, email and password.</li>
-                    <li><strong>My clubs:</strong> the clubs you play in or run. Per club the player you play as, your badges, whether your nickname appears on the public start page, and the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you).</li>
+                    <li><strong>My clubs:</strong> the clubs you play in or run. Per club the player you play as (its name opens your player profile with your badges), whether your nickname appears on the public start page, and the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you).</li>
                     <li><strong>Notifications:</strong> you are told when an admin deletes or repairs one of your games or trainings for fair play, with the reason. Open leads to the game; mark them as read or remove them.</li>
                 </ul>
             </>
