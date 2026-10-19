@@ -154,6 +154,18 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-dashboard-you-widget',
+        description: 'Put the new "You" widget on top of the dashboards that clubs arranged themselves (the default dashboard has it already)',
+        run: async () => {
+            const result = await db.club.updateMany(
+                { 'dashboardWidgets.0': { $exists: true }, dashboardWidgets: { $ne: 'me' } },
+                { $push: { dashboardWidgets: { $each: ['me'], $position: 0 } } }
+            );
+            logger.info(`The "You" widget was added to ${result.modifiedCount} arranged dashboards`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

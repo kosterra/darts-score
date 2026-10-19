@@ -56,6 +56,7 @@ export const PLAYER_GUIDE = [
         body: (
             <>
                 <ul>
+                    <li><strong>My statistics</strong>, right below Dashboard, opens your own statistics in the club with one click; the <strong>You</strong> widget on the dashboard shows your level, average and form. On your user profile you can make My statistics the page that opens after logging in.</li>
                     <li><strong>Players</strong> opens each player&apos;s profile: key figures, level, latest games, charts and badges, with filters for the club, the period, the last games and the X01 format.</li>
                     <li><strong>Player comparison</strong> puts two or more players side by side, with their games together and head to head.</li>
                     <li>The <strong>dashboard</strong> shows the club at a glance: leaderboards, the latest games, records and the Hall of Shame, in widgets the club arranges.</li>

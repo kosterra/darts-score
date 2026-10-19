@@ -3,6 +3,7 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Panel } from 'primereact/panel';
+import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -16,7 +17,7 @@ const ProfilePage = () => {
     const toast = useRef(null);
     const { user, setUser, isGlobalAdmin, logout } = useAuth();
 
-    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email });
+    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email, startPage: user.startPage ?? 'dashboard' });
     const [passwords, setPasswords] = useState({ current: '', next: '', repeat: '' });
     const showSuccess = (summary, detail) =>
         toast.current.show({ severity: 'success', summary, detail, life: 3000 });
@@ -85,6 +86,19 @@ const ProfilePage = () => {
                                 <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} className="w-100" required />
                                 <label htmlFor="profile-email">Email</label>
                             </span>
+                            {/* no statistics of their own for global admins, who belong to no club */}
+                            {!isGlobalAdmin &&
+                                <div className="d-flex flex-column gap-2">
+                                    <span className="text-subtle fs-8">After logging in, open</span>
+                                    <SelectButton
+                                        value={profile.startPage}
+                                        options={[{ label: 'Dashboard', value: 'dashboard' }, { label: 'My statistics', value: 'myStatistics' }]}
+                                        onChange={(e) => e.value && setProfile({ ...profile, startPage: e.value })}
+                                        className="p-selectbutton-pills pills-inline"
+                                        aria-label="Start page"
+                                    />
+                                </div>
+                            }
                             <div className="d-flex justify-content-between gap-3">
                                 <Button type="button" label="Log out" icon="pi pi-sign-out" severity="secondary" onClick={logout} />
                                 <Button type="submit" label="Save" icon="pi pi-save" />

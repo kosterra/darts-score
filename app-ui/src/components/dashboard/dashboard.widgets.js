@@ -7,6 +7,7 @@ const LEADERBOARD_COLS = 'col-12 col-md-6 col-xl-4';
 const integer = (value) => new Intl.NumberFormat().format(value);
 
 export const DASHBOARD_WIDGETS = [
+    { id: 'me', title: 'You', description: 'Each player\'s own level, X01 average and form, with the way to their statistics', kind: 'me', cols: 'col-12 col-lg-6 col-xl-4' },
     { id: 'totals', title: 'Club in numbers', description: 'Key figures: games, averages, checkouts and club bests', kind: 'totals', cols: 'col-12' },
     { id: 'activityCalendar', title: 'Activity', description: 'A calendar of the last six months, greener the more games', kind: 'activityCalendar', cols: 'col-12 col-xl-8' },
     { id: 'whenWePlay', title: 'When we play', description: 'Games by day of the week and time of day', kind: 'whenWePlay', cols: 'col-12 col-xl-4' },
@@ -30,7 +31,7 @@ export const DASHBOARD_WIDGETS = [
     { id: 'leaderMostDarts', title: 'Most darts thrown', description: 'Darts thrown over all game types', kind: 'leaderboard', board: 'mostDarts', unit: 'darts', format: integer, cols: LEADERBOARD_COLS },
 ];
 
-export const DEFAULT_WIDGET_IDS = ['totals', 'runningGames', 'timeline', 'activityCalendar', 'whenWePlay', 'records', 'hallOfShame', 'headToHead', 'leaderMostWins', 'leaderX01Average', 'leader180s'];
+export const DEFAULT_WIDGET_IDS = ['me', 'totals', 'runningGames', 'timeline', 'activityCalendar', 'whenWePlay', 'records', 'hallOfShame', 'headToHead', 'leaderMostWins', 'leaderX01Average', 'leader180s'];
 
 /**
  * The widgets a club shows, in its order. Without a choice of its own a club

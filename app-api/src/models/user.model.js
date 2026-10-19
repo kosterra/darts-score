@@ -10,6 +10,8 @@ export default (mongoose) => {
       passwordHash:   { type: String, required: true },
       firstname:      { type: String, required: true, trim: true },
       lastname:       { type: String, required: true, trim: true },
+      // what opens after logging in: the club's dashboard or the user's own statistics
+      startPage:      { type: String, enum: ['dashboard', 'myStatistics'], default: 'dashboard' },
       role:           { type: String, enum: Object.values(ROLES), default: ROLES.USER },
       // Bumped on password change so older session cookies stop working
       sessionVersion: { type: Number, default: 0 },

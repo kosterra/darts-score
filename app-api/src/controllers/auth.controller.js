@@ -75,13 +75,13 @@ export const extendSession = async (req, res) => {
 
 export const updateMe = async (req, res) => {
     logger.debug('auth update profile called');
-    const { email, firstname, lastname } = req.body;
+    const { email, firstname, lastname, startPage } = req.body;
 
     if (email !== req.user.email && await User.exists({ email })) {
         return res.status(409).json({ message: 'An account with this email already exists.' });
     }
 
-    Object.assign(req.user, { email, firstname, lastname });
+    Object.assign(req.user, { email, firstname, lastname }, startPage ? { startPage } : {});
     await req.user.save();
     // the players of the account carry its name
     await db.player.updateMany({ user: req.user._id }, { $set: { firstname: req.user.firstname, lastname: req.user.lastname } });

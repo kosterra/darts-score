@@ -20,6 +20,7 @@ import ClubFormWidget from './widgets/club.form.widget';
 import RunningGamesWidget from './widgets/running.games.widget';
 import TimelineWidget from './widgets/timeline.widget';
 import HallOfShameWidget from './widgets/hall.of.shame.widget';
+import MeWidget from './widgets/me.widget';
 
 const formatDate = (date) => date ? dayjs(date).format('DD.MM.YYYY') : '–';
 
@@ -73,6 +74,7 @@ const Dashboard = () => {
             case 'clubForm': return <ClubFormWidget widget={widget} gameLog={stats.gameLog} />;
             case 'runningGames': return <RunningGamesWidget widget={widget} games={stats.runningGames} total={totals.running} players={players} />;
             case 'hallOfShame': return <HallOfShameWidget widget={widget} />;
+            case 'me': return <MeWidget widget={widget} />;
             case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
             case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;
             default: return null;

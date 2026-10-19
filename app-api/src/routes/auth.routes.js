@@ -57,7 +57,7 @@ export default (app) => {
     router.get('/session', requireAuth, AuthController.session);
     router.get('/players', requireAuth, AuthController.myPlayers);
     router.post('/session/extend', requireAuth, AuthController.extendSession);
-    router.put('/me', requireAuth, emailValidator, nameValidators(), validate, AuthController.updateMe);
+    router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), validate, AuthController.updateMe);
     router.put('/password',
         requireAuth,
         credentialLimiter,

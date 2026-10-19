@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 
@@ -33,6 +33,7 @@ const AdministrationPage = lazy(() => import('./components/administration/_admin
 const FairPlayPage = lazy(() => import('./components/fairplay/_fair.play.page'));
 const NotificationsPage = lazy(() => import('./components/notifications/_notifications.page'));
 const MyPlayerPage = lazy(() => import('./components/players/_my.player.page'));
+const MyStatistics = lazy(() => import('./components/players/my.statistics'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
@@ -56,7 +57,13 @@ const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading, returnTo } = useAuth();
+    // whether the start page of this login was already opened: set once a
+    // page shows, so it is only the first page after logging in
+    const startHandled = useRef(false);
     const { pathname } = useLocation();
+    useEffect(() => {
+        startHandled.current = Boolean(user);
+    }, [user]);
 
     if (loading) return <PageLoader />;
 
@@ -80,13 +87,18 @@ function AppContent() {
         );
     }
 
-    // Without a club there is nothing to play with yet: send the user to create one.
-    // A global admin without a club of their own looks after the app instead.
     // logged in again after the session ran out: back to the page it ended on
     if (pathname === '/login' && returnTo) {
         return <Navigate replace to={returnTo} />;
     }
 
+    // the start page the user chose, when the app opens on the dashboard after logging in
+    if (!startHandled.current && user.startPage === 'myStatistics' && (pathname === '/' || pathname === '/login') && activeClub) {
+        return <Navigate replace to="/me" />;
+    }
+
+    // Without a club there is nothing to play with yet: send the user to create one.
+    // A global admin without a club of their own looks after the app instead.
     if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
         return <Navigate replace to={isGlobalAdmin ? '/system-settings' : '/my-clubs'} />;
     }
@@ -133,6 +145,7 @@ function AppContent() {
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/player-profile" element={<MyPlayerPage />} />
+                    <Route path="/me" element={<MyStatistics />} />
                     <Route path="/system-settings" element={<AdministrationPage />} />
                     {/* the old address of the system settings */}
                     <Route path="/administration" element={<Navigate replace to="/system-settings" />} />

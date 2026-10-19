@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -13,7 +13,7 @@ import { BsPersonFillCheck } from "react-icons/bs";
 import { useAuth } from '../../utils/auth.context';
 import { ROLE_LABELS } from '../../services/user.service';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import AuthService, { MY_PLAYERS_CHANGED } from '../../services/auth.service';
+import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
 import ClubLogo from '../elements/club.logo';
 import AdminService from '../../services/admin.service';
 import { ALERTS_CHANGED } from '../admin/alert.events';
@@ -90,22 +90,6 @@ const useUnreadNotifications = () => {
     return unread;
 };
 
-/**
- * The picture of the user's player, for the avatar in the menu: one picture
- * for the account and its players. Follows the player profile.
- */
-const useOwnPicture = (enabled) => {
-    const [picture, setPicture] = useState('');
-    useEffect(() => {
-        if (!enabled) return undefined;
-        const load = () => AuthService.getMyPlayers().then(players => setPicture(players.find(player => player.profileImg)?.profileImg ?? '')).catch(() => {});
-        load();
-        window.addEventListener(MY_PLAYERS_CHANGED, load);
-        return () => window.removeEventListener(MY_PLAYERS_CHANGED, load);
-    }, [enabled]);
-    return enabled ? picture : '';
-};
-
 const countText = (count) => count > 99 ? '99+' : count;
 
 /**
@@ -120,6 +104,8 @@ const useSections = () => {
     const openAlerts = useOpenAlerts(isGlobalAdmin);
     const clubFairPlay = useFairPlay(isClubAdmin && hasClub, false, activeClub?.id);
     const allFairPlay = useFairPlay(isGlobalAdmin, true, null);
+    // the user's own statistics in this club, one click away
+    const myPlayer = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
 
     const sections = [
         {
@@ -127,7 +113,9 @@ const useSections = () => {
             visible: hasClub,
             items: [
                 { label: 'Dashboard', icon: MdDashboard, to: '/', end: true },
-                { label: 'Players', icon: FaUserPen, to: '/players' },
+                { label: 'My statistics', icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
+                // on the own player the entry above is the one that is marked
+                { label: 'Players', icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
                 { label: 'Player comparison', icon: FaChartLine, to: '/stats/players' },
                 { label: 'Games', icon: FaTrophy, to: '/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
@@ -278,7 +266,9 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
     const { user, activeClub, isGlobalAdmin, logout } = useAuth();
     const sections = useSections();
     const unread = useUnreadNotifications();
-    const picture = useOwnPicture(!isGlobalAdmin);
+    // the user's players: one picture for the account, shown on the avatar
+    const myPlayers = useMyPlayers(!isGlobalAdmin);
+    const picture = (myPlayers ?? []).find(player => player.profileImg)?.profileImg ?? '';
 
     // groups start open when they contain the current page
     const [openGroups, setOpenGroups] = useState(() => new Set());
@@ -358,7 +348,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
         }
         return (
             <li key={item.key}>
-                <NavLink to={item.to} end={item.end} className={linkClass} title={collapsed ? item.label : undefined} onClick={onNavigate}>
+                <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
                     {item.badge &&
