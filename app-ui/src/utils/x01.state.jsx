@@ -340,7 +340,8 @@ const X01State = props => {
                 skill: botSkillOf,
             });
             updateCurrentThrowDartBoard(left, dart);
-        }, thrown === 0 ? 1100 : 750);
+            // a checkout: the winning dart lands and is seen before the visit is sent
+        }, thrown === 0 ? 1100 : left === 0 ? 1800 : 750);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.game, state.loading, moment, highlight, oneEighty, training]);

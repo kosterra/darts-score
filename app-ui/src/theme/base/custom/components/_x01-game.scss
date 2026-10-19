@@ -947,3 +947,13 @@
 
   svg { color: $primaryColor; }
 }
+
+// the finish of a training, in gold, while its statistics are on their way
+.x01-bot-turn.x01-training-won {
+  justify-content: center;
+  margin-bottom: 1rem;
+  background: rgba(233, 172, 47, 0.16);
+  font-size: 1rem;
+
+  .pi { color: #e9ac2f; }
+}

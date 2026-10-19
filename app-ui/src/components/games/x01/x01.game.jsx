@@ -18,11 +18,17 @@ const X01Game = () => {
     const navigate = useNavigate();
     const [more, setMore] = useState(false);
 
-    // a moment of the winning visit (e.g. the big fish) plays to its end first
+    // a moment of the winning visit (e.g. the big fish) plays to its end first; a
+    // training also stays a moment on the finish, so a win of the bot is seen too
     useEffect(() => {
-        if (game?.hasWinner && !celebrating) {
-            navigate(`/stats/${training ? 'training' : 'games'}/x01/${game.id}`, { replace: true, state: { justFinished: true } });
+        if (!game?.hasWinner || celebrating) return undefined;
+        const open = () => navigate(`/stats/${training ? 'training' : 'games'}/x01/${game.id}`, { replace: true, state: { justFinished: true } });
+        if (!training) {
+            open();
+            return undefined;
         }
+        const timer = setTimeout(open, 2200);
+        return () => clearTimeout(timer);
     }, [game?.hasWinner, game?.id, celebrating, navigate, training]);
 
     if (loading?.initGameLoading) {
@@ -42,6 +48,14 @@ const X01Game = () => {
     return (
         <div className="game-stats-page x01-live">
             <X01LiveHeader />
+
+            {/* a training on its finish, before its statistics open */}
+            {training && game.hasWinner &&
+                <div className="x01-bot-turn x01-training-won" role="status">
+                    <i className="pi pi-trophy" aria-hidden="true" />
+                    {ordered.find(player => game.playerModels[player.id]?.hasWonGame)?.nickname ?? 'Someone'} wins the training
+                </div>
+            }
 
             <X01ScoreInputBoard />
 
