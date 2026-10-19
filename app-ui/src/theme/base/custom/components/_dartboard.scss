@@ -156,8 +156,8 @@ $dartboard-opacity: 0.4;
 }
 
 // (the names are the board's own: the bull finish has a dart-fly of its own)
-// a dart flying to where it was thrown: from the thrower (lower right, bigger,
-// as it is nearer) into the board, where it sticks with a little wobble; the
+// a dart flying to where it was thrown: straight from the thrower (bigger, as it
+// is nearer, coming in a little from below) into the board, where it sticks with a little wobble; the
 // point and its pulse appear when it lands
 .dartboard-img {
   .dart-fly {
@@ -179,15 +179,15 @@ $dartboard-opacity: 0.4;
 }
 
 @keyframes board-dart-fly {
-  0% { transform: translate(110px, 170px) scale(2.4); opacity: 0; }
+  0% { transform: translate(6px, 70px) scale(2.6); opacity: 0; }
   20% { opacity: 1; }
   100% { transform: translate(0, 0) scale(1); opacity: 1; }
 }
 
 @keyframes board-dart-wobble {
   0% { transform: rotate(0deg); }
-  30% { transform: rotate(5deg); }
-  65% { transform: rotate(-2deg); }
+  30% { transform: rotate(4deg); }
+  65% { transform: rotate(-1.5deg); }
   100% { transform: rotate(0deg); }
 }
 

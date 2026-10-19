@@ -396,13 +396,14 @@ const BoardShapes = () => (
 // how long a dart flies before it sticks (the CSS animation takes as long)
 const FLIGHT_MS = 320;
 
-// a point along the dart, from its tip into the board: t along it, w across it
-const AXIS = { x: 0.55, y: 0.835 };
+// a point along the dart, from its tip into the board: t along it, w across it.
+// Nearly upright, as a dart in the board looks from the oche: about 16° off the vertical
+const AXIS = { x: 0.28, y: 0.96 };
 const along = (t, w = 0) => `${(t * AXIS.x - w * AXIS.y).toFixed(2)},${(t * AXIS.y + w * AXIS.x).toFixed(2)}`;
 
 /**
  * A dart stuck in the board, its tip at (0, 0), seen from the thrower: the
- * barrel and the flights to the lower right. color: the flights.
+ * barrel and the flights below it, a little to the right. color: the flights.
  */
 const Dart = ({ color }) => (
     <g className="dart-shape">
