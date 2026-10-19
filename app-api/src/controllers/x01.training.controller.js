@@ -8,7 +8,9 @@ const Training = db.x01Training;
 
 const humanOf = (players = []) => players.find(id => id !== BOT_ID);
 
-// the player of a training, if it is in the club and the user may train as them: player or a response sent
+// the player of a training, if it is in the club: player or a response sent. Like
+// games, anyone of the club may start one for any of its players (e.g. a child on
+// a parent's phone)
 const loadPlayer = async (req, res, playerId) => {
     if (!db.mongoose.isValidObjectId(playerId)) {
         res.status(422).json({ errors: ['Choose a player of the club.'] });
@@ -17,11 +19,6 @@ const loadPlayer = async (req, res, playerId) => {
     const player = await db.player.findOne({ _id: playerId, clubs: req.club._id });
     if (!player) {
         res.status(422).json({ errors: ['Choose a player of the club.'] });
-        return null;
-    }
-    const own = player.user && player.user.equals(req.user._id);
-    if (!own && req.clubRole !== CLUB_ROLES.ADMIN) {
-        res.status(403).json({ message: 'You can only train as your own player.' });
         return null;
     }
     return player;
@@ -90,7 +87,12 @@ export const remove = async (req, res) => {
     if (!db.mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
     const training = await Training.findOne({ _id: req.params.id, club: req.club._id });
     if (!training) return res.status(404).json({ message: 'Not found.' });
-    if (!(await loadPlayer(req, res, humanOf(training.players)))) return;
+    const player = await loadPlayer(req, res, humanOf(training.players));
+    if (!player) return;
+    // deleting is for the player themselves and the club admins
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !(player.user && player.user.equals(req.user._id))) {
+        return res.status(403).json({ message: 'Only the player or a club admin can delete a training.' });
+    }
     await training.deleteOne();
     res.json({ message: 'Deleted.' });
 };

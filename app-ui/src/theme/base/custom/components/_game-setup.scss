@@ -295,3 +295,6 @@
   border-radius: 0 0 $borderRadius $borderRadius;
   background: var(--surface-raised);
 }
+
+// a few more pills than usual in one row, e.g. the five starting scores of a training
+.p-selectbutton.p-selectbutton-pills.pills-fit .p-button { flex-basis: 4rem; }

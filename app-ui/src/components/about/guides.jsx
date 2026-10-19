@@ -42,7 +42,7 @@ export const PLAYER_GUIDE = [
         body: (
             <>
                 <p>Under <strong>Training</strong> there are Around the Clock and X01 against the bot.</p>
-                <p><strong>X01 against the bot</strong> plays like a game against a bot as strong as you, worked out from your statistics: your recent form or your X01 average and your checkout rate. Make it easier or harder, choose the format and who starts. The bot throws its darts by itself; trainings count for no game statistics, badges or levels.</p>
+                <p><strong>X01 against the bot</strong> plays like a game against a bot: a fixed one (Easy, Normal, Hard or Pro), or one as strong as you, worked out from your statistics (your recent form or your X01 average and your checkout rate), also a bit easier or harder than you. Choose the player, the format and who starts as in X01. The bot throws its darts by itself; trainings count for no game statistics, badges or levels.</p>
                 <p><strong>Around the Clock</strong>: choose the players, the training (against the clock or with the fewest darts) and the mode, then start.</p>
                 <ul>
                     <li>Against the clock the stopwatch shows your personal best and whether you are ahead of it; stop it with the last hit and save the time.</li>

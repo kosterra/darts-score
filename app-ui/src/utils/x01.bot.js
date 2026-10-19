@@ -149,10 +149,10 @@ export const botStrengthFrom = ({ form = null, stats = null, fallback = null, le
     let basis;
     if (form?.games >= 5 && form.recentAverage > 0) {
         average = form.recentAverage;
-        basis = 'your last 5 X01 games';
+        basis = 'last 5 X01 games';
     } else if ((stats?.playedGames?.x01 ?? 0) > 0 && stats?.avg?.overallX01 > 0) {
         average = stats.avg.overallX01;
-        basis = 'your X01 games';
+        basis = 'all X01 games';
     } else {
         average = fallback?.average ?? 30;
         basis = fallback?.text ?? 'no X01 games yet';
@@ -165,3 +165,25 @@ export const botStrengthFrom = ({ form = null, stats = null, fallback = null, le
         basis,
     };
 };
+
+// fixed bots, for players without X01 games yet or to train against another level
+export const BOT_PRESETS = [
+    { value: 'easy', label: 'Easy', average: 30, checkoutRate: 0.12 },
+    { value: 'normal', label: 'Normal', average: 45, checkoutRate: 0.2 },
+    { value: 'hard', label: 'Hard', average: 60, checkoutRate: 0.28 },
+    { value: 'pro', label: 'Pro', average: 80, checkoutRate: 0.38 },
+];
+export const LIKE_ME = 'me';
+
+/**
+ * The bot of a training: a fixed one (BOT_PRESETS), or with LIKE_ME one as
+ * strong as the player (botStrengthFrom, easier or harder by level).
+ */
+export const botStrength = ({ mode = LIKE_ME, level = 'same', ...figures } = {}) => {
+    const preset = BOT_PRESETS.find(entry => entry.value === mode);
+    if (preset) return { average: preset.average, checkoutRate: preset.checkoutRate, basis: `the ${preset.label.toLowerCase()} bot` };
+    return botStrengthFrom({ ...figures, level });
+};
+
+// whether the statistics know how the player plays X01 (else "Like me" is only a guess)
+export const knowsPlayer = ({ form = null, stats = null } = {}) => (form?.games >= 5 && form.recentAverage > 0) || ((stats?.playedGames?.x01 ?? 0) > 0 && stats?.avg?.overallX01 > 0);

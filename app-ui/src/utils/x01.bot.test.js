@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { botDart, botSkill, botStrengthFrom, botTarget, throwAt } from './x01.bot';
+import { botDart, botSkill, botStrength, botStrengthFrom, botTarget, knowsPlayer, throwAt } from './x01.bot';
 import { isBust } from './x01.rules';
 
 // a seeded random generator, so the tests always throw the same darts
@@ -75,8 +75,8 @@ describe('training bot', () => {
 describe('bot strength', () => {
     it('plays like the player: recent form first, then the average, then the level or age', () => {
         const stats = { playedGames: { x01: 20 }, avg: { overallX01: 48.2 }, checkouts: { hit: 30, total: 100 } };
-        expect(botStrengthFrom({ form: { games: 8, recentAverage: 52.4 }, stats })).toEqual({ average: 52.4, checkoutRate: 0.3, basis: 'your last 5 X01 games' });
-        expect(botStrengthFrom({ form: { games: 3, recentAverage: 60 }, stats })).toMatchObject({ average: 48.2, basis: 'your X01 games' });
+        expect(botStrengthFrom({ form: { games: 8, recentAverage: 52.4 }, stats })).toEqual({ average: 52.4, checkoutRate: 0.3, basis: 'last 5 X01 games' });
+        expect(botStrengthFrom({ form: { games: 3, recentAverage: 60 }, stats })).toMatchObject({ average: 48.2, basis: 'all X01 games' });
         expect(botStrengthFrom({ stats: { playedGames: {}, checkouts: { hit: 1, total: 4 } }, fallback: { average: 22, text: 'no X01 games yet' } })).toEqual({ average: 22, checkoutRate: null, basis: 'no X01 games yet' });
     });
 
@@ -84,5 +84,15 @@ describe('bot strength', () => {
         const stats = { playedGames: { x01: 20 }, avg: { overallX01: 60 }, checkouts: { hit: 30, total: 100 } };
         expect(botStrengthFrom({ stats, level: 'easier' })).toMatchObject({ average: 51, checkoutRate: 0.255 });
         expect(botStrengthFrom({ stats, level: 'harder' })).toMatchObject({ average: 69, checkoutRate: 0.345 });
+    });
+});
+
+describe('bot presets', () => {
+    it('plays a fixed level, or like the player', () => {
+        expect(botStrength({ mode: 'hard' })).toEqual({ average: 60, checkoutRate: 0.28, basis: 'the hard bot' });
+        const stats = { playedGames: { x01: 20 }, avg: { overallX01: 60 }, checkouts: { hit: 30, total: 100 } };
+        expect(botStrength({ mode: 'me', level: 'harder', stats })).toMatchObject({ average: 69 });
+        expect(knowsPlayer({ stats })).toBe(true);
+        expect(knowsPlayer({ stats: { playedGames: {} } })).toBe(false);
     });
 });

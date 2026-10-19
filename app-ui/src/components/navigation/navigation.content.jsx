@@ -145,8 +145,9 @@ const useSections = () => {
             title: 'Training',
             visible: hasClub,
             items: [
-                { label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' },
+                // in the order of the games above
                 { label: 'X01 against the bot', icon: FaRobot, to: '/training/x01' },
+                { label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' },
             ],
         },
         // for global admins, across all clubs: who uses the app, what was played, what needs watching, and the installation
