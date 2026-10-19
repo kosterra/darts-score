@@ -168,8 +168,9 @@ $dartboard-opacity: 0.4;
     animation: board-dart-fly 0.32s linear both, board-dart-wobble 0.4s ease-out 0.32s;
   }
 
-  // the dart swings into the board: its shaft starts above the tip and tilts down
-  // over the right side into the upright position, seen more from the side at first
+  // the dart tilts round its tip as it flies (it pitches, it does not spin): the
+  // tail first higher, so the shaft shows above the tip, then pointing at the
+  // thrower, and at last the shaft below the tip as it sticks
   .dart-tilt {
     transform-box: view-box;
     transform-origin: 0 0;
@@ -195,9 +196,9 @@ $dartboard-opacity: 0.4;
 }
 
 @keyframes board-dart-tilt {
-  0% { transform: rotate(-175deg) scaleY(1.9); animation-timing-function: ease-in-out; }
-  55% { transform: rotate(-80deg) scaleY(1.6); animation-timing-function: ease-out; }
-  100% { transform: rotate(0deg) scaleY(1); }
+  0% { transform: scaleY(-1.2); animation-timing-function: ease-in-out; }
+  55% { transform: scaleY(0.25); animation-timing-function: ease-out; }
+  100% { transform: scaleY(1); }
 }
 
 @keyframes board-dart-wobble {
