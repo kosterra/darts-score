@@ -427,7 +427,7 @@ $fair-play-suspicious: #e9ac2f;
 .notification-text {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.3rem;
   flex-grow: 1;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -624,3 +624,22 @@ $fair-play-suspicious: #e9ac2f;
 }
 
 .my-player-birth { max-width: 14rem; }
+
+.notification-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.75rem;
+}
+
+// when and who: small and faint, clearly apart from the message
+.notification-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+
+  .pi { font-size: 0.7rem; }
+}

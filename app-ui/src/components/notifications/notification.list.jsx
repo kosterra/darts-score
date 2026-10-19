@@ -81,11 +81,15 @@ const NotificationList = ({ limit }) => {
                                 <li key={notice.id} className={`notification ${notice.read ? '' : 'is-unread'}`}>
                                     <span className="notification-icon" aria-hidden="true"><Icon /></span>
                                     <div className="notification-text">
-                                        <span className="text-default fw-semibold">{notice.title}</span>
-                                        {notice.body && <span className="text-subtle fs-8">{notice.body}</span>}
-                                        <span className="text-faint fs-9" title={dayjs(notice.at).format('DD.MM.YYYY HH:mm')}>
-                                            {dayjs(notice.at).fromNow()}{notice.byName && ` · by ${notice.byName}`}
-                                        </span>
+                                        {/* like the other lists: the title with when and who beside it, the message below */}
+                                        <div className="notification-head">
+                                            <span className="text-default fw-semibold">{notice.title}</span>
+                                            <span className="notification-meta" title={dayjs(notice.at).format('DD.MM.YYYY HH:mm')}>
+                                                <i className="pi pi-clock" aria-hidden="true" />
+                                                {dayjs(notice.at).fromNow()}{notice.byName && ` · ${notice.byName}`}
+                                            </span>
+                                        </div>
+                                        {notice.body && <span className="text-subtle fs-7">{notice.body}</span>}
                                     </div>
                                     <div className="notification-actions">
                                         {notice.link && <Button type="button" label="Open" size="small" severity="secondary" onClick={() => open(notice)} />}

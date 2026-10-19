@@ -354,7 +354,7 @@ export const restoreBirth = async (req, res) => {
     await player.save();
     await db.integrityReview.deleteMany({ sourceType: 'birth', sourceId: String(change._id) });
     if (player.user && String(player.user) !== String(req.user._id)) {
-        const day = (value) => new Date(value).toLocaleDateString('de-CH');
+        const day = (value) => { const date = new Date(value); return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`; };
         await db.notification.create({
             user: player.user,
             kind: 'fairPlayRestored',
