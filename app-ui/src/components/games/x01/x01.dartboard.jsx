@@ -9,7 +9,8 @@ const X01DartBoard = () => {
     game,
     updateCurrentThrowDartBoard,
     getCurrentThrowScore,
-    checkCanThrowMoreDarts
+    checkCanThrowMoreDarts,
+    botThrowing
   } = useContext(X01Context);
 
   const toast = useRef(null);
@@ -23,6 +24,8 @@ const X01DartBoard = () => {
   const markers = game.currentThrow.map((dart, index) => taps[index] && (taps[index].dart === dart || dart === '0') ? taps[index] : null);
 
   const setDartValue = (value, point) => {
+    // in a training the bot throws its own darts
+    if (botThrowing) return;
     let totalScore = getCurrentThrowScore();
     let currentPlayerScore = game.playerModels[game.currentPlayerTurn].score;
 

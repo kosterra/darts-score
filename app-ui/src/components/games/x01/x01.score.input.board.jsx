@@ -172,9 +172,10 @@ const X01ScoreInputBoard = () => {
                                         autoComplete="off"
                                         // with the keypad, tapping a field opens no keyboard on a phone
                                         inputMode={input === 'keypad' ? 'none' : 'text'}
+                                        disabled={botThrowing}
                                         className="x01-dart-input"
                                     />
-                                    {darts[index] !== '' &&
+                                    {darts[index] !== '' && !botThrowing &&
                                         <button
                                             type="button"
                                             className="x01-dart-clear"

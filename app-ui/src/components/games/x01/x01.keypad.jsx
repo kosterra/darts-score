@@ -7,7 +7,7 @@ import DartKeypad from '../common/dart.keypad';
  * The keypad of X01: a dart fits as long as the visit can go on.
  */
 const X01Keypad = () => {
-    const { game, getCurrentThrowScore, checkCanThrowMoreDarts, updateCurrentThrowDartBoard, updateCurrentThrowManual } = useContext(X01Context);
+    const { game, getCurrentThrowScore, checkCanThrowMoreDarts, updateCurrentThrowDartBoard, updateCurrentThrowManual, botThrowing } = useContext(X01Context);
 
     const score = game.playerModels[game.currentPlayerTurn].score - getCurrentThrowScore();
     const clearLast = () => {
@@ -17,9 +17,10 @@ const X01Keypad = () => {
 
     return (
         <DartKeypad
-            canThrow={checkCanThrowMoreDarts(score)}
-            onDart={(value) => updateCurrentThrowDartBoard(score, value)}
-            onClearLast={clearLast}
+            // in a training the bot throws its own darts
+            canThrow={!botThrowing && checkCanThrowMoreDarts(score)}
+            onDart={(value) => !botThrowing && updateCurrentThrowDartBoard(score, value)}
+            onClearLast={() => !botThrowing && clearLast()}
             entered={game.currentThrow.filter(dart => dart.trim() !== '').length}
         />
     );

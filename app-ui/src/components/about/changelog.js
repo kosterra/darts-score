@@ -22,6 +22,7 @@ const CHANGELOG = [
             'Fix: in X01 Undo after a bust gave the darts back as points, so the player had more left than before; leaving 1 in Straight Out was saved as a bust. Both made later scores left not add up.',
             'Fix: Undo of a visit close to the finish in X01 no longer fails.',
             'Fix: the match dart of an X01 game no longer shows BUST before the winner is celebrated.',
+            'Fix: the scores at the top of an X01 game no longer move when the way out below them gets longer or shorter.',
             'A new page opens at the top, e.g. a game after its setup; going back keeps where you were.',
             'The player statistics, the dashboard and the game statistics show the shape of the page while they load, instead of a spinner: the page stands from the first moment and the content fills in.',
         ],
