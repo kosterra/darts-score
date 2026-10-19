@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -229,6 +229,8 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
     );
 };
 
+const PROFILE_PATHS = ['/profile', '/notifications'];
+
 const isInside = (item, pathname) =>
     item.children?.some(child => child.to && (pathname === child.to || pathname.startsWith(child.to + '/')));
 
@@ -249,6 +251,21 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
         if (current.length) setOpenGroups(open => new Set([...open, ...current]));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname]);
+
+    // the user's group starts open on its pages
+    const [profileOpen, setProfileOpen] = useState(() => PROFILE_PATHS.includes(pathname));
+    useEffect(() => {
+        if (PROFILE_PATHS.includes(pathname)) setProfileOpen(true);
+    }, [pathname]);
+    const toggleProfile = () => {
+        // in the icon rail it opens once the menu is wide again
+        if (collapsed) {
+            onToggle?.();
+            setProfileOpen(true);
+            return;
+        }
+        setProfileOpen(open => !open);
+    };
 
     const toggleGroup = (key) => {
         // in the icon rail a group can only open once the menu is wide again
@@ -360,30 +377,44 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 </NavLink>
             </div>
 
-            <div className="nav-profile">
-                <Link to="/profile" className="nav-profile-link p-ripple" onClick={onNavigate} title={collapsed ? `Your profile${unread ? ` · ${unread} unread notifications` : ''}` : undefined}>
-                    <Avatar label={resolvePlayerInitials(user.firstname, user.lastname)} shape="circle" className="avatar-sm bg-surface-high flex-shrink-0" />
-                    {/* in the icon rail the bell is hidden: the count sits on the avatar */}
-                    {collapsed && unread > 0 && <span className="nav-badge critical" aria-label={`${unread} unread notifications`}>{countText(unread)}</span>}
-                    <span className="nav-label d-flex flex-column" style={{ minWidth: 0 }}>
-                        <span className="text-default fw-semibold text-truncate">{user.firstname} {user.lastname}</span>
-                        <span className="text-faint fs-8 text-truncate">{roleText}</span>
-                    </span>
-                    <Ripple />
-                </Link>
-                <NavLink
-                    to="/notifications"
-                    className={({ isActive }) => `nav-icon-button nav-label nav-bell ${isActive ? 'active' : ''}`}
-                    onClick={onNavigate}
-                    aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
-                    title="Notifications"
+            {/* the user: a group with the profile, the notifications and logging out; the count of unread ones on it */}
+            <div className={`nav-profile ${profileOpen ? 'open' : ''}`}>
+                <button
+                    type="button"
+                    className={`nav-profile-link p-ripple ${PROFILE_PATHS.includes(pathname) ? 'contains-active' : ''}`}
+                    onClick={toggleProfile}
+                    aria-expanded={profileOpen}
+                    title={collapsed ? `${user.firstname} ${user.lastname}${unread ? ` · ${unread} unread notifications` : ''}` : undefined}
                 >
-                    <FaBell />
-                    {unread > 0 && <span className="nav-badge critical" aria-hidden="true">{countText(unread)}</span>}
-                </NavLink>
-                <button type="button" className="nav-icon-button nav-label" onClick={logout} aria-label="Log out" title="Log out">
-                    <FaRightFromBracket />
+                    {/* the count sits on the avatar's corner, so the name keeps the room */}
+                    <span className="nav-avatar">
+                        <Avatar label={resolvePlayerInitials(user.firstname, user.lastname)} shape="circle" className="avatar-sm bg-surface-high" />
+                        {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread notifications`}>{countText(unread)}</span>}
+                    </span>
+                    <span className="nav-label nav-profile-name">
+                        <span className="text-default fw-semibold">{user.firstname} {user.lastname}</span>
+                        <span className="text-faint fs-8">{roleText}</span>
+                    </span>
+                    <FaChevronDown className={`nav-chevron ${profileOpen ? 'open' : ''}`} aria-hidden="true" />
+                    <Ripple />
                 </button>
+                {profileOpen && !collapsed &&
+                    <div className="nav-group">
+                        <NavLink to="/profile" end className={linkClass} onClick={onNavigate}>
+                            <span className="nav-label">Profile</span>
+                            <Ripple />
+                        </NavLink>
+                        <NavLink to="/notifications" end className={linkClass} onClick={onNavigate}>
+                            <span className="nav-label">Notifications</span>
+                            {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread`}>{countText(unread)}</span>}
+                            <Ripple />
+                        </NavLink>
+                        <button type="button" className="nav-link-item p-ripple" onClick={logout}>
+                            <span className="nav-label">Log out</span>
+                            <Ripple />
+                        </button>
+                    </div>
+                }
             </div>
         </div>
     );

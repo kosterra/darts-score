@@ -310,32 +310,12 @@ $navRailWidth: 4.75rem;
 
     .nav-profile {
         display: flex;
-        align-items: center;
-        gap: 0.25rem;
+        flex-direction: column;
         padding: 0.75rem;
         border-top: 1px solid $shade700;
-    }
 
-    // the notifications: a bell with the unread count on its corner
-    .nav-bell {
-        position: relative;
-
-        &.active {
-            background: $surfaceHighColor;
-            color: $textDefaultColor;
-        }
-
-        .nav-badge {
-            position: absolute;
-            top: -0.2rem;
-            right: -0.2rem;
-            min-width: 1.05rem;
-            height: 1.05rem;
-            margin: 0;
-            padding: 0 0.2rem;
-            font-size: 0.58rem;
-            line-height: 1.05rem;
-        }
+        // the group opens above the bottom edge: a little room below its last entry
+        .nav-group { margin-bottom: 0; }
     }
 
     .nav-profile-link {
@@ -344,14 +324,49 @@ $navRailWidth: 4.75rem;
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        flex-grow: 1;
+        width: 100%;
         min-width: 0;
         padding: 0.5rem;
+        border: 0;
         border-radius: $borderRadius;
+        background: transparent;
+        color: $textSubtleColor;
+        text-align: left;
+        cursor: pointer;
 
         &:hover,
         &:focus-visible {
             background: $surfaceHighColor;
+        }
+
+        .nav-chevron { flex-shrink: 0; }
+    }
+
+    // name and email wrap instead of being cut off
+    .nav-profile-name {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        min-width: 0;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .nav-avatar {
+        position: relative;
+        display: inline-flex;
+        flex-shrink: 0;
+
+        .nav-badge {
+            position: absolute;
+            top: -0.35rem;
+            right: -0.45rem;
+            min-width: 1.1rem;
+            height: 1.1rem;
+            margin: 0;
+            padding: 0 0.25rem;
+            font-size: 0.6rem;
+            line-height: 1.1rem;
         }
     }
 
@@ -397,12 +412,12 @@ $navRailWidth: 4.75rem;
 
 
         .nav-profile {
-            justify-content: center;
+            align-items: center;
             padding: 0.75rem 0.5rem;
         }
 
         .nav-profile-link {
-            flex-grow: 0;
+            width: auto;
             padding: 0.25rem;
         }
 
