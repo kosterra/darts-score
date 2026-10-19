@@ -154,3 +154,48 @@ $dartboard-opacity: 0.4;
 @media (prefers-reduced-motion: reduce) {
   .dartboard-img .item.is-flash { animation-duration: 0.01s; }
 }
+
+// (the names are the board's own: the bull finish has a dart-fly of its own)
+// a dart flying to where it was thrown: from the thrower (lower right, bigger,
+// as it is nearer) into the board, where it sticks with a little wobble; the
+// point and its pulse appear when it lands
+.dartboard-img {
+  .dart-fly {
+    // the dart's own coordinates: its tip is at (0, 0)
+    transform-box: view-box;
+    transform-origin: 0 0;
+    animation: board-dart-fly 0.32s cubic-bezier(0.15, 0.7, 0.3, 1) both, board-dart-wobble 0.4s ease-out 0.32s;
+  }
+
+  .has-dart .dart-hit { animation: board-dart-hit 0.12s ease-out 0.3s both; }
+
+  .dart-point { stroke: #e9eef2; stroke-width: 1.3; stroke-linecap: round; }
+  .dart-barrel { stroke: #9aa5b1; stroke-width: 4.2; stroke-linecap: round; }
+  .dart-grip { stroke: #5d6873; stroke-width: 0.9; fill: none; }
+  .dart-shaft { stroke: #2b2f36; stroke-width: 2; stroke-linecap: round; }
+  .dart-flight { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.6; stroke-linejoin: round; }
+  .dart-flight.is-back { filter: brightness(0.72); }
+  .dart-shadow { stroke: rgba(0, 0, 0, 0.35); stroke-width: 3; stroke-linecap: round; fill: none; }
+}
+
+@keyframes board-dart-fly {
+  0% { transform: translate(110px, 170px) scale(2.4); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+
+@keyframes board-dart-wobble {
+  0% { transform: rotate(0deg); }
+  30% { transform: rotate(5deg); }
+  65% { transform: rotate(-2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes board-dart-hit {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dartboard-img .dart-fly { animation: none; }
+}

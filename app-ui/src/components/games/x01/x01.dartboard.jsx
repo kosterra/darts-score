@@ -3,6 +3,9 @@ import { Toast } from 'primereact/toast';
 
 import DartBoard from '../common/dartboard';
 import X01Context from '../../../utils/x01.context';
+import { BOT_ID } from '../../../utils/x01.bot';
+import { pointForDart, seededRandom } from '../../../utils/dartboard.geometry';
+import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 
 const X01DartBoard = () => {
   const {
@@ -21,7 +24,13 @@ const X01DartBoard = () => {
   useEffect(() => setTaps([]), [visitKey]);
   // a dart cleared or typed over: its mark goes
   // (a dart that does not count before the double in is stored as 0, its mark stays)
-  const markers = game.currentThrow.map((dart, index) => taps[index] && (taps[index].dart === dart || dart === '0') ? taps[index] : null);
+  const tapped = game.currentThrow.map((dart, index) => taps[index] && (taps[index].dart === dart || dart === '0') ? taps[index] : null);
+  // the bot taps nothing: its darts stick somewhere in the field they hit, the same spot on every redraw
+  const markers = game.currentPlayerTurn === BOT_ID
+    ? game.currentThrow.map((dart, index) => dart ? { ...pointForDart(dart, seededRandom(`${visitKey}-${index}-${dart}`)), dart } : null)
+    : tapped;
+  // the flights in the colour of the player at the oche
+  const flightColor = PLAYER_COLORS[Math.max(0, game.players.indexOf(game.currentPlayerTurn))];
 
   const setDartValue = (value, point) => {
     // in a training the bot throws its own darts
@@ -45,13 +54,14 @@ const X01DartBoard = () => {
 
     // the dart goes into the first empty place of the visit
     const slot = game.currentThrow.findIndex(dart => dart.trim() === '');
-    if (point) setTaps(Object.assign([...markers], { [slot]: { ...point, dart: value } }));
+    if (point) setTaps(Object.assign([...tapped], { [slot]: { ...point, dart: value } }));
     updateCurrentThrowDartBoard(newCurrentScore, value);
   }
 
   return (
     <>
-      <DartBoard handleClick={setDartValue} markers={markers} />
+      {/* the darts fly to where they were thrown, for now always (a setting may follow) */}
+      <DartBoard handleClick={setDartValue} markers={markers} withDarts flightColor={flightColor} />
       <Toast ref={toast} position="bottom-right" />
     </>
   )

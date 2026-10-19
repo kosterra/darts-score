@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 // the magnifier: its size on screen and how much it enlarges
@@ -393,10 +393,37 @@ const BoardShapes = () => (
     </>
 );
 
+// how long a dart flies before it sticks (the CSS animation takes as long)
+const FLIGHT_MS = 320;
+
+// a point along the dart, from its tip into the board: t along it, w across it
+const AXIS = { x: 0.55, y: 0.835 };
+const along = (t, w = 0) => `${(t * AXIS.x - w * AXIS.y).toFixed(2)},${(t * AXIS.y + w * AXIS.x).toFixed(2)}`;
+
+/**
+ * A dart stuck in the board, its tip at (0, 0), seen from the thrower: the
+ * barrel and the flights to the lower right. color: the flights.
+ */
+const Dart = ({ color }) => (
+    <g className="dart-shape">
+        {/* its shadow on the board */}
+        <polyline points={`${along(4, -2)} ${along(40, -5)}`} className="dart-shadow" />
+        <polygon points={`${along(36, 0)} ${along(45, 9)} ${along(58, 8)} ${along(58, 0)}`} fill={color} className="dart-flight" />
+        <polygon points={`${along(36, 0)} ${along(45, -9)} ${along(58, -8)} ${along(58, 0)}`} fill={color} className="dart-flight is-back" />
+        <line x1={along(25).split(',')[0]} y1={along(25).split(',')[1]} x2={along(52).split(',')[0]} y2={along(52).split(',')[1]} className="dart-shaft" />
+        <line x1={along(7).split(',')[0]} y1={along(7).split(',')[1]} x2={along(27).split(',')[0]} y2={along(27).split(',')[1]} className="dart-barrel" />
+        {[11, 15, 19].map(t => <polyline key={t} points={`${along(t, -2.1)} ${along(t, 2.1)}`} className="dart-grip" />)}
+        <line x1="0" y1="0" x2={along(8).split(',')[0]} y2={along(8).split(',')[1]} className="dart-point" />
+    </g>
+);
+
 /**
  * The dartboard to tap: handleClick(field, point) with the field that was hit
  * (e.g. "T20") and where, in the board's own coordinates. markers: points of
- * darts to show on the board, the last one pulsing.
+ * darts to show on the board, the last one pulsing: { x, y, dart }. withDarts:
+ * a dart flies to each of them and sticks, and the field lights up when it
+ * lands (also for darts that were not tapped, e.g. the bot's), in the
+ * flightColor. Without it the field lights up at once.
  *
  * The field hit lights up and the phone vibrates briefly. With a finger, a
  * magnifier above it shows the field underneath while it is held; the dart is
@@ -405,7 +432,9 @@ const BoardShapes = () => (
 const DartBoard = (props) => {
     const {
         handleClick,
-        markers = []
+        markers = [],
+        withDarts = false,
+        flightColor = '#4aa8ff'
     } = props;
 
     const svgRef = useRef(null);
@@ -446,9 +475,23 @@ const DartBoard = (props) => {
 
     const select = (field, point) => {
         navigator.vibrate?.(12);
-        flash(field);
+        // with darts the field lights up when the dart lands
+        if (!withDarts) flash(field);
         handleClick(field, point);
     };
+
+    // a new dart: its field lights up when it sticks
+    const darts = markers.filter(Boolean);
+    const shownCount = useRef(0);
+    useEffect(() => {
+        if (!withDarts) return undefined;
+        const added = darts.length > shownCount.current ? darts.at(-1) : null;
+        shownCount.current = darts.length;
+        if (!added?.dart) return undefined;
+        const timer = setTimeout(() => flash(added.dart), FLIGHT_MS);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [withDarts, darts.length]);
 
     const showLoupe = (clientX, clientY) => {
         const svg = svgRef.current;
@@ -521,9 +564,13 @@ const DartBoard = (props) => {
             {/* where the darts of this visit landed */}
             <g className="dart-markers" pointerEvents="none" aria-hidden="true">
                 {shown.map(marker => (
-                    <g key={marker.index} transform={`translate(${marker.x}, ${marker.y})`}>
-                        {marker === last && <circle className="dart-marker-pulse" r="5" />}
-                        <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
+                    <g key={marker.index} transform={`translate(${marker.x}, ${marker.y})`} className={withDarts ? 'has-dart' : ''}>
+                        {/* where it hit: with a dart, once it has landed */}
+                        <g className="dart-hit">
+                            {marker === last && <circle className="dart-marker-pulse" r="5" />}
+                            <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
+                        </g>
+                        {withDarts && <g className="dart-fly"><Dart color={flightColor} /></g>}
                     </g>
                 ))}
             </g>
