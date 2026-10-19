@@ -612,7 +612,9 @@
   justify-content: center;
   gap: 0.35rem;
   min-height: 3.6rem;
-  border: 0;
+  // an exception to the borderless buttons: the keypad stands on the page itself,
+  // without a panel, so every key gets a thin edge to be told apart
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: $borderRadius;
   background: var(--surface-raised);
   color: var(--text-default);
@@ -624,13 +626,13 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 
-  &:hover:not(:disabled) { background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
+  &:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.2); background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
   &:active:not(:disabled) { transform: scale(0.97); }
   &:focus-visible { outline: 2px solid #4aa8ff; outline-offset: 2px; }
   &:disabled { opacity: 0.35; cursor: default; }
 
   // just pressed: the same blue as the board's feedback
-  &.is-pressed { background: color-mix(in srgb, #4aa8ff 40%, var(--surface-raised)); }
+  &.is-pressed { border-color: rgba(74, 168, 255, 0.6); background: color-mix(in srgb, #4aa8ff 40%, var(--surface-raised)); }
 
   &.is-ring {
     font-size: 0.9rem;
