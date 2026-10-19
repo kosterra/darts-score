@@ -396,25 +396,30 @@ const BoardShapes = () => (
 // how long a dart flies before it sticks (the CSS animation takes as long)
 const FLIGHT_MS = 320;
 
-// a point along the dart, from its tip into the board: t along it, w across it.
-// Nearly upright, as a dart in the board looks from the oche: about 16° off the vertical
-const AXIS = { x: 0.28, y: 0.96 };
-const along = (t, w = 0) => `${(t * AXIS.x - w * AXIS.y).toFixed(2)},${(t * AXIS.y + w * AXIS.x).toFixed(2)}`;
+// the four flights seen from behind, as a cross: one wing, turned round its middle
+const WING = '0,0 2.6,-5.6 9.8,-9.8 5.6,-2.6';
+const FLIGHT_CENTRE = { x: 0, y: 19 };
 
 /**
- * A dart stuck in the board, its tip at (0, 0), seen from the thrower: the
- * barrel and the flights below it, a little to the right. color: the flights.
+ * A dart stuck straight in the board, seen from the oche: its tip at (0, 0),
+ * the body foreshortened to a short stub below it (it points at the thrower)
+ * and the flights as a cross behind it, bigger as they are nearer. No lean to
+ * either side. color: the flights.
  */
 const Dart = ({ color }) => (
     <g className="dart-shape">
-        {/* its shadow on the board */}
-        <polyline points={`${along(4, -2)} ${along(40, -5)}`} className="dart-shadow" />
-        <polygon points={`${along(36, 0)} ${along(45, 9)} ${along(58, 8)} ${along(58, 0)}`} fill={color} className="dart-flight" />
-        <polygon points={`${along(36, 0)} ${along(45, -9)} ${along(58, -8)} ${along(58, 0)}`} fill={color} className="dart-flight is-back" />
-        <line x1={along(25).split(',')[0]} y1={along(25).split(',')[1]} x2={along(52).split(',')[0]} y2={along(52).split(',')[1]} className="dart-shaft" />
-        <line x1={along(7).split(',')[0]} y1={along(7).split(',')[1]} x2={along(27).split(',')[0]} y2={along(27).split(',')[1]} className="dart-barrel" />
-        {[11, 15, 19].map(t => <polyline key={t} points={`${along(t, -2.1)} ${along(t, 2.1)}`} className="dart-grip" />)}
-        <line x1="0" y1="0" x2={along(8).split(',')[0]} y2={along(8).split(',')[1]} className="dart-point" />
+        {/* its shadow on the board, a little below */}
+        <ellipse cx="0" cy="4" rx="2.2" ry="1.1" className="dart-shadow" />
+        <line x1="0" y1="0" x2="0" y2="3.5" className="dart-point" />
+        <line x1="0" y1="3.5" x2="0" y2="12" className="dart-barrel" />
+        {[6, 8.5].map(y => <polyline key={y} points={`-2.3,${y} 2.3,${y}`} className="dart-grip" />)}
+        <line x1="0" y1="12" x2="0" y2={FLIGHT_CENTRE.y} className="dart-shaft" />
+        <g transform={`translate(${FLIGHT_CENTRE.x}, ${FLIGHT_CENTRE.y})`}>
+            {[0, 90, 180, 270].map(angle => (
+                <polygon key={angle} points={WING} transform={`rotate(${angle})`} fill={color} className={`dart-flight ${angle % 180 ? 'is-back' : ''}`} />
+            ))}
+            <circle r="1.6" className="dart-shaft-end" />
+        </g>
     </g>
 );
 
