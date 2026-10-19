@@ -4,6 +4,7 @@ import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
+import { Calendar } from 'primereact/calendar';
 import { Toast } from 'primereact/toast';
 import dayjs from 'dayjs';
 
@@ -11,9 +12,19 @@ import AuthService, { announceMyPlayersChange } from '../../services/auth.servic
 import PlayerService from '../../services/player.service';
 import ImageUploader from '../elements/image.uploader';
 import PageLoader from '../elements/page.loader';
+import ClubLogo from '../elements/club.logo';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg } from '../../utils/image.utils';
+
+// "1987-02-04" and back for the calendar, in local time so the day stays the day
+const toDate = (value) => {
+    const [year, month, day] = String(value || '').slice(0, 10).split('-').map(Number);
+    return year && month && day ? new Date(year, month - 1, day) : null;
+};
+const fromDate = (date) => date instanceof Date && !Number.isNaN(date.getTime())
+    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    : '';
 
 /**
  * One player the user plays as: nickname and picture to edit, the name from
@@ -24,13 +35,16 @@ const MyPlayer = ({ player, onSaved, onError }) => {
     const navigate = useNavigate();
     const { activeClub, selectClub } = useAuth();
     const [nickname, setNickname] = useState(player.nickname);
+    const savedBirth = String(player.dateOfBirth ?? '').slice(0, 10);
+    const [birth, setBirth] = useState(savedBirth);
     const [image, setImage] = useState({ action: 'unchanged', file: null, preview: resolvePlayerImg(player.profileImg) });
     const [saving, setSaving] = useState(false);
     const [current, setCurrent] = useState(player);
 
     // the player is edited in one of its clubs: the selected one when it plays there
     const clubId = player.clubs.some(club => club.id === activeClub?.id) ? activeClub.id : player.clubs[0]?.id;
-    const changed = nickname.trim() !== player.nickname || image.action !== 'unchanged';
+    const birthChanged = player.birthEditable && birth && birth !== savedBirth;
+    const changed = nickname.trim() !== player.nickname || image.action !== 'unchanged' || birthChanged;
     const anyPublic = player.clubs.some(club => club.isPublic);
 
     const save = async (event) => {
@@ -39,6 +53,7 @@ const MyPlayer = ({ player, onSaved, onError }) => {
         try {
             const formData = new FormData();
             formData.append('nickname', nickname.trim());
+            if (birthChanged) formData.append('dateOfBirth', birth);
             if (image.action === 'new' && image.file) formData.append('profileImg', image.file);
             if (image.action === 'cleared') formData.append('clearProfileImg', 'true');
             await PlayerService.updatePlayer({ id: player.id, formData, clubId });
@@ -60,8 +75,7 @@ const MyPlayer = ({ player, onSaved, onError }) => {
     };
 
     // statistics and badges belong to a club: the app switches to it first
-    const openStatistics = (event) => {
-        event.preventDefault();
+    const openStatistics = () => {
         if (clubId !== activeClub?.id) selectClub(clubId);
         navigate(`/players/${player.id}`);
     };
@@ -85,20 +99,45 @@ const MyPlayer = ({ player, onSaved, onError }) => {
                             <dt>Name</dt>
                             <dd>{player.firstname} {player.lastname} <span className="text-faint">· from your <Link to="/profile">user profile</Link></span></dd>
                         </div>
-                        <div>
-                            <dt>Date of birth</dt>
-                            <dd>
-                                {player.dateOfBirth ? dayjs(player.dateOfBirth).format('DD.MM.YYYY') : <span className="text-faint">not set yet</span>}
-                                <span className="text-faint"> · set by your club admins</span>
-                            </dd>
-                        </div>
+                        {!player.birthEditable &&
+                            <div>
+                                <dt>Date of birth</dt>
+                                <dd>
+                                    {player.dateOfBirth ? dayjs(player.dateOfBirth).format('DD.MM.YYYY') : <span className="text-faint">not set yet</span>}
+                                    <span className="text-faint"> · set by your club admins</span>
+                                </dd>
+                            </div>
+                        }
                         <div>
                             <dt>Plays in</dt>
-                            <dd>{player.clubs.map(club => club.name).join(', ')}</dd>
+                            <dd className="my-player-clubs">
+                                {player.clubs.map(club => (
+                                    <span key={club.id} className="my-player-club">
+                                        <ClubLogo club={club} size="xs" />
+                                        {club.name}
+                                    </span>
+                                ))}
+                            </dd>
                         </div>
                     </dl>
-                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                        <a href={`/players/${player.id}`} onClick={openStatistics} className="fs-7">Statistics and badges</a>
+                    {player.birthEditable &&
+                        <label className="d-flex flex-column gap-1">
+                            <span className="text-subtle fs-8">Date of birth</span>
+                            <Calendar
+                                value={toDate(birth)}
+                                onChange={(event) => setBirth(fromDate(event.value))}
+                                dateFormat="dd.mm.yy"
+                                mask="99.99.9999"
+                                maxDate={new Date()}
+                                showIcon
+                                icon="pi pi-calendar"
+                                className="my-player-birth"
+                            />
+                            <span className="text-faint fs-8">You can correct it as an adult; a date under {player.birthMinAge} years is up to your club admins.</span>
+                        </label>
+                    }
+                    <div className="d-flex flex-wrap justify-content-end align-items-center gap-2">
+                        <Button type="button" label="Statistics and badges" icon="pi pi-chart-line" size="small" severity="secondary" onClick={openStatistics} />
                         <Button type="submit" label="Save" icon="pi pi-save" size="small" loading={saving} disabled={!changed || nickname.trim().length < 3} />
                     </div>
                 </div>
@@ -150,14 +189,14 @@ const MyPlayerPage = () => {
             <Toast ref={toast} position="bottom-right" />
             <Panel header="Player profile">
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    How you appear in your clubs: your nickname and picture are yours to keep up to date, your name comes from your user profile and your club admins set the date of birth.
+                    How you appear in your clubs: your nickname and picture are yours to keep up to date, and your name comes from your user profile. Your club admins set the date of birth; as an adult you can correct it afterwards.
                     {players.length > 1 && ' You play as more than one player; your picture is the same for all of them.'}
                 </p>
                 {players.length === 0
                     ? <p className="text-subtle fs-7 m-0">You do not play in a club yet. A club admin can give your player a login, or add yourself as a player of a club you run under <Link to="/my-clubs">My clubs</Link>.</p>
                     : (
                         <div className="d-flex flex-column gap-3">
-                            {players.map(player => <MyPlayer key={`${player.id}-${player.profileImg}-${player.nickname}`} player={player} onSaved={onSaved} onError={onError} />)}
+                            {players.map(player => <MyPlayer key={`${player.id}-${player.profileImg}-${player.nickname}-${player.dateOfBirth}`} player={player} onSaved={onSaved} onError={onError} />)}
                         </div>
                     )
                 }

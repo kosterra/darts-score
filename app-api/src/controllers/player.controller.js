@@ -9,6 +9,7 @@ import { canManageClub } from '../middleware/auth.middleware.js';
 import { checkoutProfile } from '../utils/checkout.profile.js';
 import { relocateHistory } from '../utils/history.relocation.js';
 import { removeProfileImageIfUnused } from '../utils/player.images.js';
+import { ownBirthChange, selfBirthAge } from '../utils/birth.rules.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 
 const Player = db.player;
@@ -206,12 +207,24 @@ export const update = async (req, res) => {
         return res.status(422).json({ errors: ['Firstname and lastname are required.'] });
     }
 
+    // adults correct their own date of birth, never to a child's (see birth.rules)
+    const day = (value) => (value ? new Date(value).toISOString().slice(0, 10) : '');
+    const ownBirth = !isAdmin && birth && day(birth) !== day(player.dateOfBirth);
+    if (ownBirth) {
+        const clubs = await db.club.find({ _id: { $in: player.clubs } }, 'shameMinAge').lean();
+        const change = ownBirthChange(player.dateOfBirth, birth, selfBirthAge(clubs));
+        if (!change.allowed) {
+            if (req.file) removeProfileImageFile(req.file.filename);
+            return res.status(403).json({ message: change.reason });
+        }
+    }
+
     const previousImg = player.profileImg;
     // with a login the name is the account's
     player.firstname = player.user ? req.user.firstname : req.body.firstname;
     player.lastname = player.user ? req.user.lastname : req.body.lastname;
     player.nickname = req.body.nickname;
-    if (isAdmin && birth) player.dateOfBirth = birth;
+    if ((isAdmin || ownBirth) && birth) player.dateOfBirth = birth;
     if (req.file) player.profileImg = req.file.filename;
     else if (req.body.clearProfileImg === 'true') player.profileImg = '';
     await player.save();

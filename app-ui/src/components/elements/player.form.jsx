@@ -209,7 +209,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                 <Message
                                     severity="info"
                                     className="w-100 justify-content-start"
-                                    text={`${updatePlayer.nickname} has a login and keeps the name, nickname and picture up to date on their player profile. The date of birth is up to the club admins.`}
+                                    text={`${updatePlayer.nickname} has a login and keeps the name, nickname and picture up to date on their player profile. The date of birth is up to the club admins (adults may correct it, but never to a child's).`}
                                 />
                             </div>
                         }

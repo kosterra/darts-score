@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
 import { getSessionSettings } from '../utils/session.settings.js';
+import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
 import { isMailConfigured, sendMail } from '../utils/mail.utils.js';
 import { checkRegistration, noteRegistration, checkLater } from '../utils/spam.guard.js';
@@ -94,7 +95,7 @@ export const updateMe = async (req, res) => {
  */
 export const myPlayers = async (req, res) => {
     const players = await db.player.find({ user: req.user._id, guest: { $ne: true } })
-        .populate('clubs', 'name logo isPublic')
+        .populate('clubs', 'name logo isPublic shameMinAge')
         .lean();
     res.json(players.map(player => ({
         id: String(player._id),
@@ -106,6 +107,9 @@ export const myPlayers = async (req, res) => {
         publicProfile: Boolean(player.publicProfile),
         preferences: { favouriteDouble: 'auto', mainTreble: 'auto', ...(player.preferences ?? {}) },
         user: String(player.user),
+        // adults correct their date of birth themselves once the admins set it
+        birthMinAge: selfBirthAge(player.clubs ?? []),
+        birthEditable: Boolean(player.dateOfBirth) && ageOn(player.dateOfBirth) >= selfBirthAge(player.clubs ?? []),
         clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic) })),
     })));
 };

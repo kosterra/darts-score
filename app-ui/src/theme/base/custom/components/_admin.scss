@@ -609,3 +609,18 @@ $fair-play-suspicious: #e9ac2f;
 @media (max-width: 575.98px) {
   .my-player-main { justify-content: center; }
 }
+
+// the clubs of the player: logo and name, side by side
+.my-player-clubs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+
+.my-player-club {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.my-player-birth { max-width: 14rem; }
