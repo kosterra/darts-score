@@ -1,6 +1,7 @@
 import { Panel } from 'primereact/panel';
 
-import HallOfShame, { useClubShame } from '../../badges/hall.of.shame';
+import HallOfShame from '../../badges/hall.of.shame';
+import { useClubShame } from '../../badges/hall.of.shame.data';
 
 /**
  * The Hall of Shame on the dashboard: who holds Bed and Breakfast, Madhouse

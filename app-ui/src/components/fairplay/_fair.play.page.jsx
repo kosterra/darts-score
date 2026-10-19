@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
@@ -33,8 +33,8 @@ const FairPlayPage = ({ all = false }) => {
     // global admins: the clubs shown, none chosen means all
     const [clubFilter, setClubFilter] = useState([]);
 
-    const load = () => IntegrityService.loadFindings(all).then(setData).catch(() => setFailed(true));
-    useEffect(() => { load(); }, [all]);
+    const load = useCallback(() => IntegrityService.loadFindings(all).then(setData).catch(() => setFailed(true)), [all]);
+    useEffect(() => { load(); }, [load]);
 
     // the clubs with findings, for the filter
     const clubs = useMemo(() => {

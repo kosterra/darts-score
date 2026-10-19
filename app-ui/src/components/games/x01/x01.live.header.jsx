@@ -9,7 +9,7 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.ut
 import { describeRules, hasHandicap, outModeOf, rulesOf } from '../../../utils/x01.rules';
 import { legSummaryOf } from '../../../utils/x01.live';
 import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../../../utils/checkout.routes';
-import { heldBy, useClubShame } from '../../badges/hall.of.shame';
+import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;

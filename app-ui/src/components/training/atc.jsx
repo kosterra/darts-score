@@ -124,10 +124,12 @@ const ATC = () => {
         setEntriesVersion(version => version + 1);
     };
 
+    const userId = user?.id;
+    const clubId = activeClub?.id;
     useEffect(() => {
-        if (!user || !activeClub) return;
-        ClubService.findPlayerOfUser(activeClub.id, user.id).then(found => setMyPlayerId(found?.id ?? null)).catch(() => setMyPlayerId(null));
-    }, [user?.id, activeClub?.id]);
+        if (!userId || !clubId) return;
+        ClubService.findPlayerOfUser(clubId, userId).then(found => setMyPlayerId(found?.id ?? null)).catch(() => setMyPlayerId(null));
+    }, [userId, clubId]);
 
     const rows = useMemo(() => scoreboardRows(atcEntries, { ...scoreboardView, myPlayerId }), [atcEntries, scoreboardView, myPlayerId]);
 
@@ -256,6 +258,8 @@ const ATC = () => {
             order: active.round.finished,
             saved: active.saved ?? {},
         });
+        // only the moment the round is done counts; finishing guards against a second save
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active?.round.done]);
 
     // play again: the same players, the first one throws last this time
