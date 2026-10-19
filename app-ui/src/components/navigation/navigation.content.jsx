@@ -137,16 +137,28 @@ const useSections = () => {
             ],
         },
         { title: 'Training', visible: hasClub, items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
+        // for global admins, across all clubs: who uses the app, what was played, what needs watching, and the installation
         {
-            // for global admins: the lists across all clubs, watching over the app and its administration
-            title: 'Admin',
+            title: 'Admin · Accounts',
             visible: isGlobalAdmin,
             items: [
                 { label: 'Clubs', icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: 'Users', icon: FaUserGear, to: '/admin/users' },
                 { label: 'Players', icon: FaUserPen, to: '/admin/players' },
+            ],
+        },
+        {
+            title: 'Admin · Played',
+            visible: isGlobalAdmin,
+            items: [
                 { label: 'Games', icon: GiDart, to: '/admin/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
+            ],
+        },
+        {
+            title: 'Admin · Monitoring',
+            visible: isGlobalAdmin,
+            items: [
                 {
                     label: 'Fair play',
                     icon: FaScaleBalanced,
@@ -162,7 +174,13 @@ const useSections = () => {
                     badgeCritical: openAlerts?.critical > 0,
                 },
                 { label: 'Error log', icon: FaBug, to: '/admin/logs' },
-                { label: 'Administration', icon: FaShieldHalved, to: '/administration' },
+            ],
+        },
+        {
+            title: 'Admin · System',
+            visible: isGlobalAdmin,
+            items: [
+                { label: 'System settings', icon: FaShieldHalved, to: '/system-settings' },
             ],
         },
     ];

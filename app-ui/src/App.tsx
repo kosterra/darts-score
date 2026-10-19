@@ -51,7 +51,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
+const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading, returnTo } = useAuth();
@@ -87,7 +87,7 @@ function AppContent() {
     }
 
     if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
-        return <Navigate replace to={isGlobalAdmin ? '/administration' : '/clubs'} />;
+        return <Navigate replace to={isGlobalAdmin ? '/system-settings' : '/clubs'} />;
     }
 
     return (
@@ -129,7 +129,9 @@ function AppContent() {
                     <Route path="/clubs" element={<ClubsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
-                    <Route path="/administration" element={<AdministrationPage />} />
+                    <Route path="/system-settings" element={<AdministrationPage />} />
+                    {/* the old address of the system settings */}
+                    <Route path="/administration" element={<Navigate replace to="/system-settings" />} />
                     <Route path="/fair-play" element={<FairPlayPage />} />
                     <Route path="/admin/fair-play" element={<FairPlayPage all />} />
                     <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
