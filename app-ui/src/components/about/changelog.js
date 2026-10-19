@@ -22,6 +22,7 @@ const CHANGELOG = [
             'Fix: Undo of a visit close to the finish in X01 no longer fails.',
             'Fix: the match dart of an X01 game no longer shows BUST before the winner is celebrated.',
             'A new page opens at the top, e.g. a game after its setup; going back keeps where you were.',
+            'The player statistics, the dashboard and the game statistics show the shape of the page while they load, instead of a spinner: the page stands from the first moment and the content fills in.',
         ],
     },
     {

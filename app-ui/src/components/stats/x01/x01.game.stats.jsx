@@ -25,7 +25,7 @@ import DoublesChart from '../charts/doubles.chart';
 import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart } from '../charts/simple.bar.charts';
 import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
 import { sectionHitsOf } from '../charts/chart.theme';
-import PageLoader from '../../elements/page.loader';
+import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 
@@ -141,7 +141,7 @@ const X01GameStats = () => {
         navigate(`/x01/${newGame.id}`);
     };
 
-    if (!game || !players) return <PageLoader />;
+    if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const bySets = game.numberOfSets > 1;
     const barsScopes = [

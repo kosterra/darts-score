@@ -7,7 +7,7 @@ import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
 
 import StatsService from '../../../services/stats.service';
-import PageLoader from '../../elements/page.loader';
+import { PlayerStatsSkeleton } from '../../elements/skeletons';
 import BadgeMedal from '../../badges/badge.medal';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerStatsCharts from './player.stats.charts';
@@ -122,7 +122,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
         return () => { cancelled = true; };
     }, [player.id, requestKey]);
 
-    if (!stats) return <PageLoader />;
+    if (!stats) return <PlayerStatsSkeleton />;
 
     const { playedGames = {}, wonGames = {}, avg = {}, checkouts = {}, throwedDarts = {}, throwedPoints = {} } = stats;
     const games = playedGames.total ?? 0;

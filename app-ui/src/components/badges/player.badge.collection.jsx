@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 
 import BadgeMedal from './badge.medal';
 import ShameMedal from './shame.medal';
+import { BadgesSkeleton } from '../elements/skeletons';
 import { FaSoap } from 'react-icons/fa6';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
@@ -168,7 +169,7 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
 
     if (failed) return <p className="text-subtle">The badges could not be loaded.</p>;
     // a quiet line: the statistics above show the page's loader at the same time
-    if (!data) return <p className="text-faint">Loading badges…</p>;
+    if (!data) return <BadgesSkeleton />;
 
     // category -> series -> badges, in catalogue order
     const categories = data.categories.map(({ category, title }) => {

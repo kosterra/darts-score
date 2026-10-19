@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
 import PlayerService from '../../services/player.service';
-import PageLoader from '../elements/page.loader';
+import { PlayerProfileSkeleton } from '../elements/skeletons';
 import PlayerStats from '../stats/players/player.stats';
 import PlayerLatestGames from '../stats/players/player.latest.games';
 import PlayerBadgeCollection from '../badges/player.badge.collection';
@@ -54,7 +54,7 @@ const PlayerProfilePage = () => {
             </div>
         );
     }
-    if (!player) return <PageLoader />;
+    if (!player) return <PlayerProfileSkeleton />;
 
     return (
         <div className="container-fluid p-4 border-0">
