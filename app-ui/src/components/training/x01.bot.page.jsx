@@ -148,11 +148,12 @@ const X01BotPage = () => {
                                                     Averages <strong>{strength.average.toFixed(1)}</strong>
                                                     {strength.checkoutRate != null && <> and hits <strong>{Math.round(strength.checkoutRate * 100)} %</strong> at the doubles</>}
                                                     <span className="text-faint"> · {mode === LIKE_ME ? `${player.nickname}: ${strength.basis}` : strength.basis}</span>
-                                                    {guessed && <span className="d-block text-faint fs-8">Without X01 games of {player.nickname} this is a guess; Normal is a good start.</span>}
+                                                    {guessed && <span className="d-block text-faint">Without X01 games of {player.nickname} this is a guess; Normal is a good start.</span>}
                                                 </span>
                                             </span>
                                         )
                                 }
+                                <span className="x01-bot-hint">Trainings count for no game statistics, badges or levels.</span>
                             </div>
                         </div>
                     </div>
@@ -183,7 +184,6 @@ const X01BotPage = () => {
                     </div>
 
                     <GameSetupStart label="Start training" summary={summary} missing={missing} loading={starting} onStart={start} />
-                    <p className="text-faint fs-8 mt-2 mb-0">Trainings count for no game statistics, badges or levels.</p>
                 </div>
             </Panel>
 

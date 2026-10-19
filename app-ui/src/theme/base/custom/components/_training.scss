@@ -717,7 +717,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.9rem;
+  // the size of the hints in the X01 setup
+  font-size: 0.85rem;
   color: var(--text-subtle);
 
   svg { flex-shrink: 0; color: $primaryColor; font-size: 1.1rem; }
@@ -742,4 +743,10 @@
 
   &.is-won { @include label-tone(#7ecca5); }
   &.is-lost { @include label-tone(#ec8b80); }
+}
+
+// what a training does not count for, as a hint of the setup
+.x01-bot-hint {
+  font-size: 0.85rem;
+  color: var(--text-faint);
 }
