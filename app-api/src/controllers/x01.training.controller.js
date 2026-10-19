@@ -58,19 +58,23 @@ export const findOne = async (req, res) => {
     res.json(training);
 };
 
-// after every visit, like a game; only the player (or a club admin), and the players and the bot stay
+// after every visit, like a game; only within the club, and the players and the bot stay.
+// Like the games it is a plain update: the app sends back the whole training, with
+// fields of the database (version, timestamps) that must not be written back
 export const update = async (req, res) => {
     if (!db.mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
-    const training = await Training.findOne({ _id: req.params.id, club: req.club._id });
+    const training = await Training.findOne({ _id: req.params.id, club: req.club._id }, 'players');
     if (!training) return res.status(404).json({ message: 'Not found.' });
     if (!(await loadPlayer(req, res, humanOf(training.players)))) return;
     // eslint-disable-next-line no-unused-vars
-    const { players, bot, club, ...changes } = req.body;
-    Object.assign(training, changes);
-    training.markModified('allSetsThrows');
-    training.markModified('playerModels');
-    await training.save();
-    res.json(training);
+    const { players, bot, club, _id, id, __v, createdAt, updatedAt, ...changes } = req.body;
+    try {
+        const saved = await Training.findOneAndUpdate({ _id: training._id }, { $set: changes }, { returnDocument: 'after' });
+        res.json(saved);
+    } catch (err) {
+        logger.error(err, `Failed to save the X01 training ${req.params.id}`);
+        res.status(500).json({ message: 'The training could not be saved.' });
+    }
 };
 
 /**
