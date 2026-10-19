@@ -12,11 +12,11 @@ export const PLAYER_GUIDE = [
         icon: FaPeopleGroup,
         body: (
             <>
-                <p>An account can belong to several clubs. The club you work in is shown at the top of the menu; tap it to switch to another one or to manage your clubs.</p>
+                <p>An account can belong to several clubs. The club you work in is shown at the top of the menu; tap it to switch to another one, or open <Link to="/my-clubs">My clubs</Link>.</p>
                 <ul>
                     <li>Everything under <strong>Club</strong> in the menu belongs to the selected club: its players, games, trainings and badges.</li>
                     <li>A club admin gives you a login for your player in their club. Then you can start games and trainings on your own and see the club like everyone else; only admins change it.</li>
-                    <li>Anyone can create a club of their own under <Link to="/clubs">Manage clubs</Link> and becomes its admin.</li>
+                    <li>Anyone can create a club of their own under <Link to="/my-clubs">My clubs</Link> and becomes its admin. Global admins, who look after the whole app, belong to no club.</li>
                 </ul>
             </>
         ),
@@ -74,13 +74,14 @@ export const PLAYER_GUIDE = [
         ),
     },
     {
-        title: 'Your profile and notifications',
+        title: 'Your profile, clubs and notifications',
         icon: FaBell,
         body: (
             <>
-                <p>Tap your name at the bottom of the menu for your profile, your notifications and to log out. The number on your avatar counts the notifications you have not read.</p>
+                <p>Tap your name at the bottom of the menu: it opens Profile settings, My clubs, Notifications and Log out. The number on your avatar counts the notifications you have not read.</p>
                 <ul>
-                    <li><strong>Profile:</strong> your name, email and password; per club whether your nickname appears on the public start page, your badges and the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you).</li>
+                    <li><strong>Profile settings:</strong> your name, email and password.</li>
+                    <li><strong>My clubs:</strong> the clubs you play in or run. Per club the player you play as, your badges, whether your nickname appears on the public start page, and the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you).</li>
                     <li><strong>Notifications:</strong> you are told when an admin deletes or repairs one of your games or trainings for fair play, with the reason. Open leads to the game; mark them as read or remove them.</li>
                 </ul>
             </>
@@ -94,7 +95,7 @@ export const ADMIN_GUIDE = [
         icon: FaSliders,
         body: (
             <>
-                <p>Create a club under <Link to="/clubs">Manage clubs</Link>. There each club you run has its buttons:</p>
+                <p>Create a club under <Link to="/my-clubs">My clubs</Link>. There each club you run has its buttons:</p>
                 <ul>
                     <li><strong>Edit:</strong> the name, a description and the logo.</li>
                     <li><strong>Admins:</strong> share the club with other admins by their email. Every admin can do everything in the club.</li>
@@ -111,7 +112,7 @@ export const ADMIN_GUIDE = [
                 <p>Add the club&apos;s players under <strong>Club → Players</strong>: a nickname, the name, a picture and the date of birth (for the handicap suggestion and the Hall of Shame of children).</p>
                 <ul>
                     <li><strong>Login:</strong> give a player a login with their email, so they can start games and trainings on their own. With mail set up they get a mail to choose their password; otherwise set an initial password and pass it on.</li>
-                    <li>You can add yourself as a player of a club you manage, from your profile, to be picked for games like anyone else.</li>
+                    <li>You can add yourself as a player of a club you manage, under My clubs, to be picked for games like anyone else.</li>
                     <li>A nickname only appears on the public start page when it is set to public, by you or by the player.</li>
                 </ul>
             </>
@@ -170,7 +171,7 @@ export const ADMIN_GUIDE = [
         icon: FaUserPen,
         body: (
             <p className="m-0">
-                Being an admin does not make you a player. Add yourself as a player of the club from your profile to play and collect badges and levels yourself.
+                Being an admin does not make you a player. Add yourself as a player of the club under My clubs to play and collect badges and levels yourself.
             </p>
         ),
     },

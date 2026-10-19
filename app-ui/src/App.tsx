@@ -51,7 +51,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
+const CLUBLESS_PATHS = ['/my-clubs', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading, returnTo } = useAuth();
@@ -87,7 +87,7 @@ function AppContent() {
     }
 
     if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
-        return <Navigate replace to={isGlobalAdmin ? '/system-settings' : '/clubs'} />;
+        return <Navigate replace to={isGlobalAdmin ? '/system-settings' : '/my-clubs'} />;
     }
 
     return (
@@ -126,7 +126,9 @@ function AppContent() {
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/badges" element={<BadgesPage />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />
-                    <Route path="/clubs" element={<ClubsPage />} />
+                    <Route path="/my-clubs" element={<ClubsPage />} />
+                    {/* the old address of My clubs */}
+                    <Route path="/clubs" element={<Navigate replace to="/my-clubs" />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/system-settings" element={<AdministrationPage />} />

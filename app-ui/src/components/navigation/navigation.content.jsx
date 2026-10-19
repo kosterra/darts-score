@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -220,7 +220,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
             })),
         },
         { separator: true },
-        { label: 'Manage clubs', icon: 'pi pi-cog', command: () => { navigate('/clubs'); onNavigate?.(); } },
+        { label: 'My clubs', icon: 'pi pi-cog', command: () => { navigate('/my-clubs'); onNavigate?.(); } },
     ];
 
     return (
@@ -247,7 +247,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
     );
 };
 
-const PROFILE_PATHS = ['/profile', '/notifications'];
+const PROFILE_PATHS = ['/profile', '/my-clubs', '/notifications'];
 
 const isInside = (item, pathname) =>
     item.children?.some(child => child.to && (pathname === child.to || pathname.startsWith(child.to + '/')));
@@ -419,9 +419,15 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 {profileOpen && !collapsed &&
                     <div className="nav-group">
                         <NavLink to="/profile" end className={linkClass} onClick={onNavigate}>
-                            <span className="nav-label">Profile</span>
+                            <span className="nav-label">Profile settings</span>
                             <Ripple />
                         </NavLink>
+                        {!isGlobalAdmin &&
+                            <NavLink to="/my-clubs" end className={linkClass} onClick={onNavigate}>
+                                <span className="nav-label">My clubs</span>
+                                <Ripple />
+                            </NavLink>
+                        }
                         <NavLink to="/notifications" end className={linkClass} onClick={onNavigate}>
                             <span className="nav-label">Notifications</span>
                             {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread`}>{countText(unread)}</span>}
@@ -429,6 +435,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                         </NavLink>
                         <button type="button" className="nav-link-item p-ripple" onClick={logout}>
                             <span className="nav-label">Log out</span>
+                            <FaRightFromBracket className="nav-group-icon" aria-hidden="true" />
                             <Ripple />
                         </button>
                     </div>

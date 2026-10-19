@@ -562,3 +562,11 @@ $navRailWidth: 4.75rem;
     display: flex;
     flex-direction: column;
 }
+
+// an icon at the end of an entry in a group, e.g. on Log out
+.app-navigation .nav-group-icon {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 0.9rem;
+    height: 0.9rem;
+}

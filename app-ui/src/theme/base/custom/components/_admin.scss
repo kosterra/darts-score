@@ -464,3 +464,96 @@ $fair-play-suspicious: #e9ac2f;
 }
 
 .session-hours-input { width: 7.5rem; }
+
+// My clubs: the intro with a new club next to it, then one card per club
+.my-clubs-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: 1rem;
+
+  > p { flex: 1 1 24rem; }
+}
+
+.my-clubs-create {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .p-inputtext { min-width: 14rem; }
+}
+
+.my-clubs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.my-club {
+  display: flex;
+  flex-direction: column;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+
+  // the club the app works in now
+  &.is-current { box-shadow: inset 3px 0 0 $primaryColor; }
+}
+
+.my-club-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.my-club-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.my-club-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+// the user's own part in the club, under a quiet line
+.my-club-part {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1rem 0.85rem;
+  border-top: 1px solid var(--border-default);
+}
+
+// the switch for the public nickname: the label wraps before the switch leaves the card
+.my-club-public {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+
+  .p-inputswitch { flex-shrink: 0; }
+}
+
+@media (max-width: 575.98px) {
+  .my-club-head,
+  .my-club-part { padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+
+// as a column it must not wrap: a wrapping column grows to its content, not the card
+.my-club-part.flex-column {
+  flex-wrap: nowrap;
+
+  > * { min-width: 0; max-width: 100%; }
+}

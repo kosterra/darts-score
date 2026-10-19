@@ -1,7 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRef, useState } from 'react';
 import { Button } from 'primereact/button';
-import { InputSwitch } from 'primereact/inputswitch';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Panel } from 'primereact/panel';
@@ -9,40 +7,17 @@ import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import AuthService from '../../services/auth.service';
-import ClubService from '../../services/club.service';
-import PlayerService from '../../services/player.service';
-import { ROLE_LABELS, CLUB_ROLES } from '../../services/user.service';
+import { ROLE_LABELS } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
-import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
-import NotificationList from '../notifications/notification.list';
 
 const MIN_PASSWORD_LENGTH = 8;
 
 const ProfilePage = () => {
     const toast = useRef(null);
-    const navigate = useNavigate();
-    const { user, setUser, clubs, isGlobalAdmin, logout, refreshClubs, selectClub } = useAuth();
+    const { user, setUser, isGlobalAdmin, logout } = useAuth();
 
     const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email });
     const [passwords, setPasswords] = useState({ current: '', next: '', repeat: '' });
-    // club id -> the player this user plays as there (null when not a player)
-    const [playerByClub, setPlayerByClub] = useState({});
-    const [nicknames, setNicknames] = useState({});
-
-    // A global admin sees every club; this is about the ones they really belong to
-    const ownClubs = clubs.filter(club => club.role === CLUB_ROLES.PLAYER || club.admins.some(admin => admin.id === user.id));
-    const ownClubIds = ownClubs.map(club => club.id).join(',');
-
-    useEffect(() => {
-        const loadPlayers = async () => {
-            const entries = await Promise.all(ownClubIds.split(',').filter(Boolean).map(async (clubId) =>
-                [clubId, await ClubService.findPlayerOfUser(clubId, user.id).catch(() => null)]
-            ));
-            setPlayerByClub(Object.fromEntries(entries));
-        };
-        loadPlayers();
-    }, [ownClubIds, user.id]);
-
     const showSuccess = (summary, detail) =>
         toast.current.show({ severity: 'success', summary, detail, life: 3000 });
     const showError = (summary, error) =>
@@ -75,33 +50,6 @@ const ProfilePage = () => {
         }
     };
 
-    const onAddAsPlayer = async (event, club) => {
-        event.preventDefault();
-        try {
-            const player = await ClubService.addCurrentUserAsPlayer(club.id, nicknames[club.id] ?? '');
-            setPlayerByClub({ ...playerByClub, [club.id]: player });
-            await refreshClubs();
-            showSuccess('Player added', `You now play in ${club.name} as ${player.nickname}.`);
-        } catch (error) {
-            showError('Add as player', error);
-        }
-    };
-
-    // Badges belong to a club, so the app switches to it first
-    const onShowBadges = (club) => {
-        selectClub(club.id);
-        navigate(`/badges/${playerByClub[club.id].id}`);
-    };
-
-    const onTogglePublic = async (club, publicProfile) => {
-        try {
-            const player = await PlayerService.setPublicProfile(playerByClub[club.id].id, publicProfile, club.id);
-            setPlayerByClub({ ...playerByClub, [club.id]: player });
-        } catch (error) {
-            showError('Public nickname', error);
-        }
-    };
-
     const passwordField = (id, label, field, autoComplete) => (
         <span className="p-float-label w-100">
             <Password
@@ -122,7 +70,7 @@ const ProfilePage = () => {
         <div className="container-fluid p-4 border-0">
             <div className="row gy-4">
                 <div className="col-12 col-lg-6">
-                    <Panel header="Your profile" className="h-100">
+                    <Panel header="Profile settings" className="h-100">
                         <form onSubmit={onSaveProfile} className="d-flex flex-column gap-4 p-3 pt-4">
                             {isGlobalAdmin && <div className="mb-2"><Tag value={ROLE_LABELS[user.role]} severity="warning" /></div>}
                             <span className="p-float-label w-100">
@@ -158,82 +106,6 @@ const ProfilePage = () => {
                     </Panel>
                 </div>
 
-                <div className="col-12">
-                    <Panel header="Your clubs">
-                        <div className="p-3">
-                            <p className="text-subtle fs-7">
-                                In clubs you manage you can add yourself as a player, so you can be picked for games like anyone else. Your nickname only appears on the public start page if you switch it on, and only for public clubs.
-                            </p>
-                            {ownClubs.length === 0 &&
-                                <span className="text-subtle">You are not in a club yet.</span>
-                            }
-                            {ownClubs.map(club => (
-                                <div key={club.id} className="row gy-2 align-items-center py-2 border-top border-default">
-                                    <div className="col-12 col-md-4 text-default fw-semibold text-break">
-                                        {club.name} <Tag value={club.role === CLUB_ROLES.ADMIN ? 'Admin' : 'Player'} severity={club.role === CLUB_ROLES.ADMIN ? 'warning' : 'info'} className="ms-2" />
-                                    </div>
-                                    <div className="col-12 col-md-8">
-                                        {playerByClub[club.id]
-                                            ? (
-                                                <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                                                    <span className="text-subtle">
-                                                        You play as <span className="text-default fw-semibold">{playerByClub[club.id].nickname}</span>
-                                                        <Button
-                                                            type="button"
-                                                            label="My badges"
-                                                            icon="pi pi-star"
-                                                            size="small"
-                                                            text
-                                                            className="ms-2"
-                                                            onClick={() => onShowBadges(club)}
-                                                        />
-                                                    </span>
-                                                    <span className="d-flex align-items-center gap-2">
-                                                        <label htmlFor={`profile-public-${club.id}`} className="text-subtle fs-7">Show my nickname on the public page</label>
-                                                        <InputSwitch
-                                                            inputId={`profile-public-${club.id}`}
-                                                            checked={!!playerByClub[club.id].publicProfile}
-                                                            onChange={(e) => onTogglePublic(club, e.value)}
-                                                        />
-                                                    </span>
-                                                    <div className="w-100">
-                                                        <PlayerCheckoutPreferences
-                                                            player={playerByClub[club.id]}
-                                                            clubId={club.id}
-                                                            onSaved={(player) => setPlayerByClub(current => ({ ...current, [club.id]: player }))}
-                                                            onError={(error) => showError('Ways out', error)}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )
-                                            : (
-                                                <form onSubmit={(e) => onAddAsPlayer(e, club)} className="d-flex flex-wrap gap-2">
-                                                    <InputText
-                                                        id={`profile-nickname-${club.id}`}
-                                                        value={nicknames[club.id] ?? ''}
-                                                        onChange={(e) => setNicknames({ ...nicknames, [club.id]: e.target.value })}
-                                                        placeholder="Nickname"
-                                                        aria-label={`Nickname in ${club.name}`}
-                                                        minLength={3}
-                                                        maxLength={25}
-                                                        required
-                                                    />
-                                                    <Button type="submit" label="Add me as player" icon="pi pi-user-plus" size="small" />
-                                                </form>
-                                            )
-                                        }
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Panel>
-                </div>
-
-                <div className="col-12">
-                    <Panel header="Notifications">
-                        <NotificationList limit={5} />
-                    </Panel>
-                </div>
             </div>
             <Toast ref={toast} position="bottom-right" />
         </div>

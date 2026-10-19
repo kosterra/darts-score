@@ -5,6 +5,7 @@ import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 import { removeClubLogoFile, removeProfileImageFile } from './file.controller.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
+import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -66,6 +67,7 @@ export const findAll = async (req, res) => {
 
 export const create = async (req, res) => {
     logger.debug('clubs create called');
+    if (isGlobalAdmin(req.user)) return res.status(403).json({ message: NO_CLUB_FOR_GLOBAL_ADMINS });
     const club = await Club.create({ name: req.body.name, admins: [req.user._id] });
     logger.info(`Club "${club.name}" created by ${req.user.email}`);
     checkLater(() => noteCreated(req, 'club', { id: club._id, name: club.name, club }));
@@ -160,15 +162,16 @@ export const addAdmin = async (req, res) => {
 
     const { user, inviteLink, error } = await findOrCreateAccount(req.body, req.user);
     if (error) return res.status(422).json({ errors: [error] });
+    if (isGlobalAdminAccount(user)) return res.status(409).json({ message: `${user.email} is a global admin. ${NO_CLUB_FOR_GLOBAL_ADMINS}` });
 
     if (club.admins.some(admin => admin.equals(user._id))) {
         return res.status(409).json({ message: 'This user is already an admin of the club.' });
     }
 
     club.admins.push(user._id);
-    // A global admin only looks after a club until it has an admin of its own,
-    // like the default club created when upgrading
-    if (user.role !== ROLES.GLOBAL_ADMIN) {
+    // a club still looked after by a global admin from before they had to stay
+    // out of clubs (e.g. the default club of an upgrade) is handed over
+    {
         const globalAdmins = await db.user.find({ _id: { $in: club.admins }, role: ROLES.GLOBAL_ADMIN }, '_id');
         globalAdmins.forEach(admin => club.admins.pull(admin._id));
     }

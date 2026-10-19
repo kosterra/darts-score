@@ -8,6 +8,7 @@ import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
 import { checkoutProfile } from '../utils/checkout.profile.js';
 import { relocateHistory } from '../utils/history.relocation.js';
+import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 
 const Player = db.player;
 
@@ -81,6 +82,7 @@ export const makeMember = async (req, res) => {
  */
 export const createForCurrentUser = async (req, res) => {
     logger.debug('players create for current user called');
+    if (isGlobalAdminAccount(req.user)) return res.status(403).json({ message: NO_CLUB_FOR_GLOBAL_ADMINS });
     if (await Player.exists({ clubs: req.club._id, user: req.user._id })) {
         return res.status(409).json({ message: 'You are already a player of this club.' });
     }
@@ -264,6 +266,7 @@ export const giveLogin = async (req, res) => {
         lastname: player.lastname,
     }, req.user);
     if (error) return res.status(422).json({ errors: [error] });
+    if (isGlobalAdminAccount(user)) return res.status(409).json({ message: `${user.email} is a global admin. ${NO_CLUB_FOR_GLOBAL_ADMINS}` });
 
     // one account is one player per club, also in the player's other clubs
     const other = await Player.findOne({ clubs: { $in: player.clubs }, user: user._id, _id: { $ne: player._id } });

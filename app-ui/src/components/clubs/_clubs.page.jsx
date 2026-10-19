@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputSwitch } from 'primereact/inputswitch';
@@ -16,11 +16,16 @@ import ClubAdminsDialog from './club.admins.dialog';
 import ClubEditDialog from './club.edit.dialog';
 import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
+import ClubMembership from './club.membership';
 
+/**
+ * My clubs: the clubs the user runs or plays in, with what they do in each:
+ * switching, the admin tools, and their own player there. New clubs start here.
+ */
 const ClubsPage = () => {
     const toast = useRef(null);
     const navigate = useNavigate();
-    const { clubs, activeClub, refreshClubs, selectClub } = useAuth();
+    const { clubs, activeClub, refreshClubs, selectClub, isGlobalAdmin } = useAuth();
 
     const [newName, setNewName] = useState('');
     // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults, shameBadges, shameWithoutChildren, shameMinAge }
@@ -87,111 +92,96 @@ const ClubsPage = () => {
         navigate('/');
     };
 
+    const openSettings = (club) => setEditing({
+        id: club.id,
+        name: club.name,
+        isPublic: !!club.isPublic,
+        publicLiveGames: club.publicLiveGames !== false,
+        publicResults: club.publicResults !== false,
+        shameBadges: club.shameBadges !== false,
+        shameWithoutChildren: club.shameWithoutChildren === true,
+        shameMinAge: club.shameMinAge ?? 16
+    });
+    const showSuccess = (summary, detail) => toast.current.show({ severity: 'success', summary, detail, life: 3000 });
+
+    // global admins look after the app and belong to no club
+    if (isGlobalAdmin) {
+        return (
+            <div className="container-fluid p-4 border-0">
+                <Panel header="My clubs">
+                    <p className="text-subtle fs-7 m-0">
+                        Global admins look after the app and do not belong to a club. Every club is under <Link to="/admin/clubs">Admin · Clubs</Link>;
+                        to run a club or to play, use another account.
+                    </p>
+                </Panel>
+            </div>
+        );
+    }
+
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header="Your clubs">
-                <div className="container-fluid overflow-hidden">
-                    <form onSubmit={onCreate} className="row gy-3 p-3 align-items-center">
-                        <div className="col-12 col-md-6 col-xl-4">
-                            <InputText
-                                id="club-name"
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                placeholder="Name of the new club"
-                                aria-label="Name of the new club"
-                                className="w-100"
-                                minLength={3}
-                                maxLength={50}
-                                required
-                            />
-                        </div>
-                        <div className="col-12 col-md-auto">
-                            <Button type="submit" label="Create club" icon="pi pi-plus" />
-                        </div>
+            <Panel header="My clubs">
+                <div className="my-clubs-top">
+                    <p className="text-subtle fs-7 m-0">
+                        The clubs you run or play in. Switch between them here or at the top of the menu. In every club you can play as a player of your own,
+                        show your nickname on the public start page (public clubs only) and set what the X01 tips aim at.
+                    </p>
+                    <form onSubmit={onCreate} className="my-clubs-create">
+                        <InputText
+                            id="club-name"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="Name of a new club"
+                            aria-label="Name of a new club"
+                            minLength={3}
+                            maxLength={50}
+                            required
+                        />
+                        <Button type="submit" label="Create club" icon="pi pi-plus" size="small" />
                     </form>
-
-                    {clubs.length === 0 &&
-                        <div className="p-3 text-subtle">
-                            You are not in a club yet. Create your own club to add players and start playing, or ask a club admin to give you a login as a player of their club.
-                        </div>
-                    }
-
-                    <div className="row gy-4 p-3">
-                        {clubs.map(club => (
-                            <div className="col-12 col-md-6 col-xl-4" key={club.id}>
-                                <Panel className="panel-brighter-bg no-header h-100">
-                                    <div className="d-flex flex-column gap-2 p-2">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <ClubLogo club={club} size="md" />
-                                            <span className="text-default fw-semibold fs-5 text-break">{club.name}</span>
-                                        </div>
-                                        <div className="d-flex flex-column gap-2">
-                                            <div className="d-flex flex-wrap gap-2">
-                                                <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
-                                                <Tag value={club.role === CLUB_ROLES.ADMIN ? 'Admin' : 'Player'} severity={club.role === CLUB_ROLES.ADMIN ? 'warning' : 'info'} />
-                                                {activeClub?.id === club.id && <Tag value="Active" severity="success" />}
-                                            </div>
-                                        </div>
-                                        {club.description && <span className="text-subtle fs-7 text-break">{club.description}</span>}
-                                        <span className="text-subtle fs-7">
-                                            {club.playerCount} {club.playerCount === 1 ? 'player' : 'players'}
-                                        </span>
-                                        <span className="text-faint fs-7 text-break">
-                                            {club.admins.length === 1 ? 'Admin' : 'Admins'}: {club.admins.map(admin => `${admin.firstname} ${admin.lastname}`).join(', ')}
-                                        </span>
-                                        <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mt-3">
-                                            {/* the tools stay together in one row; when the card is narrow they wrap as a group */}
-                                            {activeClub?.id !== club.id &&
-                                                <Button label="Switch to this club" size="small" outlined onClick={() => onSelect(club)} />
-                                            }
-                                            {club.role === CLUB_ROLES.ADMIN && <span className="d-flex gap-2">
-                                            <Button
-                                                icon="pi pi-users"
-                                                severity="secondary"
-                                                aria-label={`Admins of ${club.name}`}
-                                                tooltip="Admins"
-                                                tooltipOptions={{ position: 'top' }}
-                                                onClick={() => setAdminsOfClubId(club.id)}
-                                            />
-                                            <Button
-                                                icon="pi pi-pencil"
-                                                severity="secondary"
-                                                aria-label={`Edit ${club.name}`}
-                                                tooltip="Edit club"
-                                                tooltipOptions={{ position: 'top' }}
-                                                onClick={() => setEditingClubId(club.id)}
-                                            />
-                                            <Button
-                                                icon="pi pi-cog"
-                                                severity="secondary"
-                                                aria-label={`Settings of ${club.name}`}
-                                                tooltip="Settings"
-                                                tooltipOptions={{ position: 'top' }}
-                                                onClick={() => setEditing({
-                                                    id: club.id,
-                                                    name: club.name,
-                                                    isPublic: !!club.isPublic,
-                                                    publicLiveGames: club.publicLiveGames !== false,
-                                                    publicResults: club.publicResults !== false,
-                                                    shameBadges: club.shameBadges !== false,
-                                                    shameWithoutChildren: club.shameWithoutChildren === true,
-                                                    shameMinAge: club.shameMinAge ?? 16
-                                                })}
-                                            />
-                                            <DeletePopup
-                                                data={club}
-                                                header="Delete Club"
-                                                message={'club ' + club.name + ' with all its games'}
-                                                handleDelete={onDelete}
-                                            />
-                                            </span>}
-                                        </div>
-                                    </div>
-                                </Panel>
-                            </div>
-                        ))}
-                    </div>
                 </div>
+
+                {clubs.length === 0 &&
+                    <p className="text-subtle fs-7 py-4 text-center m-0">
+                        You are not in a club yet. Create your own club to add players and start playing, or ask a club admin to give you a login as a player of their club.
+                    </p>
+                }
+
+                <ul className="my-clubs list-unstyled m-0">
+                    {clubs.map(club => {
+                        const isAdmin = club.role === CLUB_ROLES.ADMIN;
+                        const current = activeClub?.id === club.id;
+                        return (
+                            <li key={club.id} className={`my-club ${current ? 'is-current' : ''}`}>
+                                <div className="my-club-head">
+                                    <ClubLogo club={club} size="md" />
+                                    <div className="my-club-title">
+                                        <div className="d-flex flex-wrap align-items-center gap-2">
+                                            <span className="text-default fw-semibold fs-6 text-break">{club.name}</span>
+                                            <Tag value={isAdmin ? 'Admin' : 'Player'} severity={isAdmin ? 'warning' : 'info'} />
+                                            <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
+                                            {current && <Tag value="Current club" severity="success" />}
+                                        </div>
+                                        <span className="text-faint fs-8 text-break">
+                                            {club.playerCount} {club.playerCount === 1 ? 'player' : 'players'} · {club.admins.length === 1 ? 'Admin' : 'Admins'}: {club.admins.map(admin => `${admin.firstname} ${admin.lastname}`).join(', ')}
+                                        </span>
+                                        {club.description && <span className="text-subtle fs-8 text-break">{club.description}</span>}
+                                    </div>
+                                    <div className="my-club-actions">
+                                        {!current && <Button label="Switch to this club" size="small" severity="secondary" onClick={() => onSelect(club)} />}
+                                        {isAdmin && <>
+                                            <Button icon="pi pi-users" size="small" severity="secondary" aria-label={`Admins of ${club.name}`} tooltip="Admins" tooltipOptions={{ position: 'top' }} onClick={() => setAdminsOfClubId(club.id)} />
+                                            <Button icon="pi pi-pencil" size="small" severity="secondary" aria-label={`Edit ${club.name}`} tooltip="Name, description and logo" tooltipOptions={{ position: 'top' }} onClick={() => setEditingClubId(club.id)} />
+                                            <Button icon="pi pi-cog" size="small" severity="secondary" aria-label={`Settings of ${club.name}`} tooltip="Settings" tooltipOptions={{ position: 'top' }} onClick={() => openSettings(club)} />
+                                            <DeletePopup data={club} header="Delete Club" message={'club ' + club.name + ' with all its games'} handleDelete={onDelete} size="small" />
+                                        </>}
+                                    </div>
+                                </div>
+                                <ClubMembership club={club} onSuccess={showSuccess} onError={showError} />
+                            </li>
+                        );
+                    })}
+                </ul>
             </Panel>
 
             <Dialog header={editing ? `Settings of ${editing.name}` : 'Club Settings'} visible={!!editing} blockScroll onHide={() => setEditing(null)} draggable={false} className="m-4" style={{ width: '34rem', maxWidth: '100%' }}>
