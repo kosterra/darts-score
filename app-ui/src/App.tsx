@@ -32,6 +32,7 @@ const AdminPage = lazy(() => import('./components/admin/_admin.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
 const FairPlayPage = lazy(() => import('./components/fairplay/_fair.play.page'));
 const NotificationsPage = lazy(() => import('./components/notifications/_notifications.page'));
+const MyPlayerPage = lazy(() => import('./components/players/_my.player.page'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
@@ -51,7 +52,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/my-clubs', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
+const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading, returnTo } = useAuth();
@@ -131,6 +132,7 @@ function AppContent() {
                     <Route path="/clubs" element={<Navigate replace to="/my-clubs" />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/notifications" element={<NotificationsPage />} />
+                    <Route path="/player-profile" element={<MyPlayerPage />} />
                     <Route path="/system-settings" element={<AdministrationPage />} />
                     {/* the old address of the system settings */}
                     <Route path="/administration" element={<Navigate replace to="/system-settings" />} />

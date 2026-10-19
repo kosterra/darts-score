@@ -78,10 +78,11 @@ export const PLAYER_GUIDE = [
         icon: FaBell,
         body: (
             <>
-                <p>Tap your name at the bottom of the menu: it opens Profile settings, My clubs, Notifications and Log out. The number on your avatar counts the notifications you have not read.</p>
+                <p>Tap your name at the bottom of the menu: it opens User profile, Player profile, My clubs, Notifications and Log out. The number on your avatar counts the notifications you have not read.</p>
                 <ul>
-                    <li><strong>Profile settings:</strong> your name, email and password.</li>
-                    <li><strong>My clubs:</strong> the clubs you play in or run. Per club the player you play as (its name opens your player profile with your badges), whether your nickname appears on the public start page, and the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you).</li>
+                    <li><strong>User profile:</strong> your account: name, email and password. Your name is also the name of your player.</li>
+                    <li><strong>Player profile:</strong> how you appear in your clubs. Your nickname and picture are yours to keep up to date (the picture also shows on your avatar), the date of birth is set by your club admins. Here too: whether your nickname appears on the public start page, and the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you).</li>
+                    <li><strong>My clubs:</strong> the clubs you play in or run, to switch between them; your name there opens your statistics and badges.</li>
                     <li><strong>Notifications:</strong> you are told when an admin deletes or repairs one of your games or trainings for fair play, with the reason. Open leads to the game; mark them as read or remove them.</li>
                 </ul>
             </>
@@ -112,6 +113,7 @@ export const ADMIN_GUIDE = [
                 <p>Add the club&apos;s players under <strong>Club → Players</strong>: a nickname, the name, a picture and the date of birth (for the handicap suggestion and the Hall of Shame of children).</p>
                 <ul>
                     <li><strong>Login:</strong> give a player a login with their email, so they can start games and trainings on their own. With mail set up they get a mail to choose their password; otherwise set an initial password and pass it on.</li>
+                    <li>A player with a login keeps their name (from their account), nickname and picture up to date themselves; you still set the date of birth. Removing the login hands everything back to you.</li>
                     <li>You can add yourself as a player of a club you manage, under My clubs, to be picked for games like anyone else.</li>
                     <li>A nickname only appears on the public start page when it is set to public, by you or by the player.</li>
                 </ul>

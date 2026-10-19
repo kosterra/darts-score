@@ -82,7 +82,32 @@ export const updateMe = async (req, res) => {
 
     Object.assign(req.user, { email, firstname, lastname });
     await req.user.save();
+    // the players of the account carry its name
+    await db.player.updateMany({ user: req.user._id }, { $set: { firstname: req.user.firstname, lastname: req.user.lastname } });
     res.json(req.user);
+};
+
+/**
+ * The players the user plays as, with their clubs, for the player profile:
+ * [{ id, nickname, firstname, lastname, profileImg, dateOfBirth, publicProfile,
+ * preferences, clubs: [{ id, name, logo, isPublic }] }].
+ */
+export const myPlayers = async (req, res) => {
+    const players = await db.player.find({ user: req.user._id, guest: { $ne: true } })
+        .populate('clubs', 'name logo isPublic')
+        .lean();
+    res.json(players.map(player => ({
+        id: String(player._id),
+        nickname: player.nickname,
+        firstname: player.firstname,
+        lastname: player.lastname,
+        profileImg: player.profileImg ?? '',
+        dateOfBirth: player.dateOfBirth ?? null,
+        publicProfile: Boolean(player.publicProfile),
+        preferences: { favouriteDouble: 'auto', mainTreble: 'auto', ...(player.preferences ?? {}) },
+        user: String(player.user),
+        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic) })),
+    })));
 };
 
 export const changePassword = async (req, res) => {

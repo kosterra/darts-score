@@ -3,7 +3,8 @@ import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
-import { removeClubLogoFile, removeProfileImageFile } from './file.controller.js';
+import { removeClubLogoFile } from './file.controller.js';
+import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 
@@ -115,7 +116,7 @@ export const remove = async (req, res) => {
     ]);
     await club.deleteOne();
     removeClubLogoFile(club.logo);
-    players.forEach(player => player.profileImg && removeProfileImageFile(player.profileImg));
+    for (const player of players) await removeProfileImageIfUnused(player.profileImg);
     logger.info(`Club "${club.name}" deleted by ${req.user.email}`);
     res.json({ message: 'Club deleted.' });
 };

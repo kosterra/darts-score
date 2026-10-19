@@ -12,7 +12,8 @@ import { BsPersonFillCheck } from "react-icons/bs";
 
 import { useAuth } from '../../utils/auth.context';
 import { ROLE_LABELS } from '../../services/user.service';
-import { resolvePlayerInitials } from '../../utils/image.utils';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import AuthService, { MY_PLAYERS_CHANGED } from '../../services/auth.service';
 import ClubLogo from '../elements/club.logo';
 import AdminService from '../../services/admin.service';
 import { ALERTS_CHANGED } from '../admin/alert.events';
@@ -87,6 +88,22 @@ const useUnreadNotifications = () => {
     }, [pathname]);
 
     return unread;
+};
+
+/**
+ * The picture of the user's player, for the avatar in the menu: one picture
+ * for the account and its players. Follows the player profile.
+ */
+const useOwnPicture = (enabled) => {
+    const [picture, setPicture] = useState('');
+    useEffect(() => {
+        if (!enabled) return undefined;
+        const load = () => AuthService.getMyPlayers().then(players => setPicture(players.find(player => player.profileImg)?.profileImg ?? '')).catch(() => {});
+        load();
+        window.addEventListener(MY_PLAYERS_CHANGED, load);
+        return () => window.removeEventListener(MY_PLAYERS_CHANGED, load);
+    }, [enabled]);
+    return enabled ? picture : '';
 };
 
 const countText = (count) => count > 99 ? '99+' : count;
@@ -247,7 +264,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
     );
 };
 
-const PROFILE_PATHS = ['/profile', '/my-clubs', '/notifications'];
+const PROFILE_PATHS = ['/profile', '/player-profile', '/my-clubs', '/notifications'];
 
 const isInside = (item, pathname) =>
     item.children?.some(child => child.to && (pathname === child.to || pathname.startsWith(child.to + '/')));
@@ -261,6 +278,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
     const { user, activeClub, isGlobalAdmin, logout } = useAuth();
     const sections = useSections();
     const unread = useUnreadNotifications();
+    const picture = useOwnPicture(!isGlobalAdmin);
 
     // groups start open when they contain the current page
     const [openGroups, setOpenGroups] = useState(() => new Set());
@@ -406,7 +424,12 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 >
                     {/* the count sits on the avatar's corner, so the name keeps the room */}
                     <span className="nav-avatar">
-                        <Avatar label={resolvePlayerInitials(user.firstname, user.lastname)} shape="circle" className="avatar-sm bg-surface-high" />
+                        <Avatar
+                            image={picture ? resolvePlayerImg(picture) : undefined}
+                            label={picture ? undefined : resolvePlayerInitials(user.firstname, user.lastname)}
+                            shape="circle"
+                            className="avatar-sm bg-surface-high"
+                        />
                         {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread notifications`}>{countText(unread)}</span>}
                     </span>
                     <span className="nav-label nav-profile-name">
@@ -419,15 +442,19 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 {profileOpen && !collapsed &&
                     <div className="nav-group">
                         <NavLink to="/profile" end className={linkClass} onClick={onNavigate}>
-                            <span className="nav-label">Profile settings</span>
+                            <span className="nav-label">User profile</span>
                             <Ripple />
                         </NavLink>
-                        {!isGlobalAdmin &&
+                        {!isGlobalAdmin && <>
+                            <NavLink to="/player-profile" end className={linkClass} onClick={onNavigate}>
+                                <span className="nav-label">Player profile</span>
+                                <Ripple />
+                            </NavLink>
                             <NavLink to="/my-clubs" end className={linkClass} onClick={onNavigate}>
                                 <span className="nav-label">My clubs</span>
                                 <Ripple />
                             </NavLink>
-                        }
+                        </>}
                         <NavLink to="/notifications" end className={linkClass} onClick={onNavigate}>
                             <span className="nav-label">Notifications</span>
                             {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread`}>{countText(unread)}</span>}

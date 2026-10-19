@@ -102,7 +102,8 @@ const updatePlayer = async (player) => {
     try {
         const response = await fetch(API_URL + 'players/' + id, {
             method: 'PUT',
-            headers: getHeaders(false),
+            // a player is edited in one of its clubs: the selected one, or player.clubId
+            headers: getHeaders(false, player.clubId),
             body: formData
         });
         if (!response.ok) throw new Error(await errorMessageOf(response));

@@ -123,6 +123,37 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-players-follow-their-account',
+        description: 'Give every player with a login the name of its account, and the players of one account one picture',
+        run: async () => {
+            const players = await db.player.find({ user: { $ne: null } }, 'user firstname lastname profileImg').lean();
+            const users = await db.user.find({ _id: { $in: [...new Set(players.map(player => String(player.user)))] } }, 'firstname lastname').lean();
+            const userById = new Map(users.map(user => [String(user._id), user]));
+            let renamed = 0;
+            let pictured = 0;
+            const pictureOf = new Map();
+            for (const player of players) {
+                const user = userById.get(String(player.user));
+                if (!user) continue;
+                const changes = {};
+                if (player.firstname !== user.firstname || player.lastname !== user.lastname) {
+                    Object.assign(changes, { firstname: user.firstname, lastname: user.lastname });
+                    renamed += 1;
+                }
+                // the first picture found is the account's; later players take it over
+                const key = String(player.user);
+                if (!pictureOf.has(key) && player.profileImg) pictureOf.set(key, player.profileImg);
+                if (Object.keys(changes).length) await db.player.collection.updateOne({ _id: player._id }, { $set: changes });
+            }
+            for (const [userId, profileImg] of pictureOf) {
+                const result = await db.player.collection.updateMany({ user: new db.mongoose.Types.ObjectId(userId), profileImg: { $ne: profileImg } }, { $set: { profileImg } });
+                pictured += result.modifiedCount;
+            }
+            logger.info(`Players with a login: ${renamed} took their account's name, ${pictured} the account's picture`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

@@ -8,6 +8,7 @@ import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
 import { checkoutProfile } from '../utils/checkout.profile.js';
 import { relocateHistory } from '../utils/history.relocation.js';
+import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 
 const Player = db.player;
@@ -179,23 +180,53 @@ export const update = async (req, res) => {
     if (!player) return res.status(404).send({ message: 'Player not found.' });
 
     // Players may edit their own entry, everything else is for club admins
-    const isOwnPlayer = player.user && player.user.equals(req.user._id);
-    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+    const isAdmin = req.clubRole === CLUB_ROLES.ADMIN;
+    const isOwnPlayer = Boolean(player.user && player.user.equals(req.user._id));
+    if (!isAdmin && !isOwnPlayer) {
         if (req.file) removeProfileImageFile(req.file.filename);
         return res.status(403).send({ message: 'Only club admins can edit other players.' });
     }
+    const birth = req.body.dateOfBirth || null;
+
+    // a player with a login maintains their name, nickname and picture themselves:
+    // their admins only set the date of birth (it decides the handicap and the Hall of Shame of children)
+    if (player.user && !isOwnPlayer) {
+        if (req.file) removeProfileImageFile(req.file.filename);
+        if (birth) player.dateOfBirth = birth;
+        await player.save();
+        return res.send({ message: 'Player was updated successfully.', maintainedByPlayer: true });
+    }
+
+    if (!req.body.nickname) {
+        if (req.file) removeProfileImageFile(req.file.filename);
+        return res.status(422).json({ errors: ['Nickname is required.'] });
+    }
+    if (!player.user && (!req.body.firstname || !req.body.lastname)) {
+        if (req.file) removeProfileImageFile(req.file.filename);
+        return res.status(422).json({ errors: ['Firstname and lastname are required.'] });
+    }
 
     const previousImg = player.profileImg;
-    player.firstname = req.body.firstname;
-    player.lastname = req.body.lastname;
+    // with a login the name is the account's
+    player.firstname = player.user ? req.user.firstname : req.body.firstname;
+    player.lastname = player.user ? req.user.lastname : req.body.lastname;
     player.nickname = req.body.nickname;
-    player.dateOfBirth = req.body.dateOfBirth;
+    if (isAdmin && birth) player.dateOfBirth = birth;
     if (req.file) player.profileImg = req.file.filename;
     else if (req.body.clearProfileImg === 'true') player.profileImg = '';
     await player.save();
 
-    // Only drop the old file once it has really been replaced or cleared
-    if (previousImg && previousImg !== player.profileImg) removeProfileImageFile(previousImg);
+    // the players of one account are one person: they share the picture
+    const replaced = [previousImg];
+    if (player.user && previousImg !== player.profileImg) {
+        const others = await Player.find({ user: player.user, _id: { $ne: player._id } }, 'profileImg');
+        replaced.push(...others.map(other => other.profileImg));
+        await Player.updateMany({ user: player.user, _id: { $ne: player._id } }, { $set: { profileImg: player.profileImg } });
+    }
+    // Only drop an old file once no player uses it any more
+    for (const img of new Set(replaced)) {
+        if (img && img !== player.profileImg) await removeProfileImageIfUnused(img);
+    }
     res.send({ message: 'Player was updated successfully.' });
 };
 
@@ -212,7 +243,7 @@ export const remove = async (req, res) => {
     }
 
     await player.deleteOne();
-    removeProfileImageFile(player.profileImg);
+    await removeProfileImageIfUnused(player.profileImg);
     res.send({ message: 'Player was deleted successfully!', removed: 'player' });
 };
 
@@ -275,7 +306,19 @@ export const giveLogin = async (req, res) => {
     }
 
     player.user = user._id;
-    await player.save();
+    // the player is the account's from now on: its name, and one picture for all its players
+    player.firstname = user.firstname;
+    player.lastname = user.lastname;
+    const pictured = await Player.findOne({ user: user._id, _id: { $ne: player._id }, profileImg: { $nin: ['', null] } }, 'profileImg');
+    if (pictured) {
+        const previousImg = player.profileImg;
+        player.profileImg = pictured.profileImg;
+        await player.save();
+        if (previousImg && previousImg !== player.profileImg) await removeProfileImageIfUnused(previousImg);
+    } else {
+        await player.save();
+        if (player.profileImg) await Player.updateMany({ user: user._id, _id: { $ne: player._id } }, { $set: { profileImg: player.profileImg } });
+    }
     logger.info(`${user.email} can now log in as player "${player.nickname}" of club "${req.club.name}"`);
 
     sendClubWelcomeMail(

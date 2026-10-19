@@ -3,7 +3,7 @@ import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { addToClub, removeFromClub } from './player.controller.js';
-import { removeProfileImageFile } from './file.controller.js';
+import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { withPlayers } from './atc.controller.js';
 
 const GAME_MODELS = [db.x01, db.cricket, db.elimination, db.clock];
@@ -173,7 +173,7 @@ export const deletePlayer = async (req, res) => {
     const player = await loadPlayer(req, res);
     if (!player) return;
     await player.deleteOne();
-    removeProfileImageFile(player.profileImg);
+    await removeProfileImageIfUnused(player.profileImg);
     logger.info(`Player "${player.nickname}" deleted by ${req.user.email}`);
     res.json({ message: 'Player deleted.' });
 };

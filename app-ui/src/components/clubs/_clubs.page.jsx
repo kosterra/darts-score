@@ -123,8 +123,8 @@ const ClubsPage = () => {
             <Panel header="My clubs">
                 <div className="my-clubs-top">
                     <p className="text-subtle fs-7 m-0">
-                        The clubs you run or play in. Switch between them here or at the top of the menu. In every club you can play as a player of your own,
-                        show your nickname on the public start page (public clubs only) and set what the X01 tips aim at.
+                        The clubs you run or play in. Switch between them here or at the top of the menu. How you appear as a player, your nickname,
+                        picture and the X01 tips, is on your <Link to="/player-profile">player profile</Link>.
                     </p>
                     <form onSubmit={onCreate} className="my-clubs-create">
                         <InputText

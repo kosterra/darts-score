@@ -7,11 +7,14 @@ import { InputText } from 'primereact/inputtext';
 import { Calendar } from 'primereact/calendar';
 import { classNames } from 'primereact/utils';
 import { Toast } from 'primereact/toast';
+import { Avatar } from 'primereact/avatar';
+import { Message } from 'primereact/message';
 
 import ImageUploader from './image.uploader';
 import PlayerService from '../../services/player.service';
 import PlayerModel from '../../models/player.model';
-import { resolvePlayerImg } from '../../utils/image.utils';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { useAuth } from '../../utils/auth.context';
 import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
 
 /**
@@ -34,6 +37,10 @@ const tenYearsAgo = () => new Date(new Date().getFullYear() - 10, 0, 1);
 
 const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defaultClubId, label }) => {
     const toast = useRef(null);
+    const { user } = useAuth();
+    // a player with a login keeps their name, nickname and picture up to date
+    // themselves (on their player profile); the admins set the date of birth
+    const maintainedByPlayer = Boolean(edit && updatePlayer?.user && updatePlayer.user !== user?.id);
     const choosesClub = !edit && Array.isArray(clubs);
     const [clubId, setClubId] = useState(null);
     const initialState = updatePlayer ?? PlayerModel;
@@ -187,13 +194,25 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-column gap-2">
                     <div className="row">
                         <div className="col-12 d-flex justify-content-center">
-                            <ImageUploader
-                                name={firstname + ' ' + lastname}
-                                previewUrl={previewUrl}
-                                onFileChange={onFileChange}
-                                onFileDelete={onFileDelete}
-                            />
+                            {maintainedByPlayer
+                                ? <Avatar image={previewUrl || undefined} label={previewUrl ? undefined : resolvePlayerInitials(firstname, lastname)} shape="circle" className="avatar-xl bg-surface-high" />
+                                : <ImageUploader
+                                    name={firstname + ' ' + lastname}
+                                    previewUrl={previewUrl}
+                                    onFileChange={onFileChange}
+                                    onFileDelete={onFileDelete}
+                                />
+                            }
                         </div>
+                        {maintainedByPlayer &&
+                            <div className="col-12 pt-3">
+                                <Message
+                                    severity="info"
+                                    className="w-100 justify-content-start"
+                                    text={`${updatePlayer.nickname} has a login and keeps the name, nickname and picture up to date on their player profile. The date of birth is up to the club admins.`}
+                                />
+                            </div>
+                        }
                         <div className="col d-flex flex-column justify-content-center align-items-center p-2 pt-4 gap-4">
                             {choosesClub &&
                                 <div className="py-1 w-100 w-sm-50">
@@ -223,6 +242,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                             <InputText
                                                 id="firstname"
                                                 {...field}
+                                                disabled={maintainedByPlayer}
                                                 className={classNames('w-100', { 'p-invalid': errors.firstname })}
                                             />
                                         )}
@@ -241,6 +261,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                             <InputText
                                                 id="lastname"
                                                 {...field}
+                                                disabled={maintainedByPlayer}
                                                 className={classNames('w-100', { 'p-invalid': errors.lastname })}
                                             />
                                         )}
@@ -259,6 +280,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                             <InputText
                                                 id="nickname"
                                                 {...field}
+                                                disabled={maintainedByPlayer}
                                                 className={classNames('w-100', { 'p-invalid': errors.nickname })}
                                             />
                                         )}

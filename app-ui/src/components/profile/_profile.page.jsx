@@ -70,7 +70,7 @@ const ProfilePage = () => {
         <div className="container-fluid p-4 border-0">
             <div className="row gy-4">
                 <div className="col-12 col-lg-6">
-                    <Panel header="Profile settings" className="h-100">
+                    <Panel header="User profile" className="h-100">
                         <form onSubmit={onSaveProfile} className="d-flex flex-column gap-4 p-3 pt-4">
                             {isGlobalAdmin && <div className="mb-2"><Tag value={ROLE_LABELS[user.role]} severity="warning" /></div>}
                             <span className="p-float-label w-100">
