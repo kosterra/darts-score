@@ -399,6 +399,8 @@ const FLIGHT_MS = 320;
 // the four flights seen from behind, as a cross: one wing, turned round its middle
 const WING = '0,0 2.6,-5.6 9.8,-9.8 5.6,-2.6';
 const FLIGHT_CENTRE = { x: 0, y: 19 };
+// the dart's size on the board: about a real dart's next to a real board (flights some 3 cm across)
+const DART_SCALE = 1.6;
 
 /**
  * A dart stuck straight in the board, seen from the oche: its tip at (0, 0),
@@ -407,7 +409,7 @@ const FLIGHT_CENTRE = { x: 0, y: 19 };
  * either side. color: the flights.
  */
 const Dart = ({ color }) => (
-    <g className="dart-shape">
+    <g className="dart-shape" transform={`scale(${DART_SCALE})`}>
         {/* its shadow on the board, a little below */}
         <ellipse cx="0" cy="4" rx="2.2" ry="1.1" className="dart-shadow" />
         <line x1="0" y1="0" x2="0" y2="3.5" className="dart-point" />
