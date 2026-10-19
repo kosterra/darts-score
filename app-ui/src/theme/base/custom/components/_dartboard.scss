@@ -156,9 +156,9 @@ $dartboard-opacity: 0.4;
 }
 
 // (the names are the board's own: the bull finish has a dart-fly of its own)
-// a dart flying to where it was thrown: a short arc along the thrower's line of
-// sight (bigger, as it is nearer), rising a little and then dropping into the
-// board from above, where it sticks with a little wobble; the
+// a dart flying to where it was thrown: along the thrower's line of sight
+// (bigger, as it is nearer), coming up from below into its point, where it
+// sticks with a little wobble; the
 // point and its pulse appear when it lands
 .dartboard-img {
   .dart-fly {
@@ -168,8 +168,8 @@ $dartboard-opacity: 0.4;
     animation: board-dart-fly 0.32s linear both, board-dart-wobble 0.4s ease-out 0.32s;
   }
 
-  // the dart follows its arc: tilted back and seen more from the side while it
-  // rises, its shaft tilting down into the board as it drops
+  // the dart swings into the board: its shaft starts above the tip and tilts down
+  // over the right side into the upright position, seen more from the side at first
   .dart-tilt {
     transform-box: view-box;
     transform-origin: 0 0;
@@ -189,15 +189,14 @@ $dartboard-opacity: 0.4;
 }
 
 @keyframes board-dart-fly {
-  0% { transform: translate(0, -22px) scale(2.6); opacity: 0; animation-timing-function: ease-out; }
+  0% { transform: translate(0, 42px) scale(2.5); opacity: 0; animation-timing-function: ease-out; }
   15% { opacity: 1; }
-  40% { transform: translate(0, -30px) scale(1.8); animation-timing-function: ease-in; }
   100% { transform: translate(0, 0) scale(1); opacity: 1; }
 }
 
 @keyframes board-dart-tilt {
-  0% { transform: rotate(-55deg) scaleY(2.2); animation-timing-function: ease-out; }
-  40% { transform: rotate(-32deg) scaleY(1.7); animation-timing-function: ease-in; }
+  0% { transform: rotate(-175deg) scaleY(1.9); animation-timing-function: ease-in-out; }
+  55% { transform: rotate(-80deg) scaleY(1.6); animation-timing-function: ease-out; }
   100% { transform: rotate(0deg) scaleY(1); }
 }
 
