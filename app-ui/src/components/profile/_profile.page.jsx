@@ -4,6 +4,7 @@ import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
+import { Dropdown } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -15,9 +16,12 @@ const MIN_PASSWORD_LENGTH = 8;
 
 const ProfilePage = () => {
     const toast = useRef(null);
-    const { user, setUser, isGlobalAdmin, logout } = useAuth();
+    const { user, setUser, clubs, isGlobalAdmin, logout } = useAuth();
 
-    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email, startPage: user.startPage ?? 'dashboard' });
+    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email, startPage: user.startPage ?? 'dashboard', defaultClub: user.defaultClub ? String(user.defaultClub) : null });
+    // the club the start page is about: the default one, or the one used last
+    const startClub = clubs.find(club => club.id === profile.defaultClub);
+    const startClubText = startClub ? startClub.name : 'the club you used last';
     const [passwords, setPasswords] = useState({ current: '', next: '', repeat: '' });
     const showSuccess = (summary, detail) =>
         toast.current.show({ severity: 'success', summary, detail, life: 3000 });
@@ -86,17 +90,34 @@ const ProfilePage = () => {
                                 <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} className="w-100" required />
                                 <label htmlFor="profile-email">Email</label>
                             </span>
-                            {/* no statistics of their own for global admins, who belong to no club */}
+                            {/* no clubs and no statistics of their own for global admins */}
                             {!isGlobalAdmin &&
-                                <div className="d-flex flex-column gap-2">
-                                    <span className="text-subtle fs-8">After logging in, open</span>
-                                    <SelectButton
-                                        value={profile.startPage}
-                                        options={[{ label: 'Dashboard', value: 'dashboard' }, { label: 'My statistics', value: 'myStatistics' }]}
-                                        onChange={(e) => e.value && setProfile({ ...profile, startPage: e.value })}
-                                        className="p-selectbutton-pills pills-inline"
-                                        aria-label="Start page"
-                                    />
+                                <div className="profile-start">
+                                    <p className="setting-title m-0">After logging in</p>
+                                    <label className="d-flex flex-column gap-1">
+                                        <span className="text-subtle fs-8">Open the club</span>
+                                        <Dropdown
+                                            value={profile.defaultClub}
+                                            options={[{ label: 'The club I used last', value: null }, ...clubs.map(club => ({ label: club.name, value: club.id }))]}
+                                            onChange={(e) => setProfile({ ...profile, defaultClub: e.value })}
+                                            className="w-100"
+                                            aria-label="Default club"
+                                        />
+                                        <span className="text-faint fs-8">Also when the app opens in a new tab or browser; switching clubs while you play stays as it is.</span>
+                                    </label>
+                                    <div className="d-flex flex-column gap-2">
+                                        <span className="text-subtle fs-8">and show</span>
+                                        <SelectButton
+                                            value={profile.startPage}
+                                            options={[{ label: 'Dashboard', value: 'dashboard' }, { label: 'My statistics', value: 'myStatistics' }]}
+                                            onChange={(e) => e.value && setProfile({ ...profile, startPage: e.value })}
+                                            className="p-selectbutton-pills pills-inline"
+                                            aria-label="Start page"
+                                        />
+                                        <span className="text-faint fs-8">
+                                            {profile.startPage === 'myStatistics' ? `Opens your statistics in ${startClubText}.` : `Opens the dashboard of ${startClubText}.`}
+                                        </span>
+                                    </div>
                                 </div>
                             }
                             <div className="d-flex justify-content-between gap-3">

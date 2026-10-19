@@ -6,6 +6,23 @@ import ClubService from '../services/club.service';
 import { ROLES, CLUB_ROLES } from '../services/user.service';
 import { SESSION_ENDED, getActiveClubId, setActiveClubId } from './service.utils';
 
+// whether this tab already has its club: then a reload keeps it
+const CLUB_CHOSEN_KEY = 'darts-score.clubChosen';
+const clubChosenInTab = () => {
+    try {
+        return sessionStorage.getItem(CLUB_CHOSEN_KEY) === '1';
+    } catch {
+        return false;
+    }
+};
+const markClubChosenInTab = () => {
+    try {
+        sessionStorage.setItem(CLUB_CHOSEN_KEY, '1');
+    } catch {
+        // storage unavailable: the default club is chosen on every reload
+    }
+};
+
 /**
  * Holds the logged-in user, the clubs they can manage and the club the app
  * currently works in.
@@ -36,12 +53,17 @@ const AuthState = ({ children }) => {
         return loaded;
     }, [selectClub]);
 
-    const startSession = useCallback(async (loggedInUser) => {
+    // fresh: a new login. The user's default club is selected then, and when the
+    // app opens in a new tab or browser; a reload keeps the club worked in.
+    const startSession = useCallback(async (loggedInUser, fresh = false) => {
         // Clubs first, so the app never renders a logged-in user without their clubs
-        await refreshClubs();
+        const loaded = await refreshClubs();
+        const defaultClub = loggedInUser.defaultClub && loaded.find(club => club.id === String(loggedInUser.defaultClub));
+        if (defaultClub && (fresh || !clubChosenInTab())) selectClub(defaultClub.id);
+        markClubChosenInTab();
         setSessionEnded(false);
         setUser(loggedInUser);
-    }, [refreshClubs]);
+    }, [refreshClubs, selectClub]);
 
     useEffect(() => {
         const restoreSession = async () => {
@@ -59,7 +81,7 @@ const AuthState = ({ children }) => {
     }, [startSession]);
 
     const login = useCallback(async (email, password) => {
-        await startSession(await AuthService.login(email, password));
+        await startSession(await AuthService.login(email, password), true);
     }, [startSession]);
 
     const register = useCallback(async (account) => {
@@ -67,7 +89,7 @@ const AuthState = ({ children }) => {
     }, [startSession]);
 
     const resetPassword = useCallback(async (token, password) => {
-        await startSession(await AuthService.resetPassword(token, password));
+        await startSession(await AuthService.resetPassword(token, password), true);
     }, [startSession]);
 
     const logout = useCallback(async () => {

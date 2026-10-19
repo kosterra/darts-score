@@ -643,3 +643,16 @@ $fair-play-suspicious: #e9ac2f;
 
   .pi { font-size: 0.7rem; }
 }
+
+// the start after logging in: club and page, as one box like the game settings
+.profile-start {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.85rem 1rem 1rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+
+  // the title in line with the fields below it
+  .setting-title { padding: 0; }
+}

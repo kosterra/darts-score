@@ -56,7 +56,7 @@ export const PLAYER_GUIDE = [
         body: (
             <>
                 <ul>
-                    <li><strong>My statistics</strong>, right below Dashboard, opens your own statistics in the club with one click; the <strong>You</strong> widget on the dashboard shows your level, average and form. On your user profile you can make My statistics the page that opens after logging in.</li>
+                    <li><strong>My statistics</strong>, right below Dashboard, opens your own statistics in the club with one click; the <strong>You</strong> widget on the dashboard shows your level, average and form. On your user profile you choose what opens after logging in: the club (your default club, or the one you used last) and its dashboard or your statistics.</li>
                     <li><strong>Players</strong> opens each player&apos;s profile: key figures, level, latest games, charts and badges, with filters for the club, the period, the last games and the X01 format.</li>
                     <li><strong>Player comparison</strong> puts two or more players side by side, with their games together and head to head.</li>
                     <li>The <strong>dashboard</strong> shows the club at a glance: leaderboards, the latest games, records and the Hall of Shame, in widgets the club arranges.</li>
@@ -81,7 +81,7 @@ export const PLAYER_GUIDE = [
             <>
                 <p>Tap your name at the bottom of the menu: it opens User profile, Player profile, My clubs, Notifications and Log out. The number on your avatar counts the notifications you have not read.</p>
                 <ul>
-                    <li><strong>User profile:</strong> your account: name, email and password. Your name is also the name of your player.</li>
+                    <li><strong>User profile:</strong> your account: name, email and password (your name is also the name of your player), and what opens after logging in: your default club, and its dashboard or your statistics.</li>
                     <li><strong>Player profile:</strong> how you appear in your clubs. Your nickname and picture are yours to keep up to date (the picture also shows on your avatar), the date of birth is set by your club admins, and as an adult you can correct it (never to a date under 18, or the Hall of Shame age of your clubs). Here too: whether your nickname appears on the public start page, and the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you).</li>
                     <li><strong>My clubs:</strong> the clubs you play in or run, to switch between them; your name there opens your statistics and badges.</li>
                     <li><strong>Notifications:</strong> you are told when an admin deletes or repairs one of your games or trainings for fair play, with the reason. Open leads to the game; mark them as read or remove them.</li>

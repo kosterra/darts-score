@@ -75,13 +75,19 @@ export const extendSession = async (req, res) => {
 
 export const updateMe = async (req, res) => {
     logger.debug('auth update profile called');
-    const { email, firstname, lastname, startPage } = req.body;
+    const { email, firstname, lastname, startPage, defaultClub } = req.body;
 
     if (email !== req.user.email && await User.exists({ email })) {
         return res.status(409).json({ message: 'An account with this email already exists.' });
     }
 
-    Object.assign(req.user, { email, firstname, lastname }, startPage ? { startPage } : {});
+    // the default club is one the user runs or plays in (null: the one used last)
+    if (defaultClub) {
+        const member = await db.club.exists({ _id: defaultClub, admins: req.user._id })
+            || await db.player.exists({ user: req.user._id, clubs: defaultClub });
+        if (!member) return res.status(422).json({ errors: ['Choose one of your clubs.'] });
+    }
+    Object.assign(req.user, { email, firstname, lastname }, startPage ? { startPage } : {}, defaultClub !== undefined ? { defaultClub: defaultClub || null } : {});
     await req.user.save();
     // the players of the account carry its name
     await db.player.updateMany({ user: req.user._id }, { $set: { firstname: req.user.firstname, lastname: req.user.lastname } });
