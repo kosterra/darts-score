@@ -156,15 +156,16 @@ $dartboard-opacity: 0.4;
 }
 
 // (the names are the board's own: the bull finish has a dart-fly of its own)
-// a dart flying to where it was thrown: along the thrower's line of sight (much
-// bigger, as it is nearer, only a hint from below) into the board, where it sticks with a little wobble; the
+// a dart flying to where it was thrown: a short arc along the thrower's line of
+// sight (bigger, as it is nearer), rising a little and then dropping into the
+// board from above, where it sticks with a little wobble; the
 // point and its pulse appear when it lands
 .dartboard-img {
   .dart-fly {
     // the dart's own coordinates: its tip is at (0, 0)
     transform-box: view-box;
     transform-origin: 0 0;
-    animation: board-dart-fly 0.32s cubic-bezier(0.15, 0.7, 0.3, 1) both, board-dart-wobble 0.4s ease-out 0.32s;
+    animation: board-dart-fly 0.32s linear both, board-dart-wobble 0.4s ease-out 0.32s;
   }
 
   .has-dart .dart-hit { animation: board-dart-hit 0.12s ease-out 0.3s both; }
@@ -180,8 +181,9 @@ $dartboard-opacity: 0.4;
 }
 
 @keyframes board-dart-fly {
-  0% { transform: translate(0, 24px) scale(3.4); opacity: 0; }
-  20% { opacity: 1; }
+  0% { transform: translate(0, -22px) scale(2.6); opacity: 0; animation-timing-function: ease-out; }
+  15% { opacity: 1; }
+  40% { transform: translate(0, -30px) scale(1.8); animation-timing-function: ease-in; }
   100% { transform: translate(0, 0) scale(1); opacity: 1; }
 }
 
