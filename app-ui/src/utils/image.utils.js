@@ -3,11 +3,12 @@ const PLAYER_IMG_BASE = '/api/images/players/';
 /**
  * Resolves a player profileImg field to a displayable URL.
  * The API stores only the filename; this prepends the API base URL.
- * Passes through full URLs unchanged (backward compat with legacy data).
+ * Passes through full URLs unchanged (backward compat with legacy data), and
+ * pictures of the app itself ("/bot.svg", the training bot).
  */
 export const resolvePlayerImg = (filename) => {
     if (!filename) return '';
-    if (filename.startsWith('http://') || filename.startsWith('https://')) return filename;
+    if (filename.startsWith('http://') || filename.startsWith('https://') || filename.startsWith('/')) return filename;
     return PLAYER_IMG_BASE + filename;
 };
 

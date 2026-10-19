@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- the training bot: a friendly robot whose antenna is a little dart -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="70%">
+      <stop offset="0" stop-color="#3b5a4b"/>
+      <stop offset="1" stop-color="#1c2a23"/>
+    </radialGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3e8ec"/>
+      <stop offset="1" stop-color="#aeb8c1"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="50%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#d9fbe9"/>
+      <stop offset="0.45" stop-color="#7ecca5"/>
+      <stop offset="1" stop-color="#3f8f6a"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" fill="url(#bg)"/>
+  <!-- the antenna: a dart standing on its point -->
+  <line x1="64" y1="40" x2="64" y2="24" stroke="#e9eef2" stroke-width="2.4" stroke-linecap="round"/>
+  <rect x="61.2" y="13" width="5.6" height="13" rx="2.4" fill="#9aa5b1"/>
+  <path d="M64 13 L55 3 L60 1 L64 6 L68 1 L73 3 Z" fill="#ec8b80" stroke="#b9645b" stroke-width="0.8" stroke-linejoin="round"/>
+  <!-- ears -->
+  <rect x="21" y="58" width="9" height="20" rx="4" fill="#8f9aa4"/>
+  <rect x="98" y="58" width="9" height="20" rx="4" fill="#8f9aa4"/>
+  <!-- the head -->
+  <rect x="28" y="40" width="72" height="58" rx="18" fill="url(#head)" stroke="#7f8a94" stroke-width="2"/>
+  <rect x="35" y="49" width="58" height="34" rx="12" fill="#253029"/>
+  <!-- eyes, glowing in the app's green, and a little shine in each -->
+  <circle cx="51" cy="65" r="8" fill="url(#eye)"/>
+  <circle cx="77" cy="65" r="8" fill="url(#eye)"/>
+  <circle cx="48.5" cy="62" r="2" fill="#ffffff" opacity="0.85"/>
+  <circle cx="74.5" cy="62" r="2" fill="#ffffff" opacity="0.85"/>
+  <!-- a smile -->
+  <path d="M55 76 Q64 81 73 76" fill="none" stroke="#7ecca5" stroke-width="2.4" stroke-linecap="round"/>
+  <!-- the speaker grille on the chin -->
+  <g stroke="#7f8a94" stroke-width="2" stroke-linecap="round">
+    <line x1="56" y1="90" x2="56" y2="94"/>
+    <line x1="61.3" y1="90" x2="61.3" y2="94"/>
+    <line x1="66.7" y1="90" x2="66.7" y2="94"/>
+    <line x1="72" y1="90" x2="72" y2="94"/>
+  </g>
+  <!-- the neck and shoulders, cut by the circle of the avatar -->
+  <rect x="54" y="98" width="20" height="8" fill="#8f9aa4"/>
+  <path d="M22 128 Q24 108 44 106 L84 106 Q104 108 106 128 Z" fill="url(#head)" stroke="#7f8a94" stroke-width="2"/>
+  <circle cx="64" cy="117" r="4" fill="#ec8b80"/>
+</svg>

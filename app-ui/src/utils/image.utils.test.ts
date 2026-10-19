@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clampCropOffset, getCropSourceRect } from './image.utils';
+import { clampCropOffset, getCropSourceRect, resolvePlayerImg } from './image.utils';
 
 describe('clampCropOffset', () => {
     it('keeps an offset that still covers the crop area', () => {
@@ -26,3 +26,13 @@ describe('getCropSourceRect', () => {
         expect(getCropSourceRect({ x: 0, y: 0 }, 1000, 500, 0.96, 240)).toEqual({ x: 375, y: 125, size: 250 });
     });
 });
+
+describe('resolvePlayerImg', () => {
+    it('serves uploaded pictures from the API, and passes full addresses and pictures of the app', () => {
+        expect(resolvePlayerImg('abc.jpg')).toBe('/api/images/players/abc.jpg');
+        expect(resolvePlayerImg('https://example.org/a.png')).toBe('https://example.org/a.png');
+        expect(resolvePlayerImg('/bot.svg')).toBe('/bot.svg');
+        expect(resolvePlayerImg('')).toBe('');
+    });
+});
+

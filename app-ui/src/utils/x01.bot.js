@@ -124,7 +124,8 @@ export const botPlayer = (bot = {}) => ({
     // shows as "B" where a player shows their initials
     firstname: 'Bot',
     lastname: '',
-    profileImg: '',
+    // a picture of the app: the robot with a dart for an antenna
+    profileImg: '/bot.svg',
     isBot: true,
     average: bot.average ?? null,
 });
