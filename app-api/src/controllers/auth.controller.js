@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
+import { getSessionSettings } from '../utils/session.settings.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
 import { isMailConfigured, sendMail } from '../utils/mail.utils.js';
 import { checkRegistration, noteRegistration, checkLater } from '../utils/spam.guard.js';
@@ -31,7 +32,7 @@ export const register = async (req, res) => {
     logger.info(`Registered user ${user.email}`);
     checkLater(() => noteRegistration(req, user));
 
-    setSessionCookie(req, res, user);
+    await setSessionCookie(req, res, user);
     res.status(201).json(user);
 };
 
@@ -48,7 +49,7 @@ export const login = async (req, res) => {
 
     user.lastLoginAt = new Date();
     await user.save({ timestamps: false });
-    setSessionCookie(req, res, user);
+    await setSessionCookie(req, res, user);
     res.json(user);
 };
 
@@ -58,6 +59,18 @@ export const logout = (req, res) => {
 };
 
 export const me = (req, res) => res.json(req.user);
+
+// when the session ends, so the app can warn in time: { expiresAt, timeoutHours }
+export const session = async (req, res) => {
+    const { timeoutHours } = await getSessionSettings();
+    res.json({ expiresAt: req.sessionExpiresAt, timeoutHours });
+};
+
+// a session about to end goes on for the full timeout from now: { expiresAt }
+export const extendSession = async (req, res) => {
+    const expiresAt = await setSessionCookie(req, res, req.user);
+    res.json({ expiresAt });
+};
 
 export const updateMe = async (req, res) => {
     logger.debug('auth update profile called');
@@ -85,7 +98,7 @@ export const changePassword = async (req, res) => {
     await req.user.save();
 
     // Other devices are logged out by the version bump; keep this one signed in
-    setSessionCookie(req, res, req.user);
+    await setSessionCookie(req, res, req.user);
     res.json({ message: 'Password changed.' });
 };
 
@@ -131,6 +144,6 @@ export const resetPassword = async (req, res) => {
     user.resetTokenExpires = null;
     await user.save();
 
-    setSessionCookie(req, res, user);
+    await setSessionCookie(req, res, user);
     res.json(user);
 };

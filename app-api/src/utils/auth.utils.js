@@ -1,12 +1,12 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import logger from '../models/logger.model.js';
+import { getSessionTimeoutMs } from './session.settings.js';
 
 const scryptAsync = promisify(scrypt);
 const KEY_LENGTH = 64;
 
 export const SESSION_COOKIE = 'ds_session';
-const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 let fallbackSecret;
 
@@ -46,12 +46,19 @@ const cookieOptions = (req) => ({
     path: '/',
 });
 
-export const setSessionCookie = (req, res, user) => {
+/**
+ * Starts (or extends) a session: it lasts the timeout the global admins set,
+ * or until exp when given (a session cut to a shorter timeout). Returns when
+ * it ends.
+ */
+export const setSessionCookie = async (req, res, user, exp = null) => {
+    const expiresAt = exp ?? Date.now() + await getSessionTimeoutMs();
     res.cookie(
         SESSION_COOKIE,
-        { uid: String(user._id), v: user.sessionVersion, exp: Date.now() + SESSION_MAX_AGE_MS },
-        { ...cookieOptions(req), maxAge: SESSION_MAX_AGE_MS }
+        { uid: String(user._id), v: user.sessionVersion, exp: expiresAt },
+        { ...cookieOptions(req), maxAge: Math.max(0, expiresAt - Date.now()) }
     );
+    return expiresAt;
 };
 
 export const clearSessionCookie = (req, res) => {

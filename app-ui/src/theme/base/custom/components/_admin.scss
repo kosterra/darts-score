@@ -453,3 +453,14 @@ $fair-play-suspicious: #e9ac2f;
   .notification-text { flex-basis: calc(100% - 2.75rem); }
   .notification-actions { margin-left: 2.75rem; }
 }
+
+// the time left before the session ends, large and calm
+.session-countdown {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #e9ac2f;
+  line-height: 1.1;
+}
+
+.session-hours-input { width: 7.5rem; }

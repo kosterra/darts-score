@@ -4,7 +4,7 @@ import AuthContext from './auth.context';
 import AuthService from '../services/auth.service';
 import ClubService from '../services/club.service';
 import { ROLES, CLUB_ROLES } from '../services/user.service';
-import { getActiveClubId, setActiveClubId } from './service.utils';
+import { SESSION_ENDED, getActiveClubId, setActiveClubId } from './service.utils';
 
 /**
  * Holds the logged-in user, the clubs they can manage and the club the app
@@ -17,6 +17,10 @@ const AuthState = ({ children }) => {
     const [loading, setLoading] = useState(true);
     // Whether the server can send mails (password reset, invitations)
     const [mailEnabled, setMailEnabled] = useState(false);
+    // the session ran out: the login says so
+    const [sessionEnded, setSessionEnded] = useState(false);
+    // the page open when it ran out, to come back to after logging in again
+    const [returnTo, setReturnTo] = useState(null);
 
     const selectClub = useCallback((clubId) => {
         setActiveClubId(clubId);
@@ -35,6 +39,7 @@ const AuthState = ({ children }) => {
     const startSession = useCallback(async (loggedInUser) => {
         // Clubs first, so the app never renders a logged-in user without their clubs
         await refreshClubs();
+        setSessionEnded(false);
         setUser(loggedInUser);
     }, [refreshClubs]);
 
@@ -66,10 +71,26 @@ const AuthState = ({ children }) => {
     }, [startSession]);
 
     const logout = useCallback(async () => {
-        await AuthService.logout();
+        await AuthService.logout().catch(() => {});
+        setReturnTo(null);
         setUser(null);
         setClubs([]);
     }, []);
+
+    // the session timed out (or was ended elsewhere): back to the login, with a note
+    const endSession = useCallback(async () => {
+        await AuthService.logout().catch(() => {});
+        setReturnTo(`${window.location.pathname}${window.location.search}${window.location.hash}`);
+        setSessionEnded(true);
+        setUser(null);
+        setClubs([]);
+    }, []);
+
+    useEffect(() => {
+        if (!user) return undefined;
+        window.addEventListener(SESSION_ENDED, endSession);
+        return () => window.removeEventListener(SESSION_ENDED, endSession);
+    }, [user, endSession]);
 
     const activeClub = clubs.find(club => club.id === activeClubId) ?? null;
 
@@ -87,9 +108,12 @@ const AuthState = ({ children }) => {
         login,
         register,
         logout,
+        endSession,
+        sessionEnded,
+        returnTo,
         refreshClubs,
         selectClub
-    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, login, register, logout, refreshClubs, selectClub]);
+    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, login, register, logout, endSession, sessionEnded, returnTo, refreshClubs, selectClub]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

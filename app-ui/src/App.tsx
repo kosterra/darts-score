@@ -4,6 +4,7 @@ import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import SessionWatch from './components/session/session.watch';
 import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
@@ -53,7 +54,7 @@ function GameListRedirect() {
 const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
-    const { user, activeClub, isGlobalAdmin, loading } = useAuth();
+    const { user, activeClub, isGlobalAdmin, loading, returnTo } = useAuth();
     const { pathname } = useLocation();
 
     if (loading) return <PageLoader />;
@@ -80,6 +81,11 @@ function AppContent() {
 
     // Without a club there is nothing to play with yet: send the user to create one.
     // A global admin without a club of their own looks after the app instead.
+    // logged in again after the session ran out: back to the page it ended on
+    if (pathname === '/login' && returnTo) {
+        return <Navigate replace to={returnTo} />;
+    }
+
     if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
         return <Navigate replace to={isGlobalAdmin ? '/administration' : '/clubs'} />;
     }
@@ -87,6 +93,8 @@ function AppContent() {
     return (
         <div className="d-flex mb-5 mb-md-0">
             <AppNavigation />
+            {/* warns before the session ends, and goes back to the login once it has */}
+            <SessionWatch />
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
                 <AppBanner />

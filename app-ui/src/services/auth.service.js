@@ -42,8 +42,16 @@ const requestPasswordReset = (email) =>
 const resetPassword = (token, password) =>
     requestJSON(API_URL + 'reset-password', { method: 'POST', body: { token, password } });
 
+// when the session ends: { expiresAt (ms), timeoutHours }
+const getSession = () => requestJSON(API_URL + 'session');
+
+// the session goes on for the full timeout from now: { expiresAt }
+const extendSession = () => requestJSON(API_URL + 'session/extend', { method: 'POST' });
+
 const AuthService = {
     getConfig,
+    getSession,
+    extendSession,
     requestPasswordReset,
     resetPassword,
     getCurrentUser,

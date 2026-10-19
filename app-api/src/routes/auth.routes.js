@@ -54,6 +54,8 @@ export default (app) => {
     );
 
     router.get('/me', requireAuth, AuthController.me);
+    router.get('/session', requireAuth, AuthController.session);
+    router.post('/session/extend', requireAuth, AuthController.extendSession);
     router.put('/me', requireAuth, emailValidator, nameValidators(), validate, AuthController.updateMe);
     router.put('/password',
         requireAuth,

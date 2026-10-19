@@ -25,6 +25,10 @@ const deletePlayer = (playerId) => requestJSON(`${API_URL}/players/${playerId}`,
 const loadBannerSettings = () => requestJSON(`${API_URL}/banner`);
 const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT', body: banner });
 
+// how long a login lasts: { timeoutHours, limits: { min, max, default } }
+const loadSessionSettings = () => requestJSON(`${API_URL}/session`);
+const saveSessionSettings = (timeoutHours) => requestJSON(`${API_URL}/session`, { method: 'PUT', body: { timeoutHours } });
+
 // warnings and errors of the API
 const loadLogs = ({ level = 'all', search = '' } = {}) =>
     requestJSON(`${API_URL}/logs?level=${encodeURIComponent(level)}&search=${encodeURIComponent(search)}`);
@@ -59,6 +63,8 @@ const AdminService = {
     unblockIp,
     loadBannerSettings,
     saveBanner,
+    loadSessionSettings,
+    saveSessionSettings,
     loadOverview,
     loadClubs,
     loadPlayers,
