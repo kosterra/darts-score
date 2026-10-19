@@ -2,7 +2,7 @@ import { Avatar } from 'primereact/avatar';
 
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
-import { heldBy, useClubShame } from '../../badges/hall.of.shame';
+import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 
 /**

@@ -64,8 +64,10 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
         }
     };
 
+    // once on mount: the last game's players are restored from the first props only
     useEffect(() => {
         load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // guests of this game are offered with the club's players

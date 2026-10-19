@@ -60,7 +60,7 @@ const ClockGame = () => {
                 if (next.hasWinner) setSavedOver(next.id);
             })
             .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last dart could not be saved. Check the connection and throw on: the next dart saves everything.', life: 5000 }));
-    }, [navigate]);
+    }, []);
 
     const change = useCallback((throws) => {
         const next = withClockState({ ...game, throws });
