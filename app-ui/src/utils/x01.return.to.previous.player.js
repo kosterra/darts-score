@@ -1,15 +1,27 @@
 import {
     changeCurrentPlayer
 } from './game.utils';
+import { outModeOf, startingScoreOf } from './x01.rules';
+
+// what the player had left before their last visit of the leg: the rest of
+// their visit before it, or what they started the leg with
+const scoreBefore = (game, playerId) => {
+    const earlier = game.currentLegThrows.filter(visit => visit.playerId === playerId).at(-1);
+    if (earlier && Number.isFinite(Number(earlier.scoreLeft))) return Number(earlier.scoreLeft);
+    return startingScoreOf(game, playerId);
+};
 
 const X01ReturnToPreviousPlayer = game => {
     let prevThrowInfo = game.currentLegThrows.pop();
     let prevScore = getCurrentThrowScore(prevThrowInfo.darts);
+    // a bust took nothing off: the score goes back to what it was, not up by the darts
+    const before = scoreBefore(game, prevThrowInfo.playerId);
+    const busted = prevScore > 0 && before === Number(prevThrowInfo.scoreLeft);
 
     changeCurrentPlayer(game);
     game.currentThrow = prevThrowInfo.darts;
-    game.playerModels[prevThrowInfo.playerId].score += prevScore;
-    updateAverages(game, prevThrowInfo.playerId, prevThrowInfo.darts);
+    game.playerModels[prevThrowInfo.playerId].score = before;
+    updateAverages(game, prevThrowInfo.playerId, busted ? [] : prevThrowInfo.darts);
     updateTotalThrow(
         game,
         prevThrowInfo.playerId,
@@ -17,12 +29,10 @@ const X01ReturnToPreviousPlayer = game => {
     );
 
     updateHit(game.playerModels[prevThrowInfo.playerId], prevThrowInfo.darts);
-    updateScoreRange(game, prevThrowInfo.playerId, prevScore);
+    updateScoreRange(game, prevThrowInfo.playerId, prevScore, busted);
     updateBestThreeDarts(game, prevThrowInfo.playerId);
 
-    if (game.playerModels[prevThrowInfo.playerId].score - prevScore <= 50) {
-        updateCheckout(game, prevThrowInfo.playerId, Object.assign({}, prevThrowInfo.darts));
-    }
+    updateCheckout(game, prevThrowInfo.playerId, prevThrowInfo.darts);
 
     return game;
 }
@@ -87,10 +97,17 @@ const updateHit = (playerModel, darts) => {
     })
 }
 
-const updateScoreRange = (game, playerId, score) => {
+const updateScoreRange = (game, playerId, score, busted = false) => {
     let scoreRanges = game.playerModels[playerId].scoreRanges
 
-    if (score === 0 || score === 180) {
+    if (busted) {
+        // a bust was counted as Busted, whatever its darts
+        [scoreRanges.game, scoreRanges['set-' + game.currentSet], scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]].forEach(ranges => {
+            if (!ranges?.Busted) return;
+            ranges.Busted--;
+            ranges.Busted === 0 && delete ranges.Busted;
+        });
+    } else if (score === 0 || score === 180) {
         score === 0 && scoreRanges.game['ZERO']--;
         score === 0 && scoreRanges['set-' + game.currentSet]['ZERO']--;
         score === 0 && scoreRanges['set-' + game.currentSet]['leg-' + game.currentSetLeg]['ZERO']--;
@@ -184,27 +201,39 @@ const updateBestThreeDarts = (game, playerId) => {
     game.playerModels[playerId].bestThreeDarts = bestThreeDarts;
 }
 
+const canDouble = score => (score <= 40 && score >= 2 && score % 2 === 0) || score === 50;
+const canTriple = score => score <= 60 && score >= 3 && score % 3 === 0;
+const canSingle = score => score <= 20 && score >= 1;
+
+// takes back the checkout chances the visit counted, dart by dart from the
+// score before it, the way they were counted (a won leg cannot be taken back,
+// so they were all misses)
 const updateCheckout = (game, playerId, darts) => {
-    let checkout = game.playerModels[playerId].checkout;
-    let prevScore = game.playerModels[playerId].score - getCurrentThrowScore(darts);
+    const checkout = game.playerModels[playerId].checkout;
+    if (!checkout) return;
+    const mode = outModeOf(game, playerId);
+    const set = checkout['set-' + game.currentSet];
+    const leg = set?.['leg-' + game.currentSetLeg];
+    const takeBack = (counts) => {
+        if (!counts) return;
+        counts.total--;
+        counts.miss--;
+    };
+    let left = game.playerModels[playerId].score;
 
-    darts.reverse().forEach(dart => {
-        let dartArr = [dart]
-        prevScore = prevScore + getCurrentThrowScore(dartArr);
-        if ((prevScore % 2 === 0 && prevScore <= 40) || prevScore === 50) {
-            checkout['game'].miss--;
-            checkout['game'].total--;
-            checkout['set-' + game.currentSet].miss--;
-            checkout['set-' + game.currentSet].total--;
-            checkout['set-' + game.currentSet]['leg-' + game.currentSetLeg].miss--;
-            checkout['set-' + game.currentSet]['leg-' + game.currentSetLeg].total--;
-            checkout['sections'][prevScore / 2].miss--;
-            checkout['sections'][prevScore / 2].total--;
-            checkout['sections'][prevScore / 2].total === 0 && delete checkout['sections'][prevScore / 2];
+    darts.forEach(dart => {
+        if (mode === 'Double Out' && canDouble(left)) {
+            [checkout.game, set, leg].forEach(takeBack);
+            const section = checkout.sections?.[left / 2];
+            takeBack(section);
+            section?.total === 0 && delete checkout.sections[left / 2];
+        } else if (mode === 'Master Out' && (canDouble(left) || canTriple(left))) {
+            [checkout.game, leg].forEach(takeBack);
+        } else if (mode === 'Straight Out' && (canSingle(left) || canDouble(left) || canTriple(left))) {
+            [checkout.game, leg].forEach(takeBack);
         }
+        left -= getCurrentThrowScore([dart]);
     });
-
-    game.playerModels[playerId].checkout = checkout;
 }
 
 const updateAverages = (game, playerId, darts) => {

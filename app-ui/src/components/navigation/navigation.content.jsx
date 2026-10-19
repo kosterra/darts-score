@@ -17,6 +17,7 @@ import ClubLogo from '../elements/club.logo';
 import AdminService from '../../services/admin.service';
 import { ALERTS_CHANGED } from '../admin/alert.events';
 import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.service';
+import NotificationService, { NOTIFICATIONS_CHANGED } from '../../services/notification.service';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -65,6 +66,30 @@ const useFairPlay = (enabled, all, clubId) => {
 
     return enabled ? summary : null;
 };
+
+/**
+ * How many notifications the user has not read, for the bell. Follows page
+ * changes, the notifications page and a minute's timer.
+ */
+const useUnreadNotifications = () => {
+    const { pathname } = useLocation();
+    const [unread, setUnread] = useState(0);
+
+    useEffect(() => {
+        const load = () => NotificationService.loadUnread().then(result => setUnread(result.unread ?? 0)).catch(() => {});
+        load();
+        const timer = setInterval(load, 60 * 1000);
+        window.addEventListener(NOTIFICATIONS_CHANGED, load);
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener(NOTIFICATIONS_CHANGED, load);
+        };
+    }, [pathname]);
+
+    return unread;
+};
+
+const countText = (count) => count > 99 ? '99+' : count;
 
 /**
  * The menu, built for the logged-in user. Everything under "Club" belongs to
@@ -215,6 +240,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
     const { pathname } = useLocation();
     const { user, activeClub, isGlobalAdmin, logout } = useAuth();
     const sections = useSections();
+    const unread = useUnreadNotifications();
 
     // groups start open when they contain the current page
     const [openGroups, setOpenGroups] = useState(() => new Set());
@@ -284,7 +310,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                     <span className="nav-label">{item.label}</span>
                     {item.badge &&
                         <span className={`nav-badge ${item.badgeCritical ? 'critical' : ''}`} aria-label={`${item.badge} open`}>
-                            {item.badge > 99 ? '99+' : item.badge}
+                            {countText(item.badge)}
                         </span>
                     }
                     <Ripple />
@@ -335,14 +361,26 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             </div>
 
             <div className="nav-profile">
-                <Link to="/profile" className="nav-profile-link p-ripple" onClick={onNavigate} title={collapsed ? 'Your profile' : undefined}>
+                <Link to="/profile" className="nav-profile-link p-ripple" onClick={onNavigate} title={collapsed ? `Your profile${unread ? ` · ${unread} unread notifications` : ''}` : undefined}>
                     <Avatar label={resolvePlayerInitials(user.firstname, user.lastname)} shape="circle" className="avatar-sm bg-surface-high flex-shrink-0" />
+                    {/* in the icon rail the bell is hidden: the count sits on the avatar */}
+                    {collapsed && unread > 0 && <span className="nav-badge critical" aria-label={`${unread} unread notifications`}>{countText(unread)}</span>}
                     <span className="nav-label d-flex flex-column" style={{ minWidth: 0 }}>
                         <span className="text-default fw-semibold text-truncate">{user.firstname} {user.lastname}</span>
                         <span className="text-faint fs-8 text-truncate">{roleText}</span>
                     </span>
                     <Ripple />
                 </Link>
+                <NavLink
+                    to="/notifications"
+                    className={({ isActive }) => `nav-icon-button nav-label nav-bell ${isActive ? 'active' : ''}`}
+                    onClick={onNavigate}
+                    aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
+                    title="Notifications"
+                >
+                    <FaBell />
+                    {unread > 0 && <span className="nav-badge critical" aria-hidden="true">{countText(unread)}</span>}
+                </NavLink>
                 <button type="button" className="nav-icon-button nav-label" onClick={logout} aria-label="Log out" title="Log out">
                     <FaRightFromBracket />
                 </button>

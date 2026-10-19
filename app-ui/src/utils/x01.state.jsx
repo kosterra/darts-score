@@ -291,7 +291,7 @@ const X01State = props => {
         updateSectionHit();
         couldCheckout();
 
-        !hasWonLeg && pushCurrentThrowToCurrentLegThrow();
+        !hasWonLeg && pushCurrentThrowToCurrentLegThrow(hasBusted);
         resetCurrentThrow();
         hasWonLeg && !hasWonGame && resetScores();
 
@@ -421,7 +421,7 @@ const X01State = props => {
         return totalScore;
     }
 
-    const pushCurrentThrowToCurrentLegThrow = () => {
+    const pushCurrentThrowToCurrentLegThrow = (hasBusted) => {
         let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
         let playerId = state.game.currentPlayerTurn;
         let roundScore = getCurrentThrowScore();
@@ -433,7 +433,8 @@ const X01State = props => {
                 playerId,
                 darts: state.game.currentThrow.filter(dart => dart.trim() !== ''),
                 roundScore: roundScore,
-                scoreLeft: score - roundScore <= 1 ? score : score - roundScore
+                // a bust keeps the score; leaving 1 is no bust in Single Out
+                scoreLeft: hasBusted ? score : score - roundScore
             }
         })
     }

@@ -18,7 +18,15 @@ export default (app) => {
 
     router.get('/', scope, IntegrityController.scan);
     router.get('/summary', scope, IntegrityController.summary);
-    router.put('/:type/:id/review', target, body('status').isIn(['ok', 'watch']).withMessage('The status is ok or watch.'), validate, IntegrityController.review);
+    router.get('/:type/:id', target, validate, IntegrityController.details);
+    router.put('/:type/:id/review',
+        target,
+        body('status').isIn(['ok', 'watch']).withMessage('The status is ok or watch.'),
+        body('reason').optional().isString().isLength({ max: 300 }).withMessage('The reason is at most 300 characters.'),
+        validate,
+        IntegrityController.review
+    );
+    router.post('/:type/:id/repair', target, validate, IntegrityController.repair);
     router.post('/delete',
         body('items').isArray({ min: 1, max: 1000 }).withMessage('Choose what to delete.'),
         body('items.*.type').isIn(TYPES),

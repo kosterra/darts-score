@@ -14,6 +14,7 @@ import PlayerService from '../../services/player.service';
 import { ROLE_LABELS, CLUB_ROLES } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
 import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
+import NotificationList from '../notifications/notification.list';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -225,6 +226,12 @@ const ProfilePage = () => {
                                 </div>
                             ))}
                         </div>
+                    </Panel>
+                </div>
+
+                <div className="col-12">
+                    <Panel header="Notifications">
+                        <NotificationList limit={5} />
                     </Panel>
                 </div>
             </div>

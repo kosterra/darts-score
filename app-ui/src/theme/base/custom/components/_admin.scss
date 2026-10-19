@@ -181,6 +181,11 @@
 
 // Fair play: a card per game or training, the level as a label, the findings
 // below, the actions at the end
+// the levels of fair play: cannot be real, wrong data, worth a look
+$fair-play-impossible: #ec8b80;
+$fair-play-error: #8fb4f0;
+$fair-play-suspicious: #e9ac2f;
+
 .fair-play-list {
   display: flex;
   flex-direction: column;
@@ -195,8 +200,9 @@
   border-radius: $borderRadius;
   background: var(--surface-raised);
 
-  &.is-impossible { box-shadow: inset 3px 0 0 #ec8b80; }
-  &.is-suspicious { box-shadow: inset 3px 0 0 #e9ac2f; }
+  &.is-impossible { box-shadow: inset 3px 0 0 $fair-play-impossible; }
+  &.is-error { box-shadow: inset 3px 0 0 $fair-play-error; }
+  &.is-suspicious { box-shadow: inset 3px 0 0 $fair-play-suspicious; }
 }
 
 .fair-play-head {
@@ -210,8 +216,9 @@
   @include label-shape;
   font-size: 0.7rem;
 
-  &.is-impossible { @include label-tone(#ec8b80); }
-  &.is-suspicious { @include label-tone(#e9ac2f); }
+  &.is-impossible { @include label-tone($fair-play-impossible); }
+  &.is-error { @include label-tone($fair-play-error); }
+  &.is-suspicious { @include label-tone($fair-play-suspicious); }
 }
 
 .fair-play-players {
@@ -238,8 +245,121 @@
     border-radius: 50%;
   }
 
-  li.is-impossible::before { background: #ec8b80; }
-  li.is-suspicious::before { background: #e9ac2f; }
+  li.is-impossible::before { background: $fair-play-impossible; }
+  li.is-error::before { background: $fair-play-error; }
+  li.is-suspicious::before { background: $fair-play-suspicious; }
+}
+
+// a closer look: what was thrown, the visit at fault marked
+.fair-play-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: $borderRadius;
+  background: var(--surface);
+}
+
+.fair-play-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.fair-play-leg-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  margin-bottom: 0.3rem;
+}
+
+// a leg can be long: it scrolls inside itself on a phone, never the page
+.fair-play-leg { overflow-x: auto; }
+
+.fair-play-visits {
+  width: 100%;
+  // the numbers stay near the darts on a wide screen
+  max-width: 40rem;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    font-weight: 600;
+    color: var(--text-faint);
+    padding: 0.2rem 0.5rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.2rem 0.5rem;
+    color: var(--text-subtle);
+    white-space: nowrap;
+    vertical-align: top;
+  }
+
+  tbody tr + tr td { border-top: 1px solid var(--border-default); }
+
+  // the visit at fault: tinted in the colour of its level, with an edge
+  @each $level, $color in (impossible: $fair-play-impossible, error: $fair-play-error, suspicious: $fair-play-suspicious) {
+    tr.is-#{$level} td { background: rgba($color, 0.2); color: var(--text-default); }
+    tr.is-#{$level} td:first-child { box-shadow: inset 3px 0 0 $color; }
+  }
+}
+
+// on a phone the table gets the whole card and drops what the darts already say
+@media (max-width: 575.98px) {
+  .fair-play-details {
+    margin: 0 -0.6rem;
+    padding: 0.5rem;
+  }
+
+  .fair-play-visits {
+    th, td { padding: 0.2rem 0.3rem; }
+    .col-scored { display: none; }
+  }
+}
+
+.fair-play-darts { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.fair-play-wrong {
+  text-decoration: line-through;
+  text-decoration-color: $fair-play-impossible;
+}
+
+.fair-play-should,
+.fair-play-repaired {
+  display: block;
+  font-size: 0.72rem;
+}
+
+.fair-play-should { color: var(--text-faint); }
+.fair-play-repaired { color: $fair-play-error; font-weight: 600; }
+
+.fair-play-more {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.fair-play-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-size: 0.85rem;
+
+  > div { display: contents; }
+  dt { color: var(--text-faint); font-weight: 600; }
+  dd { margin: 0; color: var(--text-default); overflow-wrap: anywhere; }
 }
 
 .fair-play-actions {
@@ -269,4 +389,67 @@
   gap: 0.6rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-default);
+}
+
+// the notifications of a user: unread ones with a gold edge, a step lighter
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+
+  &.is-unread {
+    background: var(--surface-high);
+    box-shadow: inset 3px 0 0 #e9ac2f;
+  }
+}
+
+.notification-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-subtle);
+}
+
+.notification-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex-grow: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+
+  // the small icon buttons: readable on the card, brighter on hover
+  .p-button.p-button-text {
+    color: var(--text-subtle);
+
+    &:enabled:hover { color: var(--text-default); background: var(--surface); }
+  }
+}
+
+// on a phone the actions go under the text
+@media (max-width: 575.98px) {
+  .notification { flex-wrap: wrap; }
+  .notification-text { flex-basis: calc(100% - 2.75rem); }
+  .notification-actions { margin-left: 2.75rem; }
 }

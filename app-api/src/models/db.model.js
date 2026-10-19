@@ -13,6 +13,7 @@ import logEntryModel from './log.entry.model.js';
 import alertModel from './alert.model.js';
 import blockedIpModel from './blocked.ip.model.js';
 import integrityReviewModel from './integrity.review.model.js';
+import notificationModel from './notification.model.js';
 
 const db = {
   mongoose,
@@ -30,6 +31,7 @@ const db = {
   alert: alertModel(mongoose),
   blockedIp: blockedIpModel(mongoose),
   integrityReview: integrityReviewModel(mongoose),
+  notification: notificationModel(mongoose),
 };
 
 export default db;

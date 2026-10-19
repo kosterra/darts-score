@@ -7,6 +7,8 @@ export default (mongoose) => {
       sourceId:   { type: String, required: true },
       // 'ok' looked at and fine, 'watch' kept on the watch list
       status:     { type: String, enum: ['ok', 'watch'], required: true },
+      // why, e.g. what makes a finding a false alarm
+      reason:     { type: String, default: '' },
       // who decided, with the name for when the account is gone later
       by:         { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
       byName:     String,
