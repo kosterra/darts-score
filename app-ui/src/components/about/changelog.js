@@ -4,6 +4,18 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.10',
+        changes: [
+            'Fair play tells cheats apart from wrong data: besides impossible and suspicious entries there are data errors, e.g. a score left that does not add up, which are no cheat. Details show what was thrown, with the visit at fault marked, what should have been left and what a repair would save. A data error of X01 is repaired from the darts when every leg still ends the same way.',
+            'Every fair play entry can be marked as a false alarm, with the reason (needed for impossible ones); who marked it and why stays visible for the other admins.',
+            'Notifications: players with a login and the club admins are told when an admin deletes or repairs one of their games or trainings for fair play, with the reason. The count of unread ones sits on your avatar in the menu; the notifications have their own page and are on your profile.',
+            'Your name at the bottom of the menu opens Profile, Notifications and Log out; long names and email addresses are no longer cut off.',
+            'The About page has a part for each topic: what is new (the latest versions, the others one click away), how to play, the player levels and the average levels, the badges, and guides for players and for club admins.',
+            'Fix: in X01 Undo after a bust gave the darts back as points, so the player had more left than before; leaving 1 in Straight Out was saved as a bust. Both made later scores left not add up.',
+            'Fix: Undo of a visit close to the finish in X01 no longer fails.',
+        ],
+    },
+    {
         version: '2026.10.9',
         changes: [
             'Moving players to another club takes their history along: games in which every player has left the old club for the same new club move with them, and so do the trainings of a player who now plays in one club only. Games with a player still in the old club stay there. Players moved before are corrected once.',

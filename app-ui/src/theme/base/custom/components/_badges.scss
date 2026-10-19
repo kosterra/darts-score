@@ -494,3 +494,20 @@ $tar: #17110c;
     margin-right: 0.25rem;
     color: $softGreenText;
 }
+
+// the levels on the About page: one row per level, in two columns on wide screens
+.about-levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 0.5rem;
+}
+
+.about-level-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
