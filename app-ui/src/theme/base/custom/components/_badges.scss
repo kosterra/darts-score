@@ -511,3 +511,13 @@ $tar: #17110c;
   border-radius: $borderRadius;
   background: var(--surface-raised);
 }
+
+// a part of a game's rules on the About page: setting up, bust, winning
+.about-rule-part {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-default);
+}

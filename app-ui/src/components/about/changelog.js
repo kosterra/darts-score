@@ -10,7 +10,7 @@ const CHANGELOG = [
             'Every fair play entry can be marked as a false alarm, with the reason (needed for impossible ones); who marked it and why stays visible for the other admins.',
             'Notifications: players with a login and the club admins are told when an admin deletes or repairs one of their games or trainings for fair play, with the reason. The count of unread ones sits on your avatar in the menu; the notifications have their own page and are on your profile.',
             'Your name at the bottom of the menu opens Profile, Notifications and Log out; long names and email addresses are no longer cut off.',
-            'The About page has a part for each topic: what is new (the latest versions, the others one click away), how to play, the player levels and the average levels, the badges, and guides for players and for club admins.',
+            'The About page has a part for each topic: what is new (the latest versions, the others one click away), the full rules of every game (setting up, busts, the Cricket variants, sending back in Elimination, the Around the Clock modes), the player levels and the average levels, the badges, and guides for players and for club admins.',
             'Fix: in X01 Undo after a bust gave the darts back as points, so the player had more left than before; leaving 1 in Straight Out was saved as a bust. Both made later scores left not add up.',
             'Fix: Undo of a visit close to the finish in X01 no longer fails.',
         ],
