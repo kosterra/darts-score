@@ -13,6 +13,8 @@ import { ROLE_LABELS } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
 
 const MIN_PASSWORD_LENGTH = 8;
+// "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
+const LAST_CLUB = 'last';
 
 const ProfilePage = () => {
     const toast = useRef(null);
@@ -97,9 +99,9 @@ const ProfilePage = () => {
                                     <label className="d-flex flex-column gap-1">
                                         <span className="text-subtle fs-8">Open the club</span>
                                         <Dropdown
-                                            value={profile.defaultClub}
-                                            options={[{ label: 'The club I used last', value: null }, ...clubs.map(club => ({ label: club.name, value: club.id }))]}
-                                            onChange={(e) => setProfile({ ...profile, defaultClub: e.value })}
+                                            value={profile.defaultClub ?? LAST_CLUB}
+                                            options={[{ label: 'The club I used last', value: LAST_CLUB }, ...clubs.map(club => ({ label: club.name, value: club.id }))]}
+                                            onChange={(e) => setProfile({ ...profile, defaultClub: e.value === LAST_CLUB ? null : e.value })}
                                             className="w-100"
                                             aria-label="Default club"
                                         />

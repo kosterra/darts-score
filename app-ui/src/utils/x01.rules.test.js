@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeRules, hasHandicap, inModeOf, outModeOf, rulesOf, startingScoreOf } from './x01.rules';
+import { describeRules, hasHandicap, inModeOf, isBust, outModeOf, rulesOf, startingScoreOf } from './x01.rules';
 
 const game = {
     startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out',
@@ -25,5 +25,26 @@ describe('x01 rules', () => {
 
     it('describes the rules shortly', () => {
         expect(describeRules(rulesOf(game, 'b'))).toBe('301 · SI/SO');
+    });
+});
+
+describe('bust', () => {
+    it('finds a bust below zero, on 1 and on a finish with the wrong dart', () => {
+        expect(isBust(-4, ['T20'], 'Double Out')).toBe(true);
+        expect(isBust(1, ['S19'], 'Double Out')).toBe(true);
+        expect(isBust(0, ['S20'], 'Double Out')).toBe(true);
+        expect(isBust(0, ['T20'], 'Master Out')).toBe(false);
+        expect(isBust(0, ['S20'], 'Master Out')).toBe(true);
+        expect(isBust(1, ['S19'], 'Straight Out')).toBe(false);
+    });
+
+    it('takes a finish on a double as no bust, also with the first dart', () => {
+        expect(isBust(0, ['D20', '', ''], 'Double Out')).toBe(false);
+        expect(isBust(0, ['S10', 'D5', ''], 'Double Out')).toBe(false);
+    });
+
+    it('takes a rest of 0 without darts for the player who has just won, not a bust', () => {
+        expect(isBust(0, ['', '', ''], 'Double Out')).toBe(false);
+        expect(isBust(0, [], 'Master Out')).toBe(false);
     });
 });

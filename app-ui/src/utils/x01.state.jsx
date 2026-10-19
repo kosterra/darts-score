@@ -16,11 +16,9 @@ import {
     normalizeDart,
     validateDartValue,
     dartIsDouble,
-    dartIsTriple,
-    lastDartIsDouble,
-    lastDartIsTriple
+    dartIsTriple
 } from './game.utils';
-import { inModeOf, outModeOf, startingScoreOf } from './x01.rules';
+import { inModeOf, isBust, outModeOf, startingScoreOf } from './x01.rules';
 
 import {
     FETCH_GAME_SUCCESS,
@@ -365,17 +363,9 @@ const X01State = props => {
     }
 
     const checkIfScoreIsBusted = (currentScore) => {
-        let isBusted = currentScore < 0;
-
-        if (!isBusted) {
-            if (currentOutMode() === 'Double Out') {
-                isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow));
-            } else if (currentOutMode() === 'Master Out') {
-                isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow) && !lastDartIsTriple(state.game.currentThrow));
-            }
-        }
-
-        return isBusted;
+        // a won game shows its end: nothing is a bust any more
+        if (state.game.hasWinner) return false;
+        return isBust(currentScore, state.game.currentThrow, currentOutMode());
     }
 
     const checkCanThrowMoreDarts = (currentScore) => {

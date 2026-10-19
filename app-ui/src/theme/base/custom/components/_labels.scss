@@ -66,8 +66,16 @@ $labelRed: #ec8b80;
   }
 }
 
-// a chosen entry in the list of a multi select: the soft green of a chosen pill
-:where(.p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight) {
+// a chosen entry in the list of a (multi) select: the soft green of a chosen pill
+:where(.p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight, .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight) {
   background: rgba($primaryColor, 0.42);
   color: $buttonTextColor;
+}
+
+// the entries of a selection list read like the field they fill: the
+// size and weight of an input's text, a little tighter than the theme's
+:where(.p-dropdown-panel .p-dropdown-item, .p-multiselect-panel .p-multiselect-item, .p-autocomplete-panel .p-autocomplete-item) {
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 }

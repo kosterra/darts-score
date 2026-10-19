@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
@@ -64,6 +64,14 @@ function AppContent() {
     useEffect(() => {
         startHandled.current = Boolean(user);
     }, [user]);
+
+    // a new page starts at the top, e.g. a game after its long setup; going back
+    // keeps where the browser was, and a link to a part of a page goes there
+    const navigationType = useNavigationType();
+    useEffect(() => {
+        if (navigationType === 'POP' || window.location.hash) return;
+        window.scrollTo(0, 0);
+    }, [pathname, navigationType]);
 
     if (loading) return <PageLoader />;
 

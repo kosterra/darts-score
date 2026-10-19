@@ -20,6 +20,8 @@ const CHANGELOG = [
             'The About page has a part for each topic: what is new (the latest versions, the others one click away), the full rules of every game (setting up, busts, the Cricket variants, sending back in Elimination, the Around the Clock modes), the player levels and the average levels, the badges, and guides for players and for club admins.',
             'Fix: in X01 Undo after a bust gave the darts back as points, so the player had more left than before; leaving 1 in Straight Out was saved as a bust. Both made later scores left not add up.',
             'Fix: Undo of a visit close to the finish in X01 no longer fails.',
+            'Fix: the match dart of an X01 game no longer shows BUST before the winner is celebrated.',
+            'A new page opens at the top, e.g. a game after its setup; going back keeps where you were.',
         ],
     },
     {
