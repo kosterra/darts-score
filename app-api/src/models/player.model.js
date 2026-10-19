@@ -13,6 +13,14 @@ export default (mongoose) => {
       // For the handicap suggestion between players of different ages; required
       // when a player is added or edited, older players may still be without one
       dateOfBirth: { type: Date, default: null },
+      // changes the player made to their own date of birth, for fair play;
+      // restoredAt once an admin put the earlier date back
+      birthChanges: [{
+        from:       Date,
+        to:         Date,
+        at:         { type: Date, default: Date.now },
+        restoredAt: { type: Date, default: null },
+      }],
       // The clubs the player is a member of: one person can play in several clubs
       clubs:       { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'club' }], default: [] },
       // Clubs the player was removed from; their games there keep showing the name
@@ -73,7 +81,9 @@ export default (mongoose) => {
   schema.index({ formerClubs: 1 });
 
   schema.method('toJSON', function () {
-    const { _id, ...object } = this.toObject();
+    // the date of birth changes are for fair play only
+    // eslint-disable-next-line no-unused-vars
+    const { _id, birthChanges, ...object } = this.toObject();
     object.id = _id;
     return object;
   });

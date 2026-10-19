@@ -73,6 +73,19 @@ const RepairDialog = ({ entry, onCancel, onRepair }) => entry && (
     </Dialog>
 );
 
+// putting back the date of birth of a player who made themselves younger
+const RestoreDialog = ({ entry, onCancel, onRestore }) => entry && (
+    <Dialog header="Restore the date of birth" visible onHide={onCancel} draggable={false} blockScroll style={{ width: 'min(32rem, calc(100vw - 2rem))' }}>
+        <p className="text-subtle fs-7 mt-0">
+            {entry.players[0]?.nickname} gets back the date of birth from before the change, and is told. The games then count as before.
+        </p>
+        <div className="d-flex justify-content-end gap-2 mt-3">
+            <Button type="button" label="Cancel" size="small" severity="secondary" onClick={onCancel} />
+            <Button type="button" label="Restore date" icon="pi pi-replay" size="small" onClick={() => onRestore(entry)} />
+        </div>
+    </Dialog>
+);
+
 /**
  * Fair play: games and trainings that cannot be real (to be deleted), whose
  * data is wrong but no cheat (data errors, to be repaired) or that are worth a
@@ -90,6 +103,7 @@ const FairPlayPage = ({ all = false }) => {
     const [open, setOpen] = useState(() => new Set());
     const [reviewing, setReviewing] = useState(null);
     const [repairing, setRepairing] = useState(null);
+    const [restoring, setRestoring] = useState(null);
     // global admins: the clubs shown, none chosen means all
     const [clubFilter, setClubFilter] = useState([]);
 
@@ -159,9 +173,23 @@ const FairPlayPage = ({ all = false }) => {
             setBusy(null);
         }
     };
+    const restoreBirth = async (entry) => {
+        setRestoring(null);
+        setBusy(entry.id);
+        try {
+            await IntegrityService.restoreBirth(entry.id);
+            toast.current?.show({ severity: 'success', summary: 'Date of birth restored', detail: `${entry.players[0]?.nickname} has the earlier date again and is told.`, life: 4000 });
+            setData(current => ({ ...current, entries: current.entries.filter(item => item.id !== entry.id) }));
+            announceFairPlayChange();
+        } catch (error) {
+            fail('Not restored', error);
+        } finally {
+            setBusy(null);
+        }
+    };
     // every entry of the list shown (and the clubs chosen) at once
     const removeAll = async () => {
-        const items = entries.map(entry => ({ type: entry.type, id: entry.id }));
+        const items = entries.filter(entry => entry.type !== 'birth').map(entry => ({ type: entry.type, id: entry.id }));
         setBusy('all');
         try {
             await IntegrityService.removeMany(items);
@@ -191,6 +219,7 @@ const FairPlayPage = ({ all = false }) => {
             <Toast ref={toast} />
             <ReviewDialog review={reviewing} onCancel={() => setReviewing(null)} onSave={saveReview} />
             <RepairDialog entry={repairing} onCancel={() => setRepairing(null)} onRepair={repair} />
+            <RestoreDialog entry={restoring} onCancel={() => setRestoring(null)} onRestore={restoreBirth} />
             <Panel header={all ? 'Fair play · all clubs' : 'Fair play'}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     Games and trainings checked for what cannot be real or is far out of the ordinary. Open an entry with Details to see what was thrown.
@@ -221,7 +250,7 @@ const FairPlayPage = ({ all = false }) => {
                     : (
                         <ul className="fair-play-list list-unstyled m-0">
                             {entries.map(entry => {
-                                const viewable = entry.type !== 'training' && (!all || entry.club.id === activeClub?.id);
+                                const viewable = !['training', 'birth'].includes(entry.type) && (!all || entry.club.id === activeClub?.id);
                                 const expanded = open.has(entry.id);
                                 return (
                                     <li key={`${entry.type}-${entry.id}`} className={`fair-play-entry is-${entry.level}`}>
@@ -275,14 +304,16 @@ const FairPlayPage = ({ all = false }) => {
                                                 <Button type="button" label={entry.level === 'suspicious' ? 'Looks fine' : 'False alarm'} icon="pi pi-check" size="small" outlined disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'ok' })} />}
                                             {entry.level !== 'impossible' && entry.review?.status !== 'watch' &&
                                                 <Button type="button" label="Watch" icon="pi pi-eye" size="small" severity="secondary" disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'watch' })} />}
-                                            <DeletePopup
+                                            {entry.type === 'birth' &&
+                                                <Button type="button" label="Restore date" icon="pi pi-replay" size="small" disabled={busy === entry.id} onClick={() => setRestoring(entry)} />}
+                                            {entry.type !== 'birth' && <DeletePopup
                                                 data={entry}
                                                 header="Delete for fair play"
                                                 message={`this ${entry.type === 'training' ? 'training' : 'game'} (${entry.summary}) and the badges earned in it`}
                                                 handleDelete={() => remove(entry)}
                                                 label="Delete"
                                                 size="small"
-                                            />
+                                            />}
                                         </div>
                                     </li>
                                 );

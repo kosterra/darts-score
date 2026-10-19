@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 
@@ -66,11 +66,11 @@ const ClubMembership = ({ club, onSuccess, onError }) => {
 
     return (
         <div className="my-club-part">
-            <span className="text-subtle">
+            <span className="text-subtle fs-7">
                 You play as{' '}
                 <a href={`/players/${player.id}`} className="fw-semibold" onClick={showProfile} title="Your statistics and badges in this club">{player.nickname}</a>
             </span>
-            <Link to="/player-profile" className="fs-7 ms-auto">Edit your player profile</Link>
+            <Button type="button" label="Player profile" icon="pi pi-user-edit" size="small" severity="secondary" className="ms-auto" onClick={() => navigate('/player-profile')} />
         </div>
     );
 };

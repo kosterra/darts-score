@@ -40,6 +40,8 @@ export const THRESHOLDS = {
     cricketHighMarks: 5,
     // Elimination: points per visit
     eliminationHighVisit: 100,
+    // a player's own date of birth moved later by more than this many days
+    birthLaterDays: 31,
 };
 
 const DART = /^(?:[SDT](?:[1-9]|1\d|20)|[SD]25|0)$/;
@@ -403,4 +405,38 @@ export const x01Legs = (game) => {
             }),
         };
     });
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const dateText = (value) => {
+    const date = new Date(value);
+    return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+};
+const addYears = (value, years) => {
+    const date = new Date(value);
+    date.setFullYear(date.getFullYear() + years);
+    return date;
+};
+
+/**
+ * A player moved their own date of birth: later by more than a month makes
+ * them younger, and games they played as adults may then count as played as
+ * a child (left out of the Hall of Shame). minAge: the club's age limit;
+ * gameDates: when the player played in the club. Suspicious, with how many
+ * games changed sides.
+ */
+export const checkBirthChange = (change, { minAge = 16, gameDates = [] } = {}) => {
+    if (!change?.from || !change?.to) return [];
+    const from = new Date(change.from);
+    const to = new Date(change.to);
+    if (to - from <= THRESHOLDS.birthLaterDays * DAY_MS) return [];
+    // played from the old birthday of minAge on, but before the new one
+    const start = addYears(from, minAge);
+    const end = addYears(to, minAge);
+    const moved = gameDates.filter(value => new Date(value) >= start && new Date(value) < end).length;
+    const years = Math.round((to - from) / (365.25 * DAY_MS) * 10) / 10;
+    const effect = moved
+        ? `${moved} ${moved === 1 ? 'game' : 'games'} now count as played under ${minAge}`
+        : `no games played under ${minAge} because of it so far`;
+    return [finding('suspicious', 'birthLater', 'Made themselves younger', `date of birth moved from ${dateText(from)} to ${dateText(to)} (${years} ${years === 1 ? 'year' : 'years'} younger) by the player: ${effect}`)];
 };

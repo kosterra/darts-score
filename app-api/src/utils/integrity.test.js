@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages } from './integrity.js';
+import { checkBirthChange, checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages } from './integrity.js';
 
 const rules = (findings) => findings.map(item => `${item.level}:${item.rule}`);
 const v = (playerId, darts, roundScore, scoreLeft) => ({ playerId, darts, roundScore, scoreLeft });
@@ -141,5 +141,21 @@ describe('other games', () => {
             { level: 'suspicious', rule: 'nineDarter', detail: 'leg 2', playerId: 'a', places: [{ set: 1, leg: 2, visit: 8 }] },
         ]);
         expect(merged).toEqual([{ level: 'suspicious', rule: 'nineDarter', detail: '2× · leg 1', playerId: 'a', places: [{ set: 1, leg: 1, visit: 8 }, { set: 1, leg: 2, visit: 8 }] }]);
+    });
+});
+
+describe('own date of birth', () => {
+    it('flags a player who made themselves younger, with the games that changed sides', () => {
+        const change = { from: new Date(1990, 0, 1), to: new Date(1994, 0, 1) };
+        // turned 16 in 2006 by the old date, in 2010 by the new one: games of 2007 and 2009 change sides
+        const gameDates = [new Date(2005, 5, 1), new Date(2007, 5, 1), new Date(2009, 5, 1), new Date(2012, 5, 1)];
+        const [found] = checkBirthChange(change, { minAge: 16, gameDates });
+        expect(found).toMatchObject({ level: 'suspicious', rule: 'birthLater' });
+        expect(found.detail).toBe('date of birth moved from 01.01.1990 to 01.01.1994 (4 years younger) by the player: 2 games now count as played under 16');
+    });
+
+    it('lets small corrections and older dates through', () => {
+        expect(checkBirthChange({ from: new Date(1990, 0, 1), to: new Date(1990, 0, 20) })).toEqual([]);
+        expect(checkBirthChange({ from: new Date(1990, 0, 1), to: new Date(1985, 0, 1) })).toEqual([]);
     });
 });

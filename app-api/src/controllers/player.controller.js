@@ -224,6 +224,7 @@ export const update = async (req, res) => {
     player.firstname = player.user ? req.user.firstname : req.body.firstname;
     player.lastname = player.user ? req.user.lastname : req.body.lastname;
     player.nickname = req.body.nickname;
+    if (ownBirth) player.birthChanges.push({ from: player.dateOfBirth, to: birth, at: new Date() });
     if ((isAdmin || ownBirth) && birth) player.dateOfBirth = birth;
     if (req.file) player.profileImg = req.file.filename;
     else if (req.body.clearProfileImg === 'true') player.profileImg = '';

@@ -7,6 +7,7 @@ const CHANGELOG = [
         version: '2026.10.10',
         changes: [
             'Fair play tells cheats apart from wrong data: besides impossible and suspicious entries there are data errors, e.g. a score left that does not add up, which are no cheat. Details show what was thrown, with the visit at fault marked, what should have been left and what a repair would save. A data error of X01 is repaired from the darts when every leg still ends the same way.',
+            'Fair play also notices a player who made themselves younger: a date of birth moved later by the player is listed as suspicious, with how many games now count as played as a child. Restore date puts the earlier date back and tells the player.',
             'Every fair play entry can be marked as a false alarm, with the reason (needed for impossible ones); who marked it and why stays visible for the other admins.',
             'Notifications: players with a login and the club admins are told when an admin deletes or repairs one of their games or trainings for fair play, with the reason. The count of unread ones sits on your avatar in the menu; the notifications have their own page and are on your profile.',
             'A login lasts five hours (global admins set 1 to 24 hours under System settings). Ten minutes before the end a countdown asks whether to stay logged in; otherwise you are logged out, and logging in again brings you back to the page you were on, e.g. the game being played. Logins of older versions, which lasted 30 days, are shortened too.',

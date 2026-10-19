@@ -30,6 +30,9 @@ const remove = (type, id) => requestJSON(`${API_URL}/${type}/${id}`, { method: '
 // deletes several at once: [{ type, id }] → { deleted, skipped }
 const removeMany = (items) => requestJSON(`${API_URL}/delete`, { method: 'POST', body: { items } });
 
-const IntegrityService = { loadFindings, loadSummary, review, loadDetails, repair, remove, removeMany };
+// a player who made themselves younger: the earlier date of birth back
+const restoreBirth = (id) => requestJSON(`${API_URL}/birth/${id}/restore`, { method: 'POST' });
+
+const IntegrityService = { restoreBirth, loadFindings, loadSummary, review, loadDetails, repair, remove, removeMany };
 
 export default IntegrityService;

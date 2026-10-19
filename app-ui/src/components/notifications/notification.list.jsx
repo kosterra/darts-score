@@ -3,14 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { FaBell, FaScaleBalanced, FaWrench } from 'react-icons/fa6';
+import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft } from 'react-icons/fa6';
 
 import NotificationService, { announceNotificationsChange } from '../../services/notification.service';
 import { useAuth } from '../../utils/auth.context';
 
 dayjs.extend(relativeTime);
 
-const ICONS = { fairPlayDeleted: FaScaleBalanced, fairPlayRepaired: FaWrench };
+const ICONS = { fairPlayDeleted: FaScaleBalanced, fairPlayRepaired: FaWrench, fairPlayRestored: FaRotateLeft };
 
 /**
  * The notifications of the user, newest first; unread ones stand out until

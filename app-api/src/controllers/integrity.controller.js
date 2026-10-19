@@ -3,7 +3,7 @@ import db from '../models/db.model.js';
 import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
 import { syncPlayerBadges } from '../utils/badge.service.js';
 import {
-    LEVELS, THRESHOLDS, checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages, x01Legs,
+    LEVELS, THRESHOLDS, checkBirthChange, checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages, x01Legs,
 } from '../utils/integrity.js';
 import { fairPlayNotices } from '../utils/notices.js';
 
@@ -37,6 +37,71 @@ const describe = (type, doc) => {
     if (type === 'cricket') return `Cricket${doc.variant && doc.variant !== 'Standard' ? ` · ${doc.variant}` : ''}`;
     if (type === 'elimination') return `Elimination · ${doc.targetScore}`;
     return `Around the Clock · ${doc.mode}`;
+};
+
+const playerView = (player) => ({ id: String(player._id), nickname: player.nickname, firstname: player.firstname, lastname: player.lastname, profileImg: player.profileImg });
+
+// when the player played in the club: games and trainings
+const playedDates = async (playerId, clubId) => {
+    const id = String(playerId);
+    const lists = await Promise.all([
+        ...[db.x01, db.cricket, db.elimination, db.clock].map(model => model.find({ club: clubId, players: id }, 'createdAt').lean()),
+        db.atc.find({ club: clubId, 'player.id': id }, 'createdAt').lean(),
+    ]);
+    return lists.flat().map(doc => doc.createdAt);
+};
+
+/**
+ * Players who made themselves younger, as entries of the list: one per change
+ * not put back yet, in the club asked for (or, across all clubs, the first of
+ * the player's clubs).
+ */
+const birthChangeEntries = async (where, reviews) => {
+    const players = await db.player.find({ 'birthChanges.0': { $exists: true }, ...(where.club ? { clubs: where.club } : {}) }).lean();
+    if (!players.length) return [];
+    const clubIds = [...new Set(players.map(player => String(where.club ?? player.clubs?.[0])).filter(Boolean))];
+    const clubs = await db.club.find({ _id: { $in: clubIds } }, 'name logo shameMinAge').lean();
+    const clubById = new Map(clubs.map(club => [String(club._id), club]));
+    const reviewOf = new Map(reviews.filter(review => review.sourceType === 'birth').map(review => [review.sourceId, review]));
+    const entries = [];
+    for (const player of players) {
+        const club = clubById.get(String(where.club ?? player.clubs?.[0]));
+        if (!club) continue;
+        for (const change of player.birthChanges.filter(item => !item.restoredAt)) {
+            const findings = checkBirthChange(change, { minAge: club.shameMinAge ?? 16, gameDates: await playedDates(player._id, club._id) });
+            if (!findings.length) continue;
+            const review = reviewOf.get(String(change._id));
+            entries.push({
+                type: 'birth',
+                id: String(change._id),
+                club: { id: String(club._id), name: club.name, logo: club.logo ?? '' },
+                at: change.at,
+                summary: 'Date of birth changed by the player',
+                players: [playerView(player)],
+                level: levelOf(findings),
+                findings: findings.map(item => ({ ...item, playerId: String(player._id) })),
+                review: review ? { status: review.status, reason: review.reason ?? '', byName: review.byName, at: review.updatedAt } : null,
+            });
+        }
+    }
+    return entries;
+};
+
+// a date of birth change, if the user may manage one of the player's clubs: { player, change, club } or a response sent
+const loadBirthChange = async (req, res) => {
+    const player = db.mongoose.isValidObjectId(req.params.id) ? await db.player.findOne({ 'birthChanges._id': req.params.id }) : null;
+    const change = player?.birthChanges.id(req.params.id);
+    if (!change) {
+        res.status(404).json({ message: 'Not found.' });
+        return {};
+    }
+    const clubs = await db.club.find({ _id: { $in: player.clubs } });
+    const club = isGlobalAdmin(req.user) ? clubs[0] : clubs.find(item => canManageClub(req.user, item));
+    if (!club) {
+        res.status(403).json({ message: 'Only admins of the player\'s club can do this.' });
+        return {};
+    }
+    return { player, change, club };
 };
 
 /**
@@ -74,6 +139,8 @@ const collectEntries = async (where) => {
         earlier.set(key, [...history, entry]);
     }
 
+    const birthEntries = await birthChangeEntries(where, reviews);
+
     const playerIds = [...new Set(found.flatMap(({ type, doc }) => playersOf(type, doc)))].filter(id => db.mongoose.isValidObjectId(id));
     const clubIds = [...new Set(found.map(({ doc }) => String(doc.club)))].filter(id => db.mongoose.isValidObjectId(id));
     const [players, clubs] = await Promise.all([
@@ -101,8 +168,8 @@ const collectEntries = async (where) => {
             review: review ? { status: review.status, reason: review.reason ?? '', byName: review.byName, at: review.updatedAt } : null,
             ...repairOf(type, doc, findings),
         };
-    }).sort((a, b) => LEVELS[b.level] - LEVELS[a.level] || new Date(b.at) - new Date(a.at));
-    return entries;
+    });
+    return [...entries, ...birthEntries].sort((a, b) => LEVELS[b.level] - LEVELS[a.level] || new Date(b.at) - new Date(a.at));
 };
 
 // a data error of X01 can be repaired when every leg still ends the same way: { repairable, repairReason }
@@ -198,9 +265,16 @@ const loadManaged = async (req, res) => {
  * cheat, e.g. a false alarm), { status: 'watch', reason } kept on the watch list.
  */
 export const review = async (req, res) => {
-    const [doc] = await loadManaged(req, res);
-    if (!doc) return;
     const { type, id } = req.params;
+    let doc;
+    if (type === 'birth') {
+        const { club } = await loadBirthChange(req, res);
+        if (!club) return;
+        doc = { club: club._id };
+    } else {
+        [doc] = await loadManaged(req, res);
+        if (!doc) return;
+    }
     const reason = String(req.body.reason ?? '').trim();
     const saved = await db.integrityReview.findOneAndUpdate(
         { sourceType: type, sourceId: id },
@@ -218,9 +292,25 @@ export const review = async (req, res) => {
  * { visits }; Around the Clock and trainings: { facts }.
  */
 export const details = async (req, res) => {
+    const { type } = req.params;
+    if (type === 'birth') {
+        const { player, change, club } = await loadBirthChange(req, res);
+        if (!player) return;
+        const findings = checkBirthChange(change, { minAge: club.shameMinAge ?? 16, gameDates: await playedDates(player._id, club._id) });
+        const day = (value) => new Date(value).toISOString();
+        return res.json({
+            type,
+            findings,
+            facts: [
+                ['Before', day(change.from)],
+                ['Changed to', day(change.to)],
+                ['Changed on', day(change.at)],
+                ['Age limit of the club', `${club.shameMinAge ?? 16} years`],
+            ],
+        });
+    }
     const [doc] = await loadManaged(req, res);
     if (!doc) return;
-    const { type } = req.params;
     const plain = doc.toObject();
     const findings = compact(CHECKS[type](plain));
     const result = { type, findings, ...repairOf(type, plain, findings) };
@@ -250,6 +340,34 @@ export const details = async (req, res) => {
         result.facts.unshift(['Mode', `${plain.mode}${plain.skipAhead ? ', skipping ahead' : ''}`]);
     }
     res.json(result);
+};
+
+/**
+ * Puts back the date of birth a player had before they made themselves
+ * younger, and tells them.
+ */
+export const restoreBirth = async (req, res) => {
+    const { player, change, club } = await loadBirthChange(req, res);
+    if (!player) return;
+    player.dateOfBirth = change.from;
+    change.restoredAt = new Date();
+    await player.save();
+    await db.integrityReview.deleteMany({ sourceType: 'birth', sourceId: String(change._id) });
+    if (player.user && String(player.user) !== String(req.user._id)) {
+        const day = (value) => new Date(value).toLocaleDateString('de-CH');
+        await db.notification.create({
+            user: player.user,
+            kind: 'fairPlayRestored',
+            title: 'Your date of birth was set back',
+            body: `In ${club.name} your date of birth went back from ${day(change.to)} to ${day(change.from)}: a later date would have counted games you played as an adult as played as a child. Your club admins can correct it if it is wrong.`,
+            link: '/player-profile',
+            club: club._id,
+            by: req.user._id,
+            byName: nameOf(req.user),
+        }).catch(err => logger.error(err, 'Failed to send the notification'));
+    }
+    logger.warn(`${req.user.email} put back the date of birth of player "${player.nickname}" for fair play`);
+    res.json({ restored: true });
 };
 
 /**

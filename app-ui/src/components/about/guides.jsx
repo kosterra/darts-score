@@ -152,7 +152,7 @@ export const ADMIN_GUIDE = [
                 <ul>
                     <li><strong>Impossible:</strong> data that cannot come from darts thrown at a board, e.g. Around the Clock in a few seconds or a dart that is not on the board. Delete it, with the badges earned in it, or mark it as a false alarm with the reason.</li>
                     <li><strong>Data errors:</strong> wrong but no cheat, e.g. a score left that does not add up. Repair rebuilds the scores left of an X01 game from its darts when every leg still ends the same way.</li>
-                    <li><strong>Suspicious:</strong> possible but worth a look, e.g. a world-class time or an opponent who never threw. Mark it as fine or keep it on the watch list.</li>
+                    <li><strong>Suspicious:</strong> possible but worth a look, e.g. a world-class time, an opponent who never threw, or a player who moved their own date of birth later. Mark it as fine or keep it on the watch list; a date of birth can be restored.</li>
                     <li>Details show what was thrown, with the visit at fault marked, before you decide. The players with a login and the other admins are told when a game is deleted or repaired.</li>
                 </ul>
             </>

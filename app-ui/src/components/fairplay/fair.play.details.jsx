@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
 
 import IntegrityService from '../../services/integrity.service';
 import { LEVELS } from './fair.play.lists';
@@ -119,7 +120,7 @@ const FairPlayDetails = ({ entry }) => {
                     {details.facts.map(([label, value]) => (
                         <div key={label}>
                             <dt>{entry.players.some(player => player.id === label) ? nameOf(label) : label}</dt>
-                            <dd>{label === 'Saved' ? new Date(value).toLocaleString() : value}</dd>
+                            <dd>{/^\d{4}-\d{2}-\d{2}T/.test(value) ? dayjs(value).format(label === 'Saved' ? 'DD.MM.YYYY HH:mm' : 'DD.MM.YYYY') : value}</dd>
                         </div>
                     ))}
                 </dl>
