@@ -64,7 +64,12 @@ const MeWidget = ({ widget }) => {
                                 <dt>X01 average</dt>
                                 <dd>
                                     {average > 0 ? average.toFixed(1) : '–'}
-                                    {averageLevel && <span className="fs-8 fw-semibold ms-2" style={{ color: averageLevel.color }}>{averageLevel.name}</span>}
+                                    {averageLevel &&
+                                        <span className="me-widget-average-level" style={{ color: averageLevel.color }}>
+                                            <averageLevel.icon aria-hidden="true" />
+                                            {averageLevel.name}
+                                        </span>
+                                    }
                                 </dd>
                             </div>
                             <div>
@@ -79,7 +84,7 @@ const MeWidget = ({ widget }) => {
                                 <div className="me-widget-wide">
                                     <dt>Next level</dt>
                                     <dd className="fw-normal fs-8 text-subtle">
-                                        {level.next.name}{level.next.missing?.length > 0 && ` – needs ${level.next.missing.map(entry => entry.label).join(' and ')}`}
+                                        {level.next.name}{level.next.missing?.length > 0 && ` – needs ${level.next.missing.map(entry => entry.id === 'xp' && level.next.xp ? `${formatNumber(level.next.xp - level.xp)} more XP` : entry.label).join(' and ')}`}
                                     </dd>
                                 </div>
                             }

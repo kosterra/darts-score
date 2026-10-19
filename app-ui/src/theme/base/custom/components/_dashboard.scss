@@ -679,3 +679,15 @@ $momentGoldColor: #ffc94d;
 
   .me-widget-wide { grid-column: 1 / -1; }
 }
+
+// the level of the average: its icon and name in its colour
+.me-widget-average-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  svg { width: 0.85rem; height: 0.85rem; }
+}
