@@ -6,6 +6,7 @@ const CHANGELOG = [
     {
         version: '2026.10.10',
         changes: [
+            'X01 against the bot (Training → X01 against the bot): a training that plays like a game against a bot as strong as you, worked out from your statistics (your recent form or your X01 average, and your checkout rate), or a bit easier or harder. It aims like a player, takes the way out and misses like one; its darts appear one by one while you wait. Trainings count for no game statistics, badges or levels; the last ones are listed with their result and both averages.',
             'Fair play tells cheats apart from wrong data: besides impossible and suspicious entries there are data errors, e.g. a score left that does not add up, which are no cheat. Details show what was thrown, with the visit at fault marked, what should have been left and what a repair would save. A data error of X01 is repaired from the darts when every leg still ends the same way.',
             'Fair play also notices a player who made themselves younger: a date of birth moved later by the player is listed as suspicious, with how many games now count as played as a child. Restore date puts the earlier date back and tells the player.',
             'Every fair play entry can be marked as a false alarm, with the reason (needed for impossible ones); who marked it and why stays visible for the other admins.',

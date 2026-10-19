@@ -25,6 +25,7 @@ const ClockGamePage = lazy(() => import('./components/games/clock/_clock.game.pa
 const ClockGameStats = lazy(() => import('./components/stats/clock/clock.game.stats'));
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
+const X01BotPage = lazy(() => import('./components/training/x01.bot.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
 const PlayerProfilePage = lazy(() => import('./components/players/_player.profile.page'));
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
@@ -144,6 +145,9 @@ function AppContent() {
                     <Route path="/stats/games/clock/:id" element={<ClockGameStats />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/training/atc" element={<TrainingPage />} />
+                    <Route path="/training/x01" element={<X01BotPage />} />
+                    <Route path="/training/x01/:id" element={<X01GamePage training />} />
+                    <Route path="/stats/training/x01/:id" element={<X01GameStats training />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/badges" element={<BadgesPage />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />

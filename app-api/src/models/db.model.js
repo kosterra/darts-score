@@ -20,6 +20,7 @@ const db = {
   url: dbConfig.url,
   player: playerModel(mongoose),
   x01: x01Model(mongoose),
+  x01Training: x01Model(mongoose, 'x01training'),
   cricket: cricketModel(mongoose),
   elimination: eliminationModel(mongoose),
   clock: clockModel(mongoose),

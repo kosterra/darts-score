@@ -113,6 +113,7 @@ export const remove = async (req, res) => {
         db.elimination.deleteMany({ club: club._id }),
         db.clock.deleteMany({ club: club._id }),
         db.atc.deleteMany({ club: club._id }),
+        db.x01Training.deleteMany({ club: club._id }),
     ]);
     await club.deleteOne();
     removeClubLogoFile(club.logo);

@@ -14,16 +14,16 @@ import X01ScoreInputBoard from './x01.score.input.board';
 import PageLoader from '../../elements/page.loader';
 
 const X01Game = () => {
-    const { game, players, loading, celebrating } = useContext(X01Context);
+    const { game, players, loading, celebrating, training } = useContext(X01Context);
     const navigate = useNavigate();
     const [more, setMore] = useState(false);
 
     // a moment of the winning visit (e.g. the big fish) plays to its end first
     useEffect(() => {
         if (game?.hasWinner && !celebrating) {
-            navigate(`/stats/games/x01/${game.id}`, { replace: true, state: { justFinished: true } });
+            navigate(`/stats/${training ? 'training' : 'games'}/x01/${game.id}`, { replace: true, state: { justFinished: true } });
         }
-    }, [game?.hasWinner, game?.id, celebrating, navigate]);
+    }, [game?.hasWinner, game?.id, celebrating, navigate, training]);
 
     if (loading?.initGameLoading) {
         return <PageLoader />;

@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -141,7 +141,14 @@ const useSections = () => {
                 { label: 'Around the Clock', icon: PiClockClockwiseBold, to: '/clock', end: true },
             ],
         },
-        { title: 'Training', visible: hasClub, items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
+        {
+            title: 'Training',
+            visible: hasClub,
+            items: [
+                { label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' },
+                { label: 'X01 against the bot', icon: FaRobot, to: '/training/x01' },
+            ],
+        },
         // for global admins, across all clubs: who uses the app, what was played, what needs watching, and the installation
         {
             title: 'Admin · Accounts',

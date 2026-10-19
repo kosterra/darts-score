@@ -918,3 +918,28 @@
 @media (prefers-reduced-motion: reduce) {
   .x01-ton-pop, .result-hero-score.is-bust, .x01-dart-for.is-match { animation: none; }
 }
+
+// a training: while the bot throws, the board and the input wait (its darts still show)
+.x01-play.is-bot-turn {
+  .x01-board-plain,
+  .x01-input .x01-darts,
+  .x01-input .x01-visit-actions {
+    pointer-events: none;
+  }
+
+  .x01-board-plain { opacity: 0.75; }
+}
+
+.x01-bot-turn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: $borderRadius;
+  background: rgba($primaryColor, 0.18);
+  color: var(--text-default);
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  svg { color: $primaryColor; }
+}

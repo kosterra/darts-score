@@ -12,6 +12,8 @@ import StatsService from '../../../services/stats.service';
 import PlayerService from '../../../services/player.service';
 import X01Models from '../../../models/x01.models';
 import X01Service from '../../../services/x01.service';
+import X01TrainingService from '../../../services/x01.training.service';
+import { BOT_ID, botPlayer } from '../../../utils/x01.bot';
 import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import GameResultHeader from '../common/game.result.header';
 import MatchMoments from '../common/match.moments';
@@ -53,7 +55,9 @@ const GAME_COLOR = '#7ecca5';
  * by side for the game or a set, and the charts grouped by scoring, finishing
  * and the board.
  */
-const X01GameStats = () => {
+const X01GameStats = ({ training = false }) => {
+    // a training against the bot: its own service, the bot made up, no badges
+    const Service = training ? X01TrainingService : X01Service;
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -73,14 +77,15 @@ const X01GameStats = () => {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const gameData = await X01Service.loadX01GameById(id);
+                const gameData = await Service.loadX01GameById(id);
                 if (!gameData) return;
 
-                const playerData = (await PlayerService.findPlayersByIds(gameData.players))
+                const people = gameData.players.filter(playerId => playerId !== BOT_ID);
+                const playerData = [...(await PlayerService.findPlayersByIds(people)), ...(gameData.players.includes(BOT_ID) ? [botPlayer(gameData.bot)] : [])]
                     .filter(p => gameData.players.includes(p.id))
                     .sort((a, b) => gameData.players.indexOf(a.id) - gameData.players.indexOf(b.id));
 
-                const statsData = await StatsService.loadX01GameStats(gameData.id);
+                const statsData = training ? await X01TrainingService.loadX01GameStats(gameData.id) : await StatsService.loadX01GameStats(gameData.id);
 
                 setGame(gameData);
                 setPlayers(playerData);
@@ -91,6 +96,7 @@ const X01GameStats = () => {
         };
 
         loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const legs = useMemo(() => game ? legsOf(game) : [], [game]);
@@ -99,7 +105,7 @@ const X01GameStats = () => {
         : {}, [game, players, legs]);
     const moments = useMemo(() => game ? matchMoments(game, legs) : [], [game, legs]);
 
-    const onNewGame = () => navigate("/x01", { replace: true });
+    const onNewGame = () => navigate(training ? '/training/x01' : '/x01', { replace: true });
     const onFinishGame = () => navigate("/", { replace: true });
 
     const onRestartGame = async (switchPlayers = false, shufflePlayers = false) => {
@@ -137,8 +143,11 @@ const X01GameStats = () => {
             return acc;
         }, {});
 
-        const newGame = await X01Service.createX01Game(newMatchSetup);
-        navigate(`/x01/${newGame.id}`);
+        // a training again: against the same bot
+        const newGame = training
+            ? await X01TrainingService.createX01Game({ ...newMatchSetup, bot: game.bot })
+            : await X01Service.createX01Game(newMatchSetup);
+        navigate(training ? `/training/x01/${newGame.id}` : `/x01/${newGame.id}`);
     };
 
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
@@ -188,14 +197,17 @@ const X01GameStats = () => {
                     actions={actions}
                 />
 
-                <GameBadges
-                    gameType="x01"
-                    gameId={game.id}
-                    players={players}
-                    winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
-                    celebrate={justFinished && game.hasWinner}
-                    className="mb-4"
-                />
+                {/* trainings earn no badges */}
+                {!training &&
+                    <GameBadges
+                        gameType="x01"
+                        gameId={game.id}
+                        players={players}
+                        winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
+                        celebrate={justFinished && game.hasWinner}
+                        className="mb-4"
+                    />
+                }
 
                 <MatchMoments moments={moments} players={players} color={GAME_COLOR} />
 

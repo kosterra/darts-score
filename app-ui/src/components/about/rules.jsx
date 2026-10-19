@@ -57,6 +57,7 @@ const RULES = [
                     <ul className="m-0">
                         <li>The player who starts moves on by one every leg, and every set, so nobody always has the first throw.</li>
                         <li>Whoever wins the needed number of legs (or sets) wins the game. The tips show the way out from 170 down, with the player&apos;s favourite double first.</li>
+                        <li>To practise alone, play X01 against the bot under Training: the same rules against a bot as strong as you.</li>
                     </ul>
                 </Part>
             </>
