@@ -49,7 +49,7 @@ export const checkoutProfile = (games, playerId, preferences = {}) => {
         .filter(entry => entry.total >= MIN_DARTS_PER_DOUBLE && entry.hit > 0)
         .map(entry => ({ ...entry, rate: Math.round(entry.hit / entry.total * 1000) / 10, score: (entry.hit + 1) / (entry.total + 4) }))
         .sort((a, b) => b.score - a.score || b.total - a.total)
-        .map(({ score, ...entry }) => entry);
+        .map(({ score: _score, ...entry }) => entry);
     const learned = doubleDarts >= MIN_DOUBLE_DARTS ? doubles.map(entry => entry.double) : [];
 
     const setDouble = DOUBLES.includes(preferences.favouriteDouble) ? preferences.favouriteDouble : null;
