@@ -168,6 +168,14 @@ $dartboard-opacity: 0.4;
     animation: board-dart-fly 0.32s linear both, board-dart-wobble 0.4s ease-out 0.32s;
   }
 
+  // the dart follows its arc: tilted back and seen more from the side while it
+  // rises, its shaft tilting down into the board as it drops
+  .dart-tilt {
+    transform-box: view-box;
+    transform-origin: 0 0;
+    animation: board-dart-tilt 0.32s linear both;
+  }
+
   .has-dart .dart-hit { animation: board-dart-hit 0.12s ease-out 0.3s both; }
 
   .dart-point { stroke: #e9eef2; stroke-width: 1.3; stroke-linecap: round; }
@@ -187,6 +195,12 @@ $dartboard-opacity: 0.4;
   100% { transform: translate(0, 0) scale(1); opacity: 1; }
 }
 
+@keyframes board-dart-tilt {
+  0% { transform: rotate(-55deg) scaleY(2.2); animation-timing-function: ease-out; }
+  40% { transform: rotate(-32deg) scaleY(1.7); animation-timing-function: ease-in; }
+  100% { transform: rotate(0deg) scaleY(1); }
+}
+
 @keyframes board-dart-wobble {
   0% { transform: rotate(0deg); }
   30% { transform: rotate(3deg); }
@@ -200,5 +214,6 @@ $dartboard-opacity: 0.4;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dartboard-img .dart-fly { animation: none; }
+  .dartboard-img .dart-fly,
+  .dartboard-img .dart-tilt { animation: none; }
 }

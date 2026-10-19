@@ -578,7 +578,8 @@ const DartBoard = (props) => {
                             {marker === last && <circle className="dart-marker-pulse" r="5" />}
                             <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
                         </g>
-                        {withDarts && <g className="dart-fly"><Dart color={flightColor} /></g>}
+                        {/* the flight, and the dart turning with it round its tip */}
+                        {withDarts && <g className="dart-fly"><g className="dart-tilt"><Dart color={flightColor} /></g></g>}
                     </g>
                 ))}
             </g>
