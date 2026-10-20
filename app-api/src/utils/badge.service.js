@@ -13,7 +13,7 @@ export const GAME_MODELS = {
 /**
  * Everything a player finished, in all their clubs, as events for the badge replay.
  */
-const loadPlayerEvents = async (player) => {
+export const loadPlayerEvents = async (player) => {
     const playerId = String(player._id);
     const [gamesByType, trainings] = await Promise.all([
         Promise.all(Object.entries(GAME_MODELS).map(async ([type, model]) => ({

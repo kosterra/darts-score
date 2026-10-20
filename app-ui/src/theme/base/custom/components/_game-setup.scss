@@ -345,3 +345,134 @@
     box-shadow: 0 0 0 2px $primaryColor;
   }
 }
+
+// a flight drawn flat: its edge stays thin however it is scaled
+.flight-outline {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.5);
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+// the legendary holographic design shimmers through the colours
+.flight-holo { animation: flight-holo 6s linear infinite; }
+
+@keyframes flight-holo {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight-holo { animation: none; }
+}
+
+// the flight points, with how they are earned
+.flight-points {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.flight-points-balance {
+  color: #e9ac2f;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.flight-points-rules {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+
+  > div { display: contents; }
+  dt { color: var(--text-subtle); font-weight: 600; }
+  dd { margin: 0; color: var(--text-default); }
+}
+
+// the flights to choose from: tiles, framed in the colour of their rarity
+.flight-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+  gap: 0.6rem;
+}
+
+.flight-tile {
+  --rarity: rgba(255, 255, 255, 0.14);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0.4rem 0.5rem;
+  border: 1px solid var(--rarity);
+  border-radius: $borderRadius;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--text-default);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+
+  &.is-common { --rarity: rgba(124, 198, 160, 0.55); }
+  &.is-rare { --rarity: rgba(122, 170, 230, 0.7); }
+  &.is-epic { --rarity: rgba(177, 138, 224, 0.75); }
+  &.is-legendary {
+    --rarity: rgba(233, 172, 47, 0.85);
+    box-shadow: inset 0 0 1.2rem rgba(233, 172, 47, 0.12);
+  }
+
+  &:hover { background: rgba(255, 255, 255, 0.06); }
+  &:focus-visible { outline: 2px solid $primaryColor; outline-offset: 2px; }
+
+  &.is-selected {
+    border-color: $primaryColor;
+    box-shadow: 0 0 0 2px $primaryColor;
+    background: rgba($primaryColor, 0.14);
+  }
+
+  // to unlock: the price stands out; locked: greyed with a lock
+  &.is-available .flight-tile-status { color: #e9ac2f; font-weight: 600; }
+
+  &.is-expensive,
+  &.is-locked {
+    cursor: default;
+
+    .flight-picture { filter: grayscale(0.85) brightness(0.55); }
+    &:hover { background: rgba(0, 0, 0, 0.18); }
+  }
+
+  .flight-picture { width: 4.2rem; height: 5.1rem; }
+}
+
+.flight-tile-lock {
+  position: absolute;
+  top: 1.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text-default);
+  font-size: 1.1rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+.flight-tile-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.flight-tile-status {
+  color: var(--text-faint);
+  font-size: 0.68rem;
+  text-align: center;
+  line-height: 1.25;
+}
+
+// three tiles a row on a phone
+@media (max-width: 575.98px) {
+  .flight-gallery { grid-template-columns: repeat(auto-fill, minmax(4.9rem, 1fr)); gap: 0.45rem; }
+  .flight-tile .flight-picture { width: 3.4rem; height: 4.1rem; }
+  .flight-tile-lock { top: 1.6rem; }
+}

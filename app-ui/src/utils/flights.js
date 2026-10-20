@@ -2,8 +2,9 @@ import { PLAYER_COLORS } from '../components/stats/charts/chart.theme';
 
 /**
  * How a player's darts look when they fly onto the board to tap, as they
- * set it on their profile; the API accepts the same choices
- * (app-api utils/flights.js).
+ * set it on their profile: the colour here, the shapes and designs with
+ * what they cost from the API (app-api utils/flights.js), drawn by
+ * components/flights/flight.art.
  */
 export const FLIGHT_COLORS = [
     { value: '#e5484d', label: 'Red' },
@@ -18,21 +19,7 @@ export const FLIGHT_COLORS = [
     { value: '#2b2f36', label: 'Black' },
 ];
 
-export const FLIGHT_SHAPES = [
-    { value: 'standard', label: 'Standard' },
-    { value: 'slim', label: 'Slim' },
-    { value: 'kite', label: 'Kite' },
-    { value: 'pear', label: 'Pear' },
-];
-
-export const FLIGHT_PATTERNS = [
-    { value: 'plain', label: 'Plain' },
-    { value: 'twoTone', label: 'Two-tone' },
-    { value: 'tipped', label: 'Tipped' },
-    { value: 'striped', label: 'Striped' },
-];
-
-// the second colour of a pattern: dark on light flights, light on dark ones
+// the second colour of a design: dark on light flights, light on dark ones
 export const secondColorOf = (color) => {
     const hex = color.replace('#', '');
     const [r, g, b] = [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16));
@@ -40,16 +27,17 @@ export const secondColorOf = (color) => {
 };
 
 /**
- * The flights of a player in a game: { color, pattern, shape }. seat: their place
- * in the game, whose colour "auto" takes.
+ * The flights of a player in a game: { color, shape, design }. seat: their
+ * place in the game, whose colour "auto" takes. An id the drawings do not
+ * know is drawn as the standard shape or the plain design.
  */
 export const flightOf = (player, seat = 0) => {
     const preferences = player?.preferences ?? {};
     const own = FLIGHT_COLORS.some(color => color.value === preferences.flightColor);
     return {
         color: own ? preferences.flightColor : PLAYER_COLORS[Math.max(0, seat) % PLAYER_COLORS.length],
-        pattern: FLIGHT_PATTERNS.some(pattern => pattern.value === preferences.flightPattern) ? preferences.flightPattern : 'plain',
-        shape: FLIGHT_SHAPES.some(shape => shape.value === preferences.flightShape) ? preferences.flightShape : 'standard',
+        shape: preferences.flightShape || 'standard',
+        design: preferences.flightPattern || 'plain',
     };
 };
 

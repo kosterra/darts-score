@@ -403,7 +403,7 @@ const FLIGHT_MS = 320;
  * darts to show on the board, the last one pulsing: { x, y, dart }. withDarts:
  * a dart flies to each of them and sticks, and the field lights up when it
  * lands (also for darts that were not tapped, e.g. the bot's), with the
- * flight { color, pattern, shape }. Without it the field lights up at once.
+ * flight { color, shape, design }. Without it the field lights up at once.
  *
  * The field hit lights up and the phone vibrates briefly. With a finger, a
  * magnifier above it shows the field underneath while it is held; the dart is
@@ -560,7 +560,7 @@ const DartBoard = (props) => {
                             <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
                         </g>
                         {/* the flight, and the dart turning with it round its tip */}
-                        {withDarts && <g className="dart-fly"><g className="dart-tilt"><Dart color={flight.color} pattern={flight.pattern} shape={flight.shape} /></g></g>}
+                        {withDarts && <g className="dart-fly"><g className="dart-tilt"><Dart color={flight.color} shape={flight.shape} design={flight.design} /></g></g>}
                     </g>
                 ))}
             </g>

@@ -1,3 +1,5 @@
+import { loadFlightStanding } from '../utils/flight.service.js';
+import { mayUse, unlockCheck } from '../utils/flights.js';
 import logger from '../models/logger.model.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
@@ -406,6 +408,14 @@ export const setPreferences = async (req, res) => {
         return res.status(403).send({ message: 'Only club admins can change this for other players.' });
     }
 
+    // a flight shape or design is flown once the player has it
+    const wanted = [['shape', req.body.flightShape], ['design', req.body.flightPattern]].filter(([, id]) => id);
+    if (wanted.length) {
+        const standing = await loadFlightStanding(player);
+        const missing = wanted.find(([kind, id]) => !mayUse(standing, kind, id));
+        if (missing) return res.status(403).send({ message: 'Unlock this flight first.' });
+    }
+
     const current = player.preferences ?? {};
     player.preferences = {
         favouriteDouble: req.body.favouriteDouble ?? current.favouriteDouble ?? 'auto',
@@ -417,6 +427,46 @@ export const setPreferences = async (req, res) => {
     };
     await player.save();
     res.send(player.toJSON());
+};
+
+/**
+ * Where a player stands with the flights: their flight points and every
+ * shape and design, owned, to unlock or still locked.
+ */
+export const flights = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    try {
+        res.send(await loadFlightStanding(player));
+    } catch (err) {
+        logger.error(err, `Failed to work out the flights of player ${player._id}`);
+        res.status(500).send({ message: 'The flights could not be loaded.' });
+    }
+};
+
+/**
+ * Unlocks a flight shape or design with the player's flight points:
+ * { kind: 'shape' | 'design', id }. The player themselves, or a club admin
+ * for a player without a login. Answers with the new standing.
+ */
+export const unlockFlight = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+        return res.status(403).send({ message: 'Only the player can unlock their flights.' });
+    }
+    try {
+        const check = unlockCheck(await loadFlightStanding(player), req.body.kind, req.body.id);
+        if (!check.ok) return res.status(409).send({ message: check.reason });
+        player.flights = { unlocked: [...(player.flights?.unlocked ?? []), check.key] };
+        await player.save();
+        logger.info(`${player.nickname} unlocked the flight ${check.key}`);
+        res.send(await loadFlightStanding(player));
+    } catch (err) {
+        logger.error(err, `Failed to unlock a flight of player ${player._id}`);
+        res.status(500).send({ message: 'The flight could not be unlocked.' });
+    }
 };
 
 /**

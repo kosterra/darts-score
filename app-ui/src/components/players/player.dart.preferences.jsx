@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { SelectButton } from 'primereact/selectbutton';
+import { useEffect, useState } from 'react';
+import { Button } from 'primereact/button';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
 import PlayerService from '../../services/player.service';
 import DartSide from './dart.side';
 import SettingSwitch from '../elements/setting.switch';
-import { FLIGHT_COLORS, FLIGHT_PATTERNS, FLIGHT_SHAPES, flightOf } from '../../utils/flights';
+import FlightGallery from '../flights/flight.gallery';
+import { FLIGHT_COLORS, flightOf } from '../../utils/flights';
 import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 
 const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard' };
@@ -12,18 +14,32 @@ const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain
 /**
  * How a player's darts look on the board of X01, Cricket and Elimination,
  * in the boxes of the game setup: the dart animation (a game can switch it
- * on or off for everyone), and the colour, shape and pattern of the flights, with a
- * dart turning slowly to see them. A change is saved right away.
+ * on or off for everyone), and the flights: a dart turning slowly, the
+ * colour, and the shapes and designs as tiles. The player's flight points,
+ * earned by playing and training, unlock more of them. A change is saved
+ * right away.
  *
  * player: { id, preferences }
  * clubId: the club the player is edited in
  */
 const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
     const [preferences, setPreferences] = useState({ ...DEFAULTS, ...player.preferences });
+    // the flight points and what is owned, to unlock or locked
+    const [standing, setStanding] = useState(null);
+    const [standingFailed, setStandingFailed] = useState(false);
+    const [showRules, setShowRules] = useState(false);
+
+    useEffect(() => {
+        let current = true;
+        PlayerService.loadFlights(player.id, clubId)
+            .then(loaded => { if (current) setStanding(loaded); })
+            .catch(() => { if (current) setStandingFailed(true); });
+        return () => { current = false; };
+    }, [player.id, clubId]);
 
     const save = async (change) => {
         const before = preferences;
-        setPreferences({ ...preferences, ...change });
+        setPreferences(current => ({ ...current, ...change }));
         try {
             onSaved?.(await PlayerService.setPreferences(player.id, change, clubId));
         } catch (error) {
@@ -32,18 +48,37 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
         }
     };
 
+    const preferenceOf = (kind) => kind === 'shape' ? 'flightShape' : 'flightPattern';
+    const unlock = (item) => confirmDialog({
+        header: `Unlock ${item.label}`,
+        message: `Unlock the ${item.kind} ${item.label} for ${item.cost} flight points? You have ${standing.points.balance}.`,
+        acceptLabel: 'Unlock',
+        rejectLabel: 'Cancel',
+        acceptClassName: 'p-button-sm',
+        rejectClassName: 'p-button-secondary p-button-sm',
+        accept: async () => {
+            try {
+                setStanding(await PlayerService.unlockFlight(player.id, item.kind, item.id, clubId));
+                await save({ [preferenceOf(item.kind)]: item.id });
+            } catch (error) {
+                onError?.(error);
+            }
+        },
+    });
+
     const flight = flightOf({ preferences });
-    const animated = preferences.flyingDarts !== false;
+    const design = standing?.designs.find(item => item.id === flight.design);
+    const owned = (items) => items.filter(item => item.state === 'owned').length;
 
     return (
         <>
             <SettingSwitch
                 id={`player-dart-animation-${player.id}`}
                 title="Dart animation"
-                hint={animated
+                hint={preferences.flyingDarts !== false
                     ? 'A dart flies to the field you tap and sticks in the board. A game can switch it off for everyone.'
                     : 'The field you tap just lights up. A game can switch the animation on for everyone.'}
-                checked={animated}
+                checked={preferences.flyingDarts !== false}
                 onChange={(value) => save({ flyingDarts: value })}
             />
 
@@ -52,8 +87,35 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                 <div className="row mx-0 mt-0 setting-body">
                     <div className="col d-flex flex-column gap-3">
                         <div className="player-flight-preview">
-                            <DartSide color={flight.color} pattern={flight.pattern} shape={flight.shape} />
+                            <DartSide color={flight.color} shape={flight.shape} design={flight.design} />
                         </div>
+
+                        {standing && (
+                            <div className="flight-points">
+                                <div className="d-flex flex-wrap align-items-baseline gap-2">
+                                    <span className="flight-points-balance">{standing.points.balance}</span>
+                                    <span className="text-default fs-7 fw-semibold">flight points</span>
+                                    <span className="text-faint fs-8">· {standing.points.earned} earned, {standing.points.spent} spent · {owned(standing.shapes) + owned(standing.designs)} of {standing.shapes.length + standing.designs.length} flights</span>
+                                </div>
+                                <span className="text-faint fs-8">
+                                    Earned by playing and training: unlock the shapes and designs you like with them. Rare ones from the level Club Regular, epic ones from League Player; the legendary ones only for a feat.
+                                    {' '}
+                                    <Button type="button" link className="p-0 fs-8 align-baseline" label={showRules ? 'Hide how' : 'How do I earn them?'} onClick={() => setShowRules(shown => !shown)} />
+                                </span>
+                                {showRules && (
+                                    <dl className="flight-points-rules">
+                                        {standing.points.breakdown.map(rule => (
+                                            <div key={rule.id}>
+                                                <dt>{rule.label}</dt>
+                                                <dd>{rule.per} each <span className="text-faint">· {rule.count} so far, {rule.points} points</span></dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                )}
+                            </div>
+                        )}
+                        {standingFailed && <span className="text-faint fs-8">The flights you can unlock could not be loaded. Please reload the page.</span>}
+
                         <div className="d-flex flex-column gap-2">
                             <span className="text-subtle fs-8">Colour</span>
                             <div className="d-flex flex-wrap gap-2" role="radiogroup" aria-label="Flight colour">
@@ -82,32 +144,42 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                                 ))}
                             </div>
                             <span className="text-faint fs-8">
-                                {preferences.flightColor === 'auto' ? 'In your colour of the game, as on the scores and charts.' : 'The same colour in every game.'}
+                                {design && !design.colorable
+                                    ? `${design.label} has colours of its own; the colour is for the other designs.`
+                                    : preferences.flightColor === 'auto' ? 'In your colour of the game, as on the scores and charts.' : 'The same colour in every game.'}
                             </span>
                         </div>
-                        <div className="d-flex flex-column gap-2">
-                            <span className="text-subtle fs-8">Shape</span>
-                            <SelectButton
-                                value={preferences.flightShape}
-                                options={FLIGHT_SHAPES}
-                                onChange={(e) => e.value && save({ flightShape: e.value })}
-                                className="p-selectbutton-pills flex-wrap"
-                                aria-label="Flight shape"
-                            />
-                        </div>
-                        <div className="d-flex flex-column gap-2">
-                            <span className="text-subtle fs-8">Pattern</span>
-                            <SelectButton
-                                value={preferences.flightPattern}
-                                options={FLIGHT_PATTERNS}
-                                onChange={(e) => e.value && save({ flightPattern: e.value })}
-                                className="p-selectbutton-pills flex-wrap"
-                                aria-label="Flight pattern"
-                            />
-                        </div>
+
+                        {standing && (
+                            <>
+                                <div className="d-flex flex-column gap-2">
+                                    <span className="text-subtle fs-8">Shape · {owned(standing.shapes)} of {standing.shapes.length}</span>
+                                    <FlightGallery
+                                        label="Flight shape"
+                                        items={standing.shapes}
+                                        selected={flight.shape}
+                                        preview={(item) => ({ shape: item.id, design: flight.design, color: flight.color })}
+                                        onSelect={(item) => save({ flightShape: item.id })}
+                                        onUnlock={unlock}
+                                    />
+                                </div>
+                                <div className="d-flex flex-column gap-2">
+                                    <span className="text-subtle fs-8">Design · {owned(standing.designs)} of {standing.designs.length}</span>
+                                    <FlightGallery
+                                        label="Flight design"
+                                        items={standing.designs}
+                                        selected={flight.design}
+                                        preview={(item) => ({ shape: flight.shape, design: item.id, color: flight.color })}
+                                        onSelect={(item) => save({ flightPattern: item.id })}
+                                        onUnlock={unlock}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
+            <ConfirmDialog />
         </>
     );
 };

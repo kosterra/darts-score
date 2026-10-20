@@ -74,6 +74,10 @@ export default (mongoose) => {
         flightPattern:   { type: String, default: 'plain' },
         flightShape:     { type: String, default: 'standard' },
       },
+      // the flight shapes and designs unlocked with flight points ("shape:fantail", "design:flames")
+      flights: {
+        unlocked:        { type: [String], default: [] },
+      },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
       guest:      { type: Boolean, default: false },

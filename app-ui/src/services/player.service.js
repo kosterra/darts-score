@@ -161,6 +161,12 @@ const setTrainingPrivacy = (playerId, privateTrainings, clubId) =>
 const setPreferences = (playerId, preferences, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/preferences`, { method: 'PUT', body: preferences, clubId });
 
+// a player's flights: points, and every shape and design owned, to unlock or locked
+const loadFlights = (playerId, clubId) => requestJSON(`${API_URL}players/${playerId}/flights`, { clubId });
+// unlocks a shape or design with the flight points: kind 'shape' | 'design'; the new standing
+const unlockFlight = (playerId, kind, id, clubId) =>
+    requestJSON(`${API_URL}players/${playerId}/flights/unlock`, { method: 'POST', body: { kind, id }, clubId });
+
 // how the players finish and score: { [playerId]: { doubleOrder, doubles, favouriteDouble, doubleSource, mainTreble, trebleSource, … } }
 const loadCheckoutProfiles = (playerIds, clubId) =>
     requestJSON(`${API_URL}players/checkout-profiles`, { method: 'POST', body: { playerIds }, clubId });
@@ -178,6 +184,8 @@ const removePlayerFromClub = (playerId, clubId) =>
 const PlayerService = {
     setTrainingPrivacy,
     setPreferences,
+    loadFlights,
+    unlockFlight,
     loadCheckoutProfiles,
     loadPlayerClubs,
     addPlayerToClub,
