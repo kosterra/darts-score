@@ -512,14 +512,25 @@ $tar: #17110c;
   background: var(--surface-raised);
 }
 
-// a part of a game's rules on the About page: setting up, bust, winning
+// a part of a game's rules on the About page (setting up, bust, winning): the
+// section title of the setup and profile pages, small capitals with a line
 .about-rule-part {
-  margin: 1rem 0 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.4rem 0 0.6rem;
+  color: var(--text-default);
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-default);
+
+  &::after {
+    content: '';
+    flex-grow: 1;
+    height: 1px;
+    background: $surfaceHighColor;
+  }
 }
 
 // What's new on the About page: a card per version, the newest open
