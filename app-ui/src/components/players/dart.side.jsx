@@ -97,9 +97,8 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
             <polygon points="0,0 5,-0.8 30,-1.1 30,1.1 5,0.8" fill={`url(#${id}-steel)`} />
             {/* the barrel: its profile, grip and finish */}
             <BarrelArt barrel={barrel} uid={`${id}-barrel`} />
-            {/* the shaft, with its ring where it screws in; it ends where the flights begin,
-                so its end never shows among them */}
-            <rect x="80" y="-1.7" width="22.5" height="3.4" rx="0.4" fill={`url(#${id}-shaft)`} />
+            {/* the shaft, with its ring where it screws in, into the flights */}
+            <rect x="80" y="-1.7" width="34" height="3.4" rx="1" fill={`url(#${id}-shaft)`} />
             <rect x="80" y="-2.2" width="3" height="4.4" rx="0.6" fill={`url(#${id}-shaft)`} />
 
             <g>{wings('front')}</g>
