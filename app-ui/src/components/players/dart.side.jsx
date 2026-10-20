@@ -15,7 +15,13 @@ const MAX_SHADE = 0.22;
 // wings), squeezed to how far it reaches up or down
 // the shaft's half width: the flights sit on its sides, not on its middle
 const SHAFT_RADIUS = 1.7;
-const wingTransform = (angle, reach) => `translate(${FLIGHTS_AT}, ${(-SHAFT_RADIUS * reach).toFixed(3)}) scale(0.3, ${(angle % 180 === 0 ? 0.35 : -0.35) * reach})`;
+// the flights as on a real dart: about as long as the barrel (44 against 50) and
+// a good deal wider (each wing 19 out from the shaft)
+const FLIGHT_LENGTH = 44;
+const FLIGHT_WING = 19;
+const ALONG = FLIGHT_LENGTH / 100;
+const ACROSS = FLIGHT_WING / 40;
+const wingTransform = (angle, reach) => `translate(${FLIGHTS_AT}, ${(-SHAFT_RADIUS * reach).toFixed(3)}) scale(${ALONG}, ${(angle % 180 === 0 ? ACROSS : -ACROSS) * reach})`;
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -95,8 +101,14 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
             {/* the fold of the flights along the dart, between the wings on the shaft's sides,
                 in a darker shade of the flights; then the flights behind the dart, the dart,
                 and those in front */}
-            <rect x={FLIGHTS_AT + 1} y={-SHAFT_RADIUS} width="29" height={SHAFT_RADIUS * 2} fill={color} />
-            <rect x={FLIGHTS_AT + 1} y={-SHAFT_RADIUS} width="29" height={SHAFT_RADIUS * 2} fill="#000000" opacity="0.4" />
+            <clipPath id={`${id}-fold`}><rect x={FLIGHTS_AT + 1} y={-SHAFT_RADIUS} width={FLIGHT_LENGTH - 1} height={SHAFT_RADIUS * 2} /></clipPath>
+            <g clipPath={`url(#${id}-fold)`}>
+                {/* the middle of the flight itself, so the fold has the design's own colours */}
+                <g transform={`translate(${FLIGHTS_AT}, 0) scale(${ALONG}, ${ACROSS})`}>
+                    <FlightArt shape={shape} design={design} color={color} uid={`${id}-fold-art`} />
+                </g>
+                <rect x={FLIGHTS_AT + 1} y={-SHAFT_RADIUS} width={FLIGHT_LENGTH - 1} height={SHAFT_RADIUS * 2} fill="#000000" opacity="0.4" />
+            </g>
             <g>{wings('back')}</g>
 
             {/* the point: a steel needle, sharp at the tip */}
@@ -105,7 +117,7 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
             <BarrelArt barrel={barrel} uid={`${id}-barrel`} />
             {/* the shaft, with its ring where it screws in; it runs on into the middle of the
                 flights and tapers there, between the wings behind and those in front */}
-            <path d="M 81,-1.7 L 104,-1.7 L 120,-0.5 Q 121,0 120,0.5 L 104,1.7 L 81,1.7 Q 80,1.7 80,0.7 L 80,-0.7 Q 80,-1.7 81,-1.7 Z" fill={`url(#${id}-shaft)`} />
+            <path d="M 81,-1.7 L 104,-1.7 L 125,-0.5 Q 126,0 125,0.5 L 104,1.7 L 81,1.7 Q 80,1.7 80,0.7 L 80,-0.7 Q 80,-1.7 81,-1.7 Z" fill={`url(#${id}-shaft)`} />
             <rect x="80" y="-2.2" width="3" height="4.4" rx="0.6" fill={`url(#${id}-shaft)`} />
 
             <g>{wings('front')}</g>
@@ -121,7 +133,7 @@ const DIAGONAL = -32;
  * or still (spin false); diagonal shows it rising to the right.
  */
 const DartSide = ({ spin = true, diagonal = false, ...props }) => (
-    <svg className={`dart-side ${diagonal ? 'is-diagonal' : ''}`} viewBox={diagonal ? '-4 -87 128 93' : '-3 -17 138 34'} role="img" aria-label="A dart with these flights">
+    <svg className={`dart-side ${diagonal ? 'is-diagonal' : ''}`} viewBox={diagonal ? '-4 -100 146 108' : '-3 -22 152 44'} role="img" aria-label="A dart with these flights">
         <g transform={diagonal ? `rotate(${DIAGONAL})` : undefined}>
             <DartProfile {...props} spin={spin} />
         </g>
@@ -136,7 +148,7 @@ const SET = [{ x: -9, angle: -101, turn: 20 }, { x: 0, angle: -90, turn: 45 }, {
  * flights fanned out up to the right, standing still.
  */
 export const DartSet = (props) => (
-    <svg className="dart-set" viewBox="-30 -142 150 152" role="img" aria-label="A set of three darts with these flights">
+    <svg className="dart-set" viewBox="-36 -160 172 170" role="img" aria-label="A set of three darts with these flights">
         <g transform="rotate(32)">
             {SET.map(dart => (
                 <g key={dart.x} transform={`translate(${dart.x}, 0) rotate(${dart.angle})`}>
