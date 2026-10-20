@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { clubShameHolders, isShameChild, personalShame, shameCountsFrom, shameMinAgeOf } from './shame.js';
 
 const day = (n) => new Date(2026, 0, n);
-const player = (id, shame = [], shameWashes = []) => ({ _id: id, shame, shameWashes });
+// an adult; dateOfBirth: null for one whose age is unknown
+const player = (id, shame = [], shameWashes = [], dateOfBirth = new Date(1980, 0, 1)) => ({ _id: id, shame, shameWashes, dateOfBirth });
 const madhouse = (n, club = 'c1', count = 1) => ({ badge: 'madhouse', at: day(n), club, count, sourceId: `g${n}` });
 
 describe('personalShame', () => {
@@ -39,12 +40,19 @@ describe('children', () => {
 
     it('counts players from their 16th birthday when the club leaves children out', () => {
         expect(shameCountsFrom(child, null)).toBeNull();
-        expect(shameCountsFrom(player('x'), 16)).toBeNull();
+        expect(shameCountsFrom(player('x', [], [], null), 16)).toBeNull();
         expect(shameCountsFrom(turned16, 16)).toEqual(new Date(2026, 0, 10));
         expect(shameCountsFrom(turned16, 12)).toEqual(new Date(2022, 0, 10));
         expect(isShameChild(child, 16, day(1))).toBe(true);
         expect(isShameChild(child, 10, day(1))).toBe(false);
         expect(isShameChild(child, null, day(1))).toBe(false);
+    });
+
+    it('leaves out a player without a date of birth, whatever the club', () => {
+        const unknown = player('u', [madhouse(9)], [], null);
+        expect(isShameChild(unknown, null)).toBe(true);
+        expect(isShameChild(unknown, 16)).toBe(true);
+        expect(clubShameHolders([player('a', [madhouse(1)]), unknown], 'c1').find(e => e.id === 'madhouse').holder).toBe('a');
     });
 
     it('takes the age limit from the club', () => {

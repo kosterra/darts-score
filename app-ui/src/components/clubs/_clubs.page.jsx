@@ -196,7 +196,7 @@ const ClubsPage = () => {
                         </span>
                         <span className="text-default fw-semibold">Fun</span>
                         {settingSwitch('shameBadges', 'Hall of Shame', 'Badges nobody wants, like Bed and Breakfast or Madhouse, with who holds them on the dashboard and in X01 games.')}
-                        {settingSwitch('shameWithoutChildren', `Leave out children under ${editing.shameMinAge ?? 16}`, 'Children never hold a shame badge and have no Hall of Shame on their profile; what they threw as children never counts. Players without a date of birth count as adults.', !editing.shameBadges)}
+                        {settingSwitch('shameWithoutChildren', `Leave out children under ${editing.shameMinAge ?? 16}`, 'Children never hold a shame badge and have no Hall of Shame on their profile; what they threw as children never counts. Players without a date of birth are always left out.', !editing.shameBadges)}
                         <div className="d-flex justify-content-between align-items-center gap-3">
                             <label htmlFor="club-shameMinAge" className="d-flex flex-column">
                                 <span className={editing.shameBadges && editing.shameWithoutChildren ? 'text-default' : 'text-faint'}>Age limit</span>

@@ -14,8 +14,7 @@ export const shameMinAgeOf = (club) => club?.shameWithoutChildren === true ? (cl
 
 /**
  * From when a player counts for the Hall of Shame of a club that leaves
- * children out: their birthday at "minAge". Players without a date of birth
- * count from the start; null means always.
+ * children out: their birthday at "minAge"; null means always.
  */
 export const shameCountsFrom = (player, minAge) => {
     if (!minAge || !player.dateOfBirth) return null;
@@ -25,9 +24,12 @@ export const shameCountsFrom = (player, minAge) => {
 };
 
 /**
- * Whether a player is still a child for the Hall of Shame of such a club.
+ * Whether a player is left out of the Hall of Shame: without a date of birth
+ * (their age is unknown, so they might be a child), or still a child in a
+ * club that leaves children out.
  */
 export const isShameChild = (player, minAge, now = new Date()) => {
+    if (!player.dateOfBirth) return true;
     const from = shameCountsFrom(player, minAge);
     return Boolean(from) && time(from) > time(now);
 };
@@ -72,7 +74,8 @@ export const clubShameHolders = (players, clubId, { minAge = null } = {}) => {
     return SHAME_BADGES.map(badge => {
         let holder = null;
         for (const player of players) {
-            // a child never holds one, and what they did as a child never counts
+            // a child or a player of unknown age never holds one, and what they did as a child never counts
+            if (!player.dateOfBirth) continue;
             const from = shameCountsFrom(player, minAge);
             const last = latest(countedShame(player, from).filter(entry => entry.badge === badge.id && entry.club === club));
             if (last && (!holder || time(last.at) > time(holder.entry.at))) holder = { player, entry: last };
