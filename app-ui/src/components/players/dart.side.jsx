@@ -13,7 +13,9 @@ const MAX_SHADE = 0.22;
 
 // a wing at its angle: half of the flat drawing (a sheet makes two opposite
 // wings), squeezed to how far it reaches up or down
-const wingTransform = (angle, reach) => `translate(${FLIGHTS_AT}, 0) scale(0.3, ${(angle % 180 === 0 ? 0.35 : -0.35) * reach})`;
+// the shaft's half width: the flights sit on its sides, not on its middle
+const SHAFT_RADIUS = 1.7;
+const wingTransform = (angle, reach) => `translate(${FLIGHTS_AT}, ${(-SHAFT_RADIUS * reach).toFixed(3)}) scale(0.3, ${(angle % 180 === 0 ? 0.35 : -0.35) * reach})`;
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -90,15 +92,20 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
                 </linearGradient>
             </defs>
 
-            {/* the flights behind the dart, then the dart, then those in front */}
+            {/* the fold of the flights along the dart, between the wings on the shaft's sides,
+                in a darker shade of the flights; then the flights behind the dart, the dart,
+                and those in front */}
+            <rect x={FLIGHTS_AT + 1} y={-SHAFT_RADIUS} width="29" height={SHAFT_RADIUS * 2} fill={color} />
+            <rect x={FLIGHTS_AT + 1} y={-SHAFT_RADIUS} width="29" height={SHAFT_RADIUS * 2} fill="#000000" opacity="0.4" />
             <g>{wings('back')}</g>
 
             {/* the point: a steel needle, sharp at the tip */}
             <polygon points="0,0 5,-0.8 30,-1.1 30,1.1 5,0.8" fill={`url(#${id}-steel)`} />
             {/* the barrel: its profile, grip and finish */}
             <BarrelArt barrel={barrel} uid={`${id}-barrel`} />
-            {/* the shaft, with its ring where it screws in, into the flights */}
-            <rect x="80" y="-1.7" width="34" height="3.4" rx="1" fill={`url(#${id}-shaft)`} />
+            {/* the shaft, with its ring where it screws in; it runs on into the middle of the
+                flights and tapers there, between the wings behind and those in front */}
+            <path d="M 81,-1.7 L 104,-1.7 L 120,-0.5 Q 121,0 120,0.5 L 104,1.7 L 81,1.7 Q 80,1.7 80,0.7 L 80,-0.7 Q 80,-1.7 81,-1.7 Z" fill={`url(#${id}-shaft)`} />
             <rect x="80" y="-2.2" width="3" height="4.4" rx="0.6" fill={`url(#${id}-shaft)`} />
 
             <g>{wings('front')}</g>
@@ -106,13 +113,18 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
     );
 };
 
+// shown diagonally: the point down to the left, the flights up to the right
+const DIAGONAL = -32;
+
 /**
  * The dart from the side: turning slowly as the preview of a player's darts,
- * or still (spin false), e.g. in the header of their statistics.
+ * or still (spin false); diagonal shows it rising to the right.
  */
-const DartSide = ({ spin = true, ...props }) => (
-    <svg className="dart-side" viewBox="-3 -17 138 34" role="img" aria-label="A dart with these flights">
-        <DartProfile {...props} spin={spin} />
+const DartSide = ({ spin = true, diagonal = false, ...props }) => (
+    <svg className={`dart-side ${diagonal ? 'is-diagonal' : ''}`} viewBox={diagonal ? '-4 -87 128 93' : '-3 -17 138 34'} role="img" aria-label="A dart with these flights">
+        <g transform={diagonal ? `rotate(${DIAGONAL})` : undefined}>
+            <DartProfile {...props} spin={spin} />
+        </g>
     </svg>
 );
 
@@ -120,16 +132,18 @@ const DartSide = ({ spin = true, ...props }) => (
 const SET = [{ x: -9, angle: -101, turn: 20 }, { x: 0, angle: -90, turn: 45 }, { x: 9, angle: -79, turn: 70 }];
 
 /**
- * A player's set of three darts, as on the packet: points down, flights fanned
- * out at the top, standing still.
+ * A player's set of three darts, as on the packet: points down to the left,
+ * flights fanned out up to the right, standing still.
  */
 export const DartSet = (props) => (
-    <svg className="dart-set" viewBox="-52 -140 104 146" role="img" aria-label="A set of three darts with these flights">
-        {SET.map(dart => (
-            <g key={dart.x} transform={`translate(${dart.x}, 0) rotate(${dart.angle})`}>
-                <DartProfile {...props} turn={dart.turn} />
-            </g>
-        ))}
+    <svg className="dart-set" viewBox="-30 -142 150 152" role="img" aria-label="A set of three darts with these flights">
+        <g transform="rotate(32)">
+            {SET.map(dart => (
+                <g key={dart.x} transform={`translate(${dart.x}, 0) rotate(${dart.angle})`}>
+                    <DartProfile {...props} turn={dart.turn} />
+                </g>
+            ))}
+        </g>
     </svg>
 );
 

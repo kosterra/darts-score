@@ -90,7 +90,7 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                     <div className="col d-flex flex-column gap-3">
                         <div className="player-flight-preview">
                             {/* standing still for now; spin turns it slowly round its axis */}
-                            <DartSide color={flight.color} shape={flight.shape} design={flight.design} barrel={flight.barrel} spin={false} />
+                            <DartSide color={flight.color} shape={flight.shape} design={flight.design} barrel={flight.barrel} spin={false} diagonal />
                         </div>
 
                         {standing && (

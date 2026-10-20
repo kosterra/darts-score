@@ -321,6 +321,7 @@
   background: rgba(0, 0, 0, 0.22);
 
   .dart-side { width: 100%; max-width: 36rem; height: auto; }
+  .dart-side.is-diagonal { max-width: 17rem; }
 }
 
 .dart-side {
@@ -540,4 +541,4 @@
 }
 
 // the player's set of darts in the header of their statistics
-.player-hero-dart .dart-set { width: 6.5rem; height: auto; }
+.player-hero-dart .dart-set { width: 8rem; height: auto; }
