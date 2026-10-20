@@ -31,7 +31,7 @@ const LoginPage = () => {
     return (
         <AuthLayout title="Log in">
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
-                {sessionEnded && <Message severity="info" text="Your session has ended. Log in again to go on where you were." className="w-100 justify-content-start" />}
+                {sessionEnded && <Message severity="info" text="Your session has ended. Log in again to go on where you were." className="w-100 justify-content-start mb-2" />}
                 <span className="p-float-label w-100">
                     <InputText
                         id="login-email"
