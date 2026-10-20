@@ -71,19 +71,24 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
     return (
         <svg className="dart-side" viewBox="-3 -17 138 34" role="img" aria-label="A dart with these flights">
             <defs>
+                {/* lit from the front, as the flights: the metal is the same shade at its upper and
+                    lower edge, so it looks as centred on the dart as it is (a dark lower edge would
+                    vanish into the background and make the flights look too low) */}
                 <linearGradient id={`${id}-steel`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#f4f6f8" />
-                    <stop offset="0.45" stopColor="#b9c1c9" />
-                    <stop offset="1" stopColor="#5d6670" />
+                    <stop offset="0" stopColor="#8d969f" />
+                    <stop offset="0.4" stopColor="#f4f6f8" />
+                    <stop offset="1" stopColor="#8d969f" />
                 </linearGradient>
                 <linearGradient id={`${id}-barrel`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#d5dbe1" />
-                    <stop offset="0.35" stopColor="#9aa5b1" />
-                    <stop offset="1" stopColor="#3f4750" />
+                    <stop offset="0" stopColor="#7d8791" />
+                    <stop offset="0.38" stopColor="#dfe4e9" />
+                    <stop offset="0.62" stopColor="#b3bcc5" />
+                    <stop offset="1" stopColor="#7d8791" />
                 </linearGradient>
                 <linearGradient id={`${id}-shaft`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#5a616b" />
-                    <stop offset="1" stopColor="#15181c" />
+                    <stop offset="0" stopColor="#4a515a" />
+                    <stop offset="0.45" stopColor="#8a929b" />
+                    <stop offset="1" stopColor="#4a515a" />
                 </linearGradient>
             </defs>
 
