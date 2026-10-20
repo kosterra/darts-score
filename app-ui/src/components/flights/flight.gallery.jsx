@@ -3,14 +3,14 @@ import { FaLock } from 'react-icons/fa6';
 
 import { FlightPicture } from './flight.art';
 
-const RARITY_LABELS = { starter: 'Starter', common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
+const RARITY_LABELS = { starter: 'Starter', common: 'Common', rare: 'Rare', epic: 'Epic', master: 'Master', legendary: 'Legendary' };
 
-// what a tile says under its name: owned, its price, or what is missing
+// what a tile says under its name: its price, or in short what is missing (all of it in the title)
 const statusOf = (item) => {
     if (item.state === 'owned') return null;
     if (item.state === 'available') return `${item.cost} points`;
     if (item.state === 'expensive') return `${item.cost} points · ${item.reason}`;
-    return item.reason;
+    return item.short ?? item.reason;
 };
 
 /**
@@ -39,7 +39,7 @@ const FlightGallery = ({ label, items, selected, preview, onSelect, onUnlock }) 
                         aria-checked={item.id === selected}
                         aria-disabled={!owned && item.state !== 'available'}
                         className={`flight-tile is-${item.rarity} is-${item.state} ${item.id === selected ? 'is-selected' : ''}`}
-                        title={[item.label, RARITY_LABELS[item.rarity], status].filter(Boolean).join(' · ')}
+                        title={[item.label, RARITY_LABELS[item.rarity], item.cost && `${item.cost} points`, item.state === 'locked' ? item.reason : item.requires && `needs ${item.requires}`].filter(Boolean).join(' · ')}
                         onClick={click}
                     >
                         <FlightPicture {...preview(item)} uid={`${uid}-${item.id}`} />

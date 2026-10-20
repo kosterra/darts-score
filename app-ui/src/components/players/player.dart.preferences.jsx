@@ -98,7 +98,8 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                                     <span className="text-faint fs-8">· {standing.points.earned} earned, {standing.points.spent} spent · {owned(standing.shapes) + owned(standing.designs)} of {standing.shapes.length + standing.designs.length} flights</span>
                                 </div>
                                 <span className="text-faint fs-8">
-                                    Earned by playing and training: unlock the shapes and designs you like with them. Rare ones from the level Club Regular, epic ones from League Player; the legendary ones only for a feat.
+                                    {standing.levelName && <>You are {standing.levelName}{standing.average != null ? `, with an X01 average of ${standing.average}` : ', without an X01 average yet (it counts from 5 X01 games)'}. </>}
+                                    Earned by playing and training: unlock the shapes and designs you like with them. Many also need a player level or an X01 average; the master flights belong to the levels, the legendary ones only come with a feat.
                                     {' '}
                                     <Button type="button" link className="p-0 fs-8 align-baseline" label={showRules ? 'Hide how' : 'How do I earn them?'} onClick={() => setShowRules(shown => !shown)} />
                                 </span>
