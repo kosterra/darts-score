@@ -7,6 +7,8 @@ const FLIGHTS_AT = 102;
 const TURN_SECONDS = 5;
 const START_TURN = 30;
 const ANGLES = [0, 90, 180, 270];
+// how dark a wing gets right behind the dart
+const MAX_SHADE = 0.45;
 
 // a wing at its angle: half of the flat drawing (a sheet makes two opposite
 // wings), squeezed to how far it reaches up or down
@@ -26,6 +28,7 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
     // only moves and shows the right one, so the flights are not drawn again
     // on every frame (the detailed designs would make it stutter)
     const wingRefs = useRef({});
+    const shadeRefs = useRef({});
 
     useEffect(() => {
         // the dart's turn round its axis, in degrees: how far each wing reaches up or down, and which side of the dart it is on
@@ -35,11 +38,15 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
                 const reach = Math.sin(radians);
                 const inFront = Math.cos(radians) >= 0;
                 const transform = wingTransform(angle, reach);
+                // the shade follows the turn: none facing the eye, darkest right behind the
+                // dart, so a wing does not jump from dark to bright as it comes round
+                const shade = (MAX_SHADE * (1 - Math.cos(radians)) / 2).toFixed(3);
                 ['back', 'front'].forEach(layer => {
                     const element = wingRefs.current[`${layer}-${angle}`];
                     if (!element) return;
                     element.setAttribute('transform', transform);
                     element.style.display = (layer === 'front') === inFront ? '' : 'none';
+                    shadeRefs.current[`${layer}-${angle}`]?.setAttribute('opacity', shade);
                 });
             });
         };
@@ -57,7 +64,7 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
 
     const wings = (layer) => ANGLES.map(angle => (
         <g key={angle} ref={element => { wingRefs.current[`${layer}-${angle}`] = element; }} transform={wingTransform(angle, 0)}>
-            <FlightArt shape={shape} design={design} color={color} uid={`${id}-${layer}-${angle}`} half={angle % 180 === 0 ? 'upper' : 'lower'} shade={layer === 'back' ? 0.38 : 0} />
+            <FlightArt shape={shape} design={design} color={color} uid={`${id}-${layer}-${angle}`} half={angle % 180 === 0 ? 'upper' : 'lower'} shadeRef={element => { shadeRefs.current[`${layer}-${angle}`] = element; }} />
         </g>
     ));
 

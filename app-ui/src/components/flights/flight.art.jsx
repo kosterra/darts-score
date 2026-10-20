@@ -382,10 +382,11 @@ const FLIGHT_DESIGNS = {
 /**
  * One flight, drawn flat in its own space (see above): the design cut to the
  * shape, with its edge. half: 'upper' or 'lower' draws only that half (a
- * wing of the turning dart); shade: how much darker (0 to 1, a wing behind
- * the dart). uid: unique on the page, for the cuts.
+ * wing of the turning dart); shadeRef: a dark layer over it whose opacity
+ * the turning dart sets, as the wing turns away. uid: unique on the page,
+ * for the cuts.
  */
-export const FlightArt = ({ shape = 'standard', design = 'plain', color = '#46a758', uid, half = null, shade = 0 }) => {
+export const FlightArt = ({ shape = 'standard', design = 'plain', color = '#46a758', uid, half = null, shadeRef = null }) => {
     const outline = FLIGHT_SHAPES[shape] ?? FLIGHT_SHAPES.standard;
     const paint = FLIGHT_DESIGNS[design] ?? FLIGHT_DESIGNS.plain;
     return (
@@ -396,7 +397,7 @@ export const FlightArt = ({ shape = 'standard', design = 'plain', color = '#46a7
             </defs>
             <g clipPath={half ? `url(#${uid}-half)` : undefined}>
                 <g clipPath={`url(#${uid}-shape)`}>{paint({ color, second: secondColorOf(color), uid })}</g>
-                {shade > 0 && <path d={outline} fill="#000000" opacity={shade} />}
+                {shadeRef && <path ref={shadeRef} d={outline} fill="#000000" opacity="0" />}
                 <path d={outline} className="flight-outline" />
             </g>
         </g>
