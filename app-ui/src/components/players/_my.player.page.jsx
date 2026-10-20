@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
-import { InputSwitch } from 'primereact/inputswitch';
 import { Calendar } from 'primereact/calendar';
 import { Toast } from 'primereact/toast';
 import dayjs from 'dayjs';
@@ -13,6 +12,7 @@ import PlayerService from '../../services/player.service';
 import ImageUploader from '../elements/image.uploader';
 import PageLoader from '../elements/page.loader';
 import ClubLogo from '../elements/club.logo';
+import SettingSwitch from '../elements/setting.switch';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
 import PlayerDartPreferences from './player.dart.preferences';
 import { useAuth } from '../../utils/auth.context';
@@ -32,7 +32,7 @@ const fromDate = (date) => date instanceof Date && !Number.isNaN(date.getTime())
  * the account and the date of birth from the club admins, whether the
  * nickname shows on the public page and what the X01 tips aim at.
  */
-const MyPlayer = ({ player, onSaved, onError }) => {
+const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
     const navigate = useNavigate();
     const { activeClub, selectClub } = useAuth();
     const [nickname, setNickname] = useState(player.nickname);
@@ -90,100 +90,111 @@ const MyPlayer = ({ player, onSaved, onError }) => {
     };
 
     return (
-        <section className="my-player">
-            <form onSubmit={save} className="my-player-main">
-                <ImageUploader
-                    name={`${player.firstname} ${player.lastname}`}
-                    previewUrl={image.preview}
-                    onFileChange={(file) => setImage({ action: 'new', file, preview: URL.createObjectURL(file) })}
-                    onFileDelete={() => setImage({ action: 'cleared', file: null, preview: '' })}
-                />
-                <div className="my-player-fields">
-                    <label className="d-flex flex-column gap-1">
-                        <span className="text-subtle fs-8">Nickname</span>
-                        <InputText value={nickname} onChange={(event) => setNickname(event.target.value)} minLength={3} maxLength={25} required />
-                    </label>
-                    <dl className="my-player-facts">
-                        <div>
-                            <dt>Name</dt>
-                            <dd>{player.firstname} {player.lastname} <span className="text-faint">· from your <Link to="/profile">user profile</Link></span></dd>
-                        </div>
-                        {!player.birthEditable &&
-                            <div>
-                                <dt>Date of birth</dt>
-                                <dd>
-                                    {player.dateOfBirth ? dayjs(player.dateOfBirth).format('DD.MM.YYYY') : <span className="text-faint">not set yet</span>}
-                                    <span className="text-faint"> · set by your club admins</span>
-                                </dd>
-                            </div>
-                        }
-                        <div>
-                            <dt>Plays in</dt>
-                            <dd className="my-player-clubs">
-                                {player.clubs.map(club => (
-                                    <span key={club.id} className="my-player-club">
-                                        <ClubLogo club={club} size="xs" />
-                                        {club.name}
-                                    </span>
-                                ))}
-                            </dd>
-                        </div>
-                    </dl>
-                    {player.birthEditable &&
-                        <label className="d-flex flex-column gap-1">
-                            <span className="text-subtle fs-8">Date of birth</span>
-                            <Calendar
-                                value={toDate(birth)}
-                                onChange={(event) => setBirth(fromDate(event.value))}
-                                dateFormat="dd.mm.yy"
-                                mask="99.99.9999"
-                                maxDate={new Date()}
-                                showIcon
-                                icon="pi pi-calendar"
-                                className="my-player-birth"
+        <section className="my-player row g-4">
+            {/* laid out as the game setup: a section title, then a box per setting; side by side on wide screens */}
+            <div className="col-12 col-xl-6">
+                <form onSubmit={save}>
+                    <p className="game-setup-section-title">{multiple ? player.nickname : 'You as a player'}</p>
+                    <p className="setting-title">Picture and nickname</p>
+                    <div className="row mx-0 mt-0 setting-body">
+                        <div className="col my-player-main">
+                            <ImageUploader
+                                name={`${player.firstname} ${player.lastname}`}
+                                previewUrl={image.preview}
+                                onFileChange={(file) => setImage({ action: 'new', file, preview: URL.createObjectURL(file) })}
+                                onFileDelete={() => setImage({ action: 'cleared', file: null, preview: '' })}
                             />
-                            <span className="text-faint fs-8">You can correct it as an adult; a date under {player.birthMinAge} years is up to your club admins.</span>
-                        </label>
-                    }
-                    <div className="d-flex flex-wrap justify-content-end align-items-center gap-2">
+                            <label className="my-player-nickname d-flex flex-column gap-1">
+                                <span className="text-subtle fs-8">Nickname</span>
+                                <InputText value={nickname} onChange={(event) => setNickname(event.target.value)} minLength={3} maxLength={25} required />
+                                <span className="text-faint fs-8">How the club and the games call you, 3 to 25 characters.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <p className="setting-title">About you</p>
+                    <div className="row mx-0 mt-0 setting-body">
+                        <div className="col d-flex flex-column gap-3">
+                            <dl className="my-player-facts">
+                                <div>
+                                    <dt>Name</dt>
+                                    <dd>{player.firstname} {player.lastname} <span className="text-faint">· from your <Link to="/profile">user profile</Link></span></dd>
+                                </div>
+                                {!player.birthEditable &&
+                                    <div>
+                                        <dt>Date of birth</dt>
+                                        <dd>
+                                            {player.dateOfBirth ? dayjs(player.dateOfBirth).format('DD.MM.YYYY') : <span className="text-faint">not set yet</span>}
+                                            <span className="text-faint"> · set by your club admins</span>
+                                        </dd>
+                                    </div>
+                                }
+                                <div>
+                                    <dt>Plays in</dt>
+                                    <dd className="my-player-clubs">
+                                        {player.clubs.map(club => (
+                                            <span key={club.id} className="my-player-club">
+                                                <ClubLogo club={club} size="xs" />
+                                                {club.name}
+                                            </span>
+                                        ))}
+                                    </dd>
+                                </div>
+                            </dl>
+                            {player.birthEditable &&
+                                <label className="d-flex flex-column gap-1">
+                                    <span className="text-subtle fs-8">Date of birth</span>
+                                    <Calendar
+                                        value={toDate(birth)}
+                                        onChange={(event) => setBirth(fromDate(event.value))}
+                                        dateFormat="dd.mm.yy"
+                                        mask="99.99.9999"
+                                        maxDate={new Date()}
+                                        showIcon
+                                        icon="pi pi-calendar"
+                                        className="my-player-birth"
+                                    />
+                                    <span className="text-faint fs-8">You can correct it as an adult; a date under {player.birthMinAge} years is up to your club admins.</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
                         <Button type="button" label="Statistics and badges" icon="pi pi-chart-line" size="small" severity="secondary" onClick={openStatistics} />
                         <Button type="submit" label="Save" icon="pi pi-save" size="small" loading={saving} disabled={!changed || nickname.trim().length < 3} />
                     </div>
-                </div>
-            </form>
+                </form>
 
-            <div className="my-player-more">
-                <div className="my-club-public">
-                    <label htmlFor={`my-player-public-${player.id}`} className="d-flex flex-column">
-                        <span className="text-default fs-7">Show my nickname on the public page</span>
-                        <span className="text-faint fs-8">
-                            {anyPublic ? 'Your nickname appears with the live games and results of your public clubs; otherwise you are shown without a name.' : 'None of your clubs is public, so this only matters once one of them is.'}
-                        </span>
-                    </label>
-                    <InputSwitch inputId={`my-player-public-${player.id}`} checked={!!current.publicProfile} onChange={(event) => togglePublic(event.value)} />
-                </div>
-                <div className="my-club-public">
-                    <label htmlFor={`my-player-trainings-${player.id}`} className="d-flex flex-column">
-                        <span className="text-default fs-7">Show my trainings to the club</span>
-                        <span className="text-faint fs-8">
-                            {current.privateTrainings
-                                ? 'Only you and the club admins see your trainings; they are left out of the scoreboard for the others.'
-                                : 'The other players see your trainings in the list and on the Around the Clock scoreboard.'}
-                        </span>
-                    </label>
-                    <InputSwitch inputId={`my-player-trainings-${player.id}`} checked={!current.privateTrainings} onChange={(event) => toggleTrainings(event.value)} />
-                </div>
-                {/* in the boxes of the game setup */}
-                <div>
-                    <p className="game-setup-section-title mb-2">In games</p>
-                    <p className="setting-title">Ways out in X01</p>
-                    <div className="row mx-0 mt-0 setting-body">
-                        <div className="col">
-                            <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Ways out', error)} />
-                        </div>
+                <p className="game-setup-section-title">In your clubs</p>
+                <SettingSwitch
+                    id={`my-player-public-${player.id}`}
+                    title="Show my nickname on the public page"
+                    hint={anyPublic ? 'Your nickname appears with the live games and results of your public clubs; otherwise you are shown without a name.' : 'None of your clubs is public, so this only matters once one of them is.'}
+                    checked={!!current.publicProfile}
+                    onChange={togglePublic}
+                />
+                <SettingSwitch
+                    id={`my-player-trainings-${player.id}`}
+                    title="Show my trainings to the club"
+                    hint={current.privateTrainings
+                        ? 'Only you and the club admins see your trainings; they are left out of the scoreboard for the others.'
+                        : 'The other players see your trainings in the list and on the Around the Clock scoreboard.'}
+                    checked={!current.privateTrainings}
+                    onChange={toggleTrainings}
+                />
+
+            </div>
+
+            <div className="col-12 col-xl-6">
+                <p className="game-setup-section-title">In games</p>
+                <p className="setting-title">Ways out in X01</p>
+                <div className="row mx-0 mt-0 setting-body">
+                    <div className="col">
+                        <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Ways out', error)} />
                     </div>
-                    <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Darts on the board', error)} />
                 </div>
+                <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Darts on the board', error)} />
             </div>
         </section>
     );
@@ -222,8 +233,8 @@ const MyPlayerPage = () => {
                 {players.length === 0
                     ? <p className="text-subtle fs-7 m-0">You do not play in a club yet. A club admin can give your player a login, or add yourself as a player of a club you run under <Link to="/my-clubs">My clubs</Link>.</p>
                     : (
-                        <div className="d-flex flex-column gap-3">
-                            {players.map(player => <MyPlayer key={`${player.id}-${player.profileImg}-${player.nickname}-${player.dateOfBirth}`} player={player} onSaved={onSaved} onError={onError} />)}
+                        <div className="d-flex flex-column gap-4">
+                            {players.map(player => <MyPlayer key={`${player.id}-${player.profileImg}-${player.nickname}-${player.dateOfBirth}`} player={player} multiple={players.length > 1} onSaved={onSaved} onError={onError} />)}
                         </div>
                     )
                 }

@@ -3,11 +3,11 @@ import { SelectButton } from 'primereact/selectbutton';
 
 import PlayerService from '../../services/player.service';
 import DartSide from './dart.side';
+import SettingSwitch from '../elements/setting.switch';
 import { FLIGHT_COLORS, FLIGHT_PATTERNS, flightOf } from '../../utils/flights';
 import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 
 const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain' };
-const ANIMATION_OPTIONS = [{ label: 'On', value: true }, { label: 'Off', value: false }];
 
 /**
  * How a player's darts look on the board of X01, Cricket and Elimination,
@@ -37,25 +37,15 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
 
     return (
         <>
-            <div>
-                <p className="setting-title">Dart animation</p>
-                <div className="row mx-0 mt-0 setting-body">
-                    <div className="col d-flex flex-column gap-2">
-                        <SelectButton
-                            value={animated}
-                            options={ANIMATION_OPTIONS}
-                            onChange={(e) => e.value !== null && e.value !== undefined && save({ flyingDarts: e.value })}
-                            className="p-selectbutton-pills flex-wrap"
-                            aria-label="Dart animation"
-                        />
-                        <span className="text-faint fs-8">
-                            {animated
-                                ? 'A dart flies to the field you tap and sticks in the board. A game can switch it off for everyone.'
-                                : 'The field you tap just lights up. A game can switch the animation on for everyone.'}
-                        </span>
-                    </div>
-                </div>
-            </div>
+            <SettingSwitch
+                id={`player-dart-animation-${player.id}`}
+                title="Dart animation"
+                hint={animated
+                    ? 'A dart flies to the field you tap and sticks in the board. A game can switch it off for everyone.'
+                    : 'The field you tap just lights up. A game can switch the animation on for everyone.'}
+                checked={animated}
+                onChange={(value) => save({ flyingDarts: value })}
+            />
 
             <div>
                 <p className="setting-title">Flights</p>
