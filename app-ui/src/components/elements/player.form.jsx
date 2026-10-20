@@ -329,12 +329,16 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                         {/* saved right away, apart from the rest of the form */}
                         {edit && updatePlayer?.id && !updatePlayer.guest &&
                             <div className="mt-3">
-                                <p className="game-setup-section-title">Ways out in X01</p>
-                                <PlayerCheckoutPreferences
-                                    player={updatePlayer}
-                                    onError={(error) => toast.current?.show({ severity: 'error', summary: 'Ways out', detail: error.message, life: 4000 })}
-                                />
-                                <p className="game-setup-section-title mt-3">Darts on the board</p>
+                                <p className="game-setup-section-title">In games</p>
+                                <p className="setting-title">Ways out in X01</p>
+                                <div className="row mx-0 mt-0 setting-body">
+                                    <div className="col">
+                                        <PlayerCheckoutPreferences
+                                            player={updatePlayer}
+                                            onError={(error) => toast.current?.show({ severity: 'error', summary: 'Ways out', detail: error.message, life: 4000 })}
+                                        />
+                                    </div>
+                                </div>
                                 <PlayerDartPreferences
                                     player={updatePlayer}
                                     onError={(error) => toast.current?.show({ severity: 'error', summary: 'Darts on the board', detail: error.message, life: 4000 })}

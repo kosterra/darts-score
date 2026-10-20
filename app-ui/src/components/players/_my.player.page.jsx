@@ -173,12 +173,15 @@ const MyPlayer = ({ player, onSaved, onError }) => {
                     </label>
                     <InputSwitch inputId={`my-player-trainings-${player.id}`} checked={!current.privateTrainings} onChange={(event) => toggleTrainings(event.value)} />
                 </div>
+                {/* in the boxes of the game setup */}
                 <div>
-                    <p className="game-setup-section-title mb-2">Ways out in X01</p>
-                    <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Ways out', error)} />
-                </div>
-                <div>
-                    <p className="game-setup-section-title mb-2">Darts on the board</p>
+                    <p className="game-setup-section-title mb-2">In games</p>
+                    <p className="setting-title">Ways out in X01</p>
+                    <div className="row mx-0 mt-0 setting-body">
+                        <div className="col">
+                            <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Ways out', error)} />
+                        </div>
+                    </div>
                     <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Darts on the board', error)} />
                 </div>
             </div>
