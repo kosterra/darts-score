@@ -22,10 +22,10 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
  * (to x 132): the steel point, the barrel (one of the barrels to collect),
  * the shaft and the four flights (the flights across the line of sight get
  * narrow, those behind it darker). spin: it turns slowly round its axis;
- * otherwise it stays at a turn that shows the flights well. color, shape and
+ * otherwise it stays at its turn (degrees), one that shows the flights well. color, shape and
  * design: the flights; barrel: its barrel.
  */
-export const DartProfile = ({ color, shape = 'standard', design = 'plain', barrel = 'classic', spin = false }) => {
+export const DartProfile = ({ color, shape = 'standard', design = 'plain', barrel = 'classic', spin = false, turn = START_TURN }) => {
     const id = useId().replace(/:/g, '');
     // each wing is drawn twice, behind the dart and in front of it; turning
     // only moves and shows the right one, so the flights are not drawn again
@@ -53,17 +53,17 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
                 });
             });
         };
-        place(START_TURN);
+        place(turn);
         if (!spin || reducedMotion()) return undefined;
         let frame;
         const start = performance.now();
         const step = (now) => {
-            place(START_TURN + ((now - start) / 1000 / TURN_SECONDS) * 360);
+            place(turn + ((now - start) / 1000 / TURN_SECONDS) * 360);
             frame = requestAnimationFrame(step);
         };
         frame = requestAnimationFrame(step);
         return () => cancelAnimationFrame(frame);
-    }, [shape, design, color, spin]);
+    }, [shape, design, color, spin, turn]);
 
     // the wings in their two layers (the back one first in the drawing)
     const wings = (layer) => ANGLES.map(angle => (
@@ -113,6 +113,23 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
 const DartSide = ({ spin = true, ...props }) => (
     <svg className="dart-side" viewBox="-3 -17 138 34" role="img" aria-label="A dart with these flights">
         <DartProfile {...props} spin={spin} />
+    </svg>
+);
+
+// the set of three: each from its point, fanned out, turned a little differently
+const SET = [{ x: -9, angle: -101, turn: 20 }, { x: 0, angle: -90, turn: 45 }, { x: 9, angle: -79, turn: 70 }];
+
+/**
+ * A player's set of three darts, as on the packet: points down, flights fanned
+ * out at the top, standing still.
+ */
+export const DartSet = (props) => (
+    <svg className="dart-set" viewBox="-52 -140 104 146" role="img" aria-label="A set of three darts with these flights">
+        {SET.map(dart => (
+            <g key={dart.x} transform={`translate(${dart.x}, 0) rotate(${dart.angle})`}>
+                <DartProfile {...props} turn={dart.turn} />
+            </g>
+        ))}
     </svg>
 );
 

@@ -5,7 +5,7 @@ import { Panel } from 'primereact/panel';
 import { FaFire, FaBullseye, FaTrophy, FaStopwatch, FaFlagCheckered, FaHashtag, FaCrosshairs, FaBolt } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
-import DartSide from '../../players/dart.side';
+import { DartSet } from '../../players/dart.side';
 import { flightOf } from '../../../utils/flights';
 
 import StatsService from '../../../services/stats.service';
@@ -184,10 +184,10 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         ))}
                     </dl>
                 </div>
-                {/* the dart they throw with */}
+                {/* the darts they throw with */}
                 <div className="player-hero-dart d-flex flex-column gap-2">
-                    <span className="text-faint fs-8">{isOwn ? 'Your dart' : 'Their dart'}</span>
-                    <DartSide {...flightOf(player)} spin={false} />
+                    <span className="text-faint fs-8">{isOwn ? 'Your darts' : 'Their darts'}</span>
+                    <DartSet {...flightOf(player)} />
                 </div>
                 {(latestBadges.length > 0 || shame.length > 0) &&
                     <div className="d-flex flex-column gap-3">
