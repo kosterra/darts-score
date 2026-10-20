@@ -334,7 +334,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                     player={updatePlayer}
                                     onError={(error) => toast.current?.show({ severity: 'error', summary: 'Ways out', detail: error.message, life: 4000 })}
                                 />
-                                <p className="game-setup-section-title mt-3">Darts on the board in X01</p>
+                                <p className="game-setup-section-title mt-3">Darts on the board</p>
                                 <PlayerDartPreferences
                                     player={updatePlayer}
                                     onError={(error) => toast.current?.show({ severity: 'error', summary: 'Darts on the board', detail: error.message, life: 4000 })}

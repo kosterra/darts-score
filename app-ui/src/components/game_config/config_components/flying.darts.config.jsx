@@ -9,7 +9,7 @@ const HINTS = {
 };
 
 /**
- * Whether the darts fly onto the board in an X01 game: as each player set
+ * Whether the darts fly onto the board in a game (X01, Cricket, Elimination): as each player set
  * it, or on or off for everyone. value: 'players' | 'on' | 'off'.
  */
 const FlyingDartsConfig = ({ value = 'players', onChange }) => (

@@ -1,7 +1,7 @@
 import { PLAYER_COLORS } from '../components/stats/charts/chart.theme';
 
 /**
- * How a player's darts look when they fly onto the board in X01, as they
+ * How a player's darts look when they fly onto the board to tap, as they
  * set it on their profile; the API accepts the same choices
  * (app-api utils/flights.js).
  */

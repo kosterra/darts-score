@@ -9,6 +9,8 @@ const EliminationModel = {
     targetScore: ScoreConfigOptions.gameScoreOptions.eliminationDefault,
     gameInMode: SetsLegsConfigOptions.legInOptions.default,
     gameOutMode: SetsLegsConfigOptions.legOutOptions.default,
+    // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off'
+    flyingDarts: 'players',
     numberOfPlayers: PlayerConfigOptions.numberOfPlayerOptions.default,
     players: [],
     startingPlayer: '',

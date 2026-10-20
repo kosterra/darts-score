@@ -10,7 +10,7 @@ import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain' };
 
 /**
- * How a player's darts look in X01: whether they fly onto the board (a game
+ * How a player's darts look on the board of X01, Cricket and Elimination: whether they fly onto the board (a game
  * can switch them on or off for everyone), and the colour and pattern of
  * their flights, with a dart to see it. A change is saved right away.
  *

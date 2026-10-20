@@ -6,6 +6,7 @@ import { SelectButton } from 'primereact/selectbutton';
 
 import PlayerPicker from '../config_components/player.picker';
 import GameSetupStart from '../config_components/game.setup.start';
+import FlyingDartsConfig from '../config_components/flying.darts.config';
 import GameSetupMemory from '../config_components/game.setup.memory';
 import { missingPlayers, playersSummary } from '../config_components/game.setup.summary';
 import CricketModels from '../../../models/cricket.models';
@@ -17,6 +18,7 @@ const CricketConfig = () => {
     // the page starts set up like the last game
     const [remembered, setRemembered] = useState(() => loadSetup('cricket'));
     const [variant, setVariant] = useState(remembered?.settings?.variant ?? DEFAULT_VARIANT);
+    const [flyingDarts, setFlyingDarts] = useState(remembered?.settings?.flyingDarts ?? 'players');
     const [players, setPlayers] = useState([]);
     const [starting, setStarting] = useState(false);
 
@@ -29,19 +31,21 @@ const CricketConfig = () => {
         clearSetup('cricket');
         setRemembered(null);
         setVariant(DEFAULT_VARIANT);
+        setFlyingDarts('players');
         setPlayers([]);
     };
 
     const handleSubmit = async () => {
         if (missing) return;
         setStarting(true);
-        saveSetup('cricket', { settings: { variant }, players });
+        saveSetup('cricket', { settings: { variant, flyingDarts }, players });
         const game = CricketModels.CricketGameModel;
         const playerIds = players.map(player => player.id);
         try {
             const newGame = await CricketService.createCricketGame({
                 ...game,
                 variant,
+                flyingDarts,
                 isSoloGame: false,
                 numberOfPlayers: playerIds.length,
                 players: playerIds,
@@ -79,6 +83,7 @@ const CricketConfig = () => {
                             </div>
                         </div>
                     </div>
+                    <FlyingDartsConfig value={flyingDarts} onChange={setFlyingDarts} />
                     <GameSetupStart summary={`Cricket${variant === DEFAULT_VARIANT ? '' : ` ${variant}`} · ${playersSummary(players)}`} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>
             </Panel>

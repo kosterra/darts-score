@@ -178,7 +178,7 @@ const MyPlayer = ({ player, onSaved, onError }) => {
                     <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Ways out', error)} />
                 </div>
                 <div>
-                    <p className="game-setup-section-title mb-2">Darts on the board in X01</p>
+                    <p className="game-setup-section-title mb-2">Darts on the board</p>
                     <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Darts on the board', error)} />
                 </div>
             </div>

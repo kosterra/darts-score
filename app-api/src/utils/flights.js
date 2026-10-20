@@ -1,5 +1,5 @@
 /**
- * How a player's darts look when they fly onto the board in X01: the
+ * How a player's darts look when they fly onto the board to tap: the
  * colour of the flights ('auto': the player's colour in the game) and
  * their pattern. The app offers the same choices (app-ui utils/flights.js).
  */
