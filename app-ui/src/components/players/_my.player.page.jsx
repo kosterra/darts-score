@@ -66,6 +66,14 @@ const MyPlayer = ({ player, onSaved, onError }) => {
         }
     };
 
+    const toggleTrainings = async (shown) => {
+        try {
+            setCurrent(await PlayerService.setTrainingPrivacy(player.id, !shown, clubId));
+        } catch (error) {
+            onError('Trainings', error);
+        }
+    };
+
     const togglePublic = async (publicProfile) => {
         try {
             setCurrent(await PlayerService.setPublicProfile(player.id, publicProfile, clubId));
@@ -152,6 +160,17 @@ const MyPlayer = ({ player, onSaved, onError }) => {
                         </span>
                     </label>
                     <InputSwitch inputId={`my-player-public-${player.id}`} checked={!!current.publicProfile} onChange={(event) => togglePublic(event.value)} />
+                </div>
+                <div className="my-club-public">
+                    <label htmlFor={`my-player-trainings-${player.id}`} className="d-flex flex-column">
+                        <span className="text-default fs-7">Show my trainings to the club</span>
+                        <span className="text-faint fs-8">
+                            {current.privateTrainings
+                                ? 'Only you and the club admins see your trainings; they are left out of the scoreboard for the others.'
+                                : 'The other players see your trainings in the list and on the Around the Clock scoreboard.'}
+                        </span>
+                    </label>
+                    <InputSwitch inputId={`my-player-trainings-${player.id}`} checked={!current.privateTrainings} onChange={(event) => toggleTrainings(event.value)} />
                 </div>
                 <div>
                     <p className="game-setup-section-title mb-2">Ways out in X01</p>

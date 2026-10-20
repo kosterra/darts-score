@@ -4,6 +4,7 @@ import { ROLES } from '../models/user.model.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { addToClub, removeFromClub } from './player.controller.js';
 import { removeProfileImageIfUnused } from '../utils/player.images.js';
+import { withHumans } from './x01.training.controller.js';
 import { withPlayers } from './atc.controller.js';
 
 const GAME_MODELS = [db.x01, db.cricket, db.elimination, db.clock];
@@ -190,6 +191,14 @@ export const games = async (req, res) => {
         ...elimination.map(withClub(clubsById, { type: 'elimination' })),
         ...clock.map(withClub(clubsById, { type: 'clock' })),
     ]);
+};
+
+// X01 trainings against the bot of the chosen clubs, with their club and player
+export const x01Trainings = async (req, res) => {
+    const clubsById = await selectedClubs(req, res);
+    if (!clubsById) return;
+    const found = await db.x01Training.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
+    res.json(await withHumans(found.map(withClub(clubsById))));
 };
 
 export const trainings = async (req, res) => {

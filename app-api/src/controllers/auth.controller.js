@@ -111,6 +111,7 @@ export const myPlayers = async (req, res) => {
         profileImg: player.profileImg ?? '',
         dateOfBirth: player.dateOfBirth ?? null,
         publicProfile: Boolean(player.publicProfile),
+        privateTrainings: Boolean(player.privateTrainings),
         preferences: { favouriteDouble: 'auto', mainTreble: 'auto', ...(player.preferences ?? {}) },
         user: String(player.user),
         // adults correct their date of birth themselves once the admins set it

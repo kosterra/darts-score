@@ -154,6 +154,10 @@ const setPublicProfile = (playerId, publicProfile, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/visibility`, { method: 'PUT', body: { publicProfile }, clubId });
 
 // a player's favourite double and main treble ("auto" learns them from the games)
+// whether the other players of the club see the player's trainings
+const setTrainingPrivacy = (playerId, privateTrainings, clubId) =>
+    requestJSON(`${API_URL}players/${playerId}/training-privacy`, { method: 'PUT', body: { privateTrainings }, clubId });
+
 const setPreferences = (playerId, preferences, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/preferences`, { method: 'PUT', body: preferences, clubId });
 
@@ -172,6 +176,7 @@ const removePlayerFromClub = (playerId, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/clubs/${clubId}`, { method: 'DELETE' });
 
 const PlayerService = {
+    setTrainingPrivacy,
     setPreferences,
     loadCheckoutProfiles,
     loadPlayerClubs,

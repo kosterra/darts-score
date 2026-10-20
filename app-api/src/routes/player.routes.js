@@ -138,6 +138,13 @@ export default (app) => {
         PlayerController.setVisibility
     );
 
+    // Whether the other players see a player's trainings (admins, or the player themselves)
+    router.put('/:id/training-privacy',
+        body('privateTrainings').isBoolean({ strict: true }).withMessage('privateTrainings must be true or false.'),
+        validate,
+        PlayerController.setTrainingPrivacy
+    );
+
     // A player's favourite double and main treble (admins, or the player themselves)
     router.put('/:id/preferences',
         body('favouriteDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('favouriteDouble must be auto or a double, e.g. D16.'),

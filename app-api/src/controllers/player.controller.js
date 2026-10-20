@@ -376,6 +376,22 @@ export const setVisibility = async (req, res) => {
 };
 
 /**
+ * Whether the other players of the club see a player's trainings. Club
+ * admins decide for everyone, players with a login for themselves.
+ */
+export const setTrainingPrivacy = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+        return res.status(403).send({ message: 'Only club admins can change this for other players.' });
+    }
+    player.privateTrainings = req.body.privateTrainings;
+    await player.save();
+    res.send((await toClient([player], req))[0]);
+};
+
+/**
  * A player's favourite double and main treble for the ways out ("auto" learns
  * them from the games). Club admins, or the player themselves.
  */

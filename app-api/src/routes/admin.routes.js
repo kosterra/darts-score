@@ -24,6 +24,7 @@ export default (app) => {
     router.delete('/players/:id', param('id').isMongoId(), validate, AdminController.deletePlayer);
     router.get('/games', AdminController.games);
     router.get('/trainings', AdminController.trainings);
+    router.get('/x01-trainings', AdminController.x01Trainings);
 
     // the banner on top of every page
     router.get('/banner', getBannerSettings);

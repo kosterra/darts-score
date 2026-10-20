@@ -9,10 +9,12 @@ const API_URL = '/api/training/x01';
 const createX01Game = (game) => requestJSON(API_URL, { method: 'POST', body: game });
 const loadX01GameById = (id) => requestJSON(`${API_URL}/${id}`);
 const updateX01Game = (game) => requestJSON(`${API_URL}/${game.id}`, { method: 'PUT', body: game });
-const loadTrainings = (playerId) => requestJSON(`${API_URL}?player=${encodeURIComponent(playerId)}`);
+// the trainings of a player, or without one of the whole club (with who trained)
+const loadTrainings = (playerId) => requestJSON(playerId ? `${API_URL}?player=${encodeURIComponent(playerId)}` : API_URL);
 // the charts of a training, as for a game
 const loadX01GameStats = (id) => requestJSON(`${API_URL}/${id}/stats`);
-const deleteTraining = (id) => requestJSON(`${API_URL}/${id}`, { method: 'DELETE' });
+// clubId: the club of the training, the selected one when left out
+const deleteTraining = (id, clubId) => requestJSON(`${API_URL}/${id}`, { method: 'DELETE', clubId });
 
 const X01TrainingService = { loadX01GameStats, createX01Game, loadX01GameById, updateX01Game, loadTrainings, deleteTraining };
 

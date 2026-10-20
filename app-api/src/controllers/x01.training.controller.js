@@ -1,6 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { CLUB_ROLES } from '../models/user.model.js';
+import { hiddenTrainingPlayers, mayDeleteTrainingOf, seesTrainingsOf } from '../utils/training.privacy.js';
 
 // the bot is no player of the club: it only lives in its trainings
 export const BOT_ID = 'bot';
@@ -54,8 +54,24 @@ export const create = async (req, res) => {
 export const findOne = async (req, res) => {
     if (!db.mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
     const training = await Training.findOne({ _id: req.params.id, club: req.club._id });
-    if (!training) return res.status(404).json({ message: 'Not found.' });
+    // a player who keeps their trainings to themselves: not for the others
+    if (!training || !(await seesTrainingsOf(req, humanOf(training.players)))) return res.status(404).json({ message: 'Not found.' });
     res.json(training);
+};
+
+/**
+ * Trainings with the player who trained, as the lists show them: player
+ * { id, nickname, firstname, lastname, profileImg, user }.
+ */
+export const withHumans = async (trainings) => {
+    const ids = [...new Set(trainings.map(training => humanOf(training.players)))].filter(id => db.mongoose.isValidObjectId(id));
+    const players = new Map((await db.player.find({ _id: { $in: ids } }, 'nickname firstname lastname profileImg user').lean())
+        .map(({ _id, ...player }) => [String(_id), { id: String(_id), ...player, user: player.user ? String(player.user) : null }]));
+    return trainings.map(training => {
+        const plain = typeof training.toJSON === 'function' ? training.toJSON() : training;
+        const id = humanOf(plain.players);
+        return { ...plain, player: players.get(id) ?? { id, nickname: 'Deleted player' } };
+    });
 };
 
 // after every visit, like a game; only within the club, and the players and the bot stay.
@@ -78,23 +94,28 @@ export const update = async (req, res) => {
 };
 
 /**
- * The trainings of a player in the club, newest first: ?player=id
+ * The trainings of the club, newest first, with who trained: of one player
+ * (?player=id, the last 50) or of everyone. Players who keep their trainings
+ * to themselves are left out for the others.
  */
 export const findByPlayer = async (req, res) => {
+    const hidden = await hiddenTrainingPlayers(req);
     const playerId = String(req.query.player ?? '');
-    if (!db.mongoose.isValidObjectId(playerId)) return res.json([]);
-    const trainings = await Training.find({ club: req.club._id, players: playerId }).sort({ createdAt: -1 }).limit(50);
-    res.json(trainings);
+    if (playerId) {
+        if (!db.mongoose.isValidObjectId(playerId) || hidden.includes(playerId)) return res.json([]);
+        const trainings = await Training.find({ club: req.club._id, players: playerId }).sort({ createdAt: -1 }).limit(50);
+        return res.json(await withHumans(trainings));
+    }
+    const trainings = await Training.find({ club: req.club._id, ...(hidden.length && { players: { $nin: hidden } }) }).sort({ createdAt: -1 });
+    res.json(await withHumans(trainings));
 };
 
 export const remove = async (req, res) => {
     if (!db.mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
     const training = await Training.findOne({ _id: req.params.id, club: req.club._id });
     if (!training) return res.status(404).json({ message: 'Not found.' });
-    const player = await loadPlayer(req, res, humanOf(training.players));
-    if (!player) return;
     // deleting is for the player themselves and the club admins
-    if (req.clubRole !== CLUB_ROLES.ADMIN && !(player.user && player.user.equals(req.user._id))) {
+    if (!(await mayDeleteTrainingOf(req, humanOf(training.players)))) {
         return res.status(403).json({ message: 'Only the player or a club admin can delete a training.' });
     }
     await training.deleteOne();

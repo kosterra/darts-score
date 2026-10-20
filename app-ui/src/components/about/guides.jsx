@@ -49,6 +49,7 @@ export const PLAYER_GUIDE = [
                     <li>With the fewest darts tap Hit or Miss for every dart; several players take turns.</li>
                     <li>After saving you stay in the training for the next attempt; the scoreboard shows where the attempt landed. Settings goes back to the setup.</li>
                 </ul>
+                <p className="m-0"><strong>Club → Trainings</strong> lists the trainings of both kinds, with the result; your own you can delete there. Under Player profile, <em>Show my trainings to the club</em> decides whether the other players see them (in the list and on the scoreboard); the club admins always do.</p>
             </>
         ),
     },
@@ -141,7 +142,7 @@ export const ADMIN_GUIDE = [
         icon: FaTableCellsLarge,
         body: (
             <ul className="m-0">
-                <li><strong>Club → Games</strong> and <strong>Trainings</strong> list everything played, with filters; admins delete single games or several at once, together with the badges earned in them.</li>
+                <li><strong>Club → Games</strong> and <strong>Trainings</strong> list everything played, with filters (Around the Clock and X01 against the bot together); admins delete single games or several at once, together with the badges earned in them, and see the trainings players keep to themselves. Players delete their own trainings.</li>
                 <li><strong>Customize</strong> on the dashboard chooses and orders its widgets for the whole club.</li>
             </ul>
         ),

@@ -15,6 +15,8 @@ const query = (clubIds) => `?clubs=${clubIds.map(encodeURIComponent).join(',')}`
 const loadPlayers = (clubIds) => requestJSON(`${API_URL}/players${query(clubIds)}`);
 const loadGames = (clubIds) => requestJSON(`${API_URL}/games${query(clubIds)}`);
 const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(clubIds)}`);
+// the X01 trainings against the bot of the chosen clubs
+const loadX01Trainings = (clubIds) => requestJSON(`${API_URL}/x01-trainings${query(clubIds)}`);
 
 // a player's clubs, and deleting a player from every club
 const addPlayerToClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs`, { method: 'POST', body: { club: clubId } });
@@ -70,6 +72,7 @@ const AdminService = {
     loadPlayers,
     loadGames,
     loadTrainings,
+    loadX01Trainings,
     addPlayerToClub,
     removePlayerFromClub,
     deletePlayer,
