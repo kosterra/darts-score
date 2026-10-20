@@ -6,14 +6,15 @@ import { barrelColor } from '../../flights/barrels';
 /**
  * A dart stuck in the board as the thrower sees it: it points back at the
  * oche, so it is seen almost along its length. The dart is laid out in three
- * dimensions (its axis from the tip towards the thrower, a little down and to
- * the left, as darts hang in a board) and drawn as seen from the front: the
+ * dimensions (its axis from the tip towards the thrower, drawn a little down
+ * and to the left; the board's landing tilt turns the tail up, as darts that
+ * drop into a board stick) and drawn as seen from the front: the
  * barrel and the shaft short, the four flights a cross in perspective, each
  * one a flat flight sheet seen at its angle. Units are the board's (about
  * 7.5 to the centimetre).
  */
 
-// the dart's axis, from the tip to the tail: mostly towards the thrower (z), a little down and left on the screen
+// the dart's axis, from the tip to the tail: mostly towards the thrower (z), a little down (turned up as it lands) and left
 const AXIS = (() => {
     const [x, y, z] = [-0.22, 0.5, 0.84];
     const length = Math.hypot(x, y, z);
@@ -33,8 +34,8 @@ const SHAFT_RADIUS = 1.2;
 const FLIGHT_RADIUS = 17;
 // the cross of the flights turned a little, so none is seen exactly edge-on
 const ROLL = 15;
-// the whole dart a little smaller than life, so three fit into one bed
-const SCALE = 0.8;
+// the whole dart's size on the board
+const SCALE = 1;
 
 // a point of the dart on the screen: so far along it, so far out in a direction
 const at = (t, radial = [0, 0, 0], out = 0) => [AXIS[0] * t + radial[0] * out, AXIS[1] * t + radial[1] * out];
