@@ -92,11 +92,29 @@ export const FLIGHT_DESIGNS = [
     { id: 'bigFish', label: 'Big Fish', rarity: 'legendary', feat: 'bigFish' },
 ];
 
-// what unlocks a legendary design
+// the barrels: profile, grip and finish are drawn by the app
+export const DART_BARRELS = [
+    { id: 'classic', label: 'Classic', rarity: 'starter' },
+    { id: 'brass', label: 'Brass', rarity: 'starter' },
+    { id: 'slim', label: 'Slim', rarity: 'common', cost: 60 },
+    { id: 'copper', label: 'Copper torpedo', rarity: 'common', cost: 80 },
+    { id: 'scallop', label: 'Scalloped', rarity: 'rare', cost: 140 },
+    { id: 'shark', label: 'Shark fin', rarity: 'rare', cost: 150, level: 3 },
+    { id: 'pixel', label: 'Pixel grip', rarity: 'rare', cost: 160, average: 50 },
+    { id: 'bomb', label: 'Bomb', rarity: 'epic', cost: 260, level: 4 },
+    { id: 'blueCoat', label: 'Blue coat', rarity: 'epic', cost: 280, level: 4, average: 50 },
+    { id: 'pro', label: 'Pro 97%', rarity: 'master', cost: 400, level: 6, average: 60 },
+    { id: 'champion', label: 'Champion', rarity: 'master', cost: 500, level: 7, average: 75 },
+    { id: 'legend', label: 'Legend', rarity: 'master', cost: 650, level: 8 },
+    { id: 'rainbow', label: 'Rainbow titanium', rarity: 'legendary', feat: 'tenTons' },
+];
+
+// what unlocks a legendary design or barrel
 export const FEATS = {
     pro: { label: 'Reach the level Pro', met: ({ levelIndex }) => levelIndex >= 6 },
     nineDarter: { label: 'Throw a nine-darter', met: ({ counts }) => (counts.nineDarters ?? 0) > 0 },
     bigFish: { label: 'Check out 170, the Big Fish', met: ({ counts }) => (counts.bigFishes ?? 0) > 0 },
+    tenTons: { label: 'Throw ten 180s', met: ({ counts }) => (counts.num180s ?? 0) >= 10 },
 };
 
 // how the flight points are earned: per finished game and training, and for what went well
@@ -110,7 +128,9 @@ export const POINT_RULES = [
     { id: 'highFinishes', label: 'Checkouts of 100 or more', per: 3 },
 ];
 
-const itemOf = (kind, id) => (kind === 'shape' ? FLIGHT_SHAPES : FLIGHT_DESIGNS).find(item => item.id === id) ?? null;
+// the catalog of each kind of thing to collect
+export const CATALOG = { shape: FLIGHT_SHAPES, design: FLIGHT_DESIGNS, barrel: DART_BARRELS };
+const itemOf = (kind, id) => (CATALOG[kind] ?? []).find(item => item.id === id) ?? null;
 export const unlockKey = (kind, id) => `${kind}:${id}`;
 
 /**
@@ -193,18 +213,20 @@ export const flightStanding = ({ counts = {}, levelIndex = 1, average = null, un
         average,
         shapes: FLIGHT_SHAPES.map(describe('shape')),
         designs: FLIGHT_DESIGNS.map(describe('design')),
+        barrels: DART_BARRELS.map(describe('barrel')),
     };
 };
 
-// whether a player may fly a shape or design: what they own
-export const mayUse = (standing, kind, id) =>
-    (kind === 'shape' ? standing.shapes : standing.designs).some(item => item.id === id && item.state === 'owned');
+const itemsOf = (standing, kind) => ({ shape: standing.shapes, design: standing.designs, barrel: standing.barrels })[kind] ?? [];
+
+// whether a player may use a shape, design or barrel: what they own
+export const mayUse = (standing, kind, id) => itemsOf(standing, kind).some(item => item.id === id && item.state === 'owned');
 
 /**
- * Unlocking a shape or design: { ok: true, key } or { ok: false, reason }.
+ * Unlocking a shape, design or barrel: { ok: true, key } or { ok: false, reason }.
  */
 export const unlockCheck = (standing, kind, id) => {
-    const item = (kind === 'shape' ? standing.shapes : standing.designs).find(entry => entry.id === id);
+    const item = itemsOf(standing, kind).find(entry => entry.id === id);
     if (!item) return { ok: false, reason: 'There is no such flight.' };
     if (item.state === 'owned') return { ok: false, reason: 'You have it already.' };
     if (item.state !== 'available') return { ok: false, reason: item.reason };

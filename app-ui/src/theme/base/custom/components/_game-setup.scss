@@ -432,28 +432,42 @@
     background: rgba($primaryColor, 0.14);
   }
 
-  // to unlock: the price stands out; locked: greyed with a lock
+  // only points missing: the design in full, the price in gold once it can be paid
   &.is-available .flight-tile-status { color: #e9ac2f; font-weight: 600; }
+  &.is-available:hover { box-shadow: 0 0 0 1px rgba(233, 172, 47, 0.6), 0 0 0.9rem rgba(233, 172, 47, 0.2); }
+  &.is-expensive { cursor: default; }
 
-  &.is-expensive,
+  // a level, an average or a feat missing first: greyed out, behind a dashed frame
   &.is-locked {
     cursor: default;
+    border-style: dashed;
+    background: rgba(0, 0, 0, 0.28);
 
-    .flight-picture { filter: grayscale(0.85) brightness(0.55); }
-    &:hover { background: rgba(0, 0, 0, 0.18); }
+    .flight-picture { filter: grayscale(1) brightness(0.5); opacity: 0.8; }
+    .flight-tile-name { color: var(--text-subtle); }
+    &:hover { background: rgba(0, 0, 0, 0.28); }
   }
 
   .flight-picture { width: 4.2rem; height: 5.1rem; }
+  .barrel-picture { width: 1.6rem; }
 }
 
+// not owned yet: a small lock in the corner, not over the design
 .flight-tile-lock {
   position: absolute;
-  top: 1.9rem;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--text-default);
-  font-size: 1.1rem;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  top: 0.35rem;
+  right: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text-subtle);
+  font-size: 0.62rem;
+
+  .is-available & { color: #e9ac2f; }
 }
 
 .flight-tile-name {
@@ -474,5 +488,5 @@
 @media (max-width: 575.98px) {
   .flight-gallery { grid-template-columns: repeat(auto-fill, minmax(4.9rem, 1fr)); gap: 0.45rem; }
   .flight-tile .flight-picture { width: 3.4rem; height: 4.1rem; }
-  .flight-tile-lock { top: 1.6rem; }
+  .flight-tile .barrel-picture { width: 1.4rem; }
 }

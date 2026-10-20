@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FLIGHT_DESIGNS, FLIGHT_SHAPES, flightPoints, flightStanding, mayUse, requirementOf, unlockCheck } from './flights.js';
+import { DART_BARRELS, FLIGHT_DESIGNS, FLIGHT_SHAPES, flightPoints, flightStanding, mayUse, requirementOf, unlockCheck } from './flights.js';
 import { LEVELS } from './levels.js';
 
 const counts = { games: 20, wins: 8, trainings: 10, botTrainings: 4, botWins: 1, num180s: 2, highFinishes: 1 };
@@ -20,7 +20,7 @@ describe('flight points', () => {
 
 describe('the catalog', () => {
     it('has unique ids, a price for everything bought and a feat for the legendary ones', () => {
-        for (const items of [FLIGHT_SHAPES, FLIGHT_DESIGNS]) {
+        for (const items of [FLIGHT_SHAPES, FLIGHT_DESIGNS, DART_BARRELS]) {
             expect(new Set(items.map(item => item.id)).size).toBe(items.length);
             items.filter(item => !['starter', 'legendary'].includes(item.rarity)).forEach(item => expect(item.cost).toBeGreaterThan(0));
             items.filter(item => item.rarity === 'legendary').forEach(item => expect(item.feat).toBeTruthy());
@@ -72,6 +72,18 @@ describe('flight standing', () => {
         expect(mayUse(after, 'design', 'nineDarter')).toBe(true);
         expect(mayUse(after, 'design', 'holo')).toBe(true);
         expect(mayUse(after, 'design', 'bigFish')).toBe(false);
+    });
+
+    it('treats barrels like flights: starters owned, the rest bought, the rainbow for ten 180s', () => {
+        const standing = standingOf({ levelIndex: 3 });
+        expect(find(standing, 'barrel', 'classic')).toBeUndefined();
+        const barrel = (id) => standing.barrels.find(item => item.id === id);
+        expect(barrel('brass').state).toBe('owned');
+        expect(barrel('slim')).toMatchObject({ state: 'available', cost: 60 });
+        expect(barrel('pro')).toMatchObject({ state: 'locked', short: 'Pro · avg 60' });
+        expect(barrel('rainbow')).toMatchObject({ state: 'locked', reason: 'Throw ten 180s' });
+        expect(unlockCheck(standing, 'barrel', 'slim')).toEqual({ ok: true, key: 'barrel:slim' });
+        expect(mayUse(standingOf({ counts: { ...counts, num180s: 10 } }), 'barrel', 'rainbow')).toBe(true);
     });
 
     it('lets an unlock go through when level, average and points are there', () => {

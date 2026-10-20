@@ -4,7 +4,7 @@ import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
 import * as PlayerController from '../controllers/player.controller.js';
 import { DOUBLES, MAIN_TREBLES } from '../utils/checkout.profile.js';
-import { FLIGHT_COLORS, FLIGHT_DESIGNS, FLIGHT_SHAPES } from '../utils/flights.js';
+import { DART_BARRELS, FLIGHT_COLORS, FLIGHT_DESIGNS, FLIGHT_SHAPES } from '../utils/flights.js';
 import { uploadProfileImage } from '../controllers/file.controller.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { emailValidator, passwordValidator } from './auth.routes.js';
@@ -154,6 +154,7 @@ export default (app) => {
         body('flightColor').optional().isIn(['auto', ...FLIGHT_COLORS]).withMessage('flightColor must be auto or one of the flight colours.'),
         body('flightPattern').optional().isIn(FLIGHT_DESIGNS.map(design => design.id)).withMessage('flightPattern must be one of the flight designs.'),
         body('flightShape').optional().isIn(FLIGHT_SHAPES.map(shape => shape.id)).withMessage('flightShape must be one of the flight shapes.'),
+        body('barrel').optional().isIn(DART_BARRELS.map(barrel => barrel.id)).withMessage('barrel must be one of the barrels.'),
         validate,
         PlayerController.setPreferences
     );
@@ -161,7 +162,7 @@ export default (app) => {
     // A player's flights: points, owned and locked shapes and designs; unlocking one
     router.get('/:id/flights', PlayerController.flights);
     router.post('/:id/flights/unlock',
-        body('kind').isIn(['shape', 'design']).withMessage('kind must be shape or design.'),
+        body('kind').isIn(['shape', 'design', 'barrel']).withMessage('kind must be shape, design or barrel.'),
         body('id').isString().isLength({ max: 40 }),
         validate,
         PlayerController.unlockFlight

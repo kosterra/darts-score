@@ -112,7 +112,7 @@ export const myPlayers = async (req, res) => {
         dateOfBirth: player.dateOfBirth ?? null,
         publicProfile: Boolean(player.publicProfile),
         privateTrainings: Boolean(player.privateTrainings),
-        preferences: { favouriteDouble: 'auto', mainTreble: 'auto', flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', ...(player.preferences ?? {}) },
+        preferences: { favouriteDouble: 'auto', mainTreble: 'auto', flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic', ...(player.preferences ?? {}) },
         user: String(player.user),
         // adults correct their date of birth themselves once the admins set it
         birthMinAge: selfBirthAge(player.clubs ?? []),

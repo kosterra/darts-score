@@ -27,7 +27,7 @@ export const secondColorOf = (color) => {
 };
 
 /**
- * The flights of a player in a game: { color, shape, design }. seat: their
+ * The darts of a player in a game: { color, shape, design, barrel }. seat: their
  * place in the game, whose colour "auto" takes. An id the drawings do not
  * know is drawn as the standard shape or the plain design.
  */
@@ -38,6 +38,7 @@ export const flightOf = (player, seat = 0) => {
         color: own ? preferences.flightColor : PLAYER_COLORS[Math.max(0, seat) % PLAYER_COLORS.length],
         shape: preferences.flightShape || 'standard',
         design: preferences.flightPattern || 'plain',
+        barrel: preferences.barrel || 'classic',
     };
 };
 

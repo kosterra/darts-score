@@ -6,10 +6,12 @@ import PlayerService from '../../services/player.service';
 import DartSide from './dart.side';
 import SettingSwitch from '../elements/setting.switch';
 import FlightGallery from '../flights/flight.gallery';
+import { FlightPicture } from '../flights/flight.art';
+import { BarrelPicture } from '../flights/barrel.art';
 import { FLIGHT_COLORS, flightOf } from '../../utils/flights';
 import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 
-const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard' };
+const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic' };
 
 /**
  * How a player's darts look on the board of X01, Cricket and Elimination,
@@ -48,10 +50,10 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
         }
     };
 
-    const preferenceOf = (kind) => kind === 'shape' ? 'flightShape' : 'flightPattern';
+    const preferenceOf = (kind) => ({ shape: 'flightShape', design: 'flightPattern', barrel: 'barrel' })[kind];
     const unlock = (item) => confirmDialog({
         header: `Unlock ${item.label}`,
-        message: `Unlock the ${item.kind} ${item.label} for ${item.cost} flight points? You have ${standing.points.balance}.`,
+        message: `Unlock ${item.kind === 'barrel' ? 'the barrel' : `the ${item.kind}`} ${item.label} for ${item.cost} flight points? You have ${standing.points.balance}.`,
         acceptLabel: 'Unlock',
         rejectLabel: 'Cancel',
         acceptClassName: 'p-button-sm',
@@ -83,11 +85,11 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
             />
 
             <div>
-                <p className="setting-title">Flights</p>
+                <p className="setting-title">Flights and barrels</p>
                 <div className="row mx-0 mt-0 setting-body">
                     <div className="col d-flex flex-column gap-3">
                         <div className="player-flight-preview">
-                            <DartSide color={flight.color} shape={flight.shape} design={flight.design} />
+                            <DartSide color={flight.color} shape={flight.shape} design={flight.design} barrel={flight.barrel} />
                         </div>
 
                         {standing && (
@@ -95,11 +97,11 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                                 <div className="d-flex flex-wrap align-items-baseline gap-2">
                                     <span className="flight-points-balance">{standing.points.balance}</span>
                                     <span className="text-default fs-7 fw-semibold">flight points</span>
-                                    <span className="text-faint fs-8">· {standing.points.earned} earned, {standing.points.spent} spent · {owned(standing.shapes) + owned(standing.designs)} of {standing.shapes.length + standing.designs.length} flights</span>
+                                    <span className="text-faint fs-8">· {standing.points.earned} earned, {standing.points.spent} spent · {owned(standing.shapes) + owned(standing.designs) + owned(standing.barrels)} of {standing.shapes.length + standing.designs.length + standing.barrels.length} collected</span>
                                 </div>
                                 <span className="text-faint fs-8">
                                     {standing.levelName && <>You are {standing.levelName}{standing.average != null ? `, with an X01 average of ${standing.average}` : ', without an X01 average yet (it counts from 5 X01 games)'}. </>}
-                                    Earned by playing and training: unlock the shapes and designs you like with them. Many also need a player level or an X01 average; the master flights belong to the levels, the legendary ones only come with a feat.
+                                    Earned by playing and training: unlock the flight shapes, designs and barrels you like with them. Many also need a player level or an X01 average; the master flights belong to the levels, the legendary ones only come with a feat.
                                     {' '}
                                     <Button type="button" link className="p-0 fs-8 align-baseline" label={showRules ? 'Hide how' : 'How do I earn them?'} onClick={() => setShowRules(shown => !shown)} />
                                 </span>
@@ -159,7 +161,7 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                                         label="Flight shape"
                                         items={standing.shapes}
                                         selected={flight.shape}
-                                        preview={(item) => ({ shape: item.id, design: flight.design, color: flight.color })}
+                                        picture={(item, uid) => <FlightPicture shape={item.id} design={flight.design} color={flight.color} uid={uid} />}
                                         onSelect={(item) => save({ flightShape: item.id })}
                                         onUnlock={unlock}
                                     />
@@ -170,8 +172,19 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                                         label="Flight design"
                                         items={standing.designs}
                                         selected={flight.design}
-                                        preview={(item) => ({ shape: flight.shape, design: item.id, color: flight.color })}
+                                        picture={(item, uid) => <FlightPicture shape={flight.shape} design={item.id} color={flight.color} uid={uid} />}
                                         onSelect={(item) => save({ flightPattern: item.id })}
+                                        onUnlock={unlock}
+                                    />
+                                </div>
+                                <div className="d-flex flex-column gap-2">
+                                    <span className="text-subtle fs-8">Barrel · {owned(standing.barrels)} of {standing.barrels.length}</span>
+                                    <FlightGallery
+                                        label="Barrel"
+                                        items={standing.barrels}
+                                        selected={flight.barrel}
+                                        picture={(item, uid) => <BarrelPicture barrel={item.id} uid={uid} />}
+                                        onSelect={(item) => save({ barrel: item.id })}
                                         onUnlock={unlock}
                                     />
                                 </div>

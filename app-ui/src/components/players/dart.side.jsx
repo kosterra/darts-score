@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 
 import { FlightArt } from '../flights/flight.art';
+import { BarrelArt } from '../flights/barrel.art';
 
 // where the flights sit on the dart, and how fast it turns (one turn in seconds)
 const FLIGHTS_AT = 102;
@@ -18,11 +19,11 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
 
 /**
  * A dart seen from the side, tip to the left: the steel point, the barrel
- * with its grip rings, the shaft and the four flights, turning slowly round
+ * (one of the barrels to collect), the shaft and the four flights, turning slowly round
  * the dart's axis (the flights across the line of sight get narrow, those
- * behind it darker). color, shape and design: the flights, as on the board.
+ * behind it darker). color, shape and design: the flights, as on the board; barrel: its barrel.
  */
-const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
+const DartSide = ({ color, shape = 'standard', design = 'plain', barrel = 'classic' }) => {
     const id = useId().replace(/:/g, '');
     // each wing is drawn twice, behind the dart and in front of it; turning
     // only moves and shows the right one, so the flights are not drawn again
@@ -79,12 +80,6 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
                     <stop offset="0.4" stopColor="#f4f6f8" />
                     <stop offset="1" stopColor="#8d969f" />
                 </linearGradient>
-                <linearGradient id={`${id}-barrel`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#7d8791" />
-                    <stop offset="0.38" stopColor="#dfe4e9" />
-                    <stop offset="0.62" stopColor="#b3bcc5" />
-                    <stop offset="1" stopColor="#7d8791" />
-                </linearGradient>
                 <linearGradient id={`${id}-shaft`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0" stopColor="#4a515a" />
                     <stop offset="0.45" stopColor="#8a929b" />
@@ -97,11 +92,8 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
 
             {/* the point: a steel needle, sharp at the tip */}
             <polygon points="0,0 5,-0.8 30,-1.1 30,1.1 5,0.8" fill={`url(#${id}-steel)`} />
-            {/* the barrel: tungsten, rounded at both ends, with grip rings */}
-            <path d="M 30,-2.2 Q 34,-3.9 40,-3.9 L 72,-3.9 Q 78,-3.9 80,-2.6 L 80,2.6 Q 78,3.9 72,3.9 L 40,3.9 Q 34,3.9 30,2.2 Z" fill={`url(#${id}-barrel)`} />
-            {Array.from({ length: 9 }, (_, index) => 44 + index * 3).map(x => (
-                <line key={x} x1={x} y1="-3.9" x2={x} y2="3.9" className="dart-side-ring" />
-            ))}
+            {/* the barrel: its profile, grip and finish */}
+            <BarrelArt barrel={barrel} uid={`${id}-barrel`} />
             {/* the shaft, with its ring where it screws in, into the flights */}
             <rect x="80" y="-1.7" width="34" height="3.4" rx="1" fill={`url(#${id}-shaft)`} />
             <rect x="80" y="-2.2" width="3" height="4.4" rx="0.6" fill={`url(#${id}-shaft)`} />

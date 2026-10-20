@@ -1,7 +1,6 @@
 import { useId } from 'react';
 import { FaLock } from 'react-icons/fa6';
 
-import { FlightPicture } from './flight.art';
 
 const RARITY_LABELS = { starter: 'Starter', common: 'Common', rare: 'Rare', epic: 'Epic', master: 'Master', legendary: 'Legendary' };
 
@@ -14,13 +13,15 @@ const statusOf = (item) => {
 };
 
 /**
- * Flights to choose from as tiles, like on the packet: each one upright with
- * its name, framed in the colour of its rarity. Owned ones are chosen with a
- * tap, those to unlock show their price (onUnlock), locked ones what is
- * missing. items: the shapes or designs of the flight standing; preview(item):
- * the flight a tile shows ({ shape, design, color }); selected: the id chosen.
+ * Flights and barrels to choose from as tiles, like on the packet: each one
+ * upright with its name, framed in the colour of its rarity. Owned ones are
+ * chosen with a tap. Those that only need points keep their design in full
+ * (something to save up for) with a lock in the corner and their price, in
+ * gold once it can be paid (a tap unlocks it, onUnlock). Those that first
+ * need a level, an average or a feat are greyed out and say what is missing. items: the shapes, designs or barrels of the standing;
+ * picture(item, uid): what a tile shows; selected: the id chosen.
  */
-const FlightGallery = ({ label, items, selected, preview, onSelect, onUnlock }) => {
+const FlightGallery = ({ label, items, selected, picture, onSelect, onUnlock }) => {
     const uid = `gallery-${useId().replace(/:/g, '')}`;
     return (
         <div className="flight-gallery" role="radiogroup" aria-label={label}>
@@ -42,8 +43,8 @@ const FlightGallery = ({ label, items, selected, preview, onSelect, onUnlock }) 
                         title={[item.label, RARITY_LABELS[item.rarity], item.cost && `${item.cost} points`, item.state === 'locked' ? item.reason : item.requires && `needs ${item.requires}`].filter(Boolean).join(' · ')}
                         onClick={click}
                     >
-                        <FlightPicture {...preview(item)} uid={`${uid}-${item.id}`} />
-                        {!owned && item.state !== 'available' && <FaLock className="flight-tile-lock" aria-hidden="true" />}
+                        {picture(item, `${uid}-${item.id}`)}
+                        {!owned && <span className="flight-tile-lock" aria-hidden="true"><FaLock /></span>}
                         <span className="flight-tile-name">{item.label}</span>
                         <span className="flight-tile-status">{status ?? RARITY_LABELS[item.rarity]}</span>
                     </button>

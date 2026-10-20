@@ -73,8 +73,9 @@ export default (mongoose) => {
         flightColor:     { type: String, default: 'auto' },
         flightPattern:   { type: String, default: 'plain' },
         flightShape:     { type: String, default: 'standard' },
+        barrel:          { type: String, default: 'classic' },
       },
-      // the flight shapes and designs unlocked with flight points ("shape:fantail", "design:flames")
+      // the flight shapes, designs and barrels unlocked with flight points ("shape:fantail", "barrel:bomb")
       flights: {
         unlocked:        { type: [String], default: [] },
       },

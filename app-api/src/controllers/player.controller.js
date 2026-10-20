@@ -409,7 +409,7 @@ export const setPreferences = async (req, res) => {
     }
 
     // a flight shape or design is flown once the player has it
-    const wanted = [['shape', req.body.flightShape], ['design', req.body.flightPattern]].filter(([, id]) => id);
+    const wanted = [['shape', req.body.flightShape], ['design', req.body.flightPattern], ['barrel', req.body.barrel]].filter(([, id]) => id);
     if (wanted.length) {
         const standing = await loadFlightStanding(player);
         const missing = wanted.find(([kind, id]) => !mayUse(standing, kind, id));
@@ -424,6 +424,7 @@ export const setPreferences = async (req, res) => {
         flightColor: req.body.flightColor ?? current.flightColor ?? 'auto',
         flightPattern: req.body.flightPattern ?? current.flightPattern ?? 'plain',
         flightShape: req.body.flightShape ?? current.flightShape ?? 'standard',
+        barrel: req.body.barrel ?? current.barrel ?? 'classic',
     };
     await player.save();
     res.send(player.toJSON());
@@ -445,8 +446,8 @@ export const flights = async (req, res) => {
 };
 
 /**
- * Unlocks a flight shape or design with the player's flight points:
- * { kind: 'shape' | 'design', id }. The player themselves, or a club admin
+ * Unlocks a flight shape, design or barrel with the player's flight points:
+ * { kind: 'shape' | 'design' | 'barrel', id }. The player themselves, or a club admin
  * for a player without a login. Answers with the new standing.
  */
 export const unlockFlight = async (req, res) => {
