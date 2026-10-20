@@ -18,6 +18,13 @@ export const FLIGHT_COLORS = [
     { value: '#2b2f36', label: 'Black' },
 ];
 
+export const FLIGHT_SHAPES = [
+    { value: 'standard', label: 'Standard' },
+    { value: 'slim', label: 'Slim' },
+    { value: 'kite', label: 'Kite' },
+    { value: 'pear', label: 'Pear' },
+];
+
 export const FLIGHT_PATTERNS = [
     { value: 'plain', label: 'Plain' },
     { value: 'twoTone', label: 'Two-tone' },
@@ -33,7 +40,7 @@ export const secondColorOf = (color) => {
 };
 
 /**
- * The flights of a player in a game: { color, pattern }. seat: their place
+ * The flights of a player in a game: { color, pattern, shape }. seat: their place
  * in the game, whose colour "auto" takes.
  */
 export const flightOf = (player, seat = 0) => {
@@ -42,6 +49,7 @@ export const flightOf = (player, seat = 0) => {
     return {
         color: own ? preferences.flightColor : PLAYER_COLORS[Math.max(0, seat) % PLAYER_COLORS.length],
         pattern: FLIGHT_PATTERNS.some(pattern => pattern.value === preferences.flightPattern) ? preferences.flightPattern : 'plain',
+        shape: FLIGHT_SHAPES.some(shape => shape.value === preferences.flightShape) ? preferences.flightShape : 'standard',
     };
 };
 

@@ -4,15 +4,15 @@ import { SelectButton } from 'primereact/selectbutton';
 import PlayerService from '../../services/player.service';
 import DartSide from './dart.side';
 import SettingSwitch from '../elements/setting.switch';
-import { FLIGHT_COLORS, FLIGHT_PATTERNS, flightOf } from '../../utils/flights';
+import { FLIGHT_COLORS, FLIGHT_PATTERNS, FLIGHT_SHAPES, flightOf } from '../../utils/flights';
 import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 
-const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain' };
+const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard' };
 
 /**
  * How a player's darts look on the board of X01, Cricket and Elimination,
  * in the boxes of the game setup: the dart animation (a game can switch it
- * on or off for everyone), and the colour and pattern of the flights, with a
+ * on or off for everyone), and the colour, shape and pattern of the flights, with a
  * dart turning slowly to see them. A change is saved right away.
  *
  * player: { id, preferences }
@@ -52,7 +52,7 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                 <div className="row mx-0 mt-0 setting-body">
                     <div className="col d-flex flex-column gap-3">
                         <div className="player-flight-preview">
-                            <DartSide color={flight.color} pattern={flight.pattern} />
+                            <DartSide color={flight.color} pattern={flight.pattern} shape={flight.shape} />
                         </div>
                         <div className="d-flex flex-column gap-2">
                             <span className="text-subtle fs-8">Colour</span>
@@ -84,6 +84,16 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                             <span className="text-faint fs-8">
                                 {preferences.flightColor === 'auto' ? 'In your colour of the game, as on the scores and charts.' : 'The same colour in every game.'}
                             </span>
+                        </div>
+                        <div className="d-flex flex-column gap-2">
+                            <span className="text-subtle fs-8">Shape</span>
+                            <SelectButton
+                                value={preferences.flightShape}
+                                options={FLIGHT_SHAPES}
+                                onChange={(e) => e.value && save({ flightShape: e.value })}
+                                className="p-selectbutton-pills flex-wrap"
+                                aria-label="Flight shape"
+                            />
                         </div>
                         <div className="d-flex flex-column gap-2">
                             <span className="text-subtle fs-8">Pattern</span>

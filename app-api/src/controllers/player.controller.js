@@ -413,6 +413,7 @@ export const setPreferences = async (req, res) => {
         flyingDarts: req.body.flyingDarts ?? current.flyingDarts ?? true,
         flightColor: req.body.flightColor ?? current.flightColor ?? 'auto',
         flightPattern: req.body.flightPattern ?? current.flightPattern ?? 'plain',
+        flightShape: req.body.flightShape ?? current.flightShape ?? 'standard',
     };
     await player.save();
     res.send(player.toJSON());

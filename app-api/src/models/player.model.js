@@ -72,6 +72,7 @@ export default (mongoose) => {
         flyingDarts:     { type: Boolean, default: true },
         flightColor:     { type: String, default: 'auto' },
         flightPattern:   { type: String, default: 'plain' },
+        flightShape:     { type: String, default: 'standard' },
       },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
