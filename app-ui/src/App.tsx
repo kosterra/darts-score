@@ -57,7 +57,7 @@ function GameListRedirect() {
 const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
-    const { user, activeClub, isGlobalAdmin, loading, returnTo } = useAuth();
+    const { user, activeClub, isGlobalAdmin, loading, returnTo, loggedOut } = useAuth();
     // whether the start page of this login was already opened: set once a
     // page shows, so it is only the first page after logging in
     const startHandled = useRef(false);
@@ -90,7 +90,8 @@ function AppContent() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="*" element={<Navigate replace to="/login" />} />
+                    {/* after logging out: the public start page; otherwise the login */}
+                    <Route path="*" element={<Navigate replace to={loggedOut ? '/' : '/login'} />} />
                 </Routes>
             </Suspense>
         );

@@ -38,6 +38,8 @@ const AuthState = ({ children }) => {
     const [sessionEnded, setSessionEnded] = useState(false);
     // the page open when it ran out, to come back to after logging in again
     const [returnTo, setReturnTo] = useState(null);
+    // logged out on purpose: the public start page follows, not the login
+    const [loggedOut, setLoggedOut] = useState(false);
 
     const selectClub = useCallback((clubId) => {
         setActiveClubId(clubId);
@@ -62,6 +64,7 @@ const AuthState = ({ children }) => {
         if (defaultClub && (fresh || !clubChosenInTab())) selectClub(defaultClub.id);
         markClubChosenInTab();
         setSessionEnded(false);
+        setLoggedOut(false);
         setUser(loggedInUser);
     }, [refreshClubs, selectClub]);
 
@@ -95,6 +98,7 @@ const AuthState = ({ children }) => {
     const logout = useCallback(async () => {
         await AuthService.logout().catch(() => {});
         setReturnTo(null);
+        setLoggedOut(true);
         setUser(null);
         setClubs([]);
     }, []);
@@ -133,9 +137,10 @@ const AuthState = ({ children }) => {
         endSession,
         sessionEnded,
         returnTo,
+        loggedOut,
         refreshClubs,
         selectClub
-    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, login, register, logout, endSession, sessionEnded, returnTo, refreshClubs, selectClub]);
+    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, login, register, logout, endSession, sessionEnded, returnTo, loggedOut, refreshClubs, selectClub]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
