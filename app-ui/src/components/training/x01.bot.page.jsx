@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
+import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 import { Skeleton } from 'primereact/skeleton';
 import { Toast } from 'primereact/toast';
@@ -227,15 +228,21 @@ const X01BotPage = () => {
                                         {finished ? (result.won ? 'Won' : 'Lost') : 'Running'}
                                     </span>
                                     <div className="d-flex flex-column" style={{ minWidth: 0 }}>
-                                        <span className="text-default fw-semibold fs-7">{training.startingScore} {training.legOutMode} · {result.legs}</span>
+                                        <span className="text-default fw-semibold">{training.startingScore} {training.legOutMode} · {result.legs}</span>
                                         <span className="text-faint fs-8">
                                             {dayjs(training.createdAt).format('DD.MM.YYYY HH:mm')}
                                             {result.average != null && ` · ${player.nickname} ${result.average.toFixed(1)}, bot ${result.botAverage?.toFixed(1) ?? '–'}`}
                                         </span>
                                     </div>
-                                    <Link to={finished ? `/stats/training/x01/${training.id}` : `/training/x01/${training.id}`} className="p-button p-button-sm p-button-secondary ms-auto">
-                                        {finished ? 'View' : 'Continue'}
-                                    </Link>
+                                    <Button
+                                        type="button"
+                                        label={finished ? 'View' : 'Continue'}
+                                        icon={finished ? 'pi pi-chart-bar' : 'pi pi-play'}
+                                        size="small"
+                                        severity="secondary"
+                                        className="ms-auto flex-shrink-0"
+                                        onClick={() => navigate(finished ? `/stats/training/x01/${training.id}` : `/training/x01/${training.id}`)}
+                                    />
                                 </li>
                             );
                         })}

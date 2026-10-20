@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
@@ -95,6 +95,7 @@ const RestoreDialog = ({ entry, onCancel, onRestore }) => entry && (
  */
 const FairPlayPage = ({ all = false }) => {
     const { activeClub } = useAuth();
+    const navigate = useNavigate();
     const toast = useRef(null);
     const [data, setData] = useState(null);
     const [failed, setFailed] = useState(false);
@@ -297,7 +298,7 @@ const FairPlayPage = ({ all = false }) => {
                                         }
                                         <div className="fair-play-actions">
                                             <Button type="button" label={expanded ? 'Hide details' : 'Details'} icon={`pi ${expanded ? 'pi-chevron-up' : 'pi-search'}`} size="small" severity="secondary" onClick={() => toggle(entry)} aria-expanded={expanded} />
-                                            {viewable && <Link to={`/stats/games/${entry.type}/${entry.id}`} className="p-button p-button-sm p-button-secondary">View</Link>}
+                                            {viewable && <Button type="button" label="View" icon="pi pi-chart-bar" size="small" severity="secondary" onClick={() => navigate(`/stats/games/${entry.type}/${entry.id}`)} />}
                                             {entry.repairable && entry.review?.status !== 'ok' &&
                                                 <Button type="button" label="Repair" icon="pi pi-wrench" size="small" disabled={busy === entry.id} onClick={() => setRepairing(entry)} />}
                                             {entry.review?.status !== 'ok' &&

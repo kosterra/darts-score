@@ -111,3 +111,13 @@ $softGreenTextHover: #95d6b4;
 :where(.p-inputswitch.p-focus:not(:has(:focus-visible)) .p-inputswitch-slider) {
   box-shadow: none;
 }
+
+// a link that looks like a button (e.g. to another site) reads like one: the
+// label of the buttons, not the font of the link
+a.p-button {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+
+  &.p-button-sm { font-size: 0.8rem; }
+}
