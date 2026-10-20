@@ -504,12 +504,36 @@ $tar: #17110c;
 
 .about-level-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.45rem 0.65rem;
   border-radius: $borderRadius;
   background: var(--surface-raised);
+}
+
+.about-level-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+// the flights and barrels a level opens, small, with their names
+.about-unlocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-subtle);
+    font-size: 0.75rem;
+  }
+
+  .flight-picture { width: 1rem; height: 1.25rem; }
+  .barrel-picture { width: 0.5rem; height: 1.25rem; }
 }
 
 // a part of a game's rules on the About page (setting up, bust, winning): the

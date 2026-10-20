@@ -107,7 +107,7 @@ const AboutCard = () => {
 
             {section === 'levels' &&
                 <Panel header="Levels">
-                    <LevelsSection levels={catalogue?.levels} rules={catalogue?.xpRules} />
+                    <LevelsSection levels={catalogue?.levels} rules={catalogue?.xpRules} flights={catalogue?.flights} />
                 </Panel>
             }
 
@@ -128,7 +128,8 @@ const AboutCard = () => {
             <Panel header="Badges">
                 <div className="d-flex flex-column gap-4 p-2">
                     <p className="text-subtle fs-7 m-0">
-                        Badges are earned automatically in games and trainings. Your own collection is on your profile and under <Link to="/badges">Club → Badges</Link>.
+                        Badges are earned automatically in games and trainings, and each one adds XP to the player level. Your own collection is on your profile and under <Link to="/badges">Club → Badges</Link>,
+                        next to the flights and barrels you collected with your flight points (see <Link to="#levels">Levels</Link>).
                     </p>
                     {!catalogue && <span className="text-faint fs-7">Loading badges…</span>}
                     {categories.map(category => (
@@ -155,7 +156,7 @@ const AboutCard = () => {
                         <section className="d-flex flex-column gap-3">
                             <h2 className="game-setup-section-title m-0">Hall of Shame</h2>
                             <p className="text-subtle fs-7 m-0">
-                                Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01 games. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP. A club admin can switch them off in the club settings, or keep them and leave children out (under 16, or another age the club chooses).
+                                Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01, Cricket and Elimination games. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP. A club admin can switch them off in the club settings, or keep them and leave children out (under 16, or another age the club chooses). A player without a date of birth is never in the Hall of Shame: their age is unknown.
                             </p>
                             <ul className="list-unstyled m-0 d-flex flex-column gap-3">
                                 {catalogue.shame.map(badge => (

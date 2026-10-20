@@ -21,11 +21,13 @@ const RULES = [
         icon: FaKeyboard,
         body: (
             <>
-                <p>Tap the dartboard, or switch to the keypad and type each dart, then send the visit. A visit has up to three darts; a visit that wins or busts can end earlier.</p>
+                <p>Tap the dartboard, or switch to the keypad and type each dart, then send the visit. A visit has up to three darts; a visit that wins or busts can end earlier. The app remembers whether you use the board or the keypad.</p>
                 <ul>
                     <li><strong>S</strong>, <strong>D</strong> or <strong>T</strong> plus the number: single, double or treble. “T20” scores 60, “D16” scores 32.</li>
                     <li><strong>S25</strong> is the outer bull (25), <strong>D25</strong> the bullseye (50).</li>
                     <li><strong>0</strong> for a dart that missed the board or bounced out.</li>
+                    <li>On the board: a finger held on it shows the field under it in a magnifier, and the dart counts where the finger is lifted (off the board: nothing).</li>
+                    <li>With the dart animation on, a dart flies to the field you tapped and sticks there with your flights and barrel; off, the field just lights up. Each player sets it on their player profile; the setup of a game can switch it on or off for everyone.</li>
                 </ul>
                 <p className="m-0">A mistake? Undo takes the last visit back, also over several players. The game is saved after every visit, so it can be continued later.</p>
             </>
@@ -57,7 +59,14 @@ const RULES = [
                     <ul className="m-0">
                         <li>The player who starts moves on by one every leg, and every set, so nobody always has the first throw.</li>
                         <li>Whoever wins the needed number of legs (or sets) wins the game. The tips show the way out from 170 down, with the player&apos;s favourite double first.</li>
-                        <li>To practise alone, play X01 against the bot under Training: the same rules against a bot as strong as you.</li>
+                    </ul>
+                </Part>
+                <Part title="Against the bot">
+                    <ul className="m-0">
+                        <li>Under Training, X01 against the bot is a game of X01 for one player: the same rules, from 101 to 701, with in and out modes, legs and sets, and the choice of who starts.</li>
+                        <li><strong>The bot:</strong> a fixed one (Easy, Normal, Hard or Pro, about a 30, 45, 60 or 80 average), or one like you, worked out from your recent form or your X01 average and your checkout rate, also a bit easier or harder.</li>
+                        <li>It aims like a player, at the way out, a setup shot or the treble, and misses like one: next door, the single, or outside a double. Its darts appear one by one; the board waits while it throws.</li>
+                        <li>A training counts for no game statistics, badges or levels, but it earns flight points; the last trainings are listed with the result and both averages.</li>
                     </ul>
                 </Part>
             </>
