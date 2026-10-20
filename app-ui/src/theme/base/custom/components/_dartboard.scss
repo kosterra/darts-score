@@ -156,27 +156,16 @@ $dartboard-opacity: 0.4;
 }
 
 // (the names are the board's own: the bull finish has a dart-fly of its own)
-// a dart flying to where it was thrown: an arc along the thrower's line of
-// sight (bigger, as it is nearer), coming up from below, rising above its point
-// and dropping into it, where it sticks with a little wobble; the
-// point and its pulse appear when it lands
+// a dart flying to where it was thrown: straight along the thrower's line of
+// sight, so it only gets smaller as it nears the board (it is drawn as it
+// sticks, pointing back at the thrower), where it sticks with a little
+// wobble; the point and its pulse appear when it lands
 .dartboard-img {
   .dart-fly {
     // the dart's own coordinates: its tip is at (0, 0)
     transform-box: view-box;
     transform-origin: 0 0;
-    animation: board-dart-fly 0.32s linear both, board-dart-wobble 0.4s ease-out 0.32s;
-  }
-
-  // the dart tilts round its tip with its arc (it pitches, it does not spin): nose
-  // up while it rises (the shaft shows below the tip), pointing at the thrower at
-  // the top, nose down as it drops, so it sticks with its tail a little up (the
-  // shaft above the tip), as darts that drop into a board do
-  .dart-tilt {
-    transform-box: view-box;
-    transform-origin: 0 0;
-    transform: scaleY(-1);
-    animation: board-dart-tilt 0.32s linear both;
+    animation: board-dart-fly 0.32s cubic-bezier(0.3, 0.6, 0.5, 1) both, board-dart-wobble 0.4s ease-out 0.32s;
   }
 
   .has-dart .dart-hit { animation: board-dart-hit 0.12s ease-out 0.3s both; }
@@ -196,16 +185,9 @@ $dartboard-opacity: 0.4;
 }
 
 @keyframes board-dart-fly {
-  0% { transform: translate(0, 40px) scale(2.5); opacity: 0; animation-timing-function: ease-out; }
-  15% { opacity: 1; }
-  55% { transform: translate(0, -20px) scale(1.5); animation-timing-function: ease-in; }
-  100% { transform: translate(0, 0) scale(1); opacity: 1; }
-}
-
-@keyframes board-dart-tilt {
-  0% { transform: scaleY(1.3); animation-timing-function: ease-out; }
-  55% { transform: scaleY(0.15); animation-timing-function: ease-in; }
-  100% { transform: scaleY(-1); }
+  0% { transform: scale(3.2); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes board-dart-wobble {
@@ -221,6 +203,5 @@ $dartboard-opacity: 0.4;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dartboard-img .dart-fly,
-  .dartboard-img .dart-tilt { animation: none; }
+  .dartboard-img .dart-fly { animation: none; }
 }
