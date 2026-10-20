@@ -7,6 +7,8 @@ import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
 import { isMailConfigured, sendMail } from '../utils/mail.utils.js';
 import { checkRegistration, noteRegistration, checkLater } from '../utils/spam.guard.js';
+import { normalizeLayout } from '../utils/dashboard.layout.js';
+import { getClubRole } from '../middleware/auth.middleware.js';
 
 export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
@@ -71,6 +73,21 @@ export const session = async (req, res) => {
 export const extendSession = async (req, res) => {
     const expiresAt = await setSessionCookie(req, res, req.user);
     res.json({ expiresAt });
+};
+
+/**
+ * The user's own dashboard in a club: { layout: [{ id, size }] }, or
+ * { layout: null } to go back to the club's. Only in a club they belong to.
+ */
+export const setDashboard = async (req, res) => {
+    const club = db.mongoose.isValidObjectId(req.params.clubId) ? await db.club.findById(req.params.clubId) : null;
+    if (!club || !(await getClubRole(req.user, club))) return res.status(404).json({ message: 'Club not found.' });
+    const others = (req.user.dashboards ?? []).filter(entry => String(entry.club) !== String(club._id));
+    req.user.dashboards = Array.isArray(req.body.layout)
+        ? [...others, { club: club._id, layout: normalizeLayout(req.body.layout) }]
+        : others;
+    await req.user.save();
+    res.json(req.user);
 };
 
 export const updateMe = async (req, res) => {

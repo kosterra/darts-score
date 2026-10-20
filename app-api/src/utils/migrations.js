@@ -1,5 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
+import { layoutFromWidgets } from './dashboard.layout.js';
 
 const DEFAULT_CLUB_NAME = 'Default Club';
 
@@ -163,6 +164,21 @@ const migrations = [
                 { $push: { dashboardWidgets: { $each: ['me'], $position: 0 } } }
             );
             logger.info(`The "You" widget was added to ${result.modifiedCount} arranged dashboards`);
+            return true;
+        },
+    },
+    {
+        id: '2026-10-dashboard-layout',
+        description: 'Give the dashboards clubs arranged a width per widget, the width each had before',
+        run: async () => {
+            const clubs = await db.club.find({ 'dashboardWidgets.0': { $exists: true } }, 'dashboardWidgets dashboardLayout').lean();
+            let converted = 0;
+            for (const club of clubs) {
+                if (club.dashboardLayout?.length) continue;
+                await db.club.collection.updateOne({ _id: club._id }, { $set: { dashboardLayout: layoutFromWidgets(club.dashboardWidgets) }, $unset: { dashboardWidgets: '' } });
+                converted += 1;
+            }
+            logger.info(`${converted} arranged dashboards got a width per widget`);
             return true;
         },
     },

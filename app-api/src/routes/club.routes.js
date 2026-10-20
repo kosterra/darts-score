@@ -25,6 +25,9 @@ export default (app) => {
         body('description').optional().isString().trim().isLength({ max: 500 }).withMessage('The description can have at most 500 characters.'),
         body('dashboardWidgets').optional().isArray({ max: 40 }).withMessage('dashboardWidgets must be a list.'),
         body('dashboardWidgets.*').isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
+        body('dashboardLayout').optional().isArray({ max: 40 }).withMessage('dashboardLayout must be a list.'),
+        body('dashboardLayout.*.id').isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
+        body('dashboardLayout.*.size').isIn(['S', 'M', 'L', 'F']).withMessage('The width of a widget is S, M, L or F.'),
         validate,
         ClubController.update
     );

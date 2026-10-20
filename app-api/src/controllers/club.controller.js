@@ -7,6 +7,7 @@ import { removeClubLogoFile } from './file.controller.js';
 import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
+import { normalizeLayout } from '../utils/dashboard.layout.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -87,6 +88,11 @@ export const update = async (req, res) => {
     }
     if (Number.isInteger(req.body.shameMinAge)) club.shameMinAge = req.body.shameMinAge;
     if (Array.isArray(req.body.dashboardWidgets)) club.dashboardWidgets = req.body.dashboardWidgets;
+    // the club's dashboard; an empty list means the default set
+    if (Array.isArray(req.body.dashboardLayout)) {
+        club.dashboardLayout = normalizeLayout(req.body.dashboardLayout);
+        club.dashboardWidgets = undefined;
+    }
     await club.save();
     res.json(await withAdmins(club));
 };

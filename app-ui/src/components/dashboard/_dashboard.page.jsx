@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
+import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
+import { Toast } from 'primereact/toast';
 import dayjs from 'dayjs';
 
 import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
 import { useAuth } from '../../utils/auth.context';
-import { resolveWidgets } from './dashboard.widgets';
-import DashboardCustomizeDialog from './dashboard.customize.dialog';
+import AuthService from '../../services/auth.service';
+import ClubService from '../../services/club.service';
+import { DEFAULT_LAYOUT, layoutFor, resolveLayout, toLayout } from './dashboard.widgets';
+import DashboardEditor from './dashboard.editor';
 import ClubLogo from '../elements/club.logo';
 import LeaderboardWidget from './widgets/leaderboard.widget';
 import ClubKpisWidget from './widgets/club.kpis.widget';
@@ -24,15 +28,25 @@ import MeWidget from './widgets/me.widget';
 
 const formatDate = (date) => date ? dayjs(date).format('DD.MM.YYYY') : '–';
 
+// what a club admin arranges: their own dashboard or the club's
+const TARGETS = [{ label: 'My dashboard', value: 'mine' }, { label: "The club's dashboard", value: 'club' }];
+
 /**
- * The club dashboard: the club at a glance, followed by the widgets the club chose.
+ * The club dashboard: the club at a glance, followed by the widgets. Members
+ * see the club's arrangement, or their own if they made one; the club admins
+ * arrange the club's. Edit dashboard arranges it right on the page: widgets
+ * dragged into place, made wider or narrower, removed and added.
  */
 const Dashboard = () => {
-    const { activeClub, isClubAdmin, refreshClubs } = useAuth();
+    const toast = useRef(null);
+    const { activeClub, isClubAdmin, refreshClubs, user, setUser } = useAuth();
 
     const [stats, setStats] = useState(null);
     const [failed, setFailed] = useState(false);
-    const [customizing, setCustomizing] = useState(false);
+    // while arranging: what (mine or the club's) and the layout so far
+    const [editing, setEditing] = useState(null);
+    const [draft, setDraft] = useState([]);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -47,7 +61,10 @@ const Dashboard = () => {
     }, []);
 
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
-    const widgets = resolveWidgets(activeClub?.dashboardWidgets, { shameBadges: activeClub?.shameBadges !== false });
+    const shameBadges = activeClub?.shameBadges !== false;
+    const current = layoutFor(user, activeClub);
+    const widgets = resolveLayout(current.layout, { shameBadges });
+    const clubLayout = layoutFor(null, activeClub).layout;
 
     if (failed) {
         return <div className="container-fluid p-4 text-subtle">The dashboard could not be loaded. Please reload the page.</div>;
@@ -62,6 +79,42 @@ const Dashboard = () => {
         ['Games played', totals.gamesPlayed],
         ['Last game', formatDate(totals.lastGameAt)],
     ];
+
+    // the arrangement to start from: one's own (or the club's, to start one's own from), or the club's
+    const layoutOf = (target) => toLayout(target === 'club' ? clubLayout : current.layout).map(({ id, size }) => ({ id, size }));
+    const startEditing = () => {
+        const target = isClubAdmin && !current.own ? 'club' : 'mine';
+        setEditing(target);
+        setDraft(layoutOf(target));
+    };
+    const switchTarget = (target) => {
+        if (!target || target === editing) return;
+        setEditing(target);
+        setDraft(layoutOf(target));
+    };
+
+    const run = async (action, summary) => {
+        setSaving(true);
+        try {
+            await action();
+            setEditing(null);
+            toast.current?.show({ severity: 'success', summary, life: 3000 });
+        } catch (error) {
+            toast.current?.show({ severity: 'error', summary: 'Dashboard', detail: error.message, life: 4000 });
+        } finally {
+            setSaving(false);
+        }
+    };
+    const save = () => editing === 'club'
+        ? run(async () => {
+            await ClubService.updateClub(activeClub.id, { name: activeClub.name, dashboardLayout: draft });
+            await refreshClubs();
+        }, "The club's dashboard is saved")
+        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, draft)), 'Your dashboard is saved');
+    // back to the club's dashboard (one's own) or to the default widgets (the club's, saved with Save)
+    const reset = () => editing === 'club'
+        ? setDraft(DEFAULT_LAYOUT)
+        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, null)), "You see the club's dashboard again");
 
     const renderWidget = (widget) => {
         switch (widget.kind) {
@@ -102,27 +155,48 @@ const Dashboard = () => {
                     </dl>
                 </div>
                 </div>
-                {isClubAdmin &&
-                    <Button label="Customize" icon="pi pi-sliders-h" size="small" onClick={() => setCustomizing(true)} />
-                }
+                {!editing && (
+                    <div className="d-flex flex-column align-items-end gap-1">
+                        <Button label="Edit dashboard" icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />
+                        {current.own && <span className="text-faint fs-8">Your own arrangement</span>}
+                    </div>
+                )}
             </header>
 
-            <div className="row g-4">
-                {widgets.map(widget => (
-                    <div className={widget.cols} key={widget.id}>
-                        {renderWidget(widget)}
+            {editing && (
+                <div className="dashboard-edit-bar" role="region" aria-label="Arranging the dashboard">
+                    <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+                        {isClubAdmin
+                            ? <SelectButton value={editing} options={TARGETS} onChange={(event) => switchTarget(event.value)} className="p-selectbutton-pills" aria-label="What to arrange" />
+                            : <span className="text-default fw-semibold">Arranging your dashboard</span>}
+                        <span className="text-faint fs-8">
+                            {editing === 'club'
+                                ? 'Everyone in the club sees it, unless they arranged their own.'
+                                : 'Only you see it, in this club. Drag the widgets by their bar, choose their width, remove them or add more below.'}
+                        </span>
                     </div>
-                ))}
-            </div>
+                    <div className="d-flex flex-wrap align-items-center gap-2">
+                        {(editing === 'club' || current.own) &&
+                            <Button type="button" label={editing === 'club' ? 'Default widgets' : "Use the club's"} icon="pi pi-replay" size="small" severity="secondary" text onClick={reset} disabled={saving} />}
+                        <Button type="button" label="Cancel" size="small" severity="secondary" onClick={() => setEditing(null)} disabled={saving} />
+                        <Button type="button" label="Save" icon="pi pi-check" size="small" onClick={save} loading={saving} disabled={!draft.length} />
+                    </div>
+                </div>
+            )}
 
-            {isClubAdmin &&
-                <DashboardCustomizeDialog
-                    club={activeClub}
-                    visible={customizing}
-                    onHide={() => setCustomizing(false)}
-                    onSaved={refreshClubs}
-                />
+            {editing
+                ? <DashboardEditor layout={draft} onChange={setDraft} renderWidget={renderWidget} shameBadges={shameBadges} />
+                : (
+                    <div className="row g-4">
+                        {widgets.map(widget => (
+                            <div className={widget.cols} key={widget.id}>
+                                {renderWidget(widget)}
+                            </div>
+                        ))}
+                    </div>
+                )
             }
+            <Toast ref={toast} position="bottom-right" />
         </div>
     );
 };

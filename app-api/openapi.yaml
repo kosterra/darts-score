@@ -202,6 +202,45 @@ paths:
         '409':
           description: Email already registered
       operationId: putAuthMe
+  /api/auth/dashboard/{clubId}:
+    put:
+      tags:
+        - Auth
+      summary: Arrange the user's own dashboard in a club
+      description: The user's own arrangement of the dashboard in one of their clubs; with layout null they see the club's again.
+      operationId: putAuthDashboardByclubId
+      parameters:
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - layout
+              properties:
+                layout:
+                  oneOf:
+                    - $ref: '#/components/schemas/DashboardLayout'
+                    - type: 'null'
+      responses:
+        '200':
+          description: The user, with their dashboards
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/auth/session:
     get:
       tags:
@@ -3786,7 +3825,11 @@ components:
           maxItems: 40
           items:
             type: string
-          description: The ids of the dashboard widgets to show, in order; an empty list means the default set
+          description: 'Replaced by dashboardLayout: the widget ids in order, without widths'
+          deprecated: true
+        dashboardLayout:
+          $ref: '#/components/schemas/DashboardLayout'
+          description: The club's dashboard, which its members see unless they arranged their own; an empty list means the default set
     RoleInput:
       type: object
       required:
@@ -4584,6 +4627,16 @@ components:
             - string
             - 'null'
           description: MongoDB ObjectId
+        dashboards:
+          type: array
+          description: The user's own dashboards, per club
+          items:
+            type: object
+            properties:
+              club:
+                type: string
+              layout:
+                $ref: '#/components/schemas/DashboardLayout'
     Session:
       type: object
       properties:
@@ -5147,3 +5200,24 @@ components:
           type: array
           items:
             type: object
+    DashboardLayout:
+      type: array
+      maxItems: 40
+      description: 'The widgets of a dashboard in their order, each with its width: S a third, M half, L two thirds, F the full width'
+      items:
+        type: object
+        required:
+          - id
+          - size
+        properties:
+          id:
+            type: string
+            pattern: ^[A-Za-z0-9]{1,40}$
+            example: leaderMostWins
+          size:
+            type: string
+            enum:
+              - S
+              - M
+              - L
+              - F

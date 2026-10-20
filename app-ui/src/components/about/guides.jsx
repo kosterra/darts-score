@@ -65,7 +65,7 @@ export const PLAYER_GUIDE = [
                     <li><strong>My statistics</strong>, right below Dashboard, opens your own statistics in the club with one click; the <strong>You</strong> widget on the dashboard shows your level, average and form. On your user profile you choose what opens after logging in: the club (your default club, or the one you used last) and its dashboard or your statistics.</li>
                     <li><strong>Players</strong> opens each player&apos;s profile: key figures, level, their set of darts, latest games, charts, badges and the flights and barrels they collected, with filters for the club, the period, the last games and the X01 format.</li>
                     <li><strong>Player comparison</strong> puts two or more players side by side, with their games together and head to head.</li>
-                    <li>The <strong>dashboard</strong> shows the club at a glance: leaderboards, the latest games, records and the Hall of Shame, in widgets the club arranges.</li>
+                    <li>The <strong>dashboard</strong> shows the club at a glance: leaderboards, the latest games, records and the Hall of Shame, in widgets the club arranges. <strong>Edit dashboard</strong> arranges your own: drag the widgets by their bar (or move them with the arrow keys), choose their width, remove them, or add others below; only you see it, and &quot;Use the club&apos;s&quot; brings the club&apos;s back.</li>
                 </ul>
             </>
         ),
@@ -167,7 +167,7 @@ export const ADMIN_GUIDE = [
                 <li><strong>Club → Games</strong> and <strong>Trainings</strong> list everything played, with filters (Around the Clock and X01 against the bot together); admins delete single games or several at once, together with the badges earned in them, and see the trainings players keep to themselves. Players delete their own trainings.</li>
                 <li>A player can ask to delete a game they played (the flag in its row). The other players are asked to agree; when every player has a login and all agree, it goes by itself, otherwise you decide: open the request from the notification or the flag, then delete the game or keep it, with a note for the players. <strong>Deletion asked</strong> shows the games waiting.</li>
                 <li>The admins are told through the notifications when a player asks to delete a game, and when another admin deletes or repairs a game for fair play.</li>
-                <li><strong>Customize</strong> on the dashboard chooses and orders its widgets for the whole club.</li>
+                <li><strong>Edit dashboard</strong> arranges the club&apos;s dashboard right on the page (switch to &quot;The club&apos;s dashboard&quot;): widgets dragged into place, a third to the full width, removed or added. Everyone sees it, unless they arranged their own; &quot;Default widgets&quot; starts over.</li>
             </ul>
         ),
     },

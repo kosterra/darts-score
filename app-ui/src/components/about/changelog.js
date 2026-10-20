@@ -4,6 +4,12 @@
  */
 const CHANGELOG = [
     {
+        version: '2026.10.11',
+        changes: [
+            'The dashboard is arranged right on the page: Edit dashboard lets you drag the widgets into place (by mouse, finger or the arrow keys, the page scrolling along), make each one a third, half, two thirds or the full width, remove them, and add the others below. Club admins arrange the club\'s dashboard, which everyone sees; every member can arrange their own on top of it and go back to the club\'s at any time. Arrangements made before keep their widths.',
+        ],
+    },
+    {
         version: '2026.10.10',
         changes: [
             'X01 against the bot (Training → X01 against the bot): a training that plays like a game, set up like X01 (101 to 701), against a fixed bot (easy, normal, hard or pro) or one as strong as you, worked out from your statistics (your recent form or your X01 average, and your checkout rate), also a bit easier or harder than you. It aims like a player, takes the way out and misses like one; its darts appear one by one while you wait. Trainings count for no game statistics, badges or levels; the last ones are listed with their result and both averages, and the next training is set up like the last one.',
