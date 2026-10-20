@@ -286,10 +286,11 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname]);
 
-    // the user's group starts open on its pages
+    // the user's group is open on its own pages and closes when another page opens
+    // (an entry outside it); its own entries keep it open
     const [profileOpen, setProfileOpen] = useState(() => PROFILE_PATHS.includes(pathname));
     useEffect(() => {
-        if (PROFILE_PATHS.includes(pathname)) setProfileOpen(true);
+        setProfileOpen(PROFILE_PATHS.includes(pathname));
     }, [pathname]);
     const toggleProfile = () => {
         // in the icon rail it opens once the menu is wide again
