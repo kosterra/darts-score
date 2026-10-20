@@ -38,11 +38,11 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
         <div className="player-dart-preferences">
             <div className="my-club-public">
                 <label htmlFor={id} className="d-flex flex-column">
-                    <span className="text-default fs-7">Flying darts on the board</span>
+                    <span className="text-default fs-7">Dart animation</span>
                     <span className="text-faint fs-8">
                         {preferences.flyingDarts
-                            ? 'Your darts fly to where you tapped and stick in the board. A game can switch them off for everyone.'
-                            : 'The field you tap lights up at once, without a dart. A game can switch them on for everyone.'}
+                            ? 'A dart flies to the field you tap and sticks in the board. A game can switch it off for everyone.'
+                            : 'The field you tap just lights up. A game can switch the animation on for everyone.'}
                     </span>
                 </label>
                 <InputSwitch inputId={id} checked={preferences.flyingDarts !== false} onChange={(event) => save({ flyingDarts: event.value })} />
