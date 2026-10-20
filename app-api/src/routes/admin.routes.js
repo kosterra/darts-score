@@ -5,6 +5,8 @@ import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
 import * as SecurityController from '../controllers/security.controller.js';
+import logger from '../models/logger.model.js';
+import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
 
 export default (app) => {
     const router = Router();
@@ -22,6 +24,7 @@ export default (app) => {
     router.delete('/players/:id', param('id').isMongoId(), validate, AdminController.deletePlayer);
     router.get('/games', AdminController.games);
     router.get('/trainings', AdminController.trainings);
+    router.get('/x01-trainings', AdminController.x01Trainings);
 
     // the banner on top of every page
     router.get('/banner', getBannerSettings);
@@ -32,6 +35,18 @@ export default (app) => {
         body('text').if(body('enabled').equals('true')).trim().notEmpty().withMessage('A banner that is switched on needs a text.'),
         validate,
         updateBanner,
+    );
+
+    // how long a login lasts before it has to be extended
+    router.get('/session', async (req, res) => res.json({ ...await getSessionSettings(), limits: SESSION_HOURS }));
+    router.put('/session',
+        body('timeoutHours').isInt({ min: SESSION_HOURS.min, max: SESSION_HOURS.max }).withMessage(`The timeout is ${SESSION_HOURS.min} to ${SESSION_HOURS.max} hours.`).toInt(),
+        validate,
+        async (req, res) => {
+            const settings = await saveSessionSettings({ timeoutHours: req.body.timeoutHours });
+            logger.info(`Session timeout set to ${settings.timeoutHours} hours by ${req.user.email}`);
+            res.json({ ...settings, limits: SESSION_HOURS });
+        },
     );
 
     // warnings and errors of the API

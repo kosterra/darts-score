@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaRightFromBracket, FaShieldHalved, FaChevronDown, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart } from "react-icons/gi";
@@ -12,11 +12,13 @@ import { BsPersonFillCheck } from "react-icons/bs";
 
 import { useAuth } from '../../utils/auth.context';
 import { ROLE_LABELS } from '../../services/user.service';
-import { resolvePlayerInitials } from '../../utils/image.utils';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
 import ClubLogo from '../elements/club.logo';
 import AdminService from '../../services/admin.service';
 import { ALERTS_CHANGED } from '../admin/alert.events';
 import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.service';
+import NotificationService, { NOTIFICATIONS_CHANGED } from '../../services/notification.service';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -67,6 +69,30 @@ const useFairPlay = (enabled, all, clubId) => {
 };
 
 /**
+ * How many notifications the user has not read, for the bell. Follows page
+ * changes, the notifications page and a minute's timer.
+ */
+const useUnreadNotifications = () => {
+    const { pathname } = useLocation();
+    const [unread, setUnread] = useState(0);
+
+    useEffect(() => {
+        const load = () => NotificationService.loadUnread().then(result => setUnread(result.unread ?? 0)).catch(() => {});
+        load();
+        const timer = setInterval(load, 60 * 1000);
+        window.addEventListener(NOTIFICATIONS_CHANGED, load);
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener(NOTIFICATIONS_CHANGED, load);
+        };
+    }, [pathname]);
+
+    return unread;
+};
+
+const countText = (count) => count > 99 ? '99+' : count;
+
+/**
  * The menu, built for the logged-in user. Everything under "Club" belongs to
  * the selected club; its players see everything there, only its admins can change it. "Admin"
  * spans all clubs and is for global admins only.
@@ -78,6 +104,8 @@ const useSections = () => {
     const openAlerts = useOpenAlerts(isGlobalAdmin);
     const clubFairPlay = useFairPlay(isClubAdmin && hasClub, false, activeClub?.id);
     const allFairPlay = useFairPlay(isGlobalAdmin, true, null);
+    // the user's own statistics in this club, one click away
+    const myPlayer = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
 
     const sections = [
         {
@@ -85,7 +113,9 @@ const useSections = () => {
             visible: hasClub,
             items: [
                 { label: 'Dashboard', icon: MdDashboard, to: '/', end: true },
-                { label: 'Players', icon: FaUserPen, to: '/players' },
+                { label: 'My statistics', icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
+                // on the own player the entry above is the one that is marked
+                { label: 'Players', icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
                 { label: 'Player comparison', icon: FaChartLine, to: '/stats/players' },
                 { label: 'Games', icon: FaTrophy, to: '/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
@@ -111,17 +141,37 @@ const useSections = () => {
                 { label: 'Around the Clock', icon: PiClockClockwiseBold, to: '/clock', end: true },
             ],
         },
-        { title: 'Training', visible: hasClub, items: [{ label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' }] },
         {
-            // for global admins: the lists across all clubs, watching over the app and its administration
-            title: 'Admin',
+            title: 'Training',
+            visible: hasClub,
+            items: [
+                // in the order of the games above
+                { label: 'X01 against the bot', icon: FaRobot, to: '/training/x01' },
+                { label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' },
+            ],
+        },
+        // for global admins, across all clubs: who uses the app, what was played, what needs watching, and the installation
+        {
+            title: 'Admin · Accounts',
             visible: isGlobalAdmin,
             items: [
                 { label: 'Clubs', icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: 'Users', icon: FaUserGear, to: '/admin/users' },
                 { label: 'Players', icon: FaUserPen, to: '/admin/players' },
+            ],
+        },
+        {
+            title: 'Admin · Played',
+            visible: isGlobalAdmin,
+            items: [
                 { label: 'Games', icon: GiDart, to: '/admin/games' },
                 { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
+            ],
+        },
+        {
+            title: 'Admin · Monitoring',
+            visible: isGlobalAdmin,
+            items: [
                 {
                     label: 'Fair play',
                     icon: FaScaleBalanced,
@@ -137,7 +187,13 @@ const useSections = () => {
                     badgeCritical: openAlerts?.critical > 0,
                 },
                 { label: 'Error log', icon: FaBug, to: '/admin/logs' },
-                { label: 'Administration', icon: FaShieldHalved, to: '/administration' },
+            ],
+        },
+        {
+            title: 'Admin · System',
+            visible: isGlobalAdmin,
+            items: [
+                { label: 'System settings', icon: FaShieldHalved, to: '/system-settings' },
             ],
         },
     ];
@@ -177,7 +233,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
             })),
         },
         { separator: true },
-        { label: 'Manage clubs', icon: 'pi pi-cog', command: () => { navigate('/clubs'); onNavigate?.(); } },
+        { label: 'My clubs', icon: 'pi pi-cog', command: () => { navigate('/my-clubs'); onNavigate?.(); } },
     ];
 
     return (
@@ -204,6 +260,8 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
     );
 };
 
+const PROFILE_PATHS = ['/profile', '/player-profile', '/my-clubs', '/notifications'];
+
 const isInside = (item, pathname) =>
     item.children?.some(child => child.to && (pathname === child.to || pathname.startsWith(child.to + '/')));
 
@@ -215,6 +273,10 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
     const { pathname } = useLocation();
     const { user, activeClub, isGlobalAdmin, logout } = useAuth();
     const sections = useSections();
+    const unread = useUnreadNotifications();
+    // the user's players: one picture for the account, shown on the avatar
+    const myPlayers = useMyPlayers(!isGlobalAdmin);
+    const picture = (myPlayers ?? []).find(player => player.profileImg)?.profileImg ?? '';
 
     // groups start open when they contain the current page
     const [openGroups, setOpenGroups] = useState(() => new Set());
@@ -223,6 +285,22 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
         if (current.length) setOpenGroups(open => new Set([...open, ...current]));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname]);
+
+    // the user's group is open on its own pages and closes when another page opens
+    // (an entry outside it); its own entries keep it open
+    const [profileOpen, setProfileOpen] = useState(() => PROFILE_PATHS.includes(pathname));
+    useEffect(() => {
+        setProfileOpen(PROFILE_PATHS.includes(pathname));
+    }, [pathname]);
+    const toggleProfile = () => {
+        // in the icon rail it opens once the menu is wide again
+        if (collapsed) {
+            onToggle?.();
+            setProfileOpen(true);
+            return;
+        }
+        setProfileOpen(open => !open);
+    };
 
     const toggleGroup = (key) => {
         // in the icon rail a group can only open once the menu is wide again
@@ -279,12 +357,12 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
         }
         return (
             <li key={item.key}>
-                <NavLink to={item.to} end={item.end} className={linkClass} title={collapsed ? item.label : undefined} onClick={onNavigate}>
+                <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
                     {item.badge &&
                         <span className={`nav-badge ${item.badgeCritical ? 'critical' : ''}`} aria-label={`${item.badge} open`}>
-                            {item.badge > 99 ? '99+' : item.badge}
+                            {countText(item.badge)}
                         </span>
                     }
                     <Ripple />
@@ -334,18 +412,60 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 </NavLink>
             </div>
 
-            <div className="nav-profile">
-                <Link to="/profile" className="nav-profile-link p-ripple" onClick={onNavigate} title={collapsed ? 'Your profile' : undefined}>
-                    <Avatar label={resolvePlayerInitials(user.firstname, user.lastname)} shape="circle" className="avatar-sm bg-surface-high flex-shrink-0" />
-                    <span className="nav-label d-flex flex-column" style={{ minWidth: 0 }}>
-                        <span className="text-default fw-semibold text-truncate">{user.firstname} {user.lastname}</span>
-                        <span className="text-faint fs-8 text-truncate">{roleText}</span>
+            {/* the user: a group with the profile, the notifications and logging out; the count of unread ones on it */}
+            <div className={`nav-profile ${profileOpen ? 'open' : ''}`}>
+                <button
+                    type="button"
+                    className={`nav-profile-link p-ripple ${PROFILE_PATHS.includes(pathname) ? 'contains-active' : ''}`}
+                    onClick={toggleProfile}
+                    aria-expanded={profileOpen}
+                    title={collapsed ? `${user.firstname} ${user.lastname}${unread ? ` · ${unread} unread notifications` : ''}` : undefined}
+                >
+                    {/* the count sits on the avatar's corner, so the name keeps the room */}
+                    <span className="nav-avatar">
+                        <Avatar
+                            image={picture ? resolvePlayerImg(picture) : undefined}
+                            label={picture ? undefined : resolvePlayerInitials(user.firstname, user.lastname)}
+                            shape="circle"
+                            className="avatar-sm bg-surface-high"
+                        />
+                        {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread notifications`}>{countText(unread)}</span>}
                     </span>
+                    <span className="nav-label nav-profile-name">
+                        <span className="text-default fw-semibold">{user.firstname} {user.lastname}</span>
+                        <span className="text-faint fs-8">{roleText}</span>
+                    </span>
+                    <FaChevronDown className={`nav-chevron ${profileOpen ? 'open' : ''}`} aria-hidden="true" />
                     <Ripple />
-                </Link>
-                <button type="button" className="nav-icon-button nav-label" onClick={logout} aria-label="Log out" title="Log out">
-                    <FaRightFromBracket />
                 </button>
+                {profileOpen && !collapsed &&
+                    <div className="nav-group">
+                        <NavLink to="/profile" end className={linkClass} onClick={onNavigate}>
+                            <span className="nav-label">User profile</span>
+                            <Ripple />
+                        </NavLink>
+                        {!isGlobalAdmin && <>
+                            <NavLink to="/player-profile" end className={linkClass} onClick={onNavigate}>
+                                <span className="nav-label">Player profile</span>
+                                <Ripple />
+                            </NavLink>
+                            <NavLink to="/my-clubs" end className={linkClass} onClick={onNavigate}>
+                                <span className="nav-label">My clubs</span>
+                                <Ripple />
+                            </NavLink>
+                        </>}
+                        <NavLink to="/notifications" end className={linkClass} onClick={onNavigate}>
+                            <span className="nav-label">Notifications</span>
+                            {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread`}>{countText(unread)}</span>}
+                            <Ripple />
+                        </NavLink>
+                        <button type="button" className="nav-link-item p-ripple" onClick={logout}>
+                            <span className="nav-label">Log out</span>
+                            <FaRightFromBracket className="nav-group-icon" aria-hidden="true" />
+                            <Ripple />
+                        </button>
+                    </div>
+                }
             </div>
         </div>
     );

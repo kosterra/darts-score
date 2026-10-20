@@ -52,6 +52,9 @@ const validateNumberOfLegs = check('numberOfLegs')
     .isInt({ min: 1 })
     .withMessage('numberOfLegs must be a positive integer.');
 
+// whether the darts fly onto the board in a game with a board to tap
+const validateFlyingDarts = check('flyingDarts').optional().isIn(['players', 'on', 'off']).withMessage('flyingDarts must be players, on or off.');
+
 export const validateX01Create = [
     validateX01StartingScore,
     check('setMode').isIn(VALID_SET_LEG_MODES).withMessage(`setMode must be one of: ${VALID_SET_LEG_MODES.join(', ')}.`),
@@ -63,6 +66,7 @@ export const validateX01Create = [
     validateNumberOfPlayers,
     validatePlayers,
     validateX01Handicaps,
+    validateFlyingDarts,
 ];
 
 export const validateEliminationCreate = [
@@ -71,6 +75,7 @@ export const validateEliminationCreate = [
     check('gameOutMode').isIn(VALID_OUT_MODES).withMessage(`gameOutMode must be one of: ${VALID_OUT_MODES.join(', ')}.`),
     validateNumberOfPlayers,
     validatePlayers,
+    validateFlyingDarts,
 ];
 
 const VALID_CLOCK_MODES = ['Single', 'Double', 'Triple', 'All'];
@@ -97,6 +102,7 @@ export const validateCricketCreate = [
     check('variant').optional().isIn(VALID_CRICKET_VARIANTS).withMessage(`variant must be one of: ${VALID_CRICKET_VARIANTS.join(', ')}.`),
     validateNumberOfPlayers,
     validatePlayers,
+    validateFlyingDarts,
 ];
 
 const VALID_ATC_MODES = ['Single', 'Double', 'Triple', 'All'];

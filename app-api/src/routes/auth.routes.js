@@ -54,7 +54,10 @@ export default (app) => {
     );
 
     router.get('/me', requireAuth, AuthController.me);
-    router.put('/me', requireAuth, emailValidator, nameValidators(), validate, AuthController.updateMe);
+    router.get('/session', requireAuth, AuthController.session);
+    router.get('/players', requireAuth, AuthController.myPlayers);
+    router.post('/session/extend', requireAuth, AuthController.extendSession);
+    router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), body('defaultClub').optional({ values: 'null' }).isMongoId().withMessage('Choose one of your clubs.'), validate, AuthController.updateMe);
     router.put('/password',
         requireAuth,
         credentialLimiter,

@@ -154,3 +154,74 @@ $dartboard-opacity: 0.4;
 @media (prefers-reduced-motion: reduce) {
   .dartboard-img .item.is-flash { animation-duration: 0.01s; }
 }
+
+// (the names are the board's own: the bull finish has a dart-fly of its own)
+// a dart flying to where it was thrown: an arc along the thrower's line of
+// sight (bigger, as it is nearer), coming up from below, rising above its point
+// and dropping into it, where it sticks with a little wobble; the
+// point and its pulse appear when it lands
+.dartboard-img {
+  .dart-fly {
+    // the dart's own coordinates: its tip is at (0, 0)
+    transform-box: view-box;
+    transform-origin: 0 0;
+    animation: board-dart-fly 0.32s linear both, board-dart-wobble 0.4s ease-out 0.32s;
+  }
+
+  // the dart tilts round its tip with its arc (it pitches, it does not spin): nose
+  // up while it rises (the shaft shows below the tip), pointing at the thrower at
+  // the top, nose down as it drops, so it sticks with its tail a little up (the
+  // shaft above the tip), as darts that drop into a board do; the dart is drawn
+  // with its tail down, the tilt turns it up
+  .dart-tilt {
+    transform-box: view-box;
+    transform-origin: 0 0;
+    transform: scaleY(-1);
+    animation: board-dart-tilt 0.32s linear both;
+  }
+
+  .has-dart .dart-hit { animation: board-dart-hit 0.12s ease-out 0.3s both; }
+}
+
+// a dart, on the board or as the preview of a player's flights
+.dart-shape {
+  .dart-point { stroke: #e9eef2; stroke-width: 1.3; stroke-linecap: round; }
+  .dart-barrel { stroke: #9aa5b1; stroke-width: 4.6; stroke-linecap: round; }
+  .dart-grip { stroke: #5d6873; stroke-width: 0.9; fill: none; }
+  .dart-shaft { stroke: #2b2f36; stroke-width: 2; stroke-linecap: round; }
+  .dart-flight { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.6; stroke-linejoin: round; }
+  // the wings across the line of sight are in the shade
+  .dart-flight-wing.is-back { filter: brightness(0.72); }
+  .dart-shadow { fill: rgba(0, 0, 0, 0.4); }
+  .dart-shaft-end { fill: #2b2f36; }
+}
+
+@keyframes board-dart-fly {
+  0% { transform: translate(0, 40px) scale(2.5); opacity: 0; animation-timing-function: ease-out; }
+  15% { opacity: 1; }
+  55% { transform: translate(0, -20px) scale(1.5); animation-timing-function: ease-in; }
+  100% { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+
+@keyframes board-dart-tilt {
+  0% { transform: scaleY(1.3); animation-timing-function: ease-out; }
+  55% { transform: scaleY(0.15); animation-timing-function: ease-in; }
+  100% { transform: scaleY(-1); }
+}
+
+@keyframes board-dart-wobble {
+  0% { transform: rotate(0deg); }
+  30% { transform: rotate(3deg); }
+  65% { transform: rotate(-1.5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes board-dart-hit {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dartboard-img .dart-fly,
+  .dartboard-img .dart-tilt { animation: none; }
+}

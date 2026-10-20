@@ -1,4 +1,5 @@
 import { useContext, useState, useEffect } from 'react';
+import { FaRobot } from 'react-icons/fa6';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
@@ -45,7 +46,8 @@ const X01ScoreInputBoard = () => {
         checkCanThrowMoreDarts,
         checkIfScoreIsBusted,
         players,
-        loading
+        loading,
+        botThrowing
     } = useContext(X01Context);
 
     // the score left after the darts entered so far, worked out on every render: a copy in
@@ -143,7 +145,7 @@ const X01ScoreInputBoard = () => {
     );
 
     return (
-        <div className="row g-4 x01-play">
+        <div className={`row g-4 x01-play ${botThrowing ? 'is-bot-turn' : ''}`}>
             {/* the board on its own, without a panel around it, or the keypad */}
             <div className="col-12 col-lg-7 x01-board-plain">
                 {input === 'keypad'
@@ -151,6 +153,8 @@ const X01ScoreInputBoard = () => {
                     : <div className="x01-board-col"><X01DartBoard /></div>}
             </div>
             <div className="col-12 col-lg-5 d-flex flex-column gap-4">
+                {/* in a training the bot throws by itself: the board and the input wait */}
+                {botThrowing && <div className="x01-bot-turn" role="status"><FaRobot aria-hidden="true" /> The bot is throwing…</div>}
                 <Panel headerTemplate={() => visitHeader} className="x01-input">
                     <form onSubmit={submitHandler}>
                         <div className="x01-darts">
@@ -168,9 +172,10 @@ const X01ScoreInputBoard = () => {
                                         autoComplete="off"
                                         // with the keypad, tapping a field opens no keyboard on a phone
                                         inputMode={input === 'keypad' ? 'none' : 'text'}
+                                        disabled={botThrowing}
                                         className="x01-dart-input"
                                     />
-                                    {darts[index] !== '' &&
+                                    {darts[index] !== '' && !botThrowing &&
                                         <button
                                             type="button"
                                             className="x01-dart-clear"
@@ -206,6 +211,7 @@ const X01ScoreInputBoard = () => {
                             label="Enter score"
                             icon="pi pi-check"
                             loading={loading.validateThrow}
+                            disabled={botThrowing}
                             className="justify-content-center x01-enter"
                         />
                         {game.currentLegThrows.length !== 0 &&
@@ -218,6 +224,7 @@ const X01ScoreInputBoard = () => {
                                 tooltipOptions={{ position: 'top' }}
                                 icon="pi pi-undo"
                                 severity="danger"
+                                disabled={botThrowing}
                                 className="x01-undo"
                             />
                         }

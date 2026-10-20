@@ -5,7 +5,11 @@ import ScoreConfigOptions from '../config_options/score.config.options';
 const X01ScoreConfig = (props) => {
     const {
         scoreOption,
-        onScoreChange
+        onScoreChange,
+        // the starting scores offered, e.g. fewer for a training; all of them by default
+        options = ScoreConfigOptions.gameScoreOptions.values,
+        // e.g. pills-fit: five in a row
+        pillsClassName = ''
     } = props;
 
     return (
@@ -18,8 +22,8 @@ const X01ScoreConfig = (props) => {
                         value={scoreOption}
                         onChange={(e) => onScoreChange('startingScore', e.value)}
                         optionLabel="value"
-                        options={ScoreConfigOptions.gameScoreOptions.values}
-                        className="p-selectbutton-pills flex-wrap"
+                        options={options}
+                        className={`p-selectbutton-pills flex-wrap ${pillsClassName}`}
                     />
                 </div>
             </div>

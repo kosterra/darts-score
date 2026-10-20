@@ -2,7 +2,9 @@ const SET_LEG_MODES = ['Best of', 'First to'];
 const IN_MODES     = ['Straight In', 'Double In', 'Master In'];
 const OUT_MODES    = ['Straight Out', 'Double Out', 'Master Out'];
 
-export default (mongoose) => {
+// name: 'x01' for the games, 'x01training' for the trainings against the bot,
+// which keep the same layout in a collection of their own (out of every game statistic)
+export default (mongoose, name = 'x01') => {
   const schema = mongoose.Schema(
     {
       club:              { type: mongoose.Schema.Types.ObjectId, ref: 'club', index: true },
@@ -29,6 +31,10 @@ export default (mongoose) => {
       players:            [String],
       allSetsThrows:      mongoose.Schema.Types.Mixed,
       playerModels:       mongoose.Schema.Types.Mixed,
+      // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off' for everyone
+      flyingDarts:        { type: String, enum: ['players', 'on', 'off'], default: 'players' },
+      // a training against the bot: how strong it plays { average, checkoutRate, basis }
+      bot:                mongoose.Schema.Types.Mixed,
     },
     { timestamps: true }
   );
@@ -42,5 +48,5 @@ export default (mongoose) => {
     return object;
   });
 
-  return mongoose.model('x01', schema);
+  return mongoose.model(name, schema);
 };

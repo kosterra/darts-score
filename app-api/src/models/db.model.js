@@ -13,12 +13,15 @@ import logEntryModel from './log.entry.model.js';
 import alertModel from './alert.model.js';
 import blockedIpModel from './blocked.ip.model.js';
 import integrityReviewModel from './integrity.review.model.js';
+import notificationModel from './notification.model.js';
+import deletionRequestModel from './deletion.request.model.js';
 
 const db = {
   mongoose,
   url: dbConfig.url,
   player: playerModel(mongoose),
   x01: x01Model(mongoose),
+  x01Training: x01Model(mongoose, 'x01training'),
   cricket: cricketModel(mongoose),
   elimination: eliminationModel(mongoose),
   clock: clockModel(mongoose),
@@ -30,6 +33,8 @@ const db = {
   alert: alertModel(mongoose),
   blockedIp: blockedIpModel(mongoose),
   integrityReview: integrityReviewModel(mongoose),
+  notification: notificationModel(mongoose),
+  deletionRequest: deletionRequestModel(mongoose),
 };
 
 export default db;

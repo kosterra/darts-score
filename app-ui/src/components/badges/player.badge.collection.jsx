@@ -8,6 +8,8 @@ import dayjs from 'dayjs';
 
 import BadgeMedal from './badge.medal';
 import ShameMedal from './shame.medal';
+import { BadgesSkeleton } from '../elements/skeletons';
+import FlightCollection from '../flights/flight.collection';
 import { FaSoap } from 'react-icons/fa6';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
@@ -111,7 +113,7 @@ const HallOfShameSection = ({ shame, name }) => {
     const others = shame.filter(badge => !badge.active);
     const showList = active.length > 0 || open;
     return (
-        <section className="d-flex flex-column gap-3">
+        <section id="hall-of-shame" className="d-flex flex-column gap-3" style={{ scrollMarginTop: '1rem' }}>
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
                 <h2 className="fs-4 fw-semibold text-default m-0">Hall of Shame</h2>
                 <span className="text-subtle">{active.length ? `${active.length} on ${name} right now` : `Nothing on ${name} right now`}</span>
@@ -152,7 +154,8 @@ const HallOfShameSection = ({ shame, name }) => {
 
 /**
  * One player's badge collection, by category and series, with how much of it
- * they have collected. Part of the player's profile.
+ * they have collected, and their flights and barrels. Part of the player's
+ * profile.
  */
 const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
     const [data, setData] = useState(null);
@@ -168,7 +171,7 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
 
     if (failed) return <p className="text-subtle">The badges could not be loaded.</p>;
     // a quiet line: the statistics above show the page's loader at the same time
-    if (!data) return <p className="text-faint">Loading badges…</p>;
+    if (!data) return <BadgesSkeleton />;
 
     // category -> series -> badges, in catalogue order
     const categories = data.categories.map(({ category, title }) => {
@@ -198,6 +201,7 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
                     </ul>
                 </Panel>
             ))}
+            <FlightCollection playerId={playerId} />
         </div>
     );
 };

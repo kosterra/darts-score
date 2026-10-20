@@ -5,11 +5,11 @@ import { Button } from 'primereact/button';
  * Best of 3 legs · Anna vs Ben". It is enabled once the setup is complete,
  * otherwise it says what is missing.
  */
-const GameSetupStart = ({ summary, missing, loading, onStart }) => (
+const GameSetupStart = ({ summary, missing, loading, onStart, label = 'Start game' }) => (
     <div className="game-setup-start">
         <Button
             type="button"
-            label="Start game"
+            label={label}
             icon="pi pi-play"
             disabled={Boolean(missing) || loading}
             loading={loading}

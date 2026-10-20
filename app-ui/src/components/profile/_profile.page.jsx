@@ -1,47 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRef, useState } from 'react';
 import { Button } from 'primereact/button';
-import { InputSwitch } from 'primereact/inputswitch';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Panel } from 'primereact/panel';
+import { SelectButton } from 'primereact/selectbutton';
+import { Dropdown } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import AuthService from '../../services/auth.service';
-import ClubService from '../../services/club.service';
-import PlayerService from '../../services/player.service';
-import { ROLE_LABELS, CLUB_ROLES } from '../../services/user.service';
+import { ROLE_LABELS } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
-import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
 
 const MIN_PASSWORD_LENGTH = 8;
+// "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
+const LAST_CLUB = 'last';
 
 const ProfilePage = () => {
     const toast = useRef(null);
-    const navigate = useNavigate();
-    const { user, setUser, clubs, isGlobalAdmin, logout, refreshClubs, selectClub } = useAuth();
+    const { user, setUser, clubs, isGlobalAdmin, logout } = useAuth();
 
-    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email });
+    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email, startPage: user.startPage ?? 'dashboard', defaultClub: user.defaultClub ? String(user.defaultClub) : null });
+    // the club the start page is about: the default one, or the one used last
+    const startClub = clubs.find(club => club.id === profile.defaultClub);
+    const startClubText = startClub ? startClub.name : 'the club you used last';
     const [passwords, setPasswords] = useState({ current: '', next: '', repeat: '' });
-    // club id -> the player this user plays as there (null when not a player)
-    const [playerByClub, setPlayerByClub] = useState({});
-    const [nicknames, setNicknames] = useState({});
-
-    // A global admin sees every club; this is about the ones they really belong to
-    const ownClubs = clubs.filter(club => club.role === CLUB_ROLES.PLAYER || club.admins.some(admin => admin.id === user.id));
-    const ownClubIds = ownClubs.map(club => club.id).join(',');
-
-    useEffect(() => {
-        const loadPlayers = async () => {
-            const entries = await Promise.all(ownClubIds.split(',').filter(Boolean).map(async (clubId) =>
-                [clubId, await ClubService.findPlayerOfUser(clubId, user.id).catch(() => null)]
-            ));
-            setPlayerByClub(Object.fromEntries(entries));
-        };
-        loadPlayers();
-    }, [ownClubIds, user.id]);
-
     const showSuccess = (summary, detail) =>
         toast.current.show({ severity: 'success', summary, detail, life: 3000 });
     const showError = (summary, error) =>
@@ -74,161 +57,114 @@ const ProfilePage = () => {
         }
     };
 
-    const onAddAsPlayer = async (event, club) => {
-        event.preventDefault();
-        try {
-            const player = await ClubService.addCurrentUserAsPlayer(club.id, nicknames[club.id] ?? '');
-            setPlayerByClub({ ...playerByClub, [club.id]: player });
-            await refreshClubs();
-            showSuccess('Player added', `You now play in ${club.name} as ${player.nickname}.`);
-        } catch (error) {
-            showError('Add as player', error);
-        }
-    };
+    const changed = profile.firstname !== user.firstname || profile.lastname !== user.lastname || profile.email !== user.email
+        || profile.startPage !== (user.startPage ?? 'dashboard') || profile.defaultClub !== (user.defaultClub ? String(user.defaultClub) : null);
 
-    // Badges belong to a club, so the app switches to it first
-    const onShowBadges = (club) => {
-        selectClub(club.id);
-        navigate(`/badges/${playerByClub[club.id].id}`);
-    };
-
-    const onTogglePublic = async (club, publicProfile) => {
-        try {
-            const player = await PlayerService.setPublicProfile(playerByClub[club.id].id, publicProfile, club.id);
-            setPlayerByClub({ ...playerByClub, [club.id]: player });
-        } catch (error) {
-            showError('Public nickname', error);
-        }
-    };
-
-    const passwordField = (id, label, field, autoComplete) => (
-        <span className="p-float-label w-100">
-            <Password
-                inputId={id}
-                autoComplete={autoComplete}
-                value={passwords[field]}
-                onChange={(e) => setPasswords({ ...passwords, [field]: e.target.value })}
-                feedback={false}
-                className="w-100"
-                inputClassName="w-100"
-                required
-            />
-            <label htmlFor={id}>{label}</label>
-        </span>
+    // a field with its label above it, as on the player profile
+    const field = (id, label, input, hint) => (
+        <label htmlFor={id} className="d-flex flex-column gap-1 profile-field">
+            <span className="text-subtle fs-8">{label}</span>
+            {input}
+            {hint && <span className="text-faint fs-8">{hint}</span>}
+        </label>
     );
+    const passwordField = (id, label, key, autoComplete, hint) => field(id, label, (
+        <Password
+            inputId={id}
+            autoComplete={autoComplete}
+            value={passwords[key]}
+            onChange={(e) => setPasswords({ ...passwords, [key]: e.target.value })}
+            feedback={false}
+            className="w-100"
+            inputClassName="w-100"
+            required
+        />
+    ), hint);
 
     return (
         <div className="container-fluid p-4 border-0">
-            <div className="row gy-4">
-                <div className="col-12 col-lg-6">
-                    <Panel header="Your profile" className="h-100">
-                        <form onSubmit={onSaveProfile} className="d-flex flex-column gap-4 p-3 pt-4">
-                            {isGlobalAdmin && <div className="mb-2"><Tag value={ROLE_LABELS[user.role]} severity="warning" /></div>}
-                            <span className="p-float-label w-100">
-                                <InputText id="profile-firstname" value={profile.firstname} onChange={(e) => setProfile({ ...profile, firstname: e.target.value })} className="w-100" required />
-                                <label htmlFor="profile-firstname">Firstname</label>
-                            </span>
-                            <span className="p-float-label w-100">
-                                <InputText id="profile-lastname" value={profile.lastname} onChange={(e) => setProfile({ ...profile, lastname: e.target.value })} className="w-100" required />
-                                <label htmlFor="profile-lastname">Lastname</label>
-                            </span>
-                            <span className="p-float-label w-100">
-                                <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} className="w-100" required />
-                                <label htmlFor="profile-email">Email</label>
-                            </span>
-                            <div className="d-flex justify-content-between gap-3">
-                                <Button type="button" label="Log out" icon="pi pi-sign-out" severity="secondary" onClick={logout} />
-                                <Button type="submit" label="Save" icon="pi pi-save" />
+            <Toast ref={toast} position="bottom-right" />
+            <Panel header="User profile">
+                <p className="text-subtle fs-7 mt-0 mb-3">
+                    Your account: the name your clubs see, the email you log in with, what opens after logging in and your password.
+                    {isGlobalAdmin && <> <Tag value={ROLE_LABELS[user.role]} severity="warning" className="ms-1" /></>}
+                </p>
+                {/* laid out as the player profile and the game setup: a section title, then a box per setting */}
+                <div className="row g-4">
+                    <form onSubmit={onSaveProfile} className="col-12 col-xl-6">
+                        <p className="game-setup-section-title">Your account</p>
+                        <p className="setting-title">Name</p>
+                        <div className="row mx-0 mt-0 setting-body">
+                            <div className="col d-flex flex-wrap gap-3 pt-1 profile-name">
+                                {field('profile-firstname', 'First name', <InputText id="profile-firstname" value={profile.firstname} onChange={(e) => setProfile({ ...profile, firstname: e.target.value })} required />)}
+                                {field('profile-lastname', 'Last name', <InputText id="profile-lastname" value={profile.lastname} onChange={(e) => setProfile({ ...profile, lastname: e.target.value })} required />)}
+                                <span className="text-faint fs-8 w-100">Your players in the clubs carry this name; their nickname you set on the player profile.</span>
                             </div>
-                        </form>
-                    </Panel>
-                </div>
-
-                <div className="col-12 col-lg-6">
-                    <Panel header="Change password" className="h-100">
-                        <form onSubmit={onChangePassword} className="d-flex flex-column gap-4 p-3 pt-4">
-                            {passwordField('profile-password-current', 'Current password', 'current', 'current-password')}
-                            {passwordField('profile-password-new', `New password (at least ${MIN_PASSWORD_LENGTH} characters)`, 'next', 'new-password')}
-                            {passwordField('profile-password-repeat', 'Repeat new password', 'repeat', 'new-password')}
-                            <div className="d-flex justify-content-end">
-                                <Button type="submit" label="Change password" icon="pi pi-key" />
+                        </div>
+                        <p className="setting-title">Email</p>
+                        <div className="row mx-0 mt-0 setting-body">
+                            <div className="col pt-1">
+                                {field('profile-email', 'Email address', <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />, 'You log in with it; a new password is sent there.')}
                             </div>
-                        </form>
-                    </Panel>
-                </div>
+                        </div>
 
-                <div className="col-12">
-                    <Panel header="Your clubs">
-                        <div className="p-3">
-                            <p className="text-subtle fs-7">
-                                In clubs you manage you can add yourself as a player, so you can be picked for games like anyone else. Your nickname only appears on the public start page if you switch it on, and only for public clubs.
-                            </p>
-                            {ownClubs.length === 0 &&
-                                <span className="text-subtle">You are not in a club yet.</span>
-                            }
-                            {ownClubs.map(club => (
-                                <div key={club.id} className="row gy-2 align-items-center py-2 border-top border-default">
-                                    <div className="col-12 col-md-4 text-default fw-semibold text-break">
-                                        {club.name} <Tag value={club.role === CLUB_ROLES.ADMIN ? 'Admin' : 'Player'} severity={club.role === CLUB_ROLES.ADMIN ? 'warning' : 'info'} className="ms-2" />
-                                    </div>
-                                    <div className="col-12 col-md-8">
-                                        {playerByClub[club.id]
-                                            ? (
-                                                <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                                                    <span className="text-subtle">
-                                                        You play as <span className="text-default fw-semibold">{playerByClub[club.id].nickname}</span>
-                                                        <Button
-                                                            type="button"
-                                                            label="My badges"
-                                                            icon="pi pi-star"
-                                                            size="small"
-                                                            text
-                                                            className="ms-2"
-                                                            onClick={() => onShowBadges(club)}
-                                                        />
-                                                    </span>
-                                                    <span className="d-flex align-items-center gap-2">
-                                                        <label htmlFor={`profile-public-${club.id}`} className="text-subtle fs-7">Show my nickname on the public page</label>
-                                                        <InputSwitch
-                                                            inputId={`profile-public-${club.id}`}
-                                                            checked={!!playerByClub[club.id].publicProfile}
-                                                            onChange={(e) => onTogglePublic(club, e.value)}
-                                                        />
-                                                    </span>
-                                                    <div className="w-100">
-                                                        <PlayerCheckoutPreferences
-                                                            player={playerByClub[club.id]}
-                                                            clubId={club.id}
-                                                            onSaved={(player) => setPlayerByClub(current => ({ ...current, [club.id]: player }))}
-                                                            onError={(error) => showError('Ways out', error)}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )
-                                            : (
-                                                <form onSubmit={(e) => onAddAsPlayer(e, club)} className="d-flex flex-wrap gap-2">
-                                                    <InputText
-                                                        id={`profile-nickname-${club.id}`}
-                                                        value={nicknames[club.id] ?? ''}
-                                                        onChange={(e) => setNicknames({ ...nicknames, [club.id]: e.target.value })}
-                                                        placeholder="Nickname"
-                                                        aria-label={`Nickname in ${club.name}`}
-                                                        minLength={3}
-                                                        maxLength={25}
-                                                        required
-                                                    />
-                                                    <Button type="submit" label="Add me as player" icon="pi pi-user-plus" size="small" />
-                                                </form>
-                                            )
-                                        }
+                        {/* no clubs and no statistics of their own for global admins */}
+                        {!isGlobalAdmin && (
+                            <>
+                                <p className="game-setup-section-title">After logging in</p>
+                                <p className="setting-title">Open the club</p>
+                                <div className="row mx-0 mt-0 setting-body">
+                                    <div className="col pt-1">
+                                        <Dropdown
+                                            value={profile.defaultClub ?? LAST_CLUB}
+                                            options={[{ label: 'The club I used last', value: LAST_CLUB }, ...clubs.map(club => ({ label: club.name, value: club.id }))]}
+                                            onChange={(e) => setProfile({ ...profile, defaultClub: e.value === LAST_CLUB ? null : e.value })}
+                                            className="profile-club"
+                                            aria-label="Default club"
+                                        />
+                                        <span className="d-block text-faint fs-8 mt-1">Also when the app opens in a new tab or browser; switching clubs while you play stays as it is.</span>
                                     </div>
                                 </div>
-                            ))}
+                                <p className="setting-title">And show</p>
+                                <div className="row mx-0 mt-0 setting-body">
+                                    <div className="col d-flex flex-column gap-2">
+                                        <SelectButton
+                                            value={profile.startPage}
+                                            options={[{ label: 'Dashboard', value: 'dashboard' }, { label: 'My statistics', value: 'myStatistics' }]}
+                                            onChange={(e) => e.value && setProfile({ ...profile, startPage: e.value })}
+                                            className="p-selectbutton-pills flex-wrap"
+                                            aria-label="Start page"
+                                        />
+                                        <span className="text-faint fs-8">
+                                            {profile.startPage === 'myStatistics' ? `Opens your statistics in ${startClubText}.` : `Opens the dashboard of ${startClubText}.`}
+                                        </span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
+                            <Button type="button" label="Log out" icon="pi pi-sign-out" size="small" severity="secondary" onClick={logout} />
+                            <Button type="submit" label="Save" icon="pi pi-save" size="small" disabled={!changed} />
                         </div>
-                    </Panel>
+                    </form>
+
+                    <form onSubmit={onChangePassword} className="col-12 col-xl-6">
+                        <p className="game-setup-section-title">Security</p>
+                        <p className="setting-title">Change password</p>
+                        <div className="row mx-0 mt-0 setting-body">
+                            <div className="col d-flex flex-column gap-3 pt-1">
+                                {passwordField('profile-password-current', 'Current password', 'current', 'current-password')}
+                                {passwordField('profile-password-new', 'New password', 'next', 'new-password', `At least ${MIN_PASSWORD_LENGTH} characters. Your other devices are logged out.`)}
+                                {passwordField('profile-password-repeat', 'Repeat the new password', 'repeat', 'new-password')}
+                                <div className="d-flex justify-content-end">
+                                    <Button type="submit" label="Change password" icon="pi pi-key" size="small" disabled={!passwords.current || !passwords.next || !passwords.repeat} />
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </div>
-            <Toast ref={toast} position="bottom-right" />
+            </Panel>
         </div>
     );
 };

@@ -653,3 +653,41 @@ $momentGoldColor: #ffc94d;
         opacity: 0.85;
     }
 }
+
+// "You": the own player, their figures and the way to the statistics
+.me-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.me-widget-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.me-widget-figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+  margin: 0;
+
+  dt { font-size: 0.8rem; font-weight: 400; color: var(--text-faint); }
+  dd { margin: 0.1rem 0 0; font-weight: 600; color: var(--text-default); font-variant-numeric: tabular-nums; }
+
+  .me-widget-wide { grid-column: 1 / -1; }
+}
+
+// the level of the average: its icon and name in its colour
+.me-widget-average-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  svg { width: 0.85rem; height: 0.85rem; }
+}

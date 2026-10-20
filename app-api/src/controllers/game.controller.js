@@ -1,7 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
-import { syncGameBadges } from '../utils/badge.service.js';
+import { removeWithBadges, syncGameBadges } from '../utils/badge.service.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import { knownInClub } from '../models/player.model.js';
 
@@ -115,8 +115,11 @@ export const createGameController = (Model, gameName) => {
         logger.debug(`${label} delete called`);
         const { id } = req.params;
         try {
-            const data = validId(req) ? await Model.findOneAndDelete(inClub(req)) : null;
+            const data = validId(req) ? await Model.findOne(inClub(req)) : null;
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            // the badges earned in it go along
+            await removeWithBadges(Model.modelName, data);
+            await db.deletionRequest.updateMany({ game: id, status: 'open' }, { status: 'deleted', decidedBy: req.user._id, decidedByName: `${req.user.firstname} ${req.user.lastname}`, decidedAt: new Date() });
             res.json({ message: `${label} game deleted successfully.` });
         } catch (err) {
             logger.error(err, `Failed to delete ${label} game id=${id}`);

@@ -1,16 +1,19 @@
-import { legsInOrder, thrownDarts } from './badges.js';
+import { thrownDarts } from './badges.js';
 import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
 
 /**
  * Fair play: games and trainings that cannot be real (impossible: the data
- * cannot come from darts thrown at a board) or that are worth a look
- * (suspicious: possible, but far out of the ordinary, e.g. a world-class time).
- * Every check returns findings: [{ rule, level: 'impossible' | 'suspicious',
- * title, detail, playerId }].
+ * cannot come from darts thrown at a board), whose data is wrong but no cheat
+ * (error: e.g. a score left that does not add up, which the app itself wrote
+ * after an undo; it can be repaired) or that are worth a look (suspicious:
+ * possible, but far out of the ordinary, e.g. a world-class time).
+ * Every check returns findings: [{ rule, level: 'impossible' | 'error' |
+ * 'suspicious', title, detail, playerId, places }], places: where it happened
+ * ([{ set, leg, visit }] in X01, [{ visit }] in Cricket and Elimination).
  */
 
-export const LEVELS = { impossible: 2, suspicious: 1 };
+export const LEVELS = { impossible: 3, error: 2, suspicious: 1 };
 
 export const THRESHOLDS = {
     // Around the Clock against the clock, in hundredths: 21 targets and the
@@ -37,6 +40,8 @@ export const THRESHOLDS = {
     cricketHighMarks: 5,
     // Elimination: points per visit
     eliminationHighVisit: 100,
+    // a player's own date of birth moved later by more than this many days
+    birthLaterDays: 31,
 };
 
 const DART = /^(?:[SDT](?:[1-9]|1\d|20)|[SD]25|0)$/;
@@ -46,16 +51,16 @@ const dartValue = (dart) => {
     if (text === '0') return 0;
     return VALUE[text[0]] * Number(text.slice(1));
 };
-const finding = (level, rule, title, detail, playerId = null) => ({ level, rule, title, detail, playerId });
+const finding = (level, rule, title, detail, playerId = null, place = null) => ({ level, rule, title, detail, playerId, places: place ? [place] : [] });
 const isDart = (dart) => DART.test(String(dart).trim().toUpperCase());
 
 // the darts of a visit: more than three, or one that is not a field of the board
-const visitProblems = (visit, playerId, where) => {
+const visitProblems = (visit, playerId, where, place = null) => {
     const darts = thrownDarts(visit?.darts);
     const found = [];
-    if (darts.length > 3) found.push(finding('impossible', 'tooManyDarts', 'More than three darts in a visit', `${darts.length} darts ${where}`, playerId));
+    if (darts.length > 3) found.push(finding('impossible', 'tooManyDarts', 'More than three darts in a visit', `${darts.length} darts ${where}`, playerId, place));
     const wrong = darts.filter(dart => !isDart(dart));
-    if (wrong.length) found.push(finding('impossible', 'invalidDart', 'A dart that is not on the board', `${wrong.join(', ')} ${where}`, playerId));
+    if (wrong.length) found.push(finding('impossible', 'invalidDart', 'A dart that is not on the board', `${wrong.join(', ')} ${where}`, playerId, place));
     return found;
 };
 
@@ -92,6 +97,20 @@ const tooFast = (game, visits) => {
     return [finding('suspicious', 'tooFast', 'Played very fast', `${visits} visits in ${Math.round(seconds)} s: typed in afterwards?`)];
 };
 
+const keyNumber = (key) => Number(String(key).replace(/\D/g, '')) || 0;
+
+/**
+ * The finished legs of an X01 game in the order played, with their keys:
+ * [{ setKey, legKey, set, leg, visits }].
+ */
+export const legEntries = (game) =>
+    Object.entries(game.allSetsThrows ?? {})
+        .sort(([a], [b]) => keyNumber(a) - keyNumber(b))
+        .flatMap(([setKey, set]) => Object.entries(set ?? {})
+            .sort(([a], [b]) => keyNumber(a) - keyNumber(b))
+            .filter(([, visits]) => Array.isArray(visits))
+            .map(([legKey, visits]) => ({ setKey, legKey, set: keyNumber(setKey), leg: keyNumber(legKey), visits })));
+
 const winnerOf = (game) => (game.players ?? []).find(id => game.playerModels?.[id]?.hasWonGame);
 
 /**
@@ -100,40 +119,43 @@ const winnerOf = (game) => (game.players ?? []).find(id => game.playerModels?.[i
  */
 export const checkX01 = (game, { usualAverage = () => null } = {}) => {
     const found = [];
-    const legs = legsInOrder(game);
+    const entries = legEntries(game);
+    const legs = entries.map(entry => entry.visits);
     let visitCount = 0;
 
-    legs.forEach((leg, legIndex) => {
+    entries.forEach(({ set, leg: legNumber, visits: leg }, legIndex) => {
         const left = Object.fromEntries((game.players ?? []).map(id => [id, startingScoreOf(game, id)]));
         const darts = Object.fromEntries((game.players ?? []).map(id => [id, 0]));
-        leg.forEach(visit => {
+        leg.forEach((visit, visitIndex) => {
             const id = visit?.playerId;
             if (!(id in left)) return;
             visitCount += 1;
             const where = `in leg ${legIndex + 1}`;
-            found.push(...visitProblems(visit, id, where));
+            const place = { set, leg: legNumber, visit: visitIndex };
+            found.push(...visitProblems(visit, id, where, place));
             const thrown = thrownDarts(visit.darts);
             darts[id] += thrown.length;
             const sum = thrown.filter(isDart).reduce((total, dart) => total + dartValue(dart), 0);
             if (Number.isFinite(visit.roundScore) && visit.roundScore !== sum) {
-                found.push(finding('impossible', 'scoreMismatch', 'The score does not match the darts', `${visit.roundScore} entered for ${thrown.join(' ')} (${sum}) ${where}`, id));
+                found.push(finding('impossible', 'scoreMismatch', 'The score does not match the darts', `${visit.roundScore} entered for ${thrown.join(' ')} (${sum}) ${where}`, id, place));
             }
             const scoreLeft = Number(visit.scoreLeft);
             const bust = scoreLeft === left[id];
             if (!bust && Number.isFinite(scoreLeft) && left[id] - sum !== scoreLeft) {
-                found.push(finding('impossible', 'leftMismatch', 'What is left does not add up', `${left[id]} − ${sum} is not ${scoreLeft} ${where}`, id));
+                // no cheat: nobody gains from it, and an undo of the app wrote such rests
+                found.push(finding('error', 'leftMismatch', 'A score left that does not add up', `${left[id]} − ${sum} leaves ${left[id] - sum}, ${scoreLeft} was saved ${where}`, id, place));
             }
             if (scoreLeft === 0) {
                 const last = String(thrown.at(-1) ?? '').toUpperCase();
                 const mode = outModeOf(game, id);
                 const allowed = mode === 'Double Out' ? /^D/.test(last) : mode === 'Master Out' ? /^[DT]/.test(last) : true;
-                if (!allowed) found.push(finding('impossible', 'wrongFinish', `Checked out without a ${mode === 'Master Out' ? 'double or treble' : 'double'}`, `${last || 'no dart'} ${where} with ${mode}`, id));
+                if (!allowed) found.push(finding('impossible', 'wrongFinish', `Checked out without a ${mode === 'Master Out' ? 'double or treble' : 'double'}`, `${last || 'no dart'} ${where} with ${mode}`, id, place));
                 const start = startingScoreOf(game, id);
                 const fewest = Math.ceil(start / 60);
                 if (darts[id] < fewest) {
-                    found.push(finding('impossible', 'tooFewDarts', 'A leg won with too few darts', `${start} checked out with ${darts[id]} darts ${where}: at least ${fewest} are needed`, id));
+                    found.push(finding('impossible', 'tooFewDarts', 'A leg won with too few darts', `${start} checked out with ${darts[id]} darts ${where}: at least ${fewest} are needed`, id, place));
                 } else if (start === 501 && darts[id] <= 9) {
-                    found.push(finding('suspicious', 'nineDarter', 'A nine-darter', `the perfect leg ${where}: worth a look`, id));
+                    found.push(finding('suspicious', 'nineDarter', 'A nine-darter', `the perfect leg ${where}: worth a look`, id, place));
                 }
             }
             if (Number.isFinite(scoreLeft)) left[id] = scoreLeft;
@@ -164,7 +186,7 @@ export const checkX01 = (game, { usualAverage = () => null } = {}) => {
 export const checkCricket = (game) => {
     const found = [];
     const visits = game.allThrows ?? [];
-    visits.forEach((visit, index) => found.push(...visitProblems(visit, visit?.playerId, `in visit ${index + 1}`)));
+    visits.forEach((visit, index) => found.push(...visitProblems(visit, visit?.playerId, `in visit ${index + 1}`, { visit: index })));
     for (const id of game.players ?? []) {
         const model = game.playerModels?.[id] ?? {};
         const rounds = Number(model.totalThrow?.game?.rounds ?? 0);
@@ -184,12 +206,12 @@ export const checkElimination = (game) => {
     const found = [];
     const visits = game.allThrows ?? [];
     visits.forEach((visit, index) => {
-        found.push(...visitProblems(visit, visit?.playerId, `in visit ${index + 1}`));
+        found.push(...visitProblems(visit, visit?.playerId, `in visit ${index + 1}`, { visit: index }));
         if (visit?.bust) return;
         const thrown = thrownDarts(visit?.darts);
         const sum = thrown.filter(isDart).reduce((total, dart) => total + dartValue(dart), 0);
         if (Number.isFinite(visit?.roundScore) && visit.roundScore > sum) {
-            found.push(finding('impossible', 'scoreMismatch', 'The score does not match the darts', `${visit.roundScore} entered for ${thrown.join(' ')} (${sum}) in visit ${index + 1}`, visit.playerId));
+            found.push(finding('impossible', 'scoreMismatch', 'The score does not match the darts', `${visit.roundScore} entered for ${thrown.join(' ')} (${sum}) in visit ${index + 1}`, visit.playerId, { visit: index }));
         }
     });
     for (const id of game.players ?? []) {
@@ -271,8 +293,12 @@ export const compact = (findings) => {
     for (const item of findings) {
         const key = `${item.level}|${item.rule}|${item.playerId ?? ''}`;
         const seen = merged.get(key);
-        if (seen) seen.count += 1;
-        else merged.set(key, { ...item, count: 1 });
+        if (seen) {
+            seen.count += 1;
+            seen.places = [...seen.places, ...(item.places ?? [])];
+        } else {
+            merged.set(key, { ...item, places: item.places ?? [], count: 1 });
+        }
     }
     return [...merged.values()].map(({ count, ...item }) => count > 1 ? { ...item, detail: `${count}× · ${item.detail}` } : item);
 };
@@ -280,7 +306,10 @@ export const compact = (findings) => {
 /**
  * The level of a game or training: the worst of its findings.
  */
-export const levelOf = (findings) => findings.some(item => item.level === 'impossible') ? 'impossible' : findings.length ? 'suspicious' : null;
+export const levelOf = (findings) => {
+    if (!findings.length) return null;
+    return findings.reduce((worst, item) => LEVELS[item.level] > LEVELS[worst] ? item.level : worst, 'suspicious');
+};
 
 /**
  * Each player's usual X01 average: the median over their games, without the
@@ -301,4 +330,113 @@ export const usualAverages = (games) => {
         const others = (byPlayer.get(playerId) ?? []).filter(item => item.gameId !== String(gameId)).map(item => item.average);
         return others.length >= THRESHOLDS.usualGames ? median(others) : null;
     };
+};
+
+// the app's busts: below 0, a rest of 1 or a finish on the wrong dart when the out mode needs a double (or treble)
+const isBust = (rest, lastDart, mode) => {
+    if (rest < 0) return true;
+    const last = String(lastDart ?? '').toUpperCase();
+    if (mode === 'Double Out') return rest === 1 || (rest === 0 && !/^D/.test(last));
+    if (mode === 'Master Out') return rest === 1 || (rest === 0 && !/^[DT]/.test(last));
+    return false;
+};
+
+/**
+ * Works the scores left of an X01 game out again from the darts, with the
+ * app's busts. Possible only when every leg still ends the same way: its last
+ * visit checks out and none before it does, so no leg changes hands.
+ * { possible: true, changed, allSetsThrows } or { possible: false, reason }.
+ */
+export const repairX01 = (game) => {
+    const allSetsThrows = structuredClone(game.allSetsThrows ?? {});
+    let changed = 0;
+    for (const { setKey, legKey, set, leg, visits } of legEntries({ allSetsThrows })) {
+        const left = Object.fromEntries((game.players ?? []).map(id => [id, startingScoreOf(game, id)]));
+        for (const [index, visit] of visits.entries()) {
+            const id = visit?.playerId;
+            if (!(id in left)) continue;
+            const thrown = thrownDarts(visit.darts);
+            if (!thrown.every(isDart)) return { possible: false, reason: `A dart that is not on the board in set ${set}, leg ${leg}` };
+            const rest = left[id] - thrown.reduce((total, dart) => total + dartValue(dart), 0);
+            const scoreLeft = isBust(rest, thrown.at(-1), outModeOf(game, id)) ? left[id] : rest;
+            const last = index === visits.length - 1;
+            if (scoreLeft === 0 && !last) return { possible: false, reason: `Set ${set}, leg ${leg} would have ended earlier` };
+            if (last && scoreLeft !== 0) return { possible: false, reason: `The darts do not finish set ${set}, leg ${leg}` };
+            if (Number(visit.scoreLeft) !== scoreLeft) {
+                allSetsThrows[setKey][legKey][index] = { ...visit, scoreLeft };
+                changed += 1;
+            }
+            left[id] = scoreLeft;
+        }
+    }
+    return { possible: true, changed, allSetsThrows };
+};
+
+/**
+ * The legs of an X01 game for a closer look: each visit with what was left
+ * before it (as saved), what should be left after it, and what a repair would
+ * save. [{ set, leg, visits: [{ playerId, darts, roundScore, scoreLeft, before,
+ * expected, repaired }] }]
+ */
+export const x01Legs = (game) => {
+    const repair = repairX01(game);
+    return legEntries(game).map(({ setKey, legKey, set, leg, visits }) => {
+        const left = Object.fromEntries((game.players ?? []).map(id => [id, startingScoreOf(game, id)]));
+        return {
+            set,
+            leg,
+            visits: visits.map((visit, index) => {
+                const id = visit?.playerId;
+                const thrown = thrownDarts(visit?.darts);
+                const before = left[id];
+                const rest = before - thrown.filter(isDart).reduce((total, dart) => total + dartValue(dart), 0);
+                const expected = Number.isFinite(before) ? (isBust(rest, thrown.at(-1), outModeOf(game, id)) ? before : rest) : null;
+                const scoreLeft = Number(visit?.scoreLeft);
+                if (Number.isFinite(scoreLeft) && id in left) left[id] = scoreLeft;
+                return {
+                    playerId: id,
+                    darts: thrown,
+                    roundScore: visit?.roundScore ?? null,
+                    scoreLeft: Number.isFinite(scoreLeft) ? scoreLeft : null,
+                    before: before ?? null,
+                    expected,
+                    repaired: repair.possible ? repair.allSetsThrows[setKey][legKey][index]?.scoreLeft ?? null : null,
+                };
+            }),
+        };
+    });
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const dateText = (value) => {
+    const date = new Date(value);
+    return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+};
+const addYears = (value, years) => {
+    const date = new Date(value);
+    date.setFullYear(date.getFullYear() + years);
+    return date;
+};
+
+/**
+ * A player moved their own date of birth: later by more than a month makes
+ * them younger, and games they played as adults may then count as played as
+ * a child (left out of the Hall of Shame). minAge: the club's age limit;
+ * gameDates: when the player played in the club. Suspicious, with how many
+ * games changed sides.
+ */
+export const checkBirthChange = (change, { minAge = 16, gameDates = [] } = {}) => {
+    if (!change?.from || !change?.to) return [];
+    const from = new Date(change.from);
+    const to = new Date(change.to);
+    if (to - from <= THRESHOLDS.birthLaterDays * DAY_MS) return [];
+    // played from the old birthday of minAge on, but before the new one
+    const start = addYears(from, minAge);
+    const end = addYears(to, minAge);
+    const moved = gameDates.filter(value => new Date(value) >= start && new Date(value) < end).length;
+    const years = Math.round((to - from) / (365.25 * DAY_MS) * 10) / 10;
+    const effect = moved
+        ? `${moved} ${moved === 1 ? 'game' : 'games'} now count as played under ${minAge}`
+        : `no games played under ${minAge} because of it so far`;
+    return [finding('suspicious', 'birthLater', 'Made themselves younger', `date of birth moved from ${dateText(from)} to ${dateText(to)} (${years} ${years === 1 ? 'year' : 'years'} younger) by the player: ${effect}`)];
 };

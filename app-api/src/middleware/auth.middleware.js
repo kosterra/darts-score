@@ -1,6 +1,7 @@
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
-import { readSession } from '../utils/auth.utils.js';
+import { readSession, setSessionCookie } from '../utils/auth.utils.js';
+import { cappedExpiry, getSessionTimeoutMs } from '../utils/session.settings.js';
 
 const User = db.user;
 const Club = db.club;
@@ -36,7 +37,11 @@ export const requireAuth = async (req, res, next) => {
     if (user.blockedAt) {
         return res.status(403).json({ message: 'This account is blocked. Please contact the administrator of this installation.', blocked: true });
     }
+    // a session never lasts longer than the timeout set now: older, longer ones are cut
+    const { exp, cut } = cappedExpiry(session.exp, Date.now(), await getSessionTimeoutMs());
+    if (cut) await setSessionCookie(req, res, user, exp);
     req.user = user;
+    req.sessionExpiresAt = exp;
     next();
 };
 

@@ -7,6 +7,7 @@ import EliminationScoreConfig from '../config_components/elimination.score.confi
 import EliminationInOutConfig from '../config_components/elimination.inout.config';
 import PlayerPicker from '../config_components/player.picker';
 import GameSetupStart from '../config_components/game.setup.start';
+import FlyingDartsConfig from '../config_components/flying.darts.config';
 import GameSetupMemory from '../config_components/game.setup.memory';
 import { missingPlayers, playersSummary } from '../config_components/game.setup.summary';
 import EliminationModels from '../../../models/elimination.models';
@@ -23,7 +24,7 @@ const EliminationConfig = () => {
     const navigate = useNavigate();
 
     const handleConfigChange = (name, value) => {
-        if (['gameInMode', 'gameOutMode'].includes(name)) {
+        if (['gameInMode', 'gameOutMode', 'flyingDarts'].includes(name)) {
             setGame(prev => ({ ...prev, [name]: value }));
         } else {
             setGame(prev => ({ ...prev, [name]: Number(value) }));
@@ -43,7 +44,7 @@ const EliminationConfig = () => {
     const handleSubmit = async () => {
         if (missing) return;
         setStarting(true);
-        saveSetup('elimination', { settings: { targetScore: game.targetScore, gameInMode: game.gameInMode, gameOutMode: game.gameOutMode }, players });
+        saveSetup('elimination', { settings: { targetScore: game.targetScore, gameInMode: game.gameInMode, gameOutMode: game.gameOutMode, flyingDarts: game.flyingDarts }, players });
         const playerIds = players.map(p => p.id);
         const playerModels = {};
         playerIds.forEach(pid => {
@@ -90,6 +91,7 @@ const EliminationConfig = () => {
                         gameOutOption={game.gameOutMode}
                         onInOutChange={handleConfigChange}
                     />
+                    <FlyingDartsConfig value={game.flyingDarts} onChange={(value) => handleConfigChange('flyingDarts', value)} />
                     <GameSetupStart summary={summary} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>
             </Panel>

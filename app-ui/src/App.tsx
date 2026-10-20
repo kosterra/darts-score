@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import SessionWatch from './components/session/session.watch';
 import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
@@ -24,12 +25,17 @@ const ClockGamePage = lazy(() => import('./components/games/clock/_clock.game.pa
 const ClockGameStats = lazy(() => import('./components/stats/clock/clock.game.stats'));
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
+const X01BotPage = lazy(() => import('./components/training/x01.bot.page'));
 const AboutPage = lazy(() => import('./components/about/_about.page'));
 const PlayerProfilePage = lazy(() => import('./components/players/_player.profile.page'));
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
 const FairPlayPage = lazy(() => import('./components/fairplay/_fair.play.page'));
+const NotificationsPage = lazy(() => import('./components/notifications/_notifications.page'));
+const MyPlayerPage = lazy(() => import('./components/players/_my.player.page'));
+const PlayerEditPage = lazy(() => import('./components/players/_player.edit.page'));
+const MyStatistics = lazy(() => import('./components/players/my.statistics'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
@@ -49,11 +55,25 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/clubs', '/profile', '/about', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
+const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
-    const { user, activeClub, isGlobalAdmin, loading } = useAuth();
+    const { user, activeClub, isGlobalAdmin, loading, returnTo, loggedOut } = useAuth();
+    // whether the start page of this login was already opened: set once a
+    // page shows, so it is only the first page after logging in
+    const startHandled = useRef(false);
     const { pathname } = useLocation();
+    useEffect(() => {
+        startHandled.current = Boolean(user);
+    }, [user]);
+
+    // a new page starts at the top, e.g. a game after its long setup; going back
+    // keeps where the browser was, and a link to a part of a page goes there
+    const navigationType = useNavigationType();
+    useEffect(() => {
+        if (navigationType === 'POP' || window.location.hash) return;
+        window.scrollTo(0, 0);
+    }, [pathname, navigationType]);
 
     if (loading) return <PageLoader />;
 
@@ -71,21 +91,34 @@ function AppContent() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="*" element={<Navigate replace to="/login" />} />
+                    {/* after logging out: the public start page; otherwise the login */}
+                    <Route path="*" element={<Navigate replace to={loggedOut ? '/' : '/login'} />} />
                 </Routes>
             </Suspense>
         );
     }
 
+    // logged in again after the session ran out: back to the page it ended on
+    if (pathname === '/login' && returnTo) {
+        return <Navigate replace to={returnTo} />;
+    }
+
+    // the start page the user chose, when the app opens on the dashboard after logging in
+    if (!startHandled.current && user.startPage === 'myStatistics' && (pathname === '/' || pathname === '/login') && activeClub) {
+        return <Navigate replace to="/me" />;
+    }
+
     // Without a club there is nothing to play with yet: send the user to create one.
     // A global admin without a club of their own looks after the app instead.
     if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
-        return <Navigate replace to={isGlobalAdmin ? '/administration' : '/clubs'} />;
+        return <Navigate replace to={isGlobalAdmin ? '/system-settings' : '/my-clubs'} />;
     }
 
     return (
         <div className="d-flex mb-5 mb-md-0">
             <AppNavigation />
+            {/* warns before the session ends, and goes back to the login once it has */}
+            <SessionWatch />
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
                 <AppBanner />
@@ -106,6 +139,7 @@ function AppContent() {
                     <Route path="/stats/games/:id" element={<GameListRedirect />} />
                     <Route path="/players" element={<ClubListsPage list="players" />} />
                     <Route path="/players/:id" element={<PlayerProfilePage />} />
+                    <Route path="/players/:id/edit" element={<PlayerEditPage />} />
                     <Route path="/games" element={<ClubListsPage list="games" />} />
                     <Route path="/trainings" element={<ClubListsPage list="trainings" />} />
                     <Route path="/stats/games/x01/:id" element={<X01GameStats />} />
@@ -114,12 +148,22 @@ function AppContent() {
                     <Route path="/stats/games/clock/:id" element={<ClockGameStats />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/training/atc" element={<TrainingPage />} />
+                    <Route path="/training/x01" element={<X01BotPage />} />
+                    <Route path="/training/x01/:id" element={<X01GamePage training />} />
+                    <Route path="/stats/training/x01/:id" element={<X01GameStats training />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/badges" element={<BadgesPage />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />
-                    <Route path="/clubs" element={<ClubsPage />} />
+                    <Route path="/my-clubs" element={<ClubsPage />} />
+                    {/* the old address of My clubs */}
+                    <Route path="/clubs" element={<Navigate replace to="/my-clubs" />} />
                     <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/administration" element={<AdministrationPage />} />
+                    <Route path="/notifications" element={<NotificationsPage />} />
+                    <Route path="/player-profile" element={<MyPlayerPage />} />
+                    <Route path="/me" element={<MyStatistics />} />
+                    <Route path="/system-settings" element={<AdministrationPage />} />
+                    {/* the old address of the system settings */}
+                    <Route path="/administration" element={<Navigate replace to="/system-settings" />} />
                     <Route path="/fair-play" element={<FairPlayPage />} />
                     <Route path="/admin/fair-play" element={<FairPlayPage all />} />
                     <Route path="/admin" element={<Navigate replace to="/admin/players" />} />

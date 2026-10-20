@@ -5,10 +5,13 @@ import { Panel } from 'primereact/panel';
 import { FaFire, FaBullseye, FaTrophy, FaStopwatch, FaFlagCheckered, FaHashtag, FaCrosshairs, FaBolt } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
+import { DartSet } from '../../players/dart.side';
+import { flightOf } from '../../../utils/flights';
 
 import StatsService from '../../../services/stats.service';
-import PageLoader from '../../elements/page.loader';
+import { PlayerStatsSkeleton } from '../../elements/skeletons';
 import BadgeMedal from '../../badges/badge.medal';
+import ShameMedal from '../../badges/shame.medal';
 import PlayerStatsCharts from './player.stats.charts';
 import ComparisonFilters, { FilterPanel } from './comparison.filters';
 import { describeFilters } from './filter.summary';
@@ -72,14 +75,16 @@ const StreakFlames = ({ weeks: count }) => (
 // the colours of the game type tags
 const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6' };
 
-// the badge collection further down the profile page
-const scrollToBadges = (event) => {
-    const target = document.getElementById('badges');
+// a part further down the profile page: the badge collection or the Hall of Shame
+const scrollTo = (id) => (event) => {
+    const target = document.getElementById(id);
     if (!target) return;
     event.preventDefault();
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.history.replaceState(null, '', '#badges');
+    window.history.replaceState(null, '', `#${id}`);
 };
+const scrollToBadges = scrollTo('badges');
+const scrollToShame = scrollTo('hall-of-shame');
 
 /**
  * A player's profile: who they are, how they are doing (games, wins, streak,
@@ -119,13 +124,15 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
         return () => { cancelled = true; };
     }, [player.id, requestKey]);
 
-    if (!stats) return <PageLoader />;
+    if (!stats) return <PlayerStatsSkeleton />;
 
     const { playedGames = {}, wonGames = {}, avg = {}, checkouts = {}, throwedDarts = {}, throwedPoints = {} } = stats;
     const games = playedGames.total ?? 0;
     const wins = wonGames.total ?? 0;
     const kpis = stats.kpis ?? {};
     const streak = badges?.weekStreak ?? { current: 0, best: 0 };
+    const shame = badges?.shame ?? [];
+    const heldShame = shame.filter(badge => badge.active);
     const latestBadges = (badges?.badges ?? [])
         .filter(badge => badge.earned)
         .sort((a, b) => new Date(b.earned.earnedAt) - new Date(a.earned.earnedAt))
@@ -177,12 +184,32 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         ))}
                     </dl>
                 </div>
-                {latestBadges.length > 0 &&
-                    <div className="d-flex flex-column gap-2">
-                        <span className="text-faint fs-8">Latest badges</span>
-                        <a href="#badges" onClick={scrollToBadges} className="d-flex gap-2" aria-label={`All badges of ${player.nickname}`}>
-                            {latestBadges.map(badge => <BadgeMedal key={badge.id} badge={badge} size="sm" />)}
-                        </a>
+                {/* the darts they throw with */}
+                <div className="player-hero-dart d-flex flex-column gap-2">
+                    <span className="text-faint fs-8">{isOwn ? 'Your darts' : 'Their darts'}</span>
+                    <DartSet {...flightOf(player)} />
+                </div>
+                {(latestBadges.length > 0 || shame.length > 0) &&
+                    <div className="d-flex flex-column gap-3">
+                        {latestBadges.length > 0 &&
+                            <div className="d-flex flex-column gap-2">
+                                <span className="text-faint fs-8">Latest badges</span>
+                                <a href="#badges" onClick={scrollToBadges} className="d-flex gap-2" aria-label={`All badges of ${player.nickname}`}>
+                                    {latestBadges.map(badge => <BadgeMedal key={badge.id} badge={badge} size="sm" />)}
+                                </a>
+                            </div>
+                        }
+                        {/* the badges nobody wants, held right now; only where the club has a Hall of Shame for this player */}
+                        {shame.length > 0 &&
+                            <div className="d-flex flex-column gap-2">
+                                <span className="text-faint fs-8">Hall of Shame</span>
+                                <a href="#hall-of-shame" onClick={scrollToShame} className="d-flex align-items-center gap-2" aria-label={`Hall of Shame of ${player.nickname}`}>
+                                    {heldShame.length > 0
+                                        ? heldShame.map(badge => <ShameMedal key={badge.id} badge={badge} size="sm" />)
+                                        : <span className="fs-7 fw-semibold">Clean slate</span>}
+                                </a>
+                            </div>
+                        }
                     </div>
                 }
                 <div className="w-100">

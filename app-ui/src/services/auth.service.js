@@ -42,8 +42,24 @@ const requestPasswordReset = (email) =>
 const resetPassword = (token, password) =>
     requestJSON(API_URL + 'reset-password', { method: 'POST', body: { token, password } });
 
+// when the session ends: { expiresAt (ms), timeoutHours }
+const getSession = () => requestJSON(API_URL + 'session');
+
+// the session goes on for the full timeout from now: { expiresAt }
+const extendSession = () => requestJSON(API_URL + 'session/extend', { method: 'POST' });
+
+// the players the user plays as, with their clubs (for the player profile)
+const getMyPlayers = () => requestJSON(API_URL + 'players');
+
+// the player profile changed: the avatar in the menu follows it
+export const MY_PLAYERS_CHANGED = 'darts-score:my-players-changed';
+export const announceMyPlayersChange = () => window.dispatchEvent(new Event(MY_PLAYERS_CHANGED));
+
 const AuthService = {
     getConfig,
+    getMyPlayers,
+    getSession,
+    extendSession,
     requestPasswordReset,
     resetPassword,
     getCurrentUser,

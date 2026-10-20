@@ -4,13 +4,16 @@ import { Toast } from 'primereact/toast';
 import DartBoard from '../common/dartboard';
 import EliminationContext from '../../../utils/elimination.context';
 import useDartMarkers from '../common/use.dart.markers';
+import useBoardDarts from '../common/use.board.darts';
 
 /**
  * The board of Elimination: each dart tapped is marked until the visit is
- * entered; no dart fits once the visit is over.
+ * entered, with a dart flying to it unless the game or the player switched
+ * the animation off; no dart fits once the visit is over.
  */
 const EliminationDartBoard = () => {
-    const { game, getCurrentThrowScore, checkCanThrowMoreDarts, updateCurrentThrowDartBoard } = useContext(EliminationContext);
+    const { game, players, getCurrentThrowScore, checkCanThrowMoreDarts, updateCurrentThrowDartBoard } = useContext(EliminationContext);
+    const { withDarts, flight } = useBoardDarts(game, players);
     const toast = useRef(null);
     const { markers, remember } = useDartMarkers(game.currentThrow, `${(game.allThrows ?? []).length}-${game.currentPlayerTurn}`);
 
@@ -27,7 +30,7 @@ const EliminationDartBoard = () => {
 
     return (
         <>
-            <DartBoard handleClick={setDartValue} markers={markers} />
+            <DartBoard handleClick={setDartValue} markers={markers} withDarts={withDarts} flight={flight} />
             <Toast ref={toast} position="bottom-right" />
         </>
     );

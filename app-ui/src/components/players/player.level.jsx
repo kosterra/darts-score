@@ -7,6 +7,9 @@ import { LEVEL_STYLES } from '../../utils/levels';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 
+// what is missing for the next level, the XP with a thousands separator like the rest
+const missingText = (entry, level) => entry.id === 'xp' ? `${formatNumber(level.next.xp - level.xp)} more XP` : entry.label;
+
 // what a level needs besides XP, in words
 const needsOf = (entry) => [
     entry.minAverage && `X01 average ${entry.minAverage}`,
@@ -25,19 +28,20 @@ const PlayerLevel = ({ level }) => {
     return (
         <div className="player-level d-flex flex-wrap align-items-center column-gap-3 row-gap-2">
             <LevelBadge level={level.level} size="md" />
-            <div className="d-flex flex-column gap-1" style={{ minWidth: '12rem', flex: '0 1 18rem' }}>
+            <div className="d-flex flex-column gap-1" style={{ minWidth: '14rem', flex: '0 1 24rem' }}>
                 <ProgressBar
                     value={level.progress}
                     showValue={false}
                     className="level-progress"
                     style={{ '--level-color': (LEVEL_STYLES[level.next?.id] ?? LEVEL_STYLES[level.level.id]).color }}
                 />
-                <span className="text-faint fs-8">
-                    {level.next
-                        ? <>{formatNumber(level.xp)} XP · next: <span className="text-subtle">{level.next.name}</span>{level.next.missing.length > 0 && <> – needs {level.next.missing.map(entry => entry.label).join(' and ')}</>}</>
-                        : <>{formatNumber(level.xp)} XP · the highest level</>
-                    }
+                {/* two lines on purpose: where the player is, then what the next level needs */}
+                <span className="text-subtle fs-8">
+                    {formatNumber(level.xp)} XP · {level.next ? <>next: <span className="text-default">{level.next.name}</span></> : 'the highest level'}
                 </span>
+                {level.next?.missing.length > 0 &&
+                    <span className="text-faint fs-8">needs {level.next.missing.map(entry => missingText(entry, level)).join(' and ')}</span>
+                }
             </div>
             <button type="button" className="level-help" onClick={() => setOpen(true)}><i className="pi pi-info-circle me-1" aria-hidden="true" />How levels work</button>
 

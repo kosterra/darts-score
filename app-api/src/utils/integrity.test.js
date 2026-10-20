@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, usualAverages } from './integrity.js';
+import { checkBirthChange, checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages } from './integrity.js';
 
 const rules = (findings) => findings.map(item => `${item.level}:${item.rule}`);
 const v = (playerId, darts, roundScore, scoreLeft) => ({ playerId, darts, roundScore, scoreLeft });
@@ -42,7 +42,7 @@ describe('X01', () => {
 
     it('finds a visit of four darts, a dart off the board, a wrong score and a wrong rest', () => {
         const leg = [v('a', ['T20', 'T20', 'T20', 'T20'], 240, 261), v('b', ['T21', '0', '0'], 63, 438), v('a', ['T20', 'S1', '0'], 100, 161), v('b', ['S20', '0', '0'], 20, 400)];
-        expect(rules(checkX01(x01([leg])))).toEqual(expect.arrayContaining(['impossible:tooManyDarts', 'impossible:invalidDart', 'impossible:scoreMismatch', 'impossible:leftMismatch']));
+        expect(rules(checkX01(x01([leg])))).toEqual(expect.arrayContaining(['impossible:tooManyDarts', 'impossible:invalidDart', 'impossible:scoreMismatch', 'error:leftMismatch']));
     });
 
     it('finds a checkout without a double and a leg won with too few darts', () => {
@@ -65,6 +65,51 @@ describe('X01', () => {
         const leg = Array.from({ length: 12 }, (_, index) => [v('a', ['S20', 'S20', 'S1'], 41, 501 - 41 * (index + 1)), v('b', ['0', '0', '0'], 0, 501)]).flat();
         const fast = x01([leg], { updatedAt: new Date(2026, 0, 1, 20, 1) });
         expect(rules(checkX01(fast))).toEqual(expect.arrayContaining(['suspicious:padding', 'suspicious:tooFast']));
+    });
+
+    // 94 left, a bust undone: the app gave 94 + 77 back, so 171 − 28 = 143 was saved
+    const undone = [
+        v('a', ['T20', 'T20', 'T20'], 180, 321), v('b', ['S20'], 20, 481),
+        v('a', ['T20', 'T19', 'D20'], 157, 164), v('b', ['S20'], 20, 461),
+        v('a', ['T20', 'S10'], 70, 94), v('b', ['S20'], 20, 441),
+        v('a', ['S20', 'S4', 'S4'], 28, 143), v('b', ['S20'], 20, 421),
+        v('a', ['S20', 'S20', 'S6'], 46, 97), v('b', ['S20'], 20, 401),
+        v('a', ['T20', 'D16'], 92, 5), v('b', ['S20'], 20, 381),
+        v('a', ['S1', 'D2'], 5, 0),
+    ];
+
+    it('takes a score left that does not add up for a data error, with where it happened', () => {
+        const found = checkX01(x01([undone]));
+        const error = found.find(item => item.rule === 'leftMismatch');
+        expect(error).toMatchObject({ level: 'error', playerId: 'a', places: [{ set: 1, leg: 1, visit: 6 }] });
+        expect(error.detail).toBe('94 − 28 leaves 66, 143 was saved in leg 1');
+        expect(levelOf(found)).toBe('error');
+        expect(levelOf([...found, { level: 'impossible' }])).toBe('impossible');
+    });
+
+    it('repairs the scores left from the darts when the leg still ends the same way', () => {
+        // with 66 left after the 28: 66 − 46 = 20, 20 − 92 is a bust, 20 − 5 = 15: no finish
+        expect(repairX01(x01([undone]))).toEqual({ possible: false, reason: 'The darts do not finish set 1, leg 1' });
+
+        const fixable = [
+            v('a', ['T20', 'T20', 'T20'], 180, 321), v('b', ['S20'], 20, 481),
+            v('a', ['T20', 'T20', 'T20'], 180, 141), v('b', ['S20'], 20, 461),
+            // a bust (141 − 180), undone: 321 was saved
+            v('a', ['T20', 'T20', 'T20'], 180, 141), v('b', ['S20'], 20, 441),
+            v('a', ['S20', 'S20', 'S1'], 41, 280), v('b', ['S20'], 20, 421),
+            v('a', ['T20', 'D20'], 100, 0),
+        ];
+        // left: 141 → bust → 141 → 100 → 0 with T20 D20
+        const repaired = repairX01(x01([fixable]));
+        expect(repaired).toMatchObject({ possible: true, changed: 1 });
+        expect(repaired.allSetsThrows['set-1']['leg-1'].map(visit => visit.scoreLeft).filter((_, index) => index % 2 === 0)).toEqual([321, 141, 141, 100, 0]);
+        expect(checkX01(x01([repaired.allSetsThrows['set-1']['leg-1']])).filter(item => item.rule === 'leftMismatch')).toEqual([]);
+    });
+
+    it('does not repair when a leg would end earlier', () => {
+        // 121 − 121 checks out with D2 already, but 40 was saved and D20 finished later
+        const early = [v('a', ['T20', 'T20', 'T20'], 180, 121), v('a', ['T20', 'T19', 'D2'], 121, 40), v('a', ['D20'], 40, 0)];
+        expect(repairX01(x01([early], { startingScore: 301 }))).toEqual({ possible: false, reason: 'Set 1, leg 1 would have ended earlier' });
     });
 
     it('takes the usual average from the other games only', () => {
@@ -91,7 +136,26 @@ describe('other games', () => {
     });
 
     it('merges the same finding of a player', () => {
-        const merged = compact([{ level: 'suspicious', rule: 'nineDarter', detail: 'leg 1', playerId: 'a' }, { level: 'suspicious', rule: 'nineDarter', detail: 'leg 2', playerId: 'a' }]);
-        expect(merged).toEqual([{ level: 'suspicious', rule: 'nineDarter', detail: '2× · leg 1', playerId: 'a' }]);
+        const merged = compact([
+            { level: 'suspicious', rule: 'nineDarter', detail: 'leg 1', playerId: 'a', places: [{ set: 1, leg: 1, visit: 8 }] },
+            { level: 'suspicious', rule: 'nineDarter', detail: 'leg 2', playerId: 'a', places: [{ set: 1, leg: 2, visit: 8 }] },
+        ]);
+        expect(merged).toEqual([{ level: 'suspicious', rule: 'nineDarter', detail: '2× · leg 1', playerId: 'a', places: [{ set: 1, leg: 1, visit: 8 }, { set: 1, leg: 2, visit: 8 }] }]);
+    });
+});
+
+describe('own date of birth', () => {
+    it('flags a player who made themselves younger, with the games that changed sides', () => {
+        const change = { from: new Date(1990, 0, 1), to: new Date(1994, 0, 1) };
+        // turned 16 in 2006 by the old date, in 2010 by the new one: games of 2007 and 2009 change sides
+        const gameDates = [new Date(2005, 5, 1), new Date(2007, 5, 1), new Date(2009, 5, 1), new Date(2012, 5, 1)];
+        const [found] = checkBirthChange(change, { minAge: 16, gameDates });
+        expect(found).toMatchObject({ level: 'suspicious', rule: 'birthLater' });
+        expect(found.detail).toBe('date of birth moved from 01.01.1990 to 01.01.1994 (4 years younger) by the player: 2 games now count as played under 16');
+    });
+
+    it('lets small corrections and older dates through', () => {
+        expect(checkBirthChange({ from: new Date(1990, 0, 1), to: new Date(1990, 0, 20) })).toEqual([]);
+        expect(checkBirthChange({ from: new Date(1990, 0, 1), to: new Date(1985, 0, 1) })).toEqual([]);
     });
 });

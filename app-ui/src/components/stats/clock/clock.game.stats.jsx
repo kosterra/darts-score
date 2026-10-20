@@ -8,7 +8,7 @@ import { MdReplay } from 'react-icons/md';
 
 import ClockService from '../../../services/clock.service';
 import PlayerService from '../../../services/player.service';
-import PageLoader from '../../elements/page.loader';
+import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import GameResultHeader from '../common/game.result.header';
 import { whenPlayed } from '../common/game.text';
@@ -63,7 +63,7 @@ const ClockGameStats = () => {
     const progress = useMemo(() => game ? clockProgress(game) : [], [game]);
 
     if (failed) return <div className="container-fluid p-4 text-subtle">This game could not be found in the selected club.</div>;
-    if (!game || !players) return <PageLoader />;
+    if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const resultOf = (playerId) => results.find(result => result.playerId === playerId);
     const figures = Object.fromEntries(game.players.map(playerId => {

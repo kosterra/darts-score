@@ -711,3 +711,42 @@
   font-size: 0.65rem;
   vertical-align: middle;
 }
+
+// X01 against the bot: how strong it plays, and the trainings so far
+.x01-bot-strength {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  // the size of the hints in the X01 setup
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+
+  svg { flex-shrink: 0; color: $primaryColor; font-size: 1.1rem; }
+  strong { color: var(--text-default); }
+}
+
+.x01-bot-training {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.x01-bot-training-result {
+  @include label-shape;
+  @include label-neutral;
+  flex-shrink: 0;
+  min-width: 4.2rem;
+  justify-content: center;
+
+  &.is-won { @include label-tone(#7ecca5); }
+  &.is-lost { @include label-tone(#ec8b80); }
+}
+
+// what a training does not count for, as a hint of the setup
+.x01-bot-hint {
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}

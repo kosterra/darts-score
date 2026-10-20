@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { CLUB_ROLES } from '../models/user.model.js';
+import { CLUB_ROLES, ROLES } from '../models/user.model.js';
+import { clubsOfAccount } from '../utils/global.admins.js';
 import { hashPassword } from '../utils/auth.utils.js';
 import { issuePasswordLink } from '../utils/auth.tokens.js';
 
@@ -44,6 +45,17 @@ export const updateRole = async (req, res) => {
     const { id } = req.params;
     if (req.user._id.equals(id)) {
         return res.status(409).json({ message: 'You cannot change your own role.' });
+    }
+    // a global admin belongs to no club: the account has to leave its clubs first
+    if (req.body.role === ROLES.GLOBAL_ADMIN) {
+        const { admin, player } = await clubsOfAccount(id);
+        if (admin.length || player.length) {
+            const where = [
+                admin.length && `admin of ${admin.join(', ')}`,
+                player.length && `player in ${player.join(', ')}`,
+            ].filter(Boolean).join(' and ');
+            return res.status(409).json({ message: `This user is ${where}. Global admins do not belong to a club: remove them from these clubs first.` });
+        }
     }
     const user = await User.findByIdAndUpdate(id, { $set: { role: req.body.role } }, { new: true });
     if (!user) return res.status(404).json({ message: 'User not found.' });

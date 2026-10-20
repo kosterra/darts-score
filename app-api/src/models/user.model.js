@@ -10,6 +10,10 @@ export default (mongoose) => {
       passwordHash:   { type: String, required: true },
       firstname:      { type: String, required: true, trim: true },
       lastname:       { type: String, required: true, trim: true },
+      // what opens after logging in: the club's dashboard or the user's own statistics
+      startPage:      { type: String, enum: ['dashboard', 'myStatistics'], default: 'dashboard' },
+      // the club the app opens in after logging in; null: the one used last on the device
+      defaultClub:    { type: mongoose.Schema.Types.ObjectId, ref: 'club', default: null },
       role:           { type: String, enum: Object.values(ROLES), default: ROLES.USER },
       // Bumped on password change so older session cookies stop working
       sessionVersion: { type: Number, default: 0 },

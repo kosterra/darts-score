@@ -13,6 +13,14 @@ export default (mongoose) => {
       // For the handicap suggestion between players of different ages; required
       // when a player is added or edited, older players may still be without one
       dateOfBirth: { type: Date, default: null },
+      // changes the player made to their own date of birth, for fair play;
+      // restoredAt once an admin put the earlier date back
+      birthChanges: [{
+        from:       Date,
+        to:         Date,
+        at:         { type: Date, default: Date.now },
+        restoredAt: { type: Date, default: null },
+      }],
       // The clubs the player is a member of: one person can play in several clubs
       clubs:       { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'club' }], default: [] },
       // Clubs the player was removed from; their games there keep showing the name
@@ -52,11 +60,24 @@ export default (mongoose) => {
       // Whether the nickname may be shown on the public start page; otherwise
       // the player appears there without a name
       publicProfile: { type: Boolean, default: false },
+      // the trainings only for the player and the club's admins, not the other players
+      privateTrainings: { type: Boolean, default: false },
       // How the player finishes and scores, for the ways out during a game:
       // "auto" learns it from their games, otherwise e.g. "D16" or "T19"
       preferences: {
         favouriteDouble: { type: String, default: 'auto' },
         mainTreble:      { type: String, default: 'auto' },
+        // whether the darts fly onto the board to tap (a game may decide for everyone),
+        // and how their flights look ('auto': the player's colour in the game)
+        flyingDarts:     { type: Boolean, default: true },
+        flightColor:     { type: String, default: 'auto' },
+        flightPattern:   { type: String, default: 'plain' },
+        flightShape:     { type: String, default: 'standard' },
+        barrel:          { type: String, default: 'classic' },
+      },
+      // the flight shapes, designs and barrels unlocked with flight points ("shape:fantail", "barrel:bomb")
+      flights: {
+        unlocked:        { type: [String], default: [] },
       },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
@@ -73,7 +94,9 @@ export default (mongoose) => {
   schema.index({ formerClubs: 1 });
 
   schema.method('toJSON', function () {
-    const { _id, ...object } = this.toObject();
+    // the date of birth changes are for fair play only
+    // eslint-disable-next-line no-unused-vars
+    const { _id, birthChanges, ...object } = this.toObject();
     object.id = _id;
     return object;
   });

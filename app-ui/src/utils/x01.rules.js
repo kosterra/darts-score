@@ -32,3 +32,19 @@ const MODE_SHORT = {
 // e.g. "301 · SI/SO"
 export const describeRules = ({ startingScore, legInMode, legOutMode }) =>
     `${startingScore} · ${MODE_SHORT[legInMode] ?? legInMode}/${MODE_SHORT[legOutMode] ?? legOutMode}`;
+
+/**
+ * Whether what is left after the darts of the visit so far is a bust: below
+ * zero, or with double (master) out a rest of 1 or a finish on the wrong
+ * dart. A rest of 0 without a dart in this visit is no bust: that is the
+ * player who has just won, while the game shows its end.
+ */
+export const isBust = (score, currentThrow = [], outMode = 'Double Out') => {
+    if (score < 0) return true;
+    const thrown = currentThrow.filter(dart => dart && String(dart).trim() !== '');
+    const last = String(thrown.at(-1) ?? '').toUpperCase();
+    if (outMode === 'Double Out') return score === 1 || (score === 0 && thrown.length > 0 && !last.startsWith('D'));
+    if (outMode === 'Master Out') return score === 1 || (score === 0 && thrown.length > 0 && !/^[DT]/.test(last));
+    return false;
+};
+

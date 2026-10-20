@@ -2,6 +2,8 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
+import { getSessionSettings } from '../utils/session.settings.js';
+import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
 import { isMailConfigured, sendMail } from '../utils/mail.utils.js';
 import { checkRegistration, noteRegistration, checkLater } from '../utils/spam.guard.js';
@@ -31,7 +33,7 @@ export const register = async (req, res) => {
     logger.info(`Registered user ${user.email}`);
     checkLater(() => noteRegistration(req, user));
 
-    setSessionCookie(req, res, user);
+    await setSessionCookie(req, res, user);
     res.status(201).json(user);
 };
 
@@ -48,7 +50,7 @@ export const login = async (req, res) => {
 
     user.lastLoginAt = new Date();
     await user.save({ timestamps: false });
-    setSessionCookie(req, res, user);
+    await setSessionCookie(req, res, user);
     res.json(user);
 };
 
@@ -59,17 +61,64 @@ export const logout = (req, res) => {
 
 export const me = (req, res) => res.json(req.user);
 
+// when the session ends, so the app can warn in time: { expiresAt, timeoutHours }
+export const session = async (req, res) => {
+    const { timeoutHours } = await getSessionSettings();
+    res.json({ expiresAt: req.sessionExpiresAt, timeoutHours });
+};
+
+// a session about to end goes on for the full timeout from now: { expiresAt }
+export const extendSession = async (req, res) => {
+    const expiresAt = await setSessionCookie(req, res, req.user);
+    res.json({ expiresAt });
+};
+
 export const updateMe = async (req, res) => {
     logger.debug('auth update profile called');
-    const { email, firstname, lastname } = req.body;
+    const { email, firstname, lastname, startPage, defaultClub } = req.body;
 
     if (email !== req.user.email && await User.exists({ email })) {
         return res.status(409).json({ message: 'An account with this email already exists.' });
     }
 
-    Object.assign(req.user, { email, firstname, lastname });
+    // the default club is one the user runs or plays in (null: the one used last)
+    if (defaultClub) {
+        const member = await db.club.exists({ _id: defaultClub, admins: req.user._id })
+            || await db.player.exists({ user: req.user._id, clubs: defaultClub });
+        if (!member) return res.status(422).json({ errors: ['Choose one of your clubs.'] });
+    }
+    Object.assign(req.user, { email, firstname, lastname }, startPage ? { startPage } : {}, defaultClub !== undefined ? { defaultClub: defaultClub || null } : {});
     await req.user.save();
+    // the players of the account carry its name
+    await db.player.updateMany({ user: req.user._id }, { $set: { firstname: req.user.firstname, lastname: req.user.lastname } });
     res.json(req.user);
+};
+
+/**
+ * The players the user plays as, with their clubs, for the player profile:
+ * [{ id, nickname, firstname, lastname, profileImg, dateOfBirth, publicProfile,
+ * preferences, clubs: [{ id, name, logo, isPublic }] }].
+ */
+export const myPlayers = async (req, res) => {
+    const players = await db.player.find({ user: req.user._id, guest: { $ne: true } })
+        .populate('clubs', 'name logo isPublic shameMinAge')
+        .lean();
+    res.json(players.map(player => ({
+        id: String(player._id),
+        nickname: player.nickname,
+        firstname: player.firstname,
+        lastname: player.lastname,
+        profileImg: player.profileImg ?? '',
+        dateOfBirth: player.dateOfBirth ?? null,
+        publicProfile: Boolean(player.publicProfile),
+        privateTrainings: Boolean(player.privateTrainings),
+        preferences: { favouriteDouble: 'auto', mainTreble: 'auto', flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic', ...(player.preferences ?? {}) },
+        user: String(player.user),
+        // adults correct their date of birth themselves once the admins set it
+        birthMinAge: selfBirthAge(player.clubs ?? []),
+        birthEditable: Boolean(player.dateOfBirth) && ageOn(player.dateOfBirth) >= selfBirthAge(player.clubs ?? []),
+        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic) })),
+    })));
 };
 
 export const changePassword = async (req, res) => {
@@ -85,7 +134,7 @@ export const changePassword = async (req, res) => {
     await req.user.save();
 
     // Other devices are logged out by the version bump; keep this one signed in
-    setSessionCookie(req, res, req.user);
+    await setSessionCookie(req, res, req.user);
     res.json({ message: 'Password changed.' });
 };
 
@@ -131,6 +180,6 @@ export const resetPassword = async (req, res) => {
     user.resetTokenExpires = null;
     await user.save();
 
-    setSessionCookie(req, res, user);
+    await setSessionCookie(req, res, user);
     res.json(user);
 };

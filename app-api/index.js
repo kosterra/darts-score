@@ -24,6 +24,7 @@ import elimRoutes      from './src/routes/elimination.routes.js';
 import clockRoutes     from './src/routes/clock.routes.js';
 import { playerImageRoutes, clubLogoRoutes } from './src/routes/player.img.routes.js';
 import atcRoutes       from './src/routes/atc.routes.js';
+import x01TrainingRoutes from './src/routes/x01.training.routes.js';
 import authRoutes      from './src/routes/auth.routes.js';
 import clubRoutes      from './src/routes/club.routes.js';
 import userRoutes      from './src/routes/user.routes.js';
@@ -31,6 +32,8 @@ import adminRoutes     from './src/routes/admin.routes.js';
 import publicRoutes    from './src/routes/public.routes.js';
 import badgeRoutes     from './src/routes/badge.routes.js';
 import integrityRoutes from './src/routes/integrity.routes.js';
+import notificationRoutes from './src/routes/notification.routes.js';
+import deletionRequestRoutes from './src/routes/deletion.request.routes.js';
 import { isAllowedOrigin } from './src/utils/origin.utils.js';
 import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
@@ -152,17 +155,20 @@ userRoutes(app);
 adminRoutes(app);
 badgeRoutes(app);
 integrityRoutes(app);
+notificationRoutes(app);
 
 // ... and players, games, training and statistics also need a selected club
 app.use(['/api/players', '/api/games', '/api/training', '/api/stats'], requireClub);
 playerRoutes(app);
 statsRoutes(app);
+deletionRequestRoutes(app);
 x01Routes(app);
 cricketRoutes(app);
 elimRoutes(app);
 clockRoutes(app);
 playerImageRoutes(app);
 atcRoutes(app);
+x01TrainingRoutes(app);
 
 // ---------------------------------------------------------------------------
 // SPA fallback — serve index.html for all non-API routes (client-side routing);

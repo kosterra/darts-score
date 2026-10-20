@@ -15,6 +15,8 @@ const query = (clubIds) => `?clubs=${clubIds.map(encodeURIComponent).join(',')}`
 const loadPlayers = (clubIds) => requestJSON(`${API_URL}/players${query(clubIds)}`);
 const loadGames = (clubIds) => requestJSON(`${API_URL}/games${query(clubIds)}`);
 const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(clubIds)}`);
+// the X01 trainings against the bot of the chosen clubs
+const loadX01Trainings = (clubIds) => requestJSON(`${API_URL}/x01-trainings${query(clubIds)}`);
 
 // a player's clubs, and deleting a player from every club
 const addPlayerToClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs`, { method: 'POST', body: { club: clubId } });
@@ -24,6 +26,10 @@ const deletePlayer = (playerId) => requestJSON(`${API_URL}/players/${playerId}`,
 // the banner on top of every page, as global admins edit it
 const loadBannerSettings = () => requestJSON(`${API_URL}/banner`);
 const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT', body: banner });
+
+// how long a login lasts: { timeoutHours, limits: { min, max, default } }
+const loadSessionSettings = () => requestJSON(`${API_URL}/session`);
+const saveSessionSettings = (timeoutHours) => requestJSON(`${API_URL}/session`, { method: 'PUT', body: { timeoutHours } });
 
 // warnings and errors of the API
 const loadLogs = ({ level = 'all', search = '' } = {}) =>
@@ -59,11 +65,14 @@ const AdminService = {
     unblockIp,
     loadBannerSettings,
     saveBanner,
+    loadSessionSettings,
+    saveSessionSettings,
     loadOverview,
     loadClubs,
     loadPlayers,
     loadGames,
     loadTrainings,
+    loadX01Trainings,
     addPlayerToClub,
     removePlayerFromClub,
     deletePlayer,

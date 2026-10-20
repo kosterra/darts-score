@@ -1,82 +1,86 @@
 openapi: 3.1.0
-
 info:
   title: Oche API
-  description: |
-    REST API for Oche, the darts club app. Manages accounts, clubs, players, game sessions (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics.
+  description: >-
+    REST API for Oche, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock), trainings (Around
+    the Clock, X01 against the bot), statistics, badges and levels, flights to collect, fair play, deletion requests and notifications.
 
-    **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all further requests.
 
-    **Clubs:** players, games, training entries and statistics belong to a club. Requests under `/api/players`, `/api/games`, `/api/training` and `/api/stats` must name the club in an `X-Club-Id` header. The user must be an admin of that club, a player of it with a login, or a global admin. Players can read, play games and record trainings; creating, editing and deleting players and deleting games or training entries is for club admins.
-  version: 2026.10.0
+    **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all
+    further requests. A login lasts a set time (5 hours unless a global admin sets 1 to 24); `POST /api/auth/session/extend` starts it
+    again. Without a valid login the API answers 401.
+
+
+    **Clubs:** players, games, trainings and statistics belong to a club. Requests under `/api/players`, `/api/games`, `/api/training` and
+    `/api/stats` name the club in an `X-Club-Id` header. The user must be an admin of that club or have a login for one of its players.
+    Players read, play games and record trainings, ask to delete games, and look after their own player (nickname, picture, preferences,
+    flights); managing players and deleting games is for club admins.
+
+
+    **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
+  version: 2026.10.10
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
-
 servers:
   - url: http://localhost:3001
     description: Local development
-
 security:
   - sessionCookie: []
-
 tags:
   - name: Public
     description: What visitors see without a login
   - name: Auth
-    description: Registration, login and the logged-in user's profile
+    description: Registration, login, the session and the logged-in user
   - name: Clubs
     description: Clubs of the logged-in user (all clubs for a global admin)
   - name: Users
-    description: User administration (global admin only)
+    description: Accounts (global admins only)
+  - name: Administration
+    description: 'The installation: all clubs, players, games, trainings, banner, login length, error log, alerts and blocks (global admins only)'
   - name: Players
-    description: Player management
+    description: The players of a club
+  - name: Flights
+    description: Flight points, and the flight shapes, designs and barrels a player collects
   - name: Player Images
-    description: Serve player profile images
+    description: Player pictures and club logos
   - name: X01
-    description: X01 game sessions
+    description: X01 games
   - name: Cricket
-    description: Cricket game sessions
+    description: Cricket games
   - name: Elimination
-    description: Elimination game sessions
+    description: Elimination games
+  - name: Around the Clock
+    description: Around the Clock games
   - name: ATC
-    description: Around-the-Clock training entries
+    description: Around the Clock trainings
+  - name: X01 training
+    description: X01 trainings against the bot
+  - name: Deletion requests
+    description: Players ask to delete a game they played; the others agree, the club admins decide
   - name: Statistics
-    description: Aggregated player and game statistics
-
-# ---------------------------------------------------------------------------
-# Paths
-# ---------------------------------------------------------------------------
+    description: Statistics of players, games and the club
+  - name: Badges
+    description: Badges, the Hall of Shame, levels and the flight catalogue
+  - name: Fair play
+    description: Games and trainings that cannot be real, wrong data or worth a look (club admins; global admins for every club)
+  - name: Notifications
+    description: The logged-in user's notifications
 paths:
-
-  # ---------- Health --------------------------------------------------------
-
   /api/health:
     get:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Liveness probe
       security: []
       responses:
         '200':
           description: The server is running
-
-  # ---------- Public -------------------------------------------------------
-
-  /api/public/overview:
-    get:
-      tags: [Public]
-      summary: Data of the public start page - totals, public clubs, their running games and latest results
-      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public.
-      security: []
-      responses:
-        '200':
-          description: OK
-
-  # ---------- Auth ----------------------------------------------------------
-
+      operationId: getHealth
   /api/auth/register:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Register an account and log in
       security: []
       requestBody:
@@ -92,10 +96,11 @@ paths:
           description: Email already registered
         '422':
           description: Validation failed
-
+      operationId: postAuthRegister
   /api/auth/login:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Log in
       security: []
       requestBody:
@@ -109,28 +114,31 @@ paths:
           description: Logged in; session cookie set
         '401':
           description: Email or password is wrong
-
+      operationId: postAuthLogin
   /api/auth/logout:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Log out
       security: []
       responses:
         '200':
           description: Session cookie cleared
-
+      operationId: postAuthLogout
   /api/auth/config:
     get:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Whether the server can send mails (password reset, invitations)
       security: []
       responses:
         '200':
           description: OK
-
+      operationId: getAuthConfig
   /api/auth/forgot-password:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Mail a password reset link
       security: []
       requestBody:
@@ -142,12 +150,15 @@ paths:
       responses:
         '200':
           description: Always the same answer, whether or not the account exists
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '503':
           description: Email sending is not set up
-
+      operationId: postAuthForgotPassword
   /api/auth/reset-password:
     post:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Set a new password with the token from a reset or invitation mail and log in
       security: []
       requestBody:
@@ -161,18 +172,21 @@ paths:
           description: Password set; session cookie set
         '400':
           description: Link invalid or expired
-
+      operationId: postAuthResetPassword
   /api/auth/me:
     get:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: The logged-in user
       responses:
         '200':
           description: OK
         '401':
           description: Not logged in
+      operationId: getAuthMe
     put:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Update own name and email
       requestBody:
         required: true
@@ -183,12 +197,67 @@ paths:
       responses:
         '200':
           description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '409':
           description: Email already registered
-
+      operationId: putAuthMe
+  /api/auth/session:
+    get:
+      tags:
+        - Auth
+      summary: When the login ends
+      responses:
+        '200':
+          description: The end of the login and its length
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAuthSession
+  /api/auth/players:
+    get:
+      tags:
+        - Auth
+      summary: The user's own players
+      description: Every player the user plays as, with their clubs, preferences and whether they may correct their date of birth.
+      responses:
+        '200':
+          description: The players
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MyPlayer'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAuthPlayers
+  /api/auth/session/extend:
+    post:
+      tags:
+        - Auth
+      summary: Stay logged in
+      description: Starts the login again for the full length (e.g. from the countdown before it ends).
+      responses:
+        '200':
+          description: The new end
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  expiresAt:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: postAuthSessionExtend
   /api/auth/password:
     put:
-      tags: [Auth]
+      tags:
+        - Auth
       summary: Change own password
       requestBody:
         required: true
@@ -199,20 +268,46 @@ paths:
       responses:
         '200':
           description: Password changed; other sessions are logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           description: Current password is wrong
-
-  # ---------- Clubs ---------------------------------------------------------
-
+      operationId: putAuthPassword
+  /api/public/overview:
+    get:
+      tags:
+        - Public
+      summary: Data of the public start page - totals, public clubs, their running games and latest results
+      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public.
+      security: []
+      responses:
+        '200':
+          description: OK
+      operationId: getPublicOverview
+  /api/public/banner:
+    get:
+      tags:
+        - Public
+      summary: The banner shown on top of every page while it is switched on ({ enabled, text, color })
+      security: []
+      responses:
+        '200':
+          description: OK
+      operationId: getPublicBanner
   /api/clubs:
     get:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Clubs the user is an admin or a player of, with that role (global admins find every club under /api/admin/overview)
       responses:
         '200':
           description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getClubs
     post:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Create a club with the logged-in user as its admin
       requestBody:
         required: true
@@ -223,12 +318,15 @@ paths:
       responses:
         '201':
           description: Club created
-
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: postClubs
   /api/clubs/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
     put:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Change a club's name and public visibility settings
       requestBody:
         required: true
@@ -239,22 +337,31 @@ paths:
       responses:
         '200':
           description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           description: No access to this club
+      operationId: putClubsByid
     delete:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Delete a club and its games (a global admin also deletes its players)
       responses:
         '200':
           description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '409':
           description: The club still has players (only for club admins)
-
+      operationId: deleteClubsByid
   /api/clubs/{id}/logo:
     parameters:
       - $ref: '#/components/parameters/Id'
     put:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Upload a new logo for the club (multipart field "logo", .png or .jpg)
       requestBody:
         required: true
@@ -263,40 +370,37 @@ paths:
             schema:
               type: object
               properties:
-                logo: { type: string, format: binary }
+                logo:
+                  type: string
+                  format: binary
       responses:
         '200':
           description: Logo saved
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           description: No valid image
+      operationId: putClubsByidLogo
     delete:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Remove the club's logo
       responses:
         '200':
           description: Logo removed
-
-  /api/images/clubs/{filename}:
-    get:
-      tags: [Player Images]
-      summary: A club logo (no login needed, logos also show on the public page)
-      security: []
-      parameters:
-        - name: filename
-          in: path
-          required: true
-          schema: { type: string }
-      responses:
-        '200':
-          description: The image
-        '404':
-          description: Not found
-
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: deleteClubsByidLogo
   /api/clubs/{id}/admins:
     parameters:
       - $ref: '#/components/parameters/Id'
     post:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Add an admin; creates the account when the email is unknown
       requestBody:
         required: true
@@ -307,11 +411,15 @@ paths:
       responses:
         '201':
           description: Admin added
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '409':
           description: Already an admin of the club
         '422':
           description: Names or initial password missing for a new account
-
+      operationId: postClubsByidAdmins
   /api/clubs/{id}/admins/{userId}:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -321,64 +429,197 @@ paths:
         schema:
           type: string
     delete:
-      tags: [Clubs]
+      tags:
+        - Clubs
       summary: Remove an admin from the club
       responses:
         '200':
           description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '409':
           description: A club needs at least one admin
-
-  # ---------- Users ---------------------------------------------------------
-
-  /api/public/banner:
+      operationId: deleteClubsByidAdminsByuserId
+  /api/users:
     get:
-      tags: [Public]
-      summary: The banner shown on top of every page while it is switched on ({ enabled, text, color })
-      security: []
+      tags:
+        - Users
+      summary: All users with the clubs they belong to, their role there and their last login
       responses:
         '200':
           description: OK
-
-  /api/admin/banner:
-    get:
-      tags: [Users]
-      summary: The banner as global admins edit it, also while switched off
-      responses:
-        '200':
-          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      description: Global admins only.
+      operationId: getUsers
+  /api/users/{id}/role:
+    parameters:
+      - $ref: '#/components/parameters/Id'
     put:
-      tags: [Users]
-      summary: Switch the banner on or off and set its text (up to 200 characters) and colour (#rrggbb)
+      tags:
+        - Users
+      summary: Change the role of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
       responses:
         '200':
           description: OK
-        '422':
-          description: Invalid text or colour
-
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: You cannot change your own role
+      description: Global admins only.
+      operationId: putUsersByidRole
+  /api/users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The user is the only admin of a club, or is yourself
+      description: Global admins only.
+      operationId: deleteUsersByid
+    put:
+      tags:
+        - Users
+      summary: Correct an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - firstname
+                - lastname
+              properties:
+                email:
+                  type: string
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+      responses:
+        '200':
+          description: The account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      description: Global admins only.
+      operationId: putUsersByid
+  /api/users/{id}/password:
+    put:
+      tags:
+        - Users
+      summary: Set a new password for an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Password set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Done.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      description: Global admins only.
+      operationId: putUsersByidPassword
+  /api/users/{id}/password-link:
+    post:
+      tags:
+        - Users
+      summary: Create a link to choose a password
+      description: 'For users without mail: a link to pass on, valid for a few hours. Global admins only.'
+      responses:
+        '200':
+          description: The link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordLink'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      operationId: postUsersByidPasswordLink
   /api/admin/overview:
     get:
-      tags: [Users]
+      tags:
+        - Users
       summary: Totals, every club with its admins and activity, and the state of the installation (global admins only)
       responses:
         '200':
           description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           description: Global admin rights required
-
+      description: Global admins only.
+      operationId: getAdminOverview
   /api/admin/clubs:
     get:
-      tags: [Users]
+      tags:
+        - Users
       summary: Every club (id, name, logo), for the club filter of the admin lists (global admins only)
       responses:
         '200':
           description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           description: Global admin rights required
-
+      description: Global admins only.
+      operationId: getAdminClubs
   /api/admin/players:
     get:
-      tags: [Users]
+      tags:
+        - Users
       summary: Players and guests of the clubs in ?clubs=id1,id2, each with its club (global admins only)
       parameters:
         - in: query
@@ -392,12 +633,99 @@ paths:
           description: OK
         '400':
           description: No or invalid clubs chosen
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           description: Global admin rights required
-
+      description: Global admins only.
+      operationId: getAdminPlayers
+  /api/admin/players/{id}/clubs:
+    post:
+      tags:
+        - Administration
+      summary: Add a player to a club
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - club
+              properties:
+                club:
+                  type: string
+                  description: MongoDB ObjectId
+      responses:
+        '200':
+          description: The player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      description: Global admins only.
+      operationId: postAdminPlayersByidClubs
+  /api/admin/players/{id}/clubs/{clubId}:
+    delete:
+      tags:
+        - Administration
+      summary: Remove a player from a club
+      description: Not from their only club; delete the player instead. Global admins only.
+      responses:
+        '200':
+          description: The player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: deleteAdminPlayersByidClubsByclubId
+  /api/admin/players/{id}:
+    delete:
+      tags:
+        - Administration
+      summary: Delete a player from all clubs
+      responses:
+        '200':
+          description: Player deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Done.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      description: Global admins only.
+      operationId: deleteAdminPlayersByid
   /api/admin/games:
     get:
-      tags: [Users]
+      tags:
+        - Users
       summary: X01, Cricket and Elimination games of the clubs in ?clubs=id1,id2, each with its type and club (global admins only)
       parameters:
         - in: query
@@ -411,12 +739,16 @@ paths:
           description: OK
         '400':
           description: No or invalid clubs chosen
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           description: Global admin rights required
-
+      description: Global admins only.
+      operationId: getAdminGames
   /api/admin/trainings:
     get:
-      tags: [Users]
+      tags:
+        - Users
       summary: Around the Clock trainings of the clubs in ?clubs=id1,id2, each with its club (global admins only)
       parameters:
         - in: query
@@ -430,142 +762,815 @@ paths:
           description: OK
         '400':
           description: No or invalid clubs chosen
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           description: Global admin rights required
-
-  /api/users:
+      description: Global admins only.
+      operationId: getAdminTrainings
+  /api/admin/x01-trainings:
     get:
-      tags: [Users]
-      summary: All users with the clubs they belong to, their role there and their last login
+      tags:
+        - Administration
+      summary: X01 trainings against the bot of the chosen clubs
+      parameters:
+        - name: clubs
+          in: query
+          required: false
+          description: Comma-separated club ids to include
+          schema:
+            type: string
       responses:
         '200':
-          description: OK
+          description: The trainings, each with its club and player
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/X01Training'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Global admin rights required
-
-  /api/users/{id}/role:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-    put:
-      tags: [Users]
-      summary: Change the role of a user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RoleInput'
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: getAdminX01Trainings
+  /api/admin/banner:
+    get:
+      tags:
+        - Users
+      summary: The banner as global admins edit it, also while switched off
       responses:
         '200':
           description: OK
-        '409':
-          description: You cannot change your own role
-
-  /api/users/{id}:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-    delete:
-      tags: [Users]
-      summary: Delete a user
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: getAdminBanner
+    put:
+      tags:
+        - Users
+      summary: Switch the banner on or off and set its text (up to 200 characters) and colour (#rrggbb)
       responses:
         '200':
           description: OK
-        '409':
-          description: The user is the only admin of a club, or is yourself
-
-  # ---------- Players -------------------------------------------------------
-
-  /api/players/{id}/account:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-    put:
-      tags: [Players]
-      summary: Give a player a login (club admins only); creates the account when the email is unknown
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PlayerLoginInput'
-      responses:
-        '200':
-          description: Player linked to the account
-        '409':
-          description: The account already plays in this club as another player
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
-          description: Initial password missing for a new account
+          description: Invalid text or colour
+      description: Global admins only.
+      operationId: putAdminBanner
+  /api/admin/session:
+    get:
+      tags:
+        - Administration
+      summary: How long a login lasts
+      responses:
+        '200':
+          description: The setting and its limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: getAdminSession
+    put:
+      tags:
+        - Administration
+      summary: Set how long a login lasts
+      description: From 1 to 24 hours; longer logins are cut to it. Global admins only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - timeoutHours
+              properties:
+                timeoutHours:
+                  type: integer
+                  minimum: 1
+                  maximum: 24
+      responses:
+        '200':
+          description: The setting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: putAdminSession
+  /api/admin/logs:
+    get:
+      tags:
+        - Administration
+      summary: The error log
+      parameters:
+        - name: level
+          in: query
+          required: false
+          description: Only this level
+          schema:
+            type: string
+            enum:
+              - error
+              - warn
+        - name: search
+          in: query
+          required: false
+          description: Text to look for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The newest entries and the counts of today
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogEntries'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: getAdminLogs
     delete:
-      tags: [Players]
-      summary: Take the login away from a player (club admins only); the account itself stays
+      tags:
+        - Administration
+      summary: Clear the error log
       responses:
         '200':
-          description: Login removed
-
-  /api/players/{id}/visibility:
-    parameters:
-      - $ref: '#/components/parameters/Id'
+          description: How many entries were deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: deleteAdminLogs
+  /api/admin/alerts:
+    get:
+      tags:
+        - Administration
+      summary: Alerts of unusual activity
+      description: E.g. many accounts, clubs or games created at once from one address. Global admins only.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Which alerts
+          schema:
+            type: string
+            enum:
+              - open
+              - resolved
+              - all
+            default: open
+      responses:
+        '200':
+          description: The alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getAdminAlerts
+  /api/admin/alerts/summary:
+    get:
+      tags:
+        - Administration
+      summary: Counts of open alerts
+      responses:
+        '200':
+          description: Open and critical
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  open:
+                    type: integer
+                  critical:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: getAdminAlertsSummary
+  /api/admin/alerts/rules:
+    get:
+      tags:
+        - Administration
+      summary: The rules that raise alerts
+      responses:
+        '200':
+          description: The rules
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: getAdminAlertsRules
+  /api/admin/alerts/resolve-all:
     put:
-      tags: [Players]
-      summary: Show or hide a player's nickname on the public start page (club admins, or the player themselves)
+      tags:
+        - Administration
+      summary: Resolve all open alerts
+      responses:
+        '200':
+          description: How many
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resolved:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: putAdminAlertsResolveAll
+  /api/admin/alerts/{id}/resolve:
+    put:
+      tags:
+        - Administration
+      summary: Resolve an alert
+      responses:
+        '200':
+          description: The alert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      description: Global admins only.
+      operationId: putAdminAlertsByidResolve
+  /api/admin/alerts/{id}/reopen:
+    put:
+      tags:
+        - Administration
+      summary: Reopen an alert
+      responses:
+        '200':
+          description: The alert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      description: Global admins only.
+      operationId: putAdminAlertsByidReopen
+  /api/admin/blocks:
+    get:
+      tags:
+        - Administration
+      summary: Blocked accounts and addresses
+      responses:
+        '200':
+          description: What is blocked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Blocks'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: getAdminBlocks
+  /api/admin/blocks/users/{id}:
+    put:
+      tags:
+        - Administration
+      summary: Block an account
+      description: The account cannot log in any more; its sessions end. Global admins only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 200
+      responses:
+        '200':
+          description: The account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      operationId: putAdminBlocksUsersByid
+    delete:
+      tags:
+        - Administration
+      summary: Unblock an account
+      responses:
+        '200':
+          description: The account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      description: Global admins only.
+      operationId: deleteAdminBlocksUsersByid
+  /api/admin/blocks/ips:
+    post:
+      tags:
+        - Administration
+      summary: Block an address
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [publicProfile]
+              required:
+                - ip
               properties:
-                publicProfile: { type: boolean }
+                ip:
+                  type: string
+                reason:
+                  type: string
+                hours:
+                  type: number
+                  description: For how long; for good without
+      responses:
+        '201':
+          description: The block
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: Global admins only.
+      operationId: postAdminBlocksIps
+  /api/admin/blocks/ips/{id}:
+    delete:
+      tags:
+        - Administration
+      summary: Unblock an address
       responses:
         '200':
-          description: Setting saved
-
-  /api/players/guest:
-    post:
-      tags: [Players]
-      summary: Add a guest for a game (any member of the club); guests are left out of player lists unless includeGuests=true
+          description: Removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      description: Global admins only.
+      operationId: deleteAdminBlocksIpsByid
+  /api/badges:
+    get:
+      tags:
+        - Badges
+      summary: 'The catalogue: badges, levels and flights'
+      description: >-
+        Every badge and the Hall of Shame, the player levels with their XP rules, and the flights and barrels to collect with what they cost
+        and need. The same for every club; shown on the About page.
+      responses:
+        '200':
+          description: The catalogue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadgeCatalogue'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getBadges
+  /api/integrity:
+    get:
+      tags:
+        - Fair play
+      summary: Games and trainings to check
+      description: >-
+        Everything that cannot be real (impossible), wrong data (error) or worth a look (suspicious), with its findings and review. Club
+        admins see their club, global admins with scope=all every club.
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          description: '''all'' for every club (global admins)'
+          schema:
+            type: string
+            enum:
+              - club
+              - all
+      responses:
+        '200':
+          description: The entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrityScan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getIntegrity
+  /api/integrity/summary:
+    get:
+      tags:
+        - Fair play
+      summary: How much is waiting
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          description: '''all'' for every club (global admins)'
+          schema:
+            type: string
+            enum:
+              - club
+              - all
+      responses:
+        '200':
+          description: The counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegritySummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getIntegritySummary
+  /api/integrity/{type}/{id}:
+    get:
+      tags:
+        - Fair play
+      summary: The details of an entry
+      description: What was thrown, with the visit at fault, and for a data error what a repair would change.
+      responses:
+        '200':
+          description: The details
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Id'
+      operationId: getIntegrityBytypeByid
+    delete:
+      tags:
+        - Fair play
+      summary: Delete a game or training
+      description: With the badges earned in it; the players and admins are told.
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Done.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteIntegrityBytypeByid
+  /api/integrity/{type}/{id}/review:
+    put:
+      tags:
+        - Fair play
+      summary: Mark an entry as fine or keep watching it
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [name]
+              required:
+                - status
               properties:
-                name: { type: string, minLength: 2, maxLength: 25 }
-      responses:
-        '201':
-          description: Guest created
-
-  /api/players/{id}/member:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-    put:
-      tags: [Players]
-      summary: Turn a guest into a regular player of the club (club admins only)
+                status:
+                  type: string
+                  enum:
+                    - ok
+                    - watch
+                reason:
+                  type: string
+                  maxLength: 300
       responses:
         '200':
-          description: The player is now a club member
-
-  /api/players/me:
+          description: The review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  reason:
+                    type: string
+                  byName:
+                    type: string
+                  at:
+                    type: string
+                    format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Id'
+      operationId: putIntegrityBytypeByidReview
+  /api/integrity/{type}/{id}/repair:
     post:
-      tags: [Players]
-      summary: Add the logged-in user as a player of the club
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NicknameInput'
+      tags:
+        - Fair play
+      summary: Repair an X01 game
+      description: Works the scores left out again from the darts, when every leg still ends the same way. The players and admins are told.
       responses:
-        '201':
-          description: Player created
+        '200':
+          description: How many scores were corrected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  repaired:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '409':
-          description: Already a player of this club
-
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Id'
+      operationId: postIntegrityBytypeByidRepair
+  /api/integrity/birth/{id}/restore:
+    post:
+      tags:
+        - Fair play
+      summary: Put back a date of birth
+      description: Undoes a date of birth a player moved later; the player is told.
+      responses:
+        '200':
+          description: Done
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restored:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      operationId: postIntegrityBirthByidRestore
+  /api/integrity/delete:
+    post:
+      tags:
+        - Fair play
+      summary: Delete several games and trainings
+      description: With the badges earned in them; the players and admins are told.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                      - id
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - x01
+                          - cricket
+                          - elimination
+                          - clock
+                          - training
+                      id:
+                        type: string
+                        description: MongoDB ObjectId
+      responses:
+        '200':
+          description: How many
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                  skipped:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: postIntegrityDelete
+  /api/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: The user's notifications
+      responses:
+        '200':
+          description: The newest 100 and the count of unread ones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  unread:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getNotifications
+  /api/notifications/unread:
+    get:
+      tags:
+        - Notifications
+      summary: How many are unread
+      responses:
+        '200':
+          description: The count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unread:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getNotificationsUnread
+  /api/notifications/read:
+    put:
+      tags:
+        - Notifications
+      summary: Mark all as read
+      responses:
+        '200':
+          description: How many
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  read:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: putNotificationsRead
+  /api/notifications/{id}/read:
+    put:
+      tags:
+        - Notifications
+      summary: Mark one as read
+      responses:
+        '200':
+          description: Done
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  read:
+                    type: boolean
+                  id:
+                    type: string
+                    description: MongoDB ObjectId
+                  changed:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      operationId: putNotificationsByidRead
+  /api/notifications/{id}:
+    delete:
+      tags:
+        - Notifications
+      summary: Remove a notification
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Done.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteNotificationsByid
   /api/players:
     get:
-      tags: [Players]
+      tags:
+        - Players
       summary: List all players
       responses:
         '200':
@@ -576,11 +1581,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Player'
-
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getPlayers
     post:
-      tags: [Players]
+      tags:
+        - Players
       summary: Create a player
-      description: Accepts `multipart/form-data`. The `profileImg` field is optional; if omitted the player is created without a profile image.
+      description: >-
+        Accepts `multipart/form-data`. The `profileImg` field is optional; if omitted the player is created without a profile image. Club
+        admins only.
       requestBody:
         required: true
         content:
@@ -594,22 +1608,105 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
-
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postPlayers
+  /api/players/guest:
+    post:
+      tags:
+        - Players
+      summary: Add a guest for a game (any member of the club); guests are left out of player lists unless includeGuests=true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 25
+      responses:
+        '201':
+          description: Guest created
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postPlayersGuest
+  /api/players/{id}/member:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags:
+        - Players
+      summary: Turn a guest into a regular player of the club (club admins only)
+      responses:
+        '200':
+          description: The player is now a club member
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putPlayersByidMember
+  /api/players/me:
+    post:
+      tags:
+        - Players
+      summary: Add the logged-in user as a player of the club
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NicknameInput'
+      responses:
+        '201':
+          description: Player created
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Already a player of this club
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      description: Club admins only.
+      operationId: postPlayersMe
   /api/players/search:
     get:
-      tags: [Players]
+      tags:
+        - Players
       summary: Search players by name or nickname
       parameters:
+        - $ref: '#/components/parameters/ClubId'
         - name: searchTerm
           in: query
           description: Case-insensitive search across firstname, lastname and nickname
           schema:
             type: string
           example: john
+        - name: includeGuests
+          in: query
+          required: false
+          description: Also the guests of games
+          schema:
+            type: boolean
       responses:
         '200':
           description: Matching players
@@ -619,10 +1716,37 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Player'
-
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getPlayersSearch
+  /api/players/last-played:
+    get:
+      tags:
+        - Players
+      summary: When each player of the club last played
+      responses:
+        '200':
+          description: Player id → date of their last game
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                  format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getPlayersLastPlayed
   /api/players/find:
     post:
-      tags: [Players]
+      tags:
+        - Players
       summary: Find players by IDs
       requestBody:
         required: true
@@ -630,13 +1754,16 @@ paths:
           application/json:
             schema:
               type: object
-              required: [playerIds]
+              required:
+                - playerIds
               properties:
                 playerIds:
                   type: array
                   items:
                     type: string
-                  example: ['64a1f...', '64a2e...']
+                  example:
+                    - 64a1f...
+                    - 64a2e...
       responses:
         '200':
           description: Matched players
@@ -646,13 +1773,55 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Player'
-
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postPlayersFind
+  /api/players/checkout-profiles:
+    post:
+      tags:
+        - Players
+      summary: How players finish and score
+      description: 'For the X01 ways out: the doubles and trebles each player hits, learned from their games, and what they set.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - playerIds
+              properties:
+                playerIds:
+                  type: array
+                  items:
+                    type: string
+                    description: MongoDB ObjectId
+      responses:
+        '200':
+          description: Player id → profile
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postPlayersCheckoutProfiles
   /api/players/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
-
     get:
-      tags: [Players]
+      tags:
+        - Players
       summary: Get a single player
       responses:
         '200':
@@ -661,13 +1830,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getPlayersByid
     put:
-      tags: [Players]
+      tags:
+        - Players
       summary: Update a player
-      description: Accepts `multipart/form-data`. If a new `profileImg` file is provided the existing image is deleted first. If `clearProfileImg=true` is sent without a new file the image is removed.
+      description: >-
+        Accepts `multipart/form-data`. If a new `profileImg` file is provided the existing image is deleted first. If `clearProfileImg=true`
+        is sent without a new file the image is removed.
       requestBody:
         required: true
         content:
@@ -679,7 +1857,8 @@ paths:
                   properties:
                     clearProfileImg:
                       type: string
-                      enum: ['true']
+                      enum:
+                        - 'true'
                       description: Set to "true" to explicitly remove the current profile image
       responses:
         '200':
@@ -688,15 +1867,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
-
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putPlayersByid
     delete:
-      tags: [Players]
+      tags:
+        - Players
       summary: Delete a player
-      description: Deletes the player record and removes their profile image file.
+      description: Deletes the player record and removes their profile image file. Club admins only.
       responses:
         '200':
           description: Deletion confirmation
@@ -704,14 +1890,1614 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-
-  # ---------- Player Images -------------------------------------------------
-
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: deletePlayersByid
+  /api/players/{id}/visibility:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags:
+        - Players
+      summary: Show or hide a player's nickname on the public start page (club admins, or the player themselves)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - publicProfile
+              properties:
+                publicProfile:
+                  type: boolean
+      responses:
+        '200':
+          description: Setting saved
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putPlayersByidVisibility
+  /api/players/{id}/training-privacy:
+    put:
+      tags:
+        - Players
+      summary: Whether the other players see the trainings
+      description: The player themselves or a club admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - privateTrainings
+              properties:
+                privateTrainings:
+                  type: boolean
+      responses:
+        '200':
+          description: The player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putPlayersByidTrainingPrivacy
+  /api/players/{id}/preferences:
+    put:
+      tags:
+        - Players
+      summary: Ways out and darts of a player
+      description: The player themselves or a club admin. A flight shape, design or barrel has to be owned first (403 otherwise).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerPreferences'
+      responses:
+        '200':
+          description: The player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putPlayersByidPreferences
+  /api/players/{id}/flights:
+    get:
+      tags:
+        - Flights
+      summary: Flight points and what a player owns
+      description: >-
+        Worked out from the player's games and trainings in all clubs: the points earned and spent, and every flight shape, design and
+        barrel as owned, to unlock or locked (with what is missing).
+      responses:
+        '200':
+          description: The standing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightStanding'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getPlayersByidFlights
+  /api/players/{id}/flights/unlock:
+    post:
+      tags:
+        - Flights
+      summary: Unlock a flight shape, design or barrel
+      description: With the flight points of the player; the player themselves or a club admin. Fails when a level, an average or points are missing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - kind
+                - id
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - shape
+                    - design
+                    - barrel
+                id:
+                  type: string
+      responses:
+        '200':
+          description: The new standing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightStanding'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: postPlayersByidFlightsUnlock
+  /api/players/{id}/account:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags:
+        - Players
+      summary: Give a player a login (club admins only); creates the account when the email is unknown
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayerLoginInput'
+      responses:
+        '200':
+          description: Player linked to the account
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The account already plays in this club as another player
+        '422':
+          description: Initial password missing for a new account
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putPlayersByidAccount
+    delete:
+      tags:
+        - Players
+      summary: Take the login away from a player (club admins only); the account itself stays
+      responses:
+        '200':
+          description: Login removed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: deletePlayersByidAccount
+  /api/players/{id}/clubs:
+    get:
+      tags:
+        - Players
+      summary: The clubs of a player
+      description: Club admins only; each club says whether the user manages it.
+      responses:
+        '200':
+          description: The clubs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlayerClub'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getPlayersByidClubs
+    post:
+      tags:
+        - Players
+      summary: Add a player to another club, or move them
+      description: Club admins, to clubs they also manage. Moving takes the history along.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - club
+              properties:
+                club:
+                  type: string
+                  description: MongoDB ObjectId
+                move:
+                  type: boolean
+      responses:
+        '200':
+          description: The player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: postPlayersByidClubs
+  /api/players/{id}/clubs/{clubId}:
+    delete:
+      tags:
+        - Players
+      summary: Remove a player from another club
+      responses:
+        '200':
+          description: The player
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: string
+      description: Club admins only.
+      operationId: deletePlayersByidClubsByclubId
+  /api/stats/club:
+    get:
+      tags:
+        - Statistics
+      summary: Club dashboard data - facts about the club, leaderboards over all finished games, recent and running games
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsClub
+  /api/stats/levels:
+    get:
+      tags:
+        - Statistics
+      summary: The level of every member of the selected club (id, name, index, xp)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getStatsLevels
+  /api/stats/badges:
+    get:
+      tags:
+        - Statistics
+      summary: Badge overview of the club - every player with their number of badges and the latest ones
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsBadges
+  /api/stats/shame:
+    get:
+      tags:
+        - Statistics
+      summary: The Hall of Shame of the club
+      description: Who holds each shame badge; players without a date of birth and (if the club says so) children are left out.
+      responses:
+        '200':
+          description: The holders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubShame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsShame
+  /api/stats/badges/player/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Statistics
+      summary: All badges for one player - earned ones with date and source, open ones with progress
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsBadgesPlayerByid
+  /api/stats/badges/game/{type}/{id}:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+            - x01
+            - cricket
+            - elimination
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Statistics
+      summary: The badges each player earned in one game
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsBadgesGameBytypeByid
+  /api/stats/player/{id}:
+    get:
+      tags:
+        - Statistics
+      summary: Get overall statistics for a player
+      description: >-
+        Key figures, levels, charts and badges of a player, in the club or all clubs, filtered like the profile. Trainings a player keeps to
+        themselves are left out for the other players.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+        - name: scope
+          in: query
+          required: false
+          description: The games of this club or of all clubs
+          schema:
+            type: string
+            enum:
+              - club
+              - all
+        - name: period
+          in: query
+          required: false
+          description: The last week, month or year, or a custom period with from and to
+          schema:
+            type: string
+            enum:
+              - All
+              - 1 W
+              - 1 M
+              - 1 Y
+              - Custom
+            default: All
+        - name: from
+          in: query
+          required: false
+          description: Start of a custom period
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          description: End of a custom period
+          schema:
+            type: string
+            format: date
+        - name: lastGames
+          in: query
+          required: false
+          description: Only the last games
+          schema:
+            type: integer
+        - name: startingScore
+          in: query
+          required: false
+          description: Only X01 games of this starting score
+          schema:
+            type: integer
+        - name: setMode
+          in: query
+          required: false
+          description: Only X01 games of this format
+          schema:
+            type: string
+        - name: numberOfSets
+          in: query
+          required: false
+          description: Only X01 games of this format
+          schema:
+            type: integer
+        - name: legMode
+          in: query
+          required: false
+          description: Only X01 games of this format
+          schema:
+            type: string
+        - name: numberOfLegs
+          in: query
+          required: false
+          description: Only X01 games of this format
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Player statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getStatsPlayerByid
+  /api/stats/player/{id}/games:
+    get:
+      tags:
+        - Statistics
+      summary: The latest games of a player
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: limit
+          in: query
+          required: false
+          description: How many of each game type
+          schema:
+            type: integer
+            default: 5
+            maximum: 50
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getStatsPlayerByidGames
+  /api/stats/games/x01/{id}:
+    get:
+      tags:
+        - Statistics
+      summary: Get statistics for a single X01 game
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: X01 game statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01GameStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getStatsGamesX01Byid
+  /api/stats/players/x01:
+    post:
+      tags:
+        - Statistics
+      summary: Get comparative X01 statistics for multiple players
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: Comparative X01 statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayersX01Stats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postStatsPlayersX01
+  /api/stats/players/headtohead:
+    post:
+      tags:
+        - Statistics
+      summary: Head to head of two or more players in Cricket or Elimination (type), with the comparison filters
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Unknown game type
+      operationId: postStatsPlayersHeadtohead
+  /api/stats/players/form:
+    post:
+      tags:
+        - Statistics
+      summary: The recent form of players
+      description: The average of their last X01 games and whether it is rising or falling.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - playerIds
+              properties:
+                playerIds:
+                  type: array
+                  items:
+                    type: string
+                    description: MongoDB ObjectId
+      responses:
+        '200':
+          description: Player id → form
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    games:
+                      type: integer
+                    recentAverage:
+                      type: number
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postStatsPlayersForm
+  /api/games/deletion-requests:
+    get:
+      tags:
+        - Deletion requests
+      summary: The open requests of the club
+      responses:
+        '200':
+          description: The requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeletionRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getGamesDeletionRequests
+    post:
+      tags:
+        - Deletion requests
+      summary: Ask to delete a game one played
+      description: >-
+        The asking user's players agree with it. When every player of the game has a login and all agreed, the game is deleted at once;
+        otherwise the other players and the club admins are asked.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - game
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - x01
+                    - cricket
+                    - elimination
+                    - clock
+                game:
+                  type: string
+                  description: MongoDB ObjectId
+                reason:
+                  type: string
+                  maxLength: 300
+      responses:
+        '201':
+          description: The request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesDeletionRequests
+  /api/games/deletion-requests/{id}:
+    get:
+      tags:
+        - Deletion requests
+      summary: One request, open or decided
+      responses:
+        '200':
+          description: The request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getGamesDeletionRequestsByid
+    delete:
+      tags:
+        - Deletion requests
+      summary: Take a request back (the one who asked)
+      responses:
+        '200':
+          description: The request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteGamesDeletionRequestsByid
+  /api/games/deletion-requests/{id}/answer:
+    put:
+      tags:
+        - Deletion requests
+      summary: Agree or decline, for the own players of the game
+      description: With the last player agreeing (and every player with a login), the game is deleted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agree
+              properties:
+                agree:
+                  type: boolean
+      responses:
+        '200':
+          description: The request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putGamesDeletionRequestsByidAnswer
+  /api/games/deletion-requests/{id}/decide:
+    put:
+      tags:
+        - Deletion requests
+      summary: Delete the game or keep it (club admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - delete
+              properties:
+                delete:
+                  type: boolean
+                note:
+                  type: string
+                  maxLength: 300
+      responses:
+        '200':
+          description: The request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putGamesDeletionRequestsByidDecide
+  /api/games/x01:
+    get:
+      tags:
+        - X01
+      summary: List all X01 games
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: Array of X01 games (newest first, max 100)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/X01Game'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getGamesX01
+    post:
+      tags:
+        - X01
+      summary: Create an X01 game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/X01GameCreate'
+      responses:
+        '201':
+          description: Created X01 game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01Game'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesX01
+  /api/games/x01/find:
+    post:
+      tags:
+        - X01
+      summary: Filter X01 games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: Filtered X01 games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/X01Game'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesX01Find
+  /api/games/x01/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - X01
+      summary: Get a single X01 game
+      responses:
+        '200':
+          description: X01 game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01Game'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getGamesX01Byid
+    put:
+      tags:
+        - X01
+      summary: Update an X01 game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/X01Game'
+      responses:
+        '200':
+          description: Update confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putGamesX01Byid
+    delete:
+      tags:
+        - X01
+      summary: Delete an X01 game
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      description: Club admins only.
+      operationId: deleteGamesX01Byid
+  /api/games/cricket:
+    get:
+      tags:
+        - Cricket
+      summary: List all Cricket games
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: Array of Cricket games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CricketGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getGamesCricket
+    post:
+      tags:
+        - Cricket
+      summary: Create a Cricket game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CricketGameCreate'
+      responses:
+        '201':
+          description: Created Cricket game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CricketGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesCricket
+  /api/games/cricket/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Cricket
+      summary: Get a single Cricket game
+      responses:
+        '200':
+          description: Cricket game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CricketGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getGamesCricketByid
+    put:
+      tags:
+        - Cricket
+      summary: Update a Cricket game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CricketGame'
+      responses:
+        '200':
+          description: Update confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putGamesCricketByid
+    delete:
+      tags:
+        - Cricket
+      summary: Delete a Cricket game
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      description: Club admins only.
+      operationId: deleteGamesCricketByid
+  /api/games/elimination:
+    get:
+      tags:
+        - Elimination
+      summary: List all Elimination games
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: Array of Elimination games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EliminationGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getGamesElimination
+    post:
+      tags:
+        - Elimination
+      summary: Create an Elimination game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EliminationGameCreate'
+      responses:
+        '201':
+          description: Created Elimination game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EliminationGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesElimination
+  /api/games/elimination/find:
+    post:
+      tags:
+        - Elimination
+      summary: Filter Elimination games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: Filtered Elimination games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EliminationGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesEliminationFind
+  /api/games/elimination/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Elimination
+      summary: Get a single Elimination game
+      responses:
+        '200':
+          description: Elimination game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EliminationGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getGamesEliminationByid
+    put:
+      tags:
+        - Elimination
+      summary: Update an Elimination game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EliminationGame'
+      responses:
+        '200':
+          description: Update confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putGamesEliminationByid
+    delete:
+      tags:
+        - Elimination
+      summary: Delete an Elimination game
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      description: Club admins only.
+      operationId: deleteGamesEliminationByid
+  /api/games/clock:
+    post:
+      tags:
+        - Around the Clock
+      summary: Create an Around the Clock game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClockGameCreate'
+      responses:
+        '201':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClockGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesClock
+    get:
+      tags:
+        - Around the Clock
+      summary: List Around the Clock games
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: The games, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClockGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getGamesClock
+  /api/games/clock/find:
+    post:
+      tags:
+        - Around the Clock
+      summary: Filter Around the Clock games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: The games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClockGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesClockFind
+  /api/games/clock/{id}:
+    get:
+      tags:
+        - Around the Clock
+      summary: Get an Around the Clock game
+      responses:
+        '200':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClockGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getGamesClockByid
+    put:
+      tags:
+        - Around the Clock
+      summary: Save an Around the Clock game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClockGameCreate'
+      responses:
+        '200':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClockGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putGamesClockByid
+    delete:
+      tags:
+        - Around the Clock
+      summary: Delete an Around the Clock game (club admins)
+      description: With the badges earned in it.
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Done.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteGamesClockByid
+  /api/training/atc:
+    get:
+      tags:
+        - ATC
+      summary: List ATC entries
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: mode
+          in: query
+          description: Filter by mode (case-insensitive substring match)
+          schema:
+            type: string
+          example: standard
+      responses:
+        '200':
+          description: Array of ATC entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ATCEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      description: The trainings of the club, without those players keep to themselves (except for club admins), optionally of one mode and scoring.
+      operationId: getTrainingAtc
+    post:
+      tags:
+        - ATC
+      summary: Create an ATC entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ATCEntryCreate'
+      responses:
+        '201':
+          description: Created ATC entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ATCEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postTrainingAtc
+  /api/training/atc/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    delete:
+      tags:
+        - ATC
+      summary: Delete an ATC entry
+      responses:
+        '200':
+          description: Deletion confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: deleteTrainingAtcByid
+  /api/training/x01:
+    post:
+      tags:
+        - X01 training
+      summary: Start a training against the bot
+      description: Like an X01 game with the bot ('bot') as the second player and how strong it plays in bot.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/X01GameCreate'
+                - type: object
+                  properties:
+                    bot:
+                      type: object
+                      properties:
+                        average:
+                          type: number
+                        checkoutRate:
+                          type:
+                            - number
+                            - 'null'
+                        basis:
+                          type: string
+      responses:
+        '201':
+          description: The training
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01Training'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postTrainingX01
+    get:
+      tags:
+        - X01 training
+      summary: X01 trainings against the bot
+      description: >-
+        With player: the player's trainings (the newest 50); without: the club's, without those players keep to themselves (except for club
+        admins).
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: player
+          in: query
+          required: false
+          description: Only the trainings of this player
+          schema:
+            type: string
+            description: MongoDB ObjectId
+      responses:
+        '200':
+          description: The trainings, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/X01Training'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getTrainingX01
+  /api/training/x01/{id}:
+    get:
+      tags:
+        - X01 training
+      summary: Get a training
+      responses:
+        '200':
+          description: The training
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01Training'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getTrainingX01Byid
+    put:
+      tags:
+        - X01 training
+      summary: Save a training
+      description: The players, the bot and the club stay as they are.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/X01GameCreate'
+      responses:
+        '200':
+          description: The training
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01Training'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putTrainingX01Byid
+    delete:
+      tags:
+        - X01 training
+      summary: Delete a training
+      description: The player themselves or a club admin.
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                message: Done.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteTrainingX01Byid
+  /api/training/x01/{id}/stats:
+    get:
+      tags:
+        - X01 training
+      summary: The charts of a training
+      description: As for an X01 game.
+      responses:
+        '200':
+          description: The statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/X01GameStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getTrainingX01ByidStats
   /api/images/players/{filename}:
     get:
-      tags: [Player Images]
+      tags:
+        - Player Images
       summary: Serve a player profile image
       description: Returns the image file with a 7-day browser cache header. Responds with 404 if the file does not exist.
       parameters:
@@ -733,499 +3519,35 @@ paths:
               schema:
                 type: string
                 format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-
-  # ---------- X01 -----------------------------------------------------------
-
-  /api/games/x01:
+      operationId: getImagesPlayersByfilename
+  /api/images/clubs/{filename}:
     get:
-      tags: [X01]
-      summary: List all X01 games
+      tags:
+        - Player Images
+      summary: A club logo (no login needed, logos also show on the public page)
+      security: []
       parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Skip'
-      responses:
-        '200':
-          description: Array of X01 games (newest first, max 100)
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/X01Game'
-
-    post:
-      tags: [X01]
-      summary: Create an X01 game
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/X01GameCreate'
-      responses:
-        '200':
-          description: Created X01 game
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/X01Game'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /api/games/x01/find:
-    post:
-      tags: [X01]
-      summary: Filter X01 games
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameFilterBody'
-      responses:
-        '200':
-          description: Filtered X01 games
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/X01Game'
-
-  /api/games/x01/{id}:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-
-    get:
-      tags: [X01]
-      summary: Get a single X01 game
-      responses:
-        '200':
-          description: X01 game
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/X01Game'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags: [X01]
-      summary: Update an X01 game
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/X01Game'
-      responses:
-        '200':
-          description: Update confirmation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    delete:
-      tags: [X01]
-      summary: Delete an X01 game
-      responses:
-        '200':
-          description: Deletion confirmation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ---------- Cricket -------------------------------------------------------
-
-  /api/games/cricket:
-    get:
-      tags: [Cricket]
-      summary: List all Cricket games
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Skip'
-      responses:
-        '200':
-          description: Array of Cricket games
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CricketGame'
-
-    post:
-      tags: [Cricket]
-      summary: Create a Cricket game
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CricketGameCreate'
-      responses:
-        '200':
-          description: Created Cricket game
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CricketGame'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /api/games/cricket/{id}:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-
-    get:
-      tags: [Cricket]
-      summary: Get a single Cricket game
-      responses:
-        '200':
-          description: Cricket game
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CricketGame'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags: [Cricket]
-      summary: Update a Cricket game
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CricketGame'
-      responses:
-        '200':
-          description: Update confirmation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    delete:
-      tags: [Cricket]
-      summary: Delete a Cricket game
-      responses:
-        '200':
-          description: Deletion confirmation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ---------- Elimination ---------------------------------------------------
-
-  /api/games/elimination:
-    get:
-      tags: [Elimination]
-      summary: List all Elimination games
-      parameters:
-        - $ref: '#/components/parameters/Limit'
-        - $ref: '#/components/parameters/Skip'
-      responses:
-        '200':
-          description: Array of Elimination games
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EliminationGame'
-
-    post:
-      tags: [Elimination]
-      summary: Create an Elimination game
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EliminationGameCreate'
-      responses:
-        '200':
-          description: Created Elimination game
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EliminationGame'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-
-  /api/games/elimination/find:
-    post:
-      tags: [Elimination]
-      summary: Filter Elimination games
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameFilterBody'
-      responses:
-        '200':
-          description: Filtered Elimination games
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EliminationGame'
-
-  /api/games/elimination/{id}:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-
-    get:
-      tags: [Elimination]
-      summary: Get a single Elimination game
-      responses:
-        '200':
-          description: Elimination game
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EliminationGame'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    put:
-      tags: [Elimination]
-      summary: Update an Elimination game
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EliminationGame'
-      responses:
-        '200':
-          description: Update confirmation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-    delete:
-      tags: [Elimination]
-      summary: Delete an Elimination game
-      responses:
-        '200':
-          description: Deletion confirmation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ---------- ATC -----------------------------------------------------------
-
-  /api/training/atc:
-    get:
-      tags: [ATC]
-      summary: List ATC entries
-      parameters:
-        - name: mode
-          in: query
-          description: Filter by mode (case-insensitive substring match)
+        - name: filename
+          in: path
+          required: true
           schema:
             type: string
-          example: standard
       responses:
         '200':
-          description: Array of ATC entries
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ATCEntry'
-
-    post:
-      tags: [ATC]
-      summary: Create an ATC entry
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ATCEntryCreate'
-      responses:
-        '201':
-          description: Created ATC entry
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ATCEntry'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
-  /api/training/atc/{id}:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-
-    delete:
-      tags: [ATC]
-      summary: Delete an ATC entry
-      responses:
-        '200':
-          description: Deletion confirmation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
+          description: The image
         '404':
-          $ref: '#/components/responses/NotFound'
-
-  # ---------- Statistics ----------------------------------------------------
-
-  /api/stats/players/headtohead:
-    post:
-      tags: [Statistics]
-      summary: Head to head of two or more players in Cricket or Elimination (type), with the comparison filters
-      parameters:
-        - $ref: '#/components/parameters/ClubId'
-      responses:
-        '200':
-          description: OK
-        '422':
-          description: Unknown game type
-
-  /api/stats/levels:
-    get:
-      tags: [Statistics]
-      summary: The level of every member of the selected club (id, name, index, xp)
-      parameters:
-        - $ref: '#/components/parameters/ClubId'
-      responses:
-        '200':
-          description: OK
-
-  /api/stats/club:
-    get:
-      tags: [Statistics]
-      summary: Club dashboard data - facts about the club, leaderboards over all finished games, recent and running games
-      responses:
-        '200':
-          description: OK
-
-  /api/stats/badges:
-    get:
-      tags: [Statistics]
-      summary: Badge overview of the club - every player with their number of badges and the latest ones
-      responses:
-        '200':
-          description: OK
-
-  /api/stats/badges/player/{id}:
-    parameters:
-      - $ref: '#/components/parameters/Id'
-    get:
-      tags: [Statistics]
-      summary: All badges for one player - earned ones with date and source, open ones with progress
-      responses:
-        '200':
-          description: OK
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /api/stats/badges/game/{type}/{id}:
-    parameters:
-      - name: type
-        in: path
-        required: true
-        schema:
-          type: string
-          enum: [x01, cricket, elimination]
-      - $ref: '#/components/parameters/Id'
-    get:
-      tags: [Statistics]
-      summary: The badges each player earned in one game
-      responses:
-        '200':
-          description: OK
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /api/stats/player/{id}:
-    get:
-      tags: [Statistics]
-      summary: Get overall statistics for a player
-      description: Aggregates X01 and Cricket game data across all completed games for the given player.
-      parameters:
-        - $ref: '#/components/parameters/Id'
-      responses:
-        '200':
-          description: Player statistics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlayerStats'
-
-  /api/stats/games/x01/{id}:
-    get:
-      tags: [Statistics]
-      summary: Get statistics for a single X01 game
-      parameters:
-        - $ref: '#/components/parameters/Id'
-      responses:
-        '200':
-          description: X01 game statistics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/X01GameStats'
-
-  /api/stats/players/x01:
-    post:
-      tags: [Statistics]
-      summary: Get comparative X01 statistics for multiple players
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GameFilterBody'
-      responses:
-        '200':
-          description: Comparative X01 statistics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlayersX01Stats'
-
-# ---------------------------------------------------------------------------
-# Components
-# ---------------------------------------------------------------------------
+          description: Not found
+      operationId: getImagesClubsByfilename
 components:
-
   securitySchemes:
     sessionCookie:
       type: apiKey
       in: cookie
       name: ds_session
-
   parameters:
     ClubId:
       name: X-Club-Id
@@ -1234,7 +3556,6 @@ components:
       description: Club the request works in (required under /api/players, /api/games, /api/training and /api/stats)
       schema:
         type: string
-
     Id:
       name: id
       in: path
@@ -1243,7 +3564,6 @@ components:
       schema:
         type: string
       example: 64a1f3b2c8e4d500123abc01
-
     Limit:
       name: limit
       in: query
@@ -1253,7 +3573,6 @@ components:
         default: 100
         minimum: 1
         maximum: 100
-
     Skip:
       name: skip
       in: query
@@ -1262,7 +3581,6 @@ components:
         type: integer
         default: 0
         minimum: 0
-
   responses:
     NotFound:
       description: Resource not found
@@ -1272,7 +3590,6 @@ components:
             $ref: '#/components/schemas/Message'
           example:
             message: Player not found.
-
     ValidationError:
       description: Request validation failed
       content:
@@ -1291,101 +3608,204 @@ components:
                       type: string
                     value:
                       type: string
-
     InternalError:
       description: Internal server error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Message'
-
+    Unauthorized:
+      description: Not logged in, or the login has ended
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+          example:
+            message: Please log in.
+    Forbidden:
+      description: The user may not do this (e.g. not an admin of the club, not their own player)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+          example:
+            message: Only club admins can do this.
+    Conflict:
+      description: Not possible in the current state (e.g. already decided, not enough flight points)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+          example:
+            message: This request is closed already.
   schemas:
     RegisterInput:
       type: object
-      required: [email, password, firstname, lastname]
+      required:
+        - email
+        - password
+        - firstname
+        - lastname
       properties:
-        email: { type: string, format: email }
-        password: { type: string, minLength: 8, maxLength: 128 }
-        firstname: { type: string, minLength: 2, maxLength: 25 }
-        lastname: { type: string, minLength: 2, maxLength: 25 }
-
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+        firstname:
+          type: string
+          minLength: 2
+          maxLength: 25
+        lastname:
+          type: string
+          minLength: 2
+          maxLength: 25
     LoginInput:
       type: object
-      required: [email, password]
+      required:
+        - email
+        - password
       properties:
-        email: { type: string, format: email }
-        password: { type: string }
-
+        email:
+          type: string
+          format: email
+        password:
+          type: string
     ProfileInput:
       type: object
-      required: [email, firstname, lastname]
+      required:
+        - email
+        - firstname
+        - lastname
       properties:
-        email: { type: string, format: email }
-        firstname: { type: string }
-        lastname: { type: string }
-
+        email:
+          type: string
+          format: email
+        firstname:
+          type: string
+        lastname:
+          type: string
     PasswordInput:
       type: object
-      required: [currentPassword, newPassword]
+      required:
+        - currentPassword
+        - newPassword
       properties:
-        currentPassword: { type: string }
-        newPassword: { type: string, minLength: 8, maxLength: 128 }
-
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
     EmailInput:
       type: object
-      required: [email]
+      required:
+        - email
       properties:
-        email: { type: string, format: email }
-
+        email:
+          type: string
+          format: email
     ResetInput:
       type: object
-      required: [token, password]
+      required:
+        - token
+        - password
       properties:
-        token: { type: string }
-        password: { type: string, minLength: 8, maxLength: 128 }
-
+        token:
+          type: string
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
     ClubAdminInput:
       type: object
-      required: [email]
+      required:
+        - email
       properties:
-        email: { type: string, format: email }
-        firstname: { type: string, description: Needed when the email has no account yet }
-        lastname: { type: string, description: Needed when the email has no account yet }
-        password: { type: string, minLength: 8, description: Initial password for a new account; without it an invitation is mailed }
-
+        email:
+          type: string
+          format: email
+        firstname:
+          type: string
+          description: Needed when the email has no account yet
+        lastname:
+          type: string
+          description: Needed when the email has no account yet
+        password:
+          type: string
+          minLength: 8
+          description: Initial password for a new account; without it an invitation is mailed
     PlayerLoginInput:
       type: object
-      required: [email]
+      required:
+        - email
       properties:
-        email: { type: string, format: email }
-        password: { type: string, minLength: 8, description: Initial password for a new account; without it an invitation is mailed }
-
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          description: Initial password for a new account; without it an invitation is mailed
     ClubInput:
       type: object
-      required: [name]
+      required:
+        - name
       properties:
-        name: { type: string, minLength: 3, maxLength: 50 }
-        description: { type: string, maxLength: 500 }
-        isPublic: { type: boolean, description: List the club on the public start page }
-        publicLiveGames: { type: boolean, description: Show running games of a public club }
-        publicResults: { type: boolean, description: Show finished games of a public club }
-        dashboardWidgets: { type: array, items: { type: string }, description: Ids of the dashboard widgets to show, in order. An empty list means the default set }
-
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 500
+        isPublic:
+          type: boolean
+          description: List the club on the public start page
+        publicLiveGames:
+          type: boolean
+          description: Show the running games of a public club
+        publicResults:
+          type: boolean
+          description: Show the finished games of a public club
+        shameBadges:
+          type: boolean
+          description: Keep the Hall of Shame
+        shameWithoutChildren:
+          type: boolean
+          description: Leave children out of the Hall of Shame
+        shameMinAge:
+          type: integer
+          minimum: 6
+          maximum: 21
+          description: From which age players count for the Hall of Shame
+        dashboardWidgets:
+          type: array
+          maxItems: 40
+          items:
+            type: string
+          description: The ids of the dashboard widgets to show, in order; an empty list means the default set
     RoleInput:
       type: object
-      required: [role]
+      required:
+        - role
       properties:
-        role: { type: string, enum: [globalAdmin, user] }
-
+        role:
+          type: string
+          enum:
+            - globalAdmin
+            - user
     NicknameInput:
       type: object
-      required: [nickname]
+      required:
+        - nickname
       properties:
-        nickname: { type: string, minLength: 3, maxLength: 25 }
-
-
-    # ------ Common ----------------------------------------------------------
-
+        nickname:
+          type: string
+          minLength: 3
+          maxLength: 25
     Message:
       type: object
       properties:
@@ -1393,7 +3813,6 @@ components:
           type: string
       example:
         message: Player was updated successfully.
-
     Timestamps:
       type: object
       properties:
@@ -1403,17 +3822,19 @@ components:
         updatedAt:
           type: string
           format: date-time
-
     GameFilterBody:
       type: object
-      required: [playerIds]
+      required:
+        - playerIds
       properties:
         playerIds:
           type: array
           items:
             type: string
           description: Player IDs to match
-          example: ['64a1f...', '64a2e...']
+          example:
+            - 64a1f...
+            - 64a2e...
         includeOthers:
           type: boolean
           description: If true, include games that also have additional players beyond the listed IDs
@@ -1421,11 +3842,12 @@ components:
         dateFilter:
           type: string
           description: Restrict games to a time window
-          enum: ['All', '1 W', '1 M', '1 Y']
+          enum:
+            - All
+            - 1 W
+            - 1 M
+            - 1 Y
           default: All
-
-    # ------ Player ----------------------------------------------------------
-
     Player:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -1433,7 +3855,7 @@ components:
           properties:
             id:
               type: string
-              description: MongoDB ObjectId (mapped from _id)
+              description: MongoDB ObjectId
               example: 64a1f3b2c8e4d500123abc01
             firstname:
               type: string
@@ -1446,12 +3868,67 @@ components:
               example: Bullseye
             profileImg:
               type: string
-              description: Stored filename only. Construct the full URL as `{VITE_API_URL}/api/images/players/{profileImg}`.
+              description: Stored filename; served under /api/images/players/{profileImg}
               example: 9c3e7a1d-photo.jpg
-
+            dateOfBirth:
+              type:
+                - string
+                - 'null'
+              format: date
+            clubs:
+              type: array
+              items:
+                type: string
+                description: MongoDB ObjectId
+            guest:
+              type: boolean
+              description: A guest exists only for the games they were added to
+            user:
+              type:
+                - string
+                - 'null'
+              description: The account that logs in as this player
+            accountEmail:
+              type:
+                - string
+                - 'null'
+              description: The login's email; only for club admins
+            publicProfile:
+              type: boolean
+              description: Whether the nickname appears on the public start page
+            privateTrainings:
+              type: boolean
+              description: Whether only the player and the club admins see their trainings
+            preferences:
+              $ref: '#/components/schemas/PlayerPreferences'
+            flights:
+              type: object
+              properties:
+                unlocked:
+                  type: array
+                  items:
+                    type: string
+                    example: shape:fantail
+            badges:
+              type: array
+              items:
+                type: object
+                properties:
+                  badge:
+                    type: string
+                  earnedAt:
+                    type: string
+                    format: date-time
+                  sourceType:
+                    type: string
+                  sourceId:
+                    type: string
     PlayerFormData:
       type: object
-      required: [firstname, lastname, nickname]
+      required:
+        - firstname
+        - lastname
+        - nickname
       properties:
         firstname:
           type: string
@@ -1472,29 +3949,54 @@ components:
           type: string
           format: binary
           description: PNG or JPEG image file (optional)
-
-    # ------ X01 Game --------------------------------------------------------
-
     X01GameCreate:
       type: object
-      required: [startingScore, setMode, legMode, legInMode, legOutMode, numberOfPlayers, players]
+      required:
+        - startingScore
+        - setMode
+        - legMode
+        - legInMode
+        - legOutMode
+        - numberOfPlayers
+        - players
       properties:
         startingScore:
           type: integer
-          enum: [101, 170, 201, 301, 401, 501, 601, 701, 801, 901, 1001]
+          enum:
+            - 101
+            - 170
+            - 201
+            - 301
+            - 401
+            - 501
+            - 601
+            - 701
+            - 801
+            - 901
+            - 1001
           example: 501
         setMode:
           type: string
-          enum: ['Best of', 'First to']
+          enum:
+            - Best of
+            - First to
         legMode:
           type: string
-          enum: ['Best of', 'First to']
+          enum:
+            - Best of
+            - First to
         legInMode:
           type: string
-          enum: ['Straight In', 'Double In', 'Master In']
+          enum:
+            - Straight In
+            - Double In
+            - Master In
         legOutMode:
           type: string
-          enum: ['Straight Out', 'Double Out', 'Master Out']
+          enum:
+            - Straight Out
+            - Double Out
+            - Master Out
         numberOfSets:
           type: integer
           example: 1
@@ -1503,7 +4005,11 @@ components:
           example: 3
         numberOfPlayers:
           type: integer
-          enum: [1, 2, 3, 4]
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
         players:
           type: array
           items:
@@ -1512,7 +4018,13 @@ components:
         isSoloGame:
           type: boolean
           default: false
-
+        flyingDarts:
+          type: string
+          enum:
+            - players
+            - 'on'
+            - 'off'
+          description: 'Whether the darts fly onto the board: as each player set it (''players''), or on or off for everyone'
     X01Game:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -1554,16 +4066,19 @@ components:
             playerModels:
               type: object
               description: Keyed by player ID; contains per-player scoring state, averages, checkout data, etc.
-
-    # ------ Cricket Game ----------------------------------------------------
-
     CricketGameCreate:
       type: object
-      required: [numberOfPlayers, players]
+      required:
+        - numberOfPlayers
+        - players
       properties:
         numberOfPlayers:
           type: integer
-          enum: [1, 2, 3, 4]
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
         players:
           type: array
           items:
@@ -1571,7 +4086,13 @@ components:
         isSoloGame:
           type: boolean
           default: false
-
+        flyingDarts:
+          type: string
+          enum:
+            - players
+            - 'on'
+            - 'off'
+          description: 'Whether the darts fly onto the board: as each player set it (''players''), or on or off for everyone'
     CricketGame:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -1599,25 +4120,37 @@ components:
             playerModels:
               type: object
               description: Keyed by player ID; contains cricket section hit state and score
-
-    # ------ Elimination Game ------------------------------------------------
-
     EliminationGameCreate:
       type: object
-      required: [targetScore, gameInMode, gameOutMode, numberOfPlayers, players]
+      required:
+        - targetScore
+        - gameInMode
+        - gameOutMode
+        - numberOfPlayers
+        - players
       properties:
         targetScore:
           type: integer
           example: 301
         gameInMode:
           type: string
-          enum: ['Straight In', 'Double In', 'Master In']
+          enum:
+            - Straight In
+            - Double In
+            - Master In
         gameOutMode:
           type: string
-          enum: ['Straight Out', 'Double Out', 'Master Out']
+          enum:
+            - Straight Out
+            - Double Out
+            - Master Out
         numberOfPlayers:
           type: integer
-          enum: [1, 2, 3, 4]
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
         players:
           type: array
           items:
@@ -1625,7 +4158,13 @@ components:
         isSoloGame:
           type: boolean
           default: false
-
+        flyingDarts:
+          type: string
+          enum:
+            - players
+            - 'on'
+            - 'off'
+          description: 'Whether the darts fly onto the board: as each player set it (''players''), or on or off for everyone'
     EliminationGame:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -1653,12 +4192,11 @@ components:
             playerModels:
               type: object
               description: Keyed by player ID; contains score, elimination state, and throw history
-
-    # ------ ATC -------------------------------------------------------------
-
     ATCEntryCreate:
       type: object
-      required: [timeMs, mode]
+      required:
+        - timeMs
+        - mode
       properties:
         timeMs:
           type: integer
@@ -1683,7 +4221,6 @@ components:
         player:
           type: object
           description: Embedded player snapshot at the time of the entry
-
     ATCEntry:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -1692,9 +4229,6 @@ components:
           properties:
             id:
               type: string
-
-    # ------ Statistics ------------------------------------------------------
-
     SectionHit:
       type: object
       properties:
@@ -1712,16 +4246,14 @@ components:
         T:
           type: integer
           description: Triple hits
-
     ScoreRange:
       type: object
       properties:
         range:
           type: string
-          example: '100-119'
+          example: 100-119
         count:
           type: integer
-
     CheckoutItem:
       type: object
       properties:
@@ -1737,7 +4269,6 @@ components:
         rate:
           type: number
           description: Checkout percentage (0–100)
-
     PlayerStats:
       type: object
       properties:
@@ -1746,15 +4277,21 @@ components:
         playedGames:
           type: object
           properties:
-            total: { type: integer }
-            x01:   { type: integer }
-            cricket: { type: integer }
+            total:
+              type: integer
+            x01:
+              type: integer
+            cricket:
+              type: integer
         wonGames:
           type: object
           properties:
-            total: { type: integer }
-            x01:   { type: integer }
-            cricket: { type: integer }
+            total:
+              type: integer
+            x01:
+              type: integer
+            cricket:
+              type: integer
         avg:
           type: object
           properties:
@@ -1770,17 +4307,22 @@ components:
               items:
                 type: object
                 properties:
-                  label: { type: integer }
-                  value: { type: number }
-                  desc:  { type: string }
+                  label:
+                    type: integer
+                  value:
+                    type: number
+                  desc:
+                    type: string
         throwedDarts:
           type: object
           properties:
-            x01: { type: integer }
+            x01:
+              type: integer
         throwedPoints:
           type: object
           properties:
-            x01: { type: integer }
+            x01:
+              type: integer
         num180s:
           type: integer
         num140plus:
@@ -1788,9 +4330,12 @@ components:
         checkouts:
           type: object
           properties:
-            hit:     { type: integer }
-            total:   { type: integer }
-            highest: { type: integer }
+            hit:
+              type: integer
+            total:
+              type: integer
+            highest:
+              type: integer
             rates:
               type: array
               items:
@@ -1803,7 +4348,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SectionHit'
-
     X01GameStats:
       type: object
       properties:
@@ -1813,10 +4357,16 @@ components:
           items:
             type: object
             properties:
-              label:   { type: string, example: 'S1/L1' }
-              desc:    { type: string, example: 'Set 1 - Leg 1' }
-              player1: { type: string }
-              player2: { type: string }
+              label:
+                type: string
+                example: S1/L1
+              desc:
+                type: string
+                example: Set 1 - Leg 1
+              player1:
+                type: string
+              player2:
+                type: string
         checkouts:
           type: object
           description: Checkout hit/miss data keyed by player index (player1, player2, …)
@@ -1829,24 +4379,35 @@ components:
           items:
             type: object
             properties:
-              range:         { type: string }
-              player1Count:  { type: integer }
-              player2Count:  { type: integer }
+              range:
+                type: string
+              player1Count:
+                type: integer
+              player2Count:
+                type: integer
         sectionHits:
           type: array
           items:
             type: object
             properties:
-              section:      { type: string }
-              player1Hit:   { type: integer }
-              player1S:     { type: integer }
-              player1D:     { type: integer }
-              player1T:     { type: integer }
-              player2Hit:   { type: integer }
-              player2S:     { type: integer }
-              player2D:     { type: integer }
-              player2T:     { type: integer }
-
+              section:
+                type: string
+              player1Hit:
+                type: integer
+              player1S:
+                type: integer
+              player1D:
+                type: integer
+              player1T:
+                type: integer
+              player2Hit:
+                type: integer
+              player2S:
+                type: integer
+              player2D:
+                type: integer
+              player2T:
+                type: integer
     PlayersX01Stats:
       type: object
       properties:
@@ -1862,46 +4423,60 @@ components:
           properties:
             overall:
               type: object
-              additionalProperties: { type: number }
+              additionalProperties:
+                type: number
             dartsPerLeg:
               type: object
-              additionalProperties: { type: number }
+              additionalProperties:
+                type: number
             perGame:
               type: array
               items:
                 type: object
                 properties:
-                  label:   { type: integer }
-                  desc:    { type: string }
-                  player1: { type: string }
-                  player2: { type: string }
+                  label:
+                    type: integer
+                  desc:
+                    type: string
+                  player1:
+                    type: string
+                  player2:
+                    type: string
         throwedDarts:
           type: object
-          additionalProperties: { type: integer }
+          additionalProperties:
+            type: integer
         throwedPoints:
           type: object
-          additionalProperties: { type: integer }
+          additionalProperties:
+            type: integer
         num180s:
           type: object
-          additionalProperties: { type: integer }
+          additionalProperties:
+            type: integer
         num160plus:
           type: object
-          additionalProperties: { type: integer }
+          additionalProperties:
+            type: integer
         num140plus:
           type: object
-          additionalProperties: { type: integer }
+          additionalProperties:
+            type: integer
         checkouts:
           type: object
           properties:
             hit:
               type: object
-              additionalProperties: { type: integer }
+              additionalProperties:
+                type: integer
             total:
               type: object
-              additionalProperties: { type: integer }
+              additionalProperties:
+                type: integer
             highest:
               type: object
-              additionalProperties: { type: integer }
+              additionalProperties:
+                type: integer
             rates:
               type: object
               additionalProperties:
@@ -1913,10 +4488,662 @@ components:
           items:
             type: object
             properties:
-              range: { type: string }
+              range:
+                type: string
         sectionHits:
           type: array
           items:
             type: object
             properties:
-              section: { type: string }
+              section:
+                type: string
+    PlayerPreferences:
+      type: object
+      properties:
+        favouriteDouble:
+          type: string
+          example: D16
+          description: '''auto'' or a double the X01 ways out finish on first'
+        mainTreble:
+          type: string
+          example: auto
+          description: '''auto'', T20, T19 or T18'
+        flyingDarts:
+          type: boolean
+          description: Whether a dart flies onto the board (a game may decide for everyone)
+        flightColor:
+          type: string
+          example: auto
+          description: '''auto'' (the player''s colour in the game) or one of the flight colours'
+        flightShape:
+          type: string
+          example: standard
+          description: A flight shape the player owns
+        flightPattern:
+          type: string
+          example: plain
+          description: A flight design the player owns
+        barrel:
+          type: string
+          example: classic
+          description: A barrel the player owns
+    MyPlayer:
+      allOf:
+        - $ref: '#/components/schemas/Player'
+        - type: object
+          properties:
+            clubs:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: MongoDB ObjectId
+                  name:
+                    type: string
+                  logo:
+                    type: string
+                  isPublic:
+                    type: boolean
+            birthMinAge:
+              type: integer
+              description: The youngest age the player may set themselves
+            birthEditable:
+              type: boolean
+              description: Whether the player may correct their date of birth
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: MongoDB ObjectId
+        email:
+          type: string
+        firstname:
+          type: string
+        lastname:
+          type: string
+        role:
+          type: string
+          enum:
+            - user
+            - globalAdmin
+        blockedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        startPage:
+          type: string
+          enum:
+            - dashboard
+            - myStatistics
+        defaultClub:
+          type:
+            - string
+            - 'null'
+          description: MongoDB ObjectId
+    Session:
+      type: object
+      properties:
+        expiresAt:
+          type: integer
+          description: When the login ends, in milliseconds since 1970
+        timeoutHours:
+          type: integer
+    SessionSettings:
+      type: object
+      properties:
+        timeoutHours:
+          type: integer
+        limits:
+          type: object
+          properties:
+            min:
+              type: integer
+            max:
+              type: integer
+            default:
+              type: integer
+    PasswordLink:
+      type: object
+      properties:
+        link:
+          type: string
+        validHours:
+          type: integer
+    LogEntries:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              at:
+                type: string
+                format: date-time
+              level:
+                type: string
+              message:
+                type: string
+              details:
+                type: object
+        errorsToday:
+          type: integer
+        warningsToday:
+          type: integer
+        retentionDays:
+          type: integer
+        limit:
+          type: integer
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          description: MongoDB ObjectId
+        rule:
+          type: string
+        severity:
+          type: string
+          enum:
+            - warning
+            - critical
+        status:
+          type: string
+          enum:
+            - open
+            - resolved
+        title:
+          type: string
+        details:
+          type: object
+        at:
+          type: string
+          format: date-time
+    Blocks:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        ips:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: MongoDB ObjectId
+              ip:
+                type: string
+              reason:
+                type: string
+              until:
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+              blockedBy:
+                type: string
+    BadgeCatalogue:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            type: object
+        badges:
+          type: array
+          items:
+            type: object
+        shame:
+          type: array
+          items:
+            type: object
+        levels:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              xp:
+                type: integer
+              minAverage:
+                type: number
+              minGames:
+                type: integer
+        xpRules:
+          type: object
+        flights:
+          type: object
+          properties:
+            pointRules:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  label:
+                    type: string
+                  per:
+                    type: integer
+            rarities:
+              type: object
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    enum:
+                      - shape
+                      - design
+                      - barrel
+                  id:
+                    type: string
+                  label:
+                    type: string
+                  rarity:
+                    type: string
+                  cost:
+                    type:
+                      - integer
+                      - 'null'
+                  level:
+                    type:
+                      - integer
+                      - 'null'
+                  average:
+                    type:
+                      - number
+                      - 'null'
+                  feat:
+                    type:
+                      - string
+                      - 'null'
+    FlightItem:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - shape
+            - design
+            - barrel
+        id:
+          type: string
+        label:
+          type: string
+        rarity:
+          type: string
+          enum:
+            - starter
+            - common
+            - rare
+            - epic
+            - master
+            - legendary
+        cost:
+          type:
+            - integer
+            - 'null'
+        requires:
+          type:
+            - string
+            - 'null'
+          description: The player level and/or X01 average it needs, in words
+        colorable:
+          type: boolean
+        state:
+          type: string
+          enum:
+            - owned
+            - available
+            - expensive
+            - locked
+        reason:
+          type: string
+          description: What is missing (not owned only)
+        short:
+          type: string
+          description: What is missing, in short (locked only)
+    FlightStanding:
+      type: object
+      properties:
+        points:
+          type: object
+          properties:
+            earned:
+              type: integer
+            spent:
+              type: integer
+            balance:
+              type: integer
+            breakdown:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  label:
+                    type: string
+                  per:
+                    type: integer
+                  count:
+                    type: integer
+                  points:
+                    type: integer
+        levelIndex:
+          type: integer
+          description: The player level, 1 = Rookie
+        levelName:
+          type: string
+        average:
+          type:
+            - number
+            - 'null'
+          description: The X01 average, once 5 X01 games are played
+        shapes:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlightItem'
+        designs:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlightItem'
+        barrels:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlightItem'
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          description: MongoDB ObjectId
+        kind:
+          type: string
+          example: deletionRequested
+        title:
+          type: string
+        body:
+          type: string
+        link:
+          type:
+            - string
+            - 'null'
+        club:
+          type:
+            - string
+            - 'null'
+          description: MongoDB ObjectId
+        byName:
+          type: string
+        at:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+    DeletionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          description: MongoDB ObjectId
+        type:
+          type: string
+          enum:
+            - x01
+            - cricket
+            - elimination
+            - clock
+        game:
+          type: string
+          description: MongoDB ObjectId
+        summary:
+          type: string
+        playedAt:
+          type: string
+          format: date-time
+        byName:
+          type: string
+        mine:
+          type: boolean
+          description: Asked by the user
+        reason:
+          type: string
+        players:
+          type: array
+          items:
+            type: object
+            properties:
+              player:
+                type: string
+                description: MongoDB ObjectId
+              nickname:
+                type: string
+              hasLogin:
+                type: boolean
+              mine:
+                type: boolean
+              answer:
+                type:
+                  - string
+                  - 'null'
+                enum:
+                  - agreed
+                  - declined
+                  - null
+        agreed:
+          type: integer
+        declined:
+          type: integer
+        total:
+          type: integer
+        withoutLogin:
+          type: integer
+        everyoneAgreed:
+          type: boolean
+        status:
+          type: string
+          enum:
+            - open
+            - deleted
+            - kept
+            - withdrawn
+        note:
+          type: string
+        decidedByName:
+          type: string
+        decidedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        at:
+          type: string
+          format: date-time
+    IntegrityScan:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              id:
+                type: string
+                description: MongoDB ObjectId
+              club:
+                type: object
+              at:
+                type: string
+                format: date-time
+              summary:
+                type: string
+              players:
+                type: array
+                items:
+                  type: object
+              level:
+                type: string
+                enum:
+                  - impossible
+                  - error
+                  - suspicious
+              findings:
+                type: array
+                items:
+                  type: object
+              review:
+                type:
+                  - object
+                  - 'null'
+        thresholds:
+          type: object
+    IntegritySummary:
+      type: object
+      properties:
+        impossible:
+          type: integer
+        errors:
+          type: integer
+        suspicious:
+          type: integer
+        open:
+          type: integer
+    PlayerClub:
+      type: object
+      properties:
+        id:
+          type: string
+          description: MongoDB ObjectId
+        name:
+          type: string
+        logo:
+          type: string
+        canManage:
+          type: boolean
+    ClockGameCreate:
+      type: object
+      required:
+        - mode
+        - players
+      properties:
+        mode:
+          type: string
+          enum:
+            - Single
+            - Double
+            - Triple
+            - All
+        skipAhead:
+          type: boolean
+          description: 'In mode All: a double moves on two numbers, a treble three'
+        players:
+          type: array
+          items:
+            type: string
+            description: MongoDB ObjectId
+        numberOfPlayers:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+        flyingDarts:
+          type: string
+          enum:
+            - players
+            - 'on'
+            - 'off'
+    ClockGame:
+      allOf:
+        - $ref: '#/components/schemas/Timestamps'
+        - type: object
+          properties:
+            id:
+              type: string
+              description: MongoDB ObjectId
+            club:
+              type: string
+              description: MongoDB ObjectId
+            mode:
+              type: string
+            skipAhead:
+              type: boolean
+            players:
+              type: array
+              items:
+                type: string
+                description: MongoDB ObjectId
+            currentPlayerTurn:
+              type: string
+            gameIsRunning:
+              type: boolean
+            hasWinner:
+              type: boolean
+            playerModels:
+              type: object
+    X01Training:
+      allOf:
+        - $ref: '#/components/schemas/X01Game'
+        - type: object
+          properties:
+            bot:
+              type: object
+              properties:
+                average:
+                  type: number
+                checkoutRate:
+                  type:
+                    - number
+                    - 'null'
+                basis:
+                  type: string
+            player:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: MongoDB ObjectId
+                nickname:
+                  type: string
+                firstname:
+                  type: string
+                lastname:
+                  type: string
+                profileImg:
+                  type: string
+                user:
+                  type:
+                    - string
+                    - 'null'
+                  description: MongoDB ObjectId
+      description: An X01 game against the bot (player id 'bot'); counts for no game statistics, badges or levels
+    ClubShame:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        minAge:
+          type:
+            - integer
+            - 'null'
+        badges:
+          type: array
+          items:
+            type: object

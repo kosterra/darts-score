@@ -9,6 +9,8 @@ import GameMoment from '../components/games/common/game.moment';
 import { BigFish, BedAndBreakfast, BullFinish, PerfectLeg } from '../components/games/common/x01.moments';
 import { x01VisitMoment } from './x01.moments';
 import X01Service from '../services/x01.service';
+import X01TrainingService from '../services/x01.training.service';
+import { BOT_ID, botDart, botPlayer, botSkill } from './x01.bot';
 import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
 
@@ -16,11 +18,9 @@ import {
     normalizeDart,
     validateDartValue,
     dartIsDouble,
-    dartIsTriple,
-    lastDartIsDouble,
-    lastDartIsTriple
+    dartIsTriple
 } from './game.utils';
-import { inModeOf, outModeOf, startingScoreOf } from './x01.rules';
+import { inModeOf, isBust, outModeOf, startingScoreOf } from './x01.rules';
 
 import {
     FETCH_GAME_SUCCESS,
@@ -60,6 +60,9 @@ import {
 
 const X01State = props => {
     const { id } = useParams();
+    // a training against the bot is played like a game, saved apart from the games
+    const training = Boolean(props.training);
+    const Service = training ? X01TrainingService : X01Service;
 
     const toast = useRef(null);
 
@@ -102,7 +105,7 @@ const X01State = props => {
         setLoading('initGameLoading', true);
         async function fetchX01() {
             try {
-                let x01 = await X01Service.loadX01GameById(id);
+                let x01 = await Service.loadX01GameById(id);
                 dispatch({ type: FETCH_GAME_SUCCESS, payload: x01 });
                 return x01;
             } catch (error) {
@@ -114,7 +117,8 @@ const X01State = props => {
             try {
                 let players = [];
                 await Promise.all(game.players.map(async (playerId) => {
-                    let player = await PlayerService.getPlayer(playerId);
+                    // the bot is no player of the club
+                    let player = playerId === BOT_ID ? botPlayer(game.bot) : await PlayerService.getPlayer(playerId);
                     players.push(player);
                 }));
                 dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
@@ -128,7 +132,8 @@ const X01State = props => {
                 setLoading('initGameLoading', false);
             });
             // the ways out work without them, so a failure only means the usual order
-            PlayerService.loadCheckoutProfiles(game.players).then(setCheckoutProfiles).catch(() => {});
+            const people = game.players.filter(playerId => playerId !== BOT_ID);
+            PlayerService.loadCheckoutProfiles(people).then(setCheckoutProfiles).catch(() => {});
         }).catch(error => {
             toast.current.show(
                 {
@@ -140,6 +145,7 @@ const X01State = props => {
             );
             navigate("/", { replace: true });
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, navigate]);
 
     // the rules of the player at the oche: with a handicap they differ per player
@@ -291,7 +297,7 @@ const X01State = props => {
         updateSectionHit();
         couldCheckout();
 
-        !hasWonLeg && pushCurrentThrowToCurrentLegThrow();
+        !hasWonLeg && pushCurrentThrowToCurrentLegThrow(hasBusted);
         resetCurrentThrow();
         hasWonLeg && !hasWonGame && resetScores();
 
@@ -311,12 +317,41 @@ const X01State = props => {
         setSaveRequest(request => request + 1);
     }
 
+    // the bot's turn in a training: dart by dart on the board, like a player
+    // tapping it, then the visit is sent; it waits while a moment plays
+    const botSkillOf = state.game.bot ? botSkill(state.game.bot) : null;
+    useEffect(() => {
+        const game = state.game;
+        if (!training || !botSkillOf || game.currentPlayerTurn !== BOT_ID || !game.gameIsRunning || game.hasWinner) return undefined;
+        if (state.loading.initGameLoading || state.loading.validateThrow || moment || highlight || oneEighty) return undefined;
+        const thrown = (game.currentThrow ?? []).filter(dart => dart !== '').length;
+        const left = game.playerModels[BOT_ID].score - getCurrentThrowScore();
+        const timer = setTimeout(() => {
+            if (!checkCanThrowMoreDarts(left)) {
+                onClickValidateThrow(left);
+                return;
+            }
+            const { dart } = botDart({
+                score: left,
+                dartsLeft: 3 - thrown,
+                outMode: currentOutMode(),
+                inMode: currentInMode(),
+                started: !hasNotStarted(left),
+                skill: botSkillOf,
+            });
+            updateCurrentThrowDartBoard(left, dart);
+            // a checkout: the winning dart lands and is seen before the visit is sent
+        }, thrown === 0 ? 1100 : left === 0 ? 1800 : 750);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state.game, state.loading, moment, highlight, oneEighty, training]);
+
     // the game as it is after the visit (or undo) that asked for it
     useEffect(() => {
         if (!saveRequest) return;
         const game = state.game;
         saving.current = saving.current
-            .then(() => X01Service.updateX01Game(game))
+            .then(() => Service.updateX01Game(game))
             .then(saved => { if (!saved) throw new Error('not saved'); })
             .catch(() => showError('Not saved', 'The last visit could not be saved. Check the connection: the next visit saves everything.'));
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -365,17 +400,9 @@ const X01State = props => {
     }
 
     const checkIfScoreIsBusted = (currentScore) => {
-        let isBusted = currentScore < 0;
-
-        if (!isBusted) {
-            if (currentOutMode() === 'Double Out') {
-                isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow));
-            } else if (currentOutMode() === 'Master Out') {
-                isBusted = currentScore === 1 || (currentScore === 0 && !lastDartIsDouble(state.game.currentThrow) && !lastDartIsTriple(state.game.currentThrow));
-            }
-        }
-
-        return isBusted;
+        // a won game shows its end: nothing is a bust any more
+        if (state.game.hasWinner) return false;
+        return isBust(currentScore, state.game.currentThrow, currentOutMode());
     }
 
     const checkCanThrowMoreDarts = (currentScore) => {
@@ -421,7 +448,7 @@ const X01State = props => {
         return totalScore;
     }
 
-    const pushCurrentThrowToCurrentLegThrow = () => {
+    const pushCurrentThrowToCurrentLegThrow = (hasBusted) => {
         let playerModel = state.game.playerModels[state.game.currentPlayerTurn];
         let playerId = state.game.currentPlayerTurn;
         let roundScore = getCurrentThrowScore();
@@ -433,7 +460,8 @@ const X01State = props => {
                 playerId,
                 darts: state.game.currentThrow.filter(dart => dart.trim() !== ''),
                 roundScore: roundScore,
-                scoreLeft: score - roundScore <= 1 ? score : score - roundScore
+                // a bust keeps the score; leaving 1 is no bust in Single Out
+                scoreLeft: hasBusted ? score : score - roundScore
             }
         })
     }
@@ -1155,6 +1183,9 @@ const X01State = props => {
                 value={{
                     // a moment of the winning visit plays to its end before the statistics page
                     celebrating: Boolean(oneEighty || highlight),
+                    training,
+                    // the bot is at the oche: the input waits
+                    botThrowing: training && state.game.currentPlayerTurn === BOT_ID && !state.game.hasWinner,
                     game: state.game,
                     players: state.players,
                     checkoutProfiles,

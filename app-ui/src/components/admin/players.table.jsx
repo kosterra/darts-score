@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -42,6 +42,7 @@ const matches = (player, term) => [player.nickname, player.firstname, player.las
 const PlayersTable = ({ scope = 'club' }) => {
     const toast = useRef(null);
     const { isClubAdmin, clubs: myClubs, activeClub } = useAuth();
+    const navigate = useNavigate();
     const acrossClubs = scope === 'all';
     // a club admin of several clubs moves players between them
     const adminClubs = myClubs.filter(club => club.role === 'admin');
@@ -181,7 +182,7 @@ const PlayersTable = ({ scope = 'club' }) => {
     const actionsBody = (player) => !canManage ? null : (
         <div className="row-actions">
             {!acrossClubs && <>
-                <PlayerForm onPlayerEdit={loadPlayers} edit={true} updatePlayer={player} />
+                <Button type="button" icon="pi pi-user-edit" aria-label={`Edit ${player.nickname}`} tooltip="Edit player" tooltipOptions={{ position: 'top' }} onClick={() => navigate(`/players/${player.id}/edit`)} />
                 {player.guest
                     ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
                     : <>

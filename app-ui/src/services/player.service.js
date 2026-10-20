@@ -102,7 +102,8 @@ const updatePlayer = async (player) => {
     try {
         const response = await fetch(API_URL + 'players/' + id, {
             method: 'PUT',
-            headers: getHeaders(false),
+            // a player is edited in one of its clubs: the selected one, or player.clubId
+            headers: getHeaders(false, player.clubId),
             body: formData
         });
         if (!response.ok) throw new Error(await errorMessageOf(response));
@@ -153,8 +154,18 @@ const setPublicProfile = (playerId, publicProfile, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/visibility`, { method: 'PUT', body: { publicProfile }, clubId });
 
 // a player's favourite double and main treble ("auto" learns them from the games)
+// whether the other players of the club see the player's trainings
+const setTrainingPrivacy = (playerId, privateTrainings, clubId) =>
+    requestJSON(`${API_URL}players/${playerId}/training-privacy`, { method: 'PUT', body: { privateTrainings }, clubId });
+
 const setPreferences = (playerId, preferences, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/preferences`, { method: 'PUT', body: preferences, clubId });
+
+// a player's flights: points, and every shape and design owned, to unlock or locked
+const loadFlights = (playerId, clubId) => requestJSON(`${API_URL}players/${playerId}/flights`, { clubId });
+// unlocks a shape or design with the flight points: kind 'shape' | 'design'; the new standing
+const unlockFlight = (playerId, kind, id, clubId) =>
+    requestJSON(`${API_URL}players/${playerId}/flights/unlock`, { method: 'POST', body: { kind, id }, clubId });
 
 // how the players finish and score: { [playerId]: { doubleOrder, doubles, favouriteDouble, doubleSource, mainTreble, trebleSource, … } }
 const loadCheckoutProfiles = (playerIds, clubId) =>
@@ -171,7 +182,10 @@ const removePlayerFromClub = (playerId, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/clubs/${clubId}`, { method: 'DELETE' });
 
 const PlayerService = {
+    setTrainingPrivacy,
     setPreferences,
+    loadFlights,
+    unlockFlight,
     loadCheckoutProfiles,
     loadPlayerClubs,
     addPlayerToClub,

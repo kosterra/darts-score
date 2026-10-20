@@ -1,3 +1,5 @@
+import { loadFlightStanding } from '../utils/flight.service.js';
+import { mayUse, unlockCheck } from '../utils/flights.js';
 import logger from '../models/logger.model.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
@@ -8,6 +10,9 @@ import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
 import { checkoutProfile } from '../utils/checkout.profile.js';
 import { relocateHistory } from '../utils/history.relocation.js';
+import { removeProfileImageIfUnused } from '../utils/player.images.js';
+import { ownBirthChange, selfBirthAge } from '../utils/birth.rules.js';
+import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 
 const Player = db.player;
 
@@ -81,6 +86,7 @@ export const makeMember = async (req, res) => {
  */
 export const createForCurrentUser = async (req, res) => {
     logger.debug('players create for current user called');
+    if (isGlobalAdminAccount(req.user)) return res.status(403).json({ message: NO_CLUB_FOR_GLOBAL_ADMINS });
     if (await Player.exists({ clubs: req.club._id, user: req.user._id })) {
         return res.status(409).json({ message: 'You are already a player of this club.' });
     }
@@ -168,7 +174,8 @@ export const findOne = async (req, res) => {
     logger.debug('players find one called!');
     const player = await findInClub(req, knownInClub);
     if (!player) return res.status(404).send({ message: 'Player not found.' });
-    res.send(player.toJSON());
+    // club admins also see the account a player logs in with (on the page to edit the player)
+    res.send((await toClient([player], req))[0]);
 };
 
 export const update = async (req, res) => {
@@ -177,23 +184,66 @@ export const update = async (req, res) => {
     if (!player) return res.status(404).send({ message: 'Player not found.' });
 
     // Players may edit their own entry, everything else is for club admins
-    const isOwnPlayer = player.user && player.user.equals(req.user._id);
-    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+    const isAdmin = req.clubRole === CLUB_ROLES.ADMIN;
+    const isOwnPlayer = Boolean(player.user && player.user.equals(req.user._id));
+    if (!isAdmin && !isOwnPlayer) {
         if (req.file) removeProfileImageFile(req.file.filename);
         return res.status(403).send({ message: 'Only club admins can edit other players.' });
     }
+    const birth = req.body.dateOfBirth || null;
+
+    // a player with a login maintains their name, nickname and picture themselves:
+    // their admins only set the date of birth (it decides the handicap and the Hall of Shame of children)
+    if (player.user && !isOwnPlayer) {
+        if (req.file) removeProfileImageFile(req.file.filename);
+        if (birth) player.dateOfBirth = birth;
+        await player.save();
+        return res.send({ message: 'Player was updated successfully.', maintainedByPlayer: true });
+    }
+
+    if (!req.body.nickname) {
+        if (req.file) removeProfileImageFile(req.file.filename);
+        return res.status(422).json({ errors: ['Nickname is required.'] });
+    }
+    if (!player.user && (!req.body.firstname || !req.body.lastname)) {
+        if (req.file) removeProfileImageFile(req.file.filename);
+        return res.status(422).json({ errors: ['Firstname and lastname are required.'] });
+    }
+
+    // adults correct their own date of birth, never to a child's (see birth.rules)
+    const day = (value) => (value ? new Date(value).toISOString().slice(0, 10) : '');
+    const ownBirth = !isAdmin && birth && day(birth) !== day(player.dateOfBirth);
+    if (ownBirth) {
+        const clubs = await db.club.find({ _id: { $in: player.clubs } }, 'shameMinAge').lean();
+        const change = ownBirthChange(player.dateOfBirth, birth, selfBirthAge(clubs));
+        if (!change.allowed) {
+            if (req.file) removeProfileImageFile(req.file.filename);
+            return res.status(403).json({ message: change.reason });
+        }
+    }
 
     const previousImg = player.profileImg;
-    player.firstname = req.body.firstname;
-    player.lastname = req.body.lastname;
+    // with a login the name is the account's
+    player.firstname = player.user ? req.user.firstname : req.body.firstname;
+    player.lastname = player.user ? req.user.lastname : req.body.lastname;
     player.nickname = req.body.nickname;
-    player.dateOfBirth = req.body.dateOfBirth;
+    if (ownBirth) player.birthChanges.push({ from: player.dateOfBirth, to: birth, at: new Date() });
+    if ((isAdmin || ownBirth) && birth) player.dateOfBirth = birth;
     if (req.file) player.profileImg = req.file.filename;
     else if (req.body.clearProfileImg === 'true') player.profileImg = '';
     await player.save();
 
-    // Only drop the old file once it has really been replaced or cleared
-    if (previousImg && previousImg !== player.profileImg) removeProfileImageFile(previousImg);
+    // the players of one account are one person: they share the picture
+    const replaced = [previousImg];
+    if (player.user && previousImg !== player.profileImg) {
+        const others = await Player.find({ user: player.user, _id: { $ne: player._id } }, 'profileImg');
+        replaced.push(...others.map(other => other.profileImg));
+        await Player.updateMany({ user: player.user, _id: { $ne: player._id } }, { $set: { profileImg: player.profileImg } });
+    }
+    // Only drop an old file once no player uses it any more
+    for (const img of new Set(replaced)) {
+        if (img && img !== player.profileImg) await removeProfileImageIfUnused(img);
+    }
     res.send({ message: 'Player was updated successfully.' });
 };
 
@@ -210,7 +260,7 @@ export const remove = async (req, res) => {
     }
 
     await player.deleteOne();
-    removeProfileImageFile(player.profileImg);
+    await removeProfileImageIfUnused(player.profileImg);
     res.send({ message: 'Player was deleted successfully!', removed: 'player' });
 };
 
@@ -264,6 +314,7 @@ export const giveLogin = async (req, res) => {
         lastname: player.lastname,
     }, req.user);
     if (error) return res.status(422).json({ errors: [error] });
+    if (isGlobalAdminAccount(user)) return res.status(409).json({ message: `${user.email} is a global admin. ${NO_CLUB_FOR_GLOBAL_ADMINS}` });
 
     // one account is one player per club, also in the player's other clubs
     const other = await Player.findOne({ clubs: { $in: player.clubs }, user: user._id, _id: { $ne: player._id } });
@@ -272,7 +323,19 @@ export const giveLogin = async (req, res) => {
     }
 
     player.user = user._id;
-    await player.save();
+    // the player is the account's from now on: its name, and one picture for all its players
+    player.firstname = user.firstname;
+    player.lastname = user.lastname;
+    const pictured = await Player.findOne({ user: user._id, _id: { $ne: player._id }, profileImg: { $nin: ['', null] } }, 'profileImg');
+    if (pictured) {
+        const previousImg = player.profileImg;
+        player.profileImg = pictured.profileImg;
+        await player.save();
+        if (previousImg && previousImg !== player.profileImg) await removeProfileImageIfUnused(previousImg);
+    } else {
+        await player.save();
+        if (player.profileImg) await Player.updateMany({ user: user._id, _id: { $ne: player._id } }, { $set: { profileImg: player.profileImg } });
+    }
     logger.info(`${user.email} can now log in as player "${player.nickname}" of club "${req.club.name}"`);
 
     sendClubWelcomeMail(
@@ -316,8 +379,25 @@ export const setVisibility = async (req, res) => {
 };
 
 /**
+ * Whether the other players of the club see a player's trainings. Club
+ * admins decide for everyone, players with a login for themselves.
+ */
+export const setTrainingPrivacy = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+        return res.status(403).send({ message: 'Only club admins can change this for other players.' });
+    }
+    player.privateTrainings = req.body.privateTrainings;
+    await player.save();
+    res.send((await toClient([player], req))[0]);
+};
+
+/**
  * A player's favourite double and main treble for the ways out ("auto" learns
- * them from the games). Club admins, or the player themselves.
+ * them from the games), and how their darts fly onto the board in X01.
+ * Club admins, or the player themselves.
  */
 export const setPreferences = async (req, res) => {
     logger.debug('players set preferences called');
@@ -329,12 +409,66 @@ export const setPreferences = async (req, res) => {
         return res.status(403).send({ message: 'Only club admins can change this for other players.' });
     }
 
+    // a flight shape or design is flown once the player has it
+    const wanted = [['shape', req.body.flightShape], ['design', req.body.flightPattern], ['barrel', req.body.barrel]].filter(([, id]) => id);
+    if (wanted.length) {
+        const standing = await loadFlightStanding(player);
+        const missing = wanted.find(([kind, id]) => !mayUse(standing, kind, id));
+        if (missing) return res.status(403).send({ message: 'Unlock this flight first.' });
+    }
+
+    const current = player.preferences ?? {};
     player.preferences = {
-        favouriteDouble: req.body.favouriteDouble ?? player.preferences?.favouriteDouble ?? 'auto',
-        mainTreble: req.body.mainTreble ?? player.preferences?.mainTreble ?? 'auto',
+        favouriteDouble: req.body.favouriteDouble ?? current.favouriteDouble ?? 'auto',
+        mainTreble: req.body.mainTreble ?? current.mainTreble ?? 'auto',
+        flyingDarts: req.body.flyingDarts ?? current.flyingDarts ?? true,
+        flightColor: req.body.flightColor ?? current.flightColor ?? 'auto',
+        flightPattern: req.body.flightPattern ?? current.flightPattern ?? 'plain',
+        flightShape: req.body.flightShape ?? current.flightShape ?? 'standard',
+        barrel: req.body.barrel ?? current.barrel ?? 'classic',
     };
     await player.save();
     res.send(player.toJSON());
+};
+
+/**
+ * Where a player stands with the flights: their flight points and every
+ * shape and design, owned, to unlock or still locked.
+ */
+export const flights = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    try {
+        res.send(await loadFlightStanding(player));
+    } catch (err) {
+        logger.error(err, `Failed to work out the flights of player ${player._id}`);
+        res.status(500).send({ message: 'The flights could not be loaded.' });
+    }
+};
+
+/**
+ * Unlocks a flight shape, design or barrel with the player's flight points:
+ * { kind: 'shape' | 'design' | 'barrel', id }. The player themselves, or a club admin
+ * for a player without a login. Answers with the new standing.
+ */
+export const unlockFlight = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
+        return res.status(403).send({ message: 'Only the player can unlock their flights.' });
+    }
+    try {
+        const check = unlockCheck(await loadFlightStanding(player), req.body.kind, req.body.id);
+        if (!check.ok) return res.status(409).send({ message: check.reason });
+        player.flights = { unlocked: [...(player.flights?.unlocked ?? []), check.key] };
+        await player.save();
+        logger.info(`${player.nickname} unlocked the flight ${check.key}`);
+        res.send(await loadFlightStanding(player));
+    } catch (err) {
+        logger.error(err, `Failed to unlock a flight of player ${player._id}`);
+        res.status(500).send({ message: 'The flight could not be unlocked.' });
+    }
 };
 
 /**

@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Dart from './dart.shape';
 
 // the magnifier: its size on screen and how much it enlarges
 const LOUPE_SIZE = 128;
@@ -393,10 +394,16 @@ const BoardShapes = () => (
     </>
 );
 
+// how long a dart flies before it sticks (the CSS animation takes as long)
+const FLIGHT_MS = 320;
+
 /**
  * The dartboard to tap: handleClick(field, point) with the field that was hit
  * (e.g. "T20") and where, in the board's own coordinates. markers: points of
- * darts to show on the board, the last one pulsing.
+ * darts to show on the board, the last one pulsing: { x, y, dart }. withDarts:
+ * a dart flies to each of them and sticks, and the field lights up when it
+ * lands (also for darts that were not tapped, e.g. the bot's), with the
+ * flight { color, shape, design, barrel }. Without it the field lights up at once.
  *
  * The field hit lights up and the phone vibrates briefly. With a finger, a
  * magnifier above it shows the field underneath while it is held; the dart is
@@ -405,7 +412,9 @@ const BoardShapes = () => (
 const DartBoard = (props) => {
     const {
         handleClick,
-        markers = []
+        markers = [],
+        withDarts = false,
+        flight = { color: '#4aa8ff', pattern: 'plain' }
     } = props;
 
     const svgRef = useRef(null);
@@ -444,11 +453,34 @@ const DartBoard = (props) => {
         setTimeout(() => element.classList.remove('is-flash'), 500);
     };
 
+    // when a dart was tapped last: its field lit up already
+    const tappedAt = useRef(0);
     const select = (field, point) => {
         navigator.vibrate?.(12);
-        flash(field);
+        // with darts the field lights up when the dart lands
+        if (!withDarts) {
+            flash(field);
+            tappedAt.current = Date.now();
+        }
         handleClick(field, point);
     };
+
+    // a new dart: its field lights up when it sticks, or at once without darts
+    // (a dart that was not tapped, e.g. the bot's)
+    const darts = markers.filter(Boolean);
+    const shownCount = useRef(0);
+    useEffect(() => {
+        const added = darts.length > shownCount.current ? darts.at(-1) : null;
+        shownCount.current = darts.length;
+        if (!added?.dart) return undefined;
+        if (!withDarts) {
+            if (Date.now() - tappedAt.current > 500) flash(added.dart);
+            return undefined;
+        }
+        const timer = setTimeout(() => flash(added.dart), FLIGHT_MS);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [withDarts, darts.length]);
 
     const showLoupe = (clientX, clientY) => {
         const svg = svgRef.current;
@@ -521,9 +553,14 @@ const DartBoard = (props) => {
             {/* where the darts of this visit landed */}
             <g className="dart-markers" pointerEvents="none" aria-hidden="true">
                 {shown.map(marker => (
-                    <g key={marker.index} transform={`translate(${marker.x}, ${marker.y})`}>
-                        {marker === last && <circle className="dart-marker-pulse" r="5" />}
-                        <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
+                    <g key={marker.index} transform={`translate(${marker.x}, ${marker.y})`} className={withDarts ? 'has-dart' : ''}>
+                        {/* where it hit: with a dart, once it has landed */}
+                        <g className="dart-hit">
+                            {marker === last && <circle className="dart-marker-pulse" r="5" />}
+                            <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
+                        </g>
+                        {/* the dart in its arc, tilting round its tip */}
+                        {withDarts && <g className="dart-fly"><g className="dart-tilt"><Dart color={flight.color} shape={flight.shape} design={flight.design} barrel={flight.barrel} /></g></g>}
                     </g>
                 ))}
             </g>

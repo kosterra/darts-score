@@ -6,6 +6,7 @@ import { averageTrend, monthlyForm, scoringVsFinishing, dartsPerLegDistribution,
 import { x01Kpis, cricketKpis, eliminationKpis, clockKpis } from '../utils/kpi.data.js';
 import { playerLevel, levelInputs } from '../utils/levels.js';
 import { countBadges } from '../utils/badges.js';
+import { seesTrainingsOf } from '../utils/training.privacy.js';
 import { createGameFilterQuery, findFilteredGames, profileFiltersOf, isUnfiltered } from '../utils/game.utils.js';
 
 const X01 = db.x01;
@@ -20,7 +21,7 @@ const Cricket = db.cricket;
 export const getPlayerStats = async (req, res, next) => {
     logger.debug("statistics get player stats called!");
     try {
-        const playerStats = await calculatePlayerStats(req.params.id, profileFiltersOf(req.query), req.club._id);
+        const playerStats = await calculatePlayerStats(req.params.id, profileFiltersOf(req.query), req.club._id, { hideTrainings: !(await seesTrainingsOf(req, req.params.id)) });
         res.send(playerStats);
     } catch (err) {
         logger.error(err, 'Failed to calculate player stats');
@@ -64,7 +65,7 @@ const formatsOf = (games) => {
     return [...unique.values()];
 };
 
-async function calculatePlayerStats(playerId, filters = profileFiltersOf(), clubId = null) {
+async function calculatePlayerStats(playerId, filters = profileFiltersOf(), clubId = null, { hideTrainings = false } = {}) {
     logger.debug('calculate player stats called');
     const playerStats = JSON.parse(JSON.stringify(playerStatsModel));
     playerStats.playerId = playerId;
@@ -143,7 +144,8 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
     ], playerId);
     playerStats.scoring = scoringVsFinishing(x01Games, playerId);
     playerStats.dartsPerLeg = dartsPerLegDistribution(x01Games, playerId);
-    const trainings = await db.atc.find(trainingQuery).sort({ createdAt: 1 }).lean();
+    // a player who keeps their trainings to themselves: none for the others
+    const trainings = hideTrainings ? [] : await db.atc.find(trainingQuery).sort({ createdAt: 1 }).lean();
     playerStats.training = trainingProgress(trainings);
     playerStats.trainingDarts = trainingDarts(trainings);
 

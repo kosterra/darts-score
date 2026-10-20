@@ -16,11 +16,21 @@ export const getX01Stats = async (req, res, next) => {
     }
 };
 
-async function calculateX01Stats(gameId) {
+// the same statistics for an X01 training against the bot
+export const getX01TrainingStats = async (req, res, next) => {
+    try {
+        res.send(await calculateX01Stats(req.params.id, db.x01Training));
+    } catch (err) {
+        logger.error(err, 'Failed to calculate x01 training stats');
+        next(err);
+    }
+};
+
+async function calculateX01Stats(gameId, Model = X01) {
     logger.debug('calculate x01 stats called');
     const x01Stats = JSON.parse(JSON.stringify(x01StatsModel));
 
-    const x01Game = await findX01Game(gameId);
+    const x01Game = await findX01Game(gameId, Model);
 
     x01Stats.avg = getPlayersAveragesX01(x01Game);
     x01Stats.checkouts = getPlayersCheckoutHitsX01(x01Game);
@@ -30,9 +40,9 @@ async function calculateX01Stats(gameId) {
     return x01Stats;
 }
 
-async function findX01Game(gameId) {
+async function findX01Game(gameId, Model = X01) {
     logger.debug('find x01 game by id called');
-    let x01Game = await X01.findById(gameId)
+    let x01Game = await Model.findById(gameId)
         .then(data => {
             return data;
         })

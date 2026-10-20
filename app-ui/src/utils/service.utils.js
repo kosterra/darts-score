@@ -23,6 +23,8 @@ export const setActiveClubId = (clubId) => {
     }
 };
 
+export const SESSION_ENDED = 'darts-score:session-ended';
+
 export const getHeaders = (addContentTypeJSON = false, clubId = getActiveClubId()) => ({
     ...(addContentTypeJSON && { 'Content-Type': 'application/json' }),
     ...(clubId && { 'X-Club-Id': clubId }),
@@ -42,6 +44,8 @@ export const requestJSON = async (url, { method = 'GET', body, clubId } = {}) =>
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
+        // the session ended (timeout, logged out elsewhere): the app goes back to the login
+        if (response.status === 401 && !url.startsWith('/api/auth/')) window.dispatchEvent(new Event(SESSION_ENDED));
         const error = new Error(data.errors?.join(' ') || data.message || response.statusText);
         error.status = response.status;
         throw error;

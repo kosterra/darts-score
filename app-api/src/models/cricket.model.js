@@ -15,6 +15,8 @@ export default (mongoose) => {
       allThrows:         [{}],
       players:           [String],
       playerModels:      mongoose.Schema.Types.Mixed,
+      // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off' for everyone
+      flyingDarts:       { type: String, enum: ['players', 'on', 'off'], default: 'players' },
     },
     { timestamps: true }
   );

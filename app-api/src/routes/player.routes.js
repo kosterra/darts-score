@@ -4,9 +4,39 @@ import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
 import * as PlayerController from '../controllers/player.controller.js';
 import { DOUBLES, MAIN_TREBLES } from '../utils/checkout.profile.js';
+import { DART_BARRELS, FLIGHT_COLORS, FLIGHT_DESIGNS, FLIGHT_SHAPES } from '../utils/flights.js';
 import { uploadProfileImage } from '../controllers/file.controller.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { emailValidator, passwordValidator } from './auth.routes.js';
+
+// the rules of a field, optional when a request may leave it out
+const nameRule = (field, label, optional = false) => {
+    const chain = optional ? body(field).optional({ values: 'falsy' }) : body(field);
+    return chain
+        .trim()
+        .notEmpty().withMessage(`${label} is required.`)
+        .isLength({ min: 3, max: 25 }).withMessage(`${label} must be between 3 and 25 characters.`)
+        .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage(`${label} contains invalid characters.`);
+};
+const birthRule = (optional = false) => (optional ? body('dateOfBirth').optional({ values: 'falsy' }) : body('dateOfBirth').notEmpty().withMessage('Date of birth is required.'))
+    .bail()
+    .isISO8601({ strict: true }).withMessage('Date of birth must be a date.')
+    .custom((value) => {
+        const date = new Date(value);
+        const oldest = new Date();
+        oldest.setFullYear(oldest.getFullYear() - 110);
+        if (date > new Date() || date < oldest) throw new Error('Date of birth must be a day in the past.');
+        return true;
+    });
+
+// an update: a player with a login sends no names (they come from the account)
+// and only admins send the date of birth; the controller decides what applies
+const playerUpdateValidator = [
+    body('firstname').optional({ values: 'falsy' }).trim().isLength({ max: 50 }),
+    body('lastname').optional({ values: 'falsy' }).trim().isLength({ max: 50 }),
+    nameRule('nickname', 'Nickname', true),
+    birthRule(true),
+];
 
 const playerValidator = [
     body('firstname')
@@ -94,7 +124,7 @@ export default (app) => {
     // Club admins may edit everyone, players only themselves (checked in the controller).
     router.put('/:id',
         uploadProfileImage,
-        playerValidator,
+        playerUpdateValidator,
         validate,
         PlayerController.update
     );
@@ -109,12 +139,33 @@ export default (app) => {
         PlayerController.setVisibility
     );
 
-    // A player's favourite double and main treble (admins, or the player themselves)
+    // Whether the other players see a player's trainings (admins, or the player themselves)
+    router.put('/:id/training-privacy',
+        body('privateTrainings').isBoolean({ strict: true }).withMessage('privateTrainings must be true or false.'),
+        validate,
+        PlayerController.setTrainingPrivacy
+    );
+
+    // A player's favourite double and main treble, and their darts on the board (admins, or the player themselves)
     router.put('/:id/preferences',
         body('favouriteDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('favouriteDouble must be auto or a double, e.g. D16.'),
         body('mainTreble').optional().isIn(['auto', ...MAIN_TREBLES]).withMessage(`mainTreble must be auto or one of ${MAIN_TREBLES.join(', ')}.`),
+        body('flyingDarts').optional().isBoolean({ strict: true }).withMessage('flyingDarts must be true or false.'),
+        body('flightColor').optional().isIn(['auto', ...FLIGHT_COLORS]).withMessage('flightColor must be auto or one of the flight colours.'),
+        body('flightPattern').optional().isIn(FLIGHT_DESIGNS.map(design => design.id)).withMessage('flightPattern must be one of the flight designs.'),
+        body('flightShape').optional().isIn(FLIGHT_SHAPES.map(shape => shape.id)).withMessage('flightShape must be one of the flight shapes.'),
+        body('barrel').optional().isIn(DART_BARRELS.map(barrel => barrel.id)).withMessage('barrel must be one of the barrels.'),
         validate,
         PlayerController.setPreferences
+    );
+
+    // A player's flights: points, owned and locked shapes and designs; unlocking one
+    router.get('/:id/flights', PlayerController.flights);
+    router.post('/:id/flights/unlock',
+        body('kind').isIn(['shape', 'design', 'barrel']).withMessage('kind must be shape, design or barrel.'),
+        body('id').isString().isLength({ max: 40 }),
+        validate,
+        PlayerController.unlockFlight
     );
 
     // Give a player a login (or take it away again)

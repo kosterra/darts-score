@@ -4,6 +4,7 @@ import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
+import PlayerFlight from '../../flights/player.flight';
 
 /**
  * The top of a running game in the look of the X01 page: what is played, and
@@ -41,7 +42,11 @@ const LiveHero = ({ title, subtitle, rows }) => {
                             />
                         </span>
                         <div className="x01-hero-info">
-                            <span className="x01-hero-name text-truncate" title={player.nickname}>{player.nickname}</span>
+                            <span className="x01-hero-name text-truncate" title={player.nickname}>
+                                {!(rows.length === 2 && index === 1) && <PlayerFlight player={player} seat={index} />}
+                                {player.nickname}
+                                {rows.length === 2 && index === 1 && <PlayerFlight player={player} seat={index} />}
+                            </span>
                             {line && <span className="x01-live-leg">{line}</span>}
                             <span className="x01-live-tags">
                                 {isTurn && <span className="x01-live-turn">Throwing</span>}

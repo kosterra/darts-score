@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { syncPlayerBadges } from '../utils/badge.service.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 
 const ATC = db.atc;
 
@@ -10,7 +11,7 @@ const scoringFilter = (scoring) => scoring === 'Darts' ? { scoring: 'Darts' } : 
 // lower is better in both
 const scoreField = (scoring) => scoring === 'Darts' ? 'darts' : 'timeMs';
 
-const PLAYER_FIELDS = 'nickname firstname lastname profileImg guest';
+const PLAYER_FIELDS = 'nickname firstname lastname profileImg guest user';
 
 /**
  * The entries with their players as they are now. A deleted player keeps the
@@ -85,6 +86,9 @@ export const findByQuery = async (req, res) => {
             : {};
         condition.club = req.club._id;
         if (req.query.scoring) Object.assign(condition, scoringFilter(req.query.scoring));
+        // the trainings of players who keep them to themselves stay out (also of the scoreboard)
+        const hidden = await hiddenTrainingPlayers(req);
+        if (hidden.length) condition['player.id'] = { $nin: hidden };
         const data = await ATC.find(condition);
         res.json(await withPlayers(data.map(entry => entry.toJSON())));
     } catch (err) {
@@ -97,8 +101,18 @@ export const del = async (req, res) => {
     logger.debug('ATC delete called');
     const { id } = req.params;
     try {
-        const data = db.mongoose.isValidObjectId(id) ? await ATC.findOneAndDelete({ _id: id, club: req.club._id }) : null;
-        if (!data) return res.status(404).json({ message: `ATC entry not found (id=${id}).` });
+        const entry = db.mongoose.isValidObjectId(id) ? await ATC.findOne({ _id: id, club: req.club._id }) : null;
+        if (!entry) return res.status(404).json({ message: `ATC entry not found (id=${id}).` });
+        // the player's own trainings, or as an admin of the club
+        if (!(await mayDeleteTrainingOf(req, entry.player?.id))) return res.status(403).json({ message: 'Only the player or a club admin can delete a training.' });
+        await entry.deleteOne();
+        // the badges earned in it go, unless they were earned again elsewhere
+        const player = db.mongoose.isValidObjectId(entry.player?.id) ? await db.player.findById(entry.player.id) : null;
+        if (player) {
+            player.badges = player.badges.filter(badge => badge.sourceId !== String(entry._id));
+            await player.save();
+            await syncPlayerBadges(player);
+        }
         res.json({ message: 'ATC entry deleted successfully.' });
     } catch (err) {
         logger.error(err, `Failed to delete ATC entry id=${id}`);

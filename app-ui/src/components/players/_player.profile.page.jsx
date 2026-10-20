@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
 import PlayerService from '../../services/player.service';
-import PageLoader from '../elements/page.loader';
+import { PlayerProfileSkeleton } from '../elements/skeletons';
 import PlayerStats from '../stats/players/player.stats';
 import PlayerLatestGames from '../stats/players/player.latest.games';
 import PlayerBadgeCollection from '../badges/player.badge.collection';
@@ -25,18 +25,18 @@ const PlayerProfilePage = () => {
         PlayerService.getPlayer(id).then(setPlayer).catch(() => setFailed(true));
     }, [id]);
 
-    // A link to #badges (e.g. from the badges overview) scrolls there once the collection
-    // is shown. Charts above it are still loading and push it down, so it is kept in view
-    // for a moment, until the visitor scrolls themselves.
+    // A link to #badges (e.g. from the badges overview) or #hall-of-shame scrolls there once
+    // the collection is shown. Charts above it are still loading and push it down, so it is
+    // kept in view for a moment, until the visitor scrolls themselves.
     const onBadgesLoaded = () => {
-        if (hash !== '#badges') return;
+        if (hash !== '#badges' && hash !== '#hall-of-shame') return;
         let stop = false;
         const userScrolls = () => { stop = true; };
         const events = ['wheel', 'touchmove', 'keydown', 'pointerdown'];
         events.forEach(name => window.addEventListener(name, userScrolls, { once: true, passive: true }));
         const started = Date.now();
         const keepInView = () => {
-            const target = document.getElementById('badges');
+            const target = document.getElementById(hash.slice(1));
             if (stop || !target || Date.now() - started > 3000) {
                 events.forEach(name => window.removeEventListener(name, userScrolls));
                 return;
@@ -54,7 +54,7 @@ const PlayerProfilePage = () => {
             </div>
         );
     }
-    if (!player) return <PageLoader />;
+    if (!player) return <PlayerProfileSkeleton />;
 
     return (
         <div className="container-fluid p-4 border-0">

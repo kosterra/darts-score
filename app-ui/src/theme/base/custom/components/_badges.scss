@@ -494,3 +494,126 @@ $tar: #17110c;
     margin-right: 0.25rem;
     color: $softGreenText;
 }
+
+// the levels on the About page: one row per level, in two columns on wide screens
+.about-levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 0.5rem;
+}
+
+.about-level-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.about-level-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+// the flights and barrels a level opens, small, with their names
+.about-unlocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-subtle);
+    font-size: 0.75rem;
+  }
+
+  .flight-picture { width: 1rem; height: 1.25rem; }
+  .barrel-picture { width: 0.5rem; height: 1.25rem; }
+}
+
+// a part of a game's rules on the About page (setting up, bust, winning): the
+// section title of the setup and profile pages, small capitals with a line
+.about-rule-part {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.4rem 0 0.6rem;
+  color: var(--text-default);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+
+  &::after {
+    content: '';
+    flex-grow: 1;
+    height: 1px;
+    background: $surfaceHighColor;
+  }
+}
+
+// What's new on the About page: a card per version, the newest open
+.release {
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.release-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: $borderRadius;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover { background: rgba(255, 255, 255, 0.04); }
+  &:focus-visible { outline: 2px solid $primaryColor; outline-offset: -2px; }
+}
+
+.release-version {
+  color: var(--text-default);
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.release-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.2rem 1rem 1rem;
+}
+
+// a change: whether it is new or a fix, then its topic and what changed
+.release-change {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  line-height: 1.5;
+
+  .release-change-kind {
+    flex: 0 0 2.6rem;
+    margin-top: 0.1rem;
+    font-size: 0.68rem;
+  }
+}
+
+// on a phone the label sits above its change, the text gets the whole width
+@media (max-width: 575.98px) {
+  .release-change {
+    flex-direction: column;
+    gap: 0.2rem;
+
+    .release-change-kind { flex-basis: auto; margin-top: 0; }
+  }
+}

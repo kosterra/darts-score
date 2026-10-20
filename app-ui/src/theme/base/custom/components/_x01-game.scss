@@ -73,7 +73,9 @@
   flex-shrink: 0;
   align-items: center;
   gap: 0.2rem;
-  min-width: 7.5rem;
+  // a fixed width: a longer or shorter way out below never moves the score; a long
+  // one reaches out evenly on both sides of it (it is centred and does not wrap)
+  width: 10rem;
 
   .result-hero-score { font-size: 3.5rem; }
 }
@@ -610,7 +612,9 @@
   justify-content: center;
   gap: 0.35rem;
   min-height: 3.6rem;
-  border: 0;
+  // an exception to the borderless buttons: the keypad stands on the page itself,
+  // without a panel, so every key gets a thin edge to be told apart
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: $borderRadius;
   background: var(--surface-raised);
   color: var(--text-default);
@@ -622,13 +626,13 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 
-  &:hover:not(:disabled) { background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
+  &:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.2); background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
   &:active:not(:disabled) { transform: scale(0.97); }
   &:focus-visible { outline: 2px solid #4aa8ff; outline-offset: 2px; }
   &:disabled { opacity: 0.35; cursor: default; }
 
   // just pressed: the same blue as the board's feedback
-  &.is-pressed { background: color-mix(in srgb, #4aa8ff 40%, var(--surface-raised)); }
+  &.is-pressed { border-color: rgba(74, 168, 255, 0.6); background: color-mix(in srgb, #4aa8ff 40%, var(--surface-raised)); }
 
   &.is-ring {
     font-size: 0.9rem;
@@ -917,4 +921,39 @@
 
 @media (prefers-reduced-motion: reduce) {
   .x01-ton-pop, .result-hero-score.is-bust, .x01-dart-for.is-match { animation: none; }
+}
+
+// a training: while the bot throws, the board and the input wait (its darts still show)
+.x01-play.is-bot-turn {
+  .x01-board-plain,
+  .x01-input .x01-darts,
+  .x01-input .x01-visit-actions {
+    pointer-events: none;
+  }
+
+  .x01-board-plain { opacity: 0.75; }
+}
+
+.x01-bot-turn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: $borderRadius;
+  background: rgba($primaryColor, 0.18);
+  color: var(--text-default);
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  svg { color: $primaryColor; }
+}
+
+// the finish of a training, in gold, while its statistics are on their way
+.x01-bot-turn.x01-training-won {
+  justify-content: center;
+  margin-bottom: 1rem;
+  background: rgba(233, 172, 47, 0.16);
+  font-size: 1rem;
+
+  .pi { color: #e9ac2f; }
 }
