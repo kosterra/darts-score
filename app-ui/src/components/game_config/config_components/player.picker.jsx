@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
+import PlayerFlight from '../../flights/player.flight';
 
 import PlayerForm from '../../elements/player.form';
 import GuestForm from '../../elements/guest.form';
@@ -206,6 +207,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                                     <span className="player-order-number">{index + 1}</span>
                                     <PlayerAvatar player={player} className="avatar-sm" />
                                     <span className="player-order-name">{player.nickname}</span>
+                                    <PlayerFlight player={player} seat={index} />
                                     <span className="player-order-actions">
                                         <button type="button" className="player-order-button" aria-label={`Move ${player.nickname} earlier`} title="Earlier" disabled={index === 0} onClick={() => move(index, index - 1)}>
                                             <i className="pi pi-chevron-left" aria-hidden="true" />

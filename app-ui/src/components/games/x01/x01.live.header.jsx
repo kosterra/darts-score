@@ -11,6 +11,7 @@ import { legSummaryOf } from '../../../utils/x01.live';
 import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../../../utils/checkout.routes';
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
+import PlayerFlight from '../../flights/player.flight';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 // legs or sets needed to win: the majority of a "Best of", all of a "First to"
@@ -110,7 +111,12 @@ const X01LiveHeader = () => {
                                 />
                             </span>
                             <div className="x01-hero-info">
-                                <span className="x01-hero-name text-truncate" title={player.nickname}>{player.nickname}</span>
+                                <span className="x01-hero-name text-truncate" title={player.nickname}>
+                                    {/* mirrored, the flight follows the name */}
+                                    {!(ordered.length === 2 && index === 1) && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
+                                    {player.nickname}
+                                    {ordered.length === 2 && index === 1 && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
+                                </span>
                                 <span className="x01-live-leg">
                                     Last visit <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
                                 </span>

@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import BadgeMedal from './badge.medal';
 import ShameMedal from './shame.medal';
 import { BadgesSkeleton } from '../elements/skeletons';
+import FlightCollection from '../flights/flight.collection';
 import { FaSoap } from 'react-icons/fa6';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
@@ -153,7 +154,8 @@ const HallOfShameSection = ({ shame, name }) => {
 
 /**
  * One player's badge collection, by category and series, with how much of it
- * they have collected. Part of the player's profile.
+ * they have collected, and their flights and barrels. Part of the player's
+ * profile.
  */
 const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
     const [data, setData] = useState(null);
@@ -199,6 +201,7 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
                     </ul>
                 </Panel>
             ))}
+            <FlightCollection playerId={playerId} />
         </div>
     );
 };

@@ -490,3 +490,54 @@
   .flight-tile .flight-picture { width: 3.4rem; height: 4.1rem; }
   .flight-tile .barrel-picture { width: 1.4rem; }
 }
+
+// a player's flight, small, next to their name
+.player-flight {
+  display: inline-flex;
+  flex-shrink: 0;
+  vertical-align: middle;
+
+  .flight-picture { width: 0.95rem; height: 1.15rem; }
+}
+
+.x01-hero-name .player-flight { margin-right: 0.35rem; vertical-align: -0.1rem; }
+.x01-hero-player.is-mirrored .x01-hero-name .player-flight { margin-right: 0; margin-left: 0.35rem; }
+
+// the flights and barrels a player has collected, small, as in an album
+.flight-album {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.flight-album-item {
+  --rarity: rgba(255, 255, 255, 0.14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  width: 4.4rem;
+  padding: 0.4rem 0.25rem 0.3rem;
+  border: 1px solid var(--rarity);
+  border-radius: $borderRadius;
+  background: rgba(0, 0, 0, 0.18);
+
+  &.is-common { --rarity: rgba(124, 198, 160, 0.55); }
+  &.is-rare { --rarity: rgba(122, 170, 230, 0.7); }
+  &.is-epic { --rarity: rgba(177, 138, 224, 0.75); }
+  &.is-master { --rarity: rgba(240, 138, 93, 0.85); }
+  &.is-legendary { --rarity: rgba(233, 172, 47, 0.85); }
+
+  .flight-picture { width: 2.4rem; height: 2.9rem; }
+  .barrel-picture { width: 1rem; }
+
+  span {
+    color: var(--text-subtle);
+    font-size: 0.66rem;
+    text-align: center;
+    line-height: 1.2;
+  }
+}
+
+// the player's dart in the header of their statistics
+.player-hero-dart .dart-side { width: 15rem; max-width: 100%; height: auto; }
