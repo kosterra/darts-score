@@ -34,6 +34,7 @@ const AdministrationPage = lazy(() => import('./components/administration/_admin
 const FairPlayPage = lazy(() => import('./components/fairplay/_fair.play.page'));
 const NotificationsPage = lazy(() => import('./components/notifications/_notifications.page'));
 const MyPlayerPage = lazy(() => import('./components/players/_my.player.page'));
+const PlayerEditPage = lazy(() => import('./components/players/_player.edit.page'));
 const MyStatistics = lazy(() => import('./components/players/my.statistics'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
@@ -138,6 +139,7 @@ function AppContent() {
                     <Route path="/stats/games/:id" element={<GameListRedirect />} />
                     <Route path="/players" element={<ClubListsPage list="players" />} />
                     <Route path="/players/:id" element={<PlayerProfilePage />} />
+                    <Route path="/players/:id/edit" element={<PlayerEditPage />} />
                     <Route path="/games" element={<ClubListsPage list="games" />} />
                     <Route path="/trainings" element={<ClubListsPage list="trainings" />} />
                     <Route path="/stats/games/x01/:id" element={<X01GameStats />} />

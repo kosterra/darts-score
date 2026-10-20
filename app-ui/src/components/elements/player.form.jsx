@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
@@ -7,20 +7,16 @@ import { InputText } from 'primereact/inputtext';
 import { Calendar } from 'primereact/calendar';
 import { classNames } from 'primereact/utils';
 import { Toast } from 'primereact/toast';
-import { Avatar } from 'primereact/avatar';
-import { Message } from 'primereact/message';
 
 import ImageUploader from './image.uploader';
 import PlayerService from '../../services/player.service';
 import PlayerModel from '../../models/player.model';
-import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { useAuth } from '../../utils/auth.context';
-import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
-import PlayerDartPreferences from '../players/player.dart.preferences';
 
 /**
- * Adds or edits a player. With "clubs" (global admins) a new player can be
- * added to any of these clubs, "defaultClubId" first; otherwise to the selected club.
+ * Adds a player, in a dialog (a player is edited on a page of its own,
+ * _player.edit.page). With "clubs" (global admins) the new player can be
+ * added to any of these clubs, "defaultClubId" first; otherwise to the
+ * selected club.
  */
 // a date as the date field wants it: "2016-05-24"
 const toDateInput = (value) => value ? String(value).slice(0, 10) : '';
@@ -36,22 +32,18 @@ const fromDate = (date) => date instanceof Date && !Number.isNaN(date.getTime())
 // with no date yet the calendar opens ten years back: most new players with a date that matters are children
 const tenYearsAgo = () => new Date(new Date().getFullYear() - 10, 0, 1);
 
-const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defaultClubId, label }) => {
+const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
     const toast = useRef(null);
-    const { user } = useAuth();
-    // a player with a login keeps their name, nickname and picture up to date
-    // themselves (on their player profile); the admins set the date of birth
-    const maintainedByPlayer = Boolean(edit && updatePlayer?.user && updatePlayer.user !== user?.id);
-    const choosesClub = !edit && Array.isArray(clubs);
+    const choosesClub = Array.isArray(clubs);
     const [clubId, setClubId] = useState(null);
-    const initialState = updatePlayer ?? PlayerModel;
+    const initialState = PlayerModel;
 
     const [showDialog, setShowDialog] = useState(false);
-    // previewUrl: what the avatar shows. For edit mode, starts with the existing image URL.
-    const [previewUrl, setPreviewUrl] = useState(edit ? resolvePlayerImg(updatePlayer?.profileImg ?? '') : '');
+    // previewUrl: what the avatar shows
+    const [previewUrl, setPreviewUrl] = useState('');
     // imageAction tracks what the user did:
-    //   'unchanged' — user opened form but didn't touch the image
-    //   'new'       — user selected a new file (setValue('profileImg') is a File)
+    //   'unchanged' — no picture chosen
+    //   'new'       — user selected a file (setValue('profileImg') is a File)
     //   'cleared'   — user clicked the delete button
     const [imageAction, setImageAction] = useState('unchanged');
 
@@ -65,20 +57,6 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
             id:         initialState.id         ?? ''
         }
     });
-
-    // Re-initialise form values when updatePlayer changes (replaces Formik's enableReinitialize)
-    useEffect(() => {
-        if (updatePlayer) {
-            reset({
-                firstname:  updatePlayer.firstname  ?? '',
-                lastname:   updatePlayer.lastname   ?? '',
-                nickname:   updatePlayer.nickname   ?? '',
-                dateOfBirth: toDateInput(updatePlayer.dateOfBirth),
-                profileImg: '',
-                id:         updatePlayer.id         ?? ''
-            });
-        }
-    }, [updatePlayer, reset]);
 
     const onFileChange = (file) => {
         setPreviewUrl(URL.createObjectURL(file));
@@ -107,47 +85,25 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
             // User explicitly deleted the image — tell the API to clear it
             formData.append('clearProfileImg', 'true');
         }
-        // 'unchanged': don't append profileImg at all → API keeps existing value
+        // 'unchanged': no picture
 
-        if (edit) {
-            formData.append('id', data.id);
-            try {
-                if (await PlayerService.updatePlayer({ id: data.id, formData })) {
-                    toast.current.show({
-                        severity: 'success',
-                        summary: 'Update Player',
-                        detail: 'Successfully updated player: ' + data.nickname,
-                        life: 3000
-                    });
-                    onPlayerEdit();
-                }
-            } catch (error) {
+        try {
+            if (await PlayerService.createPlayer(formData, choosesClub ? clubId : undefined)) {
                 toast.current.show({
-                    severity: 'error',
-                    summary: 'Update Player',
-                    detail: 'Failed to update player: ' + error.message,
-                    life: 3000
-                });
-            }
-        } else {
-            try {
-                if (await PlayerService.createPlayer(formData, choosesClub ? clubId : undefined)) {
-                    toast.current.show({
-                        severity: 'success',
-                        summary: 'Create Player',
-                        detail: 'Successfully created player: ' + data.nickname,
-                        life: 3000
-                    });
-                    onPlayerAdd(choosesClub ? clubId : undefined);
-                }
-            } catch (error) {
-                toast.current.show({
-                    severity: 'error',
+                    severity: 'success',
                     summary: 'Create Player',
-                    detail: 'Failed to create player: ' + error.message,
+                    detail: 'Successfully created player: ' + data.nickname,
                     life: 3000
                 });
+                onPlayerAdd(choosesClub ? clubId : undefined);
             }
+        } catch (error) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Create Player',
+                detail: 'Failed to create player: ' + error.message,
+                life: 3000
+            });
         }
 
         resetDialog();
@@ -168,13 +124,12 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
     const footerContent = (
         <div className="d-flex justify-content-end align-items-end gap-3">
             <Button type="button" label="Close" icon="pi pi-times" severity="secondary" onClick={resetDialog} />
-            <Button type="submit" label={edit ? 'Update' : 'Create'} icon="pi pi-save" disabled={choosesClub && !clubId} />
+            <Button type="submit" label="Create" icon="pi pi-save" disabled={choosesClub && !clubId} />
         </div>
     );
 
     const handleOpen = () => {
-        // Reset image state to current player image when reopening the dialog
-        setPreviewUrl(edit ? resolvePlayerImg(updatePlayer?.profileImg ?? '') : '');
+        setPreviewUrl('');
         setImageAction('unchanged');
         if (choosesClub) setClubId(clubs.some(club => club.id === defaultClubId) ? defaultClubId : null);
         setShowDialog(true);
@@ -186,7 +141,7 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
     return (
         <div>
             <Dialog
-                header={edit ? 'Update Player' : 'Add New Player'}
+                header="Add New Player"
                 visible={showDialog}
                 blockScroll={true}
                 onHide={resetDialog}
@@ -195,25 +150,13 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-column gap-2">
                     <div className="row">
                         <div className="col-12 d-flex justify-content-center">
-                            {maintainedByPlayer
-                                ? <Avatar image={previewUrl || undefined} label={previewUrl ? undefined : resolvePlayerInitials(firstname, lastname)} shape="circle" className="avatar-xl bg-surface-high" />
-                                : <ImageUploader
-                                    name={firstname + ' ' + lastname}
-                                    previewUrl={previewUrl}
-                                    onFileChange={onFileChange}
-                                    onFileDelete={onFileDelete}
-                                />
-                            }
+                            <ImageUploader
+                                name={firstname + ' ' + lastname}
+                                previewUrl={previewUrl}
+                                onFileChange={onFileChange}
+                                onFileDelete={onFileDelete}
+                            />
                         </div>
-                        {maintainedByPlayer &&
-                            <div className="col-12 pt-3">
-                                <Message
-                                    severity="info"
-                                    className="w-100 justify-content-start"
-                                    text={`${updatePlayer.nickname} has a login and keeps the name, nickname and picture up to date on their player profile. The date of birth is up to the club admins (adults may correct it, but never to a child's).`}
-                                />
-                            </div>
-                        }
                         <div className="col d-flex flex-column justify-content-center align-items-center p-2 pt-4 gap-4">
                             {choosesClub &&
                                 <div className="py-1 w-100 w-sm-50">
@@ -243,7 +186,6 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                             <InputText
                                                 id="firstname"
                                                 {...field}
-                                                disabled={maintainedByPlayer}
                                                 className={classNames('w-100', { 'p-invalid': errors.firstname })}
                                             />
                                         )}
@@ -262,7 +204,6 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                             <InputText
                                                 id="lastname"
                                                 {...field}
-                                                disabled={maintainedByPlayer}
                                                 className={classNames('w-100', { 'p-invalid': errors.lastname })}
                                             />
                                         )}
@@ -281,7 +222,6 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                             <InputText
                                                 id="nickname"
                                                 {...field}
-                                                disabled={maintainedByPlayer}
                                                 className={classNames('w-100', { 'p-invalid': errors.nickname })}
                                             />
                                         )}
@@ -326,25 +266,6 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                     : <small className="text-faint">For fair handicaps between players of different ages.</small>}
                             </div>
                         </div>
-                        {/* saved right away, apart from the rest of the form */}
-                        {edit && updatePlayer?.id && !updatePlayer.guest &&
-                            <div className="mt-3">
-                                <p className="game-setup-section-title">In games</p>
-                                <p className="setting-title">Ways out in X01</p>
-                                <div className="row mx-0 mt-0 setting-body">
-                                    <div className="col">
-                                        <PlayerCheckoutPreferences
-                                            player={updatePlayer}
-                                            onError={(error) => toast.current?.show({ severity: 'error', summary: 'Ways out', detail: error.message, life: 4000 })}
-                                        />
-                                    </div>
-                                </div>
-                                <PlayerDartPreferences
-                                    player={updatePlayer}
-                                    onError={(error) => toast.current?.show({ severity: 'error', summary: 'Darts on the board', detail: error.message, life: 4000 })}
-                                />
-                            </div>
-                        }
                         {footerContent}
                     </div>
                 </form>
@@ -355,9 +276,9 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                 <Button
                     severity="primary"
                     outlined={Boolean(label)}
-                    icon={edit ? 'pi pi-user-edit' : 'pi pi-user-plus'}
-                    title={label ? undefined : edit ? 'Edit player' : 'Add a player'}
-                    aria-label={label ? undefined : edit ? 'Edit player' : 'Add a player'}
+                    icon="pi pi-user-plus"
+                    title={label ? undefined : 'Add a player'}
+                    aria-label={label ? undefined : 'Add a player'}
                     label={label}
                     size={label ? 'small' : undefined}
                     onClick={handleOpen}

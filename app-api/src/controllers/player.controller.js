@@ -174,7 +174,8 @@ export const findOne = async (req, res) => {
     logger.debug('players find one called!');
     const player = await findInClub(req, knownInClub);
     if (!player) return res.status(404).send({ message: 'Player not found.' });
-    res.send(player.toJSON());
+    // club admins also see the account a player logs in with (on the page to edit the player)
+    res.send((await toClient([player], req))[0]);
 };
 
 export const update = async (req, res) => {

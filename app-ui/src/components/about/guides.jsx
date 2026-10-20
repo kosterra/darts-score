@@ -115,7 +115,7 @@ export const ADMIN_GUIDE = [
         icon: FaUserPlus,
         body: (
             <>
-                <p>Add the club&apos;s players under <strong>Club → Players</strong>: a nickname, the name, a picture and the date of birth (for the handicap suggestion and the Hall of Shame: a player without one is never in it).</p>
+                <p>Add the club&apos;s players under <strong>Club → Players</strong>: a nickname, the name, a picture and the date of birth (for the handicap suggestion and the Hall of Shame: a player without one is never in it). The edit button opens a page of the player: their details, whether their nickname is public, their login, and their ways out and darts.</p>
                 <ul>
                     <li><strong>Login:</strong> give a player a login with their email, so they can start games and trainings on their own. With mail set up they get a mail to choose their password; otherwise set an initial password and pass it on.</li>
                     <li>A player with a login keeps their name (from their account), nickname and picture up to date themselves; you still set the date of birth, which adults may correct (never to a child&apos;s). Removing the login hands everything back to you.</li>
