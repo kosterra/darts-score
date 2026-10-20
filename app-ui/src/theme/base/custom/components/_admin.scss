@@ -625,15 +625,16 @@ $fair-play-suspicious: #e9ac2f;
   .pi { font-size: 0.7rem; }
 }
 
-// the start after logging in: club and page, as one box like the game settings
-.profile-start {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 0.85rem 1rem 1rem;
-  border-radius: $borderRadius;
-  background: var(--surface-raised);
+// the user profile: fields with their label above, not wider than they need
+.profile-field {
+  min-width: 0;
+  max-width: 24rem;
 
-  // the title in line with the fields below it
-  .setting-title { padding: 0; }
+  // first and last name side by side where there is room
+  .profile-name > & { flex: 1 1 14rem; }
+
+
+  .p-inputtext, .p-password { width: 100%; }
 }
+
+.profile-club { width: 100%; max-width: 24rem; }
