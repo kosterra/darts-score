@@ -28,6 +28,10 @@ const TYPE_OPTIONS = [
     { label: 'Around the Clock', value: 'atc' },
     { label: 'X01 against the bot', value: 'x01' },
 ];
+const WHOSE_OPTIONS = [
+    { label: 'Everyone', value: 'all' },
+    { label: 'Mine', value: 'mine' },
+];
 // "All" is itself a training mode (every segment), so the filter for every mode is called "Any"
 const MODE_OPTIONS = [
     { label: 'Any', value: 'any' },
@@ -75,6 +79,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const [type, setType] = useState('all');
     const [mode, setMode] = useState('any');
     const [playerId, setPlayerId] = useState(null);
+    const [whose, setWhose] = useState('all');
 
     const loadRows = async () => {
         if (acrossClubs && !selectedIds.length) {
@@ -114,14 +119,20 @@ const TrainingsTable = ({ scope = 'club' }) => {
         return new Set([...best.values()].map(entry => entry.id));
     }, [rows]);
 
+    // the user's own players, for "Mine"
+    const isMine = (row) => Boolean(user) && playerOf(row)?.user === user.id;
+    const hasOwn = !acrossClubs && players.some(player => user && player.user === user.id);
+
     const visibleRows = useMemo(() => (rows ?? [])
+        .filter(row => whose === 'all' || isMine(row))
         .filter(row => type === 'all' || row.kind === type)
         .filter(row => row.kind !== 'atc' || mode === 'any' || row.mode === mode)
         .filter(row => !playerId || row.player?.id === playerId),
-    [rows, type, mode, playerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, type, mode, playerId, whose, playersById, user]);
 
     // admins delete every training, the players their own
-    const mayDelete = (row) => canManage || (user && playerOf(row)?.user === user.id);
+    const mayDelete = (row) => canManage || isMine(row);
 
     const onDelete = async (row) => {
         const clubId = acrossClubs ? row.club?.id : undefined;
@@ -174,6 +185,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
         <Panel header={acrossClubs ? 'Trainings of all clubs' : 'Trainings'}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
+                {hasOwn && <SelectButton value={whose} options={WHOSE_OPTIONS} onChange={(e) => e.value && setWhose(e.value)} aria-label="Whose trainings" />}
                 <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label="Training" />
                 {type !== 'x01' && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label="Mode of Around the Clock" />}
                 <Dropdown

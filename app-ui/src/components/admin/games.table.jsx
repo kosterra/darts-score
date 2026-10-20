@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -7,6 +7,7 @@ import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
+import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { FaTrophy, FaChartColumn } from 'react-icons/fa6';
 import { GiDart } from 'react-icons/gi';
@@ -17,6 +18,7 @@ import X01Service from '../../services/x01.service';
 import CricketService from '../../services/cricket.service';
 import EliminationService from '../../services/elimination.service';
 import ClockService from '../../services/clock.service';
+import DeletionRequestService from '../../services/deletion.request.service';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import GameStatusTag from '../elements/game.status.tag';
@@ -26,6 +28,7 @@ import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDateTime } from './admin.format';
 import useClubSelection from './use.club.selection';
+import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dialogs';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
@@ -75,15 +78,27 @@ const STATUS_OPTIONS = [
     { label: 'Running', value: 'running' },
     { label: 'Finished', value: 'finished' },
 ];
+// in a club: also the games someone asked to delete
+const CLUB_STATUS_OPTIONS = [...STATUS_OPTIONS, { label: 'Deletion asked', value: 'requested' }];
+
+// what the user may do about deleting their games, in the toasts
+const DONE = {
+    agreed: 'You agreed to delete the game.',
+    declined: 'You declined to delete the game.',
+    withdrawn: 'Your request was taken back.',
+    kept: 'The game stays.',
+};
 
 /**
  * Games in one table, filtered by type, status and player.
  * scope "club": the selected club's games; everyone can open them, its admins also inspect and delete.
+ * The players of a game ask to delete it; the others agree, the admins decide (see deletion.request.dialogs).
  * scope "all": games of the clubs a global admin picks, with the club of each game.
  */
 const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = null }) => {
     const toast = useRef(null);
-    const { activeClub, isClubAdmin } = useAuth();
+    const { activeClub, isClubAdmin, user } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
     const acrossClubs = scope === 'all';
     const { clubs, selectedIds, select } = useClubSelection(acrossClubs);
     const canManage = acrossClubs || isClubAdmin;
@@ -94,6 +109,10 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const [status, setStatus] = useState('all');
     const [playerId, setPlayerId] = useState(initialPlayerId);
     const [selection, setSelection] = useState([]);
+    // the open requests to delete a game, by game id; the game asked about and the request shown
+    const [requests, setRequests] = useState(new Map());
+    const [asking, setAsking] = useState(null);
+    const [shownRequest, setShownRequest] = useState(null);
 
     useEffect(() => setType(initialType), [initialType]);
     useEffect(() => setPlayerId(initialPlayerId), [initialPlayerId]);
@@ -117,9 +136,36 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                 : [loadClubGames(), PlayerService.searchPlayers('', { includeGuests: true })]);
             setGames(loadedGames.map(game => ({ ...game, key: `${game.type}-${game.id}` })));
             setPlayers(loadedPlayers);
+            if (!acrossClubs) await loadRequests();
         } catch (error) {
             setGames([]);
             toast.current.show({ severity: 'error', summary: 'Load games', detail: error.message, life: 4000 });
+        }
+    };
+
+    const loadRequests = async () => {
+        try {
+            const open = await DeletionRequestService.loadOpen();
+            setRequests(new Map(open.map(request => [request.game, request])));
+        } catch {
+            setRequests(new Map());
+        }
+    };
+
+    // a notification leads here with ?deletion=<request>: show it, open or decided
+    const linkedRequest = searchParams.get('deletion');
+    useEffect(() => {
+        if (!linkedRequest || acrossClubs) return;
+        DeletionRequestService.loadRequest(linkedRequest)
+            .then(setShownRequest)
+            .catch(error => toast.current.show({ severity: 'error', summary: 'Request to delete a game', detail: error.message, life: 4000 }));
+    }, [linkedRequest, acrossClubs]);
+
+    const closeRequest = () => {
+        setShownRequest(null);
+        if (linkedRequest) {
+            searchParams.delete('deletion');
+            setSearchParams(searchParams, { replace: true });
         }
     };
 
@@ -136,15 +182,17 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         return players.filter(player => ids.has(player.id));
     }, [games, players]);
 
+    // each row carries its open request, so the table redraws it when one comes or goes
     const visibleGames = useMemo(() => (games ?? [])
+        .map(game => requests.has(game.id) || game.deletion ? { ...game, deletion: requests.get(game.id) ?? null } : game)
         .filter(game => type === 'all' || game.type === type)
-        .filter(game => status === 'all' || (status === 'running') === !!game.gameIsRunning)
+        .filter(game => status === 'all' || (status === 'requested' ? Boolean(game.deletion) : (status === 'running') === !!game.gameIsRunning))
         .filter(game => !playerId || game.players.includes(playerId)),
-    [games, type, status, playerId]);
+    [games, type, status, playerId, requests]);
 
     // a selection only ever holds games that are still shown
     useEffect(() => {
-        setSelection(selected => selected.filter(game => visibleGames.includes(game)));
+        setSelection(selected => selected.filter(game => visibleGames.some(shown => shown.key === game.key)));
     }, [visibleGames]);
 
     const deleteGames = async (toDelete) => {
@@ -200,6 +248,31 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         </div>
     );
 
+    // the user's own players: they may ask to delete the games they played
+    const myPlayerIds = useMemo(() => new Set(players.filter(player => user && player.user === user.id).map(player => player.id)), [players, user]);
+    const mayAsk = (game) => !acrossClubs && !canManage && !game.deletion && game.players.some(id => myPlayerIds.has(id));
+
+    const titleOf = (game) => game && GAME_TYPES[game.type].describe(game).title;
+    const showError = (detail) => toast.current.show({ severity: 'error', summary: 'Delete a game', detail, life: 4000 });
+
+    const onAsked = async (request) => {
+        setAsking(null);
+        toast.current.show({
+            severity: 'success',
+            summary: request.status === 'deleted' ? 'Game deleted' : 'Asked to delete the game',
+            detail: request.status === 'deleted' ? 'You played it alone, so it went at once.' : 'The other players and the club admins are asked.',
+            life: 4000,
+        });
+        await loadGames();
+    };
+
+    const onRequestChanged = async (request, what) => {
+        closeRequest();
+        const deleted = request.status === 'deleted';
+        toast.current.show({ severity: 'success', summary: deleted ? 'Game deleted' : 'Request to delete a game', detail: deleted ? (what === 'agreed' ? 'Every player agreed, so the game was deleted.' : 'The game was deleted with the badges earned in it.') : DONE[what], life: 4000 });
+        await loadGames();
+    };
+
     // games open in the club the app works in, so across clubs only that club's games link there
     const canOpen = (game) => !acrossClubs || game.club?.id === activeClub?.id;
 
@@ -209,6 +282,10 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                 ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title="Continue playing" aria-label="Continue playing"><GiDart /></Link>
                 : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title="Show statistics" aria-label="Show statistics"><FaChartColumn /></Link>
             )}
+            {game.deletion &&
+                <Button type="button" icon="pi pi-flag" severity="danger" aria-label="The request to delete this game" title="Request to delete" onClick={() => setShownRequest(game.deletion)} />}
+            {mayAsk(game) &&
+                <Button type="button" icon="pi pi-flag" severity="secondary" aria-label="Ask to delete this game" title="Ask to delete" onClick={() => setAsking(game)} />}
             {canManage && <JSONViewer data={game} header="Game _RAW Data" />}
             {canManage && <DeletePopup data={game} header="Delete Game" message="this game" handleDelete={(g) => deleteGames([g])} />}
         </div>
@@ -216,12 +293,22 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
 
     const needsClubs = acrossClubs && !selectedIds.length;
 
+    const statusBody = (game) => {
+        const request = game.deletion;
+        return (
+            <div className="d-flex flex-column align-items-start gap-1">
+                <GameStatusTag running={game.gameIsRunning} />
+                {request && <Tag severity="danger" value={`Deletion asked · ${request.agreed} of ${request.total}`} />}
+            </div>
+        );
+    };
+
     return (
         <Panel header={acrossClubs ? 'Games of all clubs' : 'Games'}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label="Game type" />
-                <SelectButton value={status} options={STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label="Status" />
+                <SelectButton value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label="Status" />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
@@ -273,12 +360,20 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         {acrossClubs && <Column field="club.name" header="Club" sortable body={(game) => <ClubCell club={game.club} />} />}
                         <Column header="Game" body={gameBody} />
                         <Column header="Players" body={playersBody} style={{ minWidth: '16rem' }} />
-                        <Column header="Status" body={(game) => <GameStatusTag running={game.gameIsRunning} />} />
+                        <Column header="Status" body={statusBody} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )
             }
 
+            <AskDeletionDialog game={asking} title={titleOf(asking)} onHide={() => setAsking(null)} onAsked={onAsked} onError={showError} />
+            <DeletionRequestDialog
+                request={shownRequest}
+                canDecide={isClubAdmin}
+                onHide={closeRequest}
+                onChanged={onRequestChanged}
+                onError={showError}
+            />
             <ConfirmDialog />
             <Toast ref={toast} position="bottom-right" />
         </Panel>

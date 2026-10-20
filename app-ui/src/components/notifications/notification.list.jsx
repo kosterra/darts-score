@@ -3,14 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft } from 'react-icons/fa6';
+import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft, FaFlag, FaTrashCan, FaCheck } from 'react-icons/fa6';
 
 import NotificationService, { announceNotificationsChange } from '../../services/notification.service';
 import { useAuth } from '../../utils/auth.context';
 
 dayjs.extend(relativeTime);
 
-const ICONS = { fairPlayDeleted: FaScaleBalanced, fairPlayRepaired: FaWrench, fairPlayRestored: FaRotateLeft };
+const ICONS = { fairPlayDeleted: FaScaleBalanced, fairPlayRepaired: FaWrench, fairPlayRestored: FaRotateLeft, deletionRequested: FaFlag, deletionDone: FaTrashCan, deletionKept: FaCheck };
 
 /**
  * The notifications of the user, newest first; unread ones stand out until
@@ -72,7 +72,7 @@ const NotificationList = ({ limit }) => {
                 </div>
             }
             {shown.length === 0
-                ? <p className="text-faint fs-7 m-0 py-3 text-center">No notifications. You are told here when an admin deletes or repairs one of your games.</p>
+                ? <p className="text-faint fs-7 m-0 py-3 text-center">No notifications. You are told here when a player asks to delete a game you played, and when an admin deletes or repairs one of your games.</p>
                 : (
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {shown.map(notice => {

@@ -32,6 +32,7 @@ export const PLAYER_GUIDE = [
                     <li>Pick the settings; the start button says what will be played. In X01 a handicap gives players of different strength their own starting score and in/out mode, with a suggestion from their recent average, level and age.</li>
                     <li>During the game enter the darts on the board or the keypad and send the visit. Undo takes the last visit back. The tips above the board show the way out or what to aim at.</li>
                     <li>When the game is won its statistics open: the result, the moments of the game and charts. Every game is saved after each visit, so a game left running can be continued from <strong>Games</strong> or the dashboard.</li>
+                    <li>A game that should not count, e.g. one entered by mistake: ask to delete it with the flag in its row under <strong>Games</strong>. The other players are asked to agree; when every player has a login and all agree, it is deleted, otherwise a club admin decides. You are told how it ended.</li>
                 </ul>
             </>
         ),
@@ -49,7 +50,7 @@ export const PLAYER_GUIDE = [
                     <li>With the fewest darts tap Hit or Miss for every dart; several players take turns.</li>
                     <li>After saving you stay in the training for the next attempt; the scoreboard shows where the attempt landed. Settings goes back to the setup.</li>
                 </ul>
-                <p className="m-0"><strong>Club → Trainings</strong> lists the trainings of both kinds, with the result; your own you can delete there. Under Player profile, <em>Show my trainings to the club</em> decides whether the other players see them (in the list and on the scoreboard); the club admins always do.</p>
+                <p className="m-0"><strong>Club → Trainings</strong> lists the trainings of both kinds, with the result; <strong>Mine</strong> shows only yours, and your own you can delete there. Under Player profile, <em>Show my trainings to the club</em> decides whether the other players see them (in the list and on the scoreboard); the club admins always do.</p>
             </>
         ),
     },
@@ -143,6 +144,7 @@ export const ADMIN_GUIDE = [
         body: (
             <ul className="m-0">
                 <li><strong>Club → Games</strong> and <strong>Trainings</strong> list everything played, with filters (Around the Clock and X01 against the bot together); admins delete single games or several at once, together with the badges earned in them, and see the trainings players keep to themselves. Players delete their own trainings.</li>
+                <li>A player can ask to delete a game they played (the flag in its row). The other players are asked to agree; when every player has a login and all agree, it goes by itself, otherwise you decide: open the request from the notification or the flag, then delete the game or keep it, with a note for the players. <strong>Deletion asked</strong> shows the games waiting.</li>
                 <li><strong>Customize</strong> on the dashboard chooses and orders its widgets for the whole club.</li>
             </ul>
         ),

@@ -1,7 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
-import { syncPlayerBadges } from '../utils/badge.service.js';
+import { removeWithBadges, syncPlayerBadges } from '../utils/badge.service.js';
 import {
     LEVELS, THRESHOLDS, checkBirthChange, checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages, x01Legs,
 } from '../utils/integrity.js';
@@ -28,7 +28,7 @@ const idOf = (doc) => String(doc._id);
 const playersOf = (type, doc) => type === 'training' ? [doc.player?.id].filter(Boolean) : (doc.players ?? []).map(String);
 
 // one line about what was played
-const describe = (type, doc) => {
+export const describe = (type, doc) => {
     if (type === 'training') {
         const scoring = doc.scoring === 'Darts' ? `${doc.darts} darts` : `${((doc.timeMs ?? 0) / 100).toFixed(2)} s`;
         return `Around the Clock training · ${doc.mode} · ${scoring}`;
@@ -448,17 +448,8 @@ export const remove = async (req, res) => {
     if (!doc) return;
     const { type, id } = req.params;
     try {
-        const playerIds = playersOf(type, doc).filter(playerId => db.mongoose.isValidObjectId(playerId));
         const plain = doc.toObject();
-        await doc.deleteOne();
-        await db.integrityReview.deleteMany({ sourceType: type, sourceId: id });
-        const players = await db.player.find({ _id: { $in: playerIds } });
-        for (const player of players) {
-            const before = player.badges.length;
-            player.badges = player.badges.filter(entry => entry.sourceId !== id);
-            if (player.badges.length !== before) await player.save();
-            await syncPlayerBadges(player);
-        }
+        const players = await removeWithBadges(type, doc);
         await notify([itemOf(type, plain, club, players)], 'deleted', req.user);
         logger.warn(`${req.user.email} deleted ${type} ${id} of club "${club?.name ?? doc.club}" for fair play`);
         res.json({ message: 'Deleted.' });
