@@ -521,3 +521,64 @@ $tar: #17110c;
   letter-spacing: 0.05em;
   color: var(--text-default);
 }
+
+// What's new on the About page: a card per version, the newest open
+.release {
+  border-radius: $borderRadius;
+  background: var(--surface-raised);
+}
+
+.release-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: $borderRadius;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover { background: rgba(255, 255, 255, 0.04); }
+  &:focus-visible { outline: 2px solid $primaryColor; outline-offset: -2px; }
+}
+
+.release-version {
+  color: var(--text-default);
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.release-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.2rem 1rem 1rem;
+}
+
+// a change: whether it is new or a fix, then its topic and what changed
+.release-change {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  line-height: 1.5;
+
+  .release-change-kind {
+    flex: 0 0 2.6rem;
+    margin-top: 0.1rem;
+    font-size: 0.68rem;
+  }
+}
+
+// on a phone the label sits above its change, the text gets the whole width
+@media (max-width: 575.98px) {
+  .release-change {
+    flex-direction: column;
+    gap: 0.2rem;
+
+    .release-change-kind { flex-basis: auto; margin-top: 0; }
+  }
+}
