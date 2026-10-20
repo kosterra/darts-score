@@ -8,7 +8,7 @@ const TURN_SECONDS = 5;
 const START_TURN = 30;
 const ANGLES = [0, 90, 180, 270];
 // how dark a wing gets right behind the dart
-const MAX_SHADE = 0.45;
+const MAX_SHADE = 0.22;
 
 // a wing at its angle: half of the flat drawing (a sheet makes two opposite
 // wings), squeezed to how far it reaches up or down
