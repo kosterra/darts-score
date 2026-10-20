@@ -8,6 +8,7 @@ import X01InOutConfig from '../config_components/x01.inout.config';
 import SetsLegsConfig from '../config_components/sets.legs.config';
 import PlayerPicker from '../config_components/player.picker';
 import X01HandicapConfig from '../config_components/x01.handicap.config';
+import FlyingDartsConfig from '../config_components/flying.darts.config';
 import GameSetupStart from '../config_components/game.setup.start';
 import GameSetupMemory from '../config_components/game.setup.memory';
 import QuickFormats from '../config_components/quick.formats';
@@ -17,7 +18,7 @@ import { MIN_PLAYERS } from '../../../utils/player.picker';
 import { clearSetup, fitToPlayers, loadSetup, saveSetup, X01_QUICK_FORMATS } from '../../../utils/setup.memory';
 import { missingPlayers, playersSummary, setsLegsSummary } from '../config_components/game.setup.summary';
 
-const SETTINGS = ['startingScore', 'legInMode', 'legOutMode', 'setMode', 'numberOfSets', 'legMode', 'numberOfLegs'];
+const SETTINGS = ['startingScore', 'legInMode', 'legOutMode', 'setMode', 'numberOfSets', 'legMode', 'numberOfLegs', 'flyingDarts'];
 
 const X01Config = () => {
     // the page starts set up like the last game
@@ -34,7 +35,7 @@ const X01Config = () => {
     const navigate = useNavigate();
 
     const handleConfigChange = (name, value) => {
-        if (['setMode', 'legMode', 'legInMode', 'legOutMode'].includes(name)) {
+        if (['setMode', 'legMode', 'legInMode', 'legOutMode', 'flyingDarts'].includes(name)) {
             setGame(current => ({ ...current, [name]: value }));
         } else {
             setGame(current => ({ ...current, [name]: Number(value) }));
@@ -128,6 +129,7 @@ const X01Config = () => {
                         onSetsLegsChange={handleConfigChange}
                     />
                     <X01HandicapConfig game={game} players={players} rules={handicap} onChange={setHandicap} />
+                    <FlyingDartsConfig value={game.flyingDarts} onChange={(value) => handleConfigChange('flyingDarts', value)} />
 
                     <GameSetupStart summary={summary} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>

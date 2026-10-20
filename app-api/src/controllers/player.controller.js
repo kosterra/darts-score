@@ -393,7 +393,8 @@ export const setTrainingPrivacy = async (req, res) => {
 
 /**
  * A player's favourite double and main treble for the ways out ("auto" learns
- * them from the games). Club admins, or the player themselves.
+ * them from the games), and how their darts fly onto the board in X01.
+ * Club admins, or the player themselves.
  */
 export const setPreferences = async (req, res) => {
     logger.debug('players set preferences called');
@@ -405,9 +406,13 @@ export const setPreferences = async (req, res) => {
         return res.status(403).send({ message: 'Only club admins can change this for other players.' });
     }
 
+    const current = player.preferences ?? {};
     player.preferences = {
-        favouriteDouble: req.body.favouriteDouble ?? player.preferences?.favouriteDouble ?? 'auto',
-        mainTreble: req.body.mainTreble ?? player.preferences?.mainTreble ?? 'auto',
+        favouriteDouble: req.body.favouriteDouble ?? current.favouriteDouble ?? 'auto',
+        mainTreble: req.body.mainTreble ?? current.mainTreble ?? 'auto',
+        flyingDarts: req.body.flyingDarts ?? current.flyingDarts ?? true,
+        flightColor: req.body.flightColor ?? current.flightColor ?? 'auto',
+        flightPattern: req.body.flightPattern ?? current.flightPattern ?? 'plain',
     };
     await player.save();
     res.send(player.toJSON());

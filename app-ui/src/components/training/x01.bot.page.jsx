@@ -15,6 +15,7 @@ import PlayerPicker from '../game_config/config_components/player.picker';
 import X01ScoreConfig from '../game_config/config_components/x01.score.config';
 import X01InOutConfig from '../game_config/config_components/x01.inout.config';
 import SetsLegsConfig from '../game_config/config_components/sets.legs.config';
+import FlyingDartsConfig from '../game_config/config_components/flying.darts.config';
 import GameSetupStart from '../game_config/config_components/game.setup.start';
 import GameSetupMemory from '../game_config/config_components/game.setup.memory';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
@@ -32,7 +33,7 @@ const PLAYER_MODES = BOT_LEVELS.map(({ value }) => ({ value: `${LIKE_ME}-${value
 
 // what a training starts with, and what of it is remembered for the next one
 const MEMORY = 'x01Bot';
-const DEFAULT_GAME = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'First to', numberOfSets: 1, legMode: 'First to', numberOfLegs: 2 };
+const DEFAULT_GAME = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'First to', numberOfSets: 1, legMode: 'First to', numberOfLegs: 2, flyingDarts: 'players' };
 
 // the result of a training from the player's side: { won, legs, average, botAverage }
 const resultOf = (training, playerId) => {
@@ -95,7 +96,7 @@ const X01BotPage = () => {
     const guessed = mode === LIKE_ME && figures && !knowsPlayer(figures);
 
     const handleConfigChange = (name, value) => {
-        setGame(current => ({ ...current, [name]: ['setMode', 'legMode', 'legInMode', 'legOutMode'].includes(name) ? value : Number(value) }));
+        setGame(current => ({ ...current, [name]: ['setMode', 'legMode', 'legInMode', 'legOutMode', 'flyingDarts'].includes(name) ? value : Number(value) }));
     };
 
     const missing = !player ? 'Choose who trains' : !strength ? 'Working out the bot…' : null;
@@ -211,6 +212,8 @@ const X01BotPage = () => {
                             </div>
                         </div>
                     </div>
+
+                    <FlyingDartsConfig value={game.flyingDarts} onChange={(value) => handleConfigChange('flyingDarts', value)} />
 
                     <GameSetupStart label="Start training" summary={summary} missing={missing} loading={starting} onStart={start} />
                 </div>

@@ -13,6 +13,8 @@ const X01GameModel = {
     legOutMode: SetsLegsConfigOptions.legOutOptions.default,
     numberOfSets: SetsLegsConfigOptions.boSetsNumberOptions.default,
     numberOfLegs: SetsLegsConfigOptions.boLegsNumberOptions.default,
+    // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off'
+    flyingDarts: 'players',
     numberOfPlayers: PlayerConfigOptions.numberOfPlayerOptions.default,
     players: [],
     startingPlayerLeg: '',

@@ -5,11 +5,12 @@ import DartBoard from '../common/dartboard';
 import X01Context from '../../../utils/x01.context';
 import { BOT_ID } from '../../../utils/x01.bot';
 import { pointForDart, seededRandom } from '../../../utils/dartboard.geometry';
-import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
+import { dartsFly, flightOf } from '../../../utils/flights';
 
 const X01DartBoard = () => {
   const {
     game,
+    players,
     updateCurrentThrowDartBoard,
     getCurrentThrowScore,
     checkCanThrowMoreDarts,
@@ -29,8 +30,12 @@ const X01DartBoard = () => {
   const markers = game.currentPlayerTurn === BOT_ID
     ? game.currentThrow.map((dart, index) => dart ? { ...pointForDart(dart, seededRandom(`${visitKey}-${index}-${dart}`)), dart } : null)
     : tapped;
-  // the flights in the colour of the player at the oche
-  const flightColor = PLAYER_COLORS[Math.max(0, game.players.indexOf(game.currentPlayerTurn))];
+  // the flights of the player at the oche, in their colour of the game unless they chose one;
+  // whether darts fly: the game decides, or the player (for the bot the one training against it)
+  const atOche = players.find(player => player.id === game.currentPlayerTurn);
+  const flight = flightOf(atOche, game.players.indexOf(game.currentPlayerTurn));
+  const decider = atOche?.isBot ? players.find(player => !player.isBot) : atOche;
+  const withDarts = dartsFly(game, decider);
 
   const setDartValue = (value, point) => {
     // in a training the bot throws its own darts
@@ -60,8 +65,7 @@ const X01DartBoard = () => {
 
   return (
     <>
-      {/* the darts fly to where they were thrown, for now always (a setting may follow) */}
-      <DartBoard handleClick={setDartValue} markers={markers} withDarts flightColor={flightColor} />
+      <DartBoard handleClick={setDartValue} markers={markers} withDarts={withDarts} flight={flight} />
       <Toast ref={toast} position="bottom-right" />
     </>
   )

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Dart from './dart.shape';
 
 // the magnifier: its size on screen and how much it enlarges
 const LOUPE_SIZE = 128;
@@ -396,42 +397,13 @@ const BoardShapes = () => (
 // how long a dart flies before it sticks (the CSS animation takes as long)
 const FLIGHT_MS = 320;
 
-// the four flights seen from behind, as a cross: one wing, turned round its middle
-const WING = '0,0 2.6,-5.6 9.8,-9.8 5.6,-2.6';
-const FLIGHT_CENTRE = { x: 0, y: 19 };
-// the dart's size on the board: about a real dart's next to a real board (flights some 3 cm across)
-const DART_SCALE = 1.6;
-
-/**
- * A dart stuck straight in the board, seen from the oche: its tip at (0, 0),
- * the body foreshortened to a short stub below it (it points at the thrower)
- * and the flights as a cross behind it, bigger as they are nearer. No lean to
- * either side. color: the flights.
- */
-const Dart = ({ color }) => (
-    <g className="dart-shape" transform={`scale(${DART_SCALE})`}>
-        {/* its shadow on the board, a little below */}
-        <ellipse cx="0" cy="4" rx="2.2" ry="1.1" className="dart-shadow" />
-        <line x1="0" y1="0" x2="0" y2="3.5" className="dart-point" />
-        <line x1="0" y1="3.5" x2="0" y2="12" className="dart-barrel" />
-        {[6, 8.5].map(y => <polyline key={y} points={`-2.3,${y} 2.3,${y}`} className="dart-grip" />)}
-        <line x1="0" y1="12" x2="0" y2={FLIGHT_CENTRE.y} className="dart-shaft" />
-        <g transform={`translate(${FLIGHT_CENTRE.x}, ${FLIGHT_CENTRE.y})`}>
-            {[0, 90, 180, 270].map(angle => (
-                <polygon key={angle} points={WING} transform={`rotate(${angle})`} fill={color} className={`dart-flight ${angle % 180 ? 'is-back' : ''}`} />
-            ))}
-            <circle r="1.6" className="dart-shaft-end" />
-        </g>
-    </g>
-);
-
 /**
  * The dartboard to tap: handleClick(field, point) with the field that was hit
  * (e.g. "T20") and where, in the board's own coordinates. markers: points of
  * darts to show on the board, the last one pulsing: { x, y, dart }. withDarts:
  * a dart flies to each of them and sticks, and the field lights up when it
- * lands (also for darts that were not tapped, e.g. the bot's), in the
- * flightColor. Without it the field lights up at once.
+ * lands (also for darts that were not tapped, e.g. the bot's), with the
+ * flight { color, pattern }. Without it the field lights up at once.
  *
  * The field hit lights up and the phone vibrates briefly. With a finger, a
  * magnifier above it shows the field underneath while it is held; the dart is
@@ -442,7 +414,7 @@ const DartBoard = (props) => {
         handleClick,
         markers = [],
         withDarts = false,
-        flightColor = '#4aa8ff'
+        flight = { color: '#4aa8ff', pattern: 'plain' }
     } = props;
 
     const svgRef = useRef(null);
@@ -481,21 +453,30 @@ const DartBoard = (props) => {
         setTimeout(() => element.classList.remove('is-flash'), 500);
     };
 
+    // when a dart was tapped last: its field lit up already
+    const tappedAt = useRef(0);
     const select = (field, point) => {
         navigator.vibrate?.(12);
         // with darts the field lights up when the dart lands
-        if (!withDarts) flash(field);
+        if (!withDarts) {
+            flash(field);
+            tappedAt.current = Date.now();
+        }
         handleClick(field, point);
     };
 
-    // a new dart: its field lights up when it sticks
+    // a new dart: its field lights up when it sticks, or at once without darts
+    // (a dart that was not tapped, e.g. the bot's)
     const darts = markers.filter(Boolean);
     const shownCount = useRef(0);
     useEffect(() => {
-        if (!withDarts) return undefined;
         const added = darts.length > shownCount.current ? darts.at(-1) : null;
         shownCount.current = darts.length;
         if (!added?.dart) return undefined;
+        if (!withDarts) {
+            if (Date.now() - tappedAt.current > 500) flash(added.dart);
+            return undefined;
+        }
         const timer = setTimeout(() => flash(added.dart), FLIGHT_MS);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -579,7 +560,7 @@ const DartBoard = (props) => {
                             <circle className={`dart-marker ${marker === last ? 'is-last' : ''}`} r="3.5" />
                         </g>
                         {/* the flight, and the dart turning with it round its tip */}
-                        {withDarts && <g className="dart-fly"><g className="dart-tilt"><Dart color={flightColor} /></g></g>}
+                        {withDarts && <g className="dart-fly"><g className="dart-tilt"><Dart color={flight.color} pattern={flight.pattern} /></g></g>}
                     </g>
                 ))}
             </g>

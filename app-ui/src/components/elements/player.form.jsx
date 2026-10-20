@@ -16,6 +16,7 @@ import PlayerModel from '../../models/player.model';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { useAuth } from '../../utils/auth.context';
 import PlayerCheckoutPreferences from '../players/player.checkout.preferences';
+import PlayerDartPreferences from '../players/player.dart.preferences';
 
 /**
  * Adds or edits a player. With "clubs" (global admins) a new player can be
@@ -332,6 +333,11 @@ const PlayerForm = ({ onPlayerAdd, onPlayerEdit, updatePlayer, edit, clubs, defa
                                 <PlayerCheckoutPreferences
                                     player={updatePlayer}
                                     onError={(error) => toast.current?.show({ severity: 'error', summary: 'Ways out', detail: error.message, life: 4000 })}
+                                />
+                                <p className="game-setup-section-title mt-3">Darts on the board in X01</p>
+                                <PlayerDartPreferences
+                                    player={updatePlayer}
+                                    onError={(error) => toast.current?.show({ severity: 'error', summary: 'Darts on the board', detail: error.message, life: 4000 })}
                                 />
                             </div>
                         }

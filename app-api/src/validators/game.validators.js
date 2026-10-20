@@ -63,6 +63,7 @@ export const validateX01Create = [
     validateNumberOfPlayers,
     validatePlayers,
     validateX01Handicaps,
+    check('flyingDarts').optional().isIn(['players', 'on', 'off']).withMessage('flyingDarts must be players, on or off.'),
 ];
 
 export const validateEliminationCreate = [

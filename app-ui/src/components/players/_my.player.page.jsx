@@ -14,6 +14,7 @@ import ImageUploader from '../elements/image.uploader';
 import PageLoader from '../elements/page.loader';
 import ClubLogo from '../elements/club.logo';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
+import PlayerDartPreferences from './player.dart.preferences';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg } from '../../utils/image.utils';
 
@@ -175,6 +176,10 @@ const MyPlayer = ({ player, onSaved, onError }) => {
                 <div>
                     <p className="game-setup-section-title mb-2">Ways out in X01</p>
                     <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Ways out', error)} />
+                </div>
+                <div>
+                    <p className="game-setup-section-title mb-2">Darts on the board in X01</p>
+                    <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Darts on the board', error)} />
                 </div>
             </div>
         </section>

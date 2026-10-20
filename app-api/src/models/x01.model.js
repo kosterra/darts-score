@@ -31,6 +31,8 @@ export default (mongoose, name = 'x01') => {
       players:            [String],
       allSetsThrows:      mongoose.Schema.Types.Mixed,
       playerModels:       mongoose.Schema.Types.Mixed,
+      // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off' for everyone
+      flyingDarts:        { type: String, enum: ['players', 'on', 'off'], default: 'players' },
       // a training against the bot: how strong it plays { average, checkoutRate, basis }
       bot:                mongoose.Schema.Types.Mixed,
     },

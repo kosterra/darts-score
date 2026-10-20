@@ -4,6 +4,7 @@ import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
 import * as PlayerController from '../controllers/player.controller.js';
 import { DOUBLES, MAIN_TREBLES } from '../utils/checkout.profile.js';
+import { FLIGHT_COLORS, FLIGHT_PATTERNS } from '../utils/flights.js';
 import { uploadProfileImage } from '../controllers/file.controller.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { emailValidator, passwordValidator } from './auth.routes.js';
@@ -145,10 +146,13 @@ export default (app) => {
         PlayerController.setTrainingPrivacy
     );
 
-    // A player's favourite double and main treble (admins, or the player themselves)
+    // A player's favourite double and main treble, and their darts on the board (admins, or the player themselves)
     router.put('/:id/preferences',
         body('favouriteDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('favouriteDouble must be auto or a double, e.g. D16.'),
         body('mainTreble').optional().isIn(['auto', ...MAIN_TREBLES]).withMessage(`mainTreble must be auto or one of ${MAIN_TREBLES.join(', ')}.`),
+        body('flyingDarts').optional().isBoolean({ strict: true }).withMessage('flyingDarts must be true or false.'),
+        body('flightColor').optional().isIn(['auto', ...FLIGHT_COLORS]).withMessage('flightColor must be auto or one of the flight colours.'),
+        body('flightPattern').optional().isIn(FLIGHT_PATTERNS).withMessage(`flightPattern must be one of ${FLIGHT_PATTERNS.join(', ')}.`),
         validate,
         PlayerController.setPreferences
     );

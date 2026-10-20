@@ -180,13 +180,17 @@ $dartboard-opacity: 0.4;
   }
 
   .has-dart .dart-hit { animation: board-dart-hit 0.12s ease-out 0.3s both; }
+}
 
+// a dart, on the board or as the preview of a player's flights
+.dart-shape {
   .dart-point { stroke: #e9eef2; stroke-width: 1.3; stroke-linecap: round; }
   .dart-barrel { stroke: #9aa5b1; stroke-width: 4.6; stroke-linecap: round; }
   .dart-grip { stroke: #5d6873; stroke-width: 0.9; fill: none; }
   .dart-shaft { stroke: #2b2f36; stroke-width: 2; stroke-linecap: round; }
   .dart-flight { stroke: rgba(0, 0, 0, 0.35); stroke-width: 0.6; stroke-linejoin: round; }
-  .dart-flight.is-back { filter: brightness(0.72); }
+  // the wings across the line of sight are in the shade
+  .dart-flight-wing.is-back { filter: brightness(0.72); }
   .dart-shadow { fill: rgba(0, 0, 0, 0.4); }
   .dart-shaft-end { fill: #2b2f36; }
 }

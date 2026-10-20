@@ -67,6 +67,11 @@ export default (mongoose) => {
       preferences: {
         favouriteDouble: { type: String, default: 'auto' },
         mainTreble:      { type: String, default: 'auto' },
+        // X01: whether the darts fly onto the board (a game may decide for everyone),
+        // and how their flights look ('auto': the player's colour in the game)
+        flyingDarts:     { type: Boolean, default: true },
+        flightColor:     { type: String, default: 'auto' },
+        flightPattern:   { type: String, default: 'plain' },
       },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
