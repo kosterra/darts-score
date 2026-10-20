@@ -1,10 +1,16 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import { FlightArt } from '../flights/flight.art';
 
 // where the flights sit on the dart, and how fast it turns (one turn in seconds)
 const FLIGHTS_AT = 102;
 const TURN_SECONDS = 5;
+const START_TURN = 30;
+const ANGLES = [0, 90, 180, 270];
+
+// a wing at its angle: half of the flat drawing (a sheet makes two opposite
+// wings), squeezed to how far it reaches up or down
+const wingTransform = (angle, reach) => `translate(${FLIGHTS_AT}, 0) scale(0.3, ${(angle % 180 === 0 ? 0.35 : -0.35) * reach})`;
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -16,28 +22,44 @@ const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce
  */
 const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
     const id = useId().replace(/:/g, '');
-    // the dart's turn round its axis, in degrees
-    const [turn, setTurn] = useState(30);
+    // each wing is drawn twice, behind the dart and in front of it; turning
+    // only moves and shows the right one, so the flights are not drawn again
+    // on every frame (the detailed designs would make it stutter)
+    const wingRefs = useRef({});
 
     useEffect(() => {
+        // the dart's turn round its axis, in degrees: how far each wing reaches up or down, and which side of the dart it is on
+        const place = (turn) => {
+            ANGLES.forEach(angle => {
+                const radians = ((turn + angle) * Math.PI) / 180;
+                const reach = Math.sin(radians);
+                const inFront = Math.cos(radians) >= 0;
+                const transform = wingTransform(angle, reach);
+                ['back', 'front'].forEach(layer => {
+                    const element = wingRefs.current[`${layer}-${angle}`];
+                    if (!element) return;
+                    element.setAttribute('transform', transform);
+                    element.style.display = (layer === 'front') === inFront ? '' : 'none';
+                });
+            });
+        };
+        place(START_TURN);
         if (reducedMotion()) return undefined;
         let frame;
         const start = performance.now();
         const step = (now) => {
-            setTurn(30 + ((now - start) / 1000 / TURN_SECONDS) * 360);
+            place(START_TURN + ((now - start) / 1000 / TURN_SECONDS) * 360);
             frame = requestAnimationFrame(step);
         };
         frame = requestAnimationFrame(step);
         return () => cancelAnimationFrame(frame);
-    }, []);
+    }, [shape, design, color]);
 
-    // the four flights at their angle now: how far they reach up (or down) and whether they are in front
-    const wings = [0, 90, 180, 270]
-        .map(angle => {
-            const radians = ((turn + angle) * Math.PI) / 180;
-            return { angle, reach: Math.sin(radians), depth: Math.cos(radians) };
-        })
-        .sort((a, b) => a.depth - b.depth);
+    const wings = (layer) => ANGLES.map(angle => (
+        <g key={angle} ref={element => { wingRefs.current[`${layer}-${angle}`] = element; }} transform={wingTransform(angle, 0)}>
+            <FlightArt shape={shape} design={design} color={color} uid={`${id}-${layer}-${angle}`} half={angle % 180 === 0 ? 'upper' : 'lower'} shade={layer === 'back' ? 0.38 : 0} />
+        </g>
+    ));
 
     return (
         <svg className="dart-side" viewBox="-3 -17 138 34" role="img" aria-label="A dart with these flights">
@@ -58,8 +80,8 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
                 </linearGradient>
             </defs>
 
-            {/* the flights behind the dart first, then the dart, then those in front */}
-            {wings.filter(turned => turned.depth < 0).map(turned => <Wing key={turned.angle} turned={turned} uid={`${id}-${turned.angle}`} color={color} shape={shape} design={design} />)}
+            {/* the flights behind the dart, then the dart, then those in front */}
+            <g>{wings('back')}</g>
 
             {/* the point: a steel needle, sharp at the tip */}
             <polygon points="0,0 5,-0.8 30,-1.1 30,1.1 5,0.8" fill={`url(#${id}-steel)`} />
@@ -72,19 +94,8 @@ const DartSide = ({ color, shape = 'standard', design = 'plain' }) => {
             <rect x="80" y="-1.7" width="34" height="3.4" rx="1" fill={`url(#${id}-shaft)`} />
             <rect x="80" y="-2.2" width="3" height="4.4" rx="0.6" fill={`url(#${id}-shaft)`} />
 
-            {wings.filter(turned => turned.depth >= 0).map(turned => <Wing key={turned.angle} turned={turned} uid={`${id}-${turned.angle}`} color={color} shape={shape} design={design} />)}
+            <g>{wings('front')}</g>
         </svg>
-    );
-};
-
-// one flight at its angle: half of the flat drawing (a sheet makes two opposite wings),
-// squeezed to how far it reaches up or down, darker behind the dart
-const Wing = ({ turned, uid, color, shape, design }) => {
-    const upper = turned.angle % 180 === 0;
-    return (
-        <g transform={`translate(${FLIGHTS_AT}, 0) scale(0.3, ${(upper ? 0.35 : -0.35) * turned.reach})`} className={turned.depth < 0 ? 'dart-side-wing is-back' : 'dart-side-wing'}>
-            <FlightArt shape={shape} design={design} color={color} uid={uid} half={upper ? 'upper' : 'lower'} />
-        </g>
     );
 };
 
