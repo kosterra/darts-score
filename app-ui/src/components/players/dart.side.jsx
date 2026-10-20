@@ -18,12 +18,14 @@ const wingTransform = (angle, reach) => `translate(${FLIGHTS_AT}, 0) scale(0.3, 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * A dart seen from the side, tip to the left: the steel point, the barrel
- * (one of the barrels to collect), the shaft and the four flights, turning slowly round
- * the dart's axis (the flights across the line of sight get narrow, those
- * behind it darker). color, shape and design: the flights, as on the board; barrel: its barrel.
+ * A dart seen from the side, its tip at (0, 0) and the rest to the right
+ * (to x 132): the steel point, the barrel (one of the barrels to collect),
+ * the shaft and the four flights (the flights across the line of sight get
+ * narrow, those behind it darker). spin: it turns slowly round its axis;
+ * otherwise it stays at a turn that shows the flights well. color, shape and
+ * design: the flights; barrel: its barrel.
  */
-const DartSide = ({ color, shape = 'standard', design = 'plain', barrel = 'classic' }) => {
+export const DartProfile = ({ color, shape = 'standard', design = 'plain', barrel = 'classic', spin = false }) => {
     const id = useId().replace(/:/g, '');
     // each wing is drawn twice, behind the dart and in front of it; turning
     // only moves and shows the right one, so the flights are not drawn again
@@ -52,7 +54,7 @@ const DartSide = ({ color, shape = 'standard', design = 'plain', barrel = 'class
             });
         };
         place(START_TURN);
-        if (reducedMotion()) return undefined;
+        if (!spin || reducedMotion()) return undefined;
         let frame;
         const start = performance.now();
         const step = (now) => {
@@ -61,8 +63,9 @@ const DartSide = ({ color, shape = 'standard', design = 'plain', barrel = 'class
         };
         frame = requestAnimationFrame(step);
         return () => cancelAnimationFrame(frame);
-    }, [shape, design, color]);
+    }, [shape, design, color, spin]);
 
+    // the wings in their two layers (the back one first in the drawing)
     const wings = (layer) => ANGLES.map(angle => (
         <g key={angle} ref={element => { wingRefs.current[`${layer}-${angle}`] = element; }} transform={wingTransform(angle, 0)}>
             <FlightArt shape={shape} design={design} color={color} uid={`${id}-${layer}-${angle}`} half={angle % 180 === 0 ? 'upper' : 'lower'} shadeRef={element => { shadeRefs.current[`${layer}-${angle}`] = element; }} />
@@ -70,7 +73,7 @@ const DartSide = ({ color, shape = 'standard', design = 'plain', barrel = 'class
     ));
 
     return (
-        <svg className="dart-side" viewBox="-3 -17 138 34" role="img" aria-label="A dart with these flights">
+        <g className="dart-profile">
             <defs>
                 {/* lit from the front, as the flights: the metal is the same shade at its upper and
                     lower edge, so it looks as centred on the dart as it is (a dark lower edge would
@@ -99,8 +102,17 @@ const DartSide = ({ color, shape = 'standard', design = 'plain', barrel = 'class
             <rect x="80" y="-2.2" width="3" height="4.4" rx="0.6" fill={`url(#${id}-shaft)`} />
 
             <g>{wings('front')}</g>
-        </svg>
+        </g>
     );
 };
+
+/**
+ * The dart from the side, turning slowly: the preview of a player's darts.
+ */
+const DartSide = (props) => (
+    <svg className="dart-side" viewBox="-3 -17 138 34" role="img" aria-label="A dart with these flights">
+        <DartProfile {...props} spin />
+    </svg>
+);
 
 export default DartSide;
