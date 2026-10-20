@@ -107,11 +107,12 @@ export const DartProfile = ({ color, shape = 'standard', design = 'plain', barre
 };
 
 /**
- * The dart from the side, turning slowly: the preview of a player's darts.
+ * The dart from the side: turning slowly as the preview of a player's darts,
+ * or still (spin false), e.g. in the header of their statistics.
  */
-const DartSide = (props) => (
+const DartSide = ({ spin = true, ...props }) => (
     <svg className="dart-side" viewBox="-3 -17 138 34" role="img" aria-label="A dart with these flights">
-        <DartProfile {...props} spin />
+        <DartProfile {...props} spin={spin} />
     </svg>
 );
 

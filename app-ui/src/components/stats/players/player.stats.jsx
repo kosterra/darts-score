@@ -184,10 +184,10 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         ))}
                     </dl>
                 </div>
-                {/* the dart they throw with, turning */}
+                {/* the dart they throw with */}
                 <div className="player-hero-dart d-flex flex-column gap-2">
                     <span className="text-faint fs-8">{isOwn ? 'Your dart' : 'Their dart'}</span>
-                    <DartSide {...flightOf(player)} />
+                    <DartSide {...flightOf(player)} spin={false} />
                 </div>
                 {(latestBadges.length > 0 || shame.length > 0) &&
                     <div className="d-flex flex-column gap-3">
