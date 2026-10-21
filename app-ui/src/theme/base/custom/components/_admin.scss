@@ -67,14 +67,15 @@
         height: 2.25rem;
         padding: 0;
         border: 0;
-        background: transparent;
+        // a soft tint at rest, a little stronger on hover: the button is always seen as one
+        background: rgba(255, 255, 255, 0.07);
         color: $textSubtleColor;
         box-shadow: none;
+        transition: background-color 0.2s ease, color 0.2s ease;
 
-        // the row is grey on hover itself: a light tint on top of it shows the button
         &:enabled:hover,
         &:focus-visible {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.14);
             color: $textDefaultColor;
         }
 
@@ -86,9 +87,10 @@
         // buttons without a severity mark the main action or a switched-on state,
         // e.g. a player with a login or a public nickname
         &:not(.p-button-secondary):not(.p-button-info):not(.p-button-danger) {
+            background: rgba($primaryColor, 0.14);
             color: $primaryColor;
 
-            &:enabled:hover { background: rgba($primaryColor, 0.25); color: $softGreenTextHover; }
+            &:enabled:hover { background: rgba($primaryColor, 0.26); color: $softGreenTextHover; }
         }
     }
 
@@ -99,12 +101,14 @@
         width: 2.25rem;
         height: 2.25rem;
         border-radius: $borderRadius;
+        background: rgba(255, 255, 255, 0.07);
         color: $textSubtleColor;
         text-decoration: none;
+        transition: background-color 0.2s ease, color 0.2s ease;
 
         &:hover,
         &:focus-visible {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.14);
             color: $textDefaultColor;
         }
     }
