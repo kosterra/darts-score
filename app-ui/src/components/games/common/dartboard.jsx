@@ -8,7 +8,7 @@ const LOUPE_SIZE = 128;
 const LOUPE_ZOOM = 2.6;
 
 // a field as players say it
-const labelOf = (field) => !field || field === '0' ? 'Miss' : field === 'D25' ? 'Bull' : field === 'S25' ? '25' : field;
+const labelOf = (field) => !field || field === '0' ? t('Miss') : field === 'D25' ? 'Bull' : field === 'S25' ? '25' : field;
 
 // the board itself: every field with its id ("T20", "D25", "0" outside)
 const BoardShapes = () => (

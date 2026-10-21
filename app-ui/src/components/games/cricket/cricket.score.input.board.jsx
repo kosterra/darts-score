@@ -72,7 +72,7 @@ const CricketScoreInputBoard = () => {
                 />
             }
             aside={<CricketNumbersPanel />}
-            asideTitle="Marks"
+            asideTitle={t('Marks')}
             asideFirstOnPhone
             darts={darts}
             shown={shown}

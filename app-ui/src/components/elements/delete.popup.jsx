@@ -6,7 +6,7 @@ import { t } from '../../utils/i18n';
 
 const DeletePopup = (props) => {
     const {
-        header = 'Delete Object',
+        header = t('Delete'),
         message = 'unknown',
         data,
         handleDelete,

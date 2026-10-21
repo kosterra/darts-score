@@ -152,7 +152,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
     const facts = [
         [t('Member since'), dayjs(player.createdAt).format('DD.MM.YYYY')],
         [t('Games played'), formatNumber(games)],
-        ['Wins', games ? `${formatNumber(wins)} (${percent(wins, games)})` : '–'],
+        [t('Wins'), games ? `${formatNumber(wins)} (${percent(wins, games)})` : '–'],
         [t('Weekly streak'), (
             <span key="streak" className="d-inline-flex align-items-center gap-2">
                 <StreakFlames weeks={streak.current} />
@@ -160,7 +160,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
             </span>
         )],
         [t('Best streak'), weeks(streak.best)],
-        ['Badges', badges ? <a href="#badges" onClick={scrollToBadges}>{badges.earnedCount}{' '}{t('of')}{' '}{badges.total}</a> : '–'],
+        [t('Badges'), badges ? <a href="#badges" onClick={scrollToBadges}>{badges.earnedCount}{' '}{t('of')}{' '}{badges.total}</a> : '–'],
     ];
 
     const x01 = kpis.x01 ?? {};

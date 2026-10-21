@@ -43,7 +43,7 @@ export const ShutOut = ({ moment, onDone }) => {
             <p className="stage-moment-banner">
                 <span className="stage-moment-title">{t('Shut-out!')}</span>
                 <span className="stage-moment-detail">
-                    <strong>{moment.name}</strong>{' '}{t('closed all seven,')}{' '}{moment.victims.join(' and ')}{' '}{t('not a single one')}
+                    <strong>{moment.name}</strong>{' '}{t('closed all seven,')}{' '}{moment.victims.join(` ${t('and')} `)}{' '}{t('not a single one')}
                 </span>
             </p>
             <div className="shut-out-run" aria-hidden="true">

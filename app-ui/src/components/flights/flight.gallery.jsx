@@ -3,7 +3,7 @@ import { FaLock } from 'react-icons/fa6';
 import { t } from '../../utils/i18n';
 
 
-const RARITY_LABELS = { starter: 'Starter', common: 'Common', rare: 'Rare', epic: 'Epic', master: 'Master', legendary: 'Legendary' };
+const RARITY_LABELS = { starter: t('Starter'), common: t('Common'), rare: t('Rare'), epic: t('Epic'), master: t('Master'), legendary: t('Legendary') };
 
 // what a tile says under its name: its price, or in short what is missing (all of it in the title)
 const statusOf = (item) => {

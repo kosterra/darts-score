@@ -173,7 +173,7 @@ const X01GameStats = ({ training = false, quick = false }) => {
                 <GameResultHeader
                     game={game}
                     players={players}
-                    title={`${hasHandicap(game) ? 'Handicap' : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
+                    title={`${hasHandicap(game) ? t('Handicap') : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
                     subtitle={hasHandicap(game)
                         ? `${players.map(player => `${player.nickname} ${describeRules(rulesOf(game, player.id))}`).join(' · ')} · ${whenPlayed(game)}`
                         : `${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}

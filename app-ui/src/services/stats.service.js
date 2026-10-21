@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders,
     requestJSON
@@ -19,7 +20,7 @@ const loadPlayerStats = async (playerId, filters = {}) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw Error(error.message);
     }
@@ -37,7 +38,7 @@ const loadX01PlayersStats = async (body) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw Error(error.message);
     }
@@ -55,7 +56,7 @@ const loadX01GameStats = async (gameId) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw Error(error.message);
     }

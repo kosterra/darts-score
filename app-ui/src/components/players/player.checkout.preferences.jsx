@@ -60,7 +60,7 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onError }) => {
                 <span className="text-subtle fs-8">{t('Main treble')}</span>
                 <Dropdown
                     value={preferences.mainTreble}
-                    options={[{ label: automatic(learnedTreble, 'games'), value: 'auto' }, ...TREBLES.map(treble => ({ label: treble, value: treble }))]}
+                    options={[{ label: automatic(learnedTreble, t('games')), value: 'auto' }, ...TREBLES.map(treble => ({ label: treble, value: treble }))]}
                     onChange={(e) => save({ mainTreble: e.value })}
                     className="w-100"
                 />

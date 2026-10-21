@@ -109,7 +109,7 @@ const ClubDirectory = ({ onSuccess, onError }) => {
     };
 
     const needsNickname = data && !data.nickname;
-    const validNickname = !needsNickname || /^[A-Za-zéèàäöü\s'-]{3,25}$/.test(joining?.nickname.trim() ?? '');
+    const validNickname = !needsNickname || /^[\p{L}\s'-]{3,25}$/u.test(joining?.nickname.trim() ?? '');
 
     return (
         <Panel header={t('Join a club')} className="mt-4">

@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders
 } from '../utils/service.utils';
@@ -17,7 +18,7 @@ const createX01Game = async (game) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error.message);
     }
@@ -48,7 +49,7 @@ const loadAllX01Games = async () => {
             throw Error(response.statusText);
         };
         
-        let data = await response.json();
+        let data = translateAnswer(await response.json());
         return data.sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
@@ -69,7 +70,7 @@ const findX01Games = async (body) => {
             throw Error(response.statusText);
         };
 
-        let data = await response.json();
+        let data = translateAnswer(await response.json());
         return data.sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
@@ -89,7 +90,7 @@ const loadX01GameById = async (id) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error);
     }

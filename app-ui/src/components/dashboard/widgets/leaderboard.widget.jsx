@@ -32,7 +32,7 @@ const LeaderboardWidget = ({ widget, entries = [], players }) => {
                                     <Link to={`/players/${entry.player}`} className="leaderboard-name text-default fw-semibold">{player?.nickname ?? t('Unknown')}</Link>
                                     <span className="leaderboard-value">
                                         <span className="text-default fw-semibold fs-5">{widget.format(entry.value)}</span>
-                                        <span className="text-faint fs-8 ms-1">{widget.unit}</span>
+                                        <span className="text-faint fs-8 ms-1">{t(widget.unit)}</span>
                                     </span>
                                 </li>
                             );

@@ -1,4 +1,5 @@
 import { Tag } from 'primereact/tag';
+import { t } from '../../utils/i18n';
 
 /**
  * Whether a game is running or finished, in the same colours everywhere:
@@ -8,7 +9,7 @@ import { Tag } from 'primereact/tag';
 const GameStatusTag = ({ running, label }) => (
     <Tag
         severity={running ? 'warning' : 'info'}
-        value={running ? (label ?? 'Running') : 'Finished'}
+        value={running ? (label ?? t('Running')) : t('Finished')}
     />
 );
 

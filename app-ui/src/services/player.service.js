@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import { getHeaders, requestJSON } from '../utils/service.utils';
 
 const API_URL = '/api/';
@@ -7,7 +8,7 @@ const API_URL = '/api/';
  */
 // the server's own explanation (e.g. why a picture could not be saved), else the status
 const errorMessageOf = async (response) => {
-    const data = await response.json().catch(() => ({}));
+    const data = translateAnswer(await response.json().catch(() => ({})));
     return data.errors?.join(' ') || data.message || response.statusText;
 };
 
@@ -33,7 +34,7 @@ const getPlayer = async (playerId) => {
             headers: getHeaders(false)
         });
         if (!response.ok) throw new Error(response.statusText);
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error.message);
     }
@@ -50,7 +51,7 @@ const searchPlayers = async (searchTerm, { includeGuests = false } = {}) => {
             headers: getHeaders(false)
         });
         if (!response.ok) throw new Error(response.statusText);
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error.message);
     }
@@ -60,7 +61,7 @@ const searchPlayers = async (searchTerm, { includeGuests = false } = {}) => {
 const lastPlayed = async () => {
     const response = await fetch(API_URL + 'players/last-played', { method: 'GET', headers: getHeaders(false) });
     if (!response.ok) throw new Error(response.statusText);
-    return await response.json();
+    return translateAnswer(await response.json());
 };
 
 const findPlayersByIds = async (playerIds) => {
@@ -71,7 +72,7 @@ const findPlayersByIds = async (playerIds) => {
             body: JSON.stringify({ playerIds })
         });
         if (!response.ok) throw new Error(response.statusText);
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error.message);
     }
@@ -121,7 +122,7 @@ const deletePlayer = async (playerId, clubId) => {
         });
         if (!response.ok) throw new Error(response.statusText);
         // removed: "player" when deleted, "membership" when the player only left this club
-        return await response.json().catch(() => ({ removed: 'player' }));
+        return translateAnswer(await response.json().catch(() => ({ removed: 'player' })));
     } catch (error) {
         throw new Error(error.message);
     }

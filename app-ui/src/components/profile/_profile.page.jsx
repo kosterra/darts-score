@@ -11,7 +11,7 @@ import { Toast } from 'primereact/toast';
 import AuthService from '../../services/auth.service';
 import { ROLE_LABELS } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
-import { t } from '../../utils/i18n';
+import { LANGUAGES, currentLanguage, setLanguage, t } from '../../utils/i18n';
 
 const MIN_PASSWORD_LENGTH = 8;
 // "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
@@ -38,6 +38,17 @@ const ProfilePage = () => {
             showSuccess(t('Profile'), t('Your profile is saved.'));
         } catch (error) {
             showError(t('Profile'), error);
+        }
+    };
+
+    // saved on the account right away; the app starts again in it
+    const onChangeLanguage = async (language) => {
+        if (!language || language === currentLanguage()) return;
+        try {
+            setUser(await AuthService.saveLanguage(language));
+            setLanguage(language);
+        } catch (error) {
+            showError(t('Language'), error);
         }
     };
 
@@ -106,6 +117,21 @@ const ProfilePage = () => {
                         <div className="row mx-0 mt-0 setting-body">
                             <div className="col pt-1">
                                 {field('profile-email', t('Email address'), <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />, t('You log in with it; a new password is sent there.'))}
+                            </div>
+                        </div>
+                        <p className="setting-title">{t('Language')}</p>
+                        <div className="row mx-0 mt-0 setting-body">
+                            <div className="col d-flex flex-column gap-2">
+                                <SelectButton
+                                    value={currentLanguage()}
+                                    options={LANGUAGES}
+                                    optionLabel="label"
+                                    optionValue="code"
+                                    onChange={(e) => onChangeLanguage(e.value)}
+                                    className="p-selectbutton-pills flex-wrap"
+                                    aria-label={t('Language')}
+                                />
+                                <span className="text-faint fs-8">{t('The app and the mails you get come in this language. Saved right away.')}</span>
                             </div>
                         </div>
 

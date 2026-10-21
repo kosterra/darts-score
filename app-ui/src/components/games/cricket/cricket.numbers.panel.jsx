@@ -36,7 +36,7 @@ const CricketNumbersPanel = () => {
                                 key={number}
                                 scope="col"
                                 className={dead(number) ? 'is-dead' : ''}
-                                title={dead(number) ? t('Closed by everyone: out of play') : t('Closed by {{value}}', { value: closedBy(number).map(player => player.nickname).join(', ') || 'nobody yet' })}
+                                title={dead(number) ? t('Closed by everyone: out of play') : t('Closed by {{value}}', { value: closedBy(number).map(player => player.nickname).join(', ') || t('nobody yet') })}
                             >
                                 <span className="cricket-strip-number">
                                     {numberLabel(number)}

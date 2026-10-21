@@ -65,7 +65,7 @@ const PlayerLogin = ({ player, onChange, inline = false }) => {
                 </span>
                 {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
                 <div className="d-flex justify-content-end gap-3">
-                    {closeButton('Close')}
+                    {closeButton(t('Close'))}
                     <Button type="button" label={t('Remove login')} icon="pi pi-times" severity="danger" size="small" loading={submitting} onClick={() => run(() => PlayerService.removeLogin(player.id))} />
                 </div>
             </div>
@@ -92,7 +92,7 @@ const PlayerLogin = ({ player, onChange, inline = false }) => {
                 />
                 {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
                 <div className="d-flex justify-content-end gap-3">
-                    {closeButton('Cancel')}
+                    {closeButton(t('Cancel'))}
                     <Button type="submit" label={t('Give login')} icon="pi pi-key" size="small" loading={submitting} />
                 </div>
             </form>

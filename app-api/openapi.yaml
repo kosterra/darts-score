@@ -206,6 +206,35 @@ paths:
         '409':
           description: Email already registered
       operationId: putAuthMe
+  /api/auth/language:
+    put:
+      tags:
+        - Auth
+      summary: Save the language of the app on the account
+      description: The app, the mails and the messages of the API then use it for the user.
+      operationId: putAuthLanguage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - language
+              properties:
+                language:
+                  $ref: '#/components/schemas/Language'
+      responses:
+        '200':
+          description: The user, with the language
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/auth/dashboard/{clubId}:
     put:
       tags:
@@ -4184,6 +4213,17 @@ components:
           type: string
           minLength: 2
           maxLength: 25
+        language:
+          $ref: '#/components/schemas/Language'
+    Language:
+      type: string
+      description: The language of the app, the mails and the messages of the API
+      enum:
+        - en
+        - de
+        - fr
+        - it
+        - es
     LoginInput:
       type: object
       required:
@@ -5219,6 +5259,11 @@ components:
             - string
             - 'null'
           description: MongoDB ObjectId
+        language:
+          description: The language chosen; null until the user chose one (mails are then in English)
+          oneOf:
+            - $ref: '#/components/schemas/Language'
+            - type: 'null'
         dashboards:
           type: array
           description: The user's own dashboards, per club

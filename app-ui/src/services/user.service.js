@@ -1,4 +1,5 @@
 import { requestJSON } from '../utils/service.utils';
+import { t } from '../utils/i18n';
 
 const API_URL = '/api/users';
 
@@ -21,8 +22,8 @@ export const ROLES = {
 };
 
 export const ROLE_LABELS = {
-    [ROLES.GLOBAL_ADMIN]: 'Global admin',
-    [ROLES.USER]: 'User'
+    [ROLES.GLOBAL_ADMIN]: t('Global admin'),
+    [ROLES.USER]: t('User')
 };
 
 // What a user is in one particular club

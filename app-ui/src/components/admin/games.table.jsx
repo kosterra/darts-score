@@ -63,7 +63,7 @@ const GAME_TYPES = {
     clock: {
         load: () => ClockService.loadAllClockGames(),
         remove: (id, clubId) => ClockService.deleteClockGame(id, clubId),
-        describe: (game) => ({ title: t('Around the Clock · {{value}}', { value: game.mode ?? 'All' }) }),
+        describe: (game) => ({ title: t('Around the Clock · {{value}}', { value: t(game.mode ?? 'All') }) }),
         score: (model) => model.finished ? t('{{value}} darts', { value: model.darts ?? 0 }) : t('{{value}} of 21', { value: model.target ?? 0 }),
     },
 };

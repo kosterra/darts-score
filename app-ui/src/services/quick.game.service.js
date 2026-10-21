@@ -1,3 +1,4 @@
+import { currentLanguage, translateAnswer } from '../utils/i18n';
 const API_URL = '/api/public/quick-games';
 
 // the key each quick game was started with stays in this browser: only it plays on
@@ -27,10 +28,11 @@ const request = async (url, { method = 'GET', body, key } = {}) => {
         headers: {
             ...(body !== undefined && { 'Content-Type': 'application/json' }),
             ...(key && { 'X-Quick-Key': key }),
+            'Accept-Language': currentLanguage(),
         },
         ...(body !== undefined && { body: JSON.stringify(body) }),
     });
-    const data = await response.json().catch(() => ({}));
+    const data = translateAnswer(await response.json().catch(() => ({})));
     if (!response.ok) throw new Error(data.errors?.join(' ') || data.message || response.statusText);
     return data;
 };

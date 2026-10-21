@@ -1,3 +1,4 @@
+import { currentLanguage, translateAnswer } from './i18n';
 const { VITE_CF_CLIENT_ID, VITE_CF_CLIENT_SECRET } = import.meta.env;
 
 const ACTIVE_CLUB_KEY = 'darts-score.activeClub';
@@ -27,6 +28,8 @@ export const SESSION_ENDED = 'darts-score:session-ended';
 
 export const getHeaders = (addContentTypeJSON = false, clubId = getActiveClubId()) => ({
     ...(addContentTypeJSON && { 'Content-Type': 'application/json' }),
+    // the messages of the API come in the language of the app
+    'Accept-Language': currentLanguage(),
     ...(clubId && { 'X-Club-Id': clubId }),
     ...(VITE_CF_CLIENT_ID && { 'CF-Access-Client-Id': VITE_CF_CLIENT_ID }),
     ...(VITE_CF_CLIENT_SECRET && { 'CF-Access-Client-Secret': VITE_CF_CLIENT_SECRET }),
@@ -42,7 +45,7 @@ export const requestJSON = async (url, { method = 'GET', body, clubId } = {}) =>
         headers: getHeaders(body !== undefined, clubId),
         ...(body !== undefined && { body: JSON.stringify(body) })
     });
-    const data = await response.json().catch(() => ({}));
+    const data = translateAnswer(await response.json().catch(() => ({})));
     if (!response.ok) {
         // the session ended (timeout, logged out elsewhere): the app goes back to the login
         if (response.status === 401 && !url.startsWith('/api/auth/')) window.dispatchEvent(new Event(SESSION_ENDED));

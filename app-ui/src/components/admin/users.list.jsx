@@ -125,7 +125,7 @@ const UsersList = () => {
         )
         : <span className="text-faint fs-7">{t('No club')}</span>;
 
-    const formatDate = (value) => value ? dayjs(value).format('DD.MM.YYYY') : 'Never';
+    const formatDate = (value) => value ? dayjs(value).format('DD.MM.YYYY') : t('Never');
 
     const actionBody = (user) => isSelf(user) ? null : (
         <div className="row-actions">

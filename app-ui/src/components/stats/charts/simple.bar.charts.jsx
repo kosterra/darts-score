@@ -58,8 +58,8 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
 export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
     const series = useHiddenSeries();
     const rows = [
-        { phase: 'Scoring', ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.opening ?? 0])) },
-        { phase: 'Finishing', ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.finishing ?? 0])) },
+        { phase: t('Scoring'), ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.opening ?? 0])) },
+        { phase: t('Finishing'), ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.finishing ?? 0])) },
     ];
     return (
         <ChartCard title={t('Scoring vs. finishing')} description={t('Average at the start and in the middle of a leg, against the average at the end of the leg, where the doubles decide.')}>
@@ -143,9 +143,9 @@ export const FormChart = ({ data = [] }) => {
                                     />
                                 )}
                             />
-                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
-                            <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden('average')} />
-                            <Line yAxisId="games" type="monotone" dataKey="games" name="Games played" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={series.isHidden('games')} />
+                            <Bar yAxisId="rate" dataKey="winRate" name={t('Win rate')} fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
+                            <Line yAxisId="avg" type="monotone" dataKey="average" name={t('Average')} stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden('average')} />
+                            <Line yAxisId="games" type="monotone" dataKey="games" name={t('Games played')} stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={series.isHidden('games')} />
                             <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </ComposedChart>
                     </ResponsiveContainer>

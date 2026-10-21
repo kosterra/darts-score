@@ -3,6 +3,7 @@ import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContai
 import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
+import { t } from '../../../utils/i18n';
 
 /**
  * A value of every player over the rounds of a game, one line per player.
@@ -10,7 +11,7 @@ import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
  * at the value to reach, "unit" follows the values in the tooltip and
  * "step" names what is counted ("Round", or "Visit" for every visit).
  */
-const RoundsLineChart = ({ title, description, data, players, max, target, unit, step = 'Round' }) => {
+const RoundsLineChart = ({ title, description, data, players, max, target, unit, step = t('Round') }) => {
     const series = useHiddenSeries();
     return (
         <ChartCard title={title} description={description}>
@@ -20,7 +21,7 @@ const RoundsLineChart = ({ title, description, data, players, max, target, unit,
                     <XAxis dataKey="round" {...AXIS} allowDecimals={false} label={{ value: step, position: 'insideBottomRight', offset: -2, fill: '#7a7a7a', fontSize: 11 }} />
                     <YAxis {...AXIS} domain={[0, max ?? target ?? 'auto']} allowDecimals={false} />
                     {target && <ReferenceLine y={target} stroke="#ffc94d" strokeDasharray="4 4" label={{ value: `Target ${target}`, position: 'insideTopLeft', fill: '#ffc94d', fontSize: 11 }} />}
-                    <Tooltip {...TOOLTIP} labelFormatter={(round) => round === 0 ? 'Start' : `${step} ${round}`} formatter={(value) => unit ? `${value} ${unit}` : value} />
+                    <Tooltip {...TOOLTIP} labelFormatter={(round) => round === 0 ? t('Start') : `${step} ${round}`} formatter={(value) => unit ? `${value} ${unit}` : value} />
                     {players.map((player, index) => (
                         <Line key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} hide={series.isHidden(player.id)} />
                     ))}

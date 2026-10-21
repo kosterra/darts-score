@@ -91,7 +91,7 @@ const ClockGameStats = () => {
                 <GameResultHeader
                     game={game}
                     players={players}
-                    title={t('Around the Clock · {{mode}}', { mode: game.mode })}
+                    title={t('Around the Clock · {{mode}}', { mode: t(game.mode) })}
                     subtitle={`${skipsAhead(game) ? t('Doubles and trebles move on · ') : ''}${whenPlayed(game)}`}
                     scoreOf={(player) => resultOf(player.id).finished ? resultOf(player.id).darts : targetLabel(resultOf(player.id).target, game.mode)}
                     scoreDetailOf={(player) => resultOf(player.id).finished ? t('darts to finish') : t('next to hit')}

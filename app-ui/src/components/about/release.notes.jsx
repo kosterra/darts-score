@@ -24,7 +24,7 @@ const Change = ({ change }) => {
     const { fix, topic, text } = describe(change);
     return (
         <li className="release-change">
-            <Tag value={fix ? 'Fix' : 'New'} severity={fix ? 'warning' : 'success'} className="release-change-kind" />
+            <Tag value={fix ? t('Fix') : t('New')} severity={fix ? 'warning' : 'success'} className="release-change-kind" />
             <span className="fs-7 text-subtle">
                 {topic && <strong className="text-default fw-semibold">{topic}: </strong>}
                 {text}

@@ -18,7 +18,7 @@ const TYPE_COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6'
  * big numbers, and counts and club records as chips.
  */
 const ClubKpisWidget = ({ widget, kpis, totals, players }) => {
-    const nameOf = (id) => players.get(id)?.nickname ?? 'Unknown';
+    const nameOf = (id) => players.get(id)?.nickname ?? t('Unknown');
     const monthTrend = kpis.gamesThisMonth - kpis.gamesLastMonth;
     const TrendIcon = monthTrend >= 0 ? FaArrowTrendUp : FaArrowTrendDown;
 

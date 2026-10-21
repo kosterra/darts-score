@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import { getHeaders, requestJSON } from '../utils/service.utils';
 
 const API_URL = '/api/clubs';
@@ -46,7 +47,7 @@ const uploadLogo = async (clubId, file) => {
     const formData = new FormData();
     formData.append('logo', file);
     const response = await fetch(`${API_URL}/${clubId}/logo`, { method: 'PUT', headers: getHeaders(false), body: formData });
-    const data = await response.json().catch(() => ({}));
+    const data = translateAnswer(await response.json().catch(() => ({})));
     if (!response.ok) throw new Error(data.errors?.join(' ') || data.message || response.statusText);
     return data;
 };

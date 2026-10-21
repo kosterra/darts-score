@@ -29,6 +29,10 @@ const saveDashboard = (clubId, layout) =>
 const updateProfile = (profile) =>
     requestJSON(API_URL + 'me', { method: 'PUT', body: profile });
 
+// the language of the app, saved on the account; the user
+const saveLanguage = (language) =>
+    requestJSON(API_URL + 'language', { method: 'PUT', body: { language } });
+
 const changePassword = (currentPassword, newPassword) =>
     requestJSON(API_URL + 'password', { method: 'PUT', body: { currentPassword, newPassword } });
 
@@ -72,6 +76,7 @@ const AuthService = {
     logout,
     updateProfile,
     saveDashboard,
+    saveLanguage,
     changePassword
 };
 

@@ -14,7 +14,7 @@ import { useAuth } from '../../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../../utils/use.my.players';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 
@@ -91,7 +91,7 @@ const MeWidget = ({ widget }) => {
                             <div className="me-widget-tile">
                                 <span className="me-widget-label">{t('Games')}</span>
                                 <span className="me-widget-value">{formatNumber(games)}</span>
-                                {games > 0 && <span className="text-faint fs-8">{formatNumber(wins)}{' '}{t('won')}</span>}
+                                {games > 0 && <span className="text-faint fs-8">{tn(wins, '{{count}} won', '{{count}} won', { count: formatNumber(wins) })}</span>}
                             </div>
                             <div className="me-widget-tile">
                                 <span className="me-widget-label">{t('Form')}</span>

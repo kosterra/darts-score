@@ -1,6 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { ROLES } from '../models/user.model.js';
+import { LANGUAGES, ROLES } from '../models/user.model.js';
 import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
@@ -17,7 +17,7 @@ const User = db.user;
 
 export const register = async (req, res) => {
     logger.debug('auth register called');
-    const { email, password, firstname, lastname } = req.body;
+    const { email, password, firstname, lastname, language } = req.body;
 
     const refused = await checkRegistration(req);
     if (refused) return res.status(refused.status).json({ message: refused.message });
@@ -32,6 +32,7 @@ export const register = async (req, res) => {
         lastname,
         passwordHash: await hashPassword(password),
         role: ROLES.USER,
+        language: LANGUAGES.includes(language) ? language : null,
     });
     logger.info(`Registered user ${user.email}`);
     checkLater(() => noteRegistration(req, user));
@@ -87,6 +88,13 @@ export const setDashboard = async (req, res) => {
     req.user.dashboards = Array.isArray(req.body.layout)
         ? [...others, { club: club._id, layout: normalizeLayout(req.body.layout) }]
         : others;
+    await req.user.save();
+    res.json(req.user);
+};
+
+// the language of the app, saved on the account: { language }
+export const setLanguage = async (req, res) => {
+    req.user.language = req.body.language;
     await req.user.save();
     res.json(req.user);
 };

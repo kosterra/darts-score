@@ -41,7 +41,7 @@ const PlayerLevel = ({ level }) => {
                     {formatNumber(level.xp)}{' '}{t('XP ·')}{' '}{level.next ? <>{t('next:')}{' '}<span className="text-default">{level.next.name}</span></> : t('the highest level')}
                 </span>
                 {level.next?.missing.length > 0 &&
-                    <span className="text-faint fs-8">{t('needs')}{' '}{level.next.missing.map(entry => missingText(entry, level)).join(' and ')}</span>
+                    <span className="text-faint fs-8">{t('needs')}{' '}{level.next.missing.map(entry => missingText(entry, level)).join(` ${t('and')} `)}</span>
                 }
             </div>
             <button type="button" className="level-help" onClick={() => setOpen(true)}><i className="pi pi-info-circle me-1" aria-hidden="true" />{t('How levels work')}</button>

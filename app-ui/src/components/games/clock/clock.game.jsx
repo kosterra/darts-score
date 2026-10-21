@@ -92,7 +92,7 @@ const ClockGame = () => {
         <div className="col-12 clock-game">
             <div className="d-flex justify-content-center mb-4">
                 <div className="d-flex flex-column align-items-center rounded-bottom-4 bg-surface-translucent p-2 px-4">
-                    <div className="text-default fw-semibold fs-7">{t('Around the Clock ·')}{' '}{game.mode}</div>
+                    <div className="text-default fw-semibold fs-7">{t('Around the Clock ·')}{' '}{t(game.mode)}</div>
                     <div className="text-faint fs-8">{skipsAhead(game) ? t('Doubles and trebles move on · ') : ''}{t('first to finish wins')}</div>
                 </div>
             </div>

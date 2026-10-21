@@ -467,3 +467,36 @@
 
     @media (max-width: 575.98px) { padding: 1.5rem; }
 }
+
+// the language before logging in: the code with a globe, as small as the buttons next to it
+.language-switch.p-dropdown {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.12);
+
+    .p-dropdown-label {
+        padding: 0.4rem 0.65rem;
+        font-size: 0.875rem;
+        color: var(--text-subtle);
+    }
+
+    // the globe says it is a choice; the arrow would only take room
+    .p-dropdown-trigger { display: none; }
+
+    &:hover .p-dropdown-label { color: var(--text-default); }
+}
+
+@media (max-width: 575.98px) {
+    // a phone has room for the brand, the language and the two buttons only when they keep tight
+    .landing-bar {
+        gap: 0.5rem;
+
+        .p-button.p-button-sm { padding-left: 0.6rem; padding-right: 0.6rem; }
+    }
+
+    .language-switch.p-dropdown .p-dropdown-label { padding: 0.4rem 0.5rem; }
+}
+
+// the smallest phones: the logo alone says Oche, so the buttons keep their words
+@media (max-width: 399.98px) {
+    .landing-bar .landing-brand-name { display: none; }
+}

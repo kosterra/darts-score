@@ -29,7 +29,7 @@ const ClubFormWidget = ({ widget, gameLog }) => {
                                 <CartesianGrid {...GRID} />
                                 <XAxis dataKey="label" {...AXIS} interval="preserveStartEnd" />
                                 <YAxis {...AXIS} domain={[0, 'auto']} />
-                                <Tooltip {...TOOLTIP} formatter={(value) => [value, 'Average']} />
+                                <Tooltip {...TOOLTIP} formatter={(value) => [value, t('Average')]} />
                                 <Area dataKey="average" type="monotone" stroke="#7ecca5" strokeWidth={2} fill="url(#club-form-fill)" dot={{ r: 3, fill: '#7ecca5' }} />
                             </AreaChart>
                         </ResponsiveContainer>

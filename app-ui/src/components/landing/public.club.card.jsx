@@ -16,8 +16,8 @@ const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
  */
 const PublicClubCard = ({ club }) => {
     const figures = [
-        ['Players', formatNumber(club.playerCount)],
-        ['Games', formatNumber(club.gamesPlayed)],
+        [t('Players'), formatNumber(club.playerCount)],
+        [t('Games'), formatNumber(club.gamesPlayed)],
         [t('Last 30 days'), formatNumber(club.gamesLast30Days)],
         [t('X01 average'), club.x01Average != null ? club.x01Average.toFixed(1) : '–'],
         ['180s', formatNumber(club.num180s)],

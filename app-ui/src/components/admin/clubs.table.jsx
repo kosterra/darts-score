@@ -88,7 +88,7 @@ const ClubsTable = () => {
         </div>
     );
 
-    const visibilityBody = (club) => <Tag value={club.isPublic ? 'Public' : 'Private'} severity={club.isPublic ? 'success' : 'secondary'} />;
+    const visibilityBody = (club) => <Tag value={club.isPublic ? t('Public') : t('Private')} severity={club.isPublic ? 'success' : 'secondary'} />;
 
     const adminsBody = (club) => club.needsAdmin
         ? <Tag value={t('Needs an admin')} severity="warning" />

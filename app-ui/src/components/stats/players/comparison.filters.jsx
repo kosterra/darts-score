@@ -11,8 +11,8 @@ const GAME_TYPES = [
     { label: t('Cricket'), value: 'cricket' },
     { label: t('Elimination'), value: 'elimination' },
 ];
-const PERIODS = ['1 D', '1 W', '1 M', '1 Y', 'All', 'Custom'].map(value => ({ label: value === 'Custom' ? t('Dates') : value, value }));
-const LAST_GAMES = [5, 10, 20, 'All'].map(value => ({ label: String(value), value }));
+const PERIODS = ['1 D', '1 W', '1 M', '1 Y', 'All', 'Custom'].map(value => ({ label: value === 'Custom' ? t('Dates') : value === 'All' ? t('All') : value, value }));
+const LAST_GAMES = [5, 10, 20, 'All'].map(value => ({ label: value === 'All' ? t('All') : String(value), value }));
 const STARTING_SCORES = [
     { label: t('Any score'), value: 'All' },
     ...[101, 301, 501, 701, 1001].map(value => ({ label: String(value), value })),

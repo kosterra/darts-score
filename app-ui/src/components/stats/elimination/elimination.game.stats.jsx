@@ -139,7 +139,7 @@ const EliminationGameStats = () => {
                             players={players}
                             target={target}
                             unit="points"
-                            step="Visit"
+                            step={t('Visit')}
                         />
                     </div>
                     <div className="col-12 col-xl-5">

@@ -17,8 +17,8 @@ const INITIAL_GAMES = 8;
 const dayLabel = (date) => {
     const day = dayjs(date).startOf('day');
     const today = dayjs().startOf('day');
-    if (day.isSame(today)) return 'Today';
-    if (day.isSame(today.subtract(1, 'day'))) return 'Yesterday';
+    if (day.isSame(today)) return t('Today');
+    if (day.isSame(today.subtract(1, 'day'))) return t('Yesterday');
     return day.format('dddd, DD.MM.YYYY');
 };
 

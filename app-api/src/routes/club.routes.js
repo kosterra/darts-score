@@ -29,7 +29,7 @@ export default (app) => {
         param('id').isMongoId().withMessage('Invalid club.'),
         body('nickname').optional({ values: 'falsy' }).isString().trim()
             .isLength({ min: 3, max: 25 }).withMessage('Nickname must be between 3 and 25 characters.')
-            .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Nickname contains invalid characters.'),
+            .matches(/^[\p{L}\s'-]+$/u).withMessage('Nickname contains invalid characters.'),
         body('message').optional().isString().isLength({ max: 300 }).withMessage('The message is at most 300 characters.'),
         validate,
         ClubJoinController.join

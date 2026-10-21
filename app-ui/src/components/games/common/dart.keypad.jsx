@@ -54,7 +54,7 @@ const DartKeypad = ({ canThrow, onDart, onClearLast, entered, numbers = ALL_NUMB
         <div className={`x01-keypad ${ring ? `is-${ring === 'D' ? 'double' : 'treble'}` : ''} ${className}`} aria-label={t('Keypad')}>
             {/* the ring of the next dart: Single is always there to go back to */}
             <div className="x01-keypad-rings" role="radiogroup" aria-label={t('Ring of the next dart')}>
-                {[[null, 'Single'], ['D', 'Double'], ['T', 'Treble']].map(([value, label]) => (
+                {[[null, t('Single')], ['D', t('Double')], ['T', t('Treble')]].map(([value, label]) => (
                     <button
                         key={label}
                         type="button"

@@ -54,7 +54,7 @@ const AdministrationPage = () => {
     const system = overview?.system;
     const systemRows = system ? [
         [t('App version'), import.meta.env.VITE_APP_VERSION],
-        ['Environment', system.environment],
+        [t('Environment'), system.environment],
         ['Node.js', system.nodeVersion],
         [t('Mail'), <Tag key="mail" value={system.mailEnabled ? t('Configured') : t('Not configured')} severity={system.mailEnabled ? 'success' : 'warning'} />],
         [t('Database size'), formatBytes(system.databaseSize)],
@@ -63,7 +63,7 @@ const AdministrationPage = () => {
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
             <div className="row g-3">
-                {[['Clubs', 'clubs'], ['Users', 'users'], ['Players', 'players'], ['Games', 'games']].map(([label, key]) => (
+                {[[t('Clubs'), 'clubs'], [t('Users'), 'users'], [t('Players'), 'players'], [t('Games'), 'games']].map(([label, key]) => (
                     <div key={key} className="col-6 col-lg-3">
                         <StatTile label={label} value={overview?.totals[key] ?? '–'} />
                     </div>

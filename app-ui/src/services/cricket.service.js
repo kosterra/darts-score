@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders
 } from '../utils/service.utils';
@@ -17,7 +18,7 @@ const createCricketGame = async (game) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error);
     }
@@ -48,7 +49,7 @@ const loadAllCricketGames = async () => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error);
     }
@@ -65,7 +66,7 @@ const loadCricketGameById = async (id) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error);
     }

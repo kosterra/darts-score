@@ -10,6 +10,7 @@ import PublicGameCard from './public.game.card';
 import PublicClubCard from './public.club.card';
 import { ShowcaseShot, PhoneShot } from './showcase.shot';
 import { t } from '../../utils/i18n';
+import LanguageSwitch from '../elements/language.switch';
 
 const REFRESH_MS = 15 * 1000;
 
@@ -109,7 +110,7 @@ const LandingPage = () => {
             <header className="landing-bar">
                 <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
                     <img alt="" src="/logo.svg" width="40" height="40" />
-                    <span className="fs-5 fw-semibold text-default">{t('Oche')}</span>
+                    <span className="fs-5 fw-semibold text-default landing-brand-name">{t('Oche')}</span>
                 </Link>
                 <nav className="landing-nav" aria-label={t('Sections')}>
                     <a href="#features">{t('Features')}</a>
@@ -117,7 +118,8 @@ const LandingPage = () => {
                     {(liveGames.length > 0 || results.length > 0) && <a href="#live">{liveGames.length > 0 ? t('Live') : t('Results')}</a>}
                     <a href="#faq">{t('FAQ')}</a>
                 </nav>
-                <nav className="d-flex gap-2" aria-label={t('Account')}>
+                <nav className="d-flex align-items-center gap-2" aria-label={t('Account')}>
+                    <LanguageSwitch />
                     <Link to="/login"><Button label={t('Log in')} size="small" outlined /></Link>
                     <Link to="/register"><Button label={t('Register')} size="small" /></Link>
                 </nav>

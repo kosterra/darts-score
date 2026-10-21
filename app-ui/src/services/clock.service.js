@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import { getHeaders } from '../utils/service.utils';
 
 const API_URL = '/api/games/clock';
@@ -5,7 +6,7 @@ const API_URL = '/api/games/clock';
 const request = async (url, options = {}) => {
     const response = await fetch(url, options);
     if (!response.ok) throw new Error(response.statusText);
-    return response.json();
+    return translateAnswer(await response.json());
 };
 
 const createClockGame = (game) => request(API_URL, { method: 'POST', headers: getHeaders(true), body: JSON.stringify(game) });

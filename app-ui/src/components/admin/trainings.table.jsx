@@ -37,7 +37,7 @@ const WHOSE_OPTIONS = [
 // "All" is itself a training mode (every segment), so the filter for every mode is called "Any"
 const MODE_OPTIONS = [
     { label: t('Any'), value: 'any' },
-    ...['Single', 'Double', 'Triple', 'All'].map(mode => ({ label: mode, value: mode })),
+    ...['Single', 'Double', 'Triple', 'All'].map(mode => ({ label: t(mode), value: mode })),
 ];
 
 // a training against the bot as a row: { kind, id, createdAt, club, player, what, won, legs, averages }
@@ -165,7 +165,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
         )
         : (
             <span className="d-flex flex-column">
-                <span className="text-default fw-semibold text-nowrap">{row.finished ? `${row.won ? 'Won' : 'Lost'} ${row.legs}` : t('Running {{legs}}', { legs: row.legs })}</span>
+                <span className="text-default fw-semibold text-nowrap">{row.finished ? `${row.won ? t('Won') : t('Lost')} ${row.legs}` : t('Running {{legs}}', { legs: row.legs })}</span>
                 {row.averages[0] != null && <span className="text-faint fs-8 text-nowrap">{row.averages[0].toFixed(1)}{' '}{t('against the bot\'s')}{' '}{row.averages[1]?.toFixed(1) ?? '–'}</span>}
             </span>
         );

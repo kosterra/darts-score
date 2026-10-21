@@ -135,8 +135,8 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = t('Averag
                             {single
                                 ? (
                                     <>
-                                        <Area type="monotone" dataKey="average" name={byPeriod ? `Average per ${period}` : 'Game average'} stroke={PLAYER_COLORS[0]} fill={PLAYER_COLORS[0]} fillOpacity={0.18} strokeOpacity={0.5} dot={false} hide={series.isHidden('average')} />
-                                        <Line type="monotone" dataKey="moving" name="Trend" stroke="#efe6d0" strokeWidth={2.5} dot={withLevels ? markersOf('moving') : false} activeDot={{ r: 4 }} isAnimationActive={!withLevels} hide={series.isHidden('moving')} />
+                                        <Area type="monotone" dataKey="average" name={byPeriod ? (period === 'quarter' ? t('Average per quarter') : t('Average per month')) : t('Game average')} stroke={PLAYER_COLORS[0]} fill={PLAYER_COLORS[0]} fillOpacity={0.18} strokeOpacity={0.5} dot={false} hide={series.isHidden('average')} />
+                                        <Line type="monotone" dataKey="moving" name={t('Trend')} stroke="#efe6d0" strokeWidth={2.5} dot={withLevels ? markersOf('moving') : false} activeDot={{ r: 4 }} isAnimationActive={!withLevels} hide={series.isHidden('moving')} />
                                         {overall > 0 &&
                                             <ReferenceLine y={overall} stroke={PLAYER_COLORS[1]} strokeDasharray="6 4" label={{ value: `Ø ${overall}`, fill: PLAYER_COLORS[1], fontSize: 12, position: 'insideTopRight' }} />
                                         }

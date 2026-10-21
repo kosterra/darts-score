@@ -75,8 +75,8 @@ const Dashboard = () => {
     const { club, totals } = stats;
     const facts = [
         [t('Club since'), formatDate(club.createdAt)],
-        ['Players', club.playerCount],
-        ['Admins', club.adminCount],
+        [t('Players'), club.playerCount],
+        [t('Admins'), club.adminCount],
         [t('Games played'), totals.gamesPlayed],
         [t('Last game'), formatDate(totals.lastGameAt)],
     ];
@@ -143,7 +143,7 @@ const Dashboard = () => {
                 <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 18rem' }}>
                     <div className="d-flex flex-wrap align-items-center gap-3">
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{club.name}</h1>
-                        <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
+                        <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />
                     </div>
                     {club.description && <p className="text-subtle m-0" style={{ maxWidth: '60ch' }}>{club.description}</p>}
                     <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">

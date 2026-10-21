@@ -16,7 +16,7 @@ const nameRule = (field, label, optional = false) => {
         .trim()
         .notEmpty().withMessage(`${label} is required.`)
         .isLength({ min: 3, max: 25 }).withMessage(`${label} must be between 3 and 25 characters.`)
-        .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage(`${label} contains invalid characters.`);
+        .matches(/^[\p{L}\s'-]+$/u).withMessage(`${label} contains invalid characters.`);
 };
 const birthRule = (optional = false) => (optional ? body('dateOfBirth').optional({ values: 'falsy' }) : body('dateOfBirth').notEmpty().withMessage('Date of birth is required.'))
     .bail()
@@ -43,17 +43,17 @@ const playerValidator = [
         .trim()
         .notEmpty().withMessage('Firstname is required.')
         .isLength({ min: 3, max: 25 }).withMessage('Firstname must be between 3 and 25 characters.')
-        .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Firstname contains invalid characters.'),
+        .matches(/^[\p{L}\s'-]+$/u).withMessage('Firstname contains invalid characters.'),
     body('lastname')
         .trim()
         .notEmpty().withMessage('Lastname is required.')
         .isLength({ min: 3, max: 25 }).withMessage('Lastname must be between 3 and 25 characters.')
-        .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Lastname contains invalid characters.'),
+        .matches(/^[\p{L}\s'-]+$/u).withMessage('Lastname contains invalid characters.'),
     body('nickname')
         .trim()
         .notEmpty().withMessage('Nickname is required.')
         .isLength({ min: 3, max: 25 }).withMessage('Nickname must be between 3 and 25 characters.')
-        .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Nickname contains invalid characters.'),
+        .matches(/^[\p{L}\s'-]+$/u).withMessage('Nickname contains invalid characters.'),
     // a real day in the past, at most 110 years ago
     body('dateOfBirth')
         .notEmpty().withMessage('Date of birth is required.')
@@ -86,7 +86,7 @@ export default (app) => {
             .trim()
             .notEmpty().withMessage('Name is required.')
             .isLength({ min: 2, max: 25 }).withMessage('Name must be between 2 and 25 characters.')
-            .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Name contains invalid characters.'),
+            .matches(/^[\p{L}\s'-]+$/u).withMessage('Name contains invalid characters.'),
         validate,
         PlayerController.createGuest
     );

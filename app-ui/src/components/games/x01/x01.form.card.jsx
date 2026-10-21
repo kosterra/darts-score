@@ -47,8 +47,8 @@ const X01FormCard = ({ game, playerId }) => {
 
     const figures = [
         [t('Last 3'), form.recentAverage],
-        ['Leg', form.legAverage],
-        ['Game', form.gameAverage],
+        [t('Leg'), form.legAverage],
+        [t('Game'), form.gameAverage],
     ];
 
     return (

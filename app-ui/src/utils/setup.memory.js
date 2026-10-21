@@ -56,15 +56,15 @@ export const fitToPlayers = (settings, playerCount) => {
 // common X01 formats, applied with one tap
 export const X01_QUICK_FORMATS = [
     {
-        name: '501 Double Out · Best of 3 legs',
+        name: t('501 Double Out · Best of 3 legs'),
         settings: { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3 },
     },
     {
-        name: '501 Double Out · Best of 3 sets',
+        name: t('501 Double Out · Best of 3 sets'),
         settings: { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 3, legMode: 'Best of', numberOfLegs: 3 },
     },
     {
-        name: '301 Double In / Double Out · Best of 3 legs',
+        name: t('301 Double In / Double Out · Best of 3 legs'),
         settings: { startingScore: 301, legInMode: 'Double In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3 },
     },
     {
