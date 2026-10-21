@@ -1,12 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { SplitButton } from 'primereact/splitbutton';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
-import { PiShuffle } from "react-icons/pi";
-import { PiUserSwitch } from "react-icons/pi";
-import { MdReplay } from "react-icons/md";
 
 import StatsService from '../../../services/stats.service';
 import PlayerService from '../../../services/player.service';
@@ -16,6 +11,7 @@ import X01TrainingService from '../../../services/x01.training.service';
 import { BOT_ID, botPlayer } from '../../../utils/x01.bot';
 import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import GameResultHeader from '../common/game.result.header';
+import GameResultActions from '../common/game.result.actions';
 import MatchMoments from '../common/match.moments';
 import { plural, whenPlayed } from '../common/game.text';
 import X01LegsPanel from './x01.legs.panel';
@@ -158,24 +154,7 @@ const X01GameStats = ({ training = false }) => {
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: `Set ${i + 1}`, value: `set-${i + 1}` })),
     ];
 
-    const actions = (
-        <>
-            <SplitButton
-                label="Play again"
-                icon={<MdReplay className="me-2 fs-5" />}
-                onClick={() => onRestartGame()}
-                size="small"
-                severity="primary"
-                menuClassName="p-splitbutton-menu-primary"
-                model={[
-                    { label: 'Switch players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
-                    { label: 'Shuffle players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
-                ]}
-            />
-            <Button label="New game" icon="pi pi-plus" onClick={onNewGame} size="small" outlined severity="primary" />
-            <Button label="Home" icon="pi pi-home" onClick={onFinishGame} size="small" outlined />
-        </>
-    );
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} onHome={onFinishGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">

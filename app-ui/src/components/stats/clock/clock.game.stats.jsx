@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
-import { SplitButton } from 'primereact/splitbutton';
-import { PiShuffle, PiUserSwitch } from 'react-icons/pi';
-import { MdReplay } from 'react-icons/md';
 
 import ClockService from '../../../services/clock.service';
 import PlayerService from '../../../services/player.service';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import GameResultHeader from '../common/game.result.header';
+import GameResultActions from '../common/game.result.actions';
 import { whenPlayed } from '../common/game.text';
 import RoundsLineChart from '../charts/rounds.line.chart';
 import { PLAYER_COLORS } from '../charts/chart.theme';
@@ -81,24 +78,7 @@ const ClockGameStats = () => {
         navigate(`/clock/${created.id}`);
     };
 
-    const actions = (
-        <>
-            <SplitButton
-                label="Play again"
-                icon={<MdReplay className="me-2 fs-5" />}
-                onClick={() => onRestartGame()}
-                size="small"
-                severity="primary"
-                menuClassName="p-splitbutton-menu-primary"
-                model={[
-                    { label: 'Switch players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
-                    { label: 'Shuffle players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) },
-                ]}
-            />
-            <Button label="New game" icon="pi pi-plus" onClick={() => navigate('/clock', { replace: true })} size="small" outlined severity="primary" />
-            <Button label="Home" icon="pi pi-home" onClick={() => navigate('/', { replace: true })} size="small" outlined />
-        </>
-    );
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/clock', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
 
     const winners = players.filter(player => game.playerModels?.[player.id]?.hasWonGame);
 

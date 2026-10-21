@@ -1,15 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { SplitButton } from 'primereact/splitbutton';
-import { PiShuffle, PiUserSwitch } from 'react-icons/pi';
-import { MdReplay } from 'react-icons/md';
 
 import PlayerService from '../../../services/player.service';
 import CricketService from '../../../services/cricket.service';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import GameResultHeader from '../common/game.result.header';
+import GameResultActions from '../common/game.result.actions';
 import MatchMoments from '../common/match.moments';
 import { whenPlayed } from '../common/game.text';
 import HitsHeatmapChart from '../charts/hits.heatmap.chart';
@@ -87,24 +84,7 @@ const CricketGameStats = () => {
         navigate(`/cricket/${newGame.id}`);
     };
 
-    const actions = (
-        <>
-            <SplitButton
-                label="Play again"
-                icon={<MdReplay className="me-2 fs-5" />}
-                onClick={() => onRestartGame()}
-                size="small"
-                severity="primary"
-                menuClassName="p-splitbutton-menu-primary"
-                model={[
-                    { label: 'Switch players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
-                    { label: 'Shuffle players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
-                ]}
-            />
-            <Button label="New game" icon="pi pi-plus" onClick={() => navigate('/cricket', { replace: true })} size="small" outlined severity="primary" />
-            <Button label="Home" icon="pi pi-home" onClick={() => navigate('/', { replace: true })} size="small" outlined />
-        </>
-    );
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/cricket', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
 
     return (
         <div className="container-fluid p-4 border-0">

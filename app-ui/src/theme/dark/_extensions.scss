@@ -173,27 +173,6 @@
         }
     }
 
-    // Dropdown menu of a primary SplitButton, coloured like the button itself
-    .p-tieredmenu.p-splitbutton-menu-primary {
-        background: $buttonBg;
-
-        .p-menuitem {
-            > .p-menuitem-content,
-            > .p-menuitem-content .p-menuitem-link,
-            > .p-menuitem-content .p-menuitem-link .p-menuitem-text,
-            > .p-menuitem-content .p-menuitem-link .p-menuitem-icon {
-                color: $buttonTextColor;
-            }
-
-            &:not(.p-highlight):not(.p-disabled) {
-                &.p-focus > .p-menuitem-content,
-                > .p-menuitem-content:hover {
-                    background: $buttonHoverBg;
-                }
-            }
-        }
-    }
-
     .p-carousel {
         .p-carousel-indicators .p-carousel-indicator.p-highlight button {
             background-color: $primaryColor;
@@ -296,5 +275,17 @@
                 }
             }
         }
+    }
+}
+
+// Secondary text and outlined buttons: the secondary colour is a dark grey, as text it hardly shows
+.p-button.p-button-secondary.p-button-text,
+.p-button.p-button-secondary.p-button-outlined {
+    color: var(--text-subtle);
+
+    &:not(:disabled):hover,
+    &:not(:disabled):active {
+        color: var(--text-default);
+        background: rgba(255, 255, 255, 0.06);
     }
 }
