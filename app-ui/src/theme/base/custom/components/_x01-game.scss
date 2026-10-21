@@ -121,11 +121,10 @@
   cursor: help;
 }
 
+// the player at the oche: a label like the others, readable from a distance
 .x01-live-turn {
-  color: var(--text-subtle);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  @include label-shape;
+  @include label-tone($labelGreen);
 }
 
 .x01-live-starter {
