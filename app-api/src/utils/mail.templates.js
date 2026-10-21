@@ -5,6 +5,11 @@
  * layout: the name of the app on top, the text, the button, a short footer.
  */
 
+import { TEMPLATE_TEXTS, layoutOf } from './mail.languages.js';
+
+// the languages a mail can be written in; English is the default
+export const MAIL_LANGUAGES = ['en', 'de', 'fr', 'it', 'es'];
+
 const COMMON = [
     { key: 'firstname', description: 'First name of the person the mail is for', sample: 'Anna' },
     { key: 'link', description: 'The link of the button (also as plain text below it)', sample: 'https://oche.example.com/reset-password?token=…' },
@@ -69,15 +74,26 @@ export const LIMITS = { subject: 150, body: 4000, button: 40 };
 
 const templateOf = (id) => MAIL_TEMPLATES.find(template => template.id === id);
 
-// what the template is now: the defaults with what the global admins changed
-export const effectiveTemplate = (id, overrides = {}) => {
+// the default texts of a template in a language: { subject, body, button }
+export const defaultsOf = (id, language = 'en') => {
     const template = templateOf(id);
     if (!template) return null;
-    const own = overrides[id] ?? {};
+    const { subject, body, button } = TEMPLATE_TEXTS[language]?.[id] ?? template;
+    return { subject, body, button };
+};
+
+// where what the global admins changed is kept: English under the id, the other languages beside it
+export const overrideKey = (id, language = 'en') => language === 'en' ? id : `${id}:${language}`;
+
+// what the template is now: the defaults of the language with what the global admins changed
+export const effectiveTemplate = (id, overrides = {}, language = 'en') => {
+    const defaults = defaultsOf(id, language);
+    if (!defaults) return null;
+    const own = overrides[overrideKey(id, language)] ?? {};
     return {
-        subject: own.subject ?? template.subject,
-        body: own.body ?? template.body,
-        button: own.button ?? template.button,
+        subject: own.subject ?? defaults.subject,
+        body: own.body ?? defaults.body,
+        button: own.button ?? defaults.button,
     };
 };
 
@@ -103,18 +119,32 @@ const fill = (text, vars, escape = (value) => value) => text.replace(/\{\{\s*([A
 export const escapeHtml = (value) => String(value)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-// the samples of a template, for the preview and the test mail
-export const sampleVars = (id) => Object.fromEntries((templateOf(id)?.placeholders ?? []).map(placeholder => [placeholder.key, placeholder.sample]));
+/**
+ * How long a link works, in words of the language: "1 hour", "7 days".
+ */
+export const validityOf = (hours, language = 'en') => {
+    const { hour, day } = layoutOf(language);
+    const [count, [one, other]] = hours % 24 === 0 ? [hours / 24, day] : [hours, hour];
+    return `${count} ${count === 1 ? one : other}`;
+};
+
+// the samples of a template, for the preview and the test mail (the validity in the language)
+export const sampleVars = (id, language = 'en') => Object.fromEntries((templateOf(id)?.placeholders ?? []).map(placeholder => [
+    placeholder.key,
+    placeholder.key === 'validity' ? validityOf(placeholder.sample === '1 hour' ? 1 : 7 * 24, language) : placeholder.sample,
+]));
 
 const BRAND = '#528b6e';
 
 /**
  * The mail ready to send: { subject, text, html }. vars fill the placeholders
- * (link: the address behind the button, appUrl: the installation).
+ * (link: the address behind the button, appUrl: the installation); the
+ * layout around the text is in the language of the mail.
  */
-export const renderMail = ({ subject, body, button }, vars) => {
+export const renderMail = ({ subject, body, button }, vars, language = 'en') => {
+    const layout = layoutOf(language);
     const filledBody = fill(body, vars);
-    const footer = `This email was sent by Oche${vars.appUrl ? ` (${vars.appUrl})` : ''}. If you did not expect it, you can ignore it.`;
+    const footer = layout.footer(vars.appUrl);
     const text = `${filledBody}\n\n${fill(button, vars)}: ${vars.link}\n\n--\n${footer}\n`;
 
     const paragraphs = fill(body, vars, escapeHtml)
@@ -123,7 +153,7 @@ export const renderMail = ({ subject, body, button }, vars) => {
         .join('');
     const link = escapeHtml(vars.link ?? '');
     const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(fill(subject, vars))}</title></head>
+<html lang="${MAIL_LANGUAGES.includes(language) ? language : 'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(fill(subject, vars))}</title></head>
 <body style="margin:0;padding:0;background:#f2f3f1;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f3f1;padding:24px 12px;">
 <tr><td align="center">
@@ -132,7 +162,7 @@ export const renderMail = ({ subject, body, button }, vars) => {
 <tr><td style="padding:28px 28px 8px;font-size:15px;line-height:1.6;">${paragraphs}</td></tr>
 <tr><td style="padding:0 28px 28px;">
 <a href="${link}" style="display:inline-block;background:${BRAND};color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:6px;">${escapeHtml(fill(button, vars))}</a>
-<p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#777777;">If the button does not work, copy this address into your browser:<br><a href="${link}" style="color:${BRAND};word-break:break-all;">${link}</a></p>
+<p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#777777;">${escapeHtml(layout.noButton)}<br><a href="${link}" style="color:${BRAND};word-break:break-all;">${link}</a></p>
 </td></tr>
 <tr><td style="padding:16px 28px;background:#f7f8f6;border-top:1px solid #e6e8e4;font-size:12px;line-height:1.5;color:#888888;">${escapeHtml(footer)}</td></tr>
 </table>

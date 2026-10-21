@@ -180,7 +180,7 @@ export const forgotPassword = async (req, res) => {
         const link = issuePasswordLink(user, RESET_TOKEN_HOURS);
         await user.save();
         // Mail problems are logged, not shown: the answer must not reveal whether the account exists
-        sendTemplateMail('passwordReset', user.email, { firstname: user.firstname, link, validity: validityOf(RESET_TOKEN_HOURS) })
+        sendTemplateMail('passwordReset', user.email, { firstname: user.firstname, link, validity: validityOf(RESET_TOKEN_HOURS, user.language ?? 'en') }, user.language ?? 'en')
             .catch(err => logger.error(err, 'Failed to send password reset mail'));
     }
 

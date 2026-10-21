@@ -339,7 +339,7 @@ export const giveLogin = async (req, res) => {
     }
     logger.info(`${user.email} can now log in as player "${player.nickname}" of club "${req.club.name}"`);
 
-    sendClubWelcomeMail(user, inviteLink, 'player', { club: req.club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, nickname: player.nickname });
+    sendClubWelcomeMail(user, inviteLink, 'player', { club: req.club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, nickname: player.nickname, language: req.user.language });
 
     res.send((await toClient([player], req))[0]);
 };

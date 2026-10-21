@@ -1172,9 +1172,12 @@ paths:
       tags:
         - Administration
       summary: The mails of the app with their placeholders, defaults and current texts
+      description: In one language; every user gets the mails in their own language.
+      parameters:
+        - $ref: '#/components/parameters/MailLanguage'
       responses:
         '200':
-          description: '{ mailEnabled, limits, templates: [{ id, title, description, placeholders, defaults, current, customized }] }'
+          description: '{ mailEnabled, limits, language, languages, templates: [{ id, title, description, placeholders, defaults, current, customized }] }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1193,6 +1196,7 @@ paths:
             - adminInvited
             - playerAdded
             - playerInvited
+      - $ref: '#/components/parameters/MailLanguage'
     put:
       tags:
         - Administration
@@ -1232,6 +1236,7 @@ paths:
         required: true
         schema:
           type: string
+      - $ref: '#/components/parameters/MailLanguage'
     post:
       tags:
         - Administration
@@ -1259,6 +1264,7 @@ paths:
         required: true
         schema:
           type: string
+      - $ref: '#/components/parameters/MailLanguage'
     post:
       tags:
         - Administration
@@ -4100,6 +4106,13 @@ components:
       in: cookie
       name: ds_session
   parameters:
+    MailLanguage:
+      name: language
+      in: query
+      required: false
+      description: The language of the texts (English without it)
+      schema:
+        $ref: '#/components/schemas/Language'
     ClubId:
       name: X-Club-Id
       in: header

@@ -197,7 +197,7 @@ export const addAdmin = async (req, res) => {
     await club.save();
     logger.info(`${user.email} is now an admin of club "${club.name}" (added by ${req.user.email})`);
 
-    sendClubWelcomeMail(user, inviteLink, 'admin', { club: club.name, inviter: `${req.user.firstname} ${req.user.lastname}` });
+    sendClubWelcomeMail(user, inviteLink, 'admin', { club: club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, language: req.user.language });
 
     res.status(201).json(await withAdmins(club));
 };

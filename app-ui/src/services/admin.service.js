@@ -33,11 +33,12 @@ const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT',
 
 // how long a login lasts: { timeoutHours, limits: { min, max, default } }
 // the mails of the app: their texts, a preview from a draft, a test mail to oneself
-const loadMailTemplates = () => requestJSON(`${API_URL}/mail-templates`);
-const saveMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'PUT', body: draft });
-const resetMailTemplate = (id) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'DELETE' });
-const previewMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/preview`, { method: 'POST', body: draft });
-const testMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/test`, { method: 'POST', body: draft });
+// the mails in one language: every user gets them in their own
+const loadMailTemplates = (language = 'en') => requestJSON(`${API_URL}/mail-templates?language=${language}`);
+const saveMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}?language=${language}`, { method: 'PUT', body: draft });
+const resetMailTemplate = (id, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}?language=${language}`, { method: 'DELETE' });
+const previewMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/preview?language=${language}`, { method: 'POST', body: draft });
+const testMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/test?language=${language}`, { method: 'POST', body: draft });
 
 // what the public start page shows: { showNumbers }
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);

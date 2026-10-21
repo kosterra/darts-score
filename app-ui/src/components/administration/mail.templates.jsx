@@ -5,10 +5,11 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
 import { Panel } from 'primereact/panel';
+import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 
 import AdminService from '../../services/admin.service';
-import { t } from '../../utils/i18n';
+import { LANGUAGES, currentLanguage, t } from '../../utils/i18n';
 
 const same = (a, b) => a && b && a.subject === b.subject && a.body === b.body && a.button === b.button;
 
@@ -21,6 +22,8 @@ const MailTemplates = ({ onSaved }) => {
     const [data, setData] = useState(null);
     const [error, setError] = useState('');
     const [selectedId, setSelectedId] = useState('passwordReset');
+    // every user gets the mails in their language: the texts of one language at a time
+    const [language, setLanguage] = useState(currentLanguage());
     const [draft, setDraft] = useState(null);
     const [preview, setPreview] = useState(null);
     const [previewError, setPreviewError] = useState('');
@@ -29,26 +32,27 @@ const MailTemplates = ({ onSaved }) => {
     const lastField = useRef({ name: 'body', start: null, end: null });
 
     useEffect(() => {
-        AdminService.loadMailTemplates().then(setData).catch(err => setError(err.message));
-    }, []);
+        AdminService.loadMailTemplates(language).then(setData).catch(err => setError(err.message));
+    }, [language]);
 
     const template = data?.templates.find(entry => entry.id === selectedId);
     useEffect(() => {
         if (template) setDraft({ ...template.current });
-        // only when another mail is picked, not after each save
+        // only when another mail or language is picked, not after each save
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedId, data === null]);
+    }, [selectedId, data?.language]);
 
     // the preview follows the draft, once the typing pauses
     useEffect(() => {
-        if (!draft) return undefined;
+        // the draft of the language shown, not the one before
+        if (!draft || data?.language !== language) return undefined;
         const timer = setTimeout(() => {
-            AdminService.previewMailTemplate(selectedId, draft)
+            AdminService.previewMailTemplate(selectedId, draft, language)
                 .then(result => { setPreview(result); setPreviewError(''); })
                 .catch(err => setPreviewError(err.message));
         }, 350);
         return () => clearTimeout(timer);
-    }, [draft, selectedId]);
+    }, [draft, selectedId, language, data?.language]);
 
     if (!data) return error ? <Message severity="error" text={error} /> : null;
 
@@ -85,18 +89,18 @@ const MailTemplates = ({ onSaved }) => {
         }
     };
     const save = () => run('save', async () => {
-        const saved = await AdminService.saveMailTemplate(selectedId, draft);
+        const saved = await AdminService.saveMailTemplate(selectedId, draft, language);
         replaceTemplate(saved);
         onSaved?.(t('"{{title}}" is saved.', { title: template.title }));
     });
     const reset = () => run('reset', async () => {
-        const saved = await AdminService.resetMailTemplate(selectedId);
+        const saved = await AdminService.resetMailTemplate(selectedId, language);
         replaceTemplate(saved);
         setDraft({ ...saved.current });
         onSaved?.(t('"{{title}}" is back to the default text.', { title: template.title }));
     });
     const test = () => run('test', async () => {
-        const { sentTo } = await AdminService.testMailTemplate(selectedId, draft);
+        const { sentTo } = await AdminService.testMailTemplate(selectedId, draft, language);
         onSaved?.(t('A test of "{{title}}" is on its way to {{sentTo}}.', { title: template.title, sentTo: sentTo }));
     });
 
@@ -109,6 +113,19 @@ const MailTemplates = ({ onSaved }) => {
                 <span className="text-subtle fs-7">
                     {t('The mails the app sends. Change the subject, the text and the button; placeholders like')}{' '}{t('{{firstname}}')}{' '}{t('are filled in for each mail. Paragraphs are separated by an empty line. The layout with the name of the app, the button and the footer is the same for every mail.')}
                 </span>
+                <div className="d-flex flex-column gap-1">
+                    <span className="text-subtle fs-8">{t('Language')}</span>
+                    <SelectButton
+                        value={language}
+                        options={LANGUAGES}
+                        optionLabel="label"
+                        optionValue="code"
+                        onChange={(event) => event.value && setLanguage(event.value)}
+                        className="p-selectbutton-pills flex-wrap"
+                        aria-label={t('Language of the mails')}
+                    />
+                    <span className="text-faint fs-8">{t('Everyone gets the mails in the language of their account; a new account in the language of the admin who invited them.')}</span>
+                </div>
                 {!data.mailEnabled &&
                     <Message severity="info" className="w-100 justify-content-start" text={t('Mail is not set up on this installation: no mails are sent. You can still prepare the texts.')} />}
 
@@ -119,7 +136,7 @@ const MailTemplates = ({ onSaved }) => {
                     itemTemplate={(option) => (
                         <span className="d-flex align-items-center justify-content-between gap-3 w-100">
                             {option.label}
-                            {option.customized && <Tag value="Changed" severity="info" />}
+                            {option.customized && <Tag value={t('Changed')} severity="info" />}
                         </span>
                     )}
                     aria-label={t('Mail')}

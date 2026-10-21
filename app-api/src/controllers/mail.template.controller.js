@@ -1,8 +1,10 @@
 import logger from '../models/logger.model.js';
-import { LIMITS, MAIL_TEMPLATES, effectiveTemplate, renderMail, sampleVars, templateError } from '../utils/mail.templates.js';
+import { LIMITS, MAIL_LANGUAGES, MAIL_TEMPLATES, defaultsOf, effectiveTemplate, overrideKey, renderMail, sampleVars, templateError } from '../utils/mail.templates.js';
 import { getTemplateOverrides, saveTemplateOverride } from '../utils/mail.service.js';
 import { getAppUrl, isMailConfigured, sendMail } from '../utils/mail.utils.js';
 
+// the language of the texts worked on (?language=de), English by default
+const languageOf = (req) => (MAIL_LANGUAGES.includes(req.query.language) ? req.query.language : 'en');
 const draftOf = (body) => ({ subject: String(body?.subject ?? ''), body: String(body?.body ?? ''), button: String(body?.button ?? '') });
 const known = (req, res) => {
     if (MAIL_TEMPLATES.some(template => template.id === req.params.id)) return true;
@@ -11,19 +13,24 @@ const known = (req, res) => {
 };
 
 /**
- * The mails of the app for the global admins: each with what it is for, its
- * placeholders, the default and the text it has now.
+ * The mails of the app for the global admins, in one language: each with
+ * what it is for, its placeholders, the default and the text it has now.
+ * Every user gets the mails in their own language.
  */
 export const list = async (req, res) => {
+    const language = languageOf(req);
     const overrides = await getTemplateOverrides();
     res.json({
         mailEnabled: isMailConfigured(),
         limits: LIMITS,
-        templates: MAIL_TEMPLATES.map(({ id, title, description, placeholders, subject, body, button }) => ({
-            id, title, description, placeholders,
-            defaults: { subject, body, button },
-            current: effectiveTemplate(id, overrides),
-            customized: Boolean(overrides[id]),
+        language,
+        languages: MAIL_LANGUAGES,
+        templates: MAIL_TEMPLATES.map(({ id, title, description, placeholders }) => ({
+            id, title, description,
+            placeholders: placeholders.map(placeholder => (placeholder.key === 'validity' ? { ...placeholder, sample: sampleVars(id, language).validity } : placeholder)),
+            defaults: defaultsOf(id, language),
+            current: effectiveTemplate(id, overrides, language),
+            customized: Boolean(overrides[overrideKey(id, language)]),
         })),
     });
 };
@@ -33,16 +40,16 @@ export const save = async (req, res) => {
     const draft = draftOf(req.body);
     const error = templateError(req.params.id, draft);
     if (error) return res.status(422).json({ errors: [error] });
-    await saveTemplateOverride(req.params.id, draft);
-    logger.info(`Mail template ${req.params.id} changed by ${req.user.email}`);
+    await saveTemplateOverride(req.params.id, draft, languageOf(req));
+    logger.info(`Mail template ${req.params.id} (${languageOf(req)}) changed by ${req.user.email}`);
     res.json({ current: draft, customized: true });
 };
 
 export const reset = async (req, res) => {
     if (!known(req, res)) return;
-    await saveTemplateOverride(req.params.id, null);
-    logger.info(`Mail template ${req.params.id} reset by ${req.user.email}`);
-    res.json({ current: effectiveTemplate(req.params.id), customized: false });
+    await saveTemplateOverride(req.params.id, null, languageOf(req));
+    logger.info(`Mail template ${req.params.id} (${languageOf(req)}) reset by ${req.user.email}`);
+    res.json({ current: effectiveTemplate(req.params.id, {}, languageOf(req)), customized: false });
 };
 
 /**
@@ -53,7 +60,8 @@ export const preview = async (req, res) => {
     const draft = draftOf(req.body);
     const error = templateError(req.params.id, draft);
     if (error) return res.status(422).json({ errors: [error] });
-    res.json(renderMail(draft, { ...sampleVars(req.params.id), appUrl: getAppUrl() || sampleVars(req.params.id).appUrl }));
+    const language = languageOf(req);
+    res.json(renderMail(draft, { ...sampleVars(req.params.id, language), appUrl: getAppUrl() || sampleVars(req.params.id).appUrl }, language));
 };
 
 /**
@@ -65,7 +73,8 @@ export const test = async (req, res) => {
     const draft = draftOf(req.body);
     const error = templateError(req.params.id, draft);
     if (error) return res.status(422).json({ errors: [error] });
-    const mail = renderMail(draft, { ...sampleVars(req.params.id), firstname: req.user.firstname, appUrl: getAppUrl() });
+    const language = languageOf(req);
+    const mail = renderMail(draft, { ...sampleVars(req.params.id, language), firstname: req.user.firstname, appUrl: getAppUrl() }, language);
     try {
         await sendMail({ to: req.user.email, ...mail, subject: `[Test] ${mail.subject}` });
         res.json({ sentTo: req.user.email });
