@@ -51,11 +51,15 @@ const LiveHero = ({ title, subtitle, rows }) => {
                             <span className="x01-live-tags">
                                 {isTurn && <span className="x01-live-turn">Throwing</span>}
                                 {tags}
-                                {heldBy(shame, player.id).map(badge => (
-                                    <span key={badge.id} className="x01-shame">
-                                        <ShameMedal badge={badge} size="xs" title={`Holds the ${badge.title} in the club. Wash it off: ${badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}`} />
-                                    </span>
-                                ))}
+                                {heldBy(shame, player.id).length > 0 &&
+                                    // the shame badges keep together: they go to the next line as one
+                                    <span className="x01-shames">
+                                        {heldBy(shame, player.id).map(badge => (
+                                            <span key={badge.id} className="x01-shame">
+                                                <ShameMedal badge={badge} size="xs" title={`Holds the ${badge.title} in the club. Wash it off: ${badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}`} />
+                                            </span>
+                                        ))}
+                                    </span>}
                             </span>
                         </div>
                         <div className="x01-hero-score">
