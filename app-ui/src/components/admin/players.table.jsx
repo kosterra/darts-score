@@ -22,6 +22,7 @@ import { useAuth } from '../../utils/auth.context';
 import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDateTime } from './admin.format';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import useClubSelection from './use.club.selection';
 
 const KIND_OPTIONS = [
@@ -65,8 +66,11 @@ const PlayersTable = ({ scope = 'club' }) => {
     useEffect(() => {
         if (!acrossClubs) StatsService.loadPlayerLevels().then(setLevels).catch(() => setLevels({}));
     }, [acrossClubs]);
-    const [search, setSearch] = useState('');
-    const [kind, setKind] = useState('all');
+    // the search, the kind, page and order live in the address: back from a player, the list is as it was left
+    const [view, setView] = useUrlState({ search: '', kind: 'all', ...TABLE_DEFAULTS });
+    const { search, kind } = view;
+    const setSearch = (value) => setView({ search: value, page: 1 });
+    const setKind = (value) => setView({ kind: value, page: 1 });
     // across clubs: the player whose clubs are being changed
     const [clubsOfPlayerId, setClubsOfPlayerId] = useState(null);
 
@@ -229,11 +233,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                         dataKey="id"
                         className="admin-table"
                         loading={players === null}
-                        sortField="nickname"
-                        sortOrder={1}
-                        paginator
-                        rows={15}
-                        rowsPerPageOptions={[15, 30, 60]}
+                        {...tableState(view, setView, { sortField: 'nickname', sortOrder: 1 })}
                         emptyMessage={players?.length ? 'No players match these filters.' : 'No players yet.'}
                         responsiveLayout="scroll"
                     >

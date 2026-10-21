@@ -16,6 +16,7 @@ import AdminService from '../../services/admin.service';
 import StatTile from '../stats/players/stat.tile';
 import { AdminToolbar } from './admin.common';
 import { formatDateTime } from './admin.format';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { announceAlertsChange } from './alert.events';
 
 dayjs.extend(relativeTime);
@@ -50,7 +51,10 @@ const DURATION_OPTIONS = [
  */
 const AlertsPage = () => {
     const toast = useRef(null);
-    const [status, setStatus] = useState('open');
+    // the status filter and the page live in the address
+    const [view, setView] = useUrlState({ status: 'open', ...TABLE_DEFAULTS });
+    const { status } = view;
+    const setStatus = (value) => setView({ status: value, page: 1 });
     const [alerts, setAlerts] = useState(null);
     const [blocks, setBlocks] = useState({ users: [], ips: [] });
     const [rules, setRules] = useState([]);
@@ -197,9 +201,7 @@ const AlertsPage = () => {
                     dataKey="id"
                     className="admin-table"
                     loading={alerts === null}
-                    paginator
-                    rows={15}
-                    rowsPerPageOptions={[15, 30, 60]}
+                    {...tableState(view, setView)}
                     emptyMessage={status === 'open' ? 'No open alerts. Nothing suspicious happened.' : 'No alerts.'}
                     responsiveLayout="scroll"
                 >

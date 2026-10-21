@@ -21,6 +21,7 @@ import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import useClubSelection from './use.club.selection';
 import { formatDateTime } from './admin.format';
 import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { BOT_ID } from '../../utils/x01.bot';
 
 const TYPE_OPTIONS = [
@@ -76,10 +77,14 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const canManage = acrossClubs || isClubAdmin;
     const [rows, setRows] = useState(null);
     const [players, setPlayers] = useState([]);
-    const [type, setType] = useState('all');
-    const [mode, setMode] = useState('any');
-    const [playerId, setPlayerId] = useState(null);
-    const [whose, setWhose] = useState('all');
+    // the filters, page and order live in the address: back from a training, the list is as it was left
+    const [view, setView] = useUrlState({ type: 'all', mode: 'any', player: '', whose: 'all', ...TABLE_DEFAULTS });
+    const { type, mode, whose } = view;
+    const playerId = view.player || null;
+    const setType = (value) => setView({ type: value, page: 1 });
+    const setMode = (value) => setView({ mode: value, page: 1 });
+    const setPlayerId = (value) => setView({ player: value ?? '', page: 1 });
+    const setWhose = (value) => setView({ whose: value, page: 1 });
 
     const loadRows = async () => {
         if (acrossClubs && !selectedIds.length) {
@@ -211,11 +216,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         dataKey="id"
                         className="admin-table"
                         loading={rows === null}
-                        sortField="createdAt"
-                        sortOrder={-1}
-                        paginator
-                        rows={15}
-                        rowsPerPageOptions={[15, 30, 60]}
+                        {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage="No trainings match these filters."
                         responsiveLayout="scroll"
                     >

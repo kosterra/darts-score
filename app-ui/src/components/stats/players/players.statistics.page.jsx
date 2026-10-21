@@ -18,6 +18,7 @@ import { describeFilters } from './filter.summary';
 import X01Service from '../../../services/x01.service';
 import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
+import { useUrlFilters, useUrlState } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 
 const DEFAULT_FILTERS = {
@@ -62,10 +63,13 @@ const MAX_PLAYERS = ChartConfigOptions.fillColors.values.length;
 const PlayersStatisticsPage = () => {
     const { user } = useAuth();
     const [players, setPlayers] = useState(null);
-    const [selectedIds, setSelectedIds] = useState([]);
+    // the players compared and the filters live in the address
+    const [chosen, setChosen] = useUrlState({ players: '' });
+    const selectedIds = useMemo(() => chosen.players ? chosen.players.split(',') : [], [chosen.players]);
+    const setSelectedIds = (next) => setChosen({ players: (typeof next === 'function' ? next(selectedIds) : next).join(',') });
     const [search, setSearch] = useState('');
     const [levels, setLevels] = useState({});
-    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const [filters, setFilters] = useUrlFilters(DEFAULT_FILTERS);
     // the X01 formats these players have played together, for the format filter
     const [formats, setFormats] = useState([]);
     // each compared player's current form, from their own latest games
@@ -81,12 +85,13 @@ const PlayersStatisticsPage = () => {
             const sorted = [...loaded].sort((a, b) => a.nickname.localeCompare(b.nickname));
             setPlayers(sorted);
             const own = sorted.find(player => player.user === user.id);
-            if (own) setSelectedIds([own.id]);
+            // unless the address already names the players
+            if (own && !new URLSearchParams(window.location.search).get('players')) setChosen({ players: own.id });
         }).catch(error => {
             console.error('Failed to load players', error);
             setPlayers([]);
         });
-    }, [user.id]);
+    }, [user.id, setChosen]);
 
     const selectedKey = selectedIds.join(',');
     useEffect(() => {

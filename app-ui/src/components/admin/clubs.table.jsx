@@ -15,6 +15,7 @@ import DeletePopup from '../elements/delete.popup';
 import ClubAdminsDialog from '../clubs/club.admins.dialog';
 import { AdminToolbar } from './admin.common';
 import { formatDateTime } from './admin.format';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
 
 const formatDate = (value) => value ? formatDateTime(value).slice(0, 10) : '–';
@@ -32,8 +33,11 @@ const ClubsTable = () => {
     const toast = useRef(null);
     const { refreshClubs } = useAuth();
     const [clubs, setClubs] = useState(null);
-    const [search, setSearch] = useState('');
-    const [state, setState] = useState('all');
+    // the search, filter, page and order live in the address
+    const [view, setView] = useUrlState({ search: '', state: 'all', ...TABLE_DEFAULTS });
+    const { search, state } = view;
+    const setSearch = (value) => setView({ search: value, page: 1 });
+    const setState = (value) => setView({ state: value, page: 1 });
     const [adminsOfClubId, setAdminsOfClubId] = useState(null);
 
     const loadClubs = async () => {
@@ -124,11 +128,7 @@ const ClubsTable = () => {
                 dataKey="id"
                 className="admin-table"
                 loading={clubs === null}
-                sortField="name"
-                sortOrder={1}
-                paginator
-                rows={15}
-                rowsPerPageOptions={[15, 30, 60]}
+                {...tableState(view, setView, { sortField: 'name', sortOrder: 1 })}
                 emptyMessage={clubs?.length ? 'No clubs match these filters.' : 'No clubs yet.'}
                 responsiveLayout="scroll"
             >

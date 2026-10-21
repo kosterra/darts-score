@@ -28,6 +28,7 @@ import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDateTime } from './admin.format';
 import useClubSelection from './use.club.selection';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dialogs';
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -105,17 +106,19 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
 
     const [games, setGames] = useState(null);
     const [players, setPlayers] = useState([]);
-    const [type, setType] = useState(initialType);
-    const [status, setStatus] = useState('all');
-    const [playerId, setPlayerId] = useState(initialPlayerId);
+    // the filters, page and order live in the address: back from a game, the list is as it was left
+    const [view, setView] = useUrlState({ type: initialType, status: 'all', player: initialPlayerId ?? '', ...TABLE_DEFAULTS });
+    const { type, status } = view;
+    const playerId = view.player || null;
+    const setType = (value) => setView({ type: value, page: 1 });
+    const setStatus = (value) => setView({ status: value, page: 1 });
+    const setPlayerId = (value) => setView({ player: value ?? '', page: 1 });
     const [selection, setSelection] = useState([]);
     // the open requests to delete a game, by game id; the game asked about and the request shown
     const [requests, setRequests] = useState(new Map());
     const [asking, setAsking] = useState(null);
     const [shownRequest, setShownRequest] = useState(null);
 
-    useEffect(() => setType(initialType), [initialType]);
-    useEffect(() => setPlayerId(initialPlayerId), [initialPlayerId]);
 
     const loadClubGames = async () => {
         const loaded = await Promise.all(Object.entries(GAME_TYPES).map(async ([gameType, config]) =>
@@ -347,11 +350,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         selectionMode={canManage ? 'checkbox' : null}
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
-                        sortField="createdAt"
-                        sortOrder={-1}
-                        paginator
-                        rows={15}
-                        rowsPerPageOptions={[15, 30, 60]}
+                        {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage="No games match these filters."
                         responsiveLayout="scroll"
                     >

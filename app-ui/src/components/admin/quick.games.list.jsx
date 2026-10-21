@@ -15,6 +15,7 @@ import DeletePopup from '../elements/delete.popup';
 import GameTypeTag from '../elements/game.type.tag';
 import GameStatusTag from '../elements/game.status.tag';
 import { AdminToolbar } from './admin.common';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { formatDateTime } from './admin.format';
 
 const TYPE_OPTIONS = [{ label: 'All', value: 'all' }, { label: 'X01', value: 'x01' }, { label: 'Cricket', value: 'cricket' }];
@@ -32,8 +33,11 @@ const QuickGamesList = () => {
     const toast = useRef(null);
     const [data, setData] = useState(null);
     const [failed, setFailed] = useState(false);
-    const [type, setType] = useState('all');
-    const [status, setStatus] = useState('all');
+    // the filters, page and order live in the address
+    const [view, setView] = useUrlState({ type: 'all', status: 'all', ...TABLE_DEFAULTS });
+    const { type, status } = view;
+    const setType = (value) => setView({ type: value, page: 1 });
+    const setStatus = (value) => setView({ status: value, page: 1 });
     const [selection, setSelection] = useState([]);
 
     const load = useCallback(async () => {
@@ -155,11 +159,7 @@ const QuickGamesList = () => {
                         selectionMode="checkbox"
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
-                        sortField="createdAt"
-                        sortOrder={-1}
-                        paginator
-                        rows={15}
-                        rowsPerPageOptions={[15, 30, 60]}
+                        {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage={data?.games?.length ? 'No quick games match these filters.' : 'No quick games yet.'}
                         responsiveLayout="scroll"
                     >

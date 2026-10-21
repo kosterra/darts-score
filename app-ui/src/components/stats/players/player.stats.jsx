@@ -20,6 +20,7 @@ import { describeFilters } from './filter.summary';
 import { KpiRing, KpiHero, KpiChip } from './kpi';
 import PlayerLevel from '../../players/player.level';
 import { averageLevelOf } from '../../../utils/average.levels';
+import { useUrlFilters } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 
 const LATEST_BADGES = 5;
@@ -97,7 +98,8 @@ const scrollToShame = scrollTo('hall-of-shame');
 const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
     const [stats, setStats] = useState(null);
     const [badges, setBadges] = useState(null);
-    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    // the filters live in the address: back from a game, the statistics are filtered as they were
+    const [filters, setFilters] = useUrlFilters(DEFAULT_FILTERS);
     // reloading for other filters keeps the page and dims it
     const [refreshing, setRefreshing] = useState(false);
 

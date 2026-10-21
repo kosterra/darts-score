@@ -19,6 +19,7 @@ const CHANGELOG = [
             'Whether a nickname is shown on the public page is up to the player: with a login only they decide, on their player profile; the club admins decide only for players without a login.',
             'The mails of the app look professional: the name of the app on top, the text, a button for the link (with the address below it), a footer saying why the mail came, and a plain text version for every mail client. Global admins edit the subject, text and button of each mail under System settings → Mail templates, with placeholders, a live preview, a test mail to themselves and the way back to the default.',
             'Up from a page to its list with one link above the page ("‹ Players", "‹ Games", "‹ My clubs"): opened from the list, it goes back to the list as it was left; otherwise it opens the list. The Home button of the game statistics and the "Back to …" buttons are gone: home is in the menu.',
+            'Lists and statistics keep their filters in the address of the page: back from a game, a player or a training, the list is as it was left, with its filters, search, page and order; a reload keeps them too, and a filtered list can be shared as a link. So do the filters of the statistics and the players compared.',
             'The game statistics have tidier buttons: Play again with Switch players (or Shuffle players) right next to it instead of a drop-down, New game and Home as quiet buttons beside them.',
         ],
     },

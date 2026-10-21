@@ -16,6 +16,7 @@ import DeletePopup from '../elements/delete.popup';
 import UserEditDialog from './user.edit.dialog';
 import { ClubCell, ClubFilter } from './club.filter';
 import { AdminToolbar } from './admin.common';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
 
 const roleOptions = Object.values(ROLES).map(role => ({ label: ROLE_LABELS[role], value: role }));
@@ -24,10 +25,14 @@ const UsersList = () => {
     const toast = useRef(null);
     const { user: currentUser } = useAuth();
     const [users, setUsers] = useState([]);
-    const [search, setSearch] = useState('');
+    // the search, the clubs, page and order live in the address
+    const [view, setView] = useUrlState({ search: '', clubs: '', ...TABLE_DEFAULTS });
+    const { search } = view;
+    const setSearch = (value) => setView({ search: value, page: 1 });
     // the clubs to show users of; none means all users, also those without a club
     const [clubs, setClubs] = useState([]);
-    const [clubIds, setClubIds] = useState([]);
+    const clubIds = useMemo(() => view.clubs ? view.clubs.split(',') : [], [view.clubs]);
+    const setClubIds = (ids) => setView({ clubs: ids.join(','), page: 1 });
 
     useEffect(() => {
         AdminService.loadClubs().then(setClubs).catch(() => setClubs([]));
@@ -166,11 +171,7 @@ const UsersList = () => {
                 value={visibleUsers}
                 dataKey="id"
                 className="admin-table"
-                sortField="lastname"
-                sortOrder={1}
-                paginator
-                rows={15}
-                rowsPerPageOptions={[15, 30, 60]}
+                {...tableState(view, setView, { sortField: 'lastname', sortOrder: 1 })}
                 emptyMessage={users.length ? 'No users match these filters.' : 'No users found.'}
                 responsiveLayout="scroll"
             >
