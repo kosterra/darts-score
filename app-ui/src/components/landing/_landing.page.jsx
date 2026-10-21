@@ -113,7 +113,7 @@ const LandingPage = () => {
                 <nav className="landing-nav" aria-label="Sections">
                     <a href="#features">Features</a>
                     {clubs.length > 0 && <a href="#clubs">Clubs</a>}
-                    <a href="#live">Live</a>
+                    {(liveGames.length > 0 || results.length > 0) && <a href="#live">{liveGames.length > 0 ? 'Live' : 'Results'}</a>}
                     <a href="#faq">FAQ</a>
                 </nav>
                 <nav className="d-flex gap-2" aria-label="Account">
@@ -215,14 +215,14 @@ const LandingPage = () => {
                     </div>
                 </section>
 
-                <section id="live" className="container d-flex flex-column gap-4">
-                    <div className="landing-section-head">
-                        <span className="landing-eyebrow">On the oche</span>
-                        <h2 className="landing-heading m-0">Live now</h2>
-                    </div>
-                    {liveGames.length === 0
-                        ? <p className="text-subtle m-0">No public games are running at the moment. Scores appear here as soon as a public club starts playing.</p>
-                        : (
+                {/* only what is there: running games, the latest results, or nothing at all */}
+                {(liveGames.length > 0 || results.length > 0) &&
+                    <section id="live" className="container d-flex flex-column gap-4">
+                        <div className="landing-section-head">
+                            <span className="landing-eyebrow">On the oche</span>
+                            <h2 className="landing-heading m-0">{liveGames.length > 0 ? 'Live now' : 'Latest results'}</h2>
+                        </div>
+                        {liveGames.length > 0 &&
                             <div className="row g-4">
                                 {liveGames.map(game => (
                                     <div className="col-12 col-md-6 col-xl-4" key={game.id}>
@@ -230,19 +230,19 @@ const LandingPage = () => {
                                     </div>
                                 ))}
                             </div>
-                        )
-                    }
-                    {results.length > 0 && <>
-                        <h3 className="fs-5 fw-semibold text-default m-0 pt-2">Latest results</h3>
-                        <div className="row g-4">
-                            {results.map(game => (
-                                <div className="col-12 col-md-6 col-xl-4" key={game.id}>
-                                    <PublicGameCard game={game} />
-                                </div>
-                            ))}
-                        </div>
-                    </>}
-                </section>
+                        }
+                        {results.length > 0 && <>
+                            {liveGames.length > 0 && <h3 className="fs-5 fw-semibold text-default m-0 pt-2">Latest results</h3>}
+                            <div className="row g-4">
+                                {results.map(game => (
+                                    <div className="col-12 col-md-6 col-xl-4" key={game.id}>
+                                        <PublicGameCard game={game} />
+                                    </div>
+                                ))}
+                            </div>
+                        </>}
+                    </section>
+                }
 
                 {clubs.length > 0 &&
                     <section id="clubs" className="container d-flex flex-column gap-4">
