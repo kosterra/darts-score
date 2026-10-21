@@ -14,6 +14,7 @@ const CHANGELOG = [
             'Your form in figures: next to the rising or falling average, the last 5 X01 games against the 5 before in checkout rate, ton+ visits, first 9 average, darts per leg won, 180s, visits under 10, 30 and 50 and darts in the 1 or 5 (of the visits with more than 100 left) and the shame badges got (where the club has a Hall of Shame), each with an arrow, green when it got better. In short on the You widget of the dashboard, in full as Current form above the X01 figures of a player\'s statistics.',
             'The dart animation is off to begin with, for every player too: the field you tap lights up. Who likes the flying darts switches them on on their player profile; the setup of a game can still switch them on for everyone.',
             'Fix: Play again in X01, Cricket and Elimination keeps the dart animation the game was set up with; it went back to each player\'s own choice.',
+            'A club is edited on a page of its own instead of three popups, laid out as the player profile: Edit club on My clubs opens its logo, name and description, its admins, what it shows on the public page, how new members join and the Hall of Shame, the settings saved as soon as they change; deleting the club is at the bottom.',
             'The game statistics have tidier buttons: Play again with Switch players (or Shuffle players) right next to it instead of a drop-down, New game and Home as quiet buttons beside them.',
         ],
     },

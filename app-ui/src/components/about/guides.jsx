@@ -123,12 +123,14 @@ export const ADMIN_GUIDE = [
         icon: FaSliders,
         body: (
             <>
-                <p>Create a club under <Link to="/my-clubs">My clubs</Link>. There each club you run has its buttons:</p>
+                <p>Create a club under <Link to="/my-clubs">My clubs</Link>. <strong>Edit club</strong> there opens the page of a club you run, laid out as the player profile:</p>
                 <ul>
-                    <li><strong>Edit:</strong> the name, a description and the logo.</li>
-                    <li><strong>Admins:</strong> share the club with other admins by their email. Every admin can do everything in the club.</li>
-                    <li><strong>Settings:</strong> whether the club appears on the public start page, with its running games and its results; the Hall of Shame on or off, and whether children are left out of it (under 16, or another age). A player without a date of birth is always left out of it.</li>
-                    <li><strong>New members</strong> (in the settings): <em>Open</em>: anyone with an account finds the club under Join a club and is a member at once; you are told who joined. <em>Admins accept</em>: they ask, and any admin accepts or declines; the requests wait above the players under Club → Players, and on the club in My clubs. <em>Closed</em> (the start for every club): the club is not listed and only you add players. A new member has a login right away; set their date of birth on their page.</li>
+                    <li><strong>The club:</strong> the logo, the name and a description, saved with Save.</li>
+                    <li><strong>Admins:</strong> share the club with other admins by their email. Every admin can do everything in the club; a club always keeps one.</li>
+                    <li><strong>Public page:</strong> whether the club appears on the public start page, with its running games and its results.</li>
+                    <li><strong>New members:</strong> whether people with an account join at once, ask and wait for an admin, or are only added by the admins (see below).</li>
+                    <li><strong>Hall of Shame:</strong> on or off, and whether children are left out of it (under 16, or another age). A player without a date of birth is always left out of it.</li>
+                    <li>These settings are saved as soon as they change. At the bottom the club can be deleted, once its players are removed.</li>
                 </ul>
             </>
         ),

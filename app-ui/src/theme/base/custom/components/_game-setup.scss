@@ -312,6 +312,13 @@
 // a few more pills than usual in one row, e.g. the five starting scores of a training
 .p-selectbutton.p-selectbutton-pills.pills-fit .p-button { flex-basis: 4rem; }
 
+// how new members join: on a phone the three choices wrap rather than cut their words
+.p-selectbutton.p-selectbutton-pills.club-join-policy {
+  flex-wrap: wrap;
+
+  .p-button { flex: 1 0 auto; white-space: nowrap; }
+}
+
 // a player's flights: a dart from the side, turning slowly, on a dark strip
 .player-flight-preview {
   display: flex;
