@@ -12,9 +12,10 @@ const signed = (value) => `${value > 0 ? '+' : value < 0 ? '−' : '±'}${Math.a
 /**
  * A player's current X01 form: rising, falling or steady (the average of their
  * last five games against the five before) with their latest averages as a
- * small line in the player's colour. "align" is 'start' or 'end'.
+ * small line in the player's colour. "align" is 'start' or 'end'; "stacked"
+ * puts the trend above the line, for a narrow tile.
  */
-const FormBadge = ({ form, color, align = 'start' }) => {
+const FormBadge = ({ form, color, align = 'start', stacked = false }) => {
     if (!form) return null;
     if (!form.games) return <span className="form-badge text-faint fs-8">No X01 games yet</span>;
 
@@ -25,7 +26,7 @@ const FormBadge = ({ form, color, align = 'start' }) => {
     const points = form.latest.map((average, index) => ({ index, average }));
 
     return (
-        <span className={`form-badge ${align === 'end' ? 'flex-row-reverse' : ''}`} title={title}>
+        <span className={`form-badge ${stacked ? 'is-stacked' : align === 'end' ? 'flex-row-reverse' : ''}`} title={title}>
             {points.length > 1 &&
                 <LineChart width={84} height={26} data={points} margin={{ top: 3, right: 2, bottom: 3, left: 2 }} aria-hidden="true">
                     <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />

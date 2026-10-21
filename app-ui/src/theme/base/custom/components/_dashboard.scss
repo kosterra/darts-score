@@ -750,6 +750,56 @@ $momentGoldColor: #ffc94d;
   gap: 0.85rem;
 }
 
+// the level and the way to the next one, under the name
+.me-widget-next {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+}
+
+// the three figures that matter most, as equal tiles
+.me-widget-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.me-widget-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.6rem;
+  background: var(--surface-raised);
+
+  .me-widget-average-level { margin-left: 0; }
+}
+
+.me-widget-label {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.me-widget-value {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-default);
+  font-variant-numeric: tabular-nums;
+}
+
+// the form in a narrow tile: the trend, the line below it
+.form-badge.is-stacked {
+  // the line comes first in the badge: the trend goes on top
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 0.1rem;
+
+  .form-trend { font-size: 0.95rem; }
+}
+
 .me-widget-figures {
   display: grid;
   grid-template-columns: 1fr 1fr;
