@@ -21,7 +21,7 @@ const dartValue = (dart) => {
 
 /**
  * → { games, visits, checkoutRate, checkoutHits, checkoutAttempts, tonPlus, under10, under30, under50,
- *     dartsPerLeg, legsWon, firstNine, oneEighties } (rates in %, null without visits)
+ *     oneOrFive, dartsPerLeg, legsWon, firstNine, oneEighties } (rates in %, null without visits)
  */
 export const formFigures = (games, playerId) => {
     let hits = 0;
@@ -35,6 +35,9 @@ export const formFigures = (games, playerId) => {
     let firstNineVisits = 0;
     let oneEighties = 0;
     let visits = 0;
+    // the darts of the scoring visits, and those of them in the 1 or the 5, next to the 20
+    let scoringDarts = 0;
+    let oneOrFive = 0;
 
     for (const game of games) {
         const checkout = game.playerModels?.[playerId]?.checkout?.game;
@@ -52,6 +55,12 @@ export const formFigures = (games, playerId) => {
                 if (index < 3) {
                     firstNineScore += score;
                     firstNineVisits += 1;
+                }
+                if (before > SCORING_FROM) {
+                    for (const dart of visit.darts ?? []) {
+                        scoringDarts += 1;
+                        if (/^[SDT](1|5)$/.test(String(dart))) oneOrFive += 1;
+                    }
                 }
                 if (before > SCORING_FROM && !bust) {
                     scoring += 1;
@@ -77,6 +86,7 @@ export const formFigures = (games, playerId) => {
         under10: share(under[10], scoring),
         under30: share(under[30], scoring),
         under50: share(under[50], scoring),
+        oneOrFive: share(oneOrFive, scoringDarts),
         dartsPerLeg: legsWon ? round1(wonDarts / legsWon) : null,
         legsWon,
         firstNine: firstNineVisits ? round1(firstNineScore / firstNineVisits) : null,

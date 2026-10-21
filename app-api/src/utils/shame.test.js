@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clubShameHolders, isShameChild, personalShame, shameCountsFrom, shameMinAgeOf } from './shame.js';
+import { clubShameHolders, isShameChild, personalShame, shameCountIn, shameCountsFrom, shameMinAgeOf } from './shame.js';
 
 const day = (n) => new Date(2026, 0, n);
 // an adult; dateOfBirth: null for one whose age is unknown
@@ -67,5 +67,20 @@ describe('children', () => {
         expect(clubShameHolders(players, 'c1', { minAge: 16 }).find(e => e.id === 'madhouse').holder).toBe('a');
         const entry = personalShame(turned16, { from: shameCountsFrom(turned16, 16) }).find(e => e.id === 'madhouse');
         expect(entry.count).toBe(1);
+    });
+});
+
+describe('shameCountIn', () => {
+    const player = { shame: [
+        { badge: 'bedAndBreakfast', at: new Date(2026, 9, 1), count: 2, sourceId: 'g1' },
+        { badge: 'madhouse', at: new Date(2026, 9, 8), sourceId: 'g2' },
+        { badge: 'madhouse', at: new Date(2026, 9, 15), sourceId: 'g3' },
+    ] };
+
+    it('counts the shame badges got in these games, and only since the player counts', () => {
+        expect(shameCountIn(player, ['g1', 'g2'])).toBe(3);
+        expect(shameCountIn(player, ['g3', 'g9'])).toBe(1);
+        expect(shameCountIn(player, ['g1', 'g2', 'g3'], new Date(2026, 9, 5))).toBe(2);
+        expect(shameCountIn({}, ['g1'])).toBe(0);
     });
 });

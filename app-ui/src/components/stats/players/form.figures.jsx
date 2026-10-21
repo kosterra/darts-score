@@ -11,9 +11,11 @@ const FORM_FIGURES = [
     { key: 'firstNine', label: 'First 9', step: 1.5, hint: 'The average of the first three visits of a leg' },
     { key: 'dartsPerLeg', label: 'Darts per leg', step: 0.5, lowerIsBetter: true, hint: 'Darts thrown in the legs won' },
     { key: 'oneEighties', label: '180s', step: 1, plain: true },
-    { key: 'under10', label: 'Under 10', unit: '%', step: 1, lowerIsBetter: true, hint: 'Visits below 10, of the visits with more than 100 left' },
-    { key: 'under30', label: 'Under 30', unit: '%', step: 1.5, lowerIsBetter: true, hint: 'Visits below 30, of the visits with more than 100 left' },
-    { key: 'under50', label: 'Under 50', unit: '%', step: 2, lowerIsBetter: true, hint: 'Visits below 50, of the visits with more than 100 left' },
+    { key: 'under10', label: 'Visits under 10', unit: '%', step: 1, lowerIsBetter: true, hint: 'Visits below 10, of the visits with more than 100 left' },
+    { key: 'under30', label: 'Visits under 30', unit: '%', step: 1.5, lowerIsBetter: true, hint: 'Visits below 30, of the visits with more than 100 left' },
+    { key: 'under50', label: 'Visits under 50', unit: '%', step: 2, lowerIsBetter: true, hint: 'Visits below 50, of the visits with more than 100 left' },
+    { key: 'oneOrFive', label: 'Hit the 1 or 5', unit: '%', step: 1, lowerIsBetter: true, hint: 'Darts in the 1 or the 5, next to the 20, of the darts of the visits with more than 100 left' },
+    { key: 'shameBadges', label: 'Hall of Shame', step: 1, lowerIsBetter: true, hint: 'Shame badges got in these games, like Bed and Breakfast or Madhouse' },
 ];
 
 const format = (value, unit) => value == null ? '–' : `${Number.isInteger(value) ? value : value.toFixed(1)}${unit ? ` ${unit}` : ''}`;
@@ -27,7 +29,7 @@ const Change = ({ figure, now, before }) => {
     return (
         <span className={`form-figure-change ${unchanged ? 'is-steady' : better ? 'is-better' : 'is-worse'}`} title={`Before: ${format(before, figure.unit)}`}>
             {unchanged ? '±' : <Icon aria-hidden="true" />}
-            {unchanged ? '' : Math.abs(change).toFixed(1)}
+            {unchanged ? '' : Number.isInteger(change) ? Math.abs(change) : Math.abs(change).toFixed(1)}
         </span>
     );
 };
@@ -41,7 +43,9 @@ const FormFigures = ({ form, keys = null, compact = false }) => {
     const recent = form?.figures?.recent;
     if (!recent?.games) return null;
     const previous = form.figures.previous;
-    const shown = keys ? FORM_FIGURES.filter(figure => keys.includes(figure.key)) : FORM_FIGURES;
+    // a figure the club does not have (the Hall of Shame) is left out
+    const shown = (keys ? FORM_FIGURES.filter(figure => keys.includes(figure.key)) : FORM_FIGURES)
+        .filter(figure => recent[figure.key] !== undefined);
 
     return (
         <div className={`form-figures ${compact ? 'is-compact' : ''}`}>

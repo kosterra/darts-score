@@ -34,11 +34,13 @@ describe('form figures', () => {
         expect(figures.under10).toBe(16.7);
         expect(figures.under30).toBe(33.3);
         expect(figures.under50).toBe(50);
+        // darts of the visits with more than 100 left (the bust too): 21, of them S5 S1, S5 S1 S1 and S5 in the 1 or 5
+        expect(figures.oneOrFive).toBe(28.6);
         // first three visits of each leg: 180, 26, 100 and 45, 0
         expect(figures.firstNine).toBe(70.2);
     });
 
     it('has no rates without games', () => {
-        expect(formFigures([], 'p1')).toMatchObject({ games: 0, checkoutRate: null, tonPlus: null, dartsPerLeg: null, firstNine: null });
+        expect(formFigures([], 'p1')).toMatchObject({ games: 0, checkoutRate: null, tonPlus: null, oneOrFive: null, dartsPerLeg: null, firstNine: null });
     });
 });

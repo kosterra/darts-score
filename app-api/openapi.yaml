@@ -2852,7 +2852,7 @@ paths:
       tags:
         - Statistics
       summary: The recent form of players
-      description: "The average of their last 5 X01 games against the 5 before, whether it is rising or falling, and the figures of both (figures.recent, figures.previous: checkoutRate, tonPlus, under10, under30, under50 as % of the scoring visits with more than 100 left, dartsPerLeg of the legs won, firstNine, oneEighties)."
+      description: "The average of their last 5 X01 games against the 5 before, whether it is rising or falling, and the figures of both (figures.recent, figures.previous: checkoutRate, tonPlus, under10, under30, under50 as % of the scoring visits with more than 100 left, oneOrFive as % of their darts in the 1 or 5, dartsPerLeg of the legs won, firstNine, oneEighties, and shameBadges where the club has a Hall of Shame and the player counts for it)."
       requestBody:
         required: true
         content:

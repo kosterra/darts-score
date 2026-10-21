@@ -6,6 +6,7 @@ import { playerLevel, levelInputs } from '../utils/levels.js';
 import { countBadges } from '../utils/badges.js';
 import { recentForm } from '../utils/chart.data.js';
 import { formFigures } from '../utils/form.figures.js';
+import { isShameChild, shameCountIn, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -261,12 +262,22 @@ export const getPlayersForm = async (req, res) => {
         const played = games
             .filter(game => (game.playerModels?.[playerId]?.totalThrow?.game?.rounds ?? 0) > 0)
             .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt));
+        const recent = played.slice(-FORM_GAMES);
         const before = played.slice(0, -FORM_GAMES);
+        // the shame badges got in these games: only where the club has a Hall of Shame and the player counts for it
+        const minAge = shameMinAgeOf(req.club);
+        const player = req.club.shameBadges !== false && db.mongoose.isValidObjectId(playerId)
+            ? await db.player.findById(playerId, 'shame dateOfBirth').lean()
+            : null;
+        const shameOf = player && !isShameChild(player, minAge)
+            ? (list) => shameCountIn(player, list.map(game => game._id), shameCountsFrom(player, minAge))
+            : null;
+        const figuresOf = (list) => ({ ...formFigures(list, playerId), ...(shameOf && { shameBadges: shameOf(list) }) });
         return [playerId, {
             ...recentForm(games, playerId, FORM_GAMES),
             figures: {
-                recent: formFigures(played.slice(-FORM_GAMES), playerId),
-                previous: before.length ? formFigures(before, playerId) : null,
+                recent: figuresOf(recent),
+                previous: before.length ? figuresOf(before) : null,
             },
         }];
     }));
