@@ -69,7 +69,7 @@ export default (mongoose) => {
         mainTreble:      { type: String, default: 'auto' },
         // whether the darts fly onto the board to tap (a game may decide for everyone),
         // and how their flights look ('auto': the player's colour in the game)
-        flyingDarts:     { type: Boolean, default: true },
+        flyingDarts:     { type: Boolean, default: false },
         flightColor:     { type: String, default: 'auto' },
         flightPattern:   { type: String, default: 'plain' },
         flightShape:     { type: String, default: 'standard' },

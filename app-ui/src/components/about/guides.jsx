@@ -107,7 +107,7 @@ PLAYER_GUIDE.push({
         <>
             <p>On your <Link to="/player-profile">player profile</Link>, under <strong>Flights and barrels</strong>, you choose the darts you throw with in the app. They show wherever you play:</p>
             <ul>
-                <li><strong>Dart animation:</strong> on the board of X01, Cricket and Elimination a dart flies to the field you tap and sticks there; switched off, the field just lights up. The setup of a game can switch it on or off for everyone.</li>
+                <li><strong>Dart animation:</strong> on the board of X01, Cricket and Elimination a dart flies to the field you tap and sticks there; switched off (as it is to begin with), the field just lights up. The setup of a game can switch it on or off for everyone.</li>
                 <li><strong>Flights:</strong> the colour (your colour of the game or one of ten), the shape and the design; and the <strong>barrel</strong>. Your flight sits next to your name in the throwing order and the game header, your set of darts on your statistics.</li>
                 <li><strong>Flight points:</strong> every finished game and training earns points, wins, 180s and checkouts of 100 or more earn extra. Spend them on the shapes, designs and barrels you like; the tiles show the price, in gold once you can pay it.</li>
                 <li>Many flights also need a player level or an X01 average first, greyed out until then; the master flights belong to the levels (see <Link to="#levels">Levels</Link>). The legendary ones cannot be bought: they come with a feat, e.g. a nine-darter.</li>

@@ -182,6 +182,15 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-flying-darts-off',
+        description: 'Switch the dart animation off for every player: it is off by default now, and nobody had to switch it on',
+        run: async () => {
+            const { modifiedCount } = await db.player.updateMany({ 'preferences.flyingDarts': { $ne: false } }, { $set: { 'preferences.flyingDarts': false } });
+            logger.info(`The dart animation switched off for ${modifiedCount} players`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

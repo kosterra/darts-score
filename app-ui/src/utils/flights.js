@@ -51,5 +51,6 @@ export const FLYING_DARTS_OPTIONS = [
 export const dartsFly = (game, player) => {
     if (game?.flyingDarts === 'on') return true;
     if (game?.flyingDarts === 'off') return false;
-    return player?.preferences?.flyingDarts !== false;
+    // off unless the player switched it on
+    return player?.preferences?.flyingDarts === true;
 };
