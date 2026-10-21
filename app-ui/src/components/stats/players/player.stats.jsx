@@ -250,7 +250,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                 : (
                     <div className={`d-flex flex-column gap-4 ${refreshing ? 'is-refreshing' : ''}`}>
                         {form?.figures?.recent?.games > 0 &&
-                            <Panel header="Form">
+                            <Panel header="Current form">
                                 <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                                     <span className="text-subtle fs-7">
                                         The last {form.figures.recent.games} X01 games in this club{form.figures.previous ? `, against the ${form.figures.previous.games} before` : ''}.
