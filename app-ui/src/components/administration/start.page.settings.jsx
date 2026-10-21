@@ -4,6 +4,9 @@ import { Message } from 'primereact/message';
 
 import AdminService from '../../services/admin.service';
 import SettingSwitch from '../elements/setting.switch';
+import StatTile from '../stats/players/stat.tile';
+
+const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 
 /**
  * What the public start page shows: the numbers of the installation (clubs,
@@ -22,7 +25,9 @@ const StartPageSettings = ({ onSaved }) => {
     const toggle = async (showNumbers) => {
         setError('');
         try {
-            setSettings(await AdminService.saveStartPageSettings({ showNumbers }));
+            const saved = await AdminService.saveStartPageSettings({ showNumbers });
+            // the numbers stay as they were loaded
+            setSettings(current => ({ ...current, ...saved }));
             onSaved?.(showNumbers ? 'The numbers are shown on the start page.' : 'The numbers are no longer shown on the start page.');
         } catch (err) {
             setError(err.message);
@@ -35,6 +40,18 @@ const StartPageSettings = ({ onSaved }) => {
                 <span className="text-subtle fs-7">
                     The public page everyone sees before logging in. A few clubs and games make a small number: show the numbers once they speak for Oche.
                 </span>
+                {settings.numbers &&
+                    <div className="d-flex flex-column gap-2">
+                        <span className="text-faint fs-8">The numbers now, as visitors would see them{settings.showNumbers ? '' : ' if they were shown'}:</span>
+                        <div className="row g-3">
+                            {[['Clubs', 'clubs'], ['Players', 'players'], ['Games played', 'gamesPlayed'], ['Games this week', 'gamesThisWeek']].map(([label, key]) => (
+                                <div key={key} className="col-6 col-lg-3">
+                                    <StatTile label={label} value={formatNumber(settings.numbers[key])} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                }
                 <SettingSwitch
                     id="start-page-numbers"
                     title="Numbers of the installation"

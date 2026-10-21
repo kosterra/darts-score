@@ -108,15 +108,30 @@ const loadClubFigures = async (clubIds) => {
     return data;
 };
 
+/**
+ * The numbers of the installation, as the start page shows them:
+ * { clubs, players, gamesPlayed, gamesThisWeek }.
+ */
+export const installationNumbers = async () => {
+    const weekAgo = new Date(Date.now() - 7 * DAY_MS);
+    const [clubs, players, played, thisWeek] = await Promise.all([
+        db.club.countDocuments(),
+        db.player.countDocuments({ guest: { $ne: true } }),
+        Promise.all(GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true }))),
+        Promise.all(GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true, updatedAt: { $gte: weekAgo } }))),
+    ]);
+    const sum = (counts) => counts.reduce((total, count) => total + count, 0);
+    return { clubs, players, gamesPlayed: sum(played), gamesThisWeek: sum(thisWeek) };
+};
+
 const buildOverview = async () => {
     const publicClubs = await db.club.find({ isPublic: true }).sort({ name: 1 }).lean();
     const clubNames = new Map(publicClubs.map(club => [String(club._id), club.name]));
     const idsWhere = (setting) => publicClubs.filter(club => club[setting] !== false).map(club => club._id);
 
-    const weekAgo = new Date(Date.now() - 7 * DAY_MS);
     // the numbers of the installation only once the global admins show them
     const { showNumbers } = await getStartPageSettings();
-    const [live, results, memberCounts, totals, figures, thisWeek] = await Promise.all([
+    const [live, results, memberCounts, totals, figures] = await Promise.all([
         loadGames(
             { gameIsRunning: true, hasWinner: { $ne: true }, updatedAt: { $gte: new Date(Date.now() - LIVE_WINDOW_MS) } },
             idsWhere('publicLiveGames'),
@@ -128,13 +143,8 @@ const buildOverview = async () => {
             { $unwind: '$clubs' },
             { $group: { _id: '$clubs', count: { $sum: 1 } } },
         ]),
-        !showNumbers ? null : Promise.all([
-            db.club.countDocuments(),
-            db.player.countDocuments({ guest: { $ne: true } }),
-            ...GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true })),
-        ]),
+        showNumbers ? installationNumbers() : null,
         loadClubFigures(publicClubs.map(club => club._id)),
-        !showNumbers ? null : Promise.all(GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true, updatedAt: { $gte: weekAgo } }))),
     ]);
 
     const playerIds = [...new Set([...live, ...results].flatMap(({ game }) => game.players ?? []))]
@@ -144,16 +154,10 @@ const buildOverview = async () => {
 
     const toSummary = ({ type, label, game }) => summarize(type, label, game, clubNames.get(String(game.club)), playersById);
     const countByClub = new Map(memberCounts.map(c => [String(c._id), c.count]));
-    const [clubs, playerTotal, ...gameTotals] = totals ?? [];
 
     return {
         // null while the global admins keep the numbers to themselves
-        totals: showNumbers ? {
-            clubs,
-            players: playerTotal,
-            gamesPlayed: gameTotals.reduce((sum, count) => sum + count, 0),
-            gamesThisWeek: thisWeek.reduce((sum, count) => sum + count, 0),
-        } : null,
+        totals,
         clubs: publicClubs.map(club => ({
             name: club.name,
             description: club.description ?? '',

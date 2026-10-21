@@ -1142,10 +1142,10 @@ paths:
     get:
       tags:
         - Administration
-      summary: What the public start page shows
+      summary: What the public start page shows, with the numbers of the installation as they are now
       responses:
         '200':
-          description: '{ showNumbers }'
+          description: '{ showNumbers, numbers: { clubs, players, gamesPlayed, gamesThisWeek } }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

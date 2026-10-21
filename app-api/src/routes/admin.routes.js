@@ -9,6 +9,7 @@ import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
 import { getStartPageSettings, saveStartPageSettings } from '../utils/start.page.settings.js';
+import { installationNumbers } from '../controllers/public.controller.js';
 
 export default (app) => {
     const router = Router();
@@ -60,7 +61,8 @@ export default (app) => {
     );
 
     // what the public start page shows: the numbers of the installation, or not yet
-    router.get('/start-page', async (req, res) => res.json(await getStartPageSettings()));
+    // with the numbers as they are now, shown or not, to decide on
+    router.get('/start-page', async (req, res) => res.json({ ...await getStartPageSettings(), numbers: await installationNumbers() }));
     router.put('/start-page',
         body('showNumbers').isBoolean({ strict: true }).withMessage('showNumbers must be true or false.'),
         validate,
