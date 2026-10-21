@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
+import GameTypeIcon from '../../elements/game.type.icon';
 import GameStatusTag from '../../elements/game.status.tag';
 
 const INITIAL_GAMES = 8;
@@ -48,6 +49,7 @@ const TimelineWidget = ({ widget, games, players }) => {
                                     {day.games.map(game => (
                                         <li key={game.id} className={`timeline-entry ${game.running ? 'timeline-running' : ''}`}>
                                             <span className="timeline-time text-faint fs-8">{dayjs(game.playedAt).format('HH:mm')}</span>
+                                            <GameTypeIcon type={game.type} />
                                             <div className="timeline-body">
                                                 <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                     <GameTypeTag type={game.type} />

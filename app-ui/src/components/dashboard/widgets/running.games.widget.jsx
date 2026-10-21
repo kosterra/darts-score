@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
+import GameTypeIcon from '../../elements/game.type.icon';
 
 /**
  * Games in progress, each with a button to continue playing.
@@ -19,8 +20,9 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
                 : (
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {running.map(game => (
-                            <li key={game.id} className="bg-surface-raised rounded-2 p-3 d-flex justify-content-between align-items-center gap-3">
-                                <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+                            <li key={game.id} className="bg-surface-raised rounded-2 p-3 d-flex align-items-center gap-3">
+                                <GameTypeIcon type={game.type} />
+                                <div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
                                     <div className="d-flex flex-wrap align-items-center gap-2">
                                         <GameTypeTag type={game.type} />
                                         <span className="text-faint fs-8">{dayjs(game.playedAt).format('DD.MM.YYYY HH:mm')}</span>

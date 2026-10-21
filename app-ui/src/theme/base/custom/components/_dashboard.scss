@@ -108,6 +108,25 @@
     }
 }
 
+// a game's type as a tile in its colour with its icon, at the start of a row
+.game-type-icon {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    // round, as the avatars and the colour dots of the app
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--game-type-color) 16%, transparent);
+    color: var(--game-type-color);
+    font-size: 1.25rem;
+
+    &.game-type-x01 { --game-type-color: #7ecca5; }
+    &.game-type-cricket { --game-type-color: #d4c783; }
+    &.game-type-elimination { --game-type-color: #c3a9e6; }
+    &.game-type-clock { --game-type-color: #86bfe6; }
+}
+
 // Game types, each in its own colour: a small label with a short line in that
 // colour, like the panel titles. Orange and blue are taken by the game status
 // (running / finished, the only pills), so types use green, gold and purple.
