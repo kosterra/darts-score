@@ -99,7 +99,7 @@ const X01LiveHeader = () => {
                     const matchDart = onTheBrinkOfSet && (game.numberOfSets <= 1 || model.setsWon === needed(game.setMode, game.numberOfSets) - 1);
                     const setDart = onTheBrinkOfSet && !matchDart;
                     return (
-                        <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${ordered.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined} style={{ '--player-colour': PLAYER_COLORS[index] }}>
+                        <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${ordered.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
                             <span className="result-hero-portrait x01-hero-portrait">
                                 {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
                                 <Avatar
@@ -121,7 +121,7 @@ const X01LiveHeader = () => {
                                     Last visit <strong>{leg.lastVisit ? (leg.lastVisit.bust ? 'Bust' : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong> darts
                                 </span>
                                 <span className="x01-live-tags">
-                                    {isTurn && <span className="x01-live-turn"><i className="pi pi-play" aria-hidden="true" />Throwing</span>}
+                                    {isTurn && <span className="x01-live-turn">Throwing</span>}
                                     {game.startingPlayerLeg === player.id && <span className="x01-live-starter" title="Threw first in this leg"><GiDart aria-hidden="true" /> Started</span>}
                                     {matchDart && <span className="x01-dart-for is-match">Match dart</span>}
                                     {setDart && <span className="x01-dart-for">Set dart</span>}
