@@ -85,7 +85,7 @@ const KnockOut = ({ knockOut, onDone }) => {
     const banner = {
         kick: { detail: <><strong>{by}</strong>{' '}{t('sends')}{' '}<strong>{victim.name}</strong>{' '}{t('back to 0!')}</> },
         revenge: { title: t('Revenge!'), detail: <><strong>{by}</strong>{' '}{t('pays')}{' '}<strong>{victim.name}</strong>{' '}{t('back: back to 0')}</> },
-        close: { title: t('So close!'), detail: <><strong>{victim.name}</strong>{' '}{t('was')}{' '}{victim.left}{' '}{t('from the target: back to 0')}</> },
+        close: { title: t('So close!'), detail: <><strong>{victim.name}</strong>{' '}{t('was {{left}} from the target: back to 0', { left: victim.left })}</> },
         strike: { title: t('Strike!'), detail: <><strong>{by}</strong>{' '}{t('sends')}{' '}<strong>{names(victims.map(entry => entry.name))}</strong>{' '}{t('back to 0')}</> },
     }[kind];
 

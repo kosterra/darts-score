@@ -14,9 +14,9 @@ import { useAuth } from '../../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../../utils/use.my.players';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
-import { t, tn } from '../../../utils/i18n';
+import { locale, t, tn } from '../../../utils/i18n';
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
  * "You" on the dashboard: the user's own level, X01 average and form in the
@@ -100,7 +100,7 @@ const MeWidget = ({ widget }) => {
                         </div>
 
                         {recentGames > 0 && <>
-                            <p className="game-setup-section-title m-0">{t('Last')}{' '}{recentGames}{' '}{t('X01 games')}</p>
+                            <p className="game-setup-section-title m-0">{t('Last {{count}} X01 games', { count: recentGames })}</p>
                             <FormFigures form={form} keys={['checkoutRate', 'tonPlus', 'dartsPerLeg', 'under30']} compact />
                         </>}
                     </>

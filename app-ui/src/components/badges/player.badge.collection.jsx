@@ -11,9 +11,9 @@ import ShameMedal from './shame.medal';
 import { BadgesSkeleton } from '../elements/skeletons';
 import FlightCollection from '../flights/flight.collection';
 import { FaSoap } from 'react-icons/fa6';
-import { t } from '../../utils/i18n';
+import { locale, t } from '../../utils/i18n';
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value);
 
 /**
  * One series of badges (e.g. 180s): its tiers side by side, and what is

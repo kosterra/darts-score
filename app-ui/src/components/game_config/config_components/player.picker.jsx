@@ -10,7 +10,7 @@ import PlayerService from '../../../services/player.service';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { useAuth } from '../../../utils/auth.context';
 import { MAX_PLAYERS, MIN_PLAYERS, moveItem, offeredPlayers, playedWhen, shuffled, toggled, withStarter } from '../../../utils/player.picker';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 // cards shown before "Show all": with the guest card three rows of four
 const SHOWN_PLAYERS = 11;
@@ -226,7 +226,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                     )
                     : <div className="text-faint fs-7">{t('Tap the players who play, in the order they throw.')}</div>
                 }
-                {selected.length > 0 && missing > 0 && <div className="text-faint fs-8 mt-2">{t('Choose')}{' '}{missing}{' '}{t('more')}{' '}{missing === 1 ? t('player') : t('players')}{' '}{t('to start.')}</div>}
+                {selected.length > 0 && missing > 0 && <div className="text-faint fs-8 mt-2">{tn(missing, 'Choose {{count}} more player to start.', 'Choose {{count}} more players to start.')}</div>}
             </div>}
         </div>
     );

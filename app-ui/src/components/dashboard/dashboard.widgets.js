@@ -1,5 +1,6 @@
+import { locale, t } from '../../utils/i18n';
 
-import { t } from '../../utils/i18n';/**
+/**
  * The widgets a dashboard can show. A club (and each user for themselves)
  * stores the ones it wants, in display order, each with a width; ids that no
  * longer exist here are ignored.
@@ -14,7 +15,7 @@ export const WIDGET_SIZES = [
 ];
 const colsOf = (size) => (WIDGET_SIZES.find(entry => entry.value === size) ?? WIDGET_SIZES[1]).cols;
 
-const integer = (value) => new Intl.NumberFormat().format(value);
+const integer = (value) => new Intl.NumberFormat(locale()).format(value);
 
 export const DASHBOARD_WIDGETS = [
     { id: 'me', title: t('You'), description: t('Each player\'s own level, X01 average and form, with the way to their statistics'), kind: 'me', size: 'S' },

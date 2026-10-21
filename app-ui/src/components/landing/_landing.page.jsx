@@ -9,7 +9,7 @@ import PublicService from '../../services/public.service';
 import PublicGameCard from './public.game.card';
 import PublicClubCard from './public.club.card';
 import { ShowcaseShot, PhoneShot } from './showcase.shot';
-import { t } from '../../utils/i18n';
+import { locale, t } from '../../utils/i18n';
 import LanguageSwitch from '../elements/language.switch';
 
 const REFRESH_MS = 15 * 1000;
@@ -76,7 +76,7 @@ const FAQ = [
     { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the GPLv3 and runs with Docker on your own server.') },
 ];
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
  * The public start page: what Oche is, with pictures of it, the running

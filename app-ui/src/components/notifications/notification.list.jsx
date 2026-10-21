@@ -109,7 +109,7 @@ const NotificationList = ({ limit }) => {
                 )
             }
             {limit && data.notifications.length > limit &&
-                <Link to="/notifications" className="text-subtle fs-8">{t('All')}{' '}{data.notifications.length}{' '}{t('notifications')}</Link>
+                <Link to="/notifications" className="text-subtle fs-8">{t('All {{count}} notifications', { count: data.notifications.length })}</Link>
             }
         </div>
     );

@@ -7,9 +7,9 @@ import { PiClockClockwiseBold } from 'react-icons/pi';
 import { GiDart } from 'react-icons/gi';
 
 import { KpiRing, KpiHero, KpiChip } from '../../stats/players/kpi';
-import { t } from '../../../utils/i18n';
+import { locale, t } from '../../../utils/i18n';
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 const GREEN = '#7ecca5';
 const TYPE_COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6' };
 

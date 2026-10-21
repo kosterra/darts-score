@@ -5,9 +5,9 @@ import { Message } from 'primereact/message';
 import AdminService from '../../services/admin.service';
 import SettingSwitch from '../elements/setting.switch';
 import StatTile from '../stats/players/stat.tile';
-import { t } from '../../utils/i18n';
+import { locale, t } from '../../utils/i18n';
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
  * What the public start page shows: the numbers of the installation (clubs,

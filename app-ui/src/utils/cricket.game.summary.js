@@ -1,5 +1,6 @@
+import { t } from './i18n';
 
-import { t } from './i18n';/**
+/**
  * What the statistics page of one Cricket game shows, worked out by replaying
  * its visits with the rules of the game: a number is closed with three marks;
  * further marks score its value as long as not every other player has closed

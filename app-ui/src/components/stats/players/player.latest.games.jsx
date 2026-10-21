@@ -66,7 +66,7 @@ const PlayerLatestGames = ({ player }) => {
                             })}
                         </ol>
                         <Link to={`/games?player=${player.id}`} className="align-self-start fs-7">
-                            {t('All')}{' '}{data.total}{' '}{t('games of')}{' '}{player.nickname} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
+                            {t('All {{count}} games of {{nickname}}', { count: data.total, nickname: player.nickname })} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
                         </Link>
                     </div>
                 )

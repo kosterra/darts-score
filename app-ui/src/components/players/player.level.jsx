@@ -4,9 +4,9 @@ import { ProgressBar } from 'primereact/progressbar';
 
 import LevelBadge from './level.badge';
 import { LEVEL_STYLES } from '../../utils/levels';
-import { t } from '../../utils/i18n';
+import { locale, t } from '../../utils/i18n';
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 // what is missing for the next level, the XP with a thousands separator like the rest
 const missingText = (entry, level) => entry.id === 'xp' ? t('{{formatNumber}} more XP', { formatNumber: formatNumber(level.next.xp - level.xp) }) : entry.label;

@@ -1,5 +1,6 @@
+import { t } from './i18n';
 
-import { t } from './i18n';/**
+/**
  * What the statistics page of one Elimination game shows, worked out by
  * replaying its visits with the rules of the game: everyone climbs from 0 to
  * the target score, and a dart that lands exactly on an opponent's score

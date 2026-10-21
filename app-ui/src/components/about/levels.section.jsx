@@ -4,9 +4,9 @@ import LevelBadge from '../players/level.badge';
 import { FlightPicture } from '../flights/flight.art';
 import { BarrelPicture } from '../flights/barrel.art';
 import { AVERAGE_LEVELS } from '../../utils/average.levels';
-import { t } from '../../utils/i18n';
+import { locale, t } from '../../utils/i18n';
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 const KINDS = { shape: t('flight shape'), design: t('flight design'), barrel: t('barrel') };
 

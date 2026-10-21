@@ -1,5 +1,6 @@
+import { t } from '../../utils/i18n';
 
-import { t } from '../../utils/i18n';// how bad a finding is, worst first
+// how bad a finding is, worst first
 export const LEVELS = { impossible: 3, error: 2, suspicious: 1 };
 
 export const LEVEL_LABELS = { impossible: t('Impossible'), error: t('Data error'), suspicious: t('Suspicious') };

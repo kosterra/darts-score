@@ -11,7 +11,7 @@ import ReleaseNotes from './release.notes';
 import BadgeMedal from '../badges/badge.medal';
 import ShameMedal from '../badges/shame.medal';
 import { requestJSON } from '../../utils/service.utils';
-import { t } from '../../utils/i18n';
+import { locale, t } from '../../utils/i18n';
 
 const REPOSITORY = 'https://github.com/kosterra/darts-score';
 
@@ -144,7 +144,7 @@ const AboutCard = () => {
                                             <span className="text-faint fs-8">
                                                 {badges.length === 1
                                                     ? badges[0].description
-                                                    : badges.map(badge => `${badge.title} (${badge.targetLabel ?? new Intl.NumberFormat().format(badge.target)})`).join(' · ')}
+                                                    : badges.map(badge => `${badge.title} (${badge.targetLabel ?? new Intl.NumberFormat(locale()).format(badge.target)})`).join(' · ')}
                                             </span>
                                         </div>
                                     </li>

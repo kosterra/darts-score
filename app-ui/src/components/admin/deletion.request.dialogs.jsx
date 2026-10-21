@@ -107,7 +107,7 @@ export const DeletionRequestDialog = ({ request, canDecide, onHide, onChanged, o
                         : <span className="text-faint fs-7">{t('No reason given.')}</span>}
                 </div>
                 <div className="d-flex flex-column gap-2">
-                    <span className="text-subtle fs-7">{t('The players ·')}{' '}{request.agreed}{' '}{t('of')}{' '}{request.total}{' '}{t('agreed')}</span>
+                    <span className="text-subtle fs-7">{t('The players · {{agreed}} of {{total}} agreed', { agreed: request.agreed, total: request.total })}</span>
                     {request.players.map(player => (
                         <div key={player.player} className="d-flex align-items-center justify-content-between gap-3 bg-surface-raised rounded-2 px-3 py-2">
                             <span className="text-default fw-semibold">{player.nickname || t('Unknown')}{player.mine && <span className="text-faint fw-normal fs-8">{' '}{t('· you')}</span>}</span>

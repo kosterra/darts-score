@@ -1,5 +1,6 @@
+import { t } from './i18n';
 
-import { t } from './i18n';// The Cricket variants:
+// The Cricket variants:
 // - Standard: marks beyond three score the number for yourself while an
 //   opponent has it open; with all numbers closed the highest score wins.
 // - Cut-throat: those points go to every opponent who still has the number

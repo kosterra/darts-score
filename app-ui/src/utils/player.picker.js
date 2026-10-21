@@ -1,5 +1,6 @@
+import { t } from './i18n';
 
-import { t } from './i18n';// Choosing the players of a game: who is offered first and the order they throw in.
+// Choosing the players of a game: who is offered first and the order they throw in.
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;

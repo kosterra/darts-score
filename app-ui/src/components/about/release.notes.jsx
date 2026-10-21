@@ -59,7 +59,7 @@ const ReleaseNotes = () => {
                     <section key={release.version} className={`release ${isOpen ? 'is-open' : ''}`}>
                         <button type="button" className="release-head" aria-expanded={isOpen} aria-controls={id} onClick={() => toggle(release.version)}>
                             <span className="release-version">{release.version}</span>
-                            {index === 0 && <Tag value="Latest" />}
+                            {index === 0 && <Tag value={t('Latest')} />}
                             <span className="text-faint fs-8 me-auto">
                                 {tn(release.changes.length - fixes, '{{count}} new', '{{count}} new')}{fixes ? ` · ${tn(fixes, '{{count}} fix', '{{count}} fixes')}` : ''}
                             </span>

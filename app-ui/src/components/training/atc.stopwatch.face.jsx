@@ -1,5 +1,6 @@
+import { t } from '../../utils/i18n';
 
-import { t } from '../../utils/i18n';// a real stopwatch: a cream dial with the seconds round the edge, a sweeping
+// a real stopwatch: a cream dial with the seconds round the edge, a sweeping
 // red second hand, a small dial for the minutes, and a gold mark at the best time
 
 const CENTRE = 100;

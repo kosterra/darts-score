@@ -3,11 +3,11 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import ClubLogo from '../elements/club.logo';
-import { t } from '../../utils/i18n';
+import { locale, t } from '../../utils/i18n';
 
 dayjs.extend(relativeTime);
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
  * A public club on the start page: what it is, what it played (games, the

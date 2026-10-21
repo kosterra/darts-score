@@ -1,9 +1,22 @@
 
-import { t } from '../../utils/i18n';/**
+import { t } from '../../utils/i18n';
+
+/**
  * What changed for players, newest first. When a release gets its version
  * number in the root package.json, give the "Next release" entry that number.
  */
 const CHANGELOG = [
+    {
+        version: '2026.10.12',
+        changes: [
+            t('Oche speaks German, French, Italian and Spanish as well as English: the whole app, the rules and guides, What\'s new, the messages, badges and notifications and the mails. It starts in the language of the browser; the switch on the start page and the login changes it, and your user profile saves it on your account, so it follows you to every device. The darts terms stay English: leg, set, bust, checkout, bull, 180 and the names of the games.'),
+            t('Every mail comes in the language of its reader; global admins edit the mail templates of each language on their own.'),
+            t('Names may have any letters, e.g. François or Núñez.'),
+            t('The You widget laid out more clearly: the level and the way to the next one under your name, the X01 average, the games and the form as three tiles, the last 5 X01 games below.'),
+            t('Running and recent games start with a round badge in the colour of the game type, with the icon of the menu; continuing a game is the green button of the row.'),
+            t('The icon buttons of the lists have a soft background that gets stronger on hover; delete buttons are red.'),
+        ],
+    },
     {
         version: '2026.10.11',
         changes: [

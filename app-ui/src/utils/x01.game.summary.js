@@ -1,5 +1,6 @@
+import { t } from './i18n';
 
-import { t } from './i18n';/**
+/**
  * What the statistics page of one finished X01 game shows, worked out from
  * the game itself: every leg, the race to zero of a leg, each player's key
  * figures and the moments of the match.

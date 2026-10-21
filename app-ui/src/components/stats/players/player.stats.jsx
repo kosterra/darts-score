@@ -22,11 +22,11 @@ import PlayerLevel from '../../players/player.level';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { useUrlFilters } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
-import { t, tn } from '../../../utils/i18n';
+import { locale, t, tn } from '../../../utils/i18n';
 
 const LATEST_BADGES = 5;
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 const percent = (part, whole) => whole ? `${Math.round(part * 100 / whole)} %` : '–';
 const weeks = (count) => tn(count, '{{count}} week', '{{count}} weeks');
 

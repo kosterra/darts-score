@@ -28,7 +28,7 @@ const ProfileNote = ({ profile, about }) => {
         if (profile.doubleSource === 'set') return <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the player profile).')}</span>;
         if (profile.doubleSource === 'history') {
             const best = profile.doubles[0];
-            return <span className="x01-ways-note">{t('Your best doubles first:')}{' '}{best.double}{' '}{t('hit')}{' '}{best.rate}{' '}{t('% of')}{' '}{best.total}{' '}{t('darts in your games.')}</span>;
+            return <span className="x01-ways-note">{t('Your best doubles first: {{double}} hit {{rate}} % of {{total}} darts in your games.', { double: best.double, rate: best.rate, total: best.total })}</span>;
         }
         return null;
     }
