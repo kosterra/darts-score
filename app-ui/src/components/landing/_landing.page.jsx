@@ -15,14 +15,14 @@ const FEATURES = [
     { icon: <FaBullseye />, title: 'X01, Cricket, Elimination and Around the Clock', text: 'Score the classic games for one to four players, on a dartboard you tap or by typing the darts.' },
     { icon: <MdQueryStats />, title: 'Statistics that mean something', text: 'Averages, checkout rates, score ranges and head-to-head comparisons for every player and game.' },
     { icon: <FaRegClock />, title: 'Training', text: 'Practise Around the Clock against the stopwatch and watch your best times improve.' },
-    { icon: <FaPeopleGroup />, title: 'Made for clubs', text: 'Run your club with several admins. Players get their own login to play and train whenever they like.' },
+    { icon: <FaPeopleGroup />, title: 'Made for clubs', text: 'Run your club with several admins. Players get their own login, or find your club and join it themselves, as you allow.' },
     { icon: <FaUserGroup />, title: 'Friends and family too', text: 'Create a second club for the people at home, and add a guest for a single game in seconds.' },
     { icon: <GiDart />, title: 'You decide what is public', text: 'Clubs are private unless their admin opens them up, and every player chooses whether their name is shown.' },
 ];
 
 const STEPS = [
     { title: 'Create your account', text: 'Register with your email address. It takes a minute.' },
-    { title: 'Set up your club', text: 'Name your club, add your players and invite further admins.' },
+    { title: 'Set up or join a club', text: 'Name your own club and add your players, or find a club that takes new members and join it.' },
     { title: 'Play', text: 'Start a game, throw, and let Oche do the counting.' },
 ];
 
@@ -74,7 +74,7 @@ const LandingPage = () => {
                                 keeps the statistics and shows who is on the oche right now.
                             </p>
                             <div className="d-flex flex-wrap gap-3 pt-2">
-                                <Link to="/register"><Button label="Create your club" icon="pi pi-user-plus" size="large" /></Link>
+                                <Link to="/register"><Button label="Get started" icon="pi pi-user-plus" size="large" /></Link>
                                 <Link to="/login"><Button label="Log in" icon="pi pi-sign-in" size="large" outlined /></Link>
                             </div>
                         </div>
@@ -165,6 +165,8 @@ const LandingPage = () => {
                                 <span key={club.name} className="bg-surface-raised rounded-pill ps-1 pe-3 py-1 text-default d-inline-flex align-items-center gap-2">
                                     <ClubLogo club={club} className="rounded-circle" />
                                     {club.name} <span className="text-faint fs-8">· {club.playerCount} {club.playerCount === 1 ? 'player' : 'players'}</span>
+                                    {club.joinPolicy === 'open' && <span className="text-primary fs-8">· open to join</span>}
+                                    {club.joinPolicy === 'approval' && <span className="text-primary fs-8">· takes new members</span>}
                                 </span>
                             ))}
                         </div>
@@ -173,8 +175,8 @@ const LandingPage = () => {
 
                 <section className="bg-surface-translucent rounded-2 p-4 p-md-5 d-flex flex-column align-items-center text-center gap-3">
                     <h2 className="fs-3 fw-semibold text-default m-0">Ready for the first leg?</h2>
-                    <p className="text-subtle m-0">Set up your club today. It is free.</p>
-                    <Link to="/register"><Button label="Create your club" icon="pi pi-user-plus" size="large" /></Link>
+                    <p className="text-subtle m-0">Set up your club, or join one, today. It is free.</p>
+                    <Link to="/register"><Button label="Get started" icon="pi pi-user-plus" size="large" /></Link>
                 </section>
             </main>
 

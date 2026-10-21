@@ -52,6 +52,13 @@ export const findAll = async (req, res) => {
         { $group: { _id: '$clubs', count: { $sum: 1 } } },
     ]);
     const countByClub = new Map(counts.map(c => [String(c._id), c.count]));
+    // the requests to join waiting for the admins
+    const adminClubIds = clubs.filter(club => club.admins.some(admin => admin._id.equals(req.user._id))).map(club => club._id);
+    const requests = await db.joinRequest.aggregate([
+        { $match: { club: { $in: adminClubIds }, status: 'open' } },
+        { $group: { _id: '$club', count: { $sum: 1 } } },
+    ]);
+    const requestsByClub = new Map(requests.map(r => [String(r._id), r.count]));
 
     res.json(clubs.map(club => {
         const isAdmin = club.admins.some(admin => admin._id.equals(req.user._id));
@@ -63,6 +70,7 @@ export const findAll = async (req, res) => {
                 return isAdmin ? { ...publicFields, email } : publicFields;
             }),
             playerCount: countByClub.get(String(club._id)) ?? 0,
+            ...(isAdmin && { openJoinRequests: requestsByClub.get(String(club._id)) ?? 0 }),
         };
     }));
 };
@@ -86,6 +94,7 @@ export const update = async (req, res) => {
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
     }
+    if (['open', 'approval', 'closed'].includes(req.body.joinPolicy)) club.joinPolicy = req.body.joinPolicy;
     if (Number.isInteger(req.body.shameMinAge)) club.shameMinAge = req.body.shameMinAge;
     if (Array.isArray(req.body.dashboardWidgets)) club.dashboardWidgets = req.body.dashboardWidgets;
     // the club's dashboard; an empty list means the default set
@@ -120,6 +129,7 @@ export const remove = async (req, res) => {
         db.clock.deleteMany({ club: club._id }),
         db.atc.deleteMany({ club: club._id }),
         db.x01Training.deleteMany({ club: club._id }),
+        db.joinRequest.deleteMany({ club: club._id }),
     ]);
     await club.deleteOne();
     removeClubLogoFile(club.logo);

@@ -45,7 +45,7 @@ const RegisterPage = () => {
         <AuthLayout title="Register">
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
                 <span className="fs-7 text-subtle">
-                    Create your account, then set up your own club and add its players. To join an existing club as a player, ask its admin for a login instead.
+                    Create your account, then set up your own club and add its players, or join a club that takes new members. A club admin can also give you a login for their club.
                 </span>
                 <div className="register-website" aria-hidden="true">
                     <label htmlFor="register-website">Website</label>

@@ -7,6 +7,9 @@ const CHANGELOG = [
         version: '2026.10.11',
         changes: [
             'The dashboard is arranged right on the page: Edit dashboard lets you drag the widgets into place (by mouse, finger or the arrow keys, the page scrolling along), make each one a third, half, two thirds or the full width, remove them, and add the others below. Club admins arrange the club\'s dashboard, which everyone sees; every member can arrange their own on top of it and go back to the club\'s at any time. Arrangements made before keep their widths.',
+            'Joining a club on your own: after creating an account you set up a club of your own or join one. My clubs lists the clubs that take new members, to search by name. An open club you join at once; in a club whose admins accept members you ask, with a few words if you like, and get a notification with the answer (a declined request can be made again after a week, an open one taken back). You play there with the player you already have, together with your statistics, badges and flights; without one you choose a nickname.',
+            'Club admins decide how new members come in, under the club\'s settings: Open (anyone with an account joins at once), Admins accept (they ask, an admin accepts or declines) or Closed (only the admins add players, as before and for every club so far). Requests to join wait above the players under Club → Players and on the club in My clubs; every admin is notified, and told who joined an open club.',
+            'The game statistics have tidier buttons: Play again with Switch players (or Shuffle players) right next to it instead of a drop-down, New game and Home as quiet buttons beside them.',
         ],
     },
     {

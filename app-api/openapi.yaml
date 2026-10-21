@@ -34,6 +34,8 @@ tags:
     description: Registration, login, the session and the logged-in user
   - name: Clubs
     description: Clubs of the logged-in user (all clubs for a global admin)
+  - name: Joining clubs
+    description: Users find clubs that take new members, join or ask to join; the club admins accept or decline
   - name: Users
     description: Accounts (global admins only)
   - name: Administration
@@ -481,6 +483,183 @@ paths:
         '409':
           description: A club needs at least one admin
       operationId: deleteClubsByidAdminsByuserId
+  /api/clubs/directory:
+    get:
+      tags:
+        - Joining clubs
+      summary: The clubs that take new members, with whether the user is in one already or asked to join
+      description: Clubs whose joinPolicy is open or approval. "nickname" is the one of the user's player in another club, which joining takes along; null when the user still has to choose one.
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Part of the club's name
+          schema:
+            type: string
+            maxLength: 50
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubDirectory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getClubsDirectory
+  /api/clubs/join-requests:
+    get:
+      tags:
+        - Joining clubs
+      summary: The user's open requests to join clubs
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getClubsJoinRequests
+  /api/clubs/{id}/join:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+        - Joining clubs
+      summary: Join an open club at once, or ask to join a club whose admins accept new members
+      description: The user's player in another club joins the club too, with its statistics and badges; without one a new player is made with the nickname. The admins are notified.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                  minLength: 3
+                  maxLength: 25
+                  description: Only needed without a player in another club
+                message:
+                  type: string
+                  maxLength: 300
+                  description: A few words for the admins
+      responses:
+        '201':
+          description: 'status "member": joined; status "pending": asked, the admins decide'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - member
+                      - pending
+                  club:
+                    type: string
+                  player:
+                    type: object
+                  request:
+                    $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The club takes no members on their own, or the user is a global admin
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: A member already, asked already, or declined less than 7 days ago
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many open requests
+      operationId: postClubsByidJoin
+    delete:
+      tags:
+        - Joining clubs
+      summary: Take back the open request to join the club
+      responses:
+        '200':
+          description: The request, now withdrawn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: deleteClubsByidJoin
+  /api/clubs/{id}/join-requests:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Joining clubs
+      summary: The open requests to join the club, oldest first (club admins)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: getClubsByidJoinRequests
+  /api/clubs/{id}/join-requests/{requestId}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: requestId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - Joining clubs
+      summary: Accept or decline a request to join (club admins); accepting makes the user a member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accept
+              properties:
+                accept:
+                  type: boolean
+      responses:
+        '200':
+          description: The request, with the player when accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Decided already, or taken back
+        '410':
+          description: The account that asked is gone
+      operationId: putClubsByidJoinRequestsByrequestId
   /api/users:
     get:
       tags:
@@ -3820,6 +3999,13 @@ components:
           minimum: 6
           maximum: 21
           description: From which age players count for the Hall of Shame
+        joinPolicy:
+          type: string
+          enum:
+            - open
+            - approval
+            - closed
+          description: 'How new members join: at once (open), once an admin accepts (approval), or only added by the admins (closed, the default)'
         dashboardWidgets:
           type: array
           maxItems: 40
@@ -3830,6 +4016,91 @@ components:
         dashboardLayout:
           $ref: '#/components/schemas/DashboardLayout'
           description: The club's dashboard, which its members see unless they arranged their own; an empty list means the default set
+    JoinRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        club:
+          type: string
+        clubName:
+          type: string
+        clubLogo:
+          type: string
+        name:
+          type: string
+          description: The name of the one who asks
+        email:
+          type:
+            - string
+            - 'null'
+          description: Only for the club admins
+        nickname:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - open
+            - accepted
+            - declined
+            - withdrawn
+        at:
+          type: string
+          format: date-time
+        decidedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ClubDirectory:
+      type: object
+      properties:
+        nickname:
+          type:
+            - string
+            - 'null'
+        clubs:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              logo:
+                type: string
+              joinPolicy:
+                type: string
+                enum:
+                  - open
+                  - approval
+              playerCount:
+                type: integer
+              isMember:
+                type: boolean
+              request:
+                type:
+                  - object
+                  - 'null'
+                description: The user's latest open or declined request to the club
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                  at:
+                    type: string
+                    format: date-time
+                  decidedAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
     RoleInput:
       type: object
       required:

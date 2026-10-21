@@ -17,6 +17,7 @@ export const PLAYER_GUIDE = [
                 <ul>
                     <li>Everything under <strong>Club</strong> in the menu belongs to the selected club: its players, games, trainings and badges.</li>
                     <li>A club admin gives you a login for your player in their club. Then you can start games and trainings on your own and see the club like everyone else; only admins change it.</li>
+                    <li>Or you join a club yourself: under <strong>Join a club</strong> on <Link to="/my-clubs">My clubs</Link> are the clubs that take new members. An <em>open</em> club you join at once; where the <em>admins accept</em> you ask (with a few words if you like) and are told their answer through the notifications. You can take a request back while it waits; after a declined one you can ask again a week later. You play there with the player you already have elsewhere, with your statistics, badges and flights; without one you choose a nickname.</li>
                     <li>Anyone can create a club of their own under <Link to="/my-clubs">My clubs</Link> and becomes its admin. Global admins, who look after the whole app, belong to no club.</li>
                     <li>A login lasts five hours (the installation can set another length). Ten minutes before the end a countdown asks whether to stay logged in; after logging in again you are back on the page you were on, e.g. the game being played.</li>
                 </ul>
@@ -126,6 +127,7 @@ export const ADMIN_GUIDE = [
                     <li><strong>Edit:</strong> the name, a description and the logo.</li>
                     <li><strong>Admins:</strong> share the club with other admins by their email. Every admin can do everything in the club.</li>
                     <li><strong>Settings:</strong> whether the club appears on the public start page, with its running games and its results; the Hall of Shame on or off, and whether children are left out of it (under 16, or another age). A player without a date of birth is always left out of it.</li>
+                    <li><strong>New members</strong> (in the settings): <em>Open</em>: anyone with an account finds the club under Join a club and is a member at once; you are told who joined. <em>Admins accept</em>: they ask, and any admin accepts or declines; the requests wait above the players under Club → Players, and on the club in My clubs. <em>Closed</em> (the start for every club): the club is not listed and only you add players. A new member has a login right away; set their date of birth on their page.</li>
                 </ul>
             </>
         ),

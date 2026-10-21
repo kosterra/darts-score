@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
@@ -6,6 +6,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
+import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -17,6 +18,14 @@ import ClubEditDialog from './club.edit.dialog';
 import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
 import ClubMembership from './club.membership';
+import ClubDirectory from './club.directory';
+
+// how new members come in, with what it means
+const JOIN_POLICIES = [
+    { label: 'Open', value: 'open', hint: 'Anyone with an account finds the club under Join a club and becomes a member at once. The admins are told who joined.' },
+    { label: 'Admins accept', value: 'approval', hint: 'Anyone with an account can ask to join. One of the admins accepts or declines, on the players page.' },
+    { label: 'Closed', value: 'closed', hint: 'The club is not listed under Join a club. Only the admins add players and give them a login.' },
+];
 
 /**
  * My clubs: the clubs the user runs or plays in, with what they do in each:
@@ -26,6 +35,11 @@ const ClubsPage = () => {
     const toast = useRef(null);
     const navigate = useNavigate();
     const { clubs, activeClub, refreshClubs, selectClub, isGlobalAdmin } = useAuth();
+
+    // memberships accepted elsewhere, and the requests waiting, show up when the page opens
+    useEffect(() => {
+        if (!isGlobalAdmin) refreshClubs().catch(() => {});
+    }, [isGlobalAdmin, refreshClubs]);
 
     const [newName, setNewName] = useState('');
     // Settings of the club being edited: { id, name, isPublic, publicLiveGames, publicResults, shameBadges, shameWithoutChildren, shameMinAge }
@@ -100,7 +114,8 @@ const ClubsPage = () => {
         publicResults: club.publicResults !== false,
         shameBadges: club.shameBadges !== false,
         shameWithoutChildren: club.shameWithoutChildren === true,
-        shameMinAge: club.shameMinAge ?? 16
+        shameMinAge: club.shameMinAge ?? 16,
+        joinPolicy: club.joinPolicy ?? 'closed'
     });
     const showSuccess = (summary, detail) => toast.current.show({ severity: 'success', summary, detail, life: 3000 });
 
@@ -143,7 +158,7 @@ const ClubsPage = () => {
 
                 {clubs.length === 0 &&
                     <p className="text-subtle fs-7 py-4 text-center m-0">
-                        You are not in a club yet. Create your own club to add players and start playing, or ask a club admin to give you a login as a player of their club.
+                        You are not in a club yet. Create your own club to add players and start playing, or join a club below. A club admin can also give you a login as a player of their club.
                     </p>
                 }
 
@@ -160,6 +175,7 @@ const ClubsPage = () => {
                                             <span className="text-default fw-semibold fs-6 text-break">{club.name}</span>
                                             <Tag value={isAdmin ? 'Admin' : 'Player'} severity={isAdmin ? 'warning' : 'info'} />
                                             <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
+                                            {club.joinPolicy && club.joinPolicy !== 'closed' && <Tag value={club.joinPolicy === 'open' ? 'Open to join' : 'Admins accept'} severity="secondary" />}
                                             {current && <Tag value="Current club" severity="success" />}
                                         </div>
                                         <span className="text-faint fs-8 text-break">
@@ -168,6 +184,13 @@ const ClubsPage = () => {
                                         {club.description && <span className="text-subtle fs-8 text-break">{club.description}</span>}
                                     </div>
                                     <div className="my-club-actions">
+                                        {isAdmin && club.openJoinRequests > 0 &&
+                                            <Button
+                                                label={`${club.openJoinRequests} ${club.openJoinRequests === 1 ? 'request' : 'requests'} to join`}
+                                                icon="pi pi-user-plus"
+                                                size="small"
+                                                onClick={() => { selectClub(club.id); navigate('/players?requests=1'); }}
+                                            />}
                                         {!current && <Button label="Switch to this club" size="small" severity="secondary" onClick={() => onSelect(club)} />}
                                         {isAdmin && <>
                                             <Button icon="pi pi-users" size="small" severity="secondary" aria-label={`Admins of ${club.name}`} tooltip="Admins" tooltipOptions={{ position: 'top' }} onClick={() => setAdminsOfClubId(club.id)} />
@@ -184,16 +207,31 @@ const ClubsPage = () => {
                 </ul>
             </Panel>
 
+            <ClubDirectory onSuccess={showSuccess} onError={showError} />
+
             <Dialog header={editing ? `Settings of ${editing.name}` : 'Club Settings'} visible={!!editing} blockScroll onHide={() => setEditing(null)} draggable={false} className="m-4" style={{ width: '34rem', maxWidth: '100%' }}>
                 {editing &&
                     <form onSubmit={onSaveSettings} className="d-flex flex-column gap-4 pt-2">
                         <span className="text-default fw-semibold">Visibility</span>
-                        {settingSwitch('isPublic', 'Public club', 'Listed by name on the public start page. Private clubs are not visible to anyone outside.')}
+                        {settingSwitch('isPublic', 'Public club', 'Listed by name on the public start page, with its live games and results if you like. Whether people with an account can find and join the club is set under New members.')}
                         {settingSwitch('publicLiveGames', 'Show running games', 'Live scores of games in progress appear on the public start page.', !editing.isPublic)}
                         {settingSwitch('publicResults', 'Show results', 'Finished games appear under the latest results.', !editing.isPublic)}
                         <span className="text-faint fs-8">
                             Players are shown without their name unless their nickname is set to public, by an admin on the players page or by the players themselves in their profile.
                         </span>
+                        <span className="text-default fw-semibold">New members</span>
+                        <div className="d-flex flex-column gap-2">
+                            <SelectButton
+                                value={editing.joinPolicy}
+                                options={JOIN_POLICIES}
+                                optionLabel="label"
+                                optionValue="value"
+                                onChange={(e) => e.value && setEditing({ ...editing, joinPolicy: e.value })}
+                                className="p-selectbutton-pills"
+                                aria-label="How new members join"
+                            />
+                            <span className="text-faint fs-8">{JOIN_POLICIES.find(policy => policy.value === editing.joinPolicy)?.hint}</span>
+                        </div>
                         <span className="text-default fw-semibold">Fun</span>
                         {settingSwitch('shameBadges', 'Hall of Shame', 'Badges nobody wants, like Bed and Breakfast or Madhouse, with who holds them on the dashboard and in X01 games.')}
                         {settingSwitch('shameWithoutChildren', `Leave out children under ${editing.shameMinAge ?? 16}`, 'Children never hold a shame badge and have no Hall of Shame on their profile; what they threw as children never counts. Players without a date of birth are always left out.', !editing.shameBadges)}

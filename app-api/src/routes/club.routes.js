@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as ClubController from '../controllers/club.controller.js';
+import * as ClubJoinController from '../controllers/club.join.controller.js';
 import { emailValidator, nameValidators, passwordValidator } from './auth.routes.js';
 import { uploadClubLogo } from '../controllers/file.controller.js';
 
@@ -16,11 +17,38 @@ export default (app) => {
     const router = Router();
 
     router.get('/', ClubController.findAll);
+
+    // joining a club on one's own: the clubs that take members, asking or joining, the admins decide
+    router.get('/directory',
+        query('q').optional().isString().isLength({ max: 50 }).withMessage('Search with at most 50 characters.'),
+        validate,
+        ClubJoinController.directory
+    );
+    router.get('/join-requests', ClubJoinController.mine);
+    router.post('/:id/join',
+        param('id').isMongoId().withMessage('Invalid club.'),
+        body('nickname').optional({ values: 'falsy' }).isString().trim()
+            .isLength({ min: 3, max: 25 }).withMessage('Nickname must be between 3 and 25 characters.')
+            .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Nickname contains invalid characters.'),
+        body('message').optional().isString().isLength({ max: 300 }).withMessage('The message is at most 300 characters.'),
+        validate,
+        ClubJoinController.join
+    );
+    router.delete('/:id/join', param('id').isMongoId().withMessage('Invalid club.'), validate, ClubJoinController.withdraw);
+    router.get('/:id/join-requests', param('id').isMongoId().withMessage('Invalid club.'), validate, ClubJoinController.requestsOfClub);
+    router.put('/:id/join-requests/:requestId',
+        param('id').isMongoId().withMessage('Invalid club.'),
+        param('requestId').isMongoId().withMessage('Invalid request.'),
+        body('accept').isBoolean({ strict: true }).withMessage('accept must be true or false.'),
+        validate,
+        ClubJoinController.decide
+    );
     router.post('/', clubValidator, validate, ClubController.create);
     router.put('/:id',
         clubValidator,
         ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren'].map(setting =>
             body(setting).optional().isBoolean({ strict: true }).withMessage(`${setting} must be true or false.`)),
+        body('joinPolicy').optional().isIn(['open', 'approval', 'closed']).withMessage('New members join freely, are accepted by an admin, or are added by the admins only.'),
         body('shameMinAge').optional().isInt({ min: 6, max: 21 }).withMessage('The age limit must be between 6 and 21.').toInt(),
         body('description').optional().isString().trim().isLength({ max: 500 }).withMessage('The description can have at most 500 characters.'),
         body('dashboardWidgets').optional().isArray({ max: 40 }).withMessage('dashboardWidgets must be a list.'),
