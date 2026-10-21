@@ -257,7 +257,7 @@ const ClubEditPage = () => {
                         <SettingSwitch
                             id="club-results"
                             title="Show results"
-                            hint="Finished games appear under the latest results. Players are shown without their name unless their nickname is set to public."
+                            hint="Finished games appear under the latest results. Players are shown without their name unless their nickname is public: their own choice with a login, yours without."
                             checked={club.publicResults !== false}
                             disabled={!isPublic}
                             onChange={(value) => saveSetting({ publicResults: value }, value ? 'Results are shown.' : 'Results are hidden.')}

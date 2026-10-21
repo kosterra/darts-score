@@ -170,7 +170,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                 <SettingSwitch
                     id={`my-player-public-${player.id}`}
                     title="Show my nickname on the public page"
-                    hint={anyPublic ? 'Your nickname appears with the live games and results of your public clubs; otherwise you are shown without a name.' : 'None of your clubs is public, so this only matters once one of them is.'}
+                    hint={`${anyPublic ? 'Your nickname appears with the live games and results of your public clubs; otherwise you are shown without a name.' : 'None of your clubs is public, so this only matters once one of them is.'} Your decision: the club admins cannot change it.`}
                     checked={!!current.publicProfile}
                     onChange={togglePublic}
                 />

@@ -368,7 +368,12 @@ export const setVisibility = async (req, res) => {
     const player = await findInClub(req);
     if (!player) return res.status(404).send({ message: 'Player not found.' });
 
+    // whether a name is public is up to the person: a player with a login decides
+    // themselves, the club admins only for the players without one
     const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (player.user && !isOwnPlayer) {
+        return res.status(403).send({ message: `${player.nickname} has a login and decides this on their player profile.` });
+    }
     if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
         return res.status(403).send({ message: 'Only club admins can change this for other players.' });
     }

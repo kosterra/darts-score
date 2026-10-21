@@ -41,7 +41,9 @@ const matches = (player, term) => [player.nickname, player.firstname, player.las
  */
 const PlayersTable = ({ scope = 'club' }) => {
     const toast = useRef(null);
-    const { isClubAdmin } = useAuth();
+    const { isClubAdmin, user } = useAuth();
+    // a player with a login decides about their public nickname themselves
+    const decidesThemselves = (player) => Boolean(player.user) && player.user !== user?.id;
     // back from a player's page after moving or removing them: what happened
     const { state: arrival } = useLocation();
     const noticeShown = useRef(false);
@@ -154,7 +156,12 @@ const PlayersTable = ({ scope = 'club' }) => {
 
     const publicBody = (player) => player.guest
         ? <span className="text-faint fs-7">–</span>
-        : <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? 'Nickname shown' : 'Hidden'}</span>;
+        : (
+            <span className="d-flex flex-column">
+                <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? 'Nickname shown' : 'Hidden'}</span>
+                {decidesThemselves(player) && <span className="text-faint fs-8">their own choice</span>}
+            </span>
+        );
 
     // the club's own admins look after their players; across clubs a global admin inspects and deletes
     const actionsBody = (player) => !canManage ? null : (
@@ -170,8 +177,11 @@ const PlayersTable = ({ scope = 'club' }) => {
                             icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
                             severity={player.publicProfile ? undefined : 'secondary'}
                             aria-label={player.publicProfile ? `Hide the nickname of ${player.nickname} on the public page` : `Show the nickname of ${player.nickname} on the public page`}
-                            tooltip={player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
-                            tooltipOptions={{ position: 'top' }}
+                            tooltip={decidesThemselves(player)
+                                ? `${player.nickname} has a login and decides this on their player profile`
+                                : player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
+                            tooltipOptions={{ position: 'top', showOnDisabled: true }}
+                            disabled={decidesThemselves(player)}
                             onClick={() => onTogglePublic(player)}
                         />
                     </>

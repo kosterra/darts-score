@@ -16,6 +16,7 @@ const CHANGELOG = [
             'Fix: Play again in X01, Cricket and Elimination keeps the dart animation the game was set up with; it went back to each player\'s own choice.',
             'A club is edited on a page of its own instead of three popups, laid out as the player profile: Edit club on My clubs opens its logo, name and description, its admins, what it shows on the public page, how new members join and the Hall of Shame, the settings saved as soon as they change; deleting the club is at the bottom.',
             'Admins of several clubs add a player to another club, move or remove them on the player\'s edit page, under Clubs, instead of a popup of the players list.',
+            'Whether a nickname is shown on the public page is up to the player: with a login only they decide, on their player profile; the club admins decide only for players without a login.',
             'The game statistics have tidier buttons: Play again with Switch players (or Shuffle players) right next to it instead of a drop-down, New game and Home as quiet buttons beside them.',
         ],
     },

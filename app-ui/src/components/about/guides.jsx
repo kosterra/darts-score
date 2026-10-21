@@ -145,7 +145,7 @@ export const ADMIN_GUIDE = [
                     <li><strong>Login:</strong> give a player a login with their email, so they can start games and trainings on their own. With mail set up they get a mail to choose their password; otherwise set an initial password and pass it on.</li>
                     <li>A player with a login keeps their name (from their account), nickname and picture up to date themselves; you still set the date of birth, which adults may correct (never to a child&apos;s). Removing the login hands everything back to you.</li>
                     <li>You can add yourself as a player of a club you manage, under My clubs, to be picked for games like anyone else.</li>
-                    <li>A nickname only appears on the public start page when it is set to public, by you or by the player.</li>
+                    <li>A nickname only appears on the public start page when it is set to public. A player with a login decides this themselves, on their player profile; for the players without one you decide, on their page.</li>
                     <li>For a player without a login you also choose their darts on their page, and unlock flights and barrels with their flight points.</li>
                 </ul>
             </>

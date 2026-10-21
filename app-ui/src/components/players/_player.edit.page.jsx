@@ -198,8 +198,9 @@ const PlayerEditPage = () => {
                                 <SettingSwitch
                                     id={`player-public-${player.id}`}
                                     title="Nickname on the public page"
-                                    hint={player.publicProfile ? 'The nickname appears with the live games and results of the club, if the club is public.' : 'The player is shown without a name on the public page.'}
+                                    hint={`${player.publicProfile ? 'The nickname appears with the live games and results of the club, if the club is public.' : 'The player is shown without a name on the public page.'}${maintainedByPlayer ? ` ${player.nickname} has a login and decides this on their player profile.` : ''}`}
                                     checked={Boolean(player.publicProfile)}
+                                    disabled={maintainedByPlayer}
                                     onChange={togglePublic}
                                 />
                                 <p className="setting-title">Login</p>

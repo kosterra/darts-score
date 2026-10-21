@@ -68,7 +68,7 @@ const STEPS = [
 const FAQ = [
     { q: 'What does Oche cost?', a: 'Nothing. Oche is free for clubs and players, without ads.' },
     { q: 'Can I try it without an account?', a: 'Yes: a quick game of X01 or Cricket needs only the names of the players, and ends with its statistics. It stays on your device for 30 days; an account keeps every game.' },
-    { q: 'Who sees our games?', a: 'Only the members of your club. A club appears on this page only when its admins make it public, and even then a player is only named when their nickname is set to public.' },
+    { q: 'Who sees our games?', a: 'Only the members of your club. A club appears on this page only when its admins make it public, and even then a player is only named when they chose to show their nickname.' },
     { q: 'Do I need a dartboard with electronics?', a: 'No. Oche is for steel and soft tip on any board: you enter the darts on the phone, tablet or PC next to it.' },
     { q: 'Can a player be in more than one club?', a: 'Yes. One account plays in several clubs, with one player whose statistics, badges and darts go along.' },
     { q: 'Can we run Oche ourselves?', a: 'Yes. Oche is open source under the GPLv3 and runs with Docker on your own server.' },
