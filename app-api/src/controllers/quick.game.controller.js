@@ -101,7 +101,7 @@ export const list = async (req, res) => {
             kind: game.kind,
             format: game.kind === 'x01'
                 ? `${game.data?.startingScore} · ${game.data?.legOutMode} · best of ${game.data?.numberOfLegs} ${game.data?.numberOfLegs === 1 ? 'leg' : 'legs'}`
-                : game.data?.variant ?? 'Standard',
+                : `Cricket · ${game.data?.variant ?? 'Standard'}`,
             names: game.names,
             winner: game.winner,
             finished: game.hasWinner,
