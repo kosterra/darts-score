@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
@@ -29,8 +28,8 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
                                     </div>
                                     <GamePlayers game={game} players={players} />
                                 </div>
-                                <Link to={`/${game.type}/${game.id}`} aria-label="Continue this game">
-                                    <Button icon={<GiDart />} tooltip="Continue" tooltipOptions={{ position: 'left' }} />
+                                <Link to={`/${game.type}/${game.id}`} className="game-row-action is-continue" aria-label="Continue this game" title="Continue playing">
+                                    <GiDart aria-hidden="true" />
                                 </Link>
                             </li>
                         ))}
