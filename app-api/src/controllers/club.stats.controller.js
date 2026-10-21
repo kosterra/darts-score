@@ -5,6 +5,7 @@ import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insigh
 import { playerLevel, levelInputs } from '../utils/levels.js';
 import { countBadges } from '../utils/badges.js';
 import { recentForm } from '../utils/chart.data.js';
+import { formFigures } from '../utils/form.figures.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -256,7 +257,18 @@ export const getPlayersForm = async (req, res) => {
             .sort({ updatedAt: -1 })
             .limit(FORM_GAMES * 2)
             .lean();
-        return [playerId, recentForm(games, playerId, FORM_GAMES)];
+        // the figures of the same games: the latest ones against those before
+        const played = games
+            .filter(game => (game.playerModels?.[playerId]?.totalThrow?.game?.rounds ?? 0) > 0)
+            .sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt));
+        const before = played.slice(0, -FORM_GAMES);
+        return [playerId, {
+            ...recentForm(games, playerId, FORM_GAMES),
+            figures: {
+                recent: formFigures(played.slice(-FORM_GAMES), playerId),
+                previous: before.length ? formFigures(before, playerId) : null,
+            },
+        }];
     }));
     res.json(Object.fromEntries(forms));
 };
