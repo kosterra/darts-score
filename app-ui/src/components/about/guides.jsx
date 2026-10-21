@@ -156,7 +156,7 @@ export const ADMIN_GUIDE = [
         icon: FaArrowRightArrowLeft,
         body: (
             <>
-                <p>A player can be a member of several clubs, with one profile and the badges from every club. Admins of more than one club move a player to another of their clubs, add them to a second one or remove them from a club.</p>
+                <p>A player can be a member of several clubs, with one profile and the badges from every club. Admins of more than one club move a player to another of their clubs, add them to a second one or remove them from a club, under Clubs on the player&apos;s edit page (the edit button in Club → Players).</p>
                 <ul>
                     <li>Moving takes the history along: games in which every player left the old club for the same new club move with them, and so do the trainings of a player who now plays in one club only.</li>
                     <li>Games with a player still in the old club stay there. Removing a player from a club keeps their games in it.</li>
