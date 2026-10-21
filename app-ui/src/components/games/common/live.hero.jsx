@@ -30,7 +30,7 @@ const LiveHero = ({ title, subtitle, rows }) => {
 
             <div className={`x01-hero-players count-${rows.length}`}>
                 {rows.map(({ player, isTurn, line, tags, score, scoreClass = '', scoreKey, below }, index) => (
-                    <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${rows.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
+                    <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${rows.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined} style={{ '--player-colour': PLAYER_COLORS[index] }}>
                         <span className="result-hero-portrait x01-hero-portrait">
                             {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
                             <Avatar
@@ -49,7 +49,7 @@ const LiveHero = ({ title, subtitle, rows }) => {
                             </span>
                             {line && <span className="x01-live-leg">{line}</span>}
                             <span className="x01-live-tags">
-                                {isTurn && <span className="x01-live-turn">Throwing</span>}
+                                {isTurn && <span className="x01-live-turn"><i className="pi pi-play" aria-hidden="true" />Throwing</span>}
                                 {tags}
                                 {heldBy(shame, player.id).map(badge => (
                                     <span key={badge.id} className="x01-shame">
