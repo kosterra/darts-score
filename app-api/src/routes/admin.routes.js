@@ -8,6 +8,7 @@ import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/ba
 import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
+import { getStartPageSettings, saveStartPageSettings } from '../utils/start.page.settings.js';
 
 export default (app) => {
     const router = Router();
@@ -55,6 +56,18 @@ export default (app) => {
             const settings = await saveSessionSettings({ timeoutHours: req.body.timeoutHours });
             logger.info(`Session timeout set to ${settings.timeoutHours} hours by ${req.user.email}`);
             res.json({ ...settings, limits: SESSION_HOURS });
+        },
+    );
+
+    // what the public start page shows: the numbers of the installation, or not yet
+    router.get('/start-page', async (req, res) => res.json(await getStartPageSettings()));
+    router.put('/start-page',
+        body('showNumbers').isBoolean({ strict: true }).withMessage('showNumbers must be true or false.'),
+        validate,
+        async (req, res) => {
+            const settings = await saveStartPageSettings({ showNumbers: req.body.showNumbers });
+            logger.info(`Numbers on the start page ${settings.showNumbers ? 'shown' : 'hidden'} by ${req.user.email}`);
+            res.json(settings);
         },
     );
 

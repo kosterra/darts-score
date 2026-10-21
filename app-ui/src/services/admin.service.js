@@ -32,6 +32,10 @@ const loadBannerSettings = () => requestJSON(`${API_URL}/banner`);
 const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT', body: banner });
 
 // how long a login lasts: { timeoutHours, limits: { min, max, default } }
+// what the public start page shows: { showNumbers }
+const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
+const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
+
 const loadSessionSettings = () => requestJSON(`${API_URL}/session`);
 const saveSessionSettings = (timeoutHours) => requestJSON(`${API_URL}/session`, { method: 'PUT', body: { timeoutHours } });
 
@@ -72,6 +76,8 @@ const AdminService = {
     loadBannerSettings,
     saveBanner,
     loadSessionSettings,
+    loadStartPageSettings,
+    saveStartPageSettings,
     saveSessionSettings,
     loadOverview,
     loadClubs,

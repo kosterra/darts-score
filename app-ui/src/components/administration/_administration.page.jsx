@@ -8,6 +8,7 @@ import { Toast } from 'primereact/toast';
 import AdminService from '../../services/admin.service';
 import BannerSettings from './banner.settings';
 import SessionSettings from './session.settings';
+import StartPageSettings from './start.page.settings';
 import StatTile from '../stats/players/stat.tile';
 import { useAuth } from '../../utils/auth.context';
 
@@ -68,6 +69,8 @@ const AdministrationPage = () => {
             </div>
 
             <BannerSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Banner saved', detail, life: 3000 })} />
+
+            <StartPageSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Start page', detail, life: 3000 })} />
 
             <SessionSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Session saved', detail, life: 3000 })} />
 

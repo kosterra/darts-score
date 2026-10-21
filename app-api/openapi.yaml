@@ -321,7 +321,7 @@ paths:
       tags:
         - Public
       summary: Data of the public start page - totals, public clubs, their running games and latest results
-      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public. Each club comes with its figures (players, games played in all and in the last 30 days, the last game, the busiest weekday, the X01 average and the 180s); the totals count the games of the last 7 days too.
+      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public. Each club comes with its figures (players, games played in all and in the last 30 days, the last game, the busiest weekday, the X01 average and the 180s); the totals count the games of the last 7 days too, and are null while the global admins keep the numbers off the start page (System settings).
       security: []
       responses:
         '200':
@@ -1138,6 +1138,42 @@ paths:
         '403':
           description: Global admin rights required
       operationId: deleteAdminQuickGames
+  /api/admin/start-page:
+    get:
+      tags:
+        - Administration
+      summary: What the public start page shows
+      responses:
+        '200':
+          description: '{ showNumbers }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminStartPage
+    put:
+      tags:
+        - Administration
+      summary: Show the numbers of the installation (clubs, players, games) on the public start page, or not
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - showNumbers
+              properties:
+                showNumbers:
+                  type: boolean
+      responses:
+        '200':
+          description: '{ showNumbers }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: putAdminStartPage
   /api/admin/x01-trainings:
     get:
       tags:

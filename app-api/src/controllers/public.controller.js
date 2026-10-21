@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { clubFigures } from '../utils/public.figures.js';
+import { getStartPageSettings } from '../utils/start.page.settings.js';
 
 // A game counts as "live" while it is running and was updated this recently;
 // games that were simply never finished drop out of the list
@@ -113,6 +114,8 @@ const buildOverview = async () => {
     const idsWhere = (setting) => publicClubs.filter(club => club[setting] !== false).map(club => club._id);
 
     const weekAgo = new Date(Date.now() - 7 * DAY_MS);
+    // the numbers of the installation only once the global admins show them
+    const { showNumbers } = await getStartPageSettings();
     const [live, results, memberCounts, totals, figures, thisWeek] = await Promise.all([
         loadGames(
             { gameIsRunning: true, hasWinner: { $ne: true }, updatedAt: { $gte: new Date(Date.now() - LIVE_WINDOW_MS) } },
@@ -125,13 +128,13 @@ const buildOverview = async () => {
             { $unwind: '$clubs' },
             { $group: { _id: '$clubs', count: { $sum: 1 } } },
         ]),
-        Promise.all([
+        !showNumbers ? null : Promise.all([
             db.club.countDocuments(),
             db.player.countDocuments({ guest: { $ne: true } }),
             ...GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true })),
         ]),
         loadClubFigures(publicClubs.map(club => club._id)),
-        Promise.all(GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true, updatedAt: { $gte: weekAgo } }))),
+        !showNumbers ? null : Promise.all(GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true, updatedAt: { $gte: weekAgo } }))),
     ]);
 
     const playerIds = [...new Set([...live, ...results].flatMap(({ game }) => game.players ?? []))]
@@ -141,15 +144,16 @@ const buildOverview = async () => {
 
     const toSummary = ({ type, label, game }) => summarize(type, label, game, clubNames.get(String(game.club)), playersById);
     const countByClub = new Map(memberCounts.map(c => [String(c._id), c.count]));
-    const [clubs, playerTotal, ...gameTotals] = totals;
+    const [clubs, playerTotal, ...gameTotals] = totals ?? [];
 
     return {
-        totals: {
+        // null while the global admins keep the numbers to themselves
+        totals: showNumbers ? {
             clubs,
             players: playerTotal,
             gamesPlayed: gameTotals.reduce((sum, count) => sum + count, 0),
             gamesThisWeek: thisWeek.reduce((sum, count) => sum + count, 0),
-        },
+        } : null,
         clubs: publicClubs.map(club => ({
             name: club.name,
             description: club.description ?? '',

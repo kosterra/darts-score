@@ -153,7 +153,8 @@ const LandingPage = () => {
             </div>
 
             <main className="d-flex flex-column landing-main">
-                {overview &&
+                {/* the numbers only once the global admins show them */}
+                {overview?.totals &&
                     <section className="container" aria-label="Oche in numbers">
                         <div className="landing-numbers">
                             {[['Clubs', overview.totals.clubs], ['Players', overview.totals.players], ['Games played', overview.totals.gamesPlayed], ['Games this week', overview.totals.gamesThisWeek]].map(([label, value]) => (
