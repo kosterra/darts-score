@@ -4,7 +4,8 @@ import { Toast } from 'primereact/toast';
 
 import CricketContext from './cricket.context';
 import CricketReducer from './cricket.reducer';
-import CricketService from '../services/cricket.service';
+import ClubCricketService from '../services/cricket.service';
+import { QuickCricketService, quickPlayersOf } from '../services/quick.game.service';
 import CricketReturnToPreviousPlayer from './cricket.return.to.previous.player';
 import PlayerService from '../services/player.service';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
@@ -31,6 +32,9 @@ import {
 } from './constants';
 
 const CricketState = props => {
+    // a quick game of the start page: no account, the players only names
+    const quick = Boolean(props.quick);
+    const CricketService = quick ? QuickCricketService : ClubCricketService;
     const { id } = useParams();
 
     const toast = useRef(null);
@@ -93,6 +97,10 @@ const CricketState = props => {
 
         async function fetchPlayers(game) {
             try {
+                if (quick) {
+                    dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: quickPlayersOf(game) });
+                    return;
+                }
                 let players = [];
                 await Promise.all(game.players.map(async (playerId) => {
                     let player = await PlayerService.getPlayer(playerId);
@@ -117,8 +125,10 @@ const CricketState = props => {
                     life: 3000
                 }
             );
-            navigate("/", { replace: true });
+            navigate(quick ? '/quick' : '/', { replace: true });
         });
+        // the service follows "quick", which a page never changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, navigate]);
 
     const updateCurrentThrowManual = (value, index) => {
@@ -539,6 +549,7 @@ const CricketState = props => {
                     loading: state.loading,
                     winnerSaved,
                     celebrating,
+                    quick,
                     onClickValidateThrow,
                     updateCurrentThrowManual,
                     updateCurrentThrowDartBoard,

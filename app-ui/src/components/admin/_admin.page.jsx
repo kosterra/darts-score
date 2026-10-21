@@ -7,11 +7,12 @@ import ClubsTable from './clubs.table';
 import AlertsPage from './alerts.page';
 import ErrorLog from './error.log';
 import UsersList from './users.list';
+import QuickGamesList from './quick.games.list';
 import { useAuth } from '../../utils/auth.context';
 
 const GAME_TYPES = ['x01', 'cricket', 'elimination'];
 // pages that are not lists of a club's records
-const OTHER_PAGES = { clubs: ClubsTable, users: UsersList, alerts: AlertsPage, logs: ErrorLog };
+const OTHER_PAGES = { clubs: ClubsTable, users: UsersList, alerts: AlertsPage, logs: ErrorLog, 'quick-games': QuickGamesList };
 
 /**
  * The pages under "Admin", for global admins: all clubs and users; players,

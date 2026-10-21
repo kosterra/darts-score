@@ -14,7 +14,7 @@ import X01ScoreInputBoard from './x01.score.input.board';
 import PageLoader from '../../elements/page.loader';
 
 const X01Game = () => {
-    const { game, players, loading, celebrating, training } = useContext(X01Context);
+    const { game, players, loading, celebrating, training, quick } = useContext(X01Context);
     const navigate = useNavigate();
     const [more, setMore] = useState(false);
 
@@ -22,14 +22,14 @@ const X01Game = () => {
     // training also stays a moment on the finish, so a win of the bot is seen too
     useEffect(() => {
         if (!game?.hasWinner || celebrating) return undefined;
-        const open = () => navigate(`/stats/${training ? 'training' : 'games'}/x01/${game.id}`, { replace: true, state: { justFinished: true } });
+        const open = () => navigate(quick ? `/quick/stats/x01/${game.id}` : `/stats/${training ? 'training' : 'games'}/x01/${game.id}`, { replace: true, state: { justFinished: true } });
         if (!training) {
             open();
             return undefined;
         }
         const timer = setTimeout(open, 2200);
         return () => clearTimeout(timer);
-    }, [game?.hasWinner, game?.id, celebrating, navigate, training]);
+    }, [game?.hasWinner, game?.id, celebrating, navigate, training, quick]);
 
     if (loading?.initGameLoading) {
         return <PageLoader />;

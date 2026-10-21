@@ -3,6 +3,7 @@ import { requireGlobalAdmin } from '../middleware/auth.middleware.js';
 import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
+import * as QuickGameController from '../controllers/quick.game.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
 import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
@@ -25,6 +26,14 @@ export default (app) => {
     router.get('/games', AdminController.games);
     router.get('/trainings', AdminController.trainings);
     router.get('/x01-trainings', AdminController.x01Trainings);
+    // the quick games of the public start page
+    router.get('/quick-games', QuickGameController.list);
+    router.delete('/quick-games',
+        body('ids').isArray({ min: 1, max: 500 }).withMessage('Choose the games to delete.'),
+        body('ids.*').isMongoId().withMessage('Invalid game.'),
+        validate,
+        QuickGameController.remove,
+    );
 
     // the banner on top of every page
     router.get('/banner', getBannerSettings);

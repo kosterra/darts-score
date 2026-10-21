@@ -18,6 +18,10 @@ const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(club
 // the X01 trainings against the bot of the chosen clubs
 const loadX01Trainings = (clubIds) => requestJSON(`${API_URL}/x01-trainings${query(clubIds)}`);
 
+// the quick games of the public start page: { total, perDay, games }, and deleting some
+const loadQuickGames = () => requestJSON(`${API_URL}/quick-games`);
+const deleteQuickGames = (ids) => requestJSON(`${API_URL}/quick-games`, { method: 'DELETE', body: { ids } });
+
 // a player's clubs, and deleting a player from every club
 const addPlayerToClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs`, { method: 'POST', body: { club: clubId } });
 const removePlayerFromClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs/${clubId}`, { method: 'DELETE' });
@@ -50,6 +54,8 @@ const blockIp = (ip, reason, hours) => requestJSON(`${API_URL}/blocks/ips`, { me
 const unblockIp = (id) => requestJSON(`${API_URL}/blocks/ips/${id}`, { method: 'DELETE' });
 
 const AdminService = {
+    loadQuickGames,
+    deleteQuickGames,
     loadLogs,
     clearLogs,
     loadAlerts,

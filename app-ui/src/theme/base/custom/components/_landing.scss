@@ -23,3 +23,447 @@
         }
     }
 }
+
+// the bar at the top: the brand, the sections, the account
+.landing-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba($shade900, 0.72);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    @media (max-width: 575.98px) { padding: 0.6rem 1rem; }
+}
+
+.landing-nav {
+    display: none;
+    gap: 1.75rem;
+
+    a {
+        color: var(--text-subtle);
+        text-decoration: none;
+        font-size: 0.95rem;
+
+        &:hover { color: var(--text-default); }
+    }
+
+    @media (min-width: 992px) { display: flex; }
+}
+
+.landing-hero-content {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+
+    @media (max-width: 991.98px) {
+        padding-top: 2.5rem;
+        padding-bottom: 3rem;
+    }
+}
+
+.landing-eyebrow {
+    color: $primaryColor;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.landing-title {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 600;
+    line-height: 1.08;
+    color: var(--text-default);
+}
+
+.landing-heading {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text-default);
+}
+
+.landing-ticks,
+.landing-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-subtle);
+
+    i {
+        margin-right: 0.45rem;
+        color: $primaryColor;
+        font-size: 0.85rem;
+    }
+}
+
+.landing-ticks { font-size: 0.9rem; }
+
+.landing-points {
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+// the screenshot of a window with a phone laid over its corner
+.landing-hero-shots {
+    position: relative;
+    padding-bottom: 2.5rem;
+
+    .showcase-shot {
+        transform: perspective(1600px) rotateY(-6deg) rotateX(2deg);
+        transform-origin: left center;
+    }
+
+    .showcase-phone {
+        position: absolute;
+        right: -0.5rem;
+        bottom: 0;
+        width: 26%;
+        min-width: 7.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .showcase-shot { transform: none; }
+        .showcase-phone { right: 0.5rem; width: 30%; }
+    }
+}
+
+.showcase-shot {
+    overflow: hidden;
+    border-radius: 0.75rem;
+    background: $shade800;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 0, 0, 0.3);
+
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1440 / 900;
+        object-fit: cover;
+        object-position: top left;
+    }
+}
+
+.showcase-shot-bar {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.55rem 0.75rem;
+    background: $shade700;
+
+    span {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.18);
+    }
+}
+
+.showcase-phone {
+    overflow: hidden;
+    border-radius: 1.4rem;
+    border: 0.4rem solid #111;
+    background: #111;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+
+    img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 390 / 844;
+        object-fit: cover;
+        object-position: top;
+        border-radius: 1rem;
+    }
+}
+
+.landing-main {
+    gap: 6rem;
+    padding-bottom: 4rem;
+
+    @media (max-width: 767.98px) { gap: 4rem; }
+}
+
+.landing-numbers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    padding: 1.75rem 1rem;
+    text-align: center;
+    border-radius: 0.75rem;
+    background: $surfaceTranslucentColor;
+
+    @media (max-width: 767.98px) { grid-template-columns: repeat(2, 1fr); row-gap: 1.5rem; }
+}
+
+.landing-number {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 600;
+    color: var(--text-default);
+    font-variant-numeric: tabular-nums;
+}
+
+.landing-showcase {
+    gap: 6rem;
+
+    @media (max-width: 991.98px) { gap: 4rem; }
+}
+
+.landing-section-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 44rem;
+}
+
+.landing-feature {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    background: $surfaceTranslucentColor;
+    transition: background-color 0.2s;
+
+    &:hover { background: var(--surface-raised); }
+}
+
+.landing-feature-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.6rem;
+    background: rgba($primaryColor, 0.16);
+    color: $primaryColor;
+    font-size: 1.2rem;
+}
+
+.landing-step {
+    display: flex;
+    gap: 1rem;
+    height: 100%;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    background: $surfaceTranslucentColor;
+}
+
+.landing-step-number {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: $primaryColor;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+// a public club with its figures
+.public-club {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--surface-raised);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.public-club-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.public-club-figures {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem 1rem;
+    margin: 0;
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-default);
+
+    dt {
+        font-weight: normal;
+        font-size: 0.75rem;
+        color: var(--text-faint);
+    }
+
+    dd {
+        margin: 0;
+        font-weight: 600;
+        color: var(--text-default);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.public-club-join {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $primaryColor;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+}
+
+.landing-faq {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 52rem;
+
+    details {
+        padding: 1rem 1.25rem;
+        border-radius: 0.6rem;
+        background: $surfaceTranslucentColor;
+
+        &[open] summary::after { transform: rotate(45deg); }
+        > p { padding-top: 0.75rem; }
+    }
+
+    summary {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        cursor: pointer;
+        list-style: none;
+        color: var(--text-default);
+        font-weight: 600;
+
+        &::-webkit-details-marker { display: none; }
+
+        &::after {
+            content: '+';
+            color: $primaryColor;
+            font-size: 1.25rem;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+    }
+}
+
+.landing-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3.5rem 1.5rem;
+    text-align: center;
+    border-radius: 1rem;
+    background:
+        radial-gradient(ellipse at top, rgba($primaryColor, 0.25), transparent 70%),
+        $surfaceTranslucentColor;
+}
+
+.landing-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-default);
+    color: var(--text-faint);
+    font-size: 0.85rem;
+
+    a { color: var(--text-subtle); text-decoration: none; }
+    a:hover { color: var(--text-default); }
+}
+
+// jumping to a section leaves room for the bar at the top
+.landing section[id] { scroll-margin-top: 5rem; }
+
+// the quick games: the bar of the start page above the setup, the game and its statistics
+.quick-page {
+    min-height: 100vh;
+    background: $shade900;
+}
+
+.quick-page-content {
+    padding: 1.5rem 0.75rem 3rem;
+
+    @media (min-width: 576px) { padding: 2rem 1.5rem 3rem; }
+}
+
+.quick-names {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-width: 28rem;
+    margin: 0 auto;
+}
+
+.quick-name {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.quick-name-number {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: rgba($primaryColor, 0.18);
+    color: $primaryColor;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+// under the result of a quick game: what an account adds
+.quick-invite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0.75rem;
+    background:
+        radial-gradient(ellipse at left, rgba($primaryColor, 0.2), transparent 70%),
+        var(--surface-raised);
+    border: 1px solid rgba($primaryColor, 0.25);
+
+    > div:first-child { flex: 1 1 24rem; }
+}
+
+// the invitation to a quick game, between the numbers and the features
+.landing-quick {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    padding: 2rem;
+    border-radius: 1rem;
+    background:
+        radial-gradient(ellipse at right, rgba($primaryColor, 0.28), transparent 65%),
+        $surfaceTranslucentColor;
+    border: 1px solid rgba($primaryColor, 0.25);
+
+    > div { flex: 1 1 26rem; max-width: 44rem; }
+
+    @media (max-width: 575.98px) { padding: 1.5rem; }
+}

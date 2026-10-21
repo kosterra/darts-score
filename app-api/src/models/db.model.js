@@ -16,6 +16,7 @@ import integrityReviewModel from './integrity.review.model.js';
 import notificationModel from './notification.model.js';
 import deletionRequestModel from './deletion.request.model.js';
 import joinRequestModel from './join.request.model.js';
+import quickGameModel from './quick.game.model.js';
 
 const db = {
   mongoose,
@@ -37,6 +38,7 @@ const db = {
   notification: notificationModel(mongoose),
   deletionRequest: deletionRequestModel(mongoose),
   joinRequest: joinRequestModel(mongoose),
+  quickGame: quickGameModel(mongoose),
 };
 
 export default db;

@@ -44,6 +44,8 @@ const LandingPage = lazy(() => import('./components/landing/_landing.page'));
 const RegisterPage = lazy(() => import('./components/auth/register.page'));
 const ForgotPasswordPage = lazy(() => import('./components/auth/forgot.password.page'));
 const ResetPasswordPage = lazy(() => import('./components/auth/reset.password.page'));
+const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
+const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
 
 import 'primeicons/primeicons.css';
 import "./theme/dark/green/theme.scss";
@@ -55,7 +57,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
+const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
     const { user, activeClub, isGlobalAdmin, loading, returnTo, loggedOut } = useAuth();
@@ -91,6 +93,10 @@ function AppContent() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    {/* quick games without an account */}
+                    <Route path="/quick" element={<QuickSetupPage />} />
+                    <Route path="/quick/:kind/:id" element={<QuickGamePage />} />
+                    <Route path="/quick/stats/:kind/:id" element={<QuickGamePage stats />} />
                     {/* after logging out: the public start page; otherwise the login */}
                     <Route path="*" element={<Navigate replace to={loggedOut ? '/' : '/login'} />} />
                 </Routes>

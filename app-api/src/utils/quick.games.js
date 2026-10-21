@@ -1,0 +1,84 @@
+/**
+ * Quick games: X01 and Cricket on the public start page, without an account.
+ * The players are only names; the game is kept apart from the clubs for 30
+ * days, and only the browser that started it (with its key) plays on.
+ */
+import crypto from 'node:crypto';
+
+export const QUICK_KINDS = ['x01', 'cricket'];
+export const QUICK_KEEP_DAYS = 30;
+export const QUICK_PLAYER_IDS = ['q1', 'q2', 'q3', 'q4'];
+// what a quick game may be set up as
+export const QUICK_X01 = { startingScores: [301, 501], outModes: ['Double Out', 'Straight Out'], legs: [1, 3, 5] };
+export const QUICK_CRICKET = { variants: ['Standard', 'Cut-throat'] };
+// a whole game of five legs between four players stays well below this
+export const MAX_GAME_SIZE = 400 * 1024;
+const NAME = /^[\p{L}\p{N}][\p{L}\p{N} '.-]{0,19}$/u;
+
+export const newKey = () => crypto.randomBytes(24).toString('hex');
+export const hashKey = (key) => crypto.createHash('sha256').update(String(key)).digest('hex');
+export const keyMatches = (key, hash) => {
+    if (!key || !hash) return false;
+    const given = Buffer.from(hashKey(key), 'hex');
+    const kept = Buffer.from(hash, 'hex');
+    return given.length === kept.length && crypto.timingSafeEqual(given, kept);
+};
+
+/**
+ * Why a quick game is not acceptable, or null. game: as the game page keeps it,
+ * with quickPlayers [{ id, nickname }]. before: the game as saved, when it is
+ * updated: its setup and players cannot change any more.
+ */
+export const quickGameError = (kind, game, before = null) => {
+    if (!QUICK_KINDS.includes(kind)) return 'A quick game is X01 or Cricket.';
+    if (!game || typeof game !== 'object' || Array.isArray(game)) return 'The game is missing.';
+    if (JSON.stringify(game).length > MAX_GAME_SIZE) return 'The game is too large.';
+
+    const players = game.players;
+    if (!Array.isArray(players) || players.length < 1 || players.length > 4) return 'A quick game has 1 to 4 players.';
+    if (new Set(players).size !== players.length || players.some(id => !QUICK_PLAYER_IDS.includes(id))) return 'The players of the game are not valid.';
+    const names = game.quickPlayers;
+    if (!Array.isArray(names) || names.length !== players.length) return 'Every player needs a name.';
+    for (const id of players) {
+        const name = names.find(player => player?.id === id)?.nickname;
+        if (typeof name !== 'string' || !NAME.test(name.trim())) return 'A name has 1 to 20 letters or digits.';
+    }
+    if (new Set(names.map(player => player.nickname.trim().toLowerCase())).size !== names.length) return 'Every player needs a name of their own.';
+
+    if (kind === 'x01') {
+        if (!QUICK_X01.startingScores.includes(Number(game.startingScore))) return 'A quick X01 game starts at 301 or 501.';
+        if (!QUICK_X01.outModes.includes(game.legOutMode) || game.legInMode !== 'Straight In') return 'A quick X01 game is Straight In, with Double Out or Straight Out.';
+        if (Number(game.numberOfSets) !== 1 || !QUICK_X01.legs.includes(Number(game.numberOfLegs)) || game.legMode !== 'Best of') return 'A quick X01 game is best of 1, 3 or 5 legs.';
+    } else if (!QUICK_CRICKET.variants.includes(game.variant)) {
+        return 'A quick Cricket game is Standard or Cut-throat.';
+    }
+    if (game.flyingDarts !== 'off') return 'Quick games have no dart animation.';
+
+    if (before) {
+        const setup = ['startingScore', 'legOutMode', 'numberOfLegs', 'variant'];
+        if (setup.some(key => String(before[key] ?? '') !== String(game[key] ?? ''))) return 'The setup of a game cannot change.';
+        if (JSON.stringify(before.players) !== JSON.stringify(players)) return 'The players of a game cannot change.';
+        if (JSON.stringify(before.quickPlayers) !== JSON.stringify(names)) return 'The names of the players cannot change.';
+    }
+    return null;
+};
+
+/**
+ * The game without what the server keeps for itself, as the game page reads it.
+ */
+export const quickGameView = (doc) => ({
+    ...doc.data,
+    id: String(doc._id),
+    quick: true,
+    kind: doc.kind,
+    gameIsRunning: doc.gameIsRunning,
+    hasWinner: doc.hasWinner,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+});
+
+// the winner's name, for the list of the global admins
+export const winnerOf = (game) => {
+    const id = Object.entries(game.playerModels ?? {}).find(([, model]) => model?.hasWonGame)?.[0];
+    return id ? game.quickPlayers?.find(player => player.id === id)?.nickname ?? null : null;
+};

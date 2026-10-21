@@ -2,7 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 import PlayerService from '../../../services/player.service';
-import CricketService from '../../../services/cricket.service';
+import ClubCricketService from '../../../services/cricket.service';
+import { QuickCricketService, quickPlayersOf } from '../../../services/quick.game.service';
+import QuickGameInvite from '../../quick/quick.game.invite';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import GameResultHeader from '../common/game.result.header';
@@ -36,7 +38,9 @@ const GAME_COLOR = '#d4c783';
  * figures, the moments of the game, the board at the end with the race to
  * close all numbers, the points over the game and where the darts landed.
  */
-const CricketGameStats = () => {
+// quick: a quick game of the start page, the players only names and no badges
+const CricketGameStats = ({ quick = false }) => {
+    const CricketService = quick ? QuickCricketService : ClubCricketService;
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -56,7 +60,7 @@ const CricketGameStats = () => {
             try {
                 const gameData = await CricketService.loadCricketGameById(id);
                 if (!gameData) return setFailed(true);
-                const playerData = (await PlayerService.findPlayersByIds(gameData.players))
+                const playerData = quick ? quickPlayersOf(gameData) : (await PlayerService.findPlayersByIds(gameData.players))
                     .filter(player => gameData.players.includes(player.id))
                     .sort((a, b) => gameData.players.indexOf(a.id) - gameData.players.indexOf(b.id));
                 setGame(gameData);
@@ -67,6 +71,7 @@ const CricketGameStats = () => {
             }
         };
         loadData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const replay = useMemo(() => game ? replayCricket(game) : null, [game]);
@@ -76,15 +81,16 @@ const CricketGameStats = () => {
     const progress = useMemo(() => game && replay ? cricketProgress(game, replay) : { closing: [], points: [] }, [game, replay]);
     const moments = useMemo(() => game && replay ? cricketMoments(game, replay) : [], [game, replay]);
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">This game could not be found in the selected club.</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{quick ? 'This quick game was not found on this device.' : 'This game could not be found in the selected club.'}</div>;
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const onRestartGame = async (switchPlayers = false, shuffle = false) => {
-        const newGame = await CricketService.createCricketGame(cricketRematch(game, { switchPlayers, shuffle }));
-        navigate(`/cricket/${newGame.id}`);
+        const rematch = cricketRematch(game, { switchPlayers, shuffle });
+        const newGame = await CricketService.createCricketGame(quick ? { ...rematch, quickPlayers: game.quickPlayers, flyingDarts: 'off' } : rematch);
+        navigate(quick ? `/quick/cricket/${newGame.id}` : `/cricket/${newGame.id}`);
     };
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/cricket', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
 
     return (
         <div className="container-fluid p-4 border-0">
@@ -102,14 +108,15 @@ const CricketGameStats = () => {
                     actions={actions}
                 />
 
-                <GameBadges
+                {quick && <QuickGameInvite />}
+                {!quick && <GameBadges
                     gameType="cricket"
                     gameId={game.id}
                     players={players}
                     winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
                     celebrate={justFinished && game.hasWinner}
                     className="mb-4"
-                />
+                />}
 
                 <MatchMoments moments={moments} players={players} color={GAME_COLOR} />
 

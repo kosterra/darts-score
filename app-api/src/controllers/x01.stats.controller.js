@@ -28,9 +28,15 @@ export const getX01TrainingStats = async (req, res, next) => {
 
 async function calculateX01Stats(gameId, Model = X01) {
     logger.debug('calculate x01 stats called');
-    const x01Stats = JSON.parse(JSON.stringify(x01StatsModel));
+    return x01StatsOf(await findX01Game(gameId, Model));
+}
 
-    const x01Game = await findX01Game(gameId, Model);
+/**
+ * The statistics of one X01 game (a document or the plain game): the averages
+ * per leg, the doubles, the score ranges and the sections hit.
+ */
+export function x01StatsOf(x01Game) {
+    const x01Stats = JSON.parse(JSON.stringify(x01StatsModel));
 
     x01Stats.avg = getPlayersAveragesX01(x01Game);
     x01Stats.checkouts = getPlayersCheckoutHitsX01(x01Game);

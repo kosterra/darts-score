@@ -1,5 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
+import { clubFigures } from '../utils/public.figures.js';
 
 // A game counts as "live" while it is running and was updated this recently;
 // games that were simply never finished drop out of the list
@@ -10,6 +11,9 @@ const MAX_RESULTS = 8;
 const CACHE_MS = 10 * 1000;
 
 const HIDDEN_PLAYER = 'Hidden player';
+// the figures of the clubs add up every game, so they are worked out less often
+const FIGURES_CACHE_MS = 5 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const GAME_TYPES = [
     { type: 'x01', label: 'X01', model: () => db.x01 },
@@ -61,12 +65,55 @@ const loadGames = async (filter, clubIds, limit) => {
     return perType.flat().sort((a, b) => b.game.updatedAt - a.game.updatedAt).slice(0, limit);
 };
 
+let figuresCache = { expires: 0, key: '', data: new Map() };
+
+/**
+ * The figures of the public clubs: games played (all, the last 30 days), the
+ * last game, the busiest weekday, the X01 average and the 180s.
+ */
+const loadClubFigures = async (clubIds) => {
+    const key = clubIds.map(String).sort().join(',');
+    if (figuresCache.expires > Date.now() && figuresCache.key === key) return figuresCache.data;
+    if (clubIds.length === 0) return new Map();
+    const since = new Date(Date.now() - 30 * DAY_MS);
+    const finished = { hasWinner: true, club: { $in: clubIds } };
+    const [counts, x01] = await Promise.all([
+        Promise.all(GAME_TYPES.map(({ model }) => model().aggregate([
+            { $match: finished },
+            { $group: {
+                _id: { club: '$club', weekday: { $dayOfWeek: '$updatedAt' } },
+                games: { $sum: 1 },
+                recent: { $sum: { $cond: [{ $gte: ['$updatedAt', since] }, 1, 0] } },
+                lastAt: { $max: '$updatedAt' },
+            } },
+        ]))),
+        db.x01.aggregate([
+            { $match: finished },
+            { $project: { club: 1, models: { $objectToArray: { $ifNull: ['$playerModels', {}] } } } },
+            { $unwind: '$models' },
+            { $group: {
+                _id: '$club',
+                averageSum: { $sum: { $multiply: [{ $ifNull: ['$models.v.averages.game.overall', 0] }, { $ifNull: ['$models.v.totalThrow.game.rounds', 0] }] } },
+                rounds: { $sum: { $ifNull: ['$models.v.totalThrow.game.rounds', 0] } },
+                num180s: { $sum: { $ifNull: ['$models.v.scoreRanges.game.180', 0] } },
+            } },
+        ]),
+    ]);
+    const data = clubFigures(
+        counts.flat().map(({ _id, ...rest }) => ({ club: _id.club, weekday: _id.weekday, ...rest })),
+        x01.map(({ _id, ...rest }) => ({ club: _id, ...rest })),
+    );
+    figuresCache = { expires: Date.now() + FIGURES_CACHE_MS, key, data };
+    return data;
+};
+
 const buildOverview = async () => {
     const publicClubs = await db.club.find({ isPublic: true }).sort({ name: 1 }).lean();
     const clubNames = new Map(publicClubs.map(club => [String(club._id), club.name]));
     const idsWhere = (setting) => publicClubs.filter(club => club[setting] !== false).map(club => club._id);
 
-    const [live, results, memberCounts, totals] = await Promise.all([
+    const weekAgo = new Date(Date.now() - 7 * DAY_MS);
+    const [live, results, memberCounts, totals, figures, thisWeek] = await Promise.all([
         loadGames(
             { gameIsRunning: true, hasWinner: { $ne: true }, updatedAt: { $gte: new Date(Date.now() - LIVE_WINDOW_MS) } },
             idsWhere('publicLiveGames'),
@@ -83,6 +130,8 @@ const buildOverview = async () => {
             db.player.countDocuments({ guest: { $ne: true } }),
             ...GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true })),
         ]),
+        loadClubFigures(publicClubs.map(club => club._id)),
+        Promise.all(GAME_TYPES.map(({ model }) => model().countDocuments({ hasWinner: true, updatedAt: { $gte: weekAgo } }))),
     ]);
 
     const playerIds = [...new Set([...live, ...results].flatMap(({ game }) => game.players ?? []))]
@@ -95,8 +144,21 @@ const buildOverview = async () => {
     const [clubs, playerTotal, ...gameTotals] = totals;
 
     return {
-        totals: { clubs, players: playerTotal, gamesPlayed: gameTotals.reduce((sum, count) => sum + count, 0) },
-        clubs: publicClubs.map(club => ({ name: club.name, logo: club.logo || null, playerCount: countByClub.get(String(club._id)) ?? 0, joinPolicy: club.joinPolicy ?? 'closed' })),
+        totals: {
+            clubs,
+            players: playerTotal,
+            gamesPlayed: gameTotals.reduce((sum, count) => sum + count, 0),
+            gamesThisWeek: thisWeek.reduce((sum, count) => sum + count, 0),
+        },
+        clubs: publicClubs.map(club => ({
+            name: club.name,
+            description: club.description ?? '',
+            logo: club.logo || null,
+            createdAt: club.createdAt,
+            playerCount: countByClub.get(String(club._id)) ?? 0,
+            joinPolicy: club.joinPolicy ?? 'closed',
+            ...(figures.get(String(club._id)) ?? { gamesPlayed: 0, gamesLast30Days: 0, lastGameAt: null, x01Average: null, num180s: 0, busiestDay: null }),
+        })),
         liveGames: live.map(toSummary),
         results: results.map(toSummary),
     };

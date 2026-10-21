@@ -638,3 +638,39 @@ $fair-play-suspicious: #e9ac2f;
 }
 
 .profile-club { width: 100%; max-width: 24rem; }
+
+// the quick games started per day: one bar a day, the finished ones in front
+.quick-games-days {
+  display: grid;
+  grid-template-columns: repeat(30, 1fr);
+  align-items: end;
+  gap: 3px;
+  height: 4.5rem;
+}
+
+.quick-games-day {
+  position: relative;
+  height: 100%;
+
+  > span {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 2px 2px 0 0;
+  }
+}
+
+.quick-games-day .is-started,
+.quick-games-key.is-started { background: rgba($primaryColor, 0.35); }
+
+.quick-games-day .is-finished,
+.quick-games-key.is-finished { background: $primaryColor; }
+
+.quick-games-key {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  vertical-align: middle;
+}

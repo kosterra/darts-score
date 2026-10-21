@@ -18,6 +18,7 @@ export const PLAYER_GUIDE = [
                     <li>Everything under <strong>Club</strong> in the menu belongs to the selected club: its players, games, trainings and badges.</li>
                     <li>A club admin gives you a login for your player in their club. Then you can start games and trainings on your own and see the club like everyone else; only admins change it.</li>
                     <li>Or you join a club yourself: under <strong>Join a club</strong> on <Link to="/my-clubs">My clubs</Link> are the clubs that take new members. An <em>open</em> club you join at once; where the <em>admins accept</em> you ask (with a few words if you like) and are told their answer through the notifications. You can take a request back while it waits; after a declined one you can ask again a week later. You play there with the player you already have elsewhere, with your statistics, badges and flights; without one you choose a nickname.</li>
+                    <li>Without an account, a <strong>quick game</strong> on the public start page tries Oche out: X01 (301 or 501, Double or Straight Out, 1, 3 or 5 legs) or Cricket (Standard or Cut-throat) for one to four players who only need a name, with the statistics of the game at the end. It stays on that device for 30 days and counts for no club.</li>
                     <li>Anyone can create a club of their own under <Link to="/my-clubs">My clubs</Link> and becomes its admin. Global admins, who look after the whole app, belong to no club.</li>
                     <li>A login lasts five hours (the installation can set another length). Ten minutes before the end a countdown asks whether to stay logged in; after logging in again you are back on the page you were on, e.g. the game being played.</li>
                 </ul>
@@ -207,6 +208,7 @@ export const ADMIN_GUIDE = [
                 <ul>
                     <li><strong>Clubs, users and players:</strong> every club, every account (to block it, correct an email, set a password or create a link to choose one) and every player, filtered by club.</li>
                     <li><strong>Games and trainings</strong> of the clubs chosen, and <strong>Fair play</strong> across all clubs, each entry with its club.</li>
+                    <li><strong>Quick games:</strong> the games played on the public start page without an account (X01 or Cricket, the players only names), with how many were started and finished per day. They count for no club and are deleted after 30 days; delete them earlier, one or many, e.g. when someone fills the list with nonsense.</li>
                     <li><strong>Alerts and error log:</strong> unusual activity, e.g. many accounts or games created at once, and errors of the app.</li>
                     <li><strong>System settings:</strong> how long a login lasts (1 to 24 hours, five by default) and the banner shown to everyone.</li>
                 </ul>

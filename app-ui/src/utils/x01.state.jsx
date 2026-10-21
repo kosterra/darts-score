@@ -10,6 +10,7 @@ import { BigFish, BedAndBreakfast, BullFinish, PerfectLeg } from '../components/
 import { x01VisitMoment } from './x01.moments';
 import X01Service from '../services/x01.service';
 import X01TrainingService from '../services/x01.training.service';
+import { QuickX01Service, quickPlayersOf } from '../services/quick.game.service';
 import { BOT_ID, botDart, botPlayer, botSkill } from './x01.bot';
 import X01ReturnToPreviousPlayer from './x01.return.to.previous.player';
 import PlayerService from '../services/player.service';
@@ -62,7 +63,9 @@ const X01State = props => {
     const { id } = useParams();
     // a training against the bot is played like a game, saved apart from the games
     const training = Boolean(props.training);
-    const Service = training ? X01TrainingService : X01Service;
+    // a quick game of the start page: no account, the players only names
+    const quick = Boolean(props.quick);
+    const Service = quick ? QuickX01Service : training ? X01TrainingService : X01Service;
 
     const toast = useRef(null);
 
@@ -115,6 +118,10 @@ const X01State = props => {
 
         async function fetchPlayers(game) {
             try {
+                if (quick) {
+                    dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: quickPlayersOf(game) });
+                    return;
+                }
                 let players = [];
                 await Promise.all(game.players.map(async (playerId) => {
                     // the bot is no player of the club
@@ -133,7 +140,7 @@ const X01State = props => {
             });
             // the ways out work without them, so a failure only means the usual order
             const people = game.players.filter(playerId => playerId !== BOT_ID);
-            PlayerService.loadCheckoutProfiles(people).then(setCheckoutProfiles).catch(() => {});
+            if (!quick) PlayerService.loadCheckoutProfiles(people).then(setCheckoutProfiles).catch(() => {});
         }).catch(error => {
             toast.current.show(
                 {
@@ -143,7 +150,7 @@ const X01State = props => {
                     life: 3000
                 }
             );
-            navigate("/", { replace: true });
+            navigate(quick ? '/quick' : '/', { replace: true });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, navigate]);
@@ -1184,6 +1191,7 @@ const X01State = props => {
                     // a moment of the winning visit plays to its end before the statistics page
                     celebrating: Boolean(oneEighty || highlight),
                     training,
+                    quick,
                     // the bot is at the oche: the input waits
                     botThrowing: training && state.game.currentPlayerTurn === BOT_ID && !state.game.hasWinner,
                     game: state.game,
