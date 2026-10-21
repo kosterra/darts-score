@@ -14,6 +14,8 @@ export default (mongoose) => {
       startPage:      { type: String, enum: ['dashboard', 'myStatistics'], default: 'dashboard' },
       // the club the app opens in after logging in; null: the one used last on the device
       defaultClub:    { type: mongoose.Schema.Types.ObjectId, ref: 'club', default: null },
+      // the user's own dashboards, per club, instead of the club's: [{ club, layout: [{ id, size }] }]
+      dashboards:     { type: [{ _id: false, club: { type: mongoose.Schema.Types.ObjectId, ref: 'club' }, layout: [{ _id: false, id: String, size: String }] }], default: [] },
       role:           { type: String, enum: Object.values(ROLES), default: ROLES.USER },
       // Bumped on password change so older session cookies stop working
       sessionVersion: { type: Number, default: 0 },

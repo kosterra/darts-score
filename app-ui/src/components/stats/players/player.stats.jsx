@@ -14,6 +14,8 @@ import BadgeMedal from '../../badges/badge.medal';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerStatsCharts from './player.stats.charts';
 import ComparisonFilters, { FilterPanel } from './comparison.filters';
+import FormBadge from './form.badge';
+import FormFigures from './form.figures';
 import { describeFilters } from './filter.summary';
 import { KpiRing, KpiHero, KpiChip } from './kpi';
 import PlayerLevel from '../../players/player.level';
@@ -108,6 +110,12 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
 
     useEffect(() => {
         StatsService.loadPlayerBadges(player.id).then(setBadges).catch(() => setBadges(null));
+    }, [player.id]);
+
+    // the form: the latest X01 games in this club against the ones before, whatever the filters
+    const [form, setForm] = useState(null);
+    useEffect(() => {
+        StatsService.loadPlayersForm([player.id]).then(forms => setForm(forms?.[player.id] ?? null)).catch(() => setForm(null));
     }, [player.id]);
 
     useEffect(() => {
@@ -241,6 +249,17 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                 )
                 : (
                     <div className={`d-flex flex-column gap-4 ${refreshing ? 'is-refreshing' : ''}`}>
+                        {form?.figures?.recent?.games > 0 &&
+                            <Panel header="Current form">
+                                <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                                    <span className="text-subtle fs-7">
+                                        The last {form.figures.recent.games} X01 games in this club{form.figures.previous ? `, against the ${form.figures.previous.games} before` : ''}.
+                                    </span>
+                                    <FormBadge form={form} color={COLORS.x01} />
+                                </div>
+                                <FormFigures form={form} />
+                            </Panel>
+                        }
                         {playedGames.x01 > 0 &&
                             <Panel header="X01">
                                 <div className="kpi-headline mb-4">

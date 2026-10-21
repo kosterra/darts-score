@@ -18,7 +18,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.10
+  version: 2026.10.11
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
@@ -34,8 +34,12 @@ tags:
     description: Registration, login, the session and the logged-in user
   - name: Clubs
     description: Clubs of the logged-in user (all clubs for a global admin)
+  - name: Joining clubs
+    description: Users find clubs that take new members, join or ask to join; the club admins accept or decline
   - name: Users
     description: Accounts (global admins only)
+  - name: Quick games
+    description: Games on the public start page without an account, kept for 30 days
   - name: Administration
     description: 'The installation: all clubs, players, games, trainings, banner, login length, error log, alerts and blocks (global admins only)'
   - name: Players
@@ -202,6 +206,45 @@ paths:
         '409':
           description: Email already registered
       operationId: putAuthMe
+  /api/auth/dashboard/{clubId}:
+    put:
+      tags:
+        - Auth
+      summary: Arrange the user's own dashboard in a club
+      description: The user's own arrangement of the dashboard in one of their clubs; with layout null they see the club's again.
+      operationId: putAuthDashboardByclubId
+      parameters:
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - layout
+              properties:
+                layout:
+                  oneOf:
+                    - $ref: '#/components/schemas/DashboardLayout'
+                    - type: 'null'
+      responses:
+        '200':
+          description: The user, with their dashboards
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/auth/session:
     get:
       tags:
@@ -278,12 +321,113 @@ paths:
       tags:
         - Public
       summary: Data of the public start page - totals, public clubs, their running games and latest results
-      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public.
+      description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public. Each club comes with its figures (players, games played in all and in the last 30 days, the last game, the busiest weekday, the X01 average and the 180s); the totals count the games of the last 7 days too, and are null while the global admins keep the numbers off the start page (System settings).
       security: []
       responses:
         '200':
           description: OK
       operationId: getPublicOverview
+  /api/public/quick-games:
+    post:
+      tags:
+        - Quick games
+      summary: Start a quick game without an account (X01 or Cricket, 1 to 4 players by name)
+      description: 'No login. At most 10 new games per hour from one network. The key in the answer comes only once: the browser keeps it and sends it as X-Quick-Key to play on. Quick games are kept 30 days and never count for clubs, players or the public figures.'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - kind
+                - game
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - x01
+                    - cricket
+                game:
+                  type: object
+                  description: 'The game as the game page keeps it, with players ["q1", …] and quickPlayers [{ id, nickname }]. X01: 301 or 501, Straight In, Double or Straight Out, best of 1, 3 or 5 legs; Cricket: Standard or Cut-throat; flyingDarts "off".'
+      responses:
+        '201':
+          description: The game and its key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  game:
+                    type: object
+                  key:
+                    type: string
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many quick games from this network
+      operationId: postPublicQuickGames
+  /api/public/quick-games/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: X-Quick-Key
+        in: header
+        required: true
+        description: The key the game was started with
+        schema:
+          type: string
+    get:
+      tags:
+        - Quick games
+      summary: A quick game, for the browser that started it
+      security: []
+      responses:
+        '200':
+          description: The game
+        '404':
+          description: Not found, or not with this key
+      operationId: getPublicQuickGamesByid
+    put:
+      tags:
+        - Quick games
+      summary: Save a quick game after a visit or an undo; its setup and players stay as they were
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: The game
+        '404':
+          description: Not found, or not with this key
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putPublicQuickGamesByid
+  /api/public/quick-games/{id}/stats:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: X-Quick-Key
+        in: header
+        required: true
+        description: The key the game was started with
+        schema:
+          type: string
+    get:
+      tags:
+        - Quick games
+      summary: The statistics of a quick X01 game (averages per leg, doubles, score ranges, sections hit)
+      security: []
+      responses:
+        '200':
+          description: The statistics
+        '404':
+          description: Not found, not with this key, or no X01 game
+      operationId: getPublicQuickGamesByidStats
   /api/public/banner:
     get:
       tags:
@@ -442,6 +586,183 @@ paths:
         '409':
           description: A club needs at least one admin
       operationId: deleteClubsByidAdminsByuserId
+  /api/clubs/directory:
+    get:
+      tags:
+        - Joining clubs
+      summary: The clubs that take new members, with whether the user is in one already or asked to join
+      description: Clubs whose joinPolicy is open or approval. "nickname" is the one of the user's player in another club, which joining takes along; null when the user still has to choose one.
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Part of the club's name
+          schema:
+            type: string
+            maxLength: 50
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClubDirectory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getClubsDirectory
+  /api/clubs/join-requests:
+    get:
+      tags:
+        - Joining clubs
+      summary: The user's open requests to join clubs
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getClubsJoinRequests
+  /api/clubs/{id}/join:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+        - Joining clubs
+      summary: Join an open club at once, or ask to join a club whose admins accept new members
+      description: The user's player in another club joins the club too, with its statistics and badges; without one a new player is made with the nickname. The admins are notified.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                  minLength: 3
+                  maxLength: 25
+                  description: Only needed without a player in another club
+                message:
+                  type: string
+                  maxLength: 300
+                  description: A few words for the admins
+      responses:
+        '201':
+          description: 'status "member": joined; status "pending": asked, the admins decide'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - member
+                      - pending
+                  club:
+                    type: string
+                  player:
+                    type: object
+                  request:
+                    $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The club takes no members on their own, or the user is a global admin
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: A member already, asked already, or declined less than 7 days ago
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many open requests
+      operationId: postClubsByidJoin
+    delete:
+      tags:
+        - Joining clubs
+      summary: Take back the open request to join the club
+      responses:
+        '200':
+          description: The request, now withdrawn
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: deleteClubsByidJoin
+  /api/clubs/{id}/join-requests:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Joining clubs
+      summary: The open requests to join the club, oldest first (club admins)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: getClubsByidJoinRequests
+  /api/clubs/{id}/join-requests/{requestId}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: requestId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - Joining clubs
+      summary: Accept or decline a request to join (club admins); accepting makes the user a member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accept
+              properties:
+                accept:
+                  type: boolean
+      responses:
+        '200':
+          description: The request, with the player when accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Decided already, or taken back
+        '410':
+          description: The account that asked is gone
+      operationId: putClubsByidJoinRequestsByrequestId
   /api/users:
     get:
       tags:
@@ -768,6 +1089,207 @@ paths:
           description: Global admin rights required
       description: Global admins only.
       operationId: getAdminTrainings
+  /api/admin/quick-games:
+    get:
+      tags:
+        - Administration
+      summary: The quick games of the public start page, newest first, with the counts per day
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 200
+      responses:
+        '200':
+          description: '{ total, perDay: [{ day, games, finished }], games: [{ id, kind, format, names, winner, finished, createdAt, updatedAt }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminQuickGames
+    delete:
+      tags:
+        - Administration
+      summary: Delete quick games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: '{ deleted }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: deleteAdminQuickGames
+  /api/admin/mail-templates:
+    get:
+      tags:
+        - Administration
+      summary: The mails of the app with their placeholders, defaults and current texts
+      responses:
+        '200':
+          description: '{ mailEnabled, limits, templates: [{ id, title, description, placeholders, defaults, current, customized }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminMailTemplates
+  /api/admin/mail-templates/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+            - passwordReset
+            - adminAdded
+            - adminInvited
+            - playerAdded
+            - playerInvited
+    put:
+      tags:
+        - Administration
+      summary: Change the text of a mail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplateInput'
+      responses:
+        '200':
+          description: '{ current, customized }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putAdminMailTemplatesByid
+    delete:
+      tags:
+        - Administration
+      summary: Back to the default text of a mail
+      responses:
+        '200':
+          description: '{ current, customized }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: deleteAdminMailTemplatesByid
+  /api/admin/mail-templates/{id}/preview:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Administration
+      summary: The mail as it would look, from a draft, with sample values
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplateInput'
+      responses:
+        '200':
+          description: '{ subject, text, html }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postAdminMailTemplatesByidPreview
+  /api/admin/mail-templates/{id}/test:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Administration
+      summary: Send a draft with sample values to the global admin's own address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplateInput'
+      responses:
+        '200':
+          description: '{ sentTo }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '409':
+          description: Mail is not set up
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '502':
+          description: The mail could not be sent
+      operationId: postAdminMailTemplatesByidTest
+  /api/admin/start-page:
+    get:
+      tags:
+        - Administration
+      summary: What the public start page shows, with the numbers of the installation as they are now
+      responses:
+        '200':
+          description: '{ showNumbers, numbers: { clubs, players, gamesPlayed, gamesThisWeek } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminStartPage
+    put:
+      tags:
+        - Administration
+      summary: Show the numbers of the installation (clubs, players, games) on the public start page, or not
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - showNumbers
+              properties:
+                showNumbers:
+                  type: boolean
+      responses:
+        '200':
+          description: '{ showNumbers }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: putAdminStartPage
   /api/admin/x01-trainings:
     get:
       tags:
@@ -2482,7 +3004,7 @@ paths:
       tags:
         - Statistics
       summary: The recent form of players
-      description: The average of their last X01 games and whether it is rising or falling.
+      description: "The average of their last 5 X01 games against the 5 before, whether it is rising or falling, and the figures of both (figures.recent, figures.previous: checkoutRate, tonPlus, under10, under30, under50 as % of the scoring visits with more than 100 left, oneOrFive as % of their darts in the 1 or 5, dartsPerLeg of the legs won, firstNine, oneEighties, and shameBadges where the club has a Hall of Shame and the player counts for it)."
       requestBody:
         required: true
         content:
@@ -3781,12 +4303,125 @@ components:
           minimum: 6
           maximum: 21
           description: From which age players count for the Hall of Shame
+        joinPolicy:
+          type: string
+          enum:
+            - open
+            - approval
+            - closed
+          description: 'How new members join: at once (open), once an admin accepts (approval), or only added by the admins (closed, the default)'
         dashboardWidgets:
           type: array
           maxItems: 40
           items:
             type: string
-          description: The ids of the dashboard widgets to show, in order; an empty list means the default set
+          description: 'Replaced by dashboardLayout: the widget ids in order, without widths'
+          deprecated: true
+        dashboardLayout:
+          $ref: '#/components/schemas/DashboardLayout'
+          description: The club's dashboard, which its members see unless they arranged their own; an empty list means the default set
+    JoinRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        club:
+          type: string
+        clubName:
+          type: string
+        clubLogo:
+          type: string
+        name:
+          type: string
+          description: The name of the one who asks
+        email:
+          type:
+            - string
+            - 'null'
+          description: Only for the club admins
+        nickname:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - open
+            - accepted
+            - declined
+            - withdrawn
+        at:
+          type: string
+          format: date-time
+        decidedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+    ClubDirectory:
+      type: object
+      properties:
+        nickname:
+          type:
+            - string
+            - 'null'
+        clubs:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              logo:
+                type: string
+              joinPolicy:
+                type: string
+                enum:
+                  - open
+                  - approval
+              playerCount:
+                type: integer
+              isMember:
+                type: boolean
+              request:
+                type:
+                  - object
+                  - 'null'
+                description: The user's latest open or declined request to the club
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                  at:
+                    type: string
+                    format: date-time
+                  decidedAt:
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+    MailTemplateInput:
+      type: object
+      required:
+        - subject
+        - body
+        - button
+      properties:
+        subject:
+          type: string
+          maxLength: 150
+        body:
+          type: string
+          maxLength: 4000
+          description: Paragraphs separated by an empty line; placeholders like {{firstname}}
+        button:
+          type: string
+          maxLength: 40
     RoleInput:
       type: object
       required:
@@ -4584,6 +5219,16 @@ components:
             - string
             - 'null'
           description: MongoDB ObjectId
+        dashboards:
+          type: array
+          description: The user's own dashboards, per club
+          items:
+            type: object
+            properties:
+              club:
+                type: string
+              layout:
+                $ref: '#/components/schemas/DashboardLayout'
     Session:
       type: object
       properties:
@@ -5147,3 +5792,24 @@ components:
           type: array
           items:
             type: object
+    DashboardLayout:
+      type: array
+      maxItems: 40
+      description: 'The widgets of a dashboard in their order, each with its width: S a third, M half, L two thirds, F the full width'
+      items:
+        type: object
+        required:
+          - id
+          - size
+        properties:
+          id:
+            type: string
+            pattern: ^[A-Za-z0-9]{1,40}$
+            example: leaderMostWins
+          size:
+            type: string
+            enum:
+              - S
+              - M
+              - L
+              - F

@@ -7,6 +7,7 @@ import { Button } from 'primereact/button';
 import StatsService from '../../../services/stats.service';
 import LevelBadge from '../../players/level.badge';
 import FormBadge from '../../stats/players/form.badge';
+import FormFigures from '../../stats/players/form.figures';
 import { useAuth } from '../../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../../utils/use.my.players';
 import { averageLevelOf } from '../../../utils/average.levels';
@@ -80,6 +81,12 @@ const MeWidget = ({ widget }) => {
                                 <dt>Form</dt>
                                 <dd><FormBadge form={form} color="var(--primary-color)" /></dd>
                             </div>
+                            {form?.figures?.recent?.games > 0 &&
+                                <div className="me-widget-wide">
+                                    <dt>Last {form.figures.recent.games} X01 games</dt>
+                                    <dd><FormFigures form={form} keys={['checkoutRate', 'tonPlus', 'under30', 'dartsPerLeg']} compact /></dd>
+                                </div>
+                            }
                             {level?.next &&
                                 <div className="me-widget-wide">
                                     <dt>Next level</dt>

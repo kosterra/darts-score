@@ -129,7 +129,7 @@ export const botPlayer = (bot = {}) => ({
     isBot: true,
     average: bot.average ?? null,
     // its darts: blue lightning flights on a blue barrel
-    preferences: { flightShape: 'kite', flightPattern: 'lightning', flightColor: '#0090ff', barrel: 'blueCoat' },
+    preferences: { flyingDarts: true, flightShape: 'kite', flightPattern: 'lightning', flightColor: '#0090ff', barrel: 'blueCoat' },
 });
 
 // how much easier or harder than the player the bot plays

@@ -53,6 +53,28 @@ const uploadLogo = async (clubId, file) => {
 
 const removeLogo = (clubId) => requestJSON(`${API_URL}/${clubId}/logo`, { method: 'DELETE' });
 
+/**
+ * The clubs that take new members (q: part of the name): { nickname, clubs }.
+ * nickname: the one the user plays as elsewhere, which joining takes along.
+ */
+const loadDirectory = (q = '') => requestJSON(`${API_URL}/directory${q ? `?q=${encodeURIComponent(q)}` : ''}`);
+
+/**
+ * Joins an open club, or asks to join one whose admins accept members:
+ * { nickname, message } → { status: 'member' | 'pending', ... }.
+ */
+const joinClub = (clubId, { nickname, message }) => requestJSON(`${API_URL}/${clubId}/join`, { method: 'POST', body: { nickname, message } });
+
+const withdrawJoinRequest = (clubId) => requestJSON(`${API_URL}/${clubId}/join`, { method: 'DELETE' });
+
+const loadMyJoinRequests = () => requestJSON(`${API_URL}/join-requests`);
+
+// for the club admins: the open requests, and accepting or declining one
+const loadJoinRequests = (clubId) => requestJSON(`${API_URL}/${clubId}/join-requests`);
+
+const decideJoinRequest = (clubId, requestId, accept) =>
+    requestJSON(`${API_URL}/${clubId}/join-requests/${requestId}`, { method: 'PUT', body: { accept } });
+
 const ClubService = {
     uploadLogo,
     removeLogo,
@@ -63,7 +85,13 @@ const ClubService = {
     updateClub,
     deleteClub,
     findPlayerOfUser,
-    addCurrentUserAsPlayer
+    addCurrentUserAsPlayer,
+    loadDirectory,
+    joinClub,
+    withdrawJoinRequest,
+    loadMyJoinRequests,
+    loadJoinRequests,
+    decideJoinRequest
 };
 
 export default ClubService;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
@@ -41,12 +41,20 @@ const matches = (player, term) => [player.nickname, player.firstname, player.las
  */
 const PlayersTable = ({ scope = 'club' }) => {
     const toast = useRef(null);
-    const { isClubAdmin, clubs: myClubs, activeClub } = useAuth();
+    const { isClubAdmin, user } = useAuth();
+    // a player with a login decides about their public nickname themselves
+    const decidesThemselves = (player) => Boolean(player.user) && player.user !== user?.id;
+    // back from a player's page after moving or removing them: what happened
+    const { state: arrival } = useLocation();
+    const noticeShown = useRef(false);
+    useEffect(() => {
+        if (!arrival?.notice || noticeShown.current) return;
+        noticeShown.current = true;
+        toast.current?.show({ severity: 'success', summary: arrival.notice, life: 3500 });
+        window.history.replaceState({ ...window.history.state, usr: null }, '');
+    }, [arrival]);
     const navigate = useNavigate();
     const acrossClubs = scope === 'all';
-    // a club admin of several clubs moves players between them
-    const adminClubs = myClubs.filter(club => club.role === 'admin');
-    const managesSeveralClubs = !acrossClubs && isClubAdmin && adminClubs.length > 1;
     const { clubs, selectedIds, select } = useClubSelection(acrossClubs);
     const canManage = acrossClubs || isClubAdmin;
 
@@ -61,8 +69,6 @@ const PlayersTable = ({ scope = 'club' }) => {
     const [kind, setKind] = useState('all');
     // across clubs: the player whose clubs are being changed
     const [clubsOfPlayerId, setClubsOfPlayerId] = useState(null);
-    // the clubs of that player: from the list across clubs, or loaded for a club's own list
-    const [memberships, setMemberships] = useState(null);
 
     const showError = (summary, error) =>
         toast.current.show({ severity: 'error', summary, detail: error.message, life: 4000 });
@@ -133,35 +139,9 @@ const PlayersTable = ({ scope = 'club' }) => {
         else await loadPlayers();
     };
 
-    const loadMemberships = async (playerId) => {
-        if (acrossClubs) return;
-        setMemberships(null);
-        try {
-            setMemberships(await PlayerService.loadPlayerClubs(playerId));
-        } catch (error) {
-            setMemberships([]);
-            showError('Clubs of the player', error);
-        }
-    };
-
-    const openClubs = (player) => {
-        setClubsOfPlayerId(player.id);
-        loadMemberships(player.id);
-    };
-
     const onClubsChange = async (summary) => {
         toast.current.show({ severity: 'success', summary, detail: players?.find(player => player.id === clubsOfPlayerId)?.nickname, life: 3000 });
         await loadPlayers();
-        // moved away or removed from this club: the player is no longer in this list
-        if (!acrossClubs && /^(Moved|Removed from)/.test(summary)) {
-            const stillHere = (await PlayerService.loadPlayerClubs(clubsOfPlayerId).catch(() => []))
-                .some(club => club.id === activeClub?.id);
-            if (!stillHere) {
-                setClubsOfPlayerId(null);
-                return;
-            }
-        }
-        await loadMemberships(clubsOfPlayerId);
     };
 
     const clubsPlayer = players?.find(player => player.id === clubsOfPlayerId) ?? null;
@@ -176,7 +156,12 @@ const PlayersTable = ({ scope = 'club' }) => {
 
     const publicBody = (player) => player.guest
         ? <span className="text-faint fs-7">–</span>
-        : <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? 'Nickname shown' : 'Hidden'}</span>;
+        : (
+            <span className="d-flex flex-column">
+                <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? 'Nickname shown' : 'Hidden'}</span>
+                {decidesThemselves(player) && <span className="text-faint fs-8">their own choice</span>}
+            </span>
+        );
 
     // the club's own admins look after their players; across clubs a global admin inspects and deletes
     const actionsBody = (player) => !canManage ? null : (
@@ -192,15 +177,19 @@ const PlayersTable = ({ scope = 'club' }) => {
                             icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
                             severity={player.publicProfile ? undefined : 'secondary'}
                             aria-label={player.publicProfile ? `Hide the nickname of ${player.nickname} on the public page` : `Show the nickname of ${player.nickname} on the public page`}
-                            tooltip={player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
-                            tooltipOptions={{ position: 'top' }}
+                            tooltip={decidesThemselves(player)
+                                ? `${player.nickname} has a login and decides this on their player profile`
+                                : player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
+                            tooltipOptions={{ position: 'top', showOnDisabled: true }}
+                            disabled={decidesThemselves(player)}
                             onClick={() => onTogglePublic(player)}
                         />
                     </>
                 }
             </>}
-            {(acrossClubs || (managesSeveralClubs && !player.guest)) &&
-                <Button type="button" icon="pi pi-building" severity="secondary" aria-label={`Clubs of ${player.nickname}`} tooltip={acrossClubs ? 'Clubs: add to or remove from a club' : 'Clubs: add to, move to or remove from your clubs'} tooltipOptions={{ position: 'top' }} onClick={() => openClubs(player)} />
+            {/* a club admin of several clubs finds the clubs of a player on the player's page */}
+            {acrossClubs &&
+                <Button type="button" icon="pi pi-building" severity="secondary" aria-label={`Clubs of ${player.nickname}`} tooltip="Clubs: add to or remove from a club" tooltipOptions={{ position: 'top' }} onClick={() => setClubsOfPlayerId(player.id)} />
             }
             <JSONViewer data={player} header="Player _RAW Data" />
             <DeletePopup
@@ -286,19 +275,6 @@ const PlayersTable = ({ scope = 'club' }) => {
                     targets={clubs}
                     onAdd={(clubId) => AdminService.addPlayerToClub(clubsPlayer.id, clubId)}
                     onRemove={(club) => AdminService.removePlayerFromClub(clubsPlayer.id, club.id)}
-                    onHide={() => setClubsOfPlayerId(null)}
-                    onChange={onClubsChange}
-                    onError={showError}
-                />
-            }
-            {managesSeveralClubs &&
-                <PlayerClubsDialog
-                    player={clubsPlayer}
-                    memberships={memberships}
-                    targets={adminClubs}
-                    currentClubId={activeClub?.id}
-                    onAdd={(clubId, { move }) => PlayerService.addPlayerToClub(clubsPlayer.id, clubId, move)}
-                    onRemove={(club) => PlayerService.removePlayerFromClub(clubsPlayer.id, club.id)}
                     onHide={() => setClubsOfPlayerId(null)}
                     onChange={onClubsChange}
                     onError={showError}

@@ -78,6 +78,9 @@ export const remove = async (req, res) => {
     await Club.updateMany({ admins: id }, { $pull: { admins: id } });
     // Players the user played as stay in their clubs, just no longer linked
     await db.player.updateMany({ user: id }, { $set: { user: null } });
+    // what they asked to join is no longer for anyone to decide
+    await db.joinRequest.updateMany({ user: id, status: 'open' }, { $set: { status: 'withdrawn', decidedAt: new Date() } });
+    await db.notification.deleteMany({ kind: 'joinRequested', by: id });
     logger.info(`User ${user.email} deleted by ${req.user.email}`);
     res.json({ message: 'User deleted.' });
 };

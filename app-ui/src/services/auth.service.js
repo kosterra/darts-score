@@ -22,6 +22,10 @@ const register = (account) =>
 
 const logout = () => requestJSON(API_URL + 'logout', { method: 'POST' });
 
+// the user's own dashboard in a club: the layout [{ id, size }], or null for the club's again; the user
+const saveDashboard = (clubId, layout) =>
+    requestJSON(`${API_URL}dashboard/${clubId}`, { method: 'PUT', body: { layout } });
+
 const updateProfile = (profile) =>
     requestJSON(API_URL + 'me', { method: 'PUT', body: profile });
 
@@ -67,6 +71,7 @@ const AuthService = {
     register,
     logout,
     updateProfile,
+    saveDashboard,
     changePassword
 };
 

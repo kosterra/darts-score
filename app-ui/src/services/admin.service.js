@@ -18,6 +18,10 @@ const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(club
 // the X01 trainings against the bot of the chosen clubs
 const loadX01Trainings = (clubIds) => requestJSON(`${API_URL}/x01-trainings${query(clubIds)}`);
 
+// the quick games of the public start page: { total, perDay, games }, and deleting some
+const loadQuickGames = () => requestJSON(`${API_URL}/quick-games`);
+const deleteQuickGames = (ids) => requestJSON(`${API_URL}/quick-games`, { method: 'DELETE', body: { ids } });
+
 // a player's clubs, and deleting a player from every club
 const addPlayerToClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs`, { method: 'POST', body: { club: clubId } });
 const removePlayerFromClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs/${clubId}`, { method: 'DELETE' });
@@ -28,6 +32,17 @@ const loadBannerSettings = () => requestJSON(`${API_URL}/banner`);
 const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT', body: banner });
 
 // how long a login lasts: { timeoutHours, limits: { min, max, default } }
+// the mails of the app: their texts, a preview from a draft, a test mail to oneself
+const loadMailTemplates = () => requestJSON(`${API_URL}/mail-templates`);
+const saveMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'PUT', body: draft });
+const resetMailTemplate = (id) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'DELETE' });
+const previewMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/preview`, { method: 'POST', body: draft });
+const testMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/test`, { method: 'POST', body: draft });
+
+// what the public start page shows: { showNumbers }
+const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
+const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
+
 const loadSessionSettings = () => requestJSON(`${API_URL}/session`);
 const saveSessionSettings = (timeoutHours) => requestJSON(`${API_URL}/session`, { method: 'PUT', body: { timeoutHours } });
 
@@ -50,6 +65,8 @@ const blockIp = (ip, reason, hours) => requestJSON(`${API_URL}/blocks/ips`, { me
 const unblockIp = (id) => requestJSON(`${API_URL}/blocks/ips/${id}`, { method: 'DELETE' });
 
 const AdminService = {
+    loadQuickGames,
+    deleteQuickGames,
     loadLogs,
     clearLogs,
     loadAlerts,
@@ -66,6 +83,13 @@ const AdminService = {
     loadBannerSettings,
     saveBanner,
     loadSessionSettings,
+    loadStartPageSettings,
+    loadMailTemplates,
+    saveMailTemplate,
+    resetMailTemplate,
+    previewMailTemplate,
+    testMailTemplate,
+    saveStartPageSettings,
     saveSessionSettings,
     loadOverview,
     loadClubs,

@@ -5,8 +5,11 @@ import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } fr
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
-import { isMailConfigured, sendMail } from '../utils/mail.utils.js';
+import { isMailConfigured } from '../utils/mail.utils.js';
+import { sendTemplateMail, validityOf } from '../utils/mail.service.js';
 import { checkRegistration, noteRegistration, checkLater } from '../utils/spam.guard.js';
+import { normalizeLayout } from '../utils/dashboard.layout.js';
+import { getClubRole } from '../middleware/auth.middleware.js';
 
 export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
@@ -73,6 +76,21 @@ export const extendSession = async (req, res) => {
     res.json({ expiresAt });
 };
 
+/**
+ * The user's own dashboard in a club: { layout: [{ id, size }] }, or
+ * { layout: null } to go back to the club's. Only in a club they belong to.
+ */
+export const setDashboard = async (req, res) => {
+    const club = db.mongoose.isValidObjectId(req.params.clubId) ? await db.club.findById(req.params.clubId) : null;
+    if (!club || !(await getClubRole(req.user, club))) return res.status(404).json({ message: 'Club not found.' });
+    const others = (req.user.dashboards ?? []).filter(entry => String(entry.club) !== String(club._id));
+    req.user.dashboards = Array.isArray(req.body.layout)
+        ? [...others, { club: club._id, layout: normalizeLayout(req.body.layout) }]
+        : others;
+    await req.user.save();
+    res.json(req.user);
+};
+
 export const updateMe = async (req, res) => {
     logger.debug('auth update profile called');
     const { email, firstname, lastname, startPage, defaultClub } = req.body;
@@ -112,7 +130,7 @@ export const myPlayers = async (req, res) => {
         dateOfBirth: player.dateOfBirth ?? null,
         publicProfile: Boolean(player.publicProfile),
         privateTrainings: Boolean(player.privateTrainings),
-        preferences: { favouriteDouble: 'auto', mainTreble: 'auto', flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic', ...(player.preferences ?? {}) },
+        preferences: { favouriteDouble: 'auto', mainTreble: 'auto', flyingDarts: false, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic', ...(player.preferences ?? {}) },
         user: String(player.user),
         // adults correct their date of birth themselves once the admins set it
         birthMinAge: selfBirthAge(player.clubs ?? []),
@@ -154,11 +172,8 @@ export const forgotPassword = async (req, res) => {
         const link = issuePasswordLink(user, RESET_TOKEN_HOURS);
         await user.save();
         // Mail problems are logged, not shown: the answer must not reveal whether the account exists
-        sendMail({
-            to: user.email,
-            subject: 'Reset your Oche password',
-            text: `Hello ${user.firstname},\n\nuse this link to choose a new password. It works once and for ${RESET_TOKEN_HOURS} hour:\n\n${link}\n\nIf you did not ask for this, you can ignore this mail.\n`,
-        }).catch(err => logger.error(err, 'Failed to send password reset mail'));
+        sendTemplateMail('passwordReset', user.email, { firstname: user.firstname, link, validity: validityOf(RESET_TOKEN_HOURS) })
+            .catch(err => logger.error(err, 'Failed to send password reset mail'));
     }
 
     res.json({ message: 'If an account with this email exists, a reset link is on its way.' });

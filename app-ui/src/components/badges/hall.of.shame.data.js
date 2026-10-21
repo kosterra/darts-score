@@ -1,14 +1,21 @@
 import { useEffect, useState } from 'react';
 
 import StatsService from '../../services/stats.service';
+import { useAuth } from '../../utils/auth.context';
 
 /**
  * The Hall of Shame of the club, loaded once: null while loading,
- * { enabled, badges } afterwards (badges empty when it fails).
+ * { enabled, badges } afterwards (badges empty when it fails). Without a
+ * login (a quick game) there is no club and no Hall of Shame.
  */
 export const useClubShame = () => {
+    const loggedIn = Boolean(useAuth().user);
     const [shame, setShame] = useState(null);
     useEffect(() => {
+        if (!loggedIn) {
+            setShame({ enabled: false, badges: [] });
+            return undefined;
+        }
         let alive = true;
         StatsService.loadClubShame()
             .then(loaded => alive && setShame(loaded))
@@ -17,7 +24,7 @@ export const useClubShame = () => {
                 if (alive) setShame({ enabled: false, badges: [] });
             });
         return () => { alive = false; };
-    }, []);
+    }, [loggedIn]);
     return shame;
 };
 

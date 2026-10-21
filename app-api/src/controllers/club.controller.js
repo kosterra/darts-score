@@ -2,11 +2,13 @@ import logger from '../models/logger.model.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
-import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
+import { findOrCreateAccount } from '../utils/accounts.js';
+import { sendClubWelcomeMail } from '../utils/mail.service.js';
 import { removeClubLogoFile } from './file.controller.js';
 import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
+import { normalizeLayout } from '../utils/dashboard.layout.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -51,6 +53,13 @@ export const findAll = async (req, res) => {
         { $group: { _id: '$clubs', count: { $sum: 1 } } },
     ]);
     const countByClub = new Map(counts.map(c => [String(c._id), c.count]));
+    // the requests to join waiting for the admins
+    const adminClubIds = clubs.filter(club => club.admins.some(admin => admin._id.equals(req.user._id))).map(club => club._id);
+    const requests = await db.joinRequest.aggregate([
+        { $match: { club: { $in: adminClubIds }, status: 'open' } },
+        { $group: { _id: '$club', count: { $sum: 1 } } },
+    ]);
+    const requestsByClub = new Map(requests.map(r => [String(r._id), r.count]));
 
     res.json(clubs.map(club => {
         const isAdmin = club.admins.some(admin => admin._id.equals(req.user._id));
@@ -62,6 +71,7 @@ export const findAll = async (req, res) => {
                 return isAdmin ? { ...publicFields, email } : publicFields;
             }),
             playerCount: countByClub.get(String(club._id)) ?? 0,
+            ...(isAdmin && { openJoinRequests: requestsByClub.get(String(club._id)) ?? 0 }),
         };
     }));
 };
@@ -85,8 +95,14 @@ export const update = async (req, res) => {
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
     }
+    if (['open', 'approval', 'closed'].includes(req.body.joinPolicy)) club.joinPolicy = req.body.joinPolicy;
     if (Number.isInteger(req.body.shameMinAge)) club.shameMinAge = req.body.shameMinAge;
     if (Array.isArray(req.body.dashboardWidgets)) club.dashboardWidgets = req.body.dashboardWidgets;
+    // the club's dashboard; an empty list means the default set
+    if (Array.isArray(req.body.dashboardLayout)) {
+        club.dashboardLayout = normalizeLayout(req.body.dashboardLayout);
+        club.dashboardWidgets = undefined;
+    }
     await club.save();
     res.json(await withAdmins(club));
 };
@@ -114,6 +130,7 @@ export const remove = async (req, res) => {
         db.clock.deleteMany({ club: club._id }),
         db.atc.deleteMany({ club: club._id }),
         db.x01Training.deleteMany({ club: club._id }),
+        db.joinRequest.deleteMany({ club: club._id }),
     ]);
     await club.deleteOne();
     removeClubLogoFile(club.logo);
@@ -180,12 +197,7 @@ export const addAdmin = async (req, res) => {
     await club.save();
     logger.info(`${user.email} is now an admin of club "${club.name}" (added by ${req.user.email})`);
 
-    sendClubWelcomeMail(
-        user,
-        inviteLink,
-        `You are now an admin of ${club.name}`,
-        `${req.user.firstname} ${req.user.lastname} made you an admin of the club "${club.name}" on Oche.`
-    );
+    sendClubWelcomeMail(user, inviteLink, 'admin', { club: club.name, inviter: `${req.user.firstname} ${req.user.lastname}` });
 
     res.status(201).json(await withAdmins(club));
 };

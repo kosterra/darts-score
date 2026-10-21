@@ -115,17 +115,27 @@
   > * { white-space: nowrap; }
 }
 
+// the shame badges a player holds: a line of their own below the other tags,
+// side by side and never split over two lines
+.x01-shames {
+  display: inline-flex;
+  flex-basis: 100%;
+  justify-content: inherit;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .x01-shame {
   display: inline-flex;
   align-items: center;
   cursor: help;
 }
 
+// the player at the oche: a label like the others, readable from a distance
 .x01-live-turn {
-  color: var(--text-subtle);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  @include label-shape;
+  @include label-tone($labelGreen);
 }
 
 .x01-live-starter {

@@ -3,10 +3,14 @@ import { requireGlobalAdmin } from '../middleware/auth.middleware.js';
 import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
+import * as QuickGameController from '../controllers/quick.game.controller.js';
+import * as MailTemplateController from '../controllers/mail.template.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
 import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
+import { getStartPageSettings, saveStartPageSettings } from '../utils/start.page.settings.js';
+import { installationNumbers } from '../controllers/public.controller.js';
 
 export default (app) => {
     const router = Router();
@@ -25,6 +29,14 @@ export default (app) => {
     router.get('/games', AdminController.games);
     router.get('/trainings', AdminController.trainings);
     router.get('/x01-trainings', AdminController.x01Trainings);
+    // the quick games of the public start page
+    router.get('/quick-games', QuickGameController.list);
+    router.delete('/quick-games',
+        body('ids').isArray({ min: 1, max: 500 }).withMessage('Choose the games to delete.'),
+        body('ids.*').isMongoId().withMessage('Invalid game.'),
+        validate,
+        QuickGameController.remove,
+    );
 
     // the banner on top of every page
     router.get('/banner', getBannerSettings);
@@ -48,6 +60,28 @@ export default (app) => {
             res.json({ ...settings, limits: SESSION_HOURS });
         },
     );
+
+    // what the public start page shows: the numbers of the installation, or not yet
+    // with the numbers as they are now, shown or not, to decide on
+    router.get('/start-page', async (req, res) => res.json({ ...await getStartPageSettings(), numbers: await installationNumbers() }));
+    router.put('/start-page',
+        body('showNumbers').isBoolean({ strict: true }).withMessage('showNumbers must be true or false.'),
+        validate,
+        async (req, res) => {
+            const settings = await saveStartPageSettings({ showNumbers: req.body.showNumbers });
+            logger.info(`Numbers on the start page ${settings.showNumbers ? 'shown' : 'hidden'} by ${req.user.email}`);
+            res.json(settings);
+        },
+    );
+
+    // the mails of the app: their texts, a preview and a test mail to oneself
+    const templateId = param('id').isAlphanumeric().withMessage('Invalid mail.');
+    const templateFields = ['subject', 'body', 'button'].map(field => body(field).isString().withMessage(`The ${field} is missing.`));
+    router.get('/mail-templates', MailTemplateController.list);
+    router.put('/mail-templates/:id', templateId, templateFields, validate, MailTemplateController.save);
+    router.delete('/mail-templates/:id', templateId, validate, MailTemplateController.reset);
+    router.post('/mail-templates/:id/preview', templateId, templateFields, validate, MailTemplateController.preview);
+    router.post('/mail-templates/:id/test', templateId, templateFields, validate, MailTemplateController.test);
 
     // warnings and errors of the API
     router.get('/logs', SecurityController.logs);

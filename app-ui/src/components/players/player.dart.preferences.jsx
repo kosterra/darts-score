@@ -11,7 +11,7 @@ import { BarrelPicture } from '../flights/barrel.art';
 import { FLIGHT_COLORS, flightOf } from '../../utils/flights';
 import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 
-const DEFAULTS = { flyingDarts: true, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic' };
+const DEFAULTS = { flyingDarts: false, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic' };
 
 /**
  * How a player's darts look on the board of X01, Cricket and Elimination,
@@ -77,10 +77,10 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
             <SettingSwitch
                 id={`player-dart-animation-${player.id}`}
                 title="Dart animation"
-                hint={preferences.flyingDarts !== false
+                hint={preferences.flyingDarts === true
                     ? 'A dart flies to the field you tap and sticks in the board. A game can switch it off for everyone.'
                     : 'The field you tap just lights up. A game can switch the animation on for everyone.'}
-                checked={preferences.flyingDarts !== false}
+                checked={preferences.flyingDarts === true}
                 onChange={(value) => save({ flyingDarts: value })}
             />
 

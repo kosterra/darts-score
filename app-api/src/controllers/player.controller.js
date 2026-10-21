@@ -6,7 +6,8 @@ import db from '../models/db.model.js';
 import { removeProfileImageFile } from './file.controller.js';
 import { CLUB_ROLES } from '../models/user.model.js';
 import { inClub, knownInClub } from '../models/player.model.js';
-import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
+import { findOrCreateAccount } from '../utils/accounts.js';
+import { sendClubWelcomeMail } from '../utils/mail.service.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
 import { checkoutProfile } from '../utils/checkout.profile.js';
 import { relocateHistory } from '../utils/history.relocation.js';
@@ -338,12 +339,7 @@ export const giveLogin = async (req, res) => {
     }
     logger.info(`${user.email} can now log in as player "${player.nickname}" of club "${req.club.name}"`);
 
-    sendClubWelcomeMail(
-        user,
-        inviteLink,
-        `You can now play at ${req.club.name}`,
-        `${req.user.firstname} ${req.user.lastname} gave you a login as player "${player.nickname}" of the club "${req.club.name}" on Oche. You can start games and trainings there on your own.`
-    );
+    sendClubWelcomeMail(user, inviteLink, 'player', { club: req.club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, nickname: player.nickname });
 
     res.send((await toClient([player], req))[0]);
 };
@@ -368,7 +364,12 @@ export const setVisibility = async (req, res) => {
     const player = await findInClub(req);
     if (!player) return res.status(404).send({ message: 'Player not found.' });
 
+    // whether a name is public is up to the person: a player with a login decides
+    // themselves, the club admins only for the players without one
     const isOwnPlayer = player.user && player.user.equals(req.user._id);
+    if (player.user && !isOwnPlayer) {
+        return res.status(403).send({ message: `${player.nickname} has a login and decides this on their player profile.` });
+    }
     if (req.clubRole !== CLUB_ROLES.ADMIN && !isOwnPlayer) {
         return res.status(403).send({ message: 'Only club admins can change this for other players.' });
     }
@@ -421,7 +422,7 @@ export const setPreferences = async (req, res) => {
     player.preferences = {
         favouriteDouble: req.body.favouriteDouble ?? current.favouriteDouble ?? 'auto',
         mainTreble: req.body.mainTreble ?? current.mainTreble ?? 'auto',
-        flyingDarts: req.body.flyingDarts ?? current.flyingDarts ?? true,
+        flyingDarts: req.body.flyingDarts ?? current.flyingDarts ?? false,
         flightColor: req.body.flightColor ?? current.flightColor ?? 'auto',
         flightPattern: req.body.flightPattern ?? current.flightPattern ?? 'plain',
         flightShape: req.body.flightShape ?? current.flightShape ?? 'standard',

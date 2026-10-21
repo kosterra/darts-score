@@ -90,3 +90,14 @@ export const clubShameHolders = (players, clubId, { minAge = null } = {}) => {
         };
     });
 };
+
+/**
+ * How many shame badges a player got in these games (ids), counting from
+ * "from" (their birthday at the age the club sets, or always).
+ */
+export const shameCountIn = (player, gameIds, from = null) => {
+    const ids = new Set(gameIds.map(String));
+    return (player.shame ?? [])
+        .filter(entry => ids.has(String(entry.sourceId)) && (!from || time(entry.at) >= time(from)))
+        .reduce((sum, entry) => sum + (entry.count ?? 1), 0);
+};

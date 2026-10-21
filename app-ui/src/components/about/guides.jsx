@@ -17,6 +17,8 @@ export const PLAYER_GUIDE = [
                 <ul>
                     <li>Everything under <strong>Club</strong> in the menu belongs to the selected club: its players, games, trainings and badges.</li>
                     <li>A club admin gives you a login for your player in their club. Then you can start games and trainings on your own and see the club like everyone else; only admins change it.</li>
+                    <li>Or you join a club yourself: under <strong>Join a club</strong> on <Link to="/my-clubs">My clubs</Link> are the clubs that take new members. An <em>open</em> club you join at once; where the <em>admins accept</em> you ask (with a few words if you like) and are told their answer through the notifications. You can take a request back while it waits; after a declined one you can ask again a week later. You play there with the player you already have elsewhere, with your statistics, badges and flights; without one you choose a nickname.</li>
+                    <li>Without an account, a <strong>quick game</strong> on the public start page tries Oche out: X01 (301 or 501, Double or Straight Out, 1, 3 or 5 legs) or Cricket (Standard or Cut-throat) for one to four players who only need a name, with the statistics of the game at the end. It stays on that device for 30 days and counts for no club.</li>
                     <li>Anyone can create a club of their own under <Link to="/my-clubs">My clubs</Link> and becomes its admin. Global admins, who look after the whole app, belong to no club.</li>
                     <li>A login lasts five hours (the installation can set another length). Ten minutes before the end a countdown asks whether to stay logged in; after logging in again you are back on the page you were on, e.g. the game being played.</li>
                 </ul>
@@ -65,7 +67,7 @@ export const PLAYER_GUIDE = [
                     <li><strong>My statistics</strong>, right below Dashboard, opens your own statistics in the club with one click; the <strong>You</strong> widget on the dashboard shows your level, average and form. On your user profile you choose what opens after logging in: the club (your default club, or the one you used last) and its dashboard or your statistics.</li>
                     <li><strong>Players</strong> opens each player&apos;s profile: key figures, level, their set of darts, latest games, charts, badges and the flights and barrels they collected, with filters for the club, the period, the last games and the X01 format.</li>
                     <li><strong>Player comparison</strong> puts two or more players side by side, with their games together and head to head.</li>
-                    <li>The <strong>dashboard</strong> shows the club at a glance: leaderboards, the latest games, records and the Hall of Shame, in widgets the club arranges.</li>
+                    <li>The <strong>dashboard</strong> shows the club at a glance: leaderboards, the latest games, records and the Hall of Shame, in widgets the club arranges. <strong>Edit dashboard</strong> arranges your own: drag the widgets by their bar (or move them with the arrow keys), choose their width, remove them, or add others below; only you see it, and &quot;Use the club&apos;s&quot; brings the club&apos;s back.</li>
                 </ul>
             </>
         ),
@@ -105,7 +107,7 @@ PLAYER_GUIDE.push({
         <>
             <p>On your <Link to="/player-profile">player profile</Link>, under <strong>Flights and barrels</strong>, you choose the darts you throw with in the app. They show wherever you play:</p>
             <ul>
-                <li><strong>Dart animation:</strong> on the board of X01, Cricket and Elimination a dart flies to the field you tap and sticks there; switched off, the field just lights up. The setup of a game can switch it on or off for everyone.</li>
+                <li><strong>Dart animation:</strong> on the board of X01, Cricket and Elimination a dart flies to the field you tap and sticks there; switched off (as it is to begin with), the field just lights up. The setup of a game can switch it on or off for everyone.</li>
                 <li><strong>Flights:</strong> the colour (your colour of the game or one of ten), the shape and the design; and the <strong>barrel</strong>. Your flight sits next to your name in the throwing order and the game header, your set of darts on your statistics.</li>
                 <li><strong>Flight points:</strong> every finished game and training earns points, wins, 180s and checkouts of 100 or more earn extra. Spend them on the shapes, designs and barrels you like; the tiles show the price, in gold once you can pay it.</li>
                 <li>Many flights also need a player level or an X01 average first, greyed out until then; the master flights belong to the levels (see <Link to="#levels">Levels</Link>). The legendary ones cannot be bought: they come with a feat, e.g. a nine-darter.</li>
@@ -121,11 +123,14 @@ export const ADMIN_GUIDE = [
         icon: FaSliders,
         body: (
             <>
-                <p>Create a club under <Link to="/my-clubs">My clubs</Link>. There each club you run has its buttons:</p>
+                <p>Create a club under <Link to="/my-clubs">My clubs</Link>. <strong>Edit club</strong> there opens the page of a club you run, laid out as the player profile:</p>
                 <ul>
-                    <li><strong>Edit:</strong> the name, a description and the logo.</li>
-                    <li><strong>Admins:</strong> share the club with other admins by their email. Every admin can do everything in the club.</li>
-                    <li><strong>Settings:</strong> whether the club appears on the public start page, with its running games and its results; the Hall of Shame on or off, and whether children are left out of it (under 16, or another age). A player without a date of birth is always left out of it.</li>
+                    <li><strong>The club:</strong> the logo, the name and a description, saved with Save.</li>
+                    <li><strong>Admins:</strong> share the club with other admins by their email. Every admin can do everything in the club; a club always keeps one.</li>
+                    <li><strong>Public page:</strong> whether the club appears on the public start page, with its running games and its results.</li>
+                    <li><strong>New members:</strong> whether people with an account join at once, ask and wait for an admin, or are only added by the admins (see below).</li>
+                    <li><strong>Hall of Shame:</strong> on or off, and whether children are left out of it (under 16, or another age). A player without a date of birth is always left out of it.</li>
+                    <li>These settings are saved as soon as they change. At the bottom the club can be deleted, once its players are removed.</li>
                 </ul>
             </>
         ),
@@ -140,7 +145,7 @@ export const ADMIN_GUIDE = [
                     <li><strong>Login:</strong> give a player a login with their email, so they can start games and trainings on their own. With mail set up they get a mail to choose their password; otherwise set an initial password and pass it on.</li>
                     <li>A player with a login keeps their name (from their account), nickname and picture up to date themselves; you still set the date of birth, which adults may correct (never to a child&apos;s). Removing the login hands everything back to you.</li>
                     <li>You can add yourself as a player of a club you manage, under My clubs, to be picked for games like anyone else.</li>
-                    <li>A nickname only appears on the public start page when it is set to public, by you or by the player.</li>
+                    <li>A nickname only appears on the public start page when it is set to public. A player with a login decides this themselves, on their player profile; for the players without one you decide, on their page.</li>
                     <li>For a player without a login you also choose their darts on their page, and unlock flights and barrels with their flight points.</li>
                 </ul>
             </>
@@ -151,7 +156,7 @@ export const ADMIN_GUIDE = [
         icon: FaArrowRightArrowLeft,
         body: (
             <>
-                <p>A player can be a member of several clubs, with one profile and the badges from every club. Admins of more than one club move a player to another of their clubs, add them to a second one or remove them from a club.</p>
+                <p>A player can be a member of several clubs, with one profile and the badges from every club. Admins of more than one club move a player to another of their clubs, add them to a second one or remove them from a club, under Clubs on the player&apos;s edit page (the edit button in Club → Players).</p>
                 <ul>
                     <li>Moving takes the history along: games in which every player left the old club for the same new club move with them, and so do the trainings of a player who now plays in one club only.</li>
                     <li>Games with a player still in the old club stay there. Removing a player from a club keeps their games in it.</li>
@@ -167,7 +172,7 @@ export const ADMIN_GUIDE = [
                 <li><strong>Club → Games</strong> and <strong>Trainings</strong> list everything played, with filters (Around the Clock and X01 against the bot together); admins delete single games or several at once, together with the badges earned in them, and see the trainings players keep to themselves. Players delete their own trainings.</li>
                 <li>A player can ask to delete a game they played (the flag in its row). The other players are asked to agree; when every player has a login and all agree, it goes by itself, otherwise you decide: open the request from the notification or the flag, then delete the game or keep it, with a note for the players. <strong>Deletion asked</strong> shows the games waiting.</li>
                 <li>The admins are told through the notifications when a player asks to delete a game, and when another admin deletes or repairs a game for fair play.</li>
-                <li><strong>Customize</strong> on the dashboard chooses and orders its widgets for the whole club.</li>
+                <li><strong>Edit dashboard</strong> arranges the club&apos;s dashboard right on the page (switch to &quot;The club&apos;s dashboard&quot;): widgets dragged into place, a third to the full width, removed or added. Everyone sees it, unless they arranged their own; &quot;Default widgets&quot; starts over.</li>
             </ul>
         ),
     },
@@ -205,8 +210,9 @@ export const ADMIN_GUIDE = [
                 <ul>
                     <li><strong>Clubs, users and players:</strong> every club, every account (to block it, correct an email, set a password or create a link to choose one) and every player, filtered by club.</li>
                     <li><strong>Games and trainings</strong> of the clubs chosen, and <strong>Fair play</strong> across all clubs, each entry with its club.</li>
+                    <li><strong>Quick games:</strong> the games played on the public start page without an account (X01 or Cricket, the players only names), with how many were started and finished per day. They count for no club and are deleted after 30 days; delete them earlier, one or many, e.g. when someone fills the list with nonsense.</li>
                     <li><strong>Alerts and error log:</strong> unusual activity, e.g. many accounts or games created at once, and errors of the app.</li>
-                    <li><strong>System settings:</strong> how long a login lasts (1 to 24 hours, five by default) and the banner shown to everyone.</li>
+                    <li><strong>System settings:</strong> how long a login lasts (1 to 24 hours, five by default), the banner shown to everyone, whether the start page shows the numbers of the installation (clubs, players, games), hidden until they speak for it, and the <strong>mail templates</strong>: the subject, text and button of every mail the app sends (password reset, admin added or invited, player login added or invited), with placeholders such as {'{{firstname}}'} or {'{{club}}'}, a preview, a test mail to yourself and the way back to the default.</li>
                 </ul>
             </>
         ),

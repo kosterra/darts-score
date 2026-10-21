@@ -1,0 +1,68 @@
+import { FaArrowDownLong, FaArrowUpLong } from 'react-icons/fa6';
+
+/**
+ * The figures of a player's X01 form, each against the games before: better
+ * in green, worse in red, about the same in grey. "lowerIsBetter" for those
+ * where less is good; "step" is how much counts as a change at all. A count
+ * ("perGames") is compared as if the games before were as many as the latest.
+ */
+const FORM_FIGURES = [
+    { key: 'checkoutRate', label: 'Checkout', unit: '%', step: 2, detail: (figures) => `${figures.checkoutHits}/${figures.checkoutAttempts}` },
+    { key: 'tonPlus', label: 'Ton+ visits', unit: '%', step: 1, hint: 'Visits of 100 or more, of the visits with more than 100 left' },
+    { key: 'firstNine', label: 'First 9', step: 1.5, hint: 'The average of the first three visits of a leg' },
+    { key: 'dartsPerLeg', label: 'Darts per leg', step: 0.5, lowerIsBetter: true, hint: 'Darts thrown in the legs won' },
+    { key: 'oneEighties', label: '180s', step: 1, perGames: true, hint: '180s thrown in these games' },
+    { key: 'under10', label: 'Visits under 10', unit: '%', step: 1, lowerIsBetter: true, hint: 'Visits below 10, of the visits with more than 100 left' },
+    { key: 'under30', label: 'Visits under 30', unit: '%', step: 1.5, lowerIsBetter: true, hint: 'Visits below 30, of the visits with more than 100 left' },
+    { key: 'under50', label: 'Visits under 50', unit: '%', step: 2, lowerIsBetter: true, hint: 'Visits below 50, of the visits with more than 100 left' },
+    { key: 'oneOrFive', label: 'Hit the 1 or 5', unit: '%', step: 1, lowerIsBetter: true, hint: 'Darts in the 1 or the 5, next to the 20, of the darts of the visits with more than 100 left' },
+    { key: 'shameBadges', label: 'Hall of Shame', step: 1, lowerIsBetter: true, perGames: true, hint: 'Shame badges got in these games, like Bed and Breakfast or Madhouse' },
+];
+
+const format = (value, unit) => value == null ? '–' : `${Number.isInteger(value) ? value : value.toFixed(1)}${unit ? ` ${unit}` : ''}`;
+
+const Change = ({ figure, now, before, scale = 1 }) => {
+    if (now == null || before == null) return null;
+    before = figure.perGames ? Math.round(before * scale * 10) / 10 : before;
+    const change = Math.round((now - before) * 10) / 10;
+    const unchanged = Math.abs(change) < figure.step;
+    const better = figure.lowerIsBetter ? change < 0 : change > 0;
+    const Icon = change > 0 ? FaArrowUpLong : FaArrowDownLong;
+    return (
+        <span className={`form-figure-change ${unchanged ? 'is-steady' : better ? 'is-better' : 'is-worse'}`} title={`Before: ${format(before, figure.unit)}${figure.perGames && scale !== 1 ? " (in as many games)" : ""}`}>
+            {unchanged ? '±' : <Icon aria-hidden="true" />}
+            {unchanged ? '' : Number.isInteger(change) ? Math.abs(change) : Math.abs(change).toFixed(1)}
+        </span>
+    );
+};
+
+/**
+ * A player's X01 form in figures: their last games against the ones before.
+ * form: as the form endpoint answers, with figures.recent and figures.previous.
+ * keys: which figures, all by default. compact: smaller, for a widget.
+ */
+const FormFigures = ({ form, keys = null, compact = false }) => {
+    const recent = form?.figures?.recent;
+    if (!recent?.games) return null;
+    const previous = form.figures.previous;
+    // a figure the club does not have (the Hall of Shame) is left out
+    const shown = (keys ? FORM_FIGURES.filter(figure => keys.includes(figure.key)) : FORM_FIGURES)
+        .filter(figure => recent[figure.key] !== undefined);
+
+    return (
+        <div className={`form-figures ${compact ? 'is-compact' : ''}`}>
+            {shown.map(figure => (
+                <div key={figure.key} className="form-figure" title={figure.hint}>
+                    <span className="form-figure-label">{figure.label}</span>
+                    <span className="form-figure-value">
+                        {format(recent[figure.key], figure.unit)}
+                        <Change figure={figure} now={recent[figure.key]} before={previous?.[figure.key]} scale={previous?.games ? recent.games / previous.games : 1} />
+                    </span>
+                    {!compact && figure.detail && recent[figure.key] != null && <span className="text-faint fs-8">{figure.detail(recent)}</span>}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default FormFigures;

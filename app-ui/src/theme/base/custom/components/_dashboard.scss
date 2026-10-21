@@ -302,43 +302,125 @@
     @include accent-title();
 }
 
-// Reordering the widgets in the customize dialog
-.widget-order-item {
-    transition: box-shadow $transitionDuration, background-color $transitionDuration;
+// Arranging the dashboard: a bar with what is arranged and Save, then the
+// widgets each with a bar to drag it by, its width and remove
+.dashboard-edit-bar {
+    position: sticky;
+    top: 0.5rem;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba($primaryColor, 0.6);
+    border-radius: $borderRadius;
+    background: var(--surface-raised);
+    box-shadow: 0 0.75rem 1.5rem -0.75rem rgba(0, 0, 0, 0.9);
+}
+
+.dashboard-tile {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px dashed rgba($primaryColor, 0.55);
+    border-radius: $borderRadius;
+    transition: box-shadow $transitionDuration, opacity $transitionDuration;
 
     &.is-dragged {
-        background: $surfaceHighColor !important;
-        box-shadow: 0 0.75rem 1.5rem -0.75rem rgba(0, 0, 0, 0.9);
-        position: relative;
-        z-index: 1;
+        border-style: solid;
+        border-color: $primaryColor;
+        box-shadow: 0 1rem 2rem -0.75rem rgba(0, 0, 0, 0.9);
+        opacity: 0.75;
     }
 }
 
-.widget-order-handle {
+.dashboard-tile-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.35rem 0.35rem 0.5rem;
+    border-bottom: 1px dashed rgba($primaryColor, 0.35);
+    background: rgba($primaryColor, 0.08);
+    border-radius: $borderRadius $borderRadius 0 0;
+}
+
+// the bar is the handle: grab it anywhere along the title
+.dashboard-tile-handle {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 2.25rem;
-    height: 2.25rem;
+    gap: 0.5rem;
+    // the title stays readable: the width and remove go to a second line when it is narrow
+    flex: 1 1 9rem;
+    min-width: 0;
+    min-height: 2.25rem;
+    padding: 0 0.5rem;
     border: 0;
     border-radius: $borderRadius;
     background: transparent;
-    color: $textSubtleColor;
+    color: $textDefaultColor;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
     cursor: grab;
-    // a finger on the handle drags the widget instead of scrolling the dialog
+    // a finger on it drags the widget instead of scrolling the page
     touch-action: none;
 
-    &:hover,
-    &:focus-visible {
-        background: $surfaceHighColor;
-        color: $textDefaultColor;
-    }
+    i { color: $primaryColor; }
 
-    .is-dragged & {
-        cursor: grabbing;
-        color: $primaryColor;
+    &:hover,
+    &:focus-visible { background: rgba(255, 255, 255, 0.06); }
+
+    .is-dragged & { cursor: grabbing; }
+}
+
+.p-selectbutton.p-selectbutton-pills.dashboard-tile-sizes {
+    flex: 0 0 auto;
+    width: auto;
+    gap: 0.2rem;
+
+    .p-button {
+        flex: 0 0 auto;
+        min-width: 2.1rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.72rem;
     }
+}
+
+// removing a widget: plainly visible, red on hover
+.dashboard-tile-remove.p-button {
+    flex: 0 0 auto;
+    color: $textSubtleColor;
+
+    &:enabled:hover { color: #ec8b80; background: rgba(236, 139, 128, 0.12); }
+}
+
+// the widget itself, as it looks, without reacting while it is arranged
+.dashboard-tile-content {
+    flex: 1 1 auto;
+    pointer-events: none;
+    user-select: none;
+
+    > * { height: 100%; }
+}
+
+// the widgets to add, as a list of cards
+.dashboard-available {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: 0.6rem;
+}
+
+.dashboard-available-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: $borderRadius;
+    background: var(--surface-raised);
 }
 
 // Activity calendar: one square per day, greener the more games
@@ -690,4 +772,61 @@ $momentGoldColor: #ffc94d;
   font-weight: 600;
 
   svg { width: 0.85rem; height: 0.85rem; }
+}
+
+// the figures of a player's form, each with how it changed against the games before
+.form-figures {
+    display: grid;
+    // two rows of five on a wide screen
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+
+    @media (min-width: 576px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (min-width: 992px) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+    &.is-compact {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4rem 1rem;
+
+        .form-figure { padding: 0; background: none; }
+        .form-figure-value { font-size: 1rem; }
+    }
+}
+
+.form-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 0.6rem;
+    background: var(--surface-raised);
+}
+
+.form-figure-label {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+}
+
+.form-figure-value {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-default);
+    font-variant-numeric: tabular-nums;
+}
+
+.form-figure-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+
+    svg { font-size: 0.65rem; }
+
+    &.is-better { color: #7ecca5; }
+    &.is-worse { color: #e07a5f; }
+    &.is-steady { color: var(--text-faint); }
 }

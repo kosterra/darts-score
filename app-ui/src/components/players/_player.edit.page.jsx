@@ -15,6 +15,7 @@ import PlayerLogin from '../elements/player.login';
 import SettingSwitch from '../elements/setting.switch';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
 import PlayerDartPreferences from './player.dart.preferences';
+import PlayerClubs from './player.clubs';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 
@@ -47,7 +48,9 @@ const PlayerEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const toast = useRef(null);
-    const { isClubAdmin, user } = useAuth();
+    const { isClubAdmin, user, clubs } = useAuth();
+    // an admin of several clubs adds players to the others, or moves them
+    const managesSeveralClubs = clubs.filter(club => club.role === 'admin').length > 1;
     const [player, setPlayer] = useState(null);
     const [failed, setFailed] = useState(false);
     const [fields, setFields] = useState(null);
@@ -195,8 +198,9 @@ const PlayerEditPage = () => {
                                 <SettingSwitch
                                     id={`player-public-${player.id}`}
                                     title="Nickname on the public page"
-                                    hint={player.publicProfile ? 'The nickname appears with the live games and results of the club, if the club is public.' : 'The player is shown without a name on the public page.'}
+                                    hint={`${player.publicProfile ? 'The nickname appears with the live games and results of the club, if the club is public.' : 'The player is shown without a name on the public page.'}${maintainedByPlayer ? ` ${player.nickname} has a login and decides this on their player profile.` : ''}`}
                                     checked={Boolean(player.publicProfile)}
+                                    disabled={maintainedByPlayer}
                                     onChange={togglePublic}
                                 />
                                 <p className="setting-title">Login</p>
@@ -205,6 +209,16 @@ const PlayerEditPage = () => {
                                         <PlayerLogin player={player} onChange={load} inline />
                                     </div>
                                 </div>
+                                {managesSeveralClubs && <>
+                                    <p className="game-setup-section-title mt-4">Clubs</p>
+                                    <PlayerClubs
+                                        player={player}
+                                        onSaved={(summary) => toast.current?.show({ severity: 'success', summary, detail: player.nickname, life: 3000 })}
+                                        onError={showError}
+                                        // no longer in this club: back to its players
+                                        onLeft={(summary) => navigate('/players', { state: { notice: `${summary}: ${player.nickname}` } })}
+                                    />
+                                </>}
                             </>
                         )}
                     </div>

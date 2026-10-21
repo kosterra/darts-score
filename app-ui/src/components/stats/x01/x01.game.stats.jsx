@@ -1,21 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from 'primereact/button';
-import { SplitButton } from 'primereact/splitbutton';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
-import { PiShuffle } from "react-icons/pi";
-import { PiUserSwitch } from "react-icons/pi";
-import { MdReplay } from "react-icons/md";
 
 import StatsService from '../../../services/stats.service';
 import PlayerService from '../../../services/player.service';
 import X01Models from '../../../models/x01.models';
 import X01Service from '../../../services/x01.service';
 import X01TrainingService from '../../../services/x01.training.service';
+import { QuickX01Service, quickPlayersOf } from '../../../services/quick.game.service';
+import QuickGameInvite from '../../quick/quick.game.invite';
 import { BOT_ID, botPlayer } from '../../../utils/x01.bot';
 import { shufflePlayers as shuffle } from '../../../utils/game.utils';
 import GameResultHeader from '../common/game.result.header';
+import GameResultActions from '../common/game.result.actions';
 import MatchMoments from '../common/match.moments';
 import { plural, whenPlayed } from '../common/game.text';
 import X01LegsPanel from './x01.legs.panel';
@@ -55,9 +53,10 @@ const GAME_COLOR = '#7ecca5';
  * by side for the game or a set, and the charts grouped by scoring, finishing
  * and the board.
  */
-const X01GameStats = ({ training = false }) => {
-    // a training against the bot: its own service, the bot made up, no badges
-    const Service = training ? X01TrainingService : X01Service;
+const X01GameStats = ({ training = false, quick = false }) => {
+    // a training against the bot: its own service, the bot made up, no badges;
+    // a quick game of the start page: the players only names, no badges either
+    const Service = quick ? QuickX01Service : training ? X01TrainingService : X01Service;
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -81,11 +80,11 @@ const X01GameStats = ({ training = false }) => {
                 if (!gameData) return;
 
                 const people = gameData.players.filter(playerId => playerId !== BOT_ID);
-                const playerData = [...(await PlayerService.findPlayersByIds(people)), ...(gameData.players.includes(BOT_ID) ? [botPlayer(gameData.bot)] : [])]
+                const playerData = quick ? quickPlayersOf(gameData) : [...(await PlayerService.findPlayersByIds(people)), ...(gameData.players.includes(BOT_ID) ? [botPlayer(gameData.bot)] : [])]
                     .filter(p => gameData.players.includes(p.id))
                     .sort((a, b) => gameData.players.indexOf(a.id) - gameData.players.indexOf(b.id));
 
-                const statsData = training ? await X01TrainingService.loadX01GameStats(gameData.id) : await StatsService.loadX01GameStats(gameData.id);
+                const statsData = quick || training ? await Service.loadX01GameStats(gameData.id) : await StatsService.loadX01GameStats(gameData.id);
 
                 setGame(gameData);
                 setPlayers(playerData);
@@ -105,7 +104,7 @@ const X01GameStats = ({ training = false }) => {
         : {}, [game, players, legs]);
     const moments = useMemo(() => game ? matchMoments(game, legs) : [], [game, legs]);
 
-    const onNewGame = () => navigate(training ? '/training/x01' : '/x01', { replace: true });
+    const onNewGame = () => navigate(quick ? '/quick' : training ? '/training/x01' : '/x01', { replace: true });
     const onFinishGame = () => navigate("/", { replace: true });
 
     const onRestartGame = async (switchPlayers = false, shufflePlayers = false) => {
@@ -121,7 +120,8 @@ const X01GameStats = ({ training = false }) => {
             legOutMode: game.legOutMode,
             numberOfSets: game.numberOfSets,
             numberOfLegs: game.numberOfLegs,
-            numberOfPlayers: game.players.length
+            numberOfPlayers: game.players.length,
+            flyingDarts: game.flyingDarts ?? 'players'
         };
 
         let newPlayers = [...game.players];
@@ -143,6 +143,11 @@ const X01GameStats = ({ training = false }) => {
             return acc;
         }, {});
 
+        if (quick) {
+            const newGame = await QuickX01Service.createX01Game({ ...newMatchSetup, quickPlayers: game.quickPlayers, flyingDarts: 'off' });
+            navigate(`/quick/x01/${newGame.id}`);
+            return;
+        }
         // a training again: against the same bot
         const newGame = training
             ? await X01TrainingService.createX01Game({ ...newMatchSetup, bot: game.bot })
@@ -158,24 +163,7 @@ const X01GameStats = ({ training = false }) => {
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: `Set ${i + 1}`, value: `set-${i + 1}` })),
     ];
 
-    const actions = (
-        <>
-            <SplitButton
-                label="Play again"
-                icon={<MdReplay className="me-2 fs-5" />}
-                onClick={() => onRestartGame()}
-                size="small"
-                severity="primary"
-                menuClassName="p-splitbutton-menu-primary"
-                model={[
-                    { label: 'Switch players', icon: <PiUserSwitch className="me-2 mb-1 fs-5" />, visible: game.players.length === 2, command: () => onRestartGame(true) },
-                    { label: 'Shuffle players', icon: <PiShuffle className="me-2 mb-1 fs-5" />, visible: game.players.length > 2, command: () => onRestartGame(false, true) }
-                ]}
-            />
-            <Button label="New game" icon="pi pi-plus" onClick={onNewGame} size="small" outlined severity="primary" />
-            <Button label="Home" icon="pi pi-home" onClick={onFinishGame} size="small" outlined />
-        </>
-    );
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} onHome={onFinishGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">
@@ -197,8 +185,9 @@ const X01GameStats = ({ training = false }) => {
                     actions={actions}
                 />
 
-                {/* trainings earn no badges */}
-                {!training &&
+                {/* trainings and quick games earn no badges */}
+                {quick && <QuickGameInvite />}
+                {!training && !quick &&
                     <GameBadges
                         gameType="x01"
                         gameId={game.id}
