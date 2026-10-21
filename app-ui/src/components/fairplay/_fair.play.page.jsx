@@ -18,7 +18,7 @@ import FairPlayDetails from './fair.play.details';
 import { LEVEL_LABELS, listOf } from './fair.play.lists';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 
 /**
  * Asks why an entry is marked: as fine (a false alarm; needed for what the
@@ -165,7 +165,7 @@ const FairPlayPage = ({ all = false }) => {
         setBusy(entry.id);
         try {
             const { repaired } = await IntegrityService.repair(entry.type, entry.id);
-            toast.current?.show({ severity: 'success', summary: t('Repaired'), detail: t('{{repaired}} {{value}} left worked out again from the darts.', { repaired: repaired, value: repaired === 1 ? 'score' : 'scores' }), life: 4000 });
+            toast.current?.show({ severity: 'success', summary: t('Repaired'), detail: tn(repaired, '{{count}} score left worked out again from the darts.', '{{count}} scores left worked out again from the darts.'), life: 4000 });
             announceFairPlayChange();
             await load();
         } catch (error) {
@@ -309,7 +309,7 @@ const FairPlayPage = ({ all = false }) => {
                                             {entry.type !== 'birth' && <DeletePopup
                                                 data={entry}
                                                 header={t('Delete for fair play')}
-                                                message={t('this {{value}} ({{summary}}) and the badges earned in it', { value: entry.type === 'training' ? 'training' : 'game', summary: entry.summary })}
+                                                message={(entry.type === 'training' ? t('this training ({{summary}}) and the badges earned in it', { summary: entry.summary }) : t('this game ({{summary}}) and the badges earned in it', { summary: entry.summary }))}
                                                 handleDelete={() => remove(entry)}
                                                 label={t('Delete')}
                                                 size="small"

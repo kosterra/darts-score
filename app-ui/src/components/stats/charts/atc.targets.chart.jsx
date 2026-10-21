@@ -3,7 +3,7 @@ import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis
 import ChartCard from './chart.card';
 import { TARGET_NAMES } from '../../../utils/atc.darts';
 import { AXIS, BAR_OPACITY, GRID, PLAYER_COLORS, TOOLTIP } from './chart.theme';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 // how many of the hardest targets stand out
 const HARDEST = 3;
@@ -21,7 +21,7 @@ const AtcTargetsChart = ({ perTarget = [], trainings = 0 }) => {
     return (
         <ChartCard
             title={t('Around the Clock · darts per number')}
-            description={t('Average darts needed for each number over {{trainings}} {{value}} with the fewest darts; one is a hit with the first dart. The hardest numbers stand out.', { trainings: trainings, value: trainings === 1 ? 'round' : 'rounds' })}
+            description={tn(trainings, 'Average darts needed for each number over {{count}} round with the fewest darts; one is a hit with the first dart. The hardest numbers stand out.', 'Average darts needed for each number over {{count}} rounds with the fewest darts; one is a hit with the first dart. The hardest numbers stand out.')}
         >
             <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={rows} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>

@@ -2,7 +2,7 @@ import ChartCard from './chart.card';
 import DartboardHeatmap from './dartboard.heatmap';
 import { PLAYER_COLORS } from './chart.theme';
 import { hitFields, formatShare } from '../../../utils/hit.fields';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 const RING_NAMES = { S: 'Single', D: 'Double', T: 'Treble' };
 const TOP_FIELDS = 5;
@@ -47,7 +47,7 @@ const HitsHeatmapChart = ({ hitsByPlayer = [], players = [], gameName = 'X01' })
                                     return {
                                         label: section === 25 ? (ring === 'D' ? t('Bull') : t('Outer bull')) : `${RING_NAMES[ring]} ${section}`,
                                         value: total ? formatShare(count / total) : '0 %',
-                                        detail: t('{{count}} {{value}} of {{total}} on the board', { count: count, value: count === 1 ? 'hit' : 'hits', total: total }),
+                                        detail: tn(count, '{{count}} hit of {{total}} on the board', '{{count}} hits of {{total}} on the board', { total }),
                                     };
                                 }}
                             />

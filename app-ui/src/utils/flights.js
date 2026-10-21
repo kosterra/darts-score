@@ -8,16 +8,16 @@ import { t } from './i18n';
  * components/flights/flight.art.
  */
 export const FLIGHT_COLORS = [
-    { value: '#e5484d', label: 'Red' },
-    { value: '#f76b15', label: 'Orange' },
-    { value: '#ffc53d', label: 'Yellow' },
-    { value: '#46a758', label: 'Green' },
-    { value: '#12a594', label: 'Teal' },
-    { value: '#0090ff', label: 'Blue' },
-    { value: '#8e4ec6', label: 'Purple' },
-    { value: '#e93d82', label: 'Pink' },
-    { value: '#f2f2f2', label: 'White' },
-    { value: '#2b2f36', label: 'Black' },
+    { value: '#e5484d', label: t('Red') },
+    { value: '#f76b15', label: t('Orange') },
+    { value: '#ffc53d', label: t('Yellow') },
+    { value: '#46a758', label: t('Green') },
+    { value: '#12a594', label: t('Teal') },
+    { value: '#0090ff', label: t('Blue') },
+    { value: '#8e4ec6', label: t('Purple') },
+    { value: '#e93d82', label: t('Pink') },
+    { value: '#f2f2f2', label: t('White') },
+    { value: '#2b2f36', label: t('Black') },
 ];
 
 // the second colour of a design: dark on light flights, light on dark ones
@@ -46,8 +46,8 @@ export const flightOf = (player, seat = 0) => {
 // whether the darts fly in a game: the game decides, or ('players') the player at the board
 export const FLYING_DARTS_OPTIONS = [
     { value: 'players', label: t('Per player') },
-    { value: 'on', label: 'On' },
-    { value: 'off', label: 'Off' },
+    { value: 'on', label: t('On') },
+    { value: 'off', label: t('Off') },
 ];
 export const dartsFly = (game, player) => {
     if (game?.flyingDarts === 'on') return true;

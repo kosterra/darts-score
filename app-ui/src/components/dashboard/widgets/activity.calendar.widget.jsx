@@ -6,7 +6,8 @@ import { activityCalendar } from '../../../utils/club.charts';
 import { t } from '../../../utils/i18n';
 
 const LEVELS = 4;
-const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
+// every other day, Monday to Sunday, in the language of the app
+const DAY_LABELS = [1, 2, 3, 4, 5, 6, 0].map((day, index) => index % 2 ? '' : dayjs().day(day).format('ddd'));
 
 // 0 for no games, then 1–4 by share of the busiest day
 const levelOf = (count, max) => count === 0 ? 0 : Math.max(1, Math.ceil(count / max * LEVELS));

@@ -3,7 +3,7 @@ import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 
 import CHANGELOG from './changelog';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 
 // the newest releases shown at first
 const RECENT_RELEASES = 4;
@@ -61,7 +61,7 @@ const ReleaseNotes = () => {
                             <span className="release-version">{release.version}</span>
                             {index === 0 && <Tag value="Latest" />}
                             <span className="text-faint fs-8 me-auto">
-                                {release.changes.length - fixes}{' '}{t('new')}{fixes ? ` · ${fixes} ${fixes === 1 ? 'fix' : 'fixes'}` : ''}
+                                {tn(release.changes.length - fixes, '{{count}} new', '{{count}} new')}{fixes ? ` · ${tn(fixes, '{{count}} fix', '{{count}} fixes')}` : ''}
                             </span>
                             <i className={`pi ${isOpen ? 'pi-chevron-up' : 'pi-chevron-down'} text-subtle`} aria-hidden="true" />
                         </button>

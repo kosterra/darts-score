@@ -8,9 +8,9 @@ import StatsService from '../../services/stats.service';
 import PageLoader from '../elements/page.loader';
 import BadgeMedal from './badge.medal';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 
-const weeks = (count) => `${count} ${count === 1 ? 'week' : 'weeks'}`;
+const weeks = (count) => tn(count, '{{count}} week', '{{count}} weeks');
 
 /**
  * Weeks played in a row: the running streak and the best one so far.

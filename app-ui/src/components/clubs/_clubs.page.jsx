@@ -12,7 +12,7 @@ import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
 import ClubMembership from './club.membership';
 import ClubDirectory from './club.directory';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 
 /**
  * My clubs: the clubs the user runs or plays in, with what they do in each:
@@ -119,7 +119,7 @@ const ClubsPage = () => {
                                     <div className="my-club-actions">
                                         {isAdmin && club.openJoinRequests > 0 &&
                                             <Button
-                                                label={t('{{openJoinRequests}} {{value}} to join', { openJoinRequests: club.openJoinRequests, value: club.openJoinRequests === 1 ? 'request' : 'requests' })}
+                                                label={tn(club.openJoinRequests, '{{count}} request to join', '{{count}} requests to join')}
                                                 icon="pi pi-user-plus"
                                                 size="small"
                                                 onClick={() => { selectClub(club.id); navigate('/players?requests=1'); }}

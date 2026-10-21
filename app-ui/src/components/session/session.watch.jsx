@@ -93,7 +93,7 @@ const SessionWatch = () => {
             </div>
             <div className="d-flex justify-content-end flex-wrap gap-2 mt-3">
                 <Button type="button" label={t('Log out')} size="small" severity="secondary" onClick={logout} />
-                <Button type="button" label={t('Stay logged in for {{hours}} {{value}}', { hours: hours, value: hours === 1 ? 'hour' : 'hours' })} icon="pi pi-clock" size="small" loading={extending} onClick={extend} autoFocus />
+                <Button type="button" label={(hours === 1 ? t('Stay logged in for 1 hour') : t('Stay logged in for {{hours}} hours', { hours }))} icon="pi pi-clock" size="small" loading={extending} onClick={extend} autoFocus />
             </div>
         </Dialog>
     );

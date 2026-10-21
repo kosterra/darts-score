@@ -14,7 +14,7 @@ import { Toast } from 'primereact/toast';
 import AdminService from '../../services/admin.service';
 import StatTile from '../stats/players/stat.tile';
 import { AdminToolbar } from './admin.common';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 
 dayjs.extend(relativeTime);
 
@@ -123,7 +123,7 @@ const ErrorLog = () => {
                     </span>
                     <SelectButton value={level} options={LEVEL_OPTIONS} onChange={(e) => e.value && setLevel(e.value)} aria-label={t('Level')} />
                     <div className="ms-auto d-flex align-items-center gap-3">
-                        {log?.entries && <span className="text-faint fs-7">{log.entries.length} {log.entries.length === 1 ? t('entry') : t('entries')}</span>}
+                        {log?.entries && <span className="text-faint fs-7">{tn(log.entries.length, '{{count}} entry', '{{count}} entries')}</span>}
                         <Button icon="pi pi-refresh" label={t('Refresh')} size="small" severity="secondary" onClick={loadLog} />
                         <Button icon="pi pi-trash" label={t('Clear')} size="small" severity="danger" disabled={!log?.entries?.length} onClick={confirmClear} />
                     </div>

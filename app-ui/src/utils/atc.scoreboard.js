@@ -1,12 +1,12 @@
 import dayjs from 'dayjs';
 import { formatTrainingTime } from './training.time';
-import { t } from './i18n';
+import { currentLanguage, t } from './i18n';
 
 // The Around the Clock scoreboard: which times are listed, in which order, and
 // where a new time ended up.
 
 export const PERIODS = [
-    { label: 'Today', value: 'today' },
+    { label: t('Today'), value: 'today' },
     { label: t('This month'), value: 'month' },
     { label: t('All time'), value: 'all' },
 ];
@@ -33,7 +33,7 @@ const faster = (a, b) => scoreOf(a) - scoreOf(b) || new Date(a.createdAt) - new 
 export const LISTS = [
     { label: t('Best per player'), value: 'best' },
     { label: t('All attempts'), value: 'all' },
-    { label: 'Mine', value: 'mine' },
+    { label: t('Mine'), value: 'mine' },
 ];
 
 /**
@@ -63,6 +63,11 @@ export const scoreboardRows = (entries, { period = 'all', list = 'best', myPlaye
 
 // 1st, 2nd, 3rd, 4th … 11th, 12th, 13th … 21st
 export const ordinal = (n) => {
+    const language = currentLanguage();
+    if (language === 'de') return `${n}.`;
+    if (language === 'fr') return n === 1 ? '1er' : `${n}e`;
+    if (language === 'it') return `${n}°`;
+    if (language === 'es') return `${n}.º`;
     const tens = n % 100;
     if (tens >= 11 && tens <= 13) return `${n}th`;
     return `${n}${{ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] ?? 'th'}`;

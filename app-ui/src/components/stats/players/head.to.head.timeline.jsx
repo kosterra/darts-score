@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 
 import ChartConfigOptions from '../common/chart.config.options';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 const MAX_GAMES = 12;
 // the card is this wide at most; near the edges it stays inside the timeline
@@ -98,7 +98,7 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
                         const player = players.find(entry => entry.id === id);
                         const model = hoveredGame.playerModels?.[id] ?? {};
                         const value = isX01Game(hoveredGame)
-                            ? `${model.setsWon ?? 0} ${(model.setsWon ?? 0) === 1 ? 'set' : 'sets'}`
+                            ? tn(model.setsWon ?? 0, '{{count}} set', '{{count}} sets')
                             : t('{{value}} points', { value: model.score ?? 0 });
                         return (
                             <div key={id} className="chart-tooltip-row">

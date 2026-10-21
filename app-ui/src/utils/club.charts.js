@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { t } from './i18n';
 
 // Dashboard charts from the club's game log ([{ at, type, finished, points?, rounds? }]),
 // grouped by day, month and hour in the visitor's own time zone.
@@ -64,10 +65,10 @@ export const clubFormPerMonth = (gameLog, today = dayjs(), months = 12) => lastM
 });
 
 export const TIME_SLOTS = [
-    { id: 'morning', label: 'Morning', from: 6, to: 12 },
-    { id: 'afternoon', label: 'Afternoon', from: 12, to: 17 },
-    { id: 'evening', label: 'Evening', from: 17, to: 21 },
-    { id: 'night', label: 'Night', from: 21, to: 30 },
+    { id: 'morning', label: t('Morning'), from: 6, to: 12 },
+    { id: 'afternoon', label: t('Afternoon'), from: 12, to: 17 },
+    { id: 'evening', label: t('Evening'), from: 17, to: 21 },
+    { id: 'night', label: t('Night'), from: 21, to: 30 },
 ];
 
 /**

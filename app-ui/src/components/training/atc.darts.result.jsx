@@ -5,7 +5,7 @@ import { FaMedal } from 'react-icons/fa6';
 import { TARGET_NAMES, hardestTargets, targetLabel } from '../../utils/atc.darts';
 import { ordinal } from '../../utils/atc.scoreboard';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 
 const MEDALS = ['gold', 'silver', 'bronze'];
 
@@ -19,7 +19,7 @@ export const TargetBars = ({ perTarget, hardest }) => {
                     key={index}
                     className={hardest.some(target => target.index === index) ? 'is-hard' : ''}
                     style={{ height: darts ? `${Math.max(12, darts / most * 100)}%` : '3px' }}
-                    title={`${TARGET_NAMES[index]}: ${darts} ${darts === 1 ? 'dart' : 'darts'}`}
+                    title={`${TARGET_NAMES[index]}: ${tn(darts, '{{count}} dart', '{{count}} darts')}`}
                 />
             ))}
         </div>

@@ -54,7 +54,11 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
     const preferenceOf = (kind) => ({ shape: 'flightShape', design: 'flightPattern', barrel: 'barrel' })[kind];
     const unlock = (item) => confirmDialog({
         header: t('Unlock {{label}}', { label: item.label }),
-        message: t('Unlock {{value}} {{label}} for {{cost}} flight points? You have {{balance}}.', { value: item.kind === 'barrel' ? 'the barrel' : `the ${item.kind}`, label: item.label, cost: item.cost, balance: standing.points.balance }),
+        message: t({
+            shape: 'Unlock the shape {{label}} for {{cost}} flight points? You have {{balance}}.',
+            design: 'Unlock the design {{label}} for {{cost}} flight points? You have {{balance}}.',
+            barrel: 'Unlock the barrel {{label}} for {{cost}} flight points? You have {{balance}}.',
+        }[item.kind], { label: item.label, cost: item.cost, balance: standing.points.balance }),
         acceptLabel: t('Unlock'),
         rejectLabel: t('Cancel'),
         acceptClassName: 'p-button-sm',

@@ -381,7 +381,7 @@ const ATC = () => {
                 <div className="col-12 col-xl-6">
                     <ATCScoreboard
                         entries={atcEntries}
-                        noun={scoreboardView.scoring === 'Darts' ? 'rounds' : 'times'}
+                        noun={scoreboardView.scoring === 'Darts' ? t('rounds') : t('times')}
                         arrival={arrival}
                         view={scoreboardView}
                         onViewChange={setScoreboardView}

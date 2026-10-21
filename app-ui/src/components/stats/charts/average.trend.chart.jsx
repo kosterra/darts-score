@@ -7,7 +7,7 @@ import ChartTooltip from './chart.tooltip';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { groupByPeriod } from '../../../utils/trend.grouping';
 import { averageLevelOf, levelChanges, nextAverageLevel } from '../../../utils/average.levels';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 const MOVING_WINDOW = 5;
 // grouped by month or quarter, the trend follows fewer points
@@ -75,7 +75,9 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = t('Averag
         quarter: t('Average per quarter of the X01 games the players played together.'),
     };
     const singleText = byPeriod
-        ? t('Average per {{period}} of the X01 games, with the trend over the last {{MOVING_PERIODS}} {{period}}s and the overall average.', { period: period, MOVING_PERIODS: MOVING_PERIODS })
+        ? (period === 'quarter'
+            ? t('Average per quarter of the X01 games, with the trend over the last {{MOVING_PERIODS}} quarters and the overall average.', { MOVING_PERIODS })
+            : t('Average per month of the X01 games, with the trend over the last {{MOVING_PERIODS}} months and the overall average.', { MOVING_PERIODS }))
         : t('Average of every X01 game, with the trend over the last {{MOVING_WINDOW}} games and the overall average.', { MOVING_WINDOW: MOVING_WINDOW });
     // average levels: where they change, and the next one to reach
     const withLevels = dated;
@@ -104,7 +106,7 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = t('Averag
     // a grouped point says how many games it stands for
     const tooltipLabel = (label, payload) => {
         const games = payload?.[0]?.payload?.games;
-        return byPeriod && games ? `${label} · ${games} ${games === 1 ? 'game' : 'games'}` : label;
+        return byPeriod && games ? `${label} · ${tn(games, '{{count}} game', '{{count}} games')}` : label;
     };
 
     return (

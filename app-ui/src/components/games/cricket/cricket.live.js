@@ -1,6 +1,6 @@
 import { CRICKET_NUMBERS } from '../../../utils/cricket.game.summary';
 import { variantOf } from '../../../utils/cricket.variants';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 export const numberLabel = (number) => number === 25 ? 'Bull' : String(number);
 
@@ -52,5 +52,5 @@ export const cricketTip = (game, marks, scores, playerId) => {
     if (!toClose.length) return null;
     const number = toClose[0];
     const missing = 3 - (marks[playerId]?.[number] ?? 0);
-    return { text: t('Close {{numberLabel}}', { numberLabel: numberLabel(number) }), title: t('{{missing}} {{value}} to close it', { missing: missing, value: missing === 1 ? 'mark' : 'marks' }) };
+    return { text: t('Close {{numberLabel}}', { numberLabel: numberLabel(number) }), title: tn(missing, '{{count}} mark to close it', '{{count}} marks to close it') };
 };

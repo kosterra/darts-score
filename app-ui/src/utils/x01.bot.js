@@ -135,9 +135,9 @@ export const botPlayer = (bot = {}) => ({
 
 // how much easier or harder than the player the bot plays
 export const BOT_LEVELS = [
-    { value: 'easier', label: 'Easier', factor: 0.85 },
+    { value: 'easier', label: t('Easier'), factor: 0.85 },
     { value: 'same', label: t('Like you'), factor: 1 },
-    { value: 'harder', label: 'Harder', factor: 1.15 },
+    { value: 'harder', label: t('Harder'), factor: 1.15 },
 ];
 
 /**
@@ -172,10 +172,10 @@ export const botStrengthFrom = ({ form = null, stats = null, fallback = null, le
 
 // fixed bots, for players without X01 games yet or to train against another level
 export const BOT_PRESETS = [
-    { value: 'easy', label: 'Easy', average: 30, checkoutRate: 0.12 },
-    { value: 'normal', label: 'Normal', average: 45, checkoutRate: 0.2 },
-    { value: 'hard', label: 'Hard', average: 60, checkoutRate: 0.28 },
-    { value: 'pro', label: 'Pro', average: 80, checkoutRate: 0.38 },
+    { value: 'easy', label: t('Easy'), average: 30, checkoutRate: 0.12 },
+    { value: 'normal', label: t('Normal'), average: 45, checkoutRate: 0.2 },
+    { value: 'hard', label: t('Hard'), average: 60, checkoutRate: 0.28 },
+    { value: 'pro', label: t('Pro'), average: 80, checkoutRate: 0.38 },
 ];
 export const LIKE_ME = 'me';
 

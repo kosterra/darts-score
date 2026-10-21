@@ -20,7 +20,7 @@ import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
 import { useUrlFilters, useUrlState } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 const DEFAULT_FILTERS = {
     type: 'x01',
@@ -33,7 +33,7 @@ const DEFAULT_FILTERS = {
 };
 
 const formatLabel = (game) =>
-    `${game.setMode} ${game.numberOfSets} ${game.numberOfSets === 1 ? 'set' : 'sets'} · ${game.legMode} ${game.numberOfLegs} ${game.numberOfLegs === 1 ? 'leg' : 'legs'}`;
+    `${game.setMode} ${tn(game.numberOfSets, '{{count}} set', '{{count}} sets')} · ${game.legMode} ${tn(game.numberOfLegs, '{{count}} leg', '{{count}} legs')}`;
 
 /**
  * What the server is asked for, from the filters in the header.

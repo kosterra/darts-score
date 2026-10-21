@@ -22,13 +22,13 @@ import PlayerLevel from '../../players/player.level';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { useUrlFilters } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 const LATEST_BADGES = 5;
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 const percent = (part, whole) => whole ? `${Math.round(part * 100 / whole)} %` : '–';
-const weeks = (count) => `${count} ${count === 1 ? 'week' : 'weeks'}`;
+const weeks = (count) => tn(count, '{{count}} week', '{{count}} weeks');
 
 const STREAK_FLAMES = 5;
 
@@ -43,7 +43,7 @@ const DEFAULT_FILTERS = {
 };
 
 const formatLabel = ({ setMode, numberOfSets, legMode, numberOfLegs }) =>
-    `${setMode} ${numberOfSets} ${numberOfSets === 1 ? 'set' : 'sets'} · ${legMode} ${numberOfLegs} ${numberOfLegs === 1 ? 'leg' : 'legs'}`;
+    `${setMode} ${tn(numberOfSets, '{{count}} set', '{{count}} sets')} · ${legMode} ${tn(numberOfLegs, '{{count}} leg', '{{count}} legs')}`;
 
 /**
  * What the server is asked for, from the filters above the statistics.

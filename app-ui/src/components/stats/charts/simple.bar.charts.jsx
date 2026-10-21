@@ -173,13 +173,13 @@ export const LegsPerGameChart = ({ games = [], players = [] }) => {
     const perPeriod = step !== 'game';
     const tooltipLabel = (label, payload) => {
         const count = payload?.[0]?.payload?.games;
-        return perPeriod && count ? `${label} · ${count} ${count === 1 ? 'game' : 'games'}` : label;
+        return perPeriod && count ? `${label} · ${t(count === 1 ? '{{count}} game' : '{{count}} games', { count })}` : label;
     };
     return (
         <ChartCard
-            title={perPeriod ? t('Legs per {{step}}', { step: step }) : t('Legs per game')}
+            title={perPeriod ? (step === 'quarter' ? t('Legs per quarter') : t('Legs per month')) : t('Legs per game')}
             description={perPeriod
-                ? t('Legs each player won per {{step}} in the games they played together.', { step: step })
+                ? (step === 'quarter' ? t('Legs each player won per quarter in the games they played together.') : t('Legs each player won per month in the games they played together.'))
                 : t('Legs each player won in every game they played together, oldest first.')}
         >
             <ResponsiveContainer width="100%" height={260}>
