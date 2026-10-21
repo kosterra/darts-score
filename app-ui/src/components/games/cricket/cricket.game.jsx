@@ -10,6 +10,7 @@ import LiveFigures from '../common/live.figures';
 import PageLoader from '../../elements/page.loader';
 import { cricketFigures, replayCricket } from '../../../utils/cricket.game.summary';
 import { variantOf } from '../../../utils/cricket.variants';
+import { t } from '../../../utils/i18n';
 
 /**
  * A running Cricket game in the look of the X01 page: the players on top, the
@@ -37,7 +38,7 @@ const CricketGame = () => {
     if (loading.initGameLoading) return <PageLoader />;
 
     if (!game?.players?.length || !players?.length) {
-        return <div className="text-center text-subtle fs-6 mt-5">Game data not available.</div>;
+        return <div className="text-center text-subtle fs-6 mt-5">{t('Game data not available.')}</div>;
     }
 
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
@@ -45,14 +46,14 @@ const CricketGame = () => {
     const figures = Object.fromEntries(ordered.map(player => [player.id, cricketFigures(game, player.id, replay)]));
     const standard = variantOf(game) === 'Standard';
     const rows = [
-        { label: 'Marks per round', value: (id) => figures[id].marksPerRound ?? null },
-        { label: 'Marks', value: (id) => figures[id].marks },
-        { label: 'Best round', value: (id) => figures[id].bestRound ? `${figures[id].bestRound} marks` : null },
-        ...(standard ? [{ label: 'Most points in a round', value: (id) => figures[id].bestPoints || null }] : []),
-        { label: 'Triples', value: (id) => figures[id].triples },
-        { label: 'Bull marks', value: (id) => figures[id].bulls },
-        { label: 'Closed first', value: (id) => figures[id].closedFirst },
-        { label: 'Darts thrown', value: (id) => figures[id].dartsThrown, neutral: true },
+        { label: t('Marks per round'), value: (id) => figures[id].marksPerRound ?? null },
+        { label: t('Marks'), value: (id) => figures[id].marks },
+        { label: t('Best round'), value: (id) => figures[id].bestRound ? t('{{bestRound}} marks', { bestRound: figures[id].bestRound }) : null },
+        ...(standard ? [{ label: t('Most points in a round'), value: (id) => figures[id].bestPoints || null }] : []),
+        { label: t('Triples'), value: (id) => figures[id].triples },
+        { label: t('Bull marks'), value: (id) => figures[id].bulls },
+        { label: t('Closed first'), value: (id) => figures[id].closedFirst },
+        { label: t('Darts thrown'), value: (id) => figures[id].dartsThrown, neutral: true },
     ];
 
     return (
@@ -66,7 +67,7 @@ const CricketGame = () => {
                     <CricketVisitsPanel game={game} players={ordered} />
                 </div>
                 <div className="col-12 col-xl-5">
-                    <Panel header="Key figures" className="h-100">
+                    <Panel header={t('Key figures')} className="h-100">
                         <div className="x01-live-figures">
                             <LiveFigures players={ordered} rows={rows} />
                         </div>

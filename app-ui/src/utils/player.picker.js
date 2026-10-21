@@ -1,4 +1,5 @@
-// Choosing the players of a game: who is offered first and the order they throw in.
+
+import { t } from './i18n';// Choosing the players of a game: who is offered first and the order they throw in.
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;
@@ -31,7 +32,7 @@ export const playedWhen = (date, now = new Date()) => {
     const days = Math.round((startOfDay(now) - startOfDay(new Date(date))) / DAY);
     if (days <= 0) return 'today';
     if (days === 1) return 'yesterday';
-    if (days < 30) return `${days} days ago`;
+    if (days < 30) return t('{{days}} days ago', { days: days });
     return null;
 };
 

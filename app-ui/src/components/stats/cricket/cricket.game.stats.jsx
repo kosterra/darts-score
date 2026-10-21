@@ -18,17 +18,18 @@ import { CRICKET_NUMBERS, replayCricket, cricketFigures, cricketProgress, cricke
 import { cricketRematch } from '../../../utils/cricket.rematch';
 import UpLink from '../../elements/up.link';
 import { variantOf } from '../../../utils/cricket.variants';
+import { t } from '../../../utils/i18n';
 
 // the key figures of every player in the header
 const FIGURES = [
-    { key: 'marksPerRound', label: 'Marks per round', format: (value) => value.toFixed(2) },
-    { key: 'points', label: 'Points' },
-    { key: 'bestRound', label: 'Best round', format: (value) => `${value} marks` },
-    { key: 'bestPoints', label: 'Most points in a round' },
-    { key: 'triples', label: 'Triples' },
-    { key: 'bulls', label: 'Bull marks' },
-    { key: 'closedFirst', label: 'Numbers closed first', format: (value) => `${value} of 7` },
-    { key: 'dartsThrown', label: 'Darts thrown', neutral: true },
+    { key: 'marksPerRound', label: t('Marks per round'), format: (value) => value.toFixed(2) },
+    { key: 'points', label: t('Points') },
+    { key: 'bestRound', label: t('Best round'), format: (value) => t('{{value}} marks', { value: value }) },
+    { key: 'bestPoints', label: t('Most points in a round') },
+    { key: 'triples', label: t('Triples') },
+    { key: 'bulls', label: t('Bull marks') },
+    { key: 'closedFirst', label: t('Numbers closed first'), format: (value) => t('{{value}} of 7', { value: value }) },
+    { key: 'dartsThrown', label: t('Darts thrown'), neutral: true },
 ];
 
 
@@ -82,7 +83,7 @@ const CricketGameStats = ({ quick = false }) => {
     const progress = useMemo(() => game && replay ? cricketProgress(game, replay) : { closing: [], points: [] }, [game, replay]);
     const moments = useMemo(() => game && replay ? cricketMoments(game, replay) : [], [game, replay]);
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">{quick ? 'This quick game was not found on this device.' : 'This game could not be found in the selected club.'}</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{quick ? t('This quick game was not found on this device.') : t('This game could not be found in the selected club.')}</div>;
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const onRestartGame = async (switchPlayers = false, shuffle = false) => {
@@ -96,15 +97,15 @@ const CricketGameStats = ({ quick = false }) => {
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
-                {!quick && <UpLink to="/games" label="Games" />}
+                {!quick && <UpLink to="/games" label={t('Games')} />}
                 <GameResultHeader
                     game={game}
                     players={players}
-                    title={variantOf(game) === 'Standard' ? 'Cricket · 15 to 20 and the bull' : `Cricket ${variantOf(game)} · 15 to 20 and the bull`}
+                    title={variantOf(game) === 'Standard' ? t('Cricket · 15 to 20 and the bull') : t('Cricket {{variantOf}} · 15 to 20 and the bull', { variantOf: variantOf(game) })}
                     subtitle={whenPlayed(game)}
                     scoreOf={(player) => figures[player.id]?.points ?? 0}
                     // the points are the score; under them how much of the board the player closed
-                    scoreDetailOf={(player) => `${CRICKET_NUMBERS.filter(n => replay.board[n].marks[player.id] >= 3).length} of 7 numbers closed`}
+                    scoreDetailOf={(player) => t('{{length}} of 7 numbers closed', { length: CRICKET_NUMBERS.filter(n => replay.board[n].marks[player.id] >= 3).length })}
                     rows={FIGURES}
                     figures={figures}
                     actions={actions}
@@ -128,15 +129,15 @@ const CricketGameStats = ({ quick = false }) => {
                     {/* the points over the game follow the standard rules */}
                     {variantOf(game) === 'Standard' && <div className="col-12 col-xl-6">
                         <RoundsLineChart
-                            title="Points over the game"
-                            description="Each player's points after every round: they come from marks on numbers the others have not closed yet."
+                            title={t('Points over the game')}
+                            description={t('Each player\'s points after every round: they come from marks on numbers the others have not closed yet.')}
                             data={progress.points}
                             players={players}
                             unit="points"
                         />
                     </div>}
                     <div className={variantOf(game) === 'Standard' ? 'col-12 col-xl-6' : 'col-12'}>
-                        <HitsHeatmapChart hitsByPlayer={players.map(player => hitsBySection(game.playerModels[player.id]?.hit))} players={players} gameName="this game" />
+                        <HitsHeatmapChart hitsByPlayer={players.map(player => hitsBySection(game.playerModels[player.id]?.hit))} players={players} gameName={t('this game')} />
                     </div>
                 </div>
             </div>

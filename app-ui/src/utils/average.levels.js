@@ -1,4 +1,5 @@
 import { FaSeedling, FaBeerMugEmpty, FaUsers, FaFlag, FaMedal, FaEarthEurope, FaCrown } from 'react-icons/fa6';
+import { t } from './i18n';
 
 /**
  * Levels of the 3-dart average, on the same steps as the minimum averages of
@@ -11,7 +12,7 @@ export const AVERAGE_LEVELS = [
     { min: 40, name: 'Amateur', color: '#7ecca5', icon: FaUsers },
     { min: 50, name: 'Semi-pro', color: '#8fc3df', icon: FaFlag },
     { min: 60, name: 'Pro', color: '#c3a9e6', icon: FaMedal },
-    { min: 75, name: 'World class', color: '#e8b98a', icon: FaEarthEurope },
+    { min: 75, name: t('World class'), color: '#e8b98a', icon: FaEarthEurope },
     { min: 90, name: 'Elite', color: '#ffc94d', icon: FaCrown },
 ];
 

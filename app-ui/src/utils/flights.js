@@ -1,4 +1,5 @@
 import { PLAYER_COLORS } from '../components/stats/charts/chart.theme';
+import { t } from './i18n';
 
 /**
  * How a player's darts look when they fly onto the board to tap, as they
@@ -44,7 +45,7 @@ export const flightOf = (player, seat = 0) => {
 
 // whether the darts fly in a game: the game decides, or ('players') the player at the board
 export const FLYING_DARTS_OPTIONS = [
-    { value: 'players', label: 'Per player' },
+    { value: 'players', label: t('Per player') },
     { value: 'on', label: 'On' },
     { value: 'off', label: 'Off' },
 ];

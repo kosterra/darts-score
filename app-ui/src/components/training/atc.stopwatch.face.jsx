@@ -1,4 +1,5 @@
-// a real stopwatch: a cream dial with the seconds round the edge, a sweeping
+
+import { t } from '../../utils/i18n';// a real stopwatch: a cream dial with the seconds round the edge, a sweeping
 // red second hand, a small dial for the minutes, and a gold mark at the best time
 
 const CENTRE = 100;
@@ -61,7 +62,7 @@ const ATCStopwatchFace = ({ elapsedMs, best, pace }) => {
                     return <line key={index} x1={subX + 12 * Math.cos(angle)} y1={subY + 12 * Math.sin(angle)} x2={subX + 15 * Math.cos(angle)} y2={subY + 15 * Math.sin(angle)} stroke="#2b2622" strokeWidth="1.2" />;
                 })}
                 <line x1={subX} y1={subY} x2={subX} y2={subY - 13} stroke="#2b2622" strokeWidth="2" strokeLinecap="round" transform={`rotate(${minuteTurn * 360} ${subX} ${subY})`} />
-                <text x={CENTRE} y="80" textAnchor="middle" fontSize="7" fontWeight="700" letterSpacing="1.5" fill="#8a8172">OCHE</text>
+                <text x={CENTRE} y="80" textAnchor="middle" fontSize="7" fontWeight="700" letterSpacing="1.5" fill="#8a8172">{t('OCHE')}</text>
                 {/* the second hand, with its tail */}
                 <g transform={`rotate(${secondTurn * 360} ${CENTRE} ${CENTRE})`}>
                     <line x1={CENTRE} y1={CENTRE + 16} x2={CENTRE} y2={CENTRE - 80} stroke="#c8413a" strokeWidth="2" strokeLinecap="round" />

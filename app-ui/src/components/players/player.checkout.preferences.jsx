@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 
 import PlayerService from '../../services/player.service';
+import { t } from '../../utils/i18n';
 
 const DOUBLES = [20, 16, 18, 8, 12, 10, 14, 4, 6, 2, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1].map(n => `D${n}`).concat('D25');
 const TREBLES = ['T20', 'T19', 'T18'];
@@ -42,21 +43,21 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onError }) => {
     // what the games say, when they are enough to tell
     const learnedDouble = learned?.learnedDouble ?? null;
     const learnedTreble = learned?.learnedTreble ?? null;
-    const automatic = (value, what) => `Automatic${value ? ` (${nameOf(value)} from the games)` : ` (not enough ${what} yet)`}`;
+    const automatic = (value, what) => value ? t('Automatic ({{value}} from the games)', { value: nameOf(value) }) : t('Automatic (not enough {{what}} yet)', { what });
 
     return (
         <div className="player-checkout-preferences">
             <label className="d-flex flex-column gap-1">
-                <span className="text-subtle fs-8">Favourite double</span>
+                <span className="text-subtle fs-8">{t('Favourite double')}</span>
                 <Dropdown
                     value={preferences.favouriteDouble}
-                    options={[{ label: automatic(learnedDouble, 'darts at doubles'), value: 'auto' }, ...DOUBLES.map(double => ({ label: nameOf(double), value: double }))]}
+                    options={[{ label: automatic(learnedDouble, t('darts at doubles')), value: 'auto' }, ...DOUBLES.map(double => ({ label: nameOf(double), value: double }))]}
                     onChange={(e) => save({ favouriteDouble: e.value })}
                     className="w-100"
                 />
             </label>
             <label className="d-flex flex-column gap-1">
-                <span className="text-subtle fs-8">Main treble</span>
+                <span className="text-subtle fs-8">{t('Main treble')}</span>
                 <Dropdown
                     value={preferences.mainTreble}
                     options={[{ label: automatic(learnedTreble, 'games'), value: 'auto' }, ...TREBLES.map(treble => ({ label: treble, value: treble }))]}
@@ -65,7 +66,7 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onError }) => {
                 />
             </label>
             <span className="text-faint fs-8 player-checkout-preferences-hint">
-                In X01 the ways out finish on the favourite double first and the scoring tips stay on the main treble.
+                {t('In X01 the ways out finish on the favourite double first and the scoring tips stay on the main treble.')}
             </span>
         </div>
     );

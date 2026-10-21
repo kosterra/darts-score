@@ -3,6 +3,7 @@ import { Panel } from 'primereact/panel';
 import { Avatar } from 'primereact/avatar';
 
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { t } from '../../../utils/i18n';
 
 /**
  * Who beats whom: each cell is how often the row's player beat the column's
@@ -27,9 +28,9 @@ const HeadToHeadWidget = ({ widget, headToHead, players }) => {
 
     return (
         <Panel header={widget.title} className="h-100">
-            <p className="text-faint fs-8 mt-0 mb-3">Wins of the player on the left against the player above.</p>
+            <p className="text-faint fs-8 mt-0 mb-3">{t('Wins of the player on the left against the player above.')}</p>
             {ids.length < 2
-                ? <p className="text-subtle m-0">Head-to-heads appear once players have played each other.</p>
+                ? <p className="text-subtle m-0">{t('Head-to-heads appear once players have played each other.')}</p>
                 : (
                     <div className="overflow-auto">
                         <table className="h2h-matrix">

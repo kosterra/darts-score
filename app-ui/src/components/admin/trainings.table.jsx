@@ -23,19 +23,20 @@ import { formatDateTime } from './admin.format';
 import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { BOT_ID } from '../../utils/x01.bot';
+import { t } from '../../utils/i18n';
 
 const TYPE_OPTIONS = [
-    { label: 'All', value: 'all' },
-    { label: 'Around the Clock', value: 'atc' },
-    { label: 'X01 against the bot', value: 'x01' },
+    { label: t('All'), value: 'all' },
+    { label: t('Around the Clock'), value: 'atc' },
+    { label: t('X01 against the bot'), value: 'x01' },
 ];
 const WHOSE_OPTIONS = [
-    { label: 'Everyone', value: 'all' },
-    { label: 'Mine', value: 'mine' },
+    { label: t('Everyone'), value: 'all' },
+    { label: t('Mine'), value: 'mine' },
 ];
 // "All" is itself a training mode (every segment), so the filter for every mode is called "Any"
 const MODE_OPTIONS = [
-    { label: 'Any', value: 'any' },
+    { label: t('Any'), value: 'any' },
     ...['Single', 'Double', 'Triple', 'All'].map(mode => ({ label: mode, value: mode })),
 ];
 
@@ -100,7 +101,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
             setPlayers(loadedPlayers);
         } catch (error) {
             setRows([]);
-            toast.current.show({ severity: 'error', summary: 'Load trainings', detail: error.message, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Load trainings'), detail: error.message, life: 4000 });
         }
     };
 
@@ -145,27 +146,27 @@ const TrainingsTable = ({ scope = 'club' }) => {
             const deleted = row.kind === 'x01'
                 ? await X01TrainingService.deleteTraining(row.id, clubId)
                 : await ATCService.deleteATCEntry(row.id, clubId);
-            if (!deleted) throw new Error('The training could not be deleted. Please try again.');
-            toast.current.show({ severity: 'success', summary: 'Training deleted', life: 3000 });
+            if (!deleted) throw new Error(t('The training could not be deleted. Please try again.'));
+            toast.current.show({ severity: 'success', summary: t('Training deleted'), life: 3000 });
             await loadRows();
         } catch (error) {
-            toast.current.show({ severity: 'error', summary: 'Delete training', detail: error.message, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Delete training'), detail: error.message, life: 4000 });
         }
     };
 
-    const typeBody = (row) => <span className="text-default fs-7 text-nowrap">{row.kind === 'x01' ? 'X01 against the bot' : 'Around the Clock'}</span>;
+    const typeBody = (row) => <span className="text-default fs-7 text-nowrap">{row.kind === 'x01' ? t('X01 against the bot') : t('Around the Clock')}</span>;
     const whatBody = (row) => <span className="text-subtle fs-7 text-nowrap">{row.what}</span>;
     const resultBody = (row) => row.kind === 'atc'
         ? (
             <span className="text-default fw-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {formatScore(row)}
-                {bestIds.has(row.id) && <FaTrophy className="ms-2 text-gold" title="Personal best in this mode" aria-label="Personal best" />}
+                {bestIds.has(row.id) && <FaTrophy className="ms-2 text-gold" title={t('Personal best in this mode')} aria-label={t('Personal best')} />}
             </span>
         )
         : (
             <span className="d-flex flex-column">
-                <span className="text-default fw-semibold text-nowrap">{row.finished ? `${row.won ? 'Won' : 'Lost'} ${row.legs}` : `Running ${row.legs}`}</span>
-                {row.averages[0] != null && <span className="text-faint fs-8 text-nowrap">{row.averages[0].toFixed(1)} against the bot&apos;s {row.averages[1]?.toFixed(1) ?? '–'}</span>}
+                <span className="text-default fw-semibold text-nowrap">{row.finished ? `${row.won ? 'Won' : 'Lost'} ${row.legs}` : t('Running {{legs}}', { legs: row.legs })}</span>
+                {row.averages[0] != null && <span className="text-faint fs-8 text-nowrap">{row.averages[0].toFixed(1)}{' '}{t('against the bot\'s')}{' '}{row.averages[1]?.toFixed(1) ?? '–'}</span>}
             </span>
         );
 
@@ -180,32 +181,32 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const actionsBody = (row) => (
         <div className="row-actions">
             {row.kind === 'x01' && (!acrossClubs || !row.club) && row.finished &&
-                <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label="The statistics of this training" title="Statistics" onClick={() => navigate(`/stats/training/x01/${row.id}`)} />}
-            {canManage && <JSONViewer data={row.raw} header="Training _RAW Data" />}
-            {mayDelete(row) && <DeletePopup data={row} header="Delete Training" message="this training and the badges earned in it" handleDelete={onDelete} />}
+                <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('The statistics of this training')} title={t('Statistics')} onClick={() => navigate(`/stats/training/x01/${row.id}`)} />}
+            {canManage && <JSONViewer data={row.raw} header={t('Training _RAW Data')} />}
+            {mayDelete(row) && <DeletePopup data={row} header={t('Delete Training')} message={t('this training and the badges earned in it')} handleDelete={onDelete} />}
         </div>
     );
 
     return (
-        <Panel header={acrossClubs ? 'Trainings of all clubs' : 'Trainings'}>
+        <Panel header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
-                {hasOwn && <SelectButton value={whose} options={WHOSE_OPTIONS} onChange={(e) => e.value && setWhose(e.value)} aria-label="Whose trainings" />}
-                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label="Training" />
-                {type !== 'x01' && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label="Mode of Around the Clock" />}
+                {hasOwn && <SelectButton value={whose} options={WHOSE_OPTIONS} onChange={(e) => e.value && setWhose(e.value)} aria-label={t('Whose trainings')} />}
+                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label={t('Training')} />
+                {type !== 'x01' && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label={t('Mode of Around the Clock')} />}
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
                     optionLabel="nickname"
                     optionValue="id"
                     onChange={(e) => setPlayerId(e.value)}
-                    placeholder="All players"
+                    placeholder={t('All players')}
                     filter
                     showClear
-                    aria-label="Player"
+                    aria-label={t('Player')}
                     style={{ minWidth: '12rem' }}
                 />
-                {!needsClubs && <span className="ms-auto text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? 'training' : 'trainings'}</span>}
+                {!needsClubs && <span className="ms-auto text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>}
             </AdminToolbar>
 
             {needsClubs
@@ -217,15 +218,15 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         className="admin-table"
                         loading={rows === null}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
-                        emptyMessage="No trainings match these filters."
+                        emptyMessage={t('No trainings match these filters.')}
                         responsiveLayout="scroll"
                     >
-                        <Column field="createdAt" header="Date" sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />
-                        {acrossClubs && <Column field="club.name" header="Club" sortable body={(row) => <ClubCell club={row.club} />} />}
-                        <Column header="Player" body={(row) => <PlayerCell player={playerOf(row)} />} style={{ minWidth: '14rem' }} />
-                        <Column header="Training" body={typeBody} />
-                        <Column header="Played" body={whatBody} />
-                        <Column header="Result" body={resultBody} />
+                        <Column field="createdAt" header={t('Date')} sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />
+                        {acrossClubs && <Column field="club.name" header={t('Club')} sortable body={(row) => <ClubCell club={row.club} />} />}
+                        <Column header={t('Player')} body={(row) => <PlayerCell player={playerOf(row)} />} style={{ minWidth: '14rem' }} />
+                        <Column header={t('Training')} body={typeBody} />
+                        <Column header={t('Played')} body={whatBody} />
+                        <Column header={t('Result')} body={resultBody} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )

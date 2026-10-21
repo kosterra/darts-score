@@ -4,6 +4,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 
 import { clubFormPerMonth } from '../../../utils/club.charts';
 import { AXIS, GRID, TOOLTIP } from '../../stats/charts/chart.theme';
+import { t } from '../../../utils/i18n';
 
 /**
  * The club's X01 average per month over the last year.
@@ -13,7 +14,7 @@ const ClubFormWidget = ({ widget, gameLog }) => {
     const hasData = data.some(entry => entry.average != null);
     return (
         <Panel header={widget.title} className="h-100">
-            <p className="text-faint fs-8 mt-0 mb-2">The club&apos;s X01 three-dart average per month; months without X01 games stay empty.</p>
+            <p className="text-faint fs-8 mt-0 mb-2">{t('The club\'s X01 three-dart average per month; months without X01 games stay empty.')}</p>
             {hasData
                 ? (
                     <div style={{ height: 240 }}>
@@ -34,7 +35,7 @@ const ClubFormWidget = ({ widget, gameLog }) => {
                         </ResponsiveContainer>
                     </div>
                 )
-                : <p className="text-subtle m-0">No finished X01 games in the last year.</p>
+                : <p className="text-subtle m-0">{t('No finished X01 games in the last year.')}</p>
             }
         </Panel>
     );

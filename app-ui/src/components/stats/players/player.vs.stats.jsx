@@ -10,6 +10,7 @@ import DoublesChart from '../charts/doubles.chart';
 import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart, LegsPerGameChart } from '../charts/simple.bar.charts';
 import { sectionHitsOf } from '../charts/chart.theme';
 import HeadToHeadLayout from './head.to.head.layout';
+import { t } from '../../../utils/i18n';
 
 /**
  * Compares two or more players of the selected club in X01. "request" holds
@@ -46,7 +47,7 @@ const PlayerVSStats = ({ players = [], request }) => {
             {hasGames
                 ? (
                     <>
-                        <Panel header="X01 head to head">
+                        <Panel header={t('X01 head to head')}>
                             <HeadToHeadLayout gamesTogether={games.length} games={games} players={players}>
                                 <PlayersX01StatsComparisonBars playersX01Stats={playerStats} players={players} />
                             </HeadToHeadLayout>
@@ -62,7 +63,7 @@ const PlayerVSStats = ({ players = [], request }) => {
                         </div>
                     </>
                 )
-                : <p className="text-subtle m-0">These players have no finished X01 games together with these filters. Try a longer period or fewer filters, or include games with other players.</p>
+                : <p className="text-subtle m-0">{t('These players have no finished X01 games together with these filters. Try a longer period or fewer filters, or include games with other players.')}</p>
             }
         </div>
     );

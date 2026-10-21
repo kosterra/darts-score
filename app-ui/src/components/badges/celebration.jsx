@@ -7,6 +7,7 @@ import { FaTrophy } from "react-icons/fa6";
 import BadgeMedal from './badge.medal';
 import Confetti from './confetti';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 /**
  * Full-screen celebration for a win or a new record: confetti, the player,
@@ -44,7 +45,7 @@ const Celebration = ({ title, subtitle, player, badgeGroups = [], onClose }) => 
 
                 {badgeGroups.length > 0 &&
                     <div className="d-flex flex-column gap-3 w-100">
-                        <span className="fs-7 fw-semibold text-subtle text-uppercase" style={{ letterSpacing: '0.05em' }}>New badges</span>
+                        <span className="fs-7 fw-semibold text-subtle text-uppercase" style={{ letterSpacing: '0.05em' }}>{t('New badges')}</span>
                         {badgeGroups.map(group => (
                             <div key={group.player.id} className="d-flex flex-column align-items-center gap-2">
                                 {badgeGroups.length > 1 && <span className="text-default fw-semibold">{group.player.nickname}</span>}
@@ -60,7 +61,7 @@ const Celebration = ({ title, subtitle, player, badgeGroups = [], onClose }) => 
                         ))}
                     </div>
                 }
-                <Button label="Continue" icon="pi pi-check" onClick={onClose} autoFocus />
+                <Button label={t('Continue')} icon="pi pi-check" onClick={onClose} autoFocus />
             </div>
         </div>,
         document.body

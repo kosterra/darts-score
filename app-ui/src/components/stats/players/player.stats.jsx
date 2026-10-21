@@ -22,6 +22,7 @@ import PlayerLevel from '../../players/player.level';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { useUrlFilters } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { t } from '../../../utils/i18n';
 
 const LATEST_BADGES = 5;
 
@@ -149,17 +150,17 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
         .slice(0, LATEST_BADGES);
 
     const facts = [
-        ['Member since', dayjs(player.createdAt).format('DD.MM.YYYY')],
-        ['Games played', formatNumber(games)],
+        [t('Member since'), dayjs(player.createdAt).format('DD.MM.YYYY')],
+        [t('Games played'), formatNumber(games)],
         ['Wins', games ? `${formatNumber(wins)} (${percent(wins, games)})` : '–'],
-        ['Weekly streak', (
+        [t('Weekly streak'), (
             <span key="streak" className="d-inline-flex align-items-center gap-2">
                 <StreakFlames weeks={streak.current} />
-                {streak.current > 0 ? weeks(streak.current) : 'None right now'}
+                {streak.current > 0 ? weeks(streak.current) : t('None right now')}
             </span>
         )],
-        ['Best streak', weeks(streak.best)],
-        ['Badges', badges ? <a href="#badges" onClick={scrollToBadges}>{badges.earnedCount} of {badges.total}</a> : '–'],
+        [t('Best streak'), weeks(streak.best)],
+        ['Badges', badges ? <a href="#badges" onClick={scrollToBadges}>{badges.earnedCount}{' '}{t('of')}{' '}{badges.total}</a> : '–'],
     ];
 
     const x01 = kpis.x01 ?? {};
@@ -180,7 +181,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                 <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 20rem' }}>
                     <div>
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">
-                            {player.nickname}{isOwn && <span className="text-faint fs-5 fw-normal"> (you)</span>}
+                            {player.nickname}{isOwn && <span className="text-faint fs-5 fw-normal">{' '}{t('(you)')}</span>}
                         </h1>
                         <span className="text-subtle">{player.firstname} {player.lastname}</span>
                     </div>
@@ -196,15 +197,15 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                 </div>
                 {/* the darts they throw with */}
                 <div className="player-hero-dart d-flex flex-column gap-2">
-                    <span className="text-faint fs-8">{isOwn ? 'Your darts' : 'Their darts'}</span>
+                    <span className="text-faint fs-8">{isOwn ? t('Your darts') : t('Their darts')}</span>
                     <DartSet {...flightOf(player)} />
                 </div>
                 {(latestBadges.length > 0 || shame.length > 0) &&
                     <div className="d-flex flex-column gap-3">
                         {latestBadges.length > 0 &&
                             <div className="d-flex flex-column gap-2">
-                                <span className="text-faint fs-8">Latest badges</span>
-                                <a href="#badges" onClick={scrollToBadges} className="d-flex gap-2" aria-label={`All badges of ${player.nickname}`}>
+                                <span className="text-faint fs-8">{t('Latest badges')}</span>
+                                <a href="#badges" onClick={scrollToBadges} className="d-flex gap-2" aria-label={t('All badges of {{nickname}}', { nickname: player.nickname })}>
                                     {latestBadges.map(badge => <BadgeMedal key={badge.id} badge={badge} size="sm" />)}
                                 </a>
                             </div>
@@ -212,11 +213,11 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         {/* the badges nobody wants, held right now; only where the club has a Hall of Shame for this player */}
                         {shame.length > 0 &&
                             <div className="d-flex flex-column gap-2">
-                                <span className="text-faint fs-8">Hall of Shame</span>
-                                <a href="#hall-of-shame" onClick={scrollToShame} className="d-flex align-items-center gap-2" aria-label={`Hall of Shame of ${player.nickname}`}>
+                                <span className="text-faint fs-8">{t('Hall of Shame')}</span>
+                                <a href="#hall-of-shame" onClick={scrollToShame} className="d-flex align-items-center gap-2" aria-label={t('Hall of Shame of {{nickname}}', { nickname: player.nickname })}>
                                     {heldShame.length > 0
                                         ? heldShame.map(badge => <ShameMedal key={badge.id} badge={badge} size="sm" />)
-                                        : <span className="fs-7 fw-semibold">Clean slate</span>}
+                                        : <span className="fs-7 fw-semibold">{t('Clean slate')}</span>}
                                 </a>
                             </div>
                         }
@@ -231,8 +232,8 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                             withType={false}
                             withOthers={false}
                             withScope
-                            scopeHint={playsInSeveralClubs ? null : `${player.nickname} plays only in this club, so both show the same games.`}
-                            lastGamesLabel="Last games"
+                            scopeHint={playsInSeveralClubs ? null : t('{{nickname}} plays only in this club, so both show the same games.', { nickname: player.nickname })}
+                            lastGamesLabel={t('Last games')}
                         />
                     </FilterPanel>
                 </div>
@@ -243,8 +244,8 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                     <div className="d-flex flex-column gap-4">
                         <p className="text-subtle m-0">
                             {isFiltered(filters)
-                                ? <>No finished games match these filters. <Button label="Show all games" link className="p-0 align-baseline" onClick={() => setFilters(DEFAULT_FILTERS)} /></>
-                                : `${player.nickname} has not finished a game yet. Statistics appear here after the first game.`}
+                                ? <>{t('No finished games match these filters.')}{' '}<Button label={t('Show all games')} link className="p-0 align-baseline" onClick={() => setFilters(DEFAULT_FILTERS)} /></>
+                                : t('{{nickname}} has not finished a game yet. Statistics appear here after the first game.', { nickname: player.nickname })}
                         </p>
                         {afterFigures}
                     </div>
@@ -252,10 +253,10 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                 : (
                     <div className={`d-flex flex-column gap-4 ${refreshing ? 'is-refreshing' : ''}`}>
                         {form?.figures?.recent?.games > 0 &&
-                            <Panel header="Current form">
+                            <Panel header={t('Current form')}>
                                 <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                                     <span className="text-subtle fs-7">
-                                        The last {form.figures.recent.games} X01 games in this club{form.figures.previous ? `, against the ${form.figures.previous.games} before` : ''}.
+                                        {t('The last')}{' '}{form.figures.recent.games}{' '}{t('X01 games in this club')}{form.figures.previous ? t(', against the {{games}} before', { games: form.figures.previous.games }) : ''}.
                                     </span>
                                     <FormBadge form={form} color={COLORS.x01} />
                                 </div>
@@ -263,31 +264,31 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                             </Panel>
                         }
                         {playedGames.x01 > 0 &&
-                            <Panel header="X01">
+                            <Panel header={t('X01')}>
                                 <div className="kpi-headline mb-4">
-                                    <KpiRing label="Win rate" part={wonGames.x01} whole={playedGames.x01} color={COLORS.x01} detail={`${formatNumber(wonGames.x01)} of ${formatNumber(playedGames.x01)} games`} />
+                                    <KpiRing label={t('Win rate')} part={wonGames.x01} whole={playedGames.x01} color={COLORS.x01} detail={t('{{formatNumber}} of {{formatNumber2}} games', { formatNumber: formatNumber(wonGames.x01), formatNumber2: formatNumber(playedGames.x01) })} />
                                     <KpiHero
-                                        label="3-dart average"
+                                        label={t('3-dart average')}
                                         value={avg.overallX01}
                                         color={COLORS.x01}
                                         detail={averageLevelOf(avg.overallX01) && avg.overallX01 > 0 && (
                                             <span style={{ color: averageLevelOf(avg.overallX01).color, fontWeight: 700 }}>{averageLevelOf(avg.overallX01).name}</span>
                                         )}
                                     />
-                                    <KpiHero label="First 9 average" value={x01.firstNineAverage} color={COLORS.x01} />
-                                    <KpiRing label="Checkout rate" part={checkouts.hit} whole={checkouts.total} color={COLORS.x01} detail={`${formatNumber(checkouts.hit)} of ${formatNumber(checkouts.total)} attempts`} />
+                                    <KpiHero label={t('First 9 average')} value={x01.firstNineAverage} color={COLORS.x01} />
+                                    <KpiRing label={t('Checkout rate')} part={checkouts.hit} whole={checkouts.total} color={COLORS.x01} detail={t('{{formatNumber}} of {{formatNumber2}} attempts', { formatNumber: formatNumber(checkouts.hit), formatNumber2: formatNumber(checkouts.total) })} />
                                 </div>
                                 {/* the game in figures, then how often each score range was thrown */}
                                 <div className="kpi-chips">
-                                    <KpiChip icon={FaFlagCheckered} label="Legs won" value={formatNumber(x01.legsWon)} color={COLORS.x01} />
-                                    <KpiChip icon={FaCrosshairs} label="Highest checkout" value={checkouts.highest || null} color={COLORS.x01} />
-                                    <KpiChip icon={FaStopwatch} label="Best 501 leg" value={x01.bestLeg ? `${x01.bestLeg} darts` : null} color={COLORS.x01} />
-                                    <KpiChip icon={GiDart} label="Darts per leg" value={avg.dartsPerLegX01 || null} color={COLORS.x01} />
-                                    <KpiChip icon={FaBullseye} label="Darts thrown" value={formatNumber(throwedDarts.x01)} color={COLORS.x01} />
-                                    <KpiChip icon={FaTrophy} label="Points scored" value={formatNumber(throwedPoints.x01)} color={COLORS.x01} />
+                                    <KpiChip icon={FaFlagCheckered} label={t('Legs won')} value={formatNumber(x01.legsWon)} color={COLORS.x01} />
+                                    <KpiChip icon={FaCrosshairs} label={t('Highest checkout')} value={checkouts.highest || null} color={COLORS.x01} />
+                                    <KpiChip icon={FaStopwatch} label={t('Best 501 leg')} value={x01.bestLeg ? t('{{bestLeg}} darts', { bestLeg: x01.bestLeg }) : null} color={COLORS.x01} />
+                                    <KpiChip icon={GiDart} label={t('Darts per leg')} value={avg.dartsPerLegX01 || null} color={COLORS.x01} />
+                                    <KpiChip icon={FaBullseye} label={t('Darts thrown')} value={formatNumber(throwedDarts.x01)} color={COLORS.x01} />
+                                    <KpiChip icon={FaTrophy} label={t('Points scored')} value={formatNumber(throwedPoints.x01)} color={COLORS.x01} />
                                 </div>
                                 <div className="kpi-chips mt-3">
-                                    <KpiChip icon={FaFire} label="180s" value={formatNumber(stats.num180s)} color={COLORS.x01} />
+                                    <KpiChip icon={FaFire} label={t('180s')} value={formatNumber(stats.num180s)} color={COLORS.x01} />
                                     <KpiChip icon={FaBolt} label="160+" value={formatNumber(stats.num160plus)} color={COLORS.x01} />
                                     <KpiChip icon={FaBolt} label="140+" value={formatNumber(stats.num140plus)} color={COLORS.x01} />
                                     <KpiChip icon={FaHashtag} label="120+" value={formatNumber(stats.num120plus)} color={COLORS.x01} />
@@ -297,60 +298,60 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         }
                         <div className="row g-4">
                             <div className="col-12 col-xl-6">
-                                <Panel header="Cricket" className="h-100">
+                                <Panel header={t('Cricket')} className="h-100">
                                     {playedGames.cricket > 0
                                         ? (
                                             <>
                                                 <div className="kpi-headline mb-4">
-                                                    <KpiRing label="Win rate" part={wonGames.cricket} whole={playedGames.cricket} color={COLORS.cricket} detail={`${formatNumber(wonGames.cricket)} of ${formatNumber(playedGames.cricket)} games`} />
-                                                    <KpiHero label="Marks per round" value={twoDigits(cricket.marksPerRound)} color={COLORS.cricket} />
+                                                    <KpiRing label={t('Win rate')} part={wonGames.cricket} whole={playedGames.cricket} color={COLORS.cricket} detail={t('{{formatNumber}} of {{formatNumber2}} games', { formatNumber: formatNumber(wonGames.cricket), formatNumber2: formatNumber(playedGames.cricket) })} />
+                                                    <KpiHero label={t('Marks per round')} value={twoDigits(cricket.marksPerRound)} color={COLORS.cricket} />
                                                 </div>
                                                 <div className="kpi-chips">
-                                                    <KpiChip icon={FaFire} label="Best game" value={twoDigits(cricket.bestMarksPerRound)} color={COLORS.cricket} />
-                                                    <KpiChip icon={FaTrophy} label="Points per game" value={cricket.averagePoints} color={COLORS.cricket} />
+                                                    <KpiChip icon={FaFire} label={t('Best game')} value={twoDigits(cricket.bestMarksPerRound)} color={COLORS.cricket} />
+                                                    <KpiChip icon={FaTrophy} label={t('Points per game')} value={cricket.averagePoints} color={COLORS.cricket} />
                                                 </div>
                                             </>
                                         )
-                                        : <p className="text-subtle m-0">No finished Cricket games yet.</p>
+                                        : <p className="text-subtle m-0">{t('No finished Cricket games yet.')}</p>
                                     }
                                 </Panel>
                             </div>
                             <div className="col-12 col-xl-6">
-                                <Panel header="Elimination" className="h-100">
+                                <Panel header={t('Elimination')} className="h-100">
                                     {elimination.games > 0
                                         ? (
                                             <>
                                                 <div className="kpi-headline mb-4">
-                                                    <KpiRing label="Win rate" part={elimination.wins} whole={elimination.games} color={COLORS.elimination} detail={`${formatNumber(elimination.wins)} of ${formatNumber(elimination.games)} games`} />
-                                                    <KpiHero label="Average per visit" value={elimination.averageVisit} color={COLORS.elimination} />
+                                                    <KpiRing label={t('Win rate')} part={elimination.wins} whole={elimination.games} color={COLORS.elimination} detail={t('{{formatNumber}} of {{formatNumber2}} games', { formatNumber: formatNumber(elimination.wins), formatNumber2: formatNumber(elimination.games) })} />
+                                                    <KpiHero label={t('Average per visit')} value={elimination.averageVisit} color={COLORS.elimination} />
                                                 </div>
                                                 <div className="kpi-chips">
-                                                    <KpiChip icon={FaFire} label="Best visit" value={elimination.bestVisit} color={COLORS.elimination} />
-                                                    <KpiChip icon={FaBullseye} label="Darts thrown" value={formatNumber(elimination.dartsThrown)} color={COLORS.elimination} />
+                                                    <KpiChip icon={FaFire} label={t('Best visit')} value={elimination.bestVisit} color={COLORS.elimination} />
+                                                    <KpiChip icon={FaBullseye} label={t('Darts thrown')} value={formatNumber(elimination.dartsThrown)} color={COLORS.elimination} />
                                                 </div>
                                             </>
                                         )
-                                        : <p className="text-subtle m-0">No finished Elimination games yet.</p>
+                                        : <p className="text-subtle m-0">{t('No finished Elimination games yet.')}</p>
                                     }
                                 </Panel>
                             </div>
                             <div className="col-12 col-xl-6">
-                                <Panel header="Around the Clock" className="h-100">
+                                <Panel header={t('Around the Clock')} className="h-100">
                                     {clock.games > 0
                                         ? (
                                             <>
                                                 <div className="kpi-headline mb-4">
-                                                    <KpiRing label="Win rate" part={clock.wins} whole={clock.games} color={COLORS.clock} detail={`${formatNumber(clock.wins)} of ${formatNumber(clock.games)} games`} />
-                                                    <KpiHero label="Hit rate" value={clock.hitRate == null ? null : `${clock.hitRate} %`} color={COLORS.clock} />
+                                                    <KpiRing label={t('Win rate')} part={clock.wins} whole={clock.games} color={COLORS.clock} detail={t('{{formatNumber}} of {{formatNumber2}} games', { formatNumber: formatNumber(clock.wins), formatNumber2: formatNumber(clock.games) })} />
+                                                    <KpiHero label={t('Hit rate')} value={clock.hitRate == null ? null : `${clock.hitRate} %`} color={COLORS.clock} />
                                                 </div>
                                                 <div className="kpi-chips">
-                                                    <KpiChip icon={FaStopwatch} label="Fewest darts" value={clock.fewestDarts ? `${clock.fewestDarts} darts` : null} color={COLORS.clock} />
-                                                    <KpiChip icon={GiDart} label="Darts per game" value={clock.averageDarts} color={COLORS.clock} />
-                                                    <KpiChip icon={FaBullseye} label="Darts thrown" value={formatNumber(clock.dartsThrown)} color={COLORS.clock} />
+                                                    <KpiChip icon={FaStopwatch} label={t('Fewest darts')} value={clock.fewestDarts ? t('{{fewestDarts}} darts', { fewestDarts: clock.fewestDarts }) : null} color={COLORS.clock} />
+                                                    <KpiChip icon={GiDart} label={t('Darts per game')} value={clock.averageDarts} color={COLORS.clock} />
+                                                    <KpiChip icon={FaBullseye} label={t('Darts thrown')} value={formatNumber(clock.dartsThrown)} color={COLORS.clock} />
                                                 </div>
                                             </>
                                         )
-                                        : <p className="text-subtle m-0">No finished Around the Clock games yet.</p>
+                                        : <p className="text-subtle m-0">{t('No finished Around the Clock games yet.')}</p>
                                     }
                                 </Panel>
                             </div>

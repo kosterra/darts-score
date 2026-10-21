@@ -1,6 +1,7 @@
 import { SelectButton } from 'primereact/selectbutton';
 
 import ScoreConfigOptions from '../config_options/score.config.options';
+import { t } from '../../../utils/i18n';
 
 const EliminationScoreConfig = (props) => {
     const {
@@ -11,7 +12,7 @@ const EliminationScoreConfig = (props) => {
     return (
         // no container of its own: the boxes line up with the other boxes of the setup
         <div>
-            <p className="setting-title">Target Score</p>
+            <p className="setting-title">{t('Target Score')}</p>
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col">
                     <SelectButton

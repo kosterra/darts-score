@@ -5,6 +5,7 @@ import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { formatTrainingTime } from '../../../utils/training.time';
+import { t } from '../../../utils/i18n';
 
 const MODES = ['Single', 'Double', 'Triple', 'All'];
 
@@ -17,7 +18,7 @@ const MODES = ['Single', 'Double', 'Triple', 'All'];
 const TrainingProgressChart = ({
     progress = {},
     title = 'Around the Clock',
-    description = 'Best time per mode, and how it improved with every training. Lower is better.',
+    description = t('Best time per mode, and how it improved with every training. Lower is better.'),
     format = (value) => formatTrainingTime(value, 1),
 }) => {
     const series = useHiddenSeries();
@@ -34,7 +35,7 @@ const TrainingProgressChart = ({
     return (
         <ChartCard title={title} description={description}>
             {rows.length === 0
-                ? <p className="text-faint fs-7">No trainings yet.</p>
+                ? <p className="text-faint fs-7">{t('No trainings yet.')}</p>
                 : (
                     <ResponsiveContainer width="100%" height={260}>
                         <LineChart data={rows} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>

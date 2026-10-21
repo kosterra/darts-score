@@ -7,6 +7,7 @@ import { FaSoap } from 'react-icons/fa6';
 
 import ShameMedal from './shame.medal';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 // tar running down from the top edge: where each drip hangs, how wide and long
 const DRIPS = [
@@ -42,10 +43,10 @@ const TarredAndFeathered = ({ groups, onClose }) => {
     }, [onClose]);
 
     const names = groups.map(group => group.player.nickname);
-    const who = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+    const who = names.length > 1 ? t('{{join}} and {{at}}', { join: names.slice(0, -1).join(', '), at: names.at(-1) }) : names[0];
 
     return createPortal(
-        <div className="tarred" role="dialog" aria-modal="true" aria-label="Tarred and feathered" onClick={onClose}>
+        <div className="tarred" role="dialog" aria-modal="true" aria-label={t('Tarred and feathered')} onClick={onClose}>
             <div className="tarred-tar" aria-hidden="true">
                 {DRIPS.map(([left, width, length], index) => (
                     <span key={index} className="tarred-drip" style={{ left: `${left}%`, width: `${width}rem`, '--length': `${length}rem`, animationDelay: `${(index % 5) * 0.12}s` }} />
@@ -61,8 +62,8 @@ const TarredAndFeathered = ({ groups, onClose }) => {
                 ))}
             </div>
             <div className="tarred-card" onClick={(event) => event.stopPropagation()}>
-                <h2 className="tarred-title m-0">Tarred and feathered!</h2>
-                <p className="text-subtle m-0">{who} landed in the Hall of Shame</p>
+                <h2 className="tarred-title m-0">{t('Tarred and feathered!')}</h2>
+                <p className="text-subtle m-0">{who}{' '}{t('landed in the Hall of Shame')}</p>
                 <div className="d-flex flex-wrap justify-content-center gap-4 w-100">
                     {groups.map(group => (
                         <div key={group.player.id} className="d-flex flex-column align-items-center gap-3" style={{ minWidth: '12rem', flex: '1 1 12rem' }}>
@@ -86,8 +87,8 @@ const TarredAndFeathered = ({ groups, onClose }) => {
                                     <li key={badge.id} className="tarred-badge">
                                         <ShameMedal badge={badge} size="sm" />
                                         <div className="d-flex flex-column text-start" style={{ minWidth: 0 }}>
-                                            <span className="text-default fw-semibold">{badge.title}{badge.count > 1 ? ` × ${badge.count}` : ''}</span>
-                                            <span className="tarred-wash"><FaSoap aria-hidden="true" /> {badge.wash ? `Wash it off: ${lowerFirst(badge.wash)}` : ''}</span>
+                                            <span className="text-default fw-semibold">{badge.title}{badge.count > 1 ? t(' × {{count}}', { count: badge.count }) : ''}</span>
+                                            <span className="tarred-wash"><FaSoap aria-hidden="true" /> {badge.wash ? t('Wash it off: {{lowerFirst}}', { lowerFirst: lowerFirst(badge.wash) }) : ''}</span>
                                         </div>
                                     </li>
                                 ))}
@@ -95,7 +96,7 @@ const TarredAndFeathered = ({ groups, onClose }) => {
                         </div>
                     ))}
                 </div>
-                <Button label="Oh no" severity="secondary" onClick={onClose} autoFocus />
+                <Button label={t('Oh no')} severity="secondary" onClick={onClose} autoFocus />
             </div>
         </div>,
         document.body

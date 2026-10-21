@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Panel } from 'primereact/panel';
 
 import { whenWePlay, TIME_SLOTS } from '../../../utils/club.charts';
+import { t } from '../../../utils/i18n';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -19,7 +20,7 @@ const WhenWePlayWidget = ({ widget, gameLog }) => {
     return (
         <Panel header={widget.title} className="h-100">
             <p className="text-faint fs-8 mt-0 mb-3">
-                {busiest ? `Busiest: ${DAYS[busiest.day]} ${TIME_SLOTS[busiest.slot].label.toLowerCase()}.` : 'No games yet.'}
+                {busiest ? t('Busiest: {{value}} {{toLowerCase}}.', { value: DAYS[busiest.day], toLowerCase: TIME_SLOTS[busiest.slot].label.toLowerCase() }) : t('No games yet.')}
             </p>
             <div className="when-grid">
                 <span />

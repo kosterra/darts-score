@@ -5,6 +5,7 @@ import { InputText } from 'primereact/inputtext';
 
 import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
 
 /**
  * The user's own part in a club: the player they play as there (its
@@ -30,9 +31,9 @@ const ClubMembership = ({ club, onSuccess, onError }) => {
             const added = await ClubService.addCurrentUserAsPlayer(club.id, nickname);
             setPlayer(added);
             await refreshClubs();
-            onSuccess('Player added', `You now play in ${club.name} as ${added.nickname}.`);
+            onSuccess(t('Player added'), t('You now play in {{name}} as {{nickname}}.', { name: club.name, nickname: added.nickname }));
         } catch (error) {
-            onError('Add as player', error);
+            onError(t('Add as player'), error);
         }
     };
 
@@ -47,18 +48,18 @@ const ClubMembership = ({ club, onSuccess, onError }) => {
         // only admins can add themselves; a player always has a player
         return (
             <form onSubmit={addAsPlayer} className="my-club-part">
-                <span className="text-subtle fs-7 flex-grow-1">You do not play in this club yet. Add yourself as a player to be picked for games like anyone else.</span>
+                <span className="text-subtle fs-7 flex-grow-1">{t('You do not play in this club yet. Add yourself as a player to be picked for games like anyone else.')}</span>
                 <span className="d-flex flex-wrap gap-2">
                     <InputText
                         value={nickname}
                         onChange={(event) => setNickname(event.target.value)}
-                        placeholder="Nickname"
-                        aria-label={`Nickname in ${club.name}`}
+                        placeholder={t('Nickname')}
+                        aria-label={t('Nickname in {{name}}', { name: club.name })}
                         minLength={3}
                         maxLength={25}
                         required
                     />
-                    <Button type="submit" label="Add me as player" icon="pi pi-user-plus" size="small" />
+                    <Button type="submit" label={t('Add me as player')} icon="pi pi-user-plus" size="small" />
                 </span>
             </form>
         );
@@ -67,10 +68,10 @@ const ClubMembership = ({ club, onSuccess, onError }) => {
     return (
         <div className="my-club-part">
             <span className="text-subtle fs-7">
-                You play as{' '}
-                <a href={`/players/${player.id}`} className="fw-semibold" onClick={showProfile} title="Your statistics and badges in this club">{player.nickname}</a>
+                {t('You play as')}{' '}
+                <a href={`/players/${player.id}`} className="fw-semibold" onClick={showProfile} title={t('Your statistics and badges in this club')}>{player.nickname}</a>
             </span>
-            <Button type="button" label="Player profile" icon="pi pi-user-edit" size="small" severity="secondary" className="ms-auto" onClick={() => navigate('/player-profile')} />
+            <Button type="button" label={t('Player profile')} icon="pi pi-user-edit" size="small" severity="secondary" className="ms-auto" onClick={() => navigate('/player-profile')} />
         </div>
     );
 };

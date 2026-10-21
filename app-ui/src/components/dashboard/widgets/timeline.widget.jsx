@@ -10,6 +10,7 @@ import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
 import GameTypeIcon from '../../elements/game.type.icon';
 import GameStatusTag from '../../elements/game.status.tag';
+import { t } from '../../../utils/i18n';
 
 const INITIAL_GAMES = 8;
 
@@ -40,7 +41,7 @@ const TimelineWidget = ({ widget, games, players }) => {
     return (
         <Panel header={widget.title} className="h-100 dashboard-widget">
             {games.length === 0
-                ? <p className="text-subtle fs-7 m-0 p-2">No games played yet.</p>
+                ? <p className="text-subtle fs-7 m-0 p-2">{t('No games played yet.')}</p>
                 : (
                     <div className="d-flex flex-column gap-3">
                         {days.map(day => (
@@ -62,8 +63,8 @@ const TimelineWidget = ({ widget, games, players }) => {
                                             {/* the icon buttons of the lists: green to continue, grey for the statistics */}
                                             <div className="row-actions">
                                                 {game.running
-                                                    ? <Button type="button" icon={<GiDart />} aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
-                                                    : <Button type="button" icon={<FaChartBar />} severity="secondary" aria-label="Statistics of this game" title="Show statistics" onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
+                                                    ? <Button type="button" icon={<GiDart />} aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                                    : <Button type="button" icon={<FaChartBar />} severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
                                                 }
                                             </div>
                                         </li>
@@ -74,7 +75,7 @@ const TimelineWidget = ({ widget, games, players }) => {
                         {games.length > INITIAL_GAMES &&
                             <div className="d-flex justify-content-center">
                                 <Button
-                                    label={showAll ? 'Show fewer' : `Show all ${games.length}`}
+                                    label={showAll ? t('Show fewer') : t('Show all {{length}}', { length: games.length })}
                                     size="small"
                                     text
                                     onClick={() => setShowAll(!showAll)}

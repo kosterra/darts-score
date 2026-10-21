@@ -1,13 +1,14 @@
 import dayjs from 'dayjs';
 import { formatTrainingTime } from './training.time';
+import { t } from './i18n';
 
 // The Around the Clock scoreboard: which times are listed, in which order, and
 // where a new time ended up.
 
 export const PERIODS = [
     { label: 'Today', value: 'today' },
-    { label: 'This month', value: 'month' },
-    { label: 'All time', value: 'all' },
+    { label: t('This month'), value: 'month' },
+    { label: t('All time'), value: 'all' },
 ];
 
 const inPeriod = (entry, period, now) => period === 'all'
@@ -19,7 +20,8 @@ const playerKey = (entry) => entry.player?.id ?? entry.player?.nickname ?? entry
 // against the clock the time, with the fewest darts the darts: lower is better in both
 export const scoreOf = (entry) => entry.scoring === 'Darts' ? entry.darts : entry.timeMs;
 
-const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+// "3 games" in the language of the app (the word in English, as the key of its texts)
+const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
 
 // e.g. "1:23.45" or "34 darts"
 export const formatScore = (entry) => entry.scoring === 'Darts' ? plural(entry.darts, 'dart') : formatTrainingTime(entry.timeMs);
@@ -29,8 +31,8 @@ const faster = (a, b) => scoreOf(a) - scoreOf(b) || new Date(a.createdAt) - new 
 
 // which times are listed: each player's best, every attempt, or the own attempts
 export const LISTS = [
-    { label: 'Best per player', value: 'best' },
-    { label: 'All attempts', value: 'all' },
+    { label: t('Best per player'), value: 'best' },
+    { label: t('All attempts'), value: 'all' },
     { label: 'Mine', value: 'mine' },
 ];
 
@@ -81,17 +83,17 @@ export const resultLine = (rows, saved) => {
     if (!row) {
         // listed by best times, and this was not the player's best
         const best = rows.find(({ entry }) => playerKey(entry) === playerKey(saved));
-        return best ? `Your best stays ${formatScore(best.entry)} · ${ordinal(best.rank)} of ${rows.length}` : null;
+        return best ? t('Your best stays {{formatScore}} · {{ordinal}} of {{length}}', { formatScore: formatScore(best.entry), ordinal: ordinal(best.rank), length: rows.length }) : null;
     }
-    const place = `${ordinal(row.rank)} of ${rows.length}`;
+    const place = t('{{ordinal}} of {{length}}', { ordinal: ordinal(row.rank), length: rows.length });
     const tied = rows.some(other => other !== row && scoreOf(other.entry) === scoreOf(saved));
     if (row.rank === 1) {
-        if (tied) return `${place} · level with the best`;
+        if (tied) return t('{{place}} · level with the best', { place: place });
         const next = rows.find(other => scoreOf(other.entry) > scoreOf(saved));
-        return next ? `${place} · ${gap(scoreOf(next.entry) - scoreOf(saved), darts)} ahead of ${ordinal(next.rank)}` : place;
+        return next ? t('{{place}} · {{gap}} ahead of {{ordinal}}', { place: place, gap: gap(scoreOf(next.entry) - scoreOf(saved), darts), ordinal: ordinal(next.rank) }) : place;
     }
-    if (tied) return `${place} · level with ${ordinal(row.rank)}`;
+    if (tied) return t('{{place}} · level with {{ordinal}}', { place: place, ordinal: ordinal(row.rank) });
     // the nearest better score
     const above = rows.filter(other => scoreOf(other.entry) < scoreOf(saved)).at(-1);
-    return `${place} · ${gap(scoreOf(saved) - scoreOf(above.entry), darts)} behind ${ordinal(above.rank)}`;
+    return t('{{place}} · {{gap}} behind {{ordinal}}', { place: place, gap: gap(scoreOf(saved) - scoreOf(above.entry), darts), ordinal: ordinal(above.rank) });
 };

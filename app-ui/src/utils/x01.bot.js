@@ -1,4 +1,5 @@
 import { checkoutRoutes, setupSuggestions, scoringTip } from './checkout.routes';
+import { t } from './i18n';
 
 /**
  * The training bot of X01: it plays like the player it trains with. Its
@@ -135,7 +136,7 @@ export const botPlayer = (bot = {}) => ({
 // how much easier or harder than the player the bot plays
 export const BOT_LEVELS = [
     { value: 'easier', label: 'Easier', factor: 0.85 },
-    { value: 'same', label: 'Like you', factor: 1 },
+    { value: 'same', label: t('Like you'), factor: 1 },
     { value: 'harder', label: 'Harder', factor: 1.15 },
 ];
 
@@ -152,13 +153,13 @@ export const botStrengthFrom = ({ form = null, stats = null, fallback = null, le
     let basis;
     if (form?.games >= 5 && form.recentAverage > 0) {
         average = form.recentAverage;
-        basis = 'last 5 X01 games';
+        basis = t('last 5 X01 games');
     } else if ((stats?.playedGames?.x01 ?? 0) > 0 && stats?.avg?.overallX01 > 0) {
         average = stats.avg.overallX01;
-        basis = 'all X01 games';
+        basis = t('all X01 games');
     } else {
         average = fallback?.average ?? 30;
-        basis = fallback?.text ?? 'no X01 games yet';
+        basis = fallback?.text ?? t('no X01 games yet');
     }
     const checkouts = stats?.checkouts ?? {};
     const checkoutRate = checkouts.total >= 10 ? checkouts.hit / checkouts.total : null;
@@ -184,7 +185,7 @@ export const LIKE_ME = 'me';
  */
 export const botStrength = ({ mode = LIKE_ME, level = 'same', ...figures } = {}) => {
     const preset = BOT_PRESETS.find(entry => entry.value === mode);
-    if (preset) return { average: preset.average, checkoutRate: preset.checkoutRate, basis: `the ${preset.label.toLowerCase()} bot` };
+    if (preset) return { average: preset.average, checkoutRate: preset.checkoutRate, basis: t('the {{toLowerCase}} bot', { toLowerCase: preset.label.toLowerCase() }) };
     return botStrengthFrom({ ...figures, level });
 };
 

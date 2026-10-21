@@ -1,6 +1,7 @@
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 /**
  * The setup of a running training in one line: who plays, the mode and how it
@@ -23,10 +24,10 @@ const ATCTrainingSummary = ({ players, mode, scoring, onSettings }) => (
         </span>}
         <span className="atc-summary-text">
             <span className="atc-summary-names">{players.map(player => player.nickname).join(', ')}</span>
-            <span className="atc-summary-detail">{mode} · {scoring === 'Darts' ? 'fewest darts' : 'against the clock'}</span>
+            <span className="atc-summary-detail">{mode} · {scoring === 'Darts' ? t('fewest darts') : t('against the clock')}</span>
         </span>
         {onSettings &&
-            <Button type="button" label="Settings" icon="pi pi-sliders-h" size="small" severity="secondary" className="ms-auto flex-shrink-0" onClick={onSettings} aria-label="Change the player, the training or the mode" />
+            <Button type="button" label={t('Settings')} icon="pi pi-sliders-h" size="small" severity="secondary" className="ms-auto flex-shrink-0" onClick={onSettings} aria-label={t('Change the player, the training or the mode')} />
         }
     </div>
 );

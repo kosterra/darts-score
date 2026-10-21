@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 
 import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
 
 /**
  * For the club admins, above the players: who asks to join the club, with
@@ -42,15 +43,15 @@ const JoinRequests = ({ onDecided }) => {
             await ClubService.decideJoinRequest(activeClub.id, request.id, accept);
             toast.current?.show({
                 severity: accept ? 'success' : 'info',
-                summary: accept ? `${request.nickname} joined the club` : 'Request declined',
-                detail: accept ? `${request.name} plays as ${request.nickname} and is told so.` : `${request.name} is told so.`,
+                summary: accept ? t('{{nickname}} joined the club', { nickname: request.nickname }) : t('Request declined'),
+                detail: accept ? t('{{name}} plays as {{nickname}} and is told so.', { name: request.name, nickname: request.nickname }) : t('{{name}} is told so.', { name: request.name }),
                 life: 3500,
             });
             await load();
             refreshClubs().catch(() => {});
             onDecided?.(accept);
         } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Join request', detail: error.message, life: 4000 });
+            toast.current?.show({ severity: 'error', summary: t('Join request'), detail: error.message, life: 4000 });
             await load();
         } finally {
             setBusy(null);
@@ -63,9 +64,9 @@ const JoinRequests = ({ onDecided }) => {
         <Toast ref={toast} position="bottom-right" />
         {requests.length > 0 &&
         <div ref={panel} className="mb-4">
-            <Panel header={`Requests to join (${requests.length})`}>
+            <Panel header={t('Requests to join ({{length}})', { length: requests.length })}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    They have an account and ask to play in {activeClub.name}. Accepted, they are a player of the club with their login; a player they have in another club comes along with the statistics.
+                    {t('They have an account and ask to play in')}{' '}{activeClub.name}{t('. Accepted, they are a player of the club with their login; a player they have in another club comes along with the statistics.')}
                 </p>
                 <ul className="my-clubs list-unstyled m-0">
                     {requests.map(request => (
@@ -74,14 +75,14 @@ const JoinRequests = ({ onDecided }) => {
                                 <div className="my-club-title">
                                     <div className="d-flex flex-wrap align-items-baseline gap-2">
                                         <span className="text-default fw-semibold">{request.name}</span>
-                                        <span className="text-subtle fs-7">as {request.nickname}</span>
+                                        <span className="text-subtle fs-7">{t('as')}{' '}{request.nickname}</span>
                                     </div>
-                                    <span className="text-faint fs-8">{request.email && `${request.email} · `}asked {dayjs(request.at).format('DD.MM.YYYY HH:mm')}</span>
+                                    <span className="text-faint fs-8">{request.email && `${request.email} · `}{t('asked')}{' '}{dayjs(request.at).format('DD.MM.YYYY HH:mm')}</span>
                                     {request.message && <span className="text-subtle fs-7 text-break">“{request.message}”</span>}
                                 </div>
                                 <div className="my-club-actions">
-                                    <Button label="Decline" size="small" severity="secondary" onClick={() => decide(request, false)} disabled={busy === request.id} />
-                                    <Button label="Accept" icon="pi pi-check" size="small" onClick={() => decide(request, true)} loading={busy === request.id} />
+                                    <Button label={t('Decline')} size="small" severity="secondary" onClick={() => decide(request, false)} disabled={busy === request.id} />
+                                    <Button label={t('Accept')} icon="pi pi-check" size="small" onClick={() => decide(request, true)} loading={busy === request.id} />
                                 </div>
                             </div>
                         </li>

@@ -1,7 +1,8 @@
-// how bad a finding is, worst first
+
+import { t } from '../../utils/i18n';// how bad a finding is, worst first
 export const LEVELS = { impossible: 3, error: 2, suspicious: 1 };
 
-export const LEVEL_LABELS = { impossible: 'Impossible', error: 'Data error', suspicious: 'Suspicious' };
+export const LEVEL_LABELS = { impossible: t('Impossible'), error: t('Data error'), suspicious: t('Suspicious') };
 
 /**
  * Which list an entry is on: marked as fine (a false alarm) on its own list

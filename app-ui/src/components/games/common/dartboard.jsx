@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Dart from './dart.shape';
+import { t } from '../../../utils/i18n';
 
 // the magnifier: its size on screen and how much it enlarges
 const LOUPE_SIZE = 128;
@@ -572,7 +573,7 @@ const DartBoard = (props) => {
                     <BoardShapes />
                 </svg>
                 <span className="dartboard-loupe-cross" />
-                <span className="dartboard-loupe-label">{loupe.field === null ? 'Off the board' : labelOf(loupe.field)}</span>
+                <span className="dartboard-loupe-label">{loupe.field === null ? t('Off the board') : labelOf(loupe.field)}</span>
             </div>,
             document.body
         )}

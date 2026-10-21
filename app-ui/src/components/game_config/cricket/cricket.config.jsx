@@ -13,6 +13,7 @@ import CricketModels from '../../../models/cricket.models';
 import CricketService from '../../../services/cricket.service';
 import { CRICKET_VARIANTS, DEFAULT_VARIANT } from '../../../utils/cricket.variants';
 import { clearSetup, loadSetup, saveSetup } from '../../../utils/setup.memory';
+import { t } from '../../../utils/i18n';
 
 const CricketConfig = () => {
     // the page starts set up like the last game
@@ -54,22 +55,22 @@ const CricketConfig = () => {
             });
             navigate('/cricket/' + newGame.id);
         } catch (error) {
-            toast.current.show({ severity: 'error', summary: 'Start Game', detail: 'Failed to create the game. ' + error.message, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Start Game'), detail: t('Failed to create the game. ') + error.message, life: 4000 });
             setStarting(false);
         }
     };
 
     return (
         <>
-            <Panel header="Cricket" className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('Cricket')} className="w-100 w-md-75 w-xxl-50 mx-auto">
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
-                    <p className="game-setup-section-title">Players</p>
+                    <p className="game-setup-section-title">{t('Players')}</p>
                     <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
-                    <p className="game-setup-section-title mt-4">Game</p>
+                    <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     <div>
-                        <p className="setting-title">Variant</p>
+                        <p className="setting-title">{t('Variant')}</p>
                         <div className="row mx-0 mt-0 setting-body">
                             <div className="col d-flex flex-column align-items-center gap-2">
                                 <SelectButton
@@ -84,7 +85,7 @@ const CricketConfig = () => {
                         </div>
                     </div>
                     <FlyingDartsConfig value={flyingDarts} onChange={setFlyingDarts} />
-                    <GameSetupStart summary={`Cricket${variant === DEFAULT_VARIANT ? '' : ` ${variant}`} · ${playersSummary(players)}`} missing={missing} loading={starting} onStart={handleSubmit} />
+                    <GameSetupStart summary={t('Cricket{{value}} · {{playersSummary}}', { value: variant === DEFAULT_VARIANT ? '' : ` ${variant}`, playersSummary: playersSummary(players) })} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>
             </Panel>
             <Toast ref={toast} position="bottom-right" />

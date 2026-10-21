@@ -5,6 +5,7 @@ import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 
 import UserService from '../../services/user.service';
+import { t } from '../../utils/i18n';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -65,85 +66,85 @@ const UserEditDialog = ({ user, onHide, onSaved, onError }) => {
     const changed = account.firstname !== user.firstname || account.lastname !== user.lastname || account.email !== user.email;
 
     return (
-        <Dialog header={`Edit ${user.firstname} ${user.lastname}`} visible={Boolean(user)} onHide={onHide} style={{ width: 'min(36rem, 95vw)' }} blockScroll>
+        <Dialog header={t('Edit {{firstname}} {{lastname}}', { firstname: user.firstname, lastname: user.lastname })} visible={Boolean(user)} onHide={onHide} style={{ width: 'min(36rem, 95vw)' }} blockScroll>
             <div className="d-flex flex-column gap-4">
                 <section className="d-flex flex-column gap-3">
-                    <span className="text-subtle fs-7 fw-semibold">Account</span>
+                    <span className="text-subtle fs-7 fw-semibold">{t('Account')}</span>
                     <div className="row g-4 pt-3">
                         <div className="col-12 col-sm-6">
                             <span className="p-float-label">
                                 <InputText id="edit-firstname" value={account.firstname} onChange={onChange('firstname')} className="w-100" />
-                                <label htmlFor="edit-firstname">Firstname</label>
+                                <label htmlFor="edit-firstname">{t('Firstname')}</label>
                             </span>
                         </div>
                         <div className="col-12 col-sm-6">
                             <span className="p-float-label">
                                 <InputText id="edit-lastname" value={account.lastname} onChange={onChange('lastname')} className="w-100" />
-                                <label htmlFor="edit-lastname">Lastname</label>
+                                <label htmlFor="edit-lastname">{t('Lastname')}</label>
                             </span>
                         </div>
                         <div className="col-12">
                             <span className="p-float-label">
                                 <InputText id="edit-email" type="email" value={account.email} onChange={onChange('email')} className="w-100" />
-                                <label htmlFor="edit-email">Email</label>
+                                <label htmlFor="edit-email">{t('Email')}</label>
                             </span>
                         </div>
                     </div>
                     <div className="d-flex justify-content-end">
                         <Button
-                            label="Save"
+                            label={t('Save')}
                             icon="pi pi-save"
                             size="small"
                             disabled={!changed || busy}
-                            onClick={() => run('Account saved', () => UserService.updateUser(user.id, account), account.email)}
+                            onClick={() => run(t('Account saved'), () => UserService.updateUser(user.id, account), account.email)}
                         />
                     </div>
                 </section>
 
                 <section className="d-flex flex-column gap-2">
-                    <span className="text-subtle fs-7 fw-semibold">New password</span>
+                    <span className="text-subtle fs-7 fw-semibold">{t('New password')}</span>
                     <span className="text-faint fs-8">
-                        Set a password and tell it to {user.firstname} in person or by message. All their sessions are logged out; they can change it in their profile afterwards.
+                        {t('Set a password and tell it to')}{' '}{user.firstname}{' '}{t('in person or by message. All their sessions are logged out; they can change it in their profile afterwards.')}
                     </span>
                     <div className="d-flex flex-wrap gap-2">
                         <InputText
                             value={password}
                             onChange={(e) => { setPassword(e.target.value); setCopied(null); }}
-                            placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
-                            aria-label="New password"
+                            placeholder={t('At least {{MIN_PASSWORD_LENGTH}} characters', { MIN_PASSWORD_LENGTH: MIN_PASSWORD_LENGTH })}
+                            aria-label={t('New password')}
                             className="flex-grow-1"
                             autoComplete="new-password"
                         />
-                        <Button icon="pi pi-refresh" label="Generate" size="small" severity="secondary" onClick={() => { setPassword(generatePassword()); setCopied(null); }} />
-                        <Button icon={copied === 'password' ? 'pi pi-check' : 'pi pi-copy'} size="small" severity="secondary" aria-label="Copy password" disabled={!password} onClick={() => copy('password', password)} />
+                        <Button icon="pi pi-refresh" label={t('Generate')} size="small" severity="secondary" onClick={() => { setPassword(generatePassword()); setCopied(null); }} />
+                        <Button icon={copied === 'password' ? 'pi pi-check' : 'pi pi-copy'} size="small" severity="secondary" aria-label={t('Copy password')} disabled={!password} onClick={() => copy('password', password)} />
                     </div>
                     <div className="d-flex justify-content-end">
                         <Button
-                            label="Set password"
+                            label={t('Set password')}
                             icon="pi pi-key"
                             size="small"
                             disabled={password.length < MIN_PASSWORD_LENGTH || busy}
-                            onClick={() => run('Password set', () => UserService.setPassword(user.id, password), `${user.email} can log in with the new password`)}
+                            onClick={() => run(t('Password set'), () => UserService.setPassword(user.id, password), t('{{email}} can log in with the new password', { email: user.email }))}
                         />
                     </div>
                 </section>
 
                 <section className="d-flex flex-column gap-2">
-                    <span className="text-subtle fs-7 fw-semibold">Or a link to choose a password</span>
+                    <span className="text-subtle fs-7 fw-semibold">{t('Or a link to choose a password')}</span>
                     <span className="text-faint fs-8">
-                        Safer: you never know their password. Send the link to {user.firstname} yourself, e.g. by message. It works once and for 24 hours.
+                        {t('Safer: you never know their password. Send the link to')}{' '}{user.firstname}{' '}{t('yourself, e.g. by message. It works once and for 24 hours.')}
                     </span>
                     {link
                         ? (
                             <div className="d-flex gap-2">
-                                <InputText value={link} readOnly className="flex-grow-1 fs-8" aria-label="Password link" onFocus={(e) => e.target.select()} />
-                                <Button icon={copied === 'link' ? 'pi pi-check' : 'pi pi-copy'} label={copied === 'link' ? 'Copied' : 'Copy'} size="small" onClick={() => copy('link', link)} />
+                                <InputText value={link} readOnly className="flex-grow-1 fs-8" aria-label={t('Password link')} onFocus={(e) => e.target.select()} />
+                                <Button icon={copied === 'link' ? 'pi pi-check' : 'pi pi-copy'} label={copied === 'link' ? t('Copied') : t('Copy')} size="small" onClick={() => copy('link', link)} />
                             </div>
                         )
                         : (
                             <div className="d-flex justify-content-end">
                                 <Button
-                                    label="Create link"
+                                    label={t('Create link')}
                                     icon="pi pi-link"
                                     size="small"
                                     outlined
@@ -153,7 +154,7 @@ const UserEditDialog = ({ user, onHide, onSaved, onError }) => {
                                         try {
                                             setLink(absolute((await UserService.createPasswordLink(user.id)).link));
                                         } catch (error) {
-                                            onError('Password link', error);
+                                            onError(t('Password link'), error);
                                         } finally {
                                             setBusy(false);
                                         }
@@ -162,7 +163,7 @@ const UserEditDialog = ({ user, onHide, onSaved, onError }) => {
                             </div>
                         )
                     }
-                    {link && <Message severity="info" text="A newer link replaces this one; the old one stops working." className="justify-content-start" />}
+                    {link && <Message severity="info" text={t('A newer link replaces this one; the old one stops working.')} className="justify-content-start" />}
                 </section>
             </div>
         </Dialog>

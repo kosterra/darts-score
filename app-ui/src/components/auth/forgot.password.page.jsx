@@ -6,6 +6,7 @@ import { Message } from 'primereact/message';
 
 import AuthLayout from './auth.layout';
 import AuthService from '../../services/auth.service';
+import { t } from '../../utils/i18n';
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('');
@@ -27,22 +28,22 @@ const ForgotPasswordPage = () => {
     };
 
     return (
-        <AuthLayout title="Reset password">
+        <AuthLayout title={t('Reset password')}>
             {sent
                 ? (
                     <div className="d-flex flex-column gap-4 pt-3">
                         <Message
                             severity="success"
-                            text={`If an account exists for ${email}, we sent a link to choose a new password. It is valid for one hour.`}
+                            text={t('If an account exists for {{email}}, we sent a link to choose a new password. It is valid for one hour.', { email: email })}
                             className="w-100 justify-content-start"
                         />
-                        <span className="fs-7 text-subtle text-center"><Link to="/login">Back to log in</Link></span>
+                        <span className="fs-7 text-subtle text-center"><Link to="/login">{t('Back to log in')}</Link></span>
                     </div>
                 )
                 : (
                     <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
                         <span className="fs-7 text-subtle">
-                            Enter the email address of your account and we send you a link to choose a new password.
+                            {t('Enter the email address of your account and we send you a link to choose a new password.')}
                         </span>
                         <span className="p-float-label w-100">
                             <InputText
@@ -54,11 +55,11 @@ const ForgotPasswordPage = () => {
                                 className="w-100"
                                 required
                             />
-                            <label htmlFor="forgot-email">Email</label>
+                            <label htmlFor="forgot-email">{t('Email')}</label>
                         </span>
                         {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
-                        <Button type="submit" label="Send reset link" icon="pi pi-envelope" loading={submitting} />
-                        <span className="fs-7 text-subtle text-center"><Link to="/login">Back to log in</Link></span>
+                        <Button type="submit" label={t('Send reset link')} icon="pi pi-envelope" loading={submitting} />
+                        <span className="fs-7 text-subtle text-center"><Link to="/login">{t('Back to log in')}</Link></span>
                     </form>
                 )
             }

@@ -1,5 +1,6 @@
 import { CRICKET_NUMBERS } from '../../../utils/cricket.game.summary';
 import { variantOf } from '../../../utils/cricket.variants';
+import { t } from '../../../utils/i18n';
 
 export const numberLabel = (number) => number === 25 ? 'Bull' : String(number);
 
@@ -44,12 +45,12 @@ export const cricketTip = (game, marks, scores, playerId) => {
         if (needsPoints || !toClose.length) {
             const number = scoring[0];
             return variant === 'Cut-throat'
-                ? { text: `Points on ${numberLabel(number)}`, title: 'Give points to the others while they still have it open' }
-                : { text: `Score on ${numberLabel(number)}`, title: 'Your number, still open for the others: every mark scores' };
+                ? { text: t('Points on {{numberLabel}}', { numberLabel: numberLabel(number) }), title: t('Give points to the others while they still have it open') }
+                : { text: t('Score on {{numberLabel}}', { numberLabel: numberLabel(number) }), title: t('Your number, still open for the others: every mark scores') };
         }
     }
     if (!toClose.length) return null;
     const number = toClose[0];
     const missing = 3 - (marks[playerId]?.[number] ?? 0);
-    return { text: `Close ${numberLabel(number)}`, title: `${missing} ${missing === 1 ? 'mark' : 'marks'} to close it` };
+    return { text: t('Close {{numberLabel}}', { numberLabel: numberLabel(number) }), title: t('{{missing}} {{value}} to close it', { missing: missing, value: missing === 1 ? 'mark' : 'marks' }) };
 };

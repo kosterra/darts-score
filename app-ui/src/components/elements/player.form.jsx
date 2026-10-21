@@ -11,6 +11,7 @@ import { Toast } from 'primereact/toast';
 import ImageUploader from './image.uploader';
 import PlayerService from '../../services/player.service';
 import PlayerModel from '../../models/player.model';
+import { t } from '../../utils/i18n';
 
 /**
  * Adds a player, in a dialog (a player is edited on a page of its own,
@@ -91,8 +92,8 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
             if (await PlayerService.createPlayer(formData, choosesClub ? clubId : undefined)) {
                 toast.current.show({
                     severity: 'success',
-                    summary: 'Create Player',
-                    detail: 'Successfully created player: ' + data.nickname,
+                    summary: t('Create Player'),
+                    detail: t('Successfully created player: ') + data.nickname,
                     life: 3000
                 });
                 onPlayerAdd(choosesClub ? clubId : undefined);
@@ -100,8 +101,8 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
         } catch (error) {
             toast.current.show({
                 severity: 'error',
-                summary: 'Create Player',
-                detail: 'Failed to create player: ' + error.message,
+                summary: t('Create Player'),
+                detail: t('Failed to create player: ') + error.message,
                 life: 3000
             });
         }
@@ -123,8 +124,8 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
 
     const footerContent = (
         <div className="d-flex justify-content-end align-items-end gap-3">
-            <Button type="button" label="Close" icon="pi pi-times" severity="secondary" onClick={resetDialog} />
-            <Button type="submit" label="Create" icon="pi pi-save" disabled={choosesClub && !clubId} />
+            <Button type="button" label={t('Close')} icon="pi pi-times" severity="secondary" onClick={resetDialog} />
+            <Button type="submit" label={t('Create')} icon="pi pi-save" disabled={choosesClub && !clubId} />
         </div>
     );
 
@@ -141,7 +142,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
     return (
         <div>
             <Dialog
-                header="Add New Player"
+                header={t('Add New Player')}
                 visible={showDialog}
                 blockScroll={true}
                 onHide={resetDialog}
@@ -171,7 +172,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                             filter={clubs.length > 8}
                                             className="w-100"
                                         />
-                                        <label htmlFor="player-club">Club</label>
+                                        <label htmlFor="player-club">{t('Club')}</label>
                                     </span>
                                     <small className="text-faint">&nbsp;</small>
                                 </div>
@@ -181,7 +182,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                     <Controller
                                         name="firstname"
                                         control={control}
-                                        rules={{ required: 'Firstname is required' }}
+                                        rules={{ required: t('Firstname is required') }}
                                         render={({ field }) => (
                                             <InputText
                                                 id="firstname"
@@ -190,7 +191,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                             />
                                         )}
                                     />
-                                    <label htmlFor="firstname">Firstname</label>
+                                    <label htmlFor="firstname">{t('Firstname')}</label>
                                 </span>
                                 {getFormErrorMessage('firstname')}
                             </div>
@@ -199,7 +200,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                     <Controller
                                         name="lastname"
                                         control={control}
-                                        rules={{ required: 'Lastname is required' }}
+                                        rules={{ required: t('Lastname is required') }}
                                         render={({ field }) => (
                                             <InputText
                                                 id="lastname"
@@ -208,7 +209,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                             />
                                         )}
                                     />
-                                    <label htmlFor="lastname">Lastname</label>
+                                    <label htmlFor="lastname">{t('Lastname')}</label>
                                 </span>
                                 {getFormErrorMessage('lastname')}
                             </div>
@@ -217,7 +218,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                     <Controller
                                         name="nickname"
                                         control={control}
-                                        rules={{ required: 'Nickname is required' }}
+                                        rules={{ required: t('Nickname is required') }}
                                         render={({ field }) => (
                                             <InputText
                                                 id="nickname"
@@ -226,7 +227,7 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                             />
                                         )}
                                     />
-                                    <label htmlFor="nickname">Nickname</label>
+                                    <label htmlFor="nickname">{t('Nickname')}</label>
                                 </span>
                                 {getFormErrorMessage('nickname')}
                             </div>
@@ -236,8 +237,8 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                         name="dateOfBirth"
                                         control={control}
                                         rules={{
-                                            required: 'Date of birth is required',
-                                            validate: (value) => value <= today() || 'Date of birth must be in the past',
+                                            required: t('Date of birth is required'),
+                                            validate: (value) => value <= today() || t('Date of birth must be in the past'),
                                         }}
                                         render={({ field }) => (
                                             // typed as 14.03.2012 (the dots come by themselves), or picked:
@@ -259,11 +260,11 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                             />
                                         )}
                                     />
-                                    <label htmlFor="dateOfBirth">Date of birth</label>
+                                    <label htmlFor="dateOfBirth">{t('Date of birth')}</label>
                                 </span>
                                 {errors.dateOfBirth
                                     ? getFormErrorMessage('dateOfBirth')
-                                    : <small className="text-faint">For fair handicaps between players of different ages.</small>}
+                                    : <small className="text-faint">{t('For fair handicaps between players of different ages.')}</small>}
                             </div>
                         </div>
                         {footerContent}
@@ -277,8 +278,8 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                     severity="primary"
                     outlined={Boolean(label)}
                     icon="pi pi-user-plus"
-                    title={label ? undefined : 'Add a player'}
-                    aria-label={label ? undefined : 'Add a player'}
+                    title={label ? undefined : t('Add a player')}
+                    aria-label={label ? undefined : t('Add a player')}
                     label={label}
                     size={label ? 'small' : undefined}
                     onClick={handleOpen}

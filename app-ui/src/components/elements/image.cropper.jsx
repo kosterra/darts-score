@@ -3,6 +3,7 @@ import { Button } from 'primereact/button';
 import { Slider } from 'primereact/slider';
 
 import { clampCropOffset, getCropSourceRect } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 const VIEWPORT_SIZE = 240;  // px, on-screen size of the crop area
 const OUTPUT_SIZE = 512;    // px, size of the cropped image
@@ -104,7 +105,7 @@ const ImageCropper = ({ file, onCrop, onCancel }) => {
                     <img
                         ref={imgRef}
                         src={imageUrl}
-                        alt="Crop preview"
+                        alt={t('Crop preview')}
                         draggable={false}
                         onLoad={handleOnImageLoad}
                         className="position-absolute"
@@ -135,14 +136,14 @@ const ImageCropper = ({ file, onCrop, onCancel }) => {
                     onChange={event => handleOnZoomChange(event.value)}
                     disabled={!imageSize}
                     className="flex-grow-1"
-                    aria-label="Zoom"
+                    aria-label={t('Zoom')}
                 />
                 <i className="pi pi-search-plus text-subtle" />
             </div>
-            <span className="fs-7 text-faint">Drag the image to position it</span>
+            <span className="fs-7 text-faint">{t('Drag the image to position it')}</span>
             <div className="d-flex gap-2 mb-3">
-                <Button type="button" label="Cancel" icon="pi pi-times" size="small" severity="secondary" onClick={onCancel} />
-                <Button type="button" label="Apply" icon="pi pi-check" size="small" onClick={handleOnApply} disabled={!imageSize} />
+                <Button type="button" label={t('Cancel')} icon="pi pi-times" size="small" severity="secondary" onClick={onCancel} />
+                <Button type="button" label={t('Apply')} icon="pi pi-check" size="small" onClick={handleOnApply} disabled={!imageSize} />
             </div>
         </div>
     )

@@ -8,6 +8,7 @@ import PlayerLatestGames from '../stats/players/player.latest.games';
 import PlayerBadgeCollection from '../badges/player.badge.collection';
 import UpLink from '../elements/up.link';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
 
 /**
  * A player's profile in the selected club: who they are, their key figures,
@@ -51,7 +52,7 @@ const PlayerProfilePage = () => {
     if (failed) {
         return (
             <div className="container-fluid p-4">
-                <p className="text-subtle">This player could not be found in the selected club. <Link to="/players">All players</Link></p>
+                <p className="text-subtle">{t('This player could not be found in the selected club.')}{' '}<Link to="/players">{t('All players')}</Link></p>
             </div>
         );
     }
@@ -59,7 +60,7 @@ const PlayerProfilePage = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <UpLink to="/players" label="Players" />
+            <UpLink to="/players" label={t('Players')} />
             <PlayerStats
                 player={player}
                 isOwn={player.user === user.id}

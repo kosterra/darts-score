@@ -1,4 +1,5 @@
-// The Cricket variants:
+
+import { t } from './i18n';// The Cricket variants:
 // - Standard: marks beyond three score the number for yourself while an
 //   opponent has it open; with all numbers closed the highest score wins.
 // - Cut-throat: those points go to every opponent who still has the number
@@ -6,9 +7,9 @@
 // - No-score: only closing counts; who closes everything first wins.
 
 export const CRICKET_VARIANTS = [
-    { value: 'Standard', description: 'Extra marks score for you; highest score wins.' },
-    { value: 'Cut-throat', description: 'Extra marks score for opponents still open; lowest score wins.' },
-    { value: 'No-score', description: 'Only closing counts; first to close all wins.' },
+    { value: t('Standard'), description: t('Extra marks score for you; highest score wins.') },
+    { value: t('Cut-throat'), description: t('Extra marks score for opponents still open; lowest score wins.') },
+    { value: t('No-score'), description: t('Only closing counts; first to close all wins.') },
 ];
 
 export const DEFAULT_VARIANT = 'Standard';

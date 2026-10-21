@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import ClubLogo from '../elements/club.logo';
+import { t } from '../../utils/i18n';
 
 dayjs.extend(relativeTime);
 
@@ -17,10 +18,10 @@ const PublicClubCard = ({ club }) => {
     const figures = [
         ['Players', formatNumber(club.playerCount)],
         ['Games', formatNumber(club.gamesPlayed)],
-        ['Last 30 days', formatNumber(club.gamesLast30Days)],
-        ['X01 average', club.x01Average != null ? club.x01Average.toFixed(1) : '–'],
+        [t('Last 30 days'), formatNumber(club.gamesLast30Days)],
+        [t('X01 average'), club.x01Average != null ? club.x01Average.toFixed(1) : '–'],
         ['180s', formatNumber(club.num180s)],
-        ['Last game', club.lastGameAt ? dayjs(club.lastGameAt).fromNow() : '–'],
+        [t('Last game'), club.lastGameAt ? dayjs(club.lastGameAt).fromNow() : '–'],
     ];
     const takesMembers = club.joinPolicy === 'open' || club.joinPolicy === 'approval';
 
@@ -31,7 +32,7 @@ const PublicClubCard = ({ club }) => {
                 <div className="d-flex flex-column" style={{ minWidth: 0 }}>
                     <h3 className="fs-5 fw-semibold text-default m-0 text-break">{club.name}</h3>
                     <span className="text-faint fs-8">
-                        {club.busiestDay ? `Plays mostly on ${club.busiestDay}s` : `With Oche since ${dayjs(club.createdAt).format('MMMM YYYY')}`}
+                        {club.busiestDay ? t(`Plays mostly on ${club.busiestDay}s`) : t('With Oche since {{format}}', { format: dayjs(club.createdAt).format('MMMM YYYY') })}
                     </span>
                 </div>
             </div>
@@ -47,7 +48,7 @@ const PublicClubCard = ({ club }) => {
             {takesMembers &&
                 <Link to="/register" className="public-club-join">
                     <i className="pi pi-user-plus" aria-hidden="true" />
-                    {club.joinPolicy === 'open' ? 'Open to join: register and join' : 'Takes new members: register and ask to join'}
+                    {club.joinPolicy === 'open' ? t('Open to join: register and join') : t('Takes new members: register and ask to join')}
                 </Link>
             }
         </article>

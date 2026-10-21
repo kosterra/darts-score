@@ -14,6 +14,7 @@ import { useAuth } from '../../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../../utils/use.my.players';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { t } from '../../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
 
@@ -45,7 +46,7 @@ const MeWidget = ({ widget }) => {
 
     const nextColor = (LEVEL_STYLES[level?.next?.id] ?? LEVEL_STYLES[level?.level?.id])?.color;
     const needs = level?.next?.missing?.length
-        ? level.next.missing.map(entry => entry.id === 'xp' && level.next.xp ? `${formatNumber(level.next.xp - level.xp)} XP` : entry.label).join(' · ')
+        ? level.next.missing.map(entry => entry.id === 'xp' && level.next.xp ? t('{{formatNumber}} XP', { formatNumber: formatNumber(level.next.xp - level.xp) }) : entry.label).join(' · ')
         : null;
     const recentGames = form?.figures?.recent?.games ?? 0;
 
@@ -66,19 +67,19 @@ const MeWidget = ({ widget }) => {
                         {level?.next &&
                             <div className="me-widget-next">
                                 <ProgressBar value={level.progress} showValue={false} className="level-progress" style={{ '--level-color': nextColor }} />
-                                <span className="text-faint fs-8">Next: <span className="text-subtle">{level.next.name}</span>{needs && ` · ${needs}`}</span>
+                                <span className="text-faint fs-8">{t('Next:')}{' '}<span className="text-subtle">{level.next.name}</span>{needs && ` · ${needs}`}</span>
                             </div>
                         }
                     </div>
                 </div>
 
                 {!stats
-                    ? <span className="text-faint fs-8">Loading…</span>
+                    ? <span className="text-faint fs-8">{t('Loading…')}</span>
                     : <>
                         {/* the three figures that matter most, side by side */}
                         <div className="me-widget-tiles">
                             <div className="me-widget-tile">
-                                <span className="me-widget-label">X01 average</span>
+                                <span className="me-widget-label">{t('X01 average')}</span>
                                 <span className="me-widget-value">{average > 0 ? average.toFixed(1) : '–'}</span>
                                 {averageLevel &&
                                     <span className="me-widget-average-level" style={{ color: averageLevel.color }}>
@@ -88,24 +89,24 @@ const MeWidget = ({ widget }) => {
                                 }
                             </div>
                             <div className="me-widget-tile">
-                                <span className="me-widget-label">Games</span>
+                                <span className="me-widget-label">{t('Games')}</span>
                                 <span className="me-widget-value">{formatNumber(games)}</span>
-                                {games > 0 && <span className="text-faint fs-8">{formatNumber(wins)} won</span>}
+                                {games > 0 && <span className="text-faint fs-8">{formatNumber(wins)}{' '}{t('won')}</span>}
                             </div>
                             <div className="me-widget-tile">
-                                <span className="me-widget-label">Form</span>
+                                <span className="me-widget-label">{t('Form')}</span>
                                 <FormBadge form={form} color="var(--primary-color)" stacked />
                             </div>
                         </div>
 
                         {recentGames > 0 && <>
-                            <p className="game-setup-section-title m-0">Last {recentGames} X01 games</p>
+                            <p className="game-setup-section-title m-0">{t('Last')}{' '}{recentGames}{' '}{t('X01 games')}</p>
                             <FormFigures form={form} keys={['checkoutRate', 'tonPlus', 'dartsPerLeg', 'under30']} compact />
                         </>}
                     </>
                 }
 
-                <Button type="button" label="My statistics" icon="pi pi-chart-bar" size="small" severity="secondary" className="align-self-start mt-auto" onClick={() => navigate(`/players/${player.id}`)} />
+                <Button type="button" label={t('My statistics')} icon="pi pi-chart-bar" size="small" severity="secondary" className="align-self-start mt-auto" onClick={() => navigate(`/players/${player.id}`)} />
             </div>
         </Panel>
     );

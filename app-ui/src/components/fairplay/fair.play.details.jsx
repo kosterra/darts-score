@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 
 import IntegrityService from '../../services/integrity.service';
 import { LEVELS } from './fair.play.lists';
+import { t } from '../../utils/i18n';
 
 // the worst finding at each place: 'set|leg|visit' (X01) or 'visit' → level
 const flagsOf = (findings) => {
@@ -30,13 +31,13 @@ const X01Legs = ({ legs, flags, nameOf, repairable }) => {
 
     return (
         <div className="fair-play-legs">
-            {!flagged.length && <p className="text-faint fs-8 m-0">The findings concern the whole game, not a single visit.</p>}
+            {!flagged.length && <p className="text-faint fs-8 m-0">{t('The findings concern the whole game, not a single visit.')}</p>}
             {shown.map(leg => (
                 <div key={`${leg.set}-${leg.leg}`} className="fair-play-leg">
-                    <div className="fair-play-leg-title">{sets > 1 ? `Set ${leg.set} · Leg ${leg.leg}` : `Leg ${leg.leg}`}</div>
+                    <div className="fair-play-leg-title">{sets > 1 ? t('Set {{set}} · Leg {{leg}}', { set: leg.set, leg: leg.leg }) : t('Leg {{leg}}', { leg: leg.leg })}</div>
                     <table className="fair-play-visits">
                         <thead>
-                            <tr><th>Player</th><th>Darts</th><th className="text-end col-scored">Scored</th><th className="text-end">Left</th></tr>
+                            <tr><th>{t('Player')}</th><th>{t('Darts')}</th><th className="text-end col-scored">{t('Scored')}</th><th className="text-end">{t('Left')}</th></tr>
                         </thead>
                         <tbody>
                             {leg.visits.map((visit, index) => {
@@ -49,9 +50,9 @@ const X01Legs = ({ legs, flags, nameOf, repairable }) => {
                                         <td className="text-end col-scored">{visit.roundScore ?? '–'}</td>
                                         <td className="text-end">
                                             <span className={wrong ? 'fair-play-wrong' : ''}>{visit.scoreLeft ?? '–'}</span>
-                                            {wrong && <span className="fair-play-should">{visit.before} − darts → {visit.expected}</span>}
+                                            {wrong && <span className="fair-play-should">{visit.before}{' '}{t('− darts →')}{' '}{visit.expected}</span>}
                                             {repairable && visit.repaired !== null && visit.repaired !== visit.scoreLeft &&
-                                                <span className="fair-play-repaired">repair: {visit.repaired}</span>}
+                                                <span className="fair-play-repaired">{t('repair:')}{' '}{visit.repaired}</span>}
                                         </td>
                                     </tr>
                                 );
@@ -62,7 +63,7 @@ const X01Legs = ({ legs, flags, nameOf, repairable }) => {
             ))}
             {flagged.length > 0 && flagged.length < legs.length &&
                 <button type="button" className="fair-play-more" onClick={() => setAll(value => !value)}>
-                    {all ? 'Only the legs with findings' : `All ${legs.length} legs`}
+                    {all ? t('Only the legs with findings') : t('All {{length}} legs', { length: legs.length })}
                 </button>
             }
         </div>
@@ -72,19 +73,19 @@ const X01Legs = ({ legs, flags, nameOf, repairable }) => {
 // Cricket and Elimination: the visits with findings, with two before and after
 const Visits = ({ visits, flags, nameOf }) => {
     const marked = visits.map((_, index) => index).filter(index => flags.has(String(index)));
-    if (!marked.length) return <p className="text-faint fs-8 m-0">The findings concern the whole game, not a single visit.</p>;
+    if (!marked.length) return <p className="text-faint fs-8 m-0">{t('The findings concern the whole game, not a single visit.')}</p>;
     const near = new Set(marked.flatMap(index => [index - 2, index - 1, index, index + 1, index + 2]));
     return (
         <table className="fair-play-visits">
             <thead>
-                <tr><th>Visit</th><th>Player</th><th>Darts</th><th className="text-end">Scored</th></tr>
+                <tr><th>{t('Visit')}</th><th>{t('Player')}</th><th>{t('Darts')}</th><th className="text-end">{t('Scored')}</th></tr>
             </thead>
             <tbody>
                 {visits.map((visit, index) => near.has(index) && (
                     <tr key={index} className={flags.has(String(index)) ? `is-${flags.get(String(index))}` : ''}>
                         <td>{index + 1}</td>
                         <td>{nameOf(visit.playerId)}</td>
-                        <td><Darts darts={visit.darts} />{visit.bust && <span className="text-faint"> · bust</span>}</td>
+                        <td><Darts darts={visit.darts} />{visit.bust && <span className="text-faint">{' '}{t('· bust')}</span>}</td>
                         <td className="text-end">{visit.roundScore ?? '–'}</td>
                     </tr>
                 ))}
@@ -105,10 +106,10 @@ const FairPlayDetails = ({ entry }) => {
         IntegrityService.loadDetails(entry.type, entry.id).then(setDetails).catch(() => setFailed(true));
     }, [entry.type, entry.id]);
 
-    if (failed) return <div className="fair-play-details text-faint fs-8">The details could not be loaded.</div>;
-    if (!details) return <div className="fair-play-details text-faint fs-8">Loading…</div>;
+    if (failed) return <div className="fair-play-details text-faint fs-8">{t('The details could not be loaded.')}</div>;
+    if (!details) return <div className="fair-play-details text-faint fs-8">{t('Loading…')}</div>;
 
-    const nameOf = (id) => entry.players.find(player => player.id === id)?.nickname ?? 'Unknown player';
+    const nameOf = (id) => entry.players.find(player => player.id === id)?.nickname ?? t('Unknown player');
     const flags = flagsOf(details.findings ?? []);
 
     return (
@@ -125,7 +126,7 @@ const FairPlayDetails = ({ entry }) => {
                     ))}
                 </dl>
             }
-            {details.repairReason && <p className="text-faint fs-8 m-0">No repair: {details.repairReason.charAt(0).toLowerCase() + details.repairReason.slice(1)}.</p>}
+            {details.repairReason && <p className="text-faint fs-8 m-0">{t('No repair:')}{' '}{details.repairReason.charAt(0).toLowerCase() + details.repairReason.slice(1)}.</p>}
         </div>
     );
 };

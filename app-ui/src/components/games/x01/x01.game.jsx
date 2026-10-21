@@ -12,6 +12,7 @@ import X01FormCard from './x01.form.card';
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import X01ScoreInputBoard from './x01.score.input.board';
 import PageLoader from '../../elements/page.loader';
+import { t } from '../../../utils/i18n';
 
 const X01Game = () => {
     const { game, players, loading, celebrating, training, quick } = useContext(X01Context);
@@ -38,7 +39,7 @@ const X01Game = () => {
     if (!game || !players?.length) {
         return (
             <div className="text-center text-subtle fs-6 mt-5">
-                Game data not available.
+                {t('Game data not available.')}
             </div>
         );
     }
@@ -53,7 +54,7 @@ const X01Game = () => {
             {training && game.hasWinner &&
                 <div className="x01-bot-turn x01-training-won" role="status">
                     <i className="pi pi-trophy" aria-hidden="true" />
-                    {ordered.find(player => game.playerModels[player.id]?.hasWonGame)?.nickname ?? 'Someone'} wins the training
+                    {ordered.find(player => game.playerModels[player.id]?.hasWonGame)?.nickname ?? t('Someone')}{' '}{t('wins the training')}
                 </div>
             }
 
@@ -64,7 +65,7 @@ const X01Game = () => {
                     <X01VisitsPanel game={game} players={ordered} />
                 </div>
                 <div className="col-12 col-xl-5">
-                    <Panel header="Key figures" className="h-100">
+                    <Panel header={t('Key figures')} className="h-100">
                         <div className="x01-live-figures">
                             <X01LiveFigures game={game} players={ordered} />
                         </div>
@@ -74,7 +75,7 @@ const X01Game = () => {
 
             <div className="row g-4 mb-4">
                 <div className="col-12">
-                    <Panel header="Form">
+                    <Panel header={t('Form')}>
                         <div className={`x01-form-list count-${ordered.length}`}>
                             {ordered.map((player, index) => (
                                 <div key={player.id}>
@@ -92,7 +93,7 @@ const X01Game = () => {
             <div className="text-center mb-3">
                 <Button
                     type="button"
-                    label={more ? 'Fewer statistics' : 'More statistics'}
+                    label={more ? t('Fewer statistics') : t('More statistics')}
                     icon={more ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
                     text
                     aria-expanded={more}

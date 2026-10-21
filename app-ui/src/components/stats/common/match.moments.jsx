@@ -4,6 +4,7 @@ import { Panel } from 'primereact/panel';
 
 import { PLAYER_COLORS } from '../charts/chart.theme';
 import { KpiChip } from '../players/kpi';
+import { t } from '../../../utils/i18n';
 
 // X01: highest visit, best checkout, quickest leg, 180s, deciding leg;
 // Cricket: best round in marks, most points, triples, bullseyes;
@@ -24,7 +25,7 @@ const MatchMoments = ({ moments, players, color }) => {
     const byId = new Map(players.map((player, index) => [player.id, { player, color: PLAYER_COLORS[index] }]));
 
     return (
-        <Panel header="Moments of the game" className="mb-4">
+        <Panel header={t('Moments of the game')} className="mb-4">
             <div className="kpi-chips kpi-chips-wide">
                 {moments.map(moment => {
                     const who = byId.get(moment.playerId);

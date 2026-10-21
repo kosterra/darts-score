@@ -17,6 +17,7 @@ import PlayerCheckoutPreferences from './player.checkout.preferences';
 import PlayerDartPreferences from './player.dart.preferences';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 // "1987-02-04" and back for the calendar, in local time so the day stays the day
 const toDate = (value) => {
@@ -59,9 +60,9 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
             if (image.action === 'cleared') formData.append('clearProfileImg', 'true');
             await PlayerService.updatePlayer({ id: player.id, formData, clubId });
             setImage(value => ({ ...value, action: 'unchanged', file: null }));
-            onSaved('Player profile', 'Your player profile is saved.');
+            onSaved(t('Player profile'), t('Your player profile is saved.'));
         } catch (error) {
-            onError('Player profile', error);
+            onError(t('Player profile'), error);
         } finally {
             setSaving(false);
         }
@@ -71,7 +72,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
         try {
             setCurrent(await PlayerService.setTrainingPrivacy(player.id, !shown, clubId));
         } catch (error) {
-            onError('Trainings', error);
+            onError(t('Trainings'), error);
         }
     };
 
@@ -79,7 +80,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
         try {
             setCurrent(await PlayerService.setPublicProfile(player.id, publicProfile, clubId));
         } catch (error) {
-            onError('Public nickname', error);
+            onError(t('Public nickname'), error);
         }
     };
 
@@ -94,8 +95,8 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
             {/* laid out as the game setup: a section title, then a box per setting; side by side on wide screens */}
             <div className="col-12 col-xl-6">
                 <form onSubmit={save}>
-                    <p className="game-setup-section-title">{multiple ? player.nickname : 'You as a player'}</p>
-                    <p className="setting-title">Picture and nickname</p>
+                    <p className="game-setup-section-title">{multiple ? player.nickname : t('You as a player')}</p>
+                    <p className="setting-title">{t('Picture and nickname')}</p>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col my-player-main">
                             <ImageUploader
@@ -105,32 +106,32 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                                 onFileDelete={() => setImage({ action: 'cleared', file: null, preview: '' })}
                             />
                             <label className="my-player-nickname d-flex flex-column gap-1">
-                                <span className="text-subtle fs-8">Nickname</span>
+                                <span className="text-subtle fs-8">{t('Nickname')}</span>
                                 <InputText value={nickname} onChange={(event) => setNickname(event.target.value)} minLength={3} maxLength={25} required />
-                                <span className="text-faint fs-8">How the club and the games call you, 3 to 25 characters.</span>
+                                <span className="text-faint fs-8">{t('How the club and the games call you, 3 to 25 characters.')}</span>
                             </label>
                         </div>
                     </div>
 
-                    <p className="setting-title">About you</p>
+                    <p className="setting-title">{t('About you')}</p>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col d-flex flex-column gap-3">
                             <dl className="my-player-facts">
                                 <div>
-                                    <dt>Name</dt>
-                                    <dd>{player.firstname} {player.lastname} <span className="text-faint">· from your <Link to="/profile">user profile</Link></span></dd>
+                                    <dt>{t('Name')}</dt>
+                                    <dd>{player.firstname} {player.lastname} <span className="text-faint">{t('· from your')}{' '}<Link to="/profile">{t('user profile')}</Link></span></dd>
                                 </div>
                                 {!player.birthEditable &&
                                     <div>
-                                        <dt>Date of birth</dt>
+                                        <dt>{t('Date of birth')}</dt>
                                         <dd>
-                                            {player.dateOfBirth ? dayjs(player.dateOfBirth).format('DD.MM.YYYY') : <span className="text-faint">not set yet</span>}
-                                            <span className="text-faint"> · set by your club admins</span>
+                                            {player.dateOfBirth ? dayjs(player.dateOfBirth).format('DD.MM.YYYY') : <span className="text-faint">{t('not set yet')}</span>}
+                                            <span className="text-faint">{' '}{t('· set by your club admins')}</span>
                                         </dd>
                                     </div>
                                 }
                                 <div>
-                                    <dt>Plays in</dt>
+                                    <dt>{t('Plays in')}</dt>
                                     <dd className="my-player-clubs">
                                         {player.clubs.map(club => (
                                             <span key={club.id} className="my-player-club">
@@ -143,7 +144,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                             </dl>
                             {player.birthEditable &&
                                 <label className="d-flex flex-column gap-1">
-                                    <span className="text-subtle fs-8">Date of birth</span>
+                                    <span className="text-subtle fs-8">{t('Date of birth')}</span>
                                     <Calendar
                                         value={toDate(birth)}
                                         onChange={(event) => setBirth(fromDate(event.value))}
@@ -154,32 +155,32 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                                         icon="pi pi-calendar"
                                         className="my-player-birth"
                                     />
-                                    <span className="text-faint fs-8">You can correct it as an adult; a date under {player.birthMinAge} years is up to your club admins.</span>
+                                    <span className="text-faint fs-8">{t('You can correct it as an adult; a date under')}{' '}{player.birthMinAge}{' '}{t('years is up to your club admins.')}</span>
                                 </label>
                             }
                         </div>
                     </div>
 
                     <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
-                        <Button type="button" label="Statistics and badges" icon="pi pi-chart-line" size="small" severity="secondary" onClick={openStatistics} />
-                        <Button type="submit" label="Save" icon="pi pi-save" size="small" loading={saving} disabled={!changed || nickname.trim().length < 3} />
+                        <Button type="button" label={t('Statistics and badges')} icon="pi pi-chart-line" size="small" severity="secondary" onClick={openStatistics} />
+                        <Button type="submit" label={t('Save')} icon="pi pi-save" size="small" loading={saving} disabled={!changed || nickname.trim().length < 3} />
                     </div>
                 </form>
 
-                <p className="game-setup-section-title">In your clubs</p>
+                <p className="game-setup-section-title">{t('In your clubs')}</p>
                 <SettingSwitch
                     id={`my-player-public-${player.id}`}
-                    title="Show my nickname on the public page"
-                    hint={`${anyPublic ? 'Your nickname appears with the live games and results of your public clubs; otherwise you are shown without a name.' : 'None of your clubs is public, so this only matters once one of them is.'} Your decision: the club admins cannot change it.`}
+                    title={t('Show my nickname on the public page')}
+                    hint={t('{{value}} Your decision: the club admins cannot change it.', { value: anyPublic ? 'Your nickname appears with the live games and results of your public clubs; otherwise you are shown without a name.' : 'None of your clubs is public, so this only matters once one of them is.' })}
                     checked={!!current.publicProfile}
                     onChange={togglePublic}
                 />
                 <SettingSwitch
                     id={`my-player-trainings-${player.id}`}
-                    title="Show my trainings to the club"
+                    title={t('Show my trainings to the club')}
                     hint={current.privateTrainings
-                        ? 'Only you and the club admins see your trainings; they are left out of the scoreboard for the others.'
-                        : 'The other players see your trainings in the list and on the Around the Clock scoreboard.'}
+                        ? t('Only you and the club admins see your trainings; they are left out of the scoreboard for the others.')
+                        : t('The other players see your trainings in the list and on the Around the Clock scoreboard.')}
                     checked={!current.privateTrainings}
                     onChange={toggleTrainings}
                 />
@@ -187,14 +188,14 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
             </div>
 
             <div className="col-12 col-xl-6">
-                <p className="game-setup-section-title">In games</p>
-                <p className="setting-title">Ways out in X01</p>
+                <p className="game-setup-section-title">{t('In games')}</p>
+                <p className="setting-title">{t('Ways out in X01')}</p>
                 <div className="row mx-0 mt-0 setting-body">
                     <div className="col">
-                        <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Ways out', error)} />
+                        <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Ways out'), error)} />
                     </div>
                 </div>
-                <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError('Darts on the board', error)} />
+                <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Darts on the board'), error)} />
             </div>
         </section>
     );
@@ -219,19 +220,19 @@ const MyPlayerPage = () => {
     };
     const onError = (summary, error) => toast.current.show({ severity: 'error', summary, detail: error.message, life: 4000 });
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">Your player profile could not be loaded. Please reload the page.</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{t('Your player profile could not be loaded. Please reload the page.')}</div>;
     if (!players) return <PageLoader />;
 
     return (
         <div className="container-fluid p-4 border-0">
             <Toast ref={toast} position="bottom-right" />
-            <Panel header="Player profile">
+            <Panel header={t('Player profile')}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    How you appear in your clubs: your nickname and picture are yours to keep up to date, and your name comes from your user profile. Your club admins set the date of birth; as an adult you can correct it afterwards.
-                    {players.length > 1 && ' You play as more than one player; your picture is the same for all of them.'}
+                    {t('How you appear in your clubs: your nickname and picture are yours to keep up to date, and your name comes from your user profile. Your club admins set the date of birth; as an adult you can correct it afterwards.')}
+                    {players.length > 1 && t(' You play as more than one player; your picture is the same for all of them.')}
                 </p>
                 {players.length === 0
-                    ? <p className="text-subtle fs-7 m-0">You do not play in a club yet. A club admin can give your player a login, or add yourself as a player of a club you run under <Link to="/my-clubs">My clubs</Link>.</p>
+                    ? <p className="text-subtle fs-7 m-0">{t('You do not play in a club yet. A club admin can give your player a login, or add yourself as a player of a club you run under')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>.</p>
                     : (
                         <div className="d-flex flex-column gap-4">
                             {players.map(player => <MyPlayer key={`${player.id}-${player.profileImg}-${player.nickname}-${player.dateOfBirth}`} player={player} multiple={players.length > 1} onSaved={onSaved} onError={onError} />)}

@@ -7,6 +7,7 @@ import ChartTooltip from './chart.tooltip';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { groupByPeriod } from '../../../utils/trend.grouping';
 import { averageLevelOf, levelChanges, nextAverageLevel } from '../../../utils/average.levels';
+import { t } from '../../../utils/i18n';
 
 const MOVING_WINDOW = 5;
 // grouped by month or quarter, the trend follows fewer points
@@ -30,7 +31,7 @@ const levelMarker = (changes) => function LevelMarker(props) {
     const average = Math.round(Number(value) * 10) / 10;
     return (
         <g key={`level-${index}`} className="average-level-marker">
-            <title>{`${level.name} · from ${payload?.label ?? ''} · average ${average}`}</title>
+            <title>{t('{{name}} · from {{value}} · average {{average}}', { name: level.name, value: payload?.label ?? '', average: average })}</title>
             {/* the card's colour first, so the line does not show through the soft fill */}
             <circle cx={cx} cy={cy} r={11} fill="#292929" />
             <circle cx={cx} cy={cy} r={11} fill={level.color} fillOpacity={0.18} stroke={level.color} strokeOpacity={0.75} strokeWidth={1.5} />
@@ -50,7 +51,7 @@ const levelMarker = (changes) => function LevelMarker(props) {
  *
  * data: [{ date | label, average }] for one player, [{ date | label, player1, player2, … }] for several
  */
-const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average over time', description }) => {
+const AverageTrendChart = ({ data = [], players = [], overall, title = t('Average over time'), description }) => {
     const series = useHiddenSeries();
     const single = players.length === 1;
     // many games over time: a point per month or quarter, not per game
@@ -69,13 +70,13 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
         : base;
     const period = grouped?.step === 'quarter' ? 'quarter' : 'month';
     const STEP_TEXT = {
-        game: 'Average of every X01 game the players played together.',
-        month: 'Average per month of the X01 games the players played together.',
-        quarter: 'Average per quarter of the X01 games the players played together.',
+        game: t('Average of every X01 game the players played together.'),
+        month: t('Average per month of the X01 games the players played together.'),
+        quarter: t('Average per quarter of the X01 games the players played together.'),
     };
     const singleText = byPeriod
-        ? `Average per ${period} of the X01 games, with the trend over the last ${MOVING_PERIODS} ${period}s and the overall average.`
-        : `Average of every X01 game, with the trend over the last ${MOVING_WINDOW} games and the overall average.`;
+        ? t('Average per {{period}} of the X01 games, with the trend over the last {{MOVING_PERIODS}} {{period}}s and the overall average.', { period: period, MOVING_PERIODS: MOVING_PERIODS })
+        : t('Average of every X01 game, with the trend over the last {{MOVING_WINDOW}} games and the overall average.', { MOVING_WINDOW: MOVING_WINDOW });
     // average levels: where they change, and the next one to reach
     const withLevels = dated;
     const levelSeries = !withLevels ? [] : single
@@ -112,7 +113,7 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
             description={description ?? (single ? singleText : STEP_TEXT[grouped?.step ?? 'game'])}
         >
             {rows.length === 0
-                ? <p className="text-faint fs-7">No averages yet.</p>
+                ? <p className="text-faint fs-7">{t('No averages yet.')}</p>
                 : (
                     <ResponsiveContainer width="100%" height={280}>
                         <ComposedChart data={rows} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>

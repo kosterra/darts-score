@@ -2,6 +2,7 @@ import { Panel } from 'primereact/panel';
 
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { visitsOf } from './elimination.live';
+import { t } from '../../../utils/i18n';
 
 /**
  * Every visit of the game with the players side by side, a row per round,
@@ -12,14 +13,14 @@ const EliminationVisitsPanel = ({ game, players }) => {
     const rounds = Math.max(0, ...columns.map(list => list.length));
 
     return (
-        <Panel header="Visits" className="h-100">
+        <Panel header={t('Visits')} className="h-100">
             {rounds
                 ? (
                     <div className="x01-legs-wrap x01-visits">
                         <table className="x01-legs">
                             <thead>
                                 <tr>
-                                    <th scope="col">Round</th>
+                                    <th scope="col">{t('Round')}</th>
                                     {players.map((player, i) => (
                                         <th key={player.id} scope="col" colSpan={2}>
                                             <span className="d-inline-flex align-items-center text-nowrap">
@@ -41,7 +42,7 @@ const EliminationVisitsPanel = ({ game, players }) => {
                                                     <span className="x01-visit-darts">{visit.darts.map((dart, d) => <span key={d}>{dart}</span>)}</span>
                                                 </td>,
                                                 <td key={`${i}-s`} className="text-end text-nowrap">
-                                                    <span className={visit.bust ? 'x01-bust-text' : 'text-subtle'}>{visit.bust ? 'Bust' : visit.roundScore}</span>
+                                                    <span className={visit.bust ? 'x01-bust-text' : 'text-subtle'}>{visit.bust ? t('Bust') : visit.roundScore}</span>
                                                     <span className="x01-visit-left">{visit.total}</span>
                                                 </td>,
                                             ];
@@ -52,7 +53,7 @@ const EliminationVisitsPanel = ({ game, players }) => {
                         </table>
                     </div>
                 )
-                : <p className="text-subtle fs-8 m-0">No visits yet.</p>
+                : <p className="text-subtle fs-8 m-0">{t('No visits yet.')}</p>
             }
         </Panel>
     );

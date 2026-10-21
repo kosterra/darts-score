@@ -1,4 +1,5 @@
 import { FaArrowDownLong, FaArrowUpLong } from 'react-icons/fa6';
+import { t } from '../../../utils/i18n';
 
 /**
  * The figures of a player's X01 form, each against the games before: better
@@ -7,16 +8,16 @@ import { FaArrowDownLong, FaArrowUpLong } from 'react-icons/fa6';
  * ("perGames") is compared as if the games before were as many as the latest.
  */
 const FORM_FIGURES = [
-    { key: 'checkoutRate', label: 'Checkout', unit: '%', step: 2, detail: (figures) => `${figures.checkoutHits}/${figures.checkoutAttempts}` },
-    { key: 'tonPlus', label: 'Ton+ visits', unit: '%', step: 1, hint: 'Visits of 100 or more, of the visits with more than 100 left' },
-    { key: 'firstNine', label: 'First 9', step: 1.5, hint: 'The average of the first three visits of a leg' },
-    { key: 'dartsPerLeg', label: 'Darts per leg', step: 0.5, lowerIsBetter: true, hint: 'Darts thrown in the legs won' },
-    { key: 'oneEighties', label: '180s', step: 1, perGames: true, hint: '180s thrown in these games' },
-    { key: 'under10', label: 'Visits under 10', unit: '%', step: 1, lowerIsBetter: true, hint: 'Visits below 10, of the visits with more than 100 left' },
-    { key: 'under30', label: 'Visits under 30', unit: '%', step: 1.5, lowerIsBetter: true, hint: 'Visits below 30, of the visits with more than 100 left' },
-    { key: 'under50', label: 'Visits under 50', unit: '%', step: 2, lowerIsBetter: true, hint: 'Visits below 50, of the visits with more than 100 left' },
-    { key: 'oneOrFive', label: 'Hit the 1 or 5', unit: '%', step: 1, lowerIsBetter: true, hint: 'Darts in the 1 or the 5, next to the 20, of the darts of the visits with more than 100 left' },
-    { key: 'shameBadges', label: 'Hall of Shame', step: 1, lowerIsBetter: true, perGames: true, hint: 'Shame badges got in these games, like Bed and Breakfast or Madhouse' },
+    { key: 'checkoutRate', label: t('Checkout'), unit: '%', step: 2, detail: (figures) => `${figures.checkoutHits}/${figures.checkoutAttempts}` },
+    { key: 'tonPlus', label: t('Ton+ visits'), unit: '%', step: 1, hint: t('Visits of 100 or more, of the visits with more than 100 left') },
+    { key: 'firstNine', label: t('First 9'), step: 1.5, hint: t('The average of the first three visits of a leg') },
+    { key: 'dartsPerLeg', label: t('Darts per leg'), step: 0.5, lowerIsBetter: true, hint: t('Darts thrown in the legs won') },
+    { key: 'oneEighties', label: t('180s'), step: 1, perGames: true, hint: t('180s thrown in these games') },
+    { key: 'under10', label: t('Visits under 10'), unit: '%', step: 1, lowerIsBetter: true, hint: t('Visits below 10, of the visits with more than 100 left') },
+    { key: 'under30', label: t('Visits under 30'), unit: '%', step: 1.5, lowerIsBetter: true, hint: t('Visits below 30, of the visits with more than 100 left') },
+    { key: 'under50', label: t('Visits under 50'), unit: '%', step: 2, lowerIsBetter: true, hint: t('Visits below 50, of the visits with more than 100 left') },
+    { key: 'oneOrFive', label: t('Hit the 1 or 5'), unit: '%', step: 1, lowerIsBetter: true, hint: t('Darts in the 1 or the 5, next to the 20, of the darts of the visits with more than 100 left') },
+    { key: 'shameBadges', label: t('Hall of Shame'), step: 1, lowerIsBetter: true, perGames: true, hint: t('Shame badges got in these games, like Bed and Breakfast or Madhouse') },
 ];
 
 const format = (value, unit) => value == null ? '–' : `${Number.isInteger(value) ? value : value.toFixed(1)}${unit ? ` ${unit}` : ''}`;
@@ -29,7 +30,7 @@ const Change = ({ figure, now, before, scale = 1 }) => {
     const better = figure.lowerIsBetter ? change < 0 : change > 0;
     const Icon = change > 0 ? FaArrowUpLong : FaArrowDownLong;
     return (
-        <span className={`form-figure-change ${unchanged ? 'is-steady' : better ? 'is-better' : 'is-worse'}`} title={`Before: ${format(before, figure.unit)}${figure.perGames && scale !== 1 ? " (in as many games)" : ""}`}>
+        <span className={`form-figure-change ${unchanged ? 'is-steady' : better ? 'is-better' : 'is-worse'}`} title={t('Before: {{format}}{{value}}', { format: format(before, figure.unit), value: figure.perGames && scale !== 1 ? " (in as many games)" : "" })}>
             {unchanged ? '±' : <Icon aria-hidden="true" />}
             {unchanged ? '' : Number.isInteger(change) ? Math.abs(change) : Math.abs(change).toFixed(1)}
         </span>

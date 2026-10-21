@@ -1,4 +1,5 @@
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
+import { t } from '../../../utils/i18n';
 
 /**
  * The key figures of every player in a running game, side by side as on the
@@ -13,7 +14,7 @@ const LiveFigures = ({ players, rows }) => {
             {compare &&
                 <thead>
                     <tr>
-                        <th aria-label="Figure" />
+                        <th aria-label={t('Figure')} />
                         {players.map((player, index) => (
                             <th key={player.id} scope="col">
                                 <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />

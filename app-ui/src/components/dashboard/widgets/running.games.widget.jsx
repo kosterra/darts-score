@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
 import GameTypeIcon from '../../elements/game.type.icon';
+import { t } from '../../../utils/i18n';
 
 /**
  * Games in progress, each with a button to continue playing.
@@ -17,7 +18,7 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
     return (
         <Panel header={widget.title} className="h-100 dashboard-widget">
             {running.length === 0
-                ? <p className="text-subtle fs-7 m-0 p-2">No game is running. Start one from the menu.</p>
+                ? <p className="text-subtle fs-7 m-0 p-2">{t('No game is running. Start one from the menu.')}</p>
                 : (
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {running.map(game => (
@@ -32,13 +33,13 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
                                 </div>
                                 {/* the icon button of the lists */}
                                 <div className="row-actions">
-                                    <Button type="button" icon={<GiDart />} aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                    <Button type="button" icon={<GiDart />} aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(`/${game.type}/${game.id}`)} />
                                 </div>
                             </li>
                         ))}
                         {total > running.length &&
                             <li className="text-faint fs-8 text-center pt-1">
-                                and {total - running.length} older {total - running.length === 1 ? 'game' : 'games'} that were never finished
+                                {t('and')}{' '}{total - running.length}{' '}{t('older')}{' '}{total - running.length === 1 ? t('game') : t('games')}{' '}{t('that were never finished')}
                             </li>
                         }
                     </ul>

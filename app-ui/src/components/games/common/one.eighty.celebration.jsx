@@ -1,5 +1,6 @@
 import OneEightyFigures from './one.eighty.figures';
 import useFleeting from './use.fleeting';
+import { t } from '../../../utils/i18n';
 
 // the number plays for 2.6s; the figures at the bottom need a little longer to sink back
 const DURATION_MS = 3500;
@@ -28,7 +29,7 @@ const OneEightyCelebration = ({ celebration, onDone }) => {
 
     return (
         <div key={celebration.key} className={`one-eighty ${leaving ? 'one-eighty-leaving' : ''}`} aria-live="polite">
-            <span className="visually-hidden">{celebration.words ?? 'One hundred and eighty'} by {celebration.name}!</span>
+            <span className="visually-hidden">{celebration.words ?? t('One hundred and eighty')}{' '}{t('by')}{' '}{celebration.name}!</span>
             <div className="one-eighty-flash" aria-hidden="true" />
             <div className="one-eighty-stage" aria-hidden="true">
                 <span className="one-eighty-ring" />
@@ -43,7 +44,7 @@ const OneEightyCelebration = ({ celebration, onDone }) => {
                 <span className="one-eighty-number">{celebration.number ?? '180'}</span>
                 <span className="one-eighty-label">
                     <span className="one-eighty-name">{celebration.name}</span>
-                    <span className="one-eighty-words">{celebration.words ?? 'One hundred and eighty!'}</span>
+                    <span className="one-eighty-words">{celebration.words ?? t('One hundred and eighty!')}</span>
                 </span>
             </div>
             <OneEightyFigures text={celebration.sign ?? celebration.number ?? '180'} />

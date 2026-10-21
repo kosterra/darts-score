@@ -7,6 +7,7 @@ import { Message } from 'primereact/message';
 
 import AuthLayout from './auth.layout';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
 
 const LoginPage = () => {
     const { login, mailEnabled, sessionEnded } = useAuth();
@@ -29,9 +30,9 @@ const LoginPage = () => {
     };
 
     return (
-        <AuthLayout title="Log in">
+        <AuthLayout title={t('Log in')}>
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
-                {sessionEnded && <Message severity="info" text="Your session has ended. Log in again to go on where you were." className="w-100 justify-content-start mb-2" />}
+                {sessionEnded && <Message severity="info" text={t('Your session has ended. Log in again to go on where you were.')} className="w-100 justify-content-start mb-2" />}
                 <span className="p-float-label w-100">
                     <InputText
                         id="login-email"
@@ -42,7 +43,7 @@ const LoginPage = () => {
                         className="w-100"
                         required
                     />
-                    <label htmlFor="login-email">Email</label>
+                    <label htmlFor="login-email">{t('Email')}</label>
                 </span>
                 <span className="p-float-label w-100">
                     <Password
@@ -55,17 +56,17 @@ const LoginPage = () => {
                         inputClassName="w-100"
                         required
                     />
-                    <label htmlFor="login-password">Password</label>
+                    <label htmlFor="login-password">{t('Password')}</label>
                 </span>
                 {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
-                <Button type="submit" label="Log in" icon="pi pi-sign-in" loading={submitting} />
+                <Button type="submit" label={t('Log in')} icon="pi pi-sign-in" loading={submitting} />
                 {mailEnabled &&
                     <span className="fs-7 text-subtle text-center">
-                        <Link to="/forgot-password">Forgot your password?</Link>
+                        <Link to="/forgot-password">{t('Forgot your password?')}</Link>
                     </span>
                 }
                 <span className="fs-7 text-subtle text-center">
-                    No account yet? <Link to="/register">Register</Link> to set up your own club.
+                    {t('No account yet?')}{' '}<Link to="/register">{t('Register')}</Link>{' '}{t('to set up your own club.')}
                 </span>
             </form>
         </AuthLayout>

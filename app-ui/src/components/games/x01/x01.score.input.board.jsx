@@ -10,14 +10,15 @@ import X01DartBoard from './x01.dartboard';
 import X01WaysOut from './x01.ways.out';
 import X01Keypad from './x01.keypad';
 import ScoreInputBoardHelp from '../common/score.input.board.help';
+import { t } from '../../../utils/i18n';
 
 
 // how the darts are entered, chosen per device: the board, or the keypad
 // (the default on a phone, where the fields of the board are small)
 const INPUT_KEY = 'oche.x01Input';
 const INPUTS = [
-    { label: 'Board', value: 'board', icon: 'pi pi-bullseye' },
-    { label: 'Keypad', value: 'keypad', icon: 'pi pi-th-large' },
+    { label: t('Board'), value: 'board', icon: 'pi pi-bullseye' },
+    { label: t('Keypad'), value: 'keypad', icon: 'pi pi-th-large' },
 ];
 const readInput = () => {
     try {
@@ -129,7 +130,7 @@ const X01ScoreInputBoard = () => {
 
     const visitHeader = (
         <div className="p-panel-header">
-            <span className="p-panel-title">{nickname}&apos;s visit</span>
+            <span className="p-panel-title">{nickname}{t('\'s visit')}</span>
             <span className="d-inline-flex align-items-center gap-2">
                 <SelectButton
                     value={input}
@@ -137,7 +138,7 @@ const X01ScoreInputBoard = () => {
                     onChange={(e) => chooseInput(e.value)}
                     itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-1"><i className={option.icon} aria-hidden="true" />{option.label}</span>}
                     className="p-selectbutton-pills pills-inline x01-input-switch"
-                    aria-label="Enter the darts with"
+                    aria-label={t('Enter the darts with')}
                 />
                 <ScoreInputBoardHelp label="" plainSingles compact />
             </span>
@@ -154,17 +155,17 @@ const X01ScoreInputBoard = () => {
             </div>
             <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                 {/* in a training the bot throws by itself: the board and the input wait */}
-                {botThrowing && <div className="x01-bot-turn" role="status"><FaRobot aria-hidden="true" /> The bot is throwing…</div>}
+                {botThrowing && <div className="x01-bot-turn" role="status"><FaRobot aria-hidden="true" />{' '}{t('The bot is throwing…')}</div>}
                 <Panel headerTemplate={() => visitHeader} className="x01-input">
                     <form onSubmit={submitHandler}>
                         <div className="x01-darts">
                             {shown.map((visible, index) => visible && (
                                 <label key={index} className="x01-dart-field">
-                                    <span className="x01-dart-label">Dart {index + 1}</span>
+                                    <span className="x01-dart-label">{t('Dart')}{' '}{index + 1}</span>
                                     <span className="x01-dart-box">
                                     <InputText
                                         name={`d-${index + 1}`}
-                                        placeholder={index === 0 ? 'e.g. T20' : ''}
+                                        placeholder={index === 0 ? t('e.g. T20') : ''}
                                         value={darts[index]}
                                         keyfilter={keyfilterPattern}
                                         validateOnly
@@ -179,8 +180,8 @@ const X01ScoreInputBoard = () => {
                                         <button
                                             type="button"
                                             className="x01-dart-clear"
-                                            title="Clear this dart"
-                                            aria-label={`Clear dart ${index + 1}`}
+                                            title={t('Clear this dart')}
+                                            aria-label={t('Clear dart {{value}}', { value: index + 1 })}
                                             onClick={() => updateCurrentThrowManual(score, '', index)}
                                         >
                                             <i className="pi pi-times" aria-hidden="true" />
@@ -199,8 +200,8 @@ const X01ScoreInputBoard = () => {
                         </div>
                         <div className={`x01-visit-total ${busted ? 'is-bust' : ''}`} aria-live="polite">
                             {busted
-                                ? <span><strong>Bust</strong> · the score stays at {game.playerModels[game.currentPlayerTurn].score}</span>
-                                : <span>Visit <strong>{visitScore}</strong> · leaves <strong>{score}</strong></span>
+                                ? <span><strong>{t('Bust')}</strong>{' '}{t('· the score stays at')}{' '}{game.playerModels[game.currentPlayerTurn].score}</span>
+                                : <span>{t('Visit')}{' '}<strong>{visitScore}</strong>{' '}{t('· leaves')}{' '}<strong>{score}</strong></span>
                             }
                         </div>
 
@@ -208,7 +209,7 @@ const X01ScoreInputBoard = () => {
                         <Button
                             id="submitThrows"
                             type="submit"
-                            label="Enter score"
+                            label={t('Enter score')}
                             icon="pi pi-check"
                             loading={loading.validateThrow}
                             disabled={botThrowing}
@@ -219,8 +220,8 @@ const X01ScoreInputBoard = () => {
                             <Button
                                 id="submitReturn"
                                 type="submit"
-                                aria-label="Undo last visit"
-                                tooltip="Undo last visit"
+                                aria-label={t('Undo last visit')}
+                                tooltip={t('Undo last visit')}
                                 tooltipOptions={{ position: 'top' }}
                                 icon="pi pi-undo"
                                 severity="danger"
@@ -232,7 +233,7 @@ const X01ScoreInputBoard = () => {
                         </div>
                     </form>
                 </Panel>
-                <Panel header="Ways out" className="x01-ways-panel">
+                <Panel header={t('Ways out')} className="x01-ways-panel">
                     <X01WaysOut />
                 </Panel>
             </div>

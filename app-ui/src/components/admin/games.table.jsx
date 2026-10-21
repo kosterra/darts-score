@@ -30,8 +30,10 @@ import { formatDateTime } from './admin.format';
 import useClubSelection from './use.club.selection';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dialogs';
+import { t } from '../../utils/i18n';
 
-const plural = (count, word) => `${count} ${word}${count === 1 ? '' : 's'}`;
+// "3 games" in the language of the app (the word in English, as the key of its texts)
+const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
 
 // How each game type is loaded (for the selected club), described, scored and deleted
 const GAME_TYPES = {
@@ -49,45 +51,45 @@ const GAME_TYPES = {
     cricket: {
         load: () => CricketService.loadAllCricketGames(),
         remove: (id, clubId) => CricketService.deleteCricketGame(id, clubId),
-        describe: () => ({ title: 'Cricket' }),
-        score: (model) => `${model.score ?? 0} points`,
+        describe: () => ({ title: t('Cricket') }),
+        score: (model) => t('{{value}} points', { value: model.score ?? 0 }),
     },
     elimination: {
         load: () => EliminationService.loadAllEliminationGames(),
         remove: (id, clubId) => EliminationService.deleteEliminationGame(id, clubId),
-        describe: (game) => ({ title: `Target ${game.targetScore}` }),
-        score: (model) => `${model.score ?? 0} points`,
+        describe: (game) => ({ title: t('Target {{targetScore}}', { targetScore: game.targetScore }) }),
+        score: (model) => t('{{value}} points', { value: model.score ?? 0 }),
     },
     clock: {
         load: () => ClockService.loadAllClockGames(),
         remove: (id, clubId) => ClockService.deleteClockGame(id, clubId),
-        describe: (game) => ({ title: `Around the Clock · ${game.mode ?? 'All'}` }),
-        score: (model) => model.finished ? `${model.darts ?? 0} darts` : `${model.target ?? 0} of 21`,
+        describe: (game) => ({ title: t('Around the Clock · {{value}}', { value: game.mode ?? 'All' }) }),
+        score: (model) => model.finished ? t('{{value}} darts', { value: model.darts ?? 0 }) : t('{{value}} of 21', { value: model.target ?? 0 }),
     },
 };
 
 const TYPE_OPTIONS = [
-    { label: 'All', value: 'all' },
-    { label: 'X01', value: 'x01' },
-    { label: 'Cricket', value: 'cricket' },
-    { label: 'Elimination', value: 'elimination' },
-    { label: 'Around the Clock', value: 'clock' },
+    { label: t('All'), value: 'all' },
+    { label: t('X01'), value: 'x01' },
+    { label: t('Cricket'), value: 'cricket' },
+    { label: t('Elimination'), value: 'elimination' },
+    { label: t('Around the Clock'), value: 'clock' },
 ];
 
 const STATUS_OPTIONS = [
-    { label: 'All', value: 'all' },
-    { label: 'Running', value: 'running' },
-    { label: 'Finished', value: 'finished' },
+    { label: t('All'), value: 'all' },
+    { label: t('Running'), value: 'running' },
+    { label: t('Finished'), value: 'finished' },
 ];
 // in a club: also the games someone asked to delete
-const CLUB_STATUS_OPTIONS = [...STATUS_OPTIONS, { label: 'Deletion asked', value: 'requested' }];
+const CLUB_STATUS_OPTIONS = [...STATUS_OPTIONS, { label: t('Deletion asked'), value: 'requested' }];
 
 // what the user may do about deleting their games, in the toasts
 const DONE = {
-    agreed: 'You agreed to delete the game.',
-    declined: 'You declined to delete the game.',
-    withdrawn: 'Your request was taken back.',
-    kept: 'The game stays.',
+    agreed: t('You agreed to delete the game.'),
+    declined: t('You declined to delete the game.'),
+    withdrawn: t('Your request was taken back.'),
+    kept: t('The game stays.'),
 };
 
 /**
@@ -142,7 +144,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
             if (!acrossClubs) await loadRequests();
         } catch (error) {
             setGames([]);
-            toast.current.show({ severity: 'error', summary: 'Load games', detail: error.message, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Load games'), detail: error.message, life: 4000 });
         }
     };
 
@@ -161,7 +163,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         if (!linkedRequest || acrossClubs) return;
         DeletionRequestService.loadRequest(linkedRequest)
             .then(setShownRequest)
-            .catch(error => toast.current.show({ severity: 'error', summary: 'Request to delete a game', detail: error.message, life: 4000 }));
+            .catch(error => toast.current.show({ severity: 'error', summary: t('Request to delete a game'), detail: error.message, life: 4000 }));
     }, [linkedRequest, acrossClubs]);
 
     const closeRequest = () => {
@@ -203,20 +205,20 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
             GAME_TYPES[game.type].remove(game.id, acrossClubs ? game.club?.id : undefined).catch(() => false)));
         const failed = results.filter(ok => !ok).length;
         if (failed) {
-            toast.current.show({ severity: 'error', summary: 'Delete games', detail: `${plural(failed, 'game')} could not be deleted. Please try again.`, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Delete games'), detail: t('{{plural}} could not be deleted. Please try again.', { plural: plural(failed, 'game') }), life: 4000 });
         } else {
-            toast.current.show({ severity: 'success', summary: toDelete.length === 1 ? 'Game deleted' : 'Games deleted', detail: plural(toDelete.length, 'game'), life: 3000 });
+            toast.current.show({ severity: 'success', summary: toDelete.length === 1 ? t('Game deleted') : t('Games deleted'), detail: plural(toDelete.length, 'game'), life: 3000 });
         }
         setSelection([]);
         await loadGames();
     };
 
     const confirmDeleteSelection = () => confirmDialog({
-        header: 'Delete games',
-        message: `Are you sure you want to delete ${plural(selection.length, 'game')}?`,
+        header: t('Delete games'),
+        message: t('Are you sure you want to delete {{plural}}?', { plural: plural(selection.length, 'game') }),
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Delete',
-        rejectLabel: 'Cancel',
+        acceptLabel: t('Delete'),
+        rejectLabel: t('Cancel'),
         acceptClassName: 'p-button-danger p-button-sm',
         rejectClassName: 'p-button-secondary p-button-sm',
         accept: () => deleteGames(selection),
@@ -242,7 +244,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                 return (
                     <div key={id} className="d-flex align-items-center justify-content-between gap-3">
                         <PlayerCell player={playersById.get(id)}>
-                            {model.hasWonGame && <FaTrophy className="ms-2 text-gold" aria-label="Winner" />}
+                            {model.hasWonGame && <FaTrophy className="ms-2 text-gold" aria-label={t('Winner')} />}
                         </PlayerCell>
                         <span className="text-subtle fs-8 text-nowrap">{GAME_TYPES[game.type].score(model, game)}</span>
                     </div>
@@ -256,14 +258,14 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const mayAsk = (game) => !acrossClubs && !canManage && !game.deletion && game.players.some(id => myPlayerIds.has(id));
 
     const titleOf = (game) => game && GAME_TYPES[game.type].describe(game).title;
-    const showError = (detail) => toast.current.show({ severity: 'error', summary: 'Delete a game', detail, life: 4000 });
+    const showError = (detail) => toast.current.show({ severity: 'error', summary: t('Delete a game'), detail, life: 4000 });
 
     const onAsked = async (request) => {
         setAsking(null);
         toast.current.show({
             severity: 'success',
-            summary: request.status === 'deleted' ? 'Game deleted' : 'Asked to delete the game',
-            detail: request.status === 'deleted' ? 'You played it alone, so it went at once.' : 'The other players and the club admins are asked.',
+            summary: request.status === 'deleted' ? t('Game deleted') : t('Asked to delete the game'),
+            detail: request.status === 'deleted' ? t('You played it alone, so it went at once.') : t('The other players and the club admins are asked.'),
             life: 4000,
         });
         await loadGames();
@@ -272,7 +274,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const onRequestChanged = async (request, what) => {
         closeRequest();
         const deleted = request.status === 'deleted';
-        toast.current.show({ severity: 'success', summary: deleted ? 'Game deleted' : 'Request to delete a game', detail: deleted ? (what === 'agreed' ? 'Every player agreed, so the game was deleted.' : 'The game was deleted with the badges earned in it.') : DONE[what], life: 4000 });
+        toast.current.show({ severity: 'success', summary: deleted ? t('Game deleted') : t('Request to delete a game'), detail: deleted ? (what === 'agreed' ? t('Every player agreed, so the game was deleted.') : t('The game was deleted with the badges earned in it.')) : DONE[what], life: 4000 });
         await loadGames();
     };
 
@@ -282,15 +284,15 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const actionsBody = (game) => (
         <div className="row-actions">
             {canOpen(game) && (game.gameIsRunning
-                ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title="Continue playing" aria-label="Continue playing"><GiDart /></Link>
-                : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title="Show statistics" aria-label="Show statistics"><FaChartColumn /></Link>
+                ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title={t('Continue playing')} aria-label={t('Continue playing')}><GiDart /></Link>
+                : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title={t('Show statistics')} aria-label={t('Show statistics')}><FaChartColumn /></Link>
             )}
             {game.deletion &&
-                <Button type="button" icon="pi pi-flag" severity="danger" aria-label="The request to delete this game" title="Request to delete" onClick={() => setShownRequest(game.deletion)} />}
+                <Button type="button" icon="pi pi-flag" severity="danger" aria-label={t('The request to delete this game')} title={t('Request to delete')} onClick={() => setShownRequest(game.deletion)} />}
             {mayAsk(game) &&
-                <Button type="button" icon="pi pi-flag" severity="secondary" aria-label="Ask to delete this game" title="Ask to delete" onClick={() => setAsking(game)} />}
-            {canManage && <JSONViewer data={game} header="Game _RAW Data" />}
-            {canManage && <DeletePopup data={game} header="Delete Game" message="this game" handleDelete={(g) => deleteGames([g])} />}
+                <Button type="button" icon="pi pi-flag" severity="secondary" aria-label={t('Ask to delete this game')} title={t('Ask to delete')} onClick={() => setAsking(game)} />}
+            {canManage && <JSONViewer data={game} header={t('Game _RAW Data')} />}
+            {canManage && <DeletePopup data={game} header={t('Delete Game')} message={t('this game')} handleDelete={(g) => deleteGames([g])} />}
         </div>
     );
 
@@ -301,34 +303,34 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         return (
             <div className="d-flex flex-column align-items-start gap-1">
                 <GameStatusTag running={game.gameIsRunning} />
-                {request && <Tag severity="danger" value={`Deletion asked · ${request.agreed} of ${request.total}`} />}
+                {request && <Tag severity="danger" value={t('Deletion asked · {{agreed}} of {{total}}', { agreed: request.agreed, total: request.total })} />}
             </div>
         );
     };
 
     return (
-        <Panel header={acrossClubs ? 'Games of all clubs' : 'Games'}>
+        <Panel header={acrossClubs ? t('Games of all clubs') : t('Games')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
-                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label="Game type" />
-                <SelectButton value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label="Status" />
+                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label={t('Game type')} />
+                <SelectButton value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label={t('Status')} />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
                     optionLabel="nickname"
                     optionValue="id"
                     onChange={(e) => setPlayerId(e.value)}
-                    placeholder="All players"
+                    placeholder={t('All players')}
                     filter
                     showClear
-                    aria-label="Player"
+                    aria-label={t('Player')}
                     style={{ minWidth: '12rem' }}
                 />
                 <div className="ms-auto d-flex align-items-center gap-3">
                     {!needsClubs && <span className="text-faint fs-7">{plural(visibleGames.length, 'game')}</span>}
                     {canManage &&
                         <Button
-                            label={selection.length ? `Delete ${selection.length}` : 'Delete'}
+                            label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
                             icon="pi pi-trash"
                             severity="danger"
                             size="small"
@@ -351,15 +353,15 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
-                        emptyMessage="No games match these filters."
+                        emptyMessage={t('No games match these filters.')}
                         responsiveLayout="scroll"
                     >
                         {canManage && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
-                        <Column field="createdAt" header="Date" sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
-                        {acrossClubs && <Column field="club.name" header="Club" sortable body={(game) => <ClubCell club={game.club} />} />}
-                        <Column header="Game" body={gameBody} />
-                        <Column header="Players" body={playersBody} style={{ minWidth: '16rem' }} />
-                        <Column header="Status" body={statusBody} />
+                        <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
+                        {acrossClubs && <Column field="club.name" header={t('Club')} sortable body={(game) => <ClubCell club={game.club} />} />}
+                        <Column header={t('Game')} body={gameBody} />
+                        <Column header={t('Players')} body={playersBody} style={{ minWidth: '16rem' }} />
+                        <Column header={t('Status')} body={statusBody} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )

@@ -1,6 +1,7 @@
 // Every way to finish a score with the darts left in the visit, best first.
 
 import checkout from './checkout';
+import { t } from './i18n';
 
 const NUMBERS = Array.from({ length: 20 }, (_, index) => index + 1);
 // every dart that scores: singles, doubles, trebles and the bull
@@ -200,7 +201,7 @@ export const scoringTip = (score, { dartsLeft = 3, outMode = 'Double Out', doubl
     // the treble the player throws at most comes first, the other one is the way round a blocked bed
     const main = mainTreble === 'T19' || mainTreble === 'T18' ? mainTreble : 'T20';
     const other = main === 'T20' ? 'T19' : 'T20';
-    const advice = `Stay on ${main}; switch to ${other} if the ${main.slice(1)} is blocked.`;
+    const advice = t('Stay on {{main}}; switch to {{other}} if the {{slice}} is blocked.', { main: main, other: other, slice: main.slice(1) });
     const scoring = [main, ...SCORING_ORDER.filter(name => name !== main)].map(name => DARTS.find(dart => dart.name === name));
     if (outMode !== 'Double Out' || score - 60 * dartsLeft > 170) return { darts: null, leaves: null, advice };
 
@@ -218,5 +219,5 @@ export const scoringTip = (score, { dartsLeft = 3, outMode = 'Double Out', doubl
     };
     pick(0, dartsLeft, []);
     if (!best) return { darts: null, leaves: null, advice };
-    return { darts: best.darts.map(dart => dart.name), leaves: best.leaves, advice: BOGEYS.includes(score - 60 * dartsLeft) ? `${score - 60 * dartsLeft} would be a bogey number: no finish in one visit.` : null };
+    return { darts: best.darts.map(dart => dart.name), leaves: best.leaves, advice: BOGEYS.includes(score - 60 * dartsLeft) ? t('{{value}} would be a bogey number: no finish in one visit.', { value: score - 60 * dartsLeft }) : null };
 };

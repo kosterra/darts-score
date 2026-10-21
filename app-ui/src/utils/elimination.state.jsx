@@ -31,6 +31,7 @@ import {
     FETCH_GAME_SUCCESS,
     FETCH_PLAYERS_SUCCESS
 } from './constants';
+import { t } from './i18n';
 
 const EliminationState = ({ children }) => {
     const { id } = useParams();
@@ -65,7 +66,7 @@ const EliminationState = ({ children }) => {
         const game = state.game;
         saving.current = saving.current
             .then(() => EliminationService.updateEliminationGame(game))
-            .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last visit could not be saved. Check the connection: the next visit saves everything.', life: 4000 }))
+            .catch(() => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail: t('The last visit could not be saved. Check the connection: the next visit saves everything.'), life: 4000 }))
             .then(() => { if (game.hasWinner) setWinnerSaved(true); });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [saveRequest]);
@@ -85,8 +86,8 @@ const EliminationState = ({ children }) => {
             } catch (err) {
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Load Game',
-                    detail: 'Failed to load game. ' + err.message,
+                    summary: t('Load Game'),
+                    detail: t('Failed to load game. ') + err.message,
                     life: 3000
                 });
                 navigate('/', { replace: true });
@@ -230,8 +231,8 @@ const EliminationState = ({ children }) => {
         if (currentThrow.some(d => !validateDartValue(d))) {
             toast.current.show({
                 severity: 'error',
-                summary: 'Validate Throw',
-                detail: 'One or more darts are invalid.',
+                summary: t('Validate Throw'),
+                detail: t('One or more darts are invalid.'),
                 life: 3000
             });
             setLoading('validateThrow', false);
@@ -316,8 +317,8 @@ const EliminationState = ({ children }) => {
             const originalScore = playerModels[playerId]?.score ?? 0;
             toast.current.show({
                 severity: 'warn',
-                summary: 'Bust!',
-                detail: `Throw is bust. Score stays at ${originalScore}.`,
+                summary: t('Bust!'),
+                detail: t('Throw is bust. Score stays at {{originalScore}}.', { originalScore: originalScore }),
                 life: 3000
             });
             // a bust is a visit too: its darts count, and undo takes it back first
@@ -404,8 +405,8 @@ const EliminationState = ({ children }) => {
             const winnerPlayer = state.players?.find(p => p.id === playerId);
             toast.current.show({
                 severity: 'success',
-                summary: 'Game Won!',
-                detail: `${winnerPlayer?.nickname || winnerPlayer?.name || 'A player'} wins the game!`,
+                summary: t('Game Won!'),
+                detail: t('{{name}} wins the game!', { name: winnerPlayer?.nickname || winnerPlayer?.name || t('A player') }),
                 life: 4000
             });
             dispatch({ type: RESET_CURRENT_THROW });
@@ -447,8 +448,8 @@ const EliminationState = ({ children }) => {
         ) {
             toast.current.show({
                 severity: 'error',
-                summary: 'Validate Throw',
-                detail: 'Please enter a value for each dart thrown.',
+                summary: t('Validate Throw'),
+                detail: t('Please enter a value for each dart thrown.'),
                 life: 3000
             });
             return false;

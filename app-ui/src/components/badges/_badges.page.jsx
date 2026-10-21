@@ -8,6 +8,7 @@ import StatsService from '../../services/stats.service';
 import PageLoader from '../elements/page.loader';
 import BadgeMedal from './badge.medal';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 const weeks = (count) => `${count} ${count === 1 ? 'week' : 'weeks'}`;
 
@@ -16,14 +17,14 @@ const weeks = (count) => `${count} ${count === 1 ? 'week' : 'weeks'}`;
  */
 const WeekStreak = ({ streak, compact = false }) => {
     if (!streak) return null;
-    if (streak.best === 0) return <span className={`text-faint ${compact ? 'fs-8' : 'fs-7'}`}>Not played yet</span>;
+    if (streak.best === 0) return <span className={`text-faint ${compact ? 'fs-8' : 'fs-7'}`}>{t('Not played yet')}</span>;
     return (
         <span className={`d-flex flex-wrap align-items-center column-gap-3 ${compact ? 'fs-8' : 'fs-7'}`}>
             <span className={streak.current > 0 ? 'text-default' : 'text-faint'}>
                 <FaFire className={`me-1 ${streak.current > 0 ? 'text-orange' : ''}`} aria-hidden="true" />
-                {streak.current > 0 ? `${weeks(streak.current)} in a row` : 'No current streak'}
+                {streak.current > 0 ? t('{{weeks}} in a row', { weeks: weeks(streak.current) }) : t('No current streak')}
             </span>
-            <span className="text-faint">Best: {weeks(streak.best)}</span>
+            <span className="text-faint">{t('Best:')}{' '}{weeks(streak.best)}</span>
         </span>
     );
 };
@@ -41,13 +42,13 @@ const BadgesOverview = () => {
     if (!overview) return <PageLoader />;
 
     return (
-        <Panel header="Badges">
+        <Panel header={t('Badges')}>
             <div className="container-fluid overflow-hidden">
                 <p className="text-subtle p-3 pb-0 m-0">
-                    Players collect badges for what they achieve in games and trainings. Pick a player to see their profile with the whole collection.
+                    {t('Players collect badges for what they achieve in games and trainings. Pick a player to see their profile with the whole collection.')}
                 </p>
                 <div className="row gy-4 p-3">
-                    {overview.players.length === 0 && <span className="text-subtle">This club has no players yet.</span>}
+                    {overview.players.length === 0 && <span className="text-subtle">{t('This club has no players yet.')}</span>}
                     {overview.players.map(player => (
                         <div className="col-12 col-md-6 col-xl-4" key={player.id}>
                             <Link to={`/players/${player.id}#badges`} className="badge-player-card bg-surface-raised rounded-2 p-3 d-flex align-items-center gap-3 h-100">
@@ -59,7 +60,7 @@ const BadgesOverview = () => {
                                 />
                                 <div className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
                                     <span className="text-default fw-semibold text-break">{player.nickname}</span>
-                                    <span className="text-subtle fs-7">{player.earnedCount} of {overview.total} badges</span>
+                                    <span className="text-subtle fs-7">{player.earnedCount}{' '}{t('of')}{' '}{overview.total}{' '}{t('badges')}</span>
                                     <WeekStreak streak={player.weekStreak} compact />
                                 </div>
                                 <span className="d-flex gap-1 flex-shrink-0">

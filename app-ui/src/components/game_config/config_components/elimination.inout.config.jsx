@@ -1,5 +1,6 @@
 import { SelectButton } from 'primereact/selectbutton';
 import SetsLegsConfigOptions from '../config_options/sets.legs.config.options';
+import { t } from '../../../utils/i18n';
 
 const EliminationInOutConfig = (props) => {
     const {
@@ -13,7 +14,7 @@ const EliminationInOutConfig = (props) => {
         <div>
             <div className="row">
                 <div className="col-12 col-xl-6">
-                    <p className="setting-title">Starting In</p>
+                    <p className="setting-title">{t('Starting In')}</p>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col">
                             <SelectButton
@@ -27,7 +28,7 @@ const EliminationInOutConfig = (props) => {
                     </div>
                 </div>
                 <div className="col-12 col-xl-6">
-                    <p className="setting-title">Checkout</p>
+                    <p className="setting-title">{t('Checkout')}</p>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col">
                             <SelectButton

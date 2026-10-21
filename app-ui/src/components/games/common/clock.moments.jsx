@@ -1,6 +1,7 @@
 import { Stage } from './x01.moments';
 import { Dragon, Gnome, Monster, Troll } from './one.eighty.figures';
 import { targetLabel } from '../../../utils/atc.darts';
+import { t } from '../../../utils/i18n';
 
 const FIGURES = [Gnome, Monster, Dragon, Troll];
 
@@ -40,7 +41,7 @@ const ClockMoment = ({ moment, onDone, mode }) => {
 
     if (moment.kind === 'strike') {
         return (
-            <Stage moment={moment} onDone={onDone} className="is-clock-strike" title="Round the clock!" detail={<><strong>{moment.name}</strong> is done in {moment.darts} darts</>}>
+            <Stage moment={moment} onDone={onDone} className="is-clock-strike" title={t('Round the clock!')} detail={<><strong>{moment.name}</strong>{' '}{t('is done in')}{' '}{moment.darts}{' '}{t('darts')}</>}>
                 <div className="clock-strike">
                     <span className="clock-ring" /><span className="clock-ring is-late" />
                     <WallClock ringing />
@@ -52,7 +53,7 @@ const ClockMoment = ({ moment, onDone, mode }) => {
     if (moment.kind === 'roll') {
         const hits = Array.from({ length: moment.to - moment.from }, (_, index) => label(moment.from + index));
         return (
-            <Stage moment={moment} onDone={onDone} className="is-clock-roll" title="On a roll!" detail={<><strong>{moment.name}</strong> hits {hits.join(' · ')}</>}>
+            <Stage moment={moment} onDone={onDone} className="is-clock-roll" title={t('On a roll!')} detail={<><strong>{moment.name}</strong>{' '}{t('hits')}{' '}{hits.join(' · ')}</>}>
                 <div className="clock-roll">
                     <WallClock className="is-ticking" />
                 </div>
@@ -64,7 +65,7 @@ const ClockMoment = ({ moment, onDone, mode }) => {
     const Figure = FIGURES[(moment.playerIndex ?? 0) % FIGURES.length];
     const tiles = Array.from({ length: moment.to - moment.from + 1 }, (_, index) => moment.from + index);
     return (
-        <Stage moment={moment} onDone={onDone} className="is-clock-leap" title="Giant leap!" detail={<><strong>{moment.name}</strong> jumps from {label(moment.from)} to {label(moment.to)}</>}>
+        <Stage moment={moment} onDone={onDone} className="is-clock-leap" title={t('Giant leap!')} detail={<><strong>{moment.name}</strong>{' '}{t('jumps from')}{' '}{label(moment.from)}{' '}{t('to')}{' '}{label(moment.to)}</>}>
             <div className="clock-leap">
                 <div className="clock-leap-tiles">
                     {tiles.map((index, place) => (

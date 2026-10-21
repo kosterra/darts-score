@@ -3,6 +3,7 @@ import { Panel } from 'primereact/panel';
 import dayjs from 'dayjs';
 
 import { activityCalendar } from '../../../utils/club.charts';
+import { t } from '../../../utils/i18n';
 
 const LEVELS = 4;
 const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
@@ -27,7 +28,7 @@ const ActivityCalendarWidget = ({ widget, gameLog }) => {
     return (
         <Panel header={widget.title} className="h-100">
             <p className="text-faint fs-8 mt-0 mb-3">
-                {calendar.total} games on {activeDays} days in the last six months.
+                {calendar.total}{' '}{t('games on')}{' '}{activeDays}{' '}{t('days in the last six months.')}
             </p>
             <div className="activity-calendar" style={{ '--weeks': calendar.columns.length }}>
                 <span />
@@ -38,16 +39,16 @@ const ActivityCalendarWidget = ({ widget, gameLog }) => {
                         {calendar.columns.map(column => {
                             const entry = column.days[day];
                             if (!entry) return <span key={`${column.start}-${day}`} />;
-                            const title = `${dayjs(entry.date).format('ddd DD.MM.YYYY')}: ${entry.count} ${entry.count === 1 ? 'game' : 'games'}`;
+                            const title = `${dayjs(entry.date).format('ddd DD.MM.YYYY')}: ${entry.count === 1 ? t('{{count}} game', { count: 1 }) : t('{{count}} games', { count: entry.count })}`;
                             return <span key={entry.date} className={`activity-day level-${levelOf(entry.count, calendar.max)}`} title={title} aria-label={title} />;
                         })}
                     </div>
                 ))}
             </div>
             <div className="d-flex justify-content-end align-items-center gap-1 mt-2 text-faint fs-9">
-                <span className="me-1">Less</span>
+                <span className="me-1">{t('Less')}</span>
                 {Array.from({ length: LEVELS + 1 }, (_, level) => <span key={level} className={`activity-day level-${level}`} aria-hidden="true" />)}
-                <span className="ms-1">More</span>
+                <span className="ms-1">{t('More')}</span>
             </div>
         </Panel>
     );

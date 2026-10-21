@@ -17,11 +17,13 @@ import GameStatusTag from '../elements/game.status.tag';
 import { AdminToolbar } from './admin.common';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { formatDateTime } from './admin.format';
+import { t } from '../../utils/i18n';
 
-const TYPE_OPTIONS = [{ label: 'All', value: 'all' }, { label: 'X01', value: 'x01' }, { label: 'Cricket', value: 'cricket' }];
-const STATUS_OPTIONS = [{ label: 'All', value: 'all' }, { label: 'Running', value: 'running' }, { label: 'Finished', value: 'finished' }];
+const TYPE_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }];
+const STATUS_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('Running'), value: 'running' }, { label: t('Finished'), value: 'finished' }];
 
-const plural = (count, word) => `${count} ${count === 1 ? word : `${word}s`}`;
+// "3 games" in the language of the app (the word in English, as the key of its texts)
+const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
 const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('');
 
 /**
@@ -66,19 +68,19 @@ const QuickGamesList = () => {
     const deleteGames = async (ids) => {
         try {
             const { deleted } = await AdminService.deleteQuickGames(ids);
-            toast.current?.show({ severity: 'success', summary: deleted === 1 ? 'Quick game deleted' : 'Quick games deleted', detail: plural(deleted, 'game'), life: 3000 });
+            toast.current?.show({ severity: 'success', summary: deleted === 1 ? t('Quick game deleted') : t('Quick games deleted'), detail: plural(deleted, 'game'), life: 3000 });
             setSelection([]);
             await load();
         } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Delete quick games', detail: error.message, life: 4000 });
+            toast.current?.show({ severity: 'error', summary: t('Delete quick games'), detail: error.message, life: 4000 });
         }
     };
     const confirmDeleteSelection = () => confirmDialog({
-        header: 'Delete quick games',
-        message: `Are you sure you want to delete ${plural(selection.length, 'quick game')}?`,
+        header: t('Delete quick games'),
+        message: t('Are you sure you want to delete {{plural}}?', { plural: plural(selection.length, 'quick game') }),
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Delete',
-        rejectLabel: 'Cancel',
+        acceptLabel: t('Delete'),
+        rejectLabel: t('Cancel'),
         acceptClassName: 'p-button-danger',
         accept: () => deleteGames(selection.map(game => game.id)),
     });
@@ -89,7 +91,7 @@ const QuickGamesList = () => {
                 <GameTypeTag type={game.kind} />
                 <span className="text-default fs-7 fw-semibold">{game.format}</span>
             </div>
-            <span className="text-faint fs-8">Quick game · no account</span>
+            <span className="text-faint fs-8">{t('Quick game · no account')}</span>
         </div>
     );
 
@@ -101,7 +103,7 @@ const QuickGamesList = () => {
                     <Avatar label={initials(name)} shape="circle" className="avatar-sm bg-surface-high flex-shrink-0" />
                     <span className="text-default fw-semibold text-truncate">
                         {name}
-                        {game.winner === name && <FaTrophy className="ms-2 text-gold" aria-label="Winner" />}
+                        {game.winner === name && <FaTrophy className="ms-2 text-gold" aria-label={t('Winner')} />}
                     </span>
                 </div>
             ))}
@@ -110,35 +112,35 @@ const QuickGamesList = () => {
 
     const actionsBody = (game) => (
         <div className="row-actions">
-            <DeletePopup data={game} header="Delete Quick Game" message={`the quick game of ${game.names.join(', ')}`} handleDelete={(row) => deleteGames([row.id])} />
+            <DeletePopup data={game} header={t('Delete Quick Game')} message={t('the quick game of {{join}}', { join: game.names.join(', ') })} handleDelete={(row) => deleteGames([row.id])} />
         </div>
     );
 
     return (
-        <Panel header="Quick games">
+        <Panel header={t('Quick games')}>
             <p className="text-subtle fs-7 mt-0 mb-3">
-                Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started.
+                {t('Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started.')}
             </p>
 
-            <div className="quick-games-days" aria-label="Quick games started per day, the last 30 days">
+            <div className="quick-games-days" aria-label={t('Quick games started per day, the last 30 days')}>
                 {days.map(day => (
-                    <span key={day.day} className="quick-games-day" title={`${dayjs(day.day).format('DD.MM.YYYY')}: ${day.games} started, ${day.finished} finished`}>
+                    <span key={day.day} className="quick-games-day" title={t('{{format}}: {{games}} started, {{finished}} finished', { format: dayjs(day.day).format('DD.MM.YYYY'), games: day.games, finished: day.finished })}>
                         <span className="is-started" style={{ height: `${(day.games / most) * 100}%` }} />
                         <span className="is-finished" style={{ height: `${(day.finished / most) * 100}%` }} />
                     </span>
                 ))}
             </div>
             <p className="text-faint fs-8 mt-1 mb-3">
-                The last 30 days: started <span className="quick-games-key is-started" /> and finished <span className="quick-games-key is-finished" />. {plural(data?.total ?? 0, 'quick game')} kept now.
+                {t('The last 30 days: started')}{' '}<span className="quick-games-key is-started" />{' '}{t('and finished')}{' '}<span className="quick-games-key is-finished" />. {plural(data?.total ?? 0, t('quick game'))}{' '}{t('kept now.')}
             </p>
 
             <AdminToolbar>
-                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label="Game type" />
-                <SelectButton value={status} options={STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label="Status" />
+                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label={t('Game type')} />
+                <SelectButton value={status} options={STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label={t('Status')} />
                 <div className="ms-auto d-flex align-items-center gap-3">
                     <span className="text-faint fs-7">{plural(games.length, 'game')}</span>
                     <Button
-                        label={selection.length ? `Delete ${selection.length}` : 'Delete'}
+                        label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
                         icon="pi pi-trash"
                         severity="danger"
                         size="small"
@@ -149,7 +151,7 @@ const QuickGamesList = () => {
             </AdminToolbar>
 
             {failed
-                ? <p className="text-subtle fs-7 m-0">The quick games could not be loaded.</p>
+                ? <p className="text-subtle fs-7 m-0">{t('The quick games could not be loaded.')}</p>
                 : (
                     <DataTable
                         value={games}
@@ -160,15 +162,15 @@ const QuickGamesList = () => {
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
-                        emptyMessage={data?.games?.length ? 'No quick games match these filters.' : 'No quick games yet.'}
+                        emptyMessage={data?.games?.length ? t('No quick games match these filters.') : t('No quick games yet.')}
                         responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
-                        <Column field="createdAt" header="Date" sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
-                        <Column header="Game" body={gameBody} />
-                        <Column header="Players" body={playersBody} style={{ minWidth: '14rem' }} />
-                        <Column header="Status" body={(game) => <GameStatusTag running={!game.finished} />} />
-                        <Column field="updatedAt" header="Last visit" sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.updatedAt)}</span>} />
+                        <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
+                        <Column header={t('Game')} body={gameBody} />
+                        <Column header={t('Players')} body={playersBody} style={{ minWidth: '14rem' }} />
+                        <Column header={t('Status')} body={(game) => <GameStatusTag running={!game.finished} />} />
+                        <Column field="updatedAt" header={t('Last visit')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.updatedAt)}</span>} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )

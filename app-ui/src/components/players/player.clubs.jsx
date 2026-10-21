@@ -5,6 +5,7 @@ import { Dropdown } from 'primereact/dropdown';
 import PlayerService from '../../services/player.service';
 import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
 
 /**
  * On the page of a player, for an admin of several clubs: the clubs the
@@ -27,7 +28,7 @@ const PlayerClubs = ({ player, onSaved, onError, onLeft }) => {
             setMemberships(await PlayerService.loadPlayerClubs(player.id));
         } catch (error) {
             setMemberships([]);
-            errorRef.current('Clubs of the player', error);
+            errorRef.current(t('Clubs of the player'), error);
         }
     }, [player.id]);
     useEffect(() => { load(); }, [load]);
@@ -35,7 +36,7 @@ const PlayerClubs = ({ player, onSaved, onError, onLeft }) => {
     const memberOf = new Set((memberships ?? []).map(club => club.id));
     const otherClubs = adminClubs.filter(club => !memberOf.has(club.id));
     const isLastClub = (memberships ?? []).length <= 1;
-    const nameOf = (clubId) => adminClubs.find(club => club.id === clubId)?.name ?? 'the club';
+    const nameOf = (clubId) => adminClubs.find(club => club.id === clubId)?.name ?? t('the club');
 
     const run = async (summary, action, leaves) => {
         setBusy(true);
@@ -54,37 +55,37 @@ const PlayerClubs = ({ player, onSaved, onError, onLeft }) => {
 
     return (
         <>
-            <p className="setting-title">Member of</p>
+            <p className="setting-title">{t('Member of')}</p>
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col d-flex flex-column gap-2 pt-1">
-                    {memberships === null && <span className="text-faint fs-7">Loading…</span>}
+                    {memberships === null && <span className="text-faint fs-7">{t('Loading…')}</span>}
                     {(memberships ?? []).map(club => (
                         <div key={club.id} className="d-flex align-items-center gap-3">
                             <ClubLogo club={club} />
                             <span className="text-default fw-semibold flex-grow-1 text-break">
                                 {club.name}
-                                {club.id === activeClub?.id && <span className="text-faint fw-normal fs-8"> · this club</span>}
+                                {club.id === activeClub?.id && <span className="text-faint fw-normal fs-8">{' '}{t('· this club')}</span>}
                             </span>
                             {club.canManage !== false &&
                                 <Button
                                     type="button"
                                     icon="pi pi-sign-out"
-                                    label="Remove"
+                                    label={t('Remove')}
                                     size="small"
                                     severity="danger"
                                     text
                                     disabled={busy || isLastClub}
-                                    tooltip={isLastClub ? 'The only club of this player: delete the player instead' : undefined}
+                                    tooltip={isLastClub ? t('The only club of this player: delete the player instead') : undefined}
                                     tooltipOptions={{ position: 'top', showOnDisabled: true }}
-                                    onClick={() => run(`Removed from ${club.name}`, () => PlayerService.removePlayerFromClub(player.id, club.id), club.id === activeClub?.id)}
+                                    onClick={() => run(t('Removed from {{name}}', { name: club.name }), () => PlayerService.removePlayerFromClub(player.id, club.id), club.id === activeClub?.id)}
                                 />
                             }
                         </div>
                     ))}
-                    <span className="text-faint fs-8">Removing ends the membership only: the games played in that club stay and keep showing the name.</span>
+                    <span className="text-faint fs-8">{t('Removing ends the membership only: the games played in that club stay and keep showing the name.')}</span>
                 </div>
             </div>
-            <p className="setting-title">Add or move to a club</p>
+            <p className="setting-title">{t('Add or move to a club')}</p>
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col d-flex flex-column gap-2 pt-1">
                     <Dropdown
@@ -93,36 +94,36 @@ const PlayerClubs = ({ player, onSaved, onError, onLeft }) => {
                         optionLabel="name"
                         optionValue="id"
                         onChange={(event) => setClubToAdd(event.value)}
-                        placeholder={otherClubs.length ? 'Choose one of your clubs' : 'Already in all your clubs'}
+                        placeholder={otherClubs.length ? t('Choose one of your clubs') : t('Already in all your clubs')}
                         disabled={!otherClubs.length}
                         filter={otherClubs.length > 8}
-                        aria-label="Club to add the player to"
+                        aria-label={t('Club to add the player to')}
                         className="w-100"
                     />
                     <div className="d-flex flex-wrap justify-content-end gap-2">
                         <Button
                             type="button"
                             icon="pi pi-arrow-right"
-                            label="Move"
+                            label={t('Move')}
                             size="small"
                             severity="secondary"
                             disabled={!clubToAdd || busy}
-                            tooltip="Add to that club and leave this one"
+                            tooltip={t('Add to that club and leave this one')}
                             tooltipOptions={{ position: 'top' }}
-                            onClick={() => run(`Moved to ${nameOf(clubToAdd)}`, () => PlayerService.addPlayerToClub(player.id, clubToAdd, true), true)}
+                            onClick={() => run(t('Moved to {{nameOf}}', { nameOf: nameOf(clubToAdd) }), () => PlayerService.addPlayerToClub(player.id, clubToAdd, true), true)}
                         />
                         <Button
                             type="button"
                             icon="pi pi-plus"
-                            label="Add"
+                            label={t('Add')}
                             size="small"
                             disabled={!clubToAdd || busy}
-                            tooltip="Member of both clubs"
+                            tooltip={t('Member of both clubs')}
                             tooltipOptions={{ position: 'top' }}
-                            onClick={() => run(`Added to ${nameOf(clubToAdd)}`, () => PlayerService.addPlayerToClub(player.id, clubToAdd, false))}
+                            onClick={() => run(t('Added to {{nameOf}}', { nameOf: nameOf(clubToAdd) }), () => PlayerService.addPlayerToClub(player.id, clubToAdd, false))}
                         />
                     </div>
-                    <span className="text-faint fs-8">Your clubs only. Add keeps the player here too; Move takes them out of this club, and the games in which every player moved along go with them.</span>
+                    <span className="text-faint fs-8">{t('Your clubs only. Add keeps the player here too; Move takes them out of this club, and the games in which every player moved along go with them.')}</span>
                 </div>
             </div>
         </>

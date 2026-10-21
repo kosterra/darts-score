@@ -26,14 +26,15 @@ import useAtcRound from '../../utils/use.atc.round';
 import { roundResults } from '../../utils/atc.darts';
 import { resultLine, scoreboardRows } from '../../utils/atc.scoreboard';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
+import { t } from '../../utils/i18n';
 
 const SCORINGS = [
-    { label: 'Against the clock', value: 'Time', description: 'Stop the clock with your last hit; the fastest time wins.' },
-    { label: 'Fewest darts', value: 'Darts', description: 'Tap Hit or Miss for every dart; 21 is perfect. Against others: an Around the Clock game.' },
+    { label: t('Against the clock'), value: 'Time', description: t('Stop the clock with your last hit; the fastest time wins.') },
+    { label: t('Fewest darts'), value: 'Darts', description: t('Tap Hit or Miss for every dart; 21 is perfect. Against others: an Around the Clock game.') },
 ];
 
 const names = (players) => players.length > 1
-    ? `${players.slice(0, -1).map(player => player.nickname).join(', ')} and ${players.at(-1).nickname}`
+    ? t('{{join}} and {{nickname}}', { join: players.slice(0, -1).map(player => player.nickname).join(', '), nickname: players.at(-1).nickname })
     : players[0]?.nickname ?? '';
 
 const ATC = () => {
@@ -155,7 +156,7 @@ const ATC = () => {
         const saved = !darts && arrival?.entries?.[0];
         if (!saved) return null;
         const line = resultLine(rows, saved);
-        return saved.isRecord ? ['New personal best', line].filter(Boolean).join(' · ') : line;
+        return saved.isRecord ? [t('New personal best'), line].filter(Boolean).join(' · ') : line;
     }, [darts, arrival, rows]);
 
     const onArrived = (arrivedRows) => {
@@ -170,12 +171,12 @@ const ATC = () => {
         const records = savedTrainings.filter(({ saved }) => saved.isRecord);
         const badgeGroups = savedTrainings.filter(({ saved }) => saved.newBadges?.length > 0).map(({ player: who, saved }) => ({ player: who, badges: saved.newBadges }));
         if (!records.length && !badgeGroups.length) return null;
-        const what = `${mode}${darts ? ' with the fewest darts' : ''}`;
+        const what = `${mode}${darts ? t(' with the fewest darts') : ''}`;
         return {
-            title: records.length ? 'New record!' : 'New badge!',
+            title: records.length ? t('New record!') : t('New badge!'),
             subtitle: records.length
-                ? `A new personal best in ${what}${savedTrainings.length > 1 ? ` for ${names(records.map(({ player: who }) => who))}` : ''}`
-                : 'Training complete',
+                ? t('A new personal best in {{what}}{{value}}', { what: what, value: savedTrainings.length > 1 ? ` for ${names(records.map(({ player: who }) => who))}` : '' })
+                : t('Training complete'),
             player: (records[0] ?? savedTrainings.find(({ saved }) => saved.newBadges?.length > 0)).player,
             badgeGroups,
         };
@@ -206,7 +207,7 @@ const ATC = () => {
             pendingCelebration.current = celebrationFor([{ player, saved }]);
             showOnScoreboard(mode, 'Time', [saved]);
         } catch {
-            toast.current.show({ severity: 'error', summary: 'Training not saved', detail: 'The time is still here: try saving again.', life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Training not saved'), detail: t('The time is still here: try saving again.'), life: 4000 });
         } finally {
             setSaving(false);
         }
@@ -279,7 +280,7 @@ const ATC = () => {
             <div className="row g-4">
                 <div className="col-12 col-xl-6">
                     <div ref={panelRef} className="atc-panel-anchor">
-                    <Panel header="Around the Clock">
+                    <Panel header={t('Around the Clock')}>
                         <div className="container">
                             {playing &&
                                 <ATCTrainingSummary
@@ -291,7 +292,7 @@ const ATC = () => {
                             }
                             {!playing && <>
                             {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
-                            <p className="game-setup-section-title">Player</p>
+                            <p className="game-setup-section-title">{t('Player')}</p>
                             {/* a fieldset locks every card while a training runs */}
                             <fieldset disabled={inProgress} className="atc-setup-lock">
                                 <PlayerPicker
@@ -304,16 +305,16 @@ const ATC = () => {
                                 />
                             </fieldset>
 
-                            <p className="game-setup-section-title mt-4">Training</p>
+                            <p className="game-setup-section-title mt-4">{t('Training')}</p>
                             <div className="setting-box d-flex flex-column align-items-center gap-2">
-                                <p className="setting-title align-self-stretch">Scoring</p>
+                                <p className="setting-title align-self-stretch">{t('Scoring')}</p>
                                 <SelectButton
                                     value={scoring}
                                     options={SCORINGS}
                                     onChange={(e) => e.value && changeScoring(e.value)}
                                     disabled={inProgress}
                                     className="p-selectbutton-pills flex-wrap justify-content-center"
-                                    aria-label="Scoring"
+                                    aria-label={t('Scoring')}
                                 />
                                 <span className="text-faint fs-8 text-center">{SCORINGS.find(option => option.value === scoring).description}</span>
                             </div>
@@ -321,14 +322,14 @@ const ATC = () => {
                             {/* the setup only: the stopwatch or the round come once the training starts */}
                             <div className="atc-stopwatch mt-4">
                                 <div className="atc-stopwatch-actions">
-                                    <Button type="button" label="Start training" icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => { rememberSetup(); setStage('training'); }} />
+                                    <Button type="button" label={t('Start training')} icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => { rememberSetup(); setStage('training'); }} />
                                 </div>
-                                {!players.length && <div className="text-faint fs-8 text-center mt-2">Choose a player to start.</div>}
+                                {!players.length && <div className="text-faint fs-8 text-center mt-2">{t('Choose a player to start.')}</div>}
                             </div>
                             </>}
 
                             {playing && <>
-                            <p className="game-setup-section-title">{darts ? (finished ? 'Result' : 'Round') : 'Stopwatch'}</p>
+                            <p className="game-setup-section-title">{darts ? (finished ? t('Result') : t('Round')) : t('Stopwatch')}</p>
                             {darts
                                 ? finished
                                     ? <ATCDartsResult
@@ -351,10 +352,10 @@ const ATC = () => {
                                         />
                                         : <div className="atc-stopwatch">
                                             <div className="atc-stopwatch-actions">
-                                                <Button type="button" label="Start round" icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => startRound()} />
+                                                <Button type="button" label={t('Start round')} icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => startRound()} />
                                             </div>
                                             <div className="text-faint fs-8 text-center mt-2">
-                                                {players.length ? 'Tap Hit or Miss for every dart; H and M work on a keyboard.' : 'Choose a player to start.'}
+                                                {players.length ? t('Tap Hit or Miss for every dart; H and M work on a keyboard.') : t('Choose a player to start.')}
                                             </div>
                                         </div>
                                 : <>

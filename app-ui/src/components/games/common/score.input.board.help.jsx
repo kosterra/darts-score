@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
+import { t } from '../../../utils/i18n';
 
 /**
  * How to enter darts, behind a small help button.
@@ -8,14 +9,14 @@ import { Button } from 'primereact/button';
  * plainSingles: a plain number is a single and 50 the bullseye (X01)
  * compact: just the line and the button, for a header
  */
-const ScoreInputBoardHelp = ({ label = 'Tap the board or type', plainSingles = false, compact = false }) => {
+const ScoreInputBoardHelp = ({ label = t('Tap the board or type'), plainSingles = false, compact = false }) => {
     const [visible, setVisible] = useState(false);
     const [position, setPosition] = useState('center');
 
     const footerContent = (
         <div>
             <Button
-                label="Got it!"
+                label={t('Got it!')}
                 icon="pi pi-check"
                 onClick={() => setVisible(false)}
                 autoFocus
@@ -35,7 +36,7 @@ const ScoreInputBoardHelp = ({ label = 'Tap the board or type', plainSingles = f
                 ? (
                     <span className="d-inline-flex align-items-center gap-2">
                         {label && <span className="text-faint fs-8">{label}</span>}
-                        <Button type="button" icon="pi pi-question-circle" text rounded severity="secondary" className="score-help-button" aria-label="How to enter darts" title="How to enter darts" onClick={() => showHelp('bottom-right')} />
+                        <Button type="button" icon="pi pi-question-circle" text rounded severity="secondary" className="score-help-button" aria-label={t('How to enter darts')} title={t('How to enter darts')} onClick={() => showHelp('bottom-right')} />
                     </span>
                 )
                 : (
@@ -44,7 +45,7 @@ const ScoreInputBoardHelp = ({ label = 'Tap the board or type', plainSingles = f
                             {label}
                         </span>
                         <div className="col-2 d-flex justify-content-end">
-                            <Button type="button" icon="pi pi-question-circle" text rounded severity="secondary" className="score-help-button me-1" aria-label="How to enter darts" title="How to enter darts" onClick={() => showHelp('bottom-right')} />
+                            <Button type="button" icon="pi pi-question-circle" text rounded severity="secondary" className="score-help-button me-1" aria-label={t('How to enter darts')} title={t('How to enter darts')} onClick={() => showHelp('bottom-right')} />
                         </div>
                     </div>
                 )
@@ -52,7 +53,7 @@ const ScoreInputBoardHelp = ({ label = 'Tap the board or type', plainSingles = f
 
             {/* Dialog */}
             <Dialog
-                header="Help"
+                header={t('Help')}
                 visible={visible}
                 position={position}
                 style={{ width: '40vw' }}
@@ -65,30 +66,30 @@ const ScoreInputBoardHelp = ({ label = 'Tap the board or type', plainSingles = f
                 {plainSingles
                     ? (
                         <div className="fs-8">
-                            <p>Tap where each dart landed on the board, or type it:</p>
+                            <p>{t('Tap where each dart landed on the board, or type it:')}</p>
                             <ul>
-                                <li><strong>20</strong> (or <strong>S20</strong>) for a single</li>
-                                <li><strong>D20</strong> for a double, <strong>T20</strong> for a treble</li>
-                                <li><strong>25</strong> for the outer bull, <strong>50</strong> (or <strong>D25</strong>) for the bullseye</li>
-                                <li><strong>0</strong> for a miss</li>
+                                <li><strong>20</strong>{' '}{t('(or')}{' '}<strong>{t('S20')}</strong>{t(') for a single')}</li>
+                                <li><strong>{t('D20')}</strong>{' '}{t('for a double,')}{' '}<strong>{t('T20')}</strong>{' '}{t('for a treble')}</li>
+                                <li><strong>25</strong>{' '}{t('for the outer bull,')}{' '}<strong>50</strong>{' '}{t('(or')}{' '}<strong>{t('D25')}</strong>{t(') for the bullseye')}</li>
+                                <li><strong>0</strong>{' '}{t('for a miss')}</li>
                             </ul>
-                            <p className="mb-0">Then press <strong>Enter</strong> or <strong>Enter score</strong>. <strong>Undo last visit</strong> reopens the visit before, to correct it.</p>
+                            <p className="mb-0">{t('Then press')}{' '}<strong>{t('Enter')}</strong>{' '}{t('or')}{' '}<strong>{t('Enter score')}</strong>. <strong>{t('Undo last visit')}</strong>{' '}{t('reopens the visit before, to correct it.')}</p>
                         </div>
                     )
                     : (
                 <div className="fs-8">
-                    <p>If you missed, simply enter <strong>0</strong>.</p>
-                    <p>For any other scores, add:</p>
+                    <p>{t('If you missed, simply enter')}{' '}<strong>0</strong>.</p>
+                    <p>{t('For any other scores, add:')}</p>
                     <ul>
-                        <li><strong>S</strong> for a single</li>
-                        <li><strong>D</strong> for a double</li>
-                        <li><strong>T</strong> for a treble</li>
+                        <li><strong>{t('S')}</strong>{' '}{t('for a single')}</li>
+                        <li><strong>{t('D')}</strong>{' '}{t('for a double')}</li>
+                        <li><strong>{t('T')}</strong>{' '}{t('for a treble')}</li>
                     </ul>
-                    <p>{'So "D10" scores 20 points, "T20" scores 60 ...'}</p>
-                    <p className="fs-7 mt-4"><strong>Note that:</strong></p>
+                    <p>{t('So "D10" scores 20 points, "T20" scores 60 ...')}</p>
+                    <p className="fs-7 mt-4"><strong>{t('Note that:')}</strong></p>
                     <p>
-                        The inner BULLSEYE (50 points) = <strong>D25</strong><br />
-                        The outer BULLSEYE (25 points) = <strong>S25</strong>.
+                        {t('The inner BULLSEYE (50 points) =')}{' '}<strong>{t('D25')}</strong><br />
+                        {t('The outer BULLSEYE (25 points) =')}{' '}<strong>{t('S25')}</strong>.
                     </p>
                 </div>
                     )

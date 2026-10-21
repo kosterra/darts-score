@@ -2,6 +2,7 @@ import { Panel } from 'primereact/panel';
 import { Skeleton } from 'primereact/skeleton';
 
 import ClubLogo from './club.logo';
+import { t } from '../../utils/i18n';
 
 /**
  * Placeholders in the shape of a page while its data loads: the layout stands
@@ -10,7 +11,7 @@ import ClubLogo from './club.logo';
  */
 
 // what a screen reader hears while the shapes are shown
-const Loading = ({ what }) => <span className="visually-hidden" role="status">Loading {what}…</span>;
+const Loading = ({ what }) => <span className="visually-hidden" role="status">{t('Loading')}{' '}{what}…</span>;
 
 // a label over a value, as in the key figures of the headers
 const Fact = ({ width = '4.5rem' }) => (
@@ -39,7 +40,7 @@ const CardSkeleton = ({ title, chart = false, className = '' }) => (
  */
 export const PlayerStatsSkeleton = () => (
     <div aria-busy="true">
-        <Loading what="the statistics" />
+        <Loading what={t('the statistics')} />
         <header className="hero-header rounded-2 p-4 mb-4 d-flex flex-wrap align-items-start gap-4">
             <Skeleton shape="circle" size="8rem" />
             <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 20rem' }}>
@@ -66,7 +67,7 @@ export const PlayerStatsSkeleton = () => (
             </div>
         </header>
         <div className="row g-4">
-            <div className="col-12"><CardSkeleton title="X01" chart /></div>
+            <div className="col-12"><CardSkeleton title={t('X01')} chart /></div>
             <div className="col-12 col-lg-6"><CardSkeleton /></div>
             <div className="col-12 col-lg-6"><CardSkeleton /></div>
         </div>
@@ -89,7 +90,7 @@ export const PlayerProfileSkeleton = () => (
  */
 export const BadgesSkeleton = () => (
     <div className="d-flex flex-column gap-3" aria-busy="true">
-        <Loading what="the badges" />
+        <Loading what={t('the badges')} />
         <Skeleton width="9rem" height="1.6rem" />
         <Panel header={<Skeleton width="7rem" height="1rem" />}>
             <div className="d-flex flex-column gap-4">
@@ -115,7 +116,7 @@ export const BadgesSkeleton = () => (
  */
 export const DashboardSkeleton = ({ club, widgets }) => (
     <div className="container-fluid p-4 border-0" aria-busy="true">
-        <Loading what="the dashboard" />
+        <Loading what={t('the dashboard')} />
         <header className="dashboard-header hero-header rounded-2 p-4 mb-4 d-flex flex-wrap align-items-start gap-4">
             <ClubLogo club={club} size="lg" />
             <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 18rem' }}>
@@ -141,7 +142,7 @@ export const DashboardSkeleton = ({ club, widgets }) => (
  */
 export const GameStatsSkeleton = ({ players = 2 }) => (
     <div className="container-fluid p-4 border-0" aria-busy="true">
-        <Loading what="the game" />
+        <Loading what={t('the game')} />
         <div className="game-stats-page">
             <header className="hero-header result-hero rounded-2 p-4 mb-4">
                 <div className="d-flex flex-column gap-2 mb-4">

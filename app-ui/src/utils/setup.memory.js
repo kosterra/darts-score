@@ -1,4 +1,5 @@
 import { getActiveClubId } from './service.utils';
+import { t } from './i18n';
 
 // The last setup of each game type in this club, so the usual game is one tap
 // away. It lives in this browser only: a club device remembers its own.
@@ -67,7 +68,7 @@ export const X01_QUICK_FORMATS = [
         settings: { startingScore: 301, legInMode: 'Double In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3 },
     },
     {
-        name: 'Beginners: 301 Straight Out · Best of 3 legs',
+        name: t('Beginners: 301 Straight Out · Best of 3 legs'),
         settings: { startingScore: 301, legInMode: 'Straight In', legOutMode: 'Straight Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3 },
     },
 ];

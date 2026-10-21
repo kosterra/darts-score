@@ -9,6 +9,7 @@ import EliminationVisitsPanel from './elimination.visits.panel';
 import LiveFigures from '../common/live.figures';
 import PageLoader from '../../elements/page.loader';
 import { visitsOf } from './elimination.live';
+import { t } from '../../../utils/i18n';
 
 const OVER_100 = ['101-120', '121-140', '141-160', '161-180', '180'];
 
@@ -54,11 +55,11 @@ const EliminationGame = () => {
         }];
     }));
     const rows = [
-        { label: 'Average', value: (id) => stats[id].average },
-        { label: 'Best visit', value: (id) => stats[id].best },
-        { label: 'Over 100', value: (id) => stats[id].over100 },
-        { label: '180s', value: (id) => stats[id].maximums },
-        { label: 'Darts thrown', value: (id) => stats[id].darts, neutral: true },
+        { label: t('Average'), value: (id) => stats[id].average },
+        { label: t('Best visit'), value: (id) => stats[id].best },
+        { label: t('Over 100'), value: (id) => stats[id].over100 },
+        { label: t('180s'), value: (id) => stats[id].maximums },
+        { label: t('Darts thrown'), value: (id) => stats[id].darts, neutral: true },
     ];
 
     return (
@@ -72,7 +73,7 @@ const EliminationGame = () => {
                     <EliminationVisitsPanel game={game} players={ordered} />
                 </div>
                 <div className="col-12 col-xl-5">
-                    <Panel header="Key figures" className="h-100">
+                    <Panel header={t('Key figures')} className="h-100">
                         <div className="x01-live-figures">
                             <LiveFigures players={ordered} rows={rows} />
                         </div>

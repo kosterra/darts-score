@@ -5,6 +5,7 @@ import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 
 import PlayerService from '../../services/player.service';
+import { t } from '../../utils/i18n';
 
 /**
  * Adds a guest for the game being set up. Guests do not become club members.
@@ -40,22 +41,22 @@ const GuestForm = ({ onGuestAdd, trigger }) => {
 
     return (
         <div>
-            <Dialog header="Add Guest" visible={showDialog} blockScroll onHide={close} draggable={false} className="m-4" style={{ width: '28rem', maxWidth: '100%' }}>
+            <Dialog header={t('Add Guest')} visible={showDialog} blockScroll onHide={close} draggable={false} className="m-4" style={{ width: '28rem', maxWidth: '100%' }}>
                 <form onSubmit={onSubmit} className="d-flex flex-column gap-3 pt-2">
                     <span className="fs-7 text-subtle">
-                        A guest plays in this game only. They are not added to the club and are not offered for later games.
+                        {t('A guest plays in this game only. They are not added to the club and are not offered for later games.')}
                     </span>
-                    <InputText id="guest-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name of the guest" aria-label="Name of the guest" minLength={2} maxLength={25} required autoFocus />
+                    <InputText id="guest-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Name of the guest')} aria-label={t('Name of the guest')} minLength={2} maxLength={25} required autoFocus />
                     {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
                     <div className="d-flex justify-content-end gap-3">
-                        <Button type="button" label="Cancel" severity="secondary" size="small" onClick={close} />
-                        <Button type="submit" label="Add guest" icon="pi pi-user-plus" size="small" loading={submitting} />
+                        <Button type="button" label={t('Cancel')} severity="secondary" size="small" onClick={close} />
+                        <Button type="submit" label={t('Add guest')} icon="pi pi-user-plus" size="small" loading={submitting} />
                     </div>
                 </form>
             </Dialog>
             {trigger
                 ? trigger(() => setShowDialog(true))
-                : <Button type="button" label="Guest" icon="pi pi-plus" severity="secondary" aria-label="Add a guest for this game" onClick={() => setShowDialog(true)} />
+                : <Button type="button" label={t('Guest')} icon="pi pi-plus" severity="secondary" aria-label={t('Add a guest for this game')} onClick={() => setShowDialog(true)} />
             }
         </div>
     );

@@ -7,6 +7,7 @@ import { AXIS, GRID, PLAYER_COLORS, TOOLTIP, LEGEND } from '../charts/chart.them
 import { raceOf } from '../../../utils/x01.game.summary';
 import { startingScoreOf } from '../../../utils/x01.rules';
 import useHiddenSeries from '../charts/use.hidden.series';
+import { t } from '../../../utils/i18n';
 
 /**
  * Every leg of the game in a list (who started, who won, the darts, the
@@ -23,7 +24,7 @@ const X01LegsPanel = ({ game, players, legs }) => {
     const severalSets = (game.setsPlayed ?? 1) > 1;
     const selected = legs.find(leg => leg.key === selectedKey) ?? legs[legs.length - 1];
     const race = raceOf(selected, players.map(player => player.id), id => startingScoreOf(game, id));
-    const legName = (leg) => severalSets ? `Set ${leg.set} · Leg ${leg.legInSet}` : `Leg ${leg.legInSet}`;
+    const legName = (leg) => severalSets ? t('Set {{set}} · Leg {{legInSet}}', { set: leg.set, legInSet: leg.legInSet }) : t('Leg {{legInSet}}', { legInSet: leg.legInSet });
 
     const Who = ({ id }) => id
         ? <span className="d-inline-flex align-items-center text-nowrap"><span className="result-hero-dot" style={{ background: PLAYER_COLORS[indexOf.get(id)] }} aria-hidden="true" />{nameOf(id)}</span>
@@ -32,17 +33,17 @@ const X01LegsPanel = ({ game, players, legs }) => {
     return (
         <div className="row g-4 mb-4">
             <div className="col-12 col-xl-6">
-                <Panel header="Leg by leg" className="h-100">
+                <Panel header={t('Leg by leg')} className="h-100">
                     <div className="x01-legs-wrap">
                         <table className="x01-legs">
                             <thead>
                                 <tr>
-                                    <th scope="col">Leg</th>
-                                    <th scope="col">Started</th>
-                                    <th scope="col">Won by</th>
-                                    <th scope="col" className="text-end">Darts</th>
-                                    <th scope="col" className="text-end">Checkout</th>
-                                    <th scope="col" className="text-end">Highest</th>
+                                    <th scope="col">{t('Leg')}</th>
+                                    <th scope="col">{t('Started')}</th>
+                                    <th scope="col">{t('Won by')}</th>
+                                    <th scope="col" className="text-end">{t('Darts')}</th>
+                                    <th scope="col" className="text-end">{t('Checkout')}</th>
+                                    <th scope="col" className="text-end">{t('Highest')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -53,7 +54,7 @@ const X01LegsPanel = ({ game, players, legs }) => {
                                         onClick={() => setSelectedKey(leg.key)}
                                         tabIndex={0}
                                         onKeyDown={(event) => (event.key === 'Enter' || event.key === ' ') && setSelectedKey(leg.key)}
-                                        aria-label={`${legName(leg)}: show the race to zero`}
+                                        aria-label={t('{{legName}}: show the race to zero', { legName: legName(leg) })}
                                     >
                                         <td className="text-nowrap fw-semibold">{legName(leg)}</td>
                                         <td><Who id={leg.starter} /></td>
@@ -66,17 +67,17 @@ const X01LegsPanel = ({ game, players, legs }) => {
                             </tbody>
                         </table>
                     </div>
-                    <span className="d-block text-faint fs-8 mt-2">Pick a leg to see its race to zero.</span>
+                    <span className="d-block text-faint fs-8 mt-2">{t('Pick a leg to see its race to zero.')}</span>
                 </Panel>
             </div>
             <div className="col-12 col-xl-6">
-                <ChartCard title={`Race to zero · ${legName(selected)}`} description="The score each player had left after every visit of this leg.">
+                <ChartCard title={t('Race to zero · {{legName}}', { legName: legName(selected) })} description={t('The score each player had left after every visit of this leg.')}>
                     <ResponsiveContainer width="100%" height={280}>
                         <LineChart data={race} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                             <CartesianGrid {...GRID} />
                             <XAxis dataKey="visit" {...AXIS} allowDecimals={false} label={{ value: 'Visit', position: 'insideBottomRight', offset: -2, fill: '#7a7a7a', fontSize: 11 }} />
                             <YAxis {...AXIS} domain={[0, Math.max(...players.map(player => startingScoreOf(game, player.id)))]} allowDecimals={false} />
-                            <Tooltip {...TOOLTIP} labelFormatter={(visit) => visit === 0 ? 'Start' : `Visit ${visit}`} />
+                            <Tooltip {...TOOLTIP} labelFormatter={(visit) => visit === 0 ? t('Start') : t('Visit {{visit}}', { visit: visit })} />
                             {players.map((player, index) => (
                                 <Line key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} hide={series.isHidden(player.id)} />
                             ))}

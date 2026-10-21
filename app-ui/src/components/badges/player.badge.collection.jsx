@@ -11,6 +11,7 @@ import ShameMedal from './shame.medal';
 import { BadgesSkeleton } from '../elements/skeletons';
 import FlightCollection from '../flights/flight.collection';
 import { FaSoap } from 'react-icons/fa6';
+import { t } from '../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value);
 
@@ -33,9 +34,9 @@ const BadgeSeries = ({ badges }) => {
                     : next
                     ? (
                         <>
-                            <span className="text-faint fs-7">Next: {next.title} · {next.description}</span>
+                            <span className="text-faint fs-7">{t('Next:')}{' '}{next.title} · {next.description}</span>
                             {next.lower && next.progress > 0 &&
-                                <span className="text-faint fs-8">Your best so far: {formatNumber(next.progress)} darts</span>
+                                <span className="text-faint fs-8">{t('Your best so far:')}{' '}{formatNumber(next.progress)}{' '}{t('darts')}</span>
                             }
                             {!next.lower && next.target > 1 &&
                                 <div className="d-flex align-items-center gap-2">
@@ -45,7 +46,7 @@ const BadgeSeries = ({ badges }) => {
                             }
                         </>
                     )
-                    : <span className="text-subtle fs-7">{earnedCount === 1 ? 'Earned' : 'Complete'}</span>
+                    : <span className="text-subtle fs-7">{earnedCount === 1 ? t('Earned') : t('Complete')}</span>
                 }
             </div>
             <ul className="badge-series-tiers list-unstyled m-0">
@@ -74,11 +75,11 @@ const ShameCard = ({ badge }) => (
         <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
             <span className="d-flex flex-wrap align-items-center gap-2">
                 <span className="text-default fw-semibold">{badge.title}</span>
-                <span className="shame-label">Since {formatDate(badge.lastAt)}</span>
-                {badge.count > 1 && <span className="shame-times">{badge.count} times</span>}
+                <span className="shame-label">{t('Since')}{' '}{formatDate(badge.lastAt)}</span>
+                {badge.count > 1 && <span className="shame-times">{badge.count}{' '}{t('times')}</span>}
             </span>
             <span className="text-faint fs-8">{badge.description}</span>
-            <span className="shame-wash"><FaSoap aria-hidden="true" /> Wash it off: {lowerFirst(badge.wash)}</span>
+            <span className="shame-wash"><FaSoap aria-hidden="true" />{' '}{t('Wash it off:')}{' '}{lowerFirst(badge.wash)}</span>
         </div>
     </li>
 );
@@ -93,9 +94,9 @@ const ShameEntry = ({ badge }) => (
             <span className="d-flex flex-wrap align-items-center gap-2">
                 <span className={badge.count > 0 ? 'text-default fw-semibold' : 'text-subtle fw-semibold'}>{badge.title}</span>
                 {badge.count > 0
-                    ? <span className="shame-label is-washed">Washed off {formatDate(badge.washedAt)}</span>
-                    : <span className="text-faint fs-8">Never</span>}
-                {badge.count > 1 && <span className="shame-times">{badge.count} times</span>}
+                    ? <span className="shame-label is-washed">{t('Washed off')}{' '}{formatDate(badge.washedAt)}</span>
+                    : <span className="text-faint fs-8">{t('Never')}</span>}
+                {badge.count > 1 && <span className="shame-times">{badge.count}{' '}{t('times')}</span>}
             </span>
             <span className="text-faint fs-8">{badge.description}</span>
         </div>
@@ -115,12 +116,12 @@ const HallOfShameSection = ({ shame, name }) => {
     return (
         <section id="hall-of-shame" className="d-flex flex-column gap-3" style={{ scrollMarginTop: '1rem' }}>
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
-                <h2 className="fs-4 fw-semibold text-default m-0">Hall of Shame</h2>
-                <span className="text-subtle">{active.length ? `${active.length} on ${name} right now` : `Nothing on ${name} right now`}</span>
+                <h2 className="fs-4 fw-semibold text-default m-0">{t('Hall of Shame')}</h2>
+                <span className="text-subtle">{active.length ? t('{{length}} on {{name}} right now', { length: active.length, name: name }) : t('Nothing on {{name}} right now', { name: name })}</span>
                 {active.length === 0 &&
                     <Button
                         type="button"
-                        label={open ? 'Hide' : `Show all ${shame.length}`}
+                        label={open ? t('Hide') : t('Show all {{length}}', { length: shame.length })}
                         icon={open ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
                         iconPos="right"
                         text
@@ -131,16 +132,16 @@ const HallOfShameSection = ({ shame, name }) => {
                 }
             </div>
             {showList &&
-            <Panel header={active.length ? 'Right now' : 'All shame badges'}>
+            <Panel header={active.length ? t('Right now') : t('All shame badges')}>
                 <p className="text-faint fs-7 mt-0 mb-3">
-                    What nobody wants to throw. These badges add no XP. Each one stays on the player until they wash it off with its good deed, and in the club it belongs to whoever got it last.
+                    {t('What nobody wants to throw. These badges add no XP. Each one stays on the player until they wash it off with its good deed, and in the club it belongs to whoever got it last.')}
                 </p>
                 {active.length > 0 &&
                     <>
                         <ul className="shame-cards list-unstyled m-0">
                             {active.map(badge => <ShameCard key={badge.id} badge={badge} />)}
                         </ul>
-                        <h3 className="shame-others-title">The others</h3>
+                        <h3 className="shame-others-title">{t('The others')}</h3>
                     </>
                 }
                 <ul className="shame-others list-unstyled m-0">
@@ -169,7 +170,7 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [playerId]);
 
-    if (failed) return <p className="text-subtle">The badges could not be loaded.</p>;
+    if (failed) return <p className="text-subtle">{t('The badges could not be loaded.')}</p>;
     // a quiet line: the statistics above show the page's loader at the same time
     if (!data) return <BadgesSkeleton />;
 
@@ -184,14 +185,14 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
         return { category, title, series, earned: badges.filter(b => b.earned).length, total: badges.length };
     });
 
-    const name = data.player?.nickname ?? 'the player';
+    const name = data.player?.nickname ?? t('the player');
 
     return (
         <div className="d-flex flex-column gap-4">
             {data.shame && <HallOfShameSection shame={data.shame} name={name} />}
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
-                <h2 className="fs-4 fw-semibold text-default m-0">Badges</h2>
-                <span className="text-subtle">{data.earnedCount} of {data.total} collected</span>
+                <h2 className="fs-4 fw-semibold text-default m-0">{t('Badges')}</h2>
+                <span className="text-subtle">{data.earnedCount}{' '}{t('of')}{' '}{data.total}{' '}{t('collected')}</span>
                 <ProgressBar value={Math.round(data.earnedCount / data.total * 100)} showValue={false} style={{ height: '0.5rem', width: '16rem', maxWidth: '100%' }} />
             </div>
             {categories.map(category => (

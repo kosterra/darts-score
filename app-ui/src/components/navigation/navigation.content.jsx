@@ -19,6 +19,7 @@ import AdminService from '../../services/admin.service';
 import { ALERTS_CHANGED } from '../admin/alert.events';
 import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.service';
 import NotificationService, { NOTIFICATIONS_CHANGED } from '../../services/notification.service';
+import { t } from '../../utils/i18n';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -109,20 +110,20 @@ const useSections = () => {
 
     const sections = [
         {
-            title: 'Club',
+            title: t('Club'),
             visible: hasClub,
             items: [
-                { label: 'Dashboard', icon: MdDashboard, to: '/', end: true },
-                { label: 'My statistics', icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
+                { label: t('Dashboard'), icon: MdDashboard, to: '/', end: true },
+                { label: t('My statistics'), icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
                 // on the own player the entry above is the one that is marked
-                { label: 'Players', icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
-                { label: 'Player comparison', icon: FaChartLine, to: '/stats/players' },
-                { label: 'Games', icon: FaTrophy, to: '/games' },
-                { label: 'Trainings', icon: BsPersonFillCheck, to: '/trainings' },
-                { label: 'Badges', icon: FaMedal, to: '/badges' },
+                { label: t('Players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
+                { label: t('Player comparison'), icon: FaChartLine, to: '/stats/players' },
+                { label: t('Games'), icon: FaTrophy, to: '/games' },
+                { label: t('Trainings'), icon: BsPersonFillCheck, to: '/trainings' },
+                { label: t('Badges'), icon: FaMedal, to: '/badges' },
                 // for the club's admins: games and trainings that cannot be real or are worth a look
                 ...(isClubAdmin ? [{
-                    label: 'Fair play',
+                    label: t('Fair play'),
                     icon: FaScaleBalanced,
                     to: '/fair-play',
                     badge: clubFairPlay?.open || null,
@@ -132,69 +133,69 @@ const useSections = () => {
             ],
         },
         {
-            title: "Let's play darts",
+            title: t('Let\'s play darts'),
             visible: hasClub,
             items: [
-                { label: 'X01', icon: FaBullseye, to: '/x01', end: true },
-                { label: 'Cricket', icon: MdSportsCricket, to: '/cricket', end: true },
-                { label: 'Elimination', icon: BiTargetLock, to: '/elimination', end: true },
-                { label: 'Around the Clock', icon: PiClockClockwiseBold, to: '/clock', end: true },
+                { label: t('X01'), icon: FaBullseye, to: '/x01', end: true },
+                { label: t('Cricket'), icon: MdSportsCricket, to: '/cricket', end: true },
+                { label: t('Elimination'), icon: BiTargetLock, to: '/elimination', end: true },
+                { label: t('Around the Clock'), icon: PiClockClockwiseBold, to: '/clock', end: true },
             ],
         },
         {
-            title: 'Training',
+            title: t('Training'),
             visible: hasClub,
             items: [
                 // in the order of the games above
-                { label: 'X01 against the bot', icon: FaRobot, to: '/training/x01' },
-                { label: 'Around the Clock', icon: PiClockCountdownBold, to: '/training/atc' },
+                { label: t('X01 against the bot'), icon: FaRobot, to: '/training/x01' },
+                { label: t('Around the Clock'), icon: PiClockCountdownBold, to: '/training/atc' },
             ],
         },
         // for global admins, across all clubs: who uses the app, what was played, what needs watching, and the installation
         {
-            title: 'Admin · Accounts',
+            title: t('Admin · Accounts'),
             visible: isGlobalAdmin,
             items: [
-                { label: 'Clubs', icon: FaPeopleGroup, to: '/admin/clubs' },
-                { label: 'Users', icon: FaUserGear, to: '/admin/users' },
-                { label: 'Players', icon: FaUserPen, to: '/admin/players' },
+                { label: t('Clubs'), icon: FaPeopleGroup, to: '/admin/clubs' },
+                { label: t('Users'), icon: FaUserGear, to: '/admin/users' },
+                { label: t('Players'), icon: FaUserPen, to: '/admin/players' },
             ],
         },
         {
-            title: 'Admin · Played',
+            title: t('Admin · Played'),
             visible: isGlobalAdmin,
             items: [
-                { label: 'Games', icon: GiDart, to: '/admin/games' },
-                { label: 'Trainings', icon: BsPersonFillCheck, to: '/admin/trainings' },
-                { label: 'Quick games', icon: FaBolt, to: '/admin/quick-games' },
+                { label: t('Games'), icon: GiDart, to: '/admin/games' },
+                { label: t('Trainings'), icon: BsPersonFillCheck, to: '/admin/trainings' },
+                { label: t('Quick games'), icon: FaBolt, to: '/admin/quick-games' },
             ],
         },
         {
-            title: 'Admin · Monitoring',
+            title: t('Admin · Monitoring'),
             visible: isGlobalAdmin,
             items: [
                 {
-                    label: 'Fair play',
+                    label: t('Fair play'),
                     icon: FaScaleBalanced,
                     to: '/admin/fair-play',
                     badge: allFairPlay?.open || null,
                     badgeCritical: allFairPlay?.impossible > 0,
                 },
                 {
-                    label: 'Alerts',
+                    label: t('Alerts'),
                     icon: FaBell,
                     to: '/admin/alerts',
                     badge: openAlerts?.open || null,
                     badgeCritical: openAlerts?.critical > 0,
                 },
-                { label: 'Error log', icon: FaBug, to: '/admin/logs' },
+                { label: t('Error log'), icon: FaBug, to: '/admin/logs' },
             ],
         },
         {
-            title: 'Admin · System',
+            title: t('Admin · System'),
             visible: isGlobalAdmin,
             items: [
-                { label: 'System settings', icon: FaShieldHalved, to: '/system-settings' },
+                { label: t('System settings'), icon: FaShieldHalved, to: '/system-settings' },
             ],
         },
     ];
@@ -219,7 +220,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
 
     const model = [
         {
-            label: 'Your clubs',
+            label: t('Your clubs'),
             items: clubs.map(club => ({
                 label: club.name,
                 icon: club.id === activeClub?.id ? 'pi pi-check' : 'pi pi-fw',
@@ -234,7 +235,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
             })),
         },
         { separator: true },
-        { label: 'My clubs', icon: 'pi pi-cog', command: () => { navigate('/my-clubs'); onNavigate?.(); } },
+        { label: t('My clubs'), icon: 'pi pi-cog', command: () => { navigate('/my-clubs'); onNavigate?.(); } },
     ];
 
     return (
@@ -244,8 +245,8 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
                 className="club-switcher-button"
                 onClick={(event) => menu.current.toggle(event)}
                 aria-haspopup="menu"
-                aria-label={activeClub ? `Club: ${activeClub.name}. Switch club` : 'Choose a club'}
-                title={collapsed ? (activeClub?.name ?? 'Choose a club') : undefined}
+                aria-label={activeClub ? t('Club: {{name}}. Switch club', { name: activeClub.name }) : t('Choose a club')}
+                title={collapsed ? (activeClub?.name ?? t('Choose a club')) : undefined}
             >
                 <span className="club-switcher-logo">
                     <ClubLogo club={activeClub} />
@@ -253,7 +254,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
                     <span className="club-switcher-badge" aria-hidden="true"><FaChevronDown /></span>
                 </span>
                 {!collapsed &&
-                    <span className="club-switcher-name text-default fw-semibold">{activeClub?.name ?? 'Choose a club'}</span>
+                    <span className="club-switcher-name text-default fw-semibold">{activeClub?.name ?? t('Choose a club')}</span>
                 }
             </button>
             <Menu model={model} popup ref={menu} className="club-switcher-menu" />
@@ -362,7 +363,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
                     {item.badge &&
-                        <span className={`nav-badge ${item.badgeCritical ? 'critical' : ''}`} aria-label={`${item.badge} open`}>
+                        <span className={`nav-badge ${item.badgeCritical ? 'critical' : ''}`} aria-label={t('{{badge}} open', { badge: item.badge })}>
                             {countText(item.badge)}
                         </span>
                     }
@@ -382,15 +383,15 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 {(activeClub || !isGlobalAdmin)
                     ? <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
                     : (
-                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label="Oche">
+                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label={t('Oche')}>
                             <img alt="" src="/logo.svg" width="40" height="40" />
-                            <span className="nav-label fw-semibold">Oche</span>
+                            <span className="nav-label fw-semibold">{t('Oche')}</span>
                         </Link>
                     )
                 }
             </div>
 
-            <nav className="nav-sections" aria-label="Main">
+            <nav className="nav-sections" aria-label={t('Main')}>
                 {sections.map((section, index) => (
                     <div key={section.title ?? index} className="nav-section">
                         {section.title && <div className="nav-section-title">{section.title}</div>}
@@ -401,12 +402,12 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
-                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? 'About Oche' : undefined} onClick={onNavigate}>
+                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Oche') : undefined} onClick={onNavigate}>
                     <img alt="" src="/logo.svg" width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column" style={{ minWidth: 0 }}>
-                            <span className="text-subtle fw-semibold fs-7">Oche</span>
-                            <span className="text-faint fs-9">About · {import.meta.env.VITE_APP_VERSION}</span>
+                            <span className="text-subtle fw-semibold fs-7">{t('Oche')}</span>
+                            <span className="text-faint fs-9">{t('About ·')}{' '}{import.meta.env.VITE_APP_VERSION}</span>
                         </span>
                     }
                     <Ripple />
@@ -420,7 +421,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                     className={`nav-profile-link p-ripple ${PROFILE_PATHS.includes(pathname) ? 'contains-active' : ''}`}
                     onClick={toggleProfile}
                     aria-expanded={profileOpen}
-                    title={collapsed ? `${user.firstname} ${user.lastname}${unread ? ` · ${unread} unread notifications` : ''}` : undefined}
+                    title={collapsed ? `${user.firstname} ${user.lastname}${unread ? t(' · {{unread}} unread notifications', { unread: unread }) : ''}` : undefined}
                 >
                     {/* the count sits on the avatar's corner, so the name keeps the room */}
                     <span className="nav-avatar">
@@ -430,7 +431,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                             shape="circle"
                             className="avatar-sm bg-surface-high"
                         />
-                        {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread notifications`}>{countText(unread)}</span>}
+                        {unread > 0 && <span className="nav-badge" aria-label={t('{{unread}} unread notifications', { unread: unread })}>{countText(unread)}</span>}
                     </span>
                     <span className="nav-label nav-profile-name">
                         <span className="text-default fw-semibold">{user.firstname} {user.lastname}</span>
@@ -442,26 +443,26 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 {profileOpen && !collapsed &&
                     <div className="nav-group">
                         <NavLink to="/profile" end className={linkClass} onClick={onNavigate}>
-                            <span className="nav-label">User profile</span>
+                            <span className="nav-label">{t('User profile')}</span>
                             <Ripple />
                         </NavLink>
                         {!isGlobalAdmin && <>
                             <NavLink to="/player-profile" end className={linkClass} onClick={onNavigate}>
-                                <span className="nav-label">Player profile</span>
+                                <span className="nav-label">{t('Player profile')}</span>
                                 <Ripple />
                             </NavLink>
                             <NavLink to="/my-clubs" end className={linkClass} onClick={onNavigate}>
-                                <span className="nav-label">My clubs</span>
+                                <span className="nav-label">{t('My clubs')}</span>
                                 <Ripple />
                             </NavLink>
                         </>}
                         <NavLink to="/notifications" end className={linkClass} onClick={onNavigate}>
-                            <span className="nav-label">Notifications</span>
-                            {unread > 0 && <span className="nav-badge" aria-label={`${unread} unread`}>{countText(unread)}</span>}
+                            <span className="nav-label">{t('Notifications')}</span>
+                            {unread > 0 && <span className="nav-badge" aria-label={t('{{unread}} unread', { unread: unread })}>{countText(unread)}</span>}
                             <Ripple />
                         </NavLink>
                         <button type="button" className="nav-link-item p-ripple" onClick={logout}>
-                            <span className="nav-label">Log out</span>
+                            <span className="nav-label">{t('Log out')}</span>
                             <FaRightFromBracket className="nav-group-icon" aria-hidden="true" />
                             <Ripple />
                         </button>

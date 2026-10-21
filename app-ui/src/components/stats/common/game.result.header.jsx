@@ -3,6 +3,7 @@ import { FaTrophy } from 'react-icons/fa6';
 
 import { PLAYER_COLORS } from '../charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { t } from '../../../utils/i18n';
 
 /**
  * The top of a finished game: what was played ("title", "subtitle"), the
@@ -52,7 +53,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                             <span className="result-hero-name fw-semibold text-default text-center text-truncate" title={player.nickname}>{player.nickname}</span>
                             {/* the others keep the space, so every score stays at the same height */}
                             {winner &&
-                                <span className={`result-hero-winner ${player === winner ? '' : 'is-placeholder'}`} aria-hidden={player !== winner}>Winner</span>
+                                <span className={`result-hero-winner ${player === winner ? '' : 'is-placeholder'}`} aria-hidden={player !== winner}>{t('Winner')}</span>
                             }
                             <span className="result-hero-score">{scoreOf(player)}</span>
                             <span className="text-faint fs-8">{scoreDetailOf(player)}</span>
@@ -65,7 +66,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                     {compare &&
                         <thead>
                             <tr>
-                                <th aria-label="Figure" />
+                                <th aria-label={t('Figure')} />
                                 {players.map((player, index) => (
                                     <th key={player.id} scope="col">
                                         <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />

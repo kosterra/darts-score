@@ -19,16 +19,17 @@ import {
 } from '../../../utils/elimination.game.summary';
 import UpLink from '../../elements/up.link';
 import { eliminationRematch } from '../../../utils/elimination.rematch';
+import { t } from '../../../utils/i18n';
 
 // the key figures of every player in the header; for knock-outs suffered less is better
 const FIGURES = [
-    { key: 'average', label: 'Average per visit' },
-    { key: 'highestVisit', label: 'Highest visit' },
-    { key: 'tonPlus', label: '100+ visits' },
-    { key: 'eliminationsMade', label: 'Knock-outs made' },
-    { key: 'timesEliminated', label: 'Knocked out', lowerIsBetter: true },
-    { key: 'pointsLost', label: 'Points lost to knock-outs', lowerIsBetter: true },
-    { key: 'dartsThrown', label: 'Darts thrown', neutral: true },
+    { key: 'average', label: t('Average per visit') },
+    { key: 'highestVisit', label: t('Highest visit') },
+    { key: 'tonPlus', label: t('100+ visits') },
+    { key: 'eliminationsMade', label: t('Knock-outs made') },
+    { key: 'timesEliminated', label: t('Knocked out'), lowerIsBetter: true },
+    { key: 'pointsLost', label: t('Points lost to knock-outs'), lowerIsBetter: true },
+    { key: 'dartsThrown', label: t('Darts thrown'), neutral: true },
 ];
 
 
@@ -77,14 +78,14 @@ const EliminationGameStats = () => {
         : {}, [game, players, replay]);
     const race = useMemo(() => game && replay ? eliminationRace(game, replay) : [], [game, replay]);
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">This game could not be found in the selected club.</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{t('This game could not be found in the selected club.')}</div>;
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const indexOf = new Map(players.map((player, index) => [player.id, index]));
     const nameOf = (playerId) => players[indexOf.get(playerId)]?.nickname ?? '–';
     // the biggest knock-out names who was hit
     const moments = eliminationMoments(game, replay).map(moment => moment.victim
-        ? { ...moment, detail: `knocked out ${nameOf(moment.victim)} · ${moment.detail}` }
+        ? { ...moment, detail: t('knocked out {{nameOf}} · {{detail}}', { nameOf: nameOf(moment.victim), detail: moment.detail }) }
         : moment);
     const target = Number(game.targetScore);
 
@@ -105,14 +106,14 @@ const EliminationGameStats = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
-                <UpLink to="/games" label="Games" />
+                <UpLink to="/games" label={t('Games')} />
                 <GameResultHeader
                     game={game}
                     players={players}
-                    title={`Elimination · first to ${target}`}
+                    title={t('Elimination · first to {{target}}', { target: target })}
                     subtitle={`${game.gameInMode ?? 'Straight In'} / ${game.gameOutMode ?? 'Straight Out'} · ${whenPlayed(game)}`}
                     scoreOf={(player) => figures[player.id]?.score ?? 0}
-                    scoreDetailOf={(player) => (figures[player.id]?.score ?? 0) >= target ? `reached ${target}` : `${target - (figures[player.id]?.score ?? 0)} to go`}
+                    scoreDetailOf={(player) => (figures[player.id]?.score ?? 0) >= target ? t('reached {{target}}', { target: target }) : t('{{value}} to go', { value: target - (figures[player.id]?.score ?? 0) })}
                     rows={FIGURES}
                     figures={figures}
                     actions={actions}
@@ -132,8 +133,8 @@ const EliminationGameStats = () => {
                 <div className="row g-4 mb-4">
                     <div className="col-12 col-xl-7">
                         <RoundsLineChart
-                            title="Race to the target"
-                            description="Every player's score after each visit of the game. A drop to 0 is a knock-out: an opponent landed exactly on that score."
+                            title={t('Race to the target')}
+                            description={t('Every player\'s score after each visit of the game. A drop to 0 is a knock-out: an opponent landed exactly on that score.')}
                             data={race}
                             players={players}
                             target={target}
@@ -142,17 +143,17 @@ const EliminationGameStats = () => {
                         />
                     </div>
                     <div className="col-12 col-xl-5">
-                        <Panel header="Knock-outs" className="h-100">
+                        <Panel header={t('Knock-outs')} className="h-100">
                             {replay.eliminations.length
                                 ? (
                                     <div className="x01-legs-wrap">
                                         <table className="x01-legs">
                                             <thead>
                                                 <tr>
-                                                    <th scope="col">Round</th>
-                                                    <th scope="col">By</th>
-                                                    <th scope="col">Knocked out</th>
-                                                    <th scope="col" className="text-end">Lost</th>
+                                                    <th scope="col">{t('Round')}</th>
+                                                    <th scope="col">{t('By')}</th>
+                                                    <th scope="col">{t('Knocked out')}</th>
+                                                    <th scope="col" className="text-end">{t('Lost')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="is-static">
@@ -168,9 +169,9 @@ const EliminationGameStats = () => {
                                         </table>
                                     </div>
                                 )
-                                : <p className="text-subtle m-0">Nobody was knocked out in this game.</p>
+                                : <p className="text-subtle m-0">{t('Nobody was knocked out in this game.')}</p>
                             }
-                            <span className="d-block text-faint fs-8 mt-2">Landing exactly on an opponent&apos;s score sends them back to 0; &quot;Lost&quot; is the score they had.</span>
+                            <span className="d-block text-faint fs-8 mt-2">{t('Landing exactly on an opponent\'s score sends them back to 0; "Lost" is the score they had.')}</span>
                         </Panel>
                     </div>
                 </div>
@@ -180,7 +181,7 @@ const EliminationGameStats = () => {
                         <ScoreRangesChart data={eliminationScoreRanges(game.players, replay)} players={players} />
                     </div>
                     <div className="col-12 col-xl-6">
-                        <HitsHeatmapChart hitsByPlayer={players.map(player => eliminationHits(player.id, replay))} players={players} gameName="this game" />
+                        <HitsHeatmapChart hitsByPlayer={players.map(player => eliminationHits(player.id, replay))} players={players} gameName={t('this game')} />
                     </div>
                 </div>
             </div>

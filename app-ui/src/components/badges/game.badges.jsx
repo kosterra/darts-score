@@ -10,6 +10,7 @@ import ShameMedal from './shame.medal';
 import TarredAndFeathered from './tarred.and.feathered';
 import { FaSoap } from 'react-icons/fa6';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 const RETRIES = 3;
 const RETRY_MS = 1200;
@@ -59,7 +60,7 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
     return (
         <>
             {groups.length > 0 &&
-                <Panel header="Badges earned in this game" className={className}>
+                <Panel header={t('Badges earned in this game')} className={className}>
                     <div className="d-flex flex-column gap-3 p-2">
                         {groups.map((group, groupIndex) => (
                             <div key={group.player.id} className="d-flex flex-wrap align-items-center gap-3">
@@ -86,7 +87,7 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                 </Panel>
             }
             {shame.length > 0 &&
-                <Panel header="Hall of Shame in this game" className={className}>
+                <Panel header={t('Hall of Shame in this game')} className={className}>
                     <div className="d-flex flex-column gap-3 p-2">
                         {shame.map(group => (
                             <div key={group.player.id} className="d-flex flex-wrap align-items-center gap-3">
@@ -103,13 +104,13 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                                     {group.got.map(badge => (
                                         <li key={`got-${badge.id}`} className="d-flex align-items-center gap-2">
                                             <ShameMedal badge={badge} size="sm" />
-                                            <span className="text-subtle fs-7">{badge.title}{badge.count > 1 ? ` × ${badge.count}` : ''}</span>
+                                            <span className="text-subtle fs-7">{badge.title}{badge.count > 1 ? t(' × {{count}}', { count: badge.count }) : ''}</span>
                                         </li>
                                     ))}
                                     {group.washed.map(badge => (
                                         <li key={`washed-${badge.id}`} className="d-flex align-items-center gap-2">
                                             <ShameMedal badge={badge} size="sm" washed />
-                                            <span className="text-subtle fs-7"><FaSoap className="game-shame-soap" aria-hidden="true" /> Washed off {badge.title}</span>
+                                            <span className="text-subtle fs-7"><FaSoap className="game-shame-soap" aria-hidden="true" />{' '}{t('Washed off')}{' '}{badge.title}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -120,8 +121,8 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
             }
             {moment === 'celebrating' && winner &&
                 <Celebration
-                    title="Game shot!"
-                    subtitle="wins the game"
+                    title={t('Game shot!')}
+                    subtitle={t('wins the game')}
                     player={winner}
                     badgeGroups={groups}
                     onClose={() => setMoment('tarring')}

@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { t } from '../../../utils/i18n';
 
 // how the darts are entered, chosen per device for every game: the board, or
 // the keypad (the default on a phone, where the fields of the board are small)
 const INPUT_KEY = 'oche.x01Input';
 
 export const INPUTS = [
-    { label: 'Board', value: 'board', icon: 'pi pi-bullseye' },
-    { label: 'Keypad', value: 'keypad', icon: 'pi pi-th-large' },
+    { label: t('Board'), value: 'board', icon: 'pi pi-bullseye' },
+    { label: t('Keypad'), value: 'keypad', icon: 'pi pi-th-large' },
 ];
 
 const readInput = () => {

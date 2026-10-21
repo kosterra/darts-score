@@ -4,24 +4,25 @@ import { Panel } from 'primereact/panel';
 import StatsService from '../../../services/stats.service';
 import SideBySide from '../common/side.by.side';
 import HeadToHeadLayout from './head.to.head.layout';
+import { t } from '../../../utils/i18n';
 
 // the figures compared per game type: [label, key of the player's figures, format, options]
 const FIGURES = {
     cricket: [
-        ['Won games', 'wins'],
-        ['Marks per round', 'marksPerRound', (value) => value?.toFixed(2)],
-        ['Best game, marks per round', 'bestMarksPerRound', (value) => value?.toFixed(2)],
-        ['Points per game', 'averagePoints'],
+        [t('Won games'), 'wins'],
+        [t('Marks per round'), 'marksPerRound', (value) => value?.toFixed(2)],
+        [t('Best game, marks per round'), 'bestMarksPerRound', (value) => value?.toFixed(2)],
+        [t('Points per game'), 'averagePoints'],
     ],
     elimination: [
-        ['Won games', 'wins'],
-        ['Average per visit', 'averageVisit'],
-        ['Best visit', 'bestVisit'],
-        ['Darts thrown', 'dartsThrown', null, { neutral: true }],
+        [t('Won games'), 'wins'],
+        [t('Average per visit'), 'averageVisit'],
+        [t('Best visit'), 'bestVisit'],
+        [t('Darts thrown'), 'dartsThrown', null, { neutral: true }],
     ],
 };
 
-const TITLES = { cricket: 'Cricket head to head', elimination: 'Elimination head to head' };
+const TITLES = { cricket: t('Cricket head to head'), elimination: t('Elimination head to head') };
 
 /**
  * Head to head in Cricket or Elimination: games together, the latest winners
@@ -39,7 +40,7 @@ const OtherHeadToHead = ({ type, players, request }) => {
 
     if (!data) return null;
     if (data.playedGames === 0) {
-        return <p className="text-subtle m-0">These players have no finished {type === 'cricket' ? 'Cricket' : 'Elimination'} games together with these filters.</p>;
+        return <p className="text-subtle m-0">{t('These players have no finished')}{' '}{type === 'cricket' ? t('Cricket') : t('Elimination')}{' '}{t('games together with these filters.')}</p>;
     }
 
     const rows = FIGURES[type].map(([label, key, format, options = {}]) => {

@@ -24,11 +24,12 @@ import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import useClubSelection from './use.club.selection';
+import { t } from '../../utils/i18n';
 
 const KIND_OPTIONS = [
-    { label: 'All', value: 'all' },
-    { label: 'Members', value: 'members' },
-    { label: 'Guests', value: 'guests' },
+    { label: t('All'), value: 'all' },
+    { label: t('Members'), value: 'members' },
+    { label: t('Guests'), value: 'guests' },
 ];
 
 const matches = (player, term) => [player.nickname, player.firstname, player.lastname]
@@ -88,7 +89,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                 : await PlayerService.searchPlayers('', { includeGuests: true }));
         } catch (error) {
             setPlayers([]);
-            showError('Load players', error);
+            showError(t('Load players'), error);
         }
     };
 
@@ -109,7 +110,7 @@ const PlayersTable = ({ scope = 'club' }) => {
             await PlayerService.setPublicProfile(player.id, !player.publicProfile);
             await loadPlayers();
         } catch (error) {
-            showError('Public nickname', error);
+            showError(t('Public nickname'), error);
         }
     };
 
@@ -118,7 +119,7 @@ const PlayersTable = ({ scope = 'club' }) => {
             await PlayerService.makeMember(player.id);
             await loadPlayers();
         } catch (error) {
-            showError('Make club member', error);
+            showError(t('Make club member'), error);
         }
     };
 
@@ -130,10 +131,10 @@ const PlayersTable = ({ scope = 'club' }) => {
                 ? await AdminService.deletePlayer(player.id)
                 : await PlayerService.deletePlayer(player.id);
             const leftClub = result?.removed === 'membership';
-            toast.current.show({ severity: 'success', summary: leftClub ? 'Player removed from the club' : 'Player deleted', detail: player.nickname, life: 3000 });
+            toast.current.show({ severity: 'success', summary: leftClub ? t('Player removed from the club') : t('Player deleted'), detail: player.nickname, life: 3000 });
             await loadPlayers();
         } catch {
-            showError('Delete player', { message: `${player.nickname} could not be deleted. Please try again.` });
+            showError(t('Delete player'), { message: t('{{nickname}} could not be deleted. Please try again.', { nickname: player.nickname }) });
         }
     };
 
@@ -155,15 +156,15 @@ const PlayersTable = ({ scope = 'club' }) => {
         : <Tag value="Member" severity="success" />;
 
     const loginBody = (player) => player.user
-        ? <span className="text-default fs-7"><i className="pi pi-key text-primary me-2" aria-hidden="true" />Has a login</span>
+        ? <span className="text-default fs-7"><i className="pi pi-key text-primary me-2" aria-hidden="true" />{t('Has a login')}</span>
         : <span className="text-faint fs-7">–</span>;
 
     const publicBody = (player) => player.guest
         ? <span className="text-faint fs-7">–</span>
         : (
             <span className="d-flex flex-column">
-                <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? 'Nickname shown' : 'Hidden'}</span>
-                {decidesThemselves(player) && <span className="text-faint fs-8">their own choice</span>}
+                <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? t('Nickname shown') : t('Hidden')}</span>
+                {decidesThemselves(player) && <span className="text-faint fs-8">{t('their own choice')}</span>}
             </span>
         );
 
@@ -171,19 +172,19 @@ const PlayersTable = ({ scope = 'club' }) => {
     const actionsBody = (player) => !canManage ? null : (
         <div className="row-actions">
             {!acrossClubs && <>
-                <Button type="button" icon="pi pi-user-edit" aria-label={`Edit ${player.nickname}`} tooltip="Edit player" tooltipOptions={{ position: 'top' }} onClick={() => navigate(`/players/${player.id}/edit`)} />
+                <Button type="button" icon="pi pi-user-edit" aria-label={t('Edit {{nickname}}', { nickname: player.nickname })} tooltip={t('Edit player')} tooltipOptions={{ position: 'top' }} onClick={() => navigate(`/players/${player.id}/edit`)} />
                 {player.guest
-                    ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={`Make ${player.nickname} a club member`} tooltip="Make club member" tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
+                    ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={t('Make {{nickname}} a club member', { nickname: player.nickname })} tooltip={t('Make club member')} tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
                     : <>
                         <PlayerLogin player={player} onChange={loadPlayers} />
                         <Button
                             type="button"
                             icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
                             severity={player.publicProfile ? undefined : 'secondary'}
-                            aria-label={player.publicProfile ? `Hide the nickname of ${player.nickname} on the public page` : `Show the nickname of ${player.nickname} on the public page`}
+                            aria-label={player.publicProfile ? t('Hide the nickname of {{nickname}} on the public page', { nickname: player.nickname }) : t('Show the nickname of {{nickname}} on the public page', { nickname: player.nickname })}
                             tooltip={decidesThemselves(player)
-                                ? `${player.nickname} has a login and decides this on their player profile`
-                                : player.publicProfile ? 'Nickname is public' : 'Nickname is hidden publicly'}
+                                ? t('{{nickname}} has a login and decides this on their player profile', { nickname: player.nickname })
+                                : player.publicProfile ? t('Nickname is public') : t('Nickname is hidden publicly')}
                             tooltipOptions={{ position: 'top', showOnDisabled: true }}
                             disabled={decidesThemselves(player)}
                             onClick={() => onTogglePublic(player)}
@@ -193,14 +194,14 @@ const PlayersTable = ({ scope = 'club' }) => {
             </>}
             {/* a club admin of several clubs finds the clubs of a player on the player's page */}
             {acrossClubs &&
-                <Button type="button" icon="pi pi-building" severity="secondary" aria-label={`Clubs of ${player.nickname}`} tooltip="Clubs: add to or remove from a club" tooltipOptions={{ position: 'top' }} onClick={() => setClubsOfPlayerId(player.id)} />
+                <Button type="button" icon="pi pi-building" severity="secondary" aria-label={t('Clubs of {{nickname}}', { nickname: player.nickname })} tooltip={t('Clubs: add to or remove from a club')} tooltipOptions={{ position: 'top' }} onClick={() => setClubsOfPlayerId(player.id)} />
             }
-            <JSONViewer data={player} header="Player _RAW Data" />
+            <JSONViewer data={player} header={t('Player _RAW Data')} />
             <DeletePopup
                 data={player}
-                header="Delete Player"
+                header={t('Delete Player')}
                 message={acrossClubs && player.clubs?.length > 1
-                    ? `player ${player.nickname} from all ${player.clubs.length} clubs`
+                    ? t('player {{nickname}} from all {{length}} clubs', { nickname: player.nickname, length: player.clubs.length })
                     : 'player ' + player.nickname}
                 handleDelete={onDelete}
             />
@@ -210,18 +211,18 @@ const PlayersTable = ({ scope = 'club' }) => {
     const needsClubs = acrossClubs && !selectedIds.length;
 
     return (
-        <Panel header={acrossClubs ? 'Players of all clubs' : 'Players'}>
+        <Panel header={acrossClubs ? t('Players of all clubs') : t('Players')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
-                    <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search players" aria-label="Search players" />
+                    <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search players')} aria-label={t('Search players')} />
                 </span>
-                <SelectButton value={kind} options={KIND_OPTIONS} onChange={(e) => e.value && setKind(e.value)} aria-label="Members or guests" />
+                <SelectButton value={kind} options={KIND_OPTIONS} onChange={(e) => e.value && setKind(e.value)} aria-label={t('Members or guests')} />
                 <div className="ms-auto d-flex align-items-center gap-3">
-                    {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? 'player' : 'players'}</span>}
+                    {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
                     {!acrossClubs && isClubAdmin && <PlayerForm onPlayerAdd={loadPlayers} />}
-                    {acrossClubs && <PlayerForm onPlayerAdd={onPlayerAdded} clubs={clubs} defaultClubId={selectedIds[0]} label="New player" />}
+                    {acrossClubs && <PlayerForm onPlayerAdd={onPlayerAdded} clubs={clubs} defaultClubId={selectedIds[0]} label={t('New player')} />}
                 </div>
             </AdminToolbar>
 
@@ -234,18 +235,18 @@ const PlayersTable = ({ scope = 'club' }) => {
                         className="admin-table"
                         loading={players === null}
                         {...tableState(view, setView, { sortField: 'nickname', sortOrder: 1 })}
-                        emptyMessage={players?.length ? 'No players match these filters.' : 'No players yet.'}
+                        emptyMessage={players?.length ? t('No players match these filters.') : t('No players yet.')}
                         responsiveLayout="scroll"
                     >
                         <Column
                             field="nickname"
-                            header="Player"
+                            header={t('Player')}
                             sortable
                             // in the club's own list the name opens the player's profile
                             body={(player) => {
                                 // members still without a date of birth are marked for the club's admins
                                 const missingBirth = canManage && !player.guest && !player.dateOfBirth && (
-                                    <i className="pi pi-calendar-times text-warning ms-2 fs-8" title="No date of birth yet: edit the player to add it, it is needed for handicap suggestions" aria-label="No date of birth yet" />
+                                    <i className="pi pi-calendar-times text-warning ms-2 fs-8" title={t('No date of birth yet: edit the player to add it, it is needed for handicap suggestions')} aria-label={t('No date of birth yet')} />
                                 );
                                 return acrossClubs
                                     ? <PlayerCell player={player}>{missingBirth}</PlayerCell>
@@ -253,16 +254,16 @@ const PlayersTable = ({ scope = 'club' }) => {
                             }}
                             style={{ minWidth: '14rem' }}
                         />
-                        {acrossClubs && <Column header="Clubs" body={(player) => (
+                        {acrossClubs && <Column header={t('Clubs')} body={(player) => (
                             <div className="d-flex flex-column gap-1">
                                 {(player.clubs ?? []).map(club => <ClubCell key={club.id} club={club} />)}
                             </div>
                         )} />}
-                        {!acrossClubs && <Column header="Level" body={(player) => player.guest ? <span className="text-faint fs-7">–</span> : <LevelBadge level={levels[player.id]} />} />}
-                        <Column header="Type" body={kindBody} />
-                        {canManage && <Column header="Login" body={loginBody} />}
-                        {canManage && <Column header="Public page" body={publicBody} />}
-                        <Column field="createdAt" header="Added" sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(player.createdAt).slice(0, 10)}</span>} />
+                        {!acrossClubs && <Column header={t('Level')} body={(player) => player.guest ? <span className="text-faint fs-7">–</span> : <LevelBadge level={levels[player.id]} />} />}
+                        <Column header={t('Type')} body={kindBody} />
+                        {canManage && <Column header={t('Login')} body={loginBody} />}
+                        {canManage && <Column header={t('Public page')} body={publicBody} />}
+                        <Column field="createdAt" header={t('Added')} sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(player.createdAt).slice(0, 10)}</span>} />
                         {canManage && <Column body={actionsBody} />}
                     </DataTable>
                 )

@@ -1,4 +1,5 @@
 import { averageLevelOf } from './average.levels';
+import { t } from './i18n';
 
 // A fair X01 handicap for players of different strength: the strongest plays
 // by the game's settings, the others start lower and may have easier in/out
@@ -49,12 +50,12 @@ export const ageOn = (dateOfBirth, today = new Date()) => {
  */
 export const strengthOf = ({ age = null, recentAverage = null, games = 0, levelId = null } = {}) => {
     if (recentAverage != null && games > 0) {
-        return { average: recentAverage, source: 'average', text: `${averageLevelOf(recentAverage)?.name ?? 'Beginner'}, average ${recentAverage.toFixed(1)}` };
+        return { average: recentAverage, source: 'average', text: t('{{level}}, average {{average}}', { level: averageLevelOf(recentAverage)?.name ?? t('Beginner'), average: recentAverage.toFixed(1) }) };
     }
     if (levelId && LEVEL_AVERAGES[levelId] != null && levelId !== 'rookie') {
-        return { average: LEVEL_AVERAGES[levelId], source: 'level', text: 'no X01 average yet, from the level' };
+        return { average: LEVEL_AVERAGES[levelId], source: 'level', text: t('no X01 average yet, from the level') };
     }
-    return { average: averageForAge(age), source: 'age', text: 'no X01 games yet' };
+    return { average: averageForAge(age), source: 'age', text: t('no X01 games yet') };
 };
 
 // the allowed starting score closest to the wish, never above the game's
@@ -95,10 +96,10 @@ export const suggestHandicap = (game, players) => {
         // a much stronger player also has to open with a double
         if (isStrongest && game.legInMode === 'Straight In' && weakestRatio < HARDER_IN_RATIO) legInMode = 'Double In';
 
-        const why = [player.age != null ? `${player.age} years` : null, strength.text].filter(Boolean).join(' · ');
+        const why = [player.age != null ? t('{{age}} years', { age: player.age }) : null, strength.text].filter(Boolean).join(' · ');
         const rules = `${startingScore} ${legInMode === 'Straight In' ? '' : legInMode + ' '}${SHORT_OUT[legOutMode]}`.replace(/\s+/g, ' ');
         const reason = isStrongest && players.length > 1
-            ? `${why} → strongest: ${rules}`
+            ? t('{{why}} → strongest: {{rules}}', { why: why, rules: rules })
             : `${why} → ${rules}`;
 
         return [player.id, { startingScore, legInMode, legOutMode, reason }];

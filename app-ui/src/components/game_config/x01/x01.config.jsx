@@ -17,6 +17,7 @@ import X01Service from '../../../services/x01.service';
 import { MIN_PLAYERS } from '../../../utils/player.picker';
 import { clearSetup, fitToPlayers, loadSetup, saveSetup, X01_QUICK_FORMATS } from '../../../utils/setup.memory';
 import { missingPlayers, playersSummary, setsLegsSummary } from '../config_components/game.setup.summary';
+import { t } from '../../../utils/i18n';
 
 const SETTINGS = ['startingScore', 'legInMode', 'legOutMode', 'setMode', 'numberOfSets', 'legMode', 'numberOfLegs', 'flyingDarts'];
 
@@ -97,20 +98,20 @@ const X01Config = () => {
             });
             navigate('/x01/' + newGame.id);
         } catch (error) {
-            toast.current.show({ severity: 'error', summary: 'Start Game', detail: 'Failed to create the game. ' + error.message, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Start Game'), detail: t('Failed to create the game. ') + error.message, life: 4000 });
             setStarting(false);
         }
     };
 
     return (
         <>
-            <Panel header="X01" className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('X01')} className="w-100 w-md-75 w-xxl-50 mx-auto">
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
-                    <p className="game-setup-section-title">Players</p>
+                    <p className="game-setup-section-title">{t('Players')}</p>
                     <PlayerPicker selected={players} onChange={onPlayersChange} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
-                    <p className="game-setup-section-title mt-4">Game</p>
+                    <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     <QuickFormats formats={X01_QUICK_FORMATS} settings={game} playerCount={players.length} onApply={applyFormat} />
                     <X01ScoreConfig
                         scoreOption={game.startingScore}

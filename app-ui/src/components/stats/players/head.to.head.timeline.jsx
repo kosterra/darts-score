@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 
 import ChartConfigOptions from '../common/chart.config.options';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { t } from '../../../utils/i18n';
 
 const MAX_GAMES = 12;
 // the card is this wide at most; near the edges it stays inside the timeline
@@ -45,7 +46,7 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
 
     return (
         <div className="h2h-timeline-wrap" ref={wrapper}>
-            <div className="h2h-timeline" role="list" aria-label="Latest games, newest on the right">
+            <div className="h2h-timeline" role="list" aria-label={t('Latest games, newest on the right')}>
                 {recent.map((game, index) => {
                     const winnerId = game.players.find(id => game.playerModels?.[id]?.hasWonGame);
                     const winner = players.find(player => player.id === winnerId);
@@ -54,7 +55,7 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
                     const result = game.players
                         .map(id => (isX01 ? game.playerModels?.[id]?.setsWon : game.playerModels?.[id]?.score) ?? 0)
                         .join(' : ');
-                    const summary = `${dayjs(game.updatedAt).format('DD.MM.YYYY')}${isX01 ? ` · ${game.startingScore}` : ''} · ${winner ? `${winner.nickname} won` : 'Winner not in this comparison'} (${isX01 ? 'sets' : 'points'} ${result})`;
+                    const summary = `${dayjs(game.updatedAt).format('DD.MM.YYYY')}${isX01 ? ` · ${game.startingScore}` : ''} · ${winner ? t('{{nickname}} won', { nickname: winner.nickname }) : t('Winner not in this comparison')} (${isX01 ? t('sets') : t('points')} ${result})`;
                     const isLatest = index === recent.length - 1;
 
                     return (
@@ -98,13 +99,13 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
                         const model = hoveredGame.playerModels?.[id] ?? {};
                         const value = isX01Game(hoveredGame)
                             ? `${model.setsWon ?? 0} ${(model.setsWon ?? 0) === 1 ? 'set' : 'sets'}`
-                            : `${model.score ?? 0} points`;
+                            : t('{{value}} points', { value: model.score ?? 0 });
                         return (
                             <div key={id} className="chart-tooltip-row">
                                 <span className="chart-tooltip-dot" style={{ background: colourOf(id) }} />
                                 <span className="chart-tooltip-name">
-                                    {player?.nickname ?? 'Other player'}
-                                    {model.hasWonGame && <FaTrophy className="h2h-tooltip-trophy" aria-label="Winner" />}
+                                    {player?.nickname ?? t('Other player')}
+                                    {model.hasWonGame && <FaTrophy className="h2h-tooltip-trophy" aria-label={t('Winner')} />}
                                 </span>
                                 <span className="chart-tooltip-value">{value}</span>
                             </div>

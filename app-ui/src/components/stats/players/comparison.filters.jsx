@@ -4,16 +4,17 @@ import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
 import { SelectButton } from 'primereact/selectbutton';
+import { t } from '../../../utils/i18n';
 
 const GAME_TYPES = [
-    { label: 'X01', value: 'x01' },
-    { label: 'Cricket', value: 'cricket' },
-    { label: 'Elimination', value: 'elimination' },
+    { label: t('X01'), value: 'x01' },
+    { label: t('Cricket'), value: 'cricket' },
+    { label: t('Elimination'), value: 'elimination' },
 ];
-const PERIODS = ['1 D', '1 W', '1 M', '1 Y', 'All', 'Custom'].map(value => ({ label: value === 'Custom' ? 'Dates' : value, value }));
+const PERIODS = ['1 D', '1 W', '1 M', '1 Y', 'All', 'Custom'].map(value => ({ label: value === 'Custom' ? t('Dates') : value, value }));
 const LAST_GAMES = [5, 10, 20, 'All'].map(value => ({ label: String(value), value }));
 const STARTING_SCORES = [
-    { label: 'Any score', value: 'All' },
+    { label: t('Any score'), value: 'All' },
     ...[101, 301, 501, 701, 1001].map(value => ({ label: String(value), value })),
 ];
 
@@ -33,13 +34,13 @@ export const FilterPanel = ({ summary, changed, children }) => {
     return (
         <div className="filter-panel">
             <div className="filter-panel-bar">
-                <span className="filter-panel-summary" aria-label="Filters in use">
+                <span className="filter-panel-summary" aria-label={t('Filters in use')}>
                     {summary.map(part => <span key={part} className="filter-chip">{part}</span>)}
                 </span>
                 <Button
                     type="button"
                     icon={changed ? 'pi pi-filter-fill' : 'pi pi-filter'}
-                    label="Filters"
+                    label={t('Filters')}
                     badge={changed ? String(changed) : undefined}
                     severity="secondary"
                     size="small"
@@ -59,8 +60,8 @@ export const FilterPanel = ({ summary, changed, children }) => {
 };
 
 const SCOPES = [
-    { label: 'This club', value: 'club' },
-    { label: 'All clubs', value: 'all' },
+    { label: t('This club'), value: 'club' },
+    { label: t('All clubs'), value: 'all' },
 ];
 
 /**
@@ -71,7 +72,7 @@ const SCOPES = [
  * withOthers false) and adds the clubs (withScope); "scopeHint" disables the
  * clubs and says why, e.g. for a player of only one club.
  */
-const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOthers = true, withScope = false, scopeHint = null, lastGamesLabel = 'Last games together' }) => {
+const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOthers = true, withScope = false, scopeHint = null, lastGamesLabel = t('Last games together') }) => {
     const set = (changes) => onChange({ ...filters, ...changes });
     // without a game type every type is shown, X01 included
     const isX01 = !withType || filters.type === 'x01';
@@ -79,20 +80,20 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
     return (
         <div className="comparison-filters">
             {withScope &&
-                <Filter label="Clubs">
+                <Filter label={t('Clubs')}>
                     <span title={scopeHint ?? undefined}>
-                        <SelectButton value={filters.scope} options={SCOPES} onChange={(e) => e.value && set({ scope: e.value })} disabled={Boolean(scopeHint)} aria-label="Clubs" />
+                        <SelectButton value={filters.scope} options={SCOPES} onChange={(e) => e.value && set({ scope: e.value })} disabled={Boolean(scopeHint)} aria-label={t('Clubs')} />
                     </span>
                 </Filter>
             }
             {withType &&
-                <Filter label="Game type">
-                    <SelectButton value={filters.type} options={GAME_TYPES} onChange={(e) => e.value && set({ type: e.value })} aria-label="Game type" />
+                <Filter label={t('Game type')}>
+                    <SelectButton value={filters.type} options={GAME_TYPES} onChange={(e) => e.value && set({ type: e.value })} aria-label={t('Game type')} />
                 </Filter>
             }
-            <Filter label="Period">
+            <Filter label={t('Period')}>
                 <div className="d-flex flex-wrap align-items-center gap-2">
-                    <SelectButton value={filters.period} options={PERIODS} onChange={(e) => e.value && set({ period: e.value })} className="p-selectbutton-pills" aria-label="Period" />
+                    <SelectButton value={filters.period} options={PERIODS} onChange={(e) => e.value && set({ period: e.value })} className="p-selectbutton-pills" aria-label={t('Period')} />
                     {filters.period === 'Custom' &&
                         <Calendar
                             value={filters.range}
@@ -100,10 +101,10 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
                             selectionMode="range"
                             readOnlyInput
                             dateFormat="dd.mm.yy"
-                            placeholder="Choose dates"
+                            placeholder={t('Choose dates')}
                             maxDate={new Date()}
                             showButtonBar
-                            aria-label="From and to"
+                            aria-label={t('From and to')}
                             style={{ width: '14rem' }}
                         />
                     }
@@ -113,24 +114,24 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
                 <SelectButton value={filters.lastGames} options={LAST_GAMES} onChange={(e) => e.value && set({ lastGames: e.value })} className="p-selectbutton-pills" aria-label={lastGamesLabel} />
             </Filter>
             {isX01 && <>
-                <Filter label={withType ? 'Starting score' : 'X01 starting score'}>
-                    <Dropdown value={filters.startingScore} options={STARTING_SCORES} onChange={(e) => set({ startingScore: e.value })} aria-label="Starting score" style={{ minWidth: '9rem' }} />
+                <Filter label={withType ? t('Starting score') : t('X01 starting score')}>
+                    <Dropdown value={filters.startingScore} options={STARTING_SCORES} onChange={(e) => set({ startingScore: e.value })} aria-label={t('Starting score')} style={{ minWidth: '9rem' }} />
                 </Filter>
-                <Filter label={withType ? 'Format' : 'X01 format'}>
+                <Filter label={withType ? t('Format') : t('X01 format')}>
                     <Dropdown
                         value={filters.format}
-                        options={[{ label: 'Any format', value: 'all' }, ...formats]}
+                        options={[{ label: t('Any format'), value: 'all' }, ...formats]}
                         onChange={(e) => set({ format: e.value })}
-                        aria-label="Format"
+                        aria-label={t('Format')}
                         style={{ minWidth: '14rem' }}
-                        emptyMessage="No games yet"
+                        emptyMessage={t('No games yet')}
                     />
                 </Filter>
             </>}
             {withOthers &&
                 <label htmlFor="compare-include-others" className="comparison-include-others d-flex align-items-center gap-2 text-subtle fs-7">
                     <InputSwitch inputId="compare-include-others" checked={filters.includeOthers} onChange={(e) => set({ includeOthers: e.value })} />
-                    Include games with other players too
+                    {t('Include games with other players too')}
                 </label>
             }
         </div>

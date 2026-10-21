@@ -5,6 +5,7 @@ import { Button } from 'primereact/button';
 import AuthService from '../../services/auth.service';
 import { useAuth } from '../../utils/auth.context';
 import { countdown, sessionPhase, warningMs } from './session.timing';
+import { t } from '../../utils/i18n';
 
 /**
  * Watches the end of the session: shortly before it asks whether to stay
@@ -77,7 +78,7 @@ const SessionWatch = () => {
     const hours = session.timeoutHours;
     return (
         <Dialog
-            header="Your session ends soon"
+            header={t('Your session ends soon')}
             visible
             onHide={() => setDismissed(session.expiresAt)}
             draggable={false}
@@ -87,12 +88,12 @@ const SessionWatch = () => {
             <div className="d-flex flex-column align-items-center gap-2 text-center pb-2">
                 <span className="session-countdown" aria-live="polite">{countdown(session.expiresAt - now)}</span>
                 <p className="text-subtle fs-7 m-0">
-                    Then you are logged out. A game going on is saved after every visit and can be continued after logging in again.
+                    {t('Then you are logged out. A game going on is saved after every visit and can be continued after logging in again.')}
                 </p>
             </div>
             <div className="d-flex justify-content-end flex-wrap gap-2 mt-3">
-                <Button type="button" label="Log out" size="small" severity="secondary" onClick={logout} />
-                <Button type="button" label={`Stay logged in for ${hours} ${hours === 1 ? 'hour' : 'hours'}`} icon="pi pi-clock" size="small" loading={extending} onClick={extend} autoFocus />
+                <Button type="button" label={t('Log out')} size="small" severity="secondary" onClick={logout} />
+                <Button type="button" label={t('Stay logged in for {{hours}} {{value}}', { hours: hours, value: hours === 1 ? 'hour' : 'hours' })} icon="pi pi-clock" size="small" loading={extending} onClick={extend} autoFocus />
             </div>
         </Dialog>
     );

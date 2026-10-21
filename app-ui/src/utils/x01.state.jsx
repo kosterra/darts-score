@@ -57,6 +57,7 @@ import {
     GAME_HAS_WINNER,
     RETURN_PREV_PLAYER
 } from './constants';
+import { t } from './i18n';
 
 
 const X01State = props => {
@@ -145,8 +146,8 @@ const X01State = props => {
             toast.current.show(
                 {
                     severity: 'error',
-                    summary: 'Load Game',
-                    detail: 'Failed to load X01 game. ' + error.message,
+                    summary: t('Load Game'),
+                    detail: t('Failed to load X01 game. ') + error.message,
                     life: 3000
                 }
             );
@@ -228,7 +229,7 @@ const X01State = props => {
 
         for (let i = 0; i < currentThrow.length; i++) {
             if (!validateDartValue(currentThrow[i])) {
-                showError('Check the darts', 'One or more darts are not valid: use e.g. 20, D16, T19, 25 or 50 (bullseye).');
+                showError(t('Check the darts'), t('One or more darts are not valid: use e.g. 20, D16, T19, 25 or 50 (bullseye).'));
                 setLoading('validateThrow', false);
                 return
             }
@@ -265,7 +266,7 @@ const X01State = props => {
             setOneEighty({ key: Date.now(), name: thrower?.nickname ?? '' });
         } else if (visitMoment?.kind === 'checkout') {
             // a high finish: the gold burst of the 180 with the finish on the signs
-            setOneEighty({ key: Date.now(), name: thrower?.nickname ?? '', number: String(visitMoment.checkout), words: 'Checkout!', sign: String(visitMoment.checkout) });
+            setOneEighty({ key: Date.now(), name: thrower?.nickname ?? '', number: String(visitMoment.checkout), words: t('Checkout!'), sign: String(visitMoment.checkout) });
         } else if (visitMoment) {
             setHighlight({ key: Date.now(), name: thrower?.nickname ?? '', playerIndex: state.game.players.indexOf(state.game.currentPlayerTurn), ...visitMoment });
         }
@@ -359,8 +360,8 @@ const X01State = props => {
         const game = state.game;
         saving.current = saving.current
             .then(() => Service.updateX01Game(game))
-            .then(saved => { if (!saved) throw new Error('not saved'); })
-            .catch(() => showError('Not saved', 'The last visit could not be saved. Check the connection: the next visit saves everything.'));
+            .then(saved => { if (!saved) throw new Error(t('not saved')); })
+            .catch(() => showError(t('Not saved'), t('The last visit could not be saved. Check the connection: the next visit saves everything.')));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [saveRequest]);
 
@@ -383,10 +384,10 @@ const X01State = props => {
             kind: hasWonSet ? 'set' : 'leg',
             winner: nameOf(winnerId),
             title: hasWonSet
-                ? `wins set ${game.currentSet}`
-                : `wins leg ${game.currentSetLeg}${multipleSets ? ` of set ${game.currentSet}` : ''}`,
+                ? t('wins set {{currentSet}}', { currentSet: game.currentSet })
+                : multipleSets ? t('wins leg {{leg}} of set {{set}}', { leg: game.currentSetLeg, set: game.currentSet }) : t('wins leg {{leg}}', { leg: game.currentSetLeg }),
             standings: game.players.map(id => ({ name: nameOf(id), value: countOf(id) })),
-            next: hasWonSet ? `Set ${game.currentSet + 1}` : `Leg ${game.currentSetLeg + 1}`,
+            next: hasWonSet ? t('Set {{value}}', { value: game.currentSet + 1 }) : t('Leg {{value}}', { value: game.currentSetLeg + 1 }),
             starter: nameOf(nextStarterId),
         };
     };
@@ -399,7 +400,7 @@ const X01State = props => {
             values[0] === '' ||
             (values[1] === '' && values[2] !== '')
         ) {
-            showError('Check the darts', 'Enter a value for each dart; 0 for a miss.');
+            showError(t('Check the darts'), t('Enter a value for each dart; 0 for a miss.'));
             return false;
         }
 

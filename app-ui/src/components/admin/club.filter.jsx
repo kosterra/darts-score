@@ -1,6 +1,7 @@
 import { MultiSelect } from 'primereact/multiselect';
 
 import ClubLogo from '../elements/club.logo';
+import { t } from '../../utils/i18n';
 
 /**
  * Picks the clubs whose entries an admin list shows. Lists across clubs
@@ -14,15 +15,15 @@ export const ClubFilter = ({ clubs, selectedIds, onChange, optional = false }) =
         optionLabel="name"
         optionValue="id"
         onChange={(e) => onChange(e.value)}
-        placeholder={optional ? 'All clubs' : 'Choose clubs'}
+        placeholder={optional ? t('All clubs') : t('Choose clubs')}
         filter
         display="chip"
         // a plain cross on the chosen clubs, like the labels
         removeIcon="pi pi-times"
         maxSelectedLabels={3}
-        selectedItemsLabel="{0} clubs"
+        selectedItemsLabel={t('{0} clubs')}
         className={selectedIds.length || optional ? '' : 'p-invalid'}
-        aria-label="Clubs"
+        aria-label={t('Clubs')}
         style={{ minWidth: '14rem', maxWidth: '100%' }}
     />
 );
@@ -35,7 +36,7 @@ export const ClubCell = ({ club, detail }) => (
     <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
         <ClubLogo club={club} />
         <span className="d-flex flex-column" style={{ minWidth: 0 }}>
-            <span className="text-default fs-7 text-truncate">{club?.name ?? 'Unknown club'}</span>
+            <span className="text-default fs-7 text-truncate">{club?.name ?? t('Unknown club')}</span>
             {detail && <span className="text-faint fs-8">{detail}</span>}
         </span>
     </div>
@@ -47,7 +48,7 @@ export const ClubCell = ({ club, detail }) => (
 export const ChooseClubsHint = ({ what }) => (
     <div className="text-center py-5 d-flex flex-column align-items-center gap-2">
         <i className="pi pi-filter text-faint fs-3" aria-hidden="true" />
-        <span className="text-default fw-semibold">Choose one or more clubs</span>
-        <span className="text-subtle fs-7">to see their {what}.</span>
+        <span className="text-default fw-semibold">{t('Choose one or more clubs')}</span>
+        <span className="text-subtle fs-7">{t('to see their')}{' '}{what}.</span>
     </div>
 );

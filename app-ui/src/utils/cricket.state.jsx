@@ -30,6 +30,7 @@ import {
     GAME_HAS_WINNER,
     RETURN_PREV_PLAYER
 } from './constants';
+import { t } from './i18n';
 
 const CricketState = props => {
     // a quick game of the start page: no account, the players only names
@@ -77,7 +78,7 @@ const CricketState = props => {
         const game = state.game;
         saving.current = saving.current
             .then(() => CricketService.updateCricketGame(game))
-            .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last visit could not be saved. Check the connection: the next visit saves everything.', life: 4000 }))
+            .catch(() => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail: t('The last visit could not be saved. Check the connection: the next visit saves everything.'), life: 4000 }))
             .then(() => { if (game.hasWinner) setWinnerSaved(true); });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [saveRequest]);
@@ -120,8 +121,8 @@ const CricketState = props => {
             toast.current.show(
                 {
                     severity: 'error',
-                    summary: 'Load Game',
-                    detail: 'Failed to load Cricket game. ' + error.message,
+                    summary: t('Load Game'),
+                    detail: t('Failed to load Cricket game. ') + error.message,
                     life: 3000
                 }
             );
@@ -171,8 +172,8 @@ const CricketState = props => {
                 toast.current.show(
                     {
                         severity: 'error',
-                        summary: 'Validate Throws',
-                        detail: 'One or more of your darts have an invalid value',
+                        summary: t('Validate Throws'),
+                        detail: t('One or more of your darts have an invalid value'),
                         life: 3000
                     }
                 );
@@ -253,7 +254,7 @@ const CricketState = props => {
         } else if (trebles.length === 3 && new Set(trebles).size === 3) {
             setWhiteHorse({ key, name, darts: trebles });
         } else if (trebles.length === 3) {
-            setNineMarks({ key, name, number: '9', words: 'Nine marks!', sign: '9 marks' });
+            setNineMarks({ key, name, number: '9', words: t('Nine marks!'), sign: t('9 marks') });
         } else if (bulls.length === 3) {
             setHatTrick({ key, name, playerIndex, darts: bulls });
         }
@@ -270,8 +271,8 @@ const CricketState = props => {
             toast.current.show(
                 {
                     severity: 'error',
-                    summary: 'Validate Throws',
-                    detail: 'You need to add a value for each dart',
+                    summary: t('Validate Throws'),
+                    detail: t('You need to add a value for each dart'),
                     life: 3000
                 }
             );

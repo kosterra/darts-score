@@ -20,6 +20,7 @@ import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
 import { useUrlFilters, useUrlState } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { t } from '../../../utils/i18n';
 
 const DEFAULT_FILTERS = {
     type: 'x01',
@@ -137,22 +138,22 @@ const PlayersStatisticsPage = () => {
         <div className="container-fluid p-4 border-0">
             <div className="row g-4">
                 <div className="col-12 col-lg-4 col-xxl-3">
-                    <Panel header="Players" className="players-picker">
+                    <Panel header={t('Players')} className="players-picker">
                         <div className="d-flex flex-column gap-3">
                             <span className="p-input-icon-left w-100">
                                 <i className="pi pi-search" />
                                 <InputText
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search players"
-                                    aria-label="Search players"
+                                    placeholder={t('Search players')}
+                                    aria-label={t('Search players')}
                                     className="w-100"
                                 />
                             </span>
                             <span className="text-faint fs-8">
-                                Pick two to {MAX_PLAYERS} players to compare them.
+                                {t('Pick two to')}{' '}{MAX_PLAYERS}{' '}{t('players to compare them.')}
                             </span>
-                            {players.length === 0 && <span className="text-subtle">This club has no players yet.</span>}
+                            {players.length === 0 && <span className="text-subtle">{t('This club has no players yet.')}</span>}
                             <ul className="list-unstyled m-0 d-flex flex-column gap-1">
                                 {visible.map(player => {
                                     const index = selectedIds.indexOf(player.id);
@@ -178,7 +179,7 @@ const PlayersStatisticsPage = () => {
                                                 />
                                                 <span className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
                                                     <span className="text-default fw-semibold text-truncate">
-                                                        {player.nickname}{player.user === user.id && <span className="text-faint fw-normal"> (you)</span>}
+                                                        {player.nickname}{player.user === user.id && <span className="text-faint fw-normal">{' '}{t('(you)')}</span>}
                                                     </span>
                                                     <span className="text-faint fs-8 text-truncate">{player.firstname} {player.lastname}</span>
                                                 </span>
@@ -198,15 +199,15 @@ const PlayersStatisticsPage = () => {
                 <div className="col-12 col-lg-8 col-xxl-9" style={{ minWidth: 0 }}>
                     {selected.length < 2 &&
                         <header className="hero-header rounded-2 p-4 mb-4 d-flex flex-column gap-2">
-                            <h1 className="fs-2 fw-semibold text-default m-0">Player comparison</h1>
+                            <h1 className="fs-2 fw-semibold text-default m-0">{t('Player comparison')}</h1>
                             <span className="text-subtle">
                                 {selected.length === 0
-                                    ? 'Pick two or more players on the left to compare them.'
-                                    : `Pick at least one more player to compare with ${selected[0].nickname}.`}
+                                    ? t('Pick two or more players on the left to compare them.')
+                                    : t('Pick at least one more player to compare with {{nickname}}.', { nickname: selected[0].nickname })}
                             </span>
                             {selected.length === 1 &&
                                 <Link to={`/players/${selected[0].id}`} className="fs-7 align-self-start">
-                                    Open the profile of {selected[0].nickname} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
+                                    {t('Open the profile of')}{' '}{selected[0].nickname} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
                                 </Link>
                             }
                         </header>
@@ -214,12 +215,12 @@ const PlayersStatisticsPage = () => {
                     {selected.length > 1 &&
                         <>
                             <header className="hero-header hero-header-centered rounded-2 p-4 mb-4 d-flex flex-column gap-3">
-                                <span className="text-faint fs-8 text-uppercase text-center" style={{ letterSpacing: '0.08em' }}>Head to head</span>
+                                <span className="text-faint fs-8 text-uppercase text-center" style={{ letterSpacing: '0.08em' }}>{t('Head to head')}</span>
                                 {/* the two sides face each other around "vs.", which stays in the middle under the heading */}
                                 <div className="compare-faceoff">
                                     {[selected.slice(0, Math.ceil(selected.length / 2)), selected.slice(Math.ceil(selected.length / 2))].map((side, sideIndex) => (
                                         <Fragment key={sideIndex}>
-                                            {sideIndex === 1 && <span className="compare-vs text-faint fw-semibold fs-5">vs.</span>}
+                                            {sideIndex === 1 && <span className="compare-vs text-faint fw-semibold fs-5">{t('vs.')}</span>}
                                             <div className={`compare-side ${sideIndex === 0 ? 'is-left' : 'is-right'}`}>
                                                 {side.map(player => {
                                                     const index = selected.indexOf(player);

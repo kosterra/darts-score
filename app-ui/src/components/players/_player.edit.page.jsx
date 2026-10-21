@@ -19,6 +19,7 @@ import PlayerDartPreferences from './player.dart.preferences';
 import PlayerClubs from './player.clubs';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 // "1987-02-04" and back for the calendar, in local time so the day stays the day
 const toDate = (value) => {
@@ -61,7 +62,7 @@ const PlayerEditPage = () => {
     const load = useCallback(async () => {
         try {
             const loaded = await PlayerService.getPlayer(id);
-            if (!loaded) throw new Error('Not found');
+            if (!loaded) throw new Error(t('Not found'));
             setPlayer(loaded);
             setFields(fieldsOf(loaded));
             setImage({ action: 'unchanged', file: null, preview: resolvePlayerImg(loaded.profileImg ?? '') });
@@ -73,8 +74,8 @@ const PlayerEditPage = () => {
 
     const showError = (summary, error) => toast.current?.show({ severity: 'error', summary, detail: error.message, life: 4000 });
 
-    if (!isClubAdmin) return <div className="container-fluid p-4 text-subtle">Only the admins of the club edit its players.</div>;
-    if (failed) return <div className="container-fluid p-4 text-subtle">The player could not be loaded. <Link to="/players">Back to the players</Link></div>;
+    if (!isClubAdmin) return <div className="container-fluid p-4 text-subtle">{t('Only the admins of the club edit its players.')}</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{t('The player could not be loaded.')}{' '}<Link to="/players">{t('Back to the players')}</Link></div>;
     if (!player || !fields) return <PageLoader />;
 
     // a player with a login keeps their name, nickname and picture up to date themselves
@@ -96,10 +97,10 @@ const PlayerEditPage = () => {
             if (image.action === 'new' && image.file) formData.append('profileImg', image.file);
             if (image.action === 'cleared') formData.append('clearProfileImg', 'true');
             await PlayerService.updatePlayer({ id: player.id, formData });
-            toast.current?.show({ severity: 'success', summary: 'Player saved', detail: fields.nickname.trim(), life: 3000 });
+            toast.current?.show({ severity: 'success', summary: t('Player saved'), detail: fields.nickname.trim(), life: 3000 });
             await load();
         } catch (error) {
-            showError('Save the player', error);
+            showError(t('Save the player'), error);
         } finally {
             setSaving(false);
         }
@@ -110,7 +111,7 @@ const PlayerEditPage = () => {
             await PlayerService.setPublicProfile(player.id, publicProfile);
             await load();
         } catch (error) {
-            showError('Public nickname', error);
+            showError(t('Public nickname'), error);
         }
     };
 
@@ -125,25 +126,25 @@ const PlayerEditPage = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <Toast ref={toast} position="bottom-right" />
-            <UpLink to="/players" label="Players" />
-            <Panel header={`Edit ${player.nickname}`}>
+            <UpLink to="/players" label={t('Players')} />
+            <Panel header={t('Edit {{nickname}}', { nickname: player.nickname })}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     {player.guest
-                        ? 'A guest of a game: their name, nickname, picture and date of birth.'
-                        : 'How the player appears in the club, their login and their settings for the games. The settings of the games are saved right away.'}
+                        ? t('A guest of a game: their name, nickname, picture and date of birth.')
+                        : t('How the player appears in the club, their login and their settings for the games. The settings of the games are saved right away.')}
                 </p>
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">
                         <form onSubmit={save}>
-                            <p className="game-setup-section-title">The player</p>
+                            <p className="game-setup-section-title">{t('The player')}</p>
                             {maintainedByPlayer &&
                                 <Message
                                     severity="info"
                                     className="w-100 justify-content-start mb-3"
-                                    text={`${player.nickname} has a login and keeps the name, nickname and picture up to date on their player profile. The date of birth is up to the club admins (adults may correct it, but never to a child's).`}
+                                    text={t('{{nickname}} has a login and keeps the name, nickname and picture up to date on their player profile. The date of birth is up to the club admins (adults may correct it, but never to a child\'s).', { nickname: player.nickname })}
                                 />
                             }
-                            <p className="setting-title">Picture and nickname</p>
+                            <p className="setting-title">{t('Picture and nickname')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col my-player-main">
                                     {maintainedByPlayer
@@ -155,17 +156,17 @@ const PlayerEditPage = () => {
                                             onFileDelete={() => setImage({ action: 'cleared', file: null, preview: '' })}
                                         />
                                     }
-                                    {field('nickname', 'Nickname', 'How the club and the games call the player, 3 to 25 characters.')}
+                                    {field('nickname', t('Nickname'), t('How the club and the games call the player, 3 to 25 characters.'))}
                                 </div>
                             </div>
-                            <p className="setting-title">Name</p>
+                            <p className="setting-title">{t('Name')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col d-flex flex-wrap gap-3 pt-1 profile-name">
-                                    {field('firstname', 'First name')}
-                                    {field('lastname', 'Last name')}
+                                    {field('firstname', t('First name'))}
+                                    {field('lastname', t('Last name'))}
                                 </div>
                             </div>
-                            <p className="setting-title">Date of birth</p>
+                            <p className="setting-title">{t('Date of birth')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col pt-1">
                                     <label className="d-flex flex-column gap-1 profile-field">
@@ -178,40 +179,40 @@ const PlayerEditPage = () => {
                                             viewDate={fields.dateOfBirth ? undefined : tenYearsAgo()}
                                             showIcon
                                             icon="pi pi-calendar"
-                                            aria-label="Date of birth"
+                                            aria-label={t('Date of birth')}
                                             className="my-player-birth"
                                         />
                                         {fields.dateOfBirth
-                                            ? <span className="text-faint fs-8">For fair handicaps between players of different ages, and the Hall of Shame: a player without one is never in it.</span>
-                                            : <small className="p-error">Needed to save the player: for fair handicaps, and the Hall of Shame leaves out a player without one.</small>}
+                                            ? <span className="text-faint fs-8">{t('For fair handicaps between players of different ages, and the Hall of Shame: a player without one is never in it.')}</span>
+                                            : <small className="p-error">{t('Needed to save the player: for fair handicaps, and the Hall of Shame leaves out a player without one.')}</small>}
                                     </label>
                                 </div>
                             </div>
                             <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
-                                <Button type="button" label="Statistics and badges" icon="pi pi-chart-line" size="small" severity="secondary" onClick={() => navigate(`/players/${player.id}`)} />
-                                <Button type="submit" label="Save" icon="pi pi-save" size="small" loading={saving} disabled={!changed || !valid} />
+                                <Button type="button" label={t('Statistics and badges')} icon="pi pi-chart-line" size="small" severity="secondary" onClick={() => navigate(`/players/${player.id}`)} />
+                                <Button type="submit" label={t('Save')} icon="pi pi-save" size="small" loading={saving} disabled={!changed || !valid} />
                             </div>
                         </form>
 
                         {!player.guest && (
                             <>
-                                <p className="game-setup-section-title">In the club</p>
+                                <p className="game-setup-section-title">{t('In the club')}</p>
                                 <SettingSwitch
                                     id={`player-public-${player.id}`}
-                                    title="Nickname on the public page"
-                                    hint={`${player.publicProfile ? 'The nickname appears with the live games and results of the club, if the club is public.' : 'The player is shown without a name on the public page.'}${maintainedByPlayer ? ` ${player.nickname} has a login and decides this on their player profile.` : ''}`}
+                                    title={t('Nickname on the public page')}
+                                    hint={`${player.publicProfile ? t('The nickname appears with the live games and results of the club, if the club is public.') : t('The player is shown without a name on the public page.')}${maintainedByPlayer ? t(' {{nickname}} has a login and decides this on their player profile.', { nickname: player.nickname }) : ''}`}
                                     checked={Boolean(player.publicProfile)}
                                     disabled={maintainedByPlayer}
                                     onChange={togglePublic}
                                 />
-                                <p className="setting-title">Login</p>
+                                <p className="setting-title">{t('Login')}</p>
                                 <div className="row mx-0 mt-0 setting-body">
                                     <div className="col">
                                         <PlayerLogin player={player} onChange={load} inline />
                                     </div>
                                 </div>
                                 {managesSeveralClubs && <>
-                                    <p className="game-setup-section-title mt-4">Clubs</p>
+                                    <p className="game-setup-section-title mt-4">{t('Clubs')}</p>
                                     <PlayerClubs
                                         player={player}
                                         onSaved={(summary) => toast.current?.show({ severity: 'success', summary, detail: player.nickname, life: 3000 })}
@@ -226,14 +227,14 @@ const PlayerEditPage = () => {
 
                     {!player.guest && (
                         <div className="col-12 col-xl-6">
-                            <p className="game-setup-section-title">In games</p>
-                            <p className="setting-title">Ways out in X01</p>
+                            <p className="game-setup-section-title">{t('In games')}</p>
+                            <p className="setting-title">{t('Ways out in X01')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col">
-                                    <PlayerCheckoutPreferences player={player} onError={(error) => showError('Ways out', error)} />
+                                    <PlayerCheckoutPreferences player={player} onError={(error) => showError(t('Ways out'), error)} />
                                 </div>
                             </div>
-                            <PlayerDartPreferences player={player} onError={(error) => showError('Darts on the board', error)} />
+                            <PlayerDartPreferences player={player} onError={(error) => showError(t('Darts on the board'), error)} />
                         </div>
                     )}
                 </div>

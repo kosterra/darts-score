@@ -5,6 +5,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { startingScoreOf } from '../../../utils/x01.rules';
 import { legsInOrder } from '../../../utils/x01.form';
+import { t } from '../../../utils/i18n';
 
 /**
  * Every visit of a leg with the players side by side, a row per turn: the
@@ -16,7 +17,7 @@ const X01VisitsPanel = ({ game, players }) => {
     const severalSets = game.numberOfSets > 1;
     const options = legs.map((leg, index) => ({
         value: index,
-        label: `${severalSets ? `Set ${leg.set} · ` : ''}Leg ${leg.leg}${leg.running ? ' · now' : ''}`,
+        label: t('{{value}}Leg {{leg}}{{value2}}', { value: severalSets ? `Set ${leg.set} · ` : '', leg: leg.leg, value2: leg.running ? ' · now' : '' }),
     })).reverse();
     // null follows the running leg
     const [picked, setPicked] = useState(null);
@@ -38,14 +39,14 @@ const X01VisitsPanel = ({ game, players }) => {
 
     const header = (
         <div className="p-panel-header">
-            <span className="p-panel-title">Visits</span>
+            <span className="p-panel-title">{t('Visits')}</span>
             {options.length > 1 &&
                 <Dropdown
                     value={index}
                     options={options}
                     onChange={(e) => setPicked(e.value === legs.length - 1 ? null : e.value)}
                     className="x01-visits-leg"
-                    aria-label="Leg"
+                    aria-label={t('Leg')}
                 />
             }
         </div>
@@ -59,7 +60,7 @@ const X01VisitsPanel = ({ game, players }) => {
                         <table className="x01-legs">
                             <thead>
                                 <tr>
-                                    <th scope="col">Turn</th>
+                                    <th scope="col">{t('Turn')}</th>
                                     {players.map((player, i) => (
                                         <th key={player.id} scope="col" colSpan={2}>
                                             <span className="d-inline-flex align-items-center text-nowrap">
@@ -81,7 +82,7 @@ const X01VisitsPanel = ({ game, players }) => {
                                                     <span className="x01-visit-darts">{visit.darts.map((dart, d) => <span key={d}>{dart}</span>)}</span>
                                                 </td>,
                                                 <td key={`${i}-s`} className="text-end text-nowrap">
-                                                    <span className={visit.bust ? 'x01-bust-text' : 'text-subtle'}>{visit.bust ? 'Bust' : visit.roundScore}</span>
+                                                    <span className={visit.bust ? 'x01-bust-text' : 'text-subtle'}>{visit.bust ? t('Bust') : visit.roundScore}</span>
                                                     <span className="x01-visit-left">{visit.scoreLeft}</span>
                                                 </td>,
                                             ];
@@ -92,7 +93,7 @@ const X01VisitsPanel = ({ game, players }) => {
                         </table>
                     </div>
                 )
-                : <p className="text-subtle fs-8 m-0">No visits in this leg yet.</p>
+                : <p className="text-subtle fs-8 m-0">{t('No visits in this leg yet.')}</p>
             }
         </Panel>
     );

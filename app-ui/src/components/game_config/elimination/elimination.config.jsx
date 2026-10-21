@@ -13,6 +13,7 @@ import { missingPlayers, playersSummary } from '../config_components/game.setup.
 import EliminationModels from '../../../models/elimination.models';
 import EliminationService from '../../../services/elimination.service';
 import { clearSetup, loadSetup, saveSetup } from '../../../utils/setup.memory';
+import { t } from '../../../utils/i18n';
 
 const EliminationConfig = () => {
     // the page starts set up like the last game
@@ -65,8 +66,8 @@ const EliminationConfig = () => {
         } catch (err) {
             toast.current.show({
                 severity: 'error',
-                summary: 'Start Game',
-                detail: 'Failed to create the game. ' + err.message,
+                summary: t('Start Game'),
+                detail: t('Failed to create the game. ') + err.message,
                 life: 4000
             });
             setStarting(false);
@@ -75,13 +76,13 @@ const EliminationConfig = () => {
 
     return (
         <>
-            <Panel header="Elimination" className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('Elimination')} className="w-100 w-md-75 w-xxl-50 mx-auto">
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
-                    <p className="game-setup-section-title">Players</p>
+                    <p className="game-setup-section-title">{t('Players')}</p>
                     <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
-                    <p className="game-setup-section-title mt-4">Game</p>
+                    <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     <EliminationScoreConfig
                         scoreOption={game.targetScore}
                         onScoreChange={handleConfigChange}

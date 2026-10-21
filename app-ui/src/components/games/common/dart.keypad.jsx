@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Toast } from 'primereact/toast';
+import { t } from '../../../utils/i18n';
 
 const ALL_NUMBERS = Array.from({ length: 20 }, (_, index) => index + 1);
 
@@ -37,7 +38,7 @@ const DartKeypad = ({ canThrow, onDart, onClearLast, entered, numbers = ALL_NUMB
     const enter = (value, key) => {
         if (!canThrow) {
             toast.current?.clear();
-            toast.current?.show({ severity: 'error', summary: 'No more darts', detail: 'This visit is complete: enter the score.', life: 2500 });
+            toast.current?.show({ severity: 'error', summary: t('No more darts'), detail: t('This visit is complete: enter the score.'), life: 2500 });
             return;
         }
         navigator.vibrate?.(12);
@@ -50,9 +51,9 @@ const DartKeypad = ({ canThrow, onDart, onClearLast, entered, numbers = ALL_NUMB
     const number = (n) => enter(`${ring ?? 'S'}${n}`, `n${n}`);
 
     return (
-        <div className={`x01-keypad ${ring ? `is-${ring === 'D' ? 'double' : 'treble'}` : ''} ${className}`} aria-label="Keypad">
+        <div className={`x01-keypad ${ring ? `is-${ring === 'D' ? 'double' : 'treble'}` : ''} ${className}`} aria-label={t('Keypad')}>
             {/* the ring of the next dart: Single is always there to go back to */}
-            <div className="x01-keypad-rings" role="radiogroup" aria-label="Ring of the next dart">
+            <div className="x01-keypad-rings" role="radiogroup" aria-label={t('Ring of the next dart')}>
                 {[[null, 'Single'], ['D', 'Double'], ['T', 'Treble']].map(([value, label]) => (
                     <button
                         key={label}
@@ -74,9 +75,9 @@ const DartKeypad = ({ canThrow, onDart, onClearLast, entered, numbers = ALL_NUMB
             <div className="x01-keypad-extras">
                 {/* 25 is the outer bull only: a double 25 is the Bull next to it */}
                 <Key pressed={pressed} id="25" label="25" onClick={() => enter('S25', '25')} disabled={ring !== null} ariaLabel="Outer bull, 25" />
-                <Key pressed={pressed} id="bull" label="Bull" onClick={() => enter('D25', 'bull')} disabled={ring === 'T'} ariaLabel="Bullseye, 50" />
-                <Key pressed={pressed} id="miss" label="Miss" className="is-miss" onClick={() => enter('0', 'miss')} />
-                <Key pressed={pressed} id="back" label={<><i className="pi pi-delete-left" aria-hidden="true" /> Dart</>} className="is-back" onClick={onClearLast} disabled={!entered} ariaLabel="Clear the last dart" />
+                <Key pressed={pressed} id="bull" label={t('Bull')} onClick={() => enter('D25', 'bull')} disabled={ring === 'T'} ariaLabel="Bullseye, 50" />
+                <Key pressed={pressed} id="miss" label={t('Miss')} className="is-miss" onClick={() => enter('0', 'miss')} />
+                <Key pressed={pressed} id="back" label={<><i className="pi pi-delete-left" aria-hidden="true" />{' '}{t('Dart')}</>} className="is-back" onClick={onClearLast} disabled={!entered} ariaLabel={t('Clear the last dart')} />
             </div>
             <Toast ref={toast} position="bottom-right" />
         </div>

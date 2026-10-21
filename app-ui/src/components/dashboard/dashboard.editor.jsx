@@ -3,6 +3,7 @@ import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 
 import { DASHBOARD_WIDGETS, WIDGET_SIZES, resolveLayout } from './dashboard.widgets';
+import { t } from '../../utils/i18n';
 
 // a widget lies across (nearly) the whole row: it is moved before or after it by height, not by side
 const FULL_ROW = 0.9;
@@ -118,7 +119,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
 
     return (
         <>
-            {widgets.length === 0 && <p className="text-subtle fs-7">No widgets on the dashboard. Add some below.</p>}
+            {widgets.length === 0 && <p className="text-subtle fs-7">{t('No widgets on the dashboard. Add some below.')}</p>}
             <div className="row g-4" ref={gridRef}>
                 {widgets.map(widget => (
                     <div
@@ -131,8 +132,8 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
                                 <button
                                     type="button"
                                     className="dashboard-tile-handle"
-                                    aria-label={`Move ${widget.title}: drag, or use the arrow keys`}
-                                    title="Drag to move"
+                                    aria-label={t('Move {{title}}: drag, or use the arrow keys', { title: widget.title })}
+                                    title={t('Drag to move')}
                                     onPointerDown={(event) => onPointerDown(event, widget.id)}
                                     onKeyDown={(event) => onKeyDown(event, widget.id)}
                                 >
@@ -147,9 +148,9 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
                                     itemTemplate={(option) => <span title={option.title}>{option.label}</span>}
                                     onChange={(event) => event.value && resize(widget.id, event.value)}
                                     className="p-selectbutton-pills dashboard-tile-sizes"
-                                    aria-label={`Width of ${widget.title}`}
+                                    aria-label={t('Width of {{title}}', { title: widget.title })}
                                 />
-                                <Button type="button" icon="pi pi-times" text rounded size="small" className="dashboard-tile-remove" aria-label={`Remove ${widget.title}`} title="Remove" onClick={() => remove(widget.id)} />
+                                <Button type="button" icon="pi pi-times" text rounded size="small" className="dashboard-tile-remove" aria-label={t('Remove {{title}}', { title: widget.title })} title={t('Remove')} onClick={() => remove(widget.id)} />
                             </div>
                             {/* shown as it is, but it does not react while the dashboard is arranged */}
                             <TileContent widget={widget} renderWidget={renderWidget} />
@@ -160,7 +161,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
 
             {available.length > 0 && (
                 <section className="mt-5">
-                    <p className="game-setup-section-title">Add widgets</p>
+                    <p className="game-setup-section-title">{t('Add widgets')}</p>
                     <ul className="dashboard-available list-unstyled m-0">
                         {available.map(widget => (
                             <li key={widget.id} className="dashboard-available-item">
@@ -168,7 +169,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
                                     <span className="text-default fs-7 fw-semibold">{widget.title}</span>
                                     <span className="text-faint fs-8">{widget.description}</span>
                                 </div>
-                                <Button type="button" label="Add" icon="pi pi-plus" size="small" severity="secondary" onClick={() => add(widget)} aria-label={`Add ${widget.title}`} />
+                                <Button type="button" label={t('Add')} icon="pi pi-plus" size="small" severity="secondary" onClick={() => add(widget)} aria-label={t('Add {{title}}', { title: widget.title })} />
                             </li>
                         ))}
                     </ul>

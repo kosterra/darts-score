@@ -4,6 +4,7 @@ import CricketContext from '../../../utils/cricket.context';
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { CRICKET_NUMBERS } from '../../../utils/cricket.game.summary';
 import { liveMarks, numberLabel } from './cricket.live';
+import { t } from '../../../utils/i18n';
 
 // the marks on a number as on a cricket scoreboard: /, X, then a circled X once it is closed
 const MARK_SYMBOLS = ['', '/', '✕', 'ⓧ'];
@@ -29,13 +30,13 @@ const CricketNumbersPanel = () => {
             <table className="cricket-strip">
                 <thead>
                     <tr>
-                        <th scope="col" aria-label="Player" />
+                        <th scope="col" aria-label={t('Player')} />
                         {CRICKET_NUMBERS.map(number => (
                             <th
                                 key={number}
                                 scope="col"
                                 className={dead(number) ? 'is-dead' : ''}
-                                title={dead(number) ? 'Closed by everyone: out of play' : `Closed by ${closedBy(number).map(player => player.nickname).join(', ') || 'nobody yet'}`}
+                                title={dead(number) ? t('Closed by everyone: out of play') : t('Closed by {{value}}', { value: closedBy(number).map(player => player.nickname).join(', ') || 'nobody yet' })}
                             >
                                 <span className="cricket-strip-number">
                                     {numberLabel(number)}
@@ -62,7 +63,7 @@ const CricketNumbersPanel = () => {
                                         <span
                                             key={stamped ? 'stamped' : 'plain'}
                                             className={`cricket-marks ${count >= 3 ? 'is-closed' : ''} ${fresh ? 'is-new' : ''} ${stamped ? 'is-stamped' : ''}`}
-                                            aria-label={`${numberLabel(number)}: ${Math.min(count, 3)} of 3 marks`}
+                                            aria-label={t('{{numberLabel}}: {{min}} of 3 marks', { numberLabel: numberLabel(number), min: Math.min(count, 3) })}
                                         >
                                             {MARK_SYMBOLS[Math.min(count, 3)] || '·'}
                                         </span>

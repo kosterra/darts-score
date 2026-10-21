@@ -1,6 +1,7 @@
 import ChartCard from './chart.card';
 import DartboardHeatmap from './dartboard.heatmap';
 import { PLAYER_COLORS } from './chart.theme';
+import { t } from '../../../utils/i18n';
 
 // the favourite doubles listed: the most tried ones
 const MOST_TRIED = 6;
@@ -18,8 +19,8 @@ const doubleName = (section) => String(section) === '25' ? 'Bull' : `D${section}
  */
 const DoublesChart = ({ ratesByPlayer = [], players = [] }) => (
     <ChartCard
-        title="Favourite doubles"
-        description={`The doubles shaded by how often they were tried, with the checkout rate of the most tried ones below. The best double needs at least ${MIN_ATTEMPTS} attempts.`}
+        title={t('Favourite doubles')}
+        description={t('The doubles shaded by how often they were tried, with the checkout rate of the most tried ones below. The best double needs at least {{MIN_ATTEMPTS}} attempts.', { MIN_ATTEMPTS: MIN_ATTEMPTS })}
     >
         <div className="row g-3 justify-content-center">
             {players.map((player, index) => {
@@ -34,30 +35,30 @@ const DoublesChart = ({ ratesByPlayer = [], players = [] }) => (
                             <DartboardHeatmap
                                 onlyDoubles
                                 color={PLAYER_COLORS[index]}
-                                label={`Checkout attempts of ${player.nickname} per double`}
+                                label={t('Checkout attempts of {{nickname}} per double', { nickname: player.nickname })}
                                 name={player.nickname}
                                 tooltip={(section) => {
                                     const entry = bySection.get(String(section));
                                     return entry?.total
-                                        ? { label: doubleName(section), value: `${Math.round(entry.rate)} %`, detail: `${entry.hit} of ${entry.total} attempts went in` }
-                                        : { label: doubleName(section), value: '–', detail: 'Not tried' };
+                                        ? { label: doubleName(section), value: `${Math.round(entry.rate)} %`, detail: t('{{hit}} of {{total}} attempts went in', { hit: entry.hit, total: entry.total }) }
+                                        : { label: doubleName(section), value: '–', detail: t('Not tried') };
                                 }}
                                 valueOf={(section, ring) => ring === 'D' ? bySection.get(String(section))?.total ?? 0 : 0}
                                 describe={(section) => {
                                     const entry = bySection.get(String(section));
-                                    return entry?.total ? `${doubleName(section)}: ${entry.hit} of ${entry.total} went in (${Math.round(entry.rate)} %)` : `${doubleName(section)}: not tried`;
+                                    return entry?.total ? t('{{doubleName}}: {{hit}} of {{total}} went in ({{round}} %)', { doubleName: doubleName(section), hit: entry.hit, total: entry.total, round: Math.round(entry.rate) }) : t('{{doubleName}}: not tried', { doubleName: doubleName(section) });
                                 }}
                             />
                         </div>
                         {best &&
                             <p className="doubles-best">
-                                Best double <strong>{doubleName(best.section)}</strong> · {Math.round(best.rate)} % ({best.hit} of {best.total})
+                                {t('Best double')}{' '}<strong>{doubleName(best.section)}</strong> · {Math.round(best.rate)} % ({best.hit}{' '}{t('of')}{' '}{best.total})
                             </p>
                         }
                         {mostTried.length > 0 &&
-                            <ol className="hit-fields" aria-label={`Most tried doubles of ${player.nickname}`}>
+                            <ol className="hit-fields" aria-label={t('Most tried doubles of {{nickname}}', { nickname: player.nickname })}>
                                 {mostTried.map(entry => (
-                                    <li key={entry.section} className="hit-field" title={`${doubleName(entry.section)}: ${entry.hit} of ${entry.total} went in`}>
+                                    <li key={entry.section} className="hit-field" title={t('{{doubleName}}: {{hit}} of {{total}} went in', { doubleName: doubleName(entry.section), hit: entry.hit, total: entry.total })}>
                                         <span className="hit-field-bar" style={{ background: PLAYER_COLORS[index], width: `${Math.min(100, entry.rate)}%` }} aria-hidden="true" />
                                         <span className="hit-field-name">{doubleName(entry.section)}</span>
                                         <span className="hit-field-share">{Math.round(entry.rate)} % <span className="text-faint fw-normal">· {entry.hit}/{entry.total}</span></span>

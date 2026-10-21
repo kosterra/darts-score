@@ -1,4 +1,5 @@
-/**
+
+import { t } from './i18n';/**
  * What the statistics page of one Cricket game shows, worked out by replaying
  * its visits with the rules of the game: a number is closed with three marks;
  * further marks score its value as long as not every other player has closed
@@ -137,17 +138,17 @@ export const cricketMoments = (game, replay = replayCricket(game)) => {
     const best = (key) => replay.visits.reduce((top, visit) => visit[key] > (top?.[key] ?? 0) ? visit : top, null);
 
     const bestMarks = best('marks');
-    if (bestMarks) moments.push({ id: 'marks', label: 'Best round', value: `${bestMarks.marks} marks`, playerId: bestMarks.playerId, detail: `round ${bestMarks.turn}` });
+    if (bestMarks) moments.push({ id: 'marks', label: t('Best round'), value: t('{{marks}} marks', { marks: bestMarks.marks }), playerId: bestMarks.playerId, detail: t('round {{turn}}', { turn: bestMarks.turn }) });
 
     const bestPoints = best('points');
-    if (bestPoints) moments.push({ id: 'points', label: 'Most points in a round', value: bestPoints.points, playerId: bestPoints.playerId, detail: `round ${bestPoints.turn}` });
+    if (bestPoints) moments.push({ id: 'points', label: t('Most points in a round'), value: bestPoints.points, playerId: bestPoints.playerId, detail: t('round {{turn}}', { turn: bestPoints.turn }) });
 
     const darts = replay.visits.flatMap(visit => visit.darts);
     const triples = darts.filter(dart => /^T(1[5-9]|20)$/i.test(dart)).length;
-    if (triples) moments.push({ id: 'triples', label: triples === 1 ? 'Triple' : 'Triples', value: triples, playerId: null, detail: 'on 15 to 20' });
+    if (triples) moments.push({ id: 'triples', label: triples === 1 ? t('Triple') : t('Triples'), value: triples, playerId: null, detail: t('on 15 to 20') });
 
     const bullseyes = darts.filter(dart => /^D25$/i.test(dart)).length;
-    if (bullseyes) moments.push({ id: 'bullseyes', label: bullseyes === 1 ? 'Bullseye' : 'Bullseyes', value: bullseyes, playerId: null, detail: 'in this game' });
+    if (bullseyes) moments.push({ id: 'bullseyes', label: bullseyes === 1 ? t('Bullseye') : t('Bullseyes'), value: bullseyes, playerId: null, detail: t('in this game') });
 
     return moments;
 };

@@ -5,6 +5,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 
 import ShameMedal from './shame.medal';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 dayjs.extend(relativeTime);
 
@@ -13,7 +14,7 @@ dayjs.extend(relativeTime);
  * someone else takes it over or they wash it off.
  */
 const HallOfShame = ({ shame }) => {
-    if (!shame) return <span className="text-faint">Loading…</span>;
+    if (!shame) return <span className="text-faint">{t('Loading…')}</span>;
 
     return (
         <ul className="hall-of-shame list-unstyled m-0">
@@ -37,8 +38,8 @@ const HallOfShame = ({ shame }) => {
                                         : <span className="text-faint fs-9 text-nowrap">{dayjs(badge.since).fromNow()}</span>}
                                 </span>
                             )
-                            : <span className="text-faint fs-8">Nobody holds it right now</span>}
-                        <span className="text-faint fs-9">Wash it off: {badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}</span>
+                            : <span className="text-faint fs-8">{t('Nobody holds it right now')}</span>}
+                        <span className="text-faint fs-9">{t('Wash it off:')}{' '}{badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}</span>
                     </div>
                 </li>
             ))}

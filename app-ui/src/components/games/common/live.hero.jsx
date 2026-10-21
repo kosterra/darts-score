@@ -5,6 +5,7 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.ut
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
+import { t } from '../../../utils/i18n';
 
 /**
  * The top of a running game in the look of the X01 page: what is played, and
@@ -49,14 +50,14 @@ const LiveHero = ({ title, subtitle, rows }) => {
                             </span>
                             {line && <span className="x01-live-leg">{line}</span>}
                             <span className="x01-live-tags">
-                                {isTurn && <span className="x01-live-turn">Throwing</span>}
+                                {isTurn && <span className="x01-live-turn">{t('Throwing')}</span>}
                                 {tags}
                                 {heldBy(shame, player.id).length > 0 &&
                                     // the shame badges keep together: they go to the next line as one
                                     <span className="x01-shames">
                                         {heldBy(shame, player.id).map(badge => (
                                             <span key={badge.id} className="x01-shame">
-                                                <ShameMedal badge={badge} size="xs" title={`Holds the ${badge.title} in the club. Wash it off: ${badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}`} />
+                                                <ShameMedal badge={badge} size="xs" title={t('Holds the {{title}} in the club. Wash it off: {{value}}', { title: badge.title, value: badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1) })} />
                                             </span>
                                         ))}
                                     </span>}
