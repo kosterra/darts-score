@@ -14,6 +14,7 @@ export const eliminationRematch = (game, { switchPlayers = false, shuffle = fals
         targetScore: game.targetScore,
         gameInMode: game.gameInMode,
         gameOutMode: game.gameOutMode,
+        flyingDarts: game.flyingDarts ?? 'players',
         numberOfPlayers: players.length,
         isSoloGame: players.length === 1,
         players,

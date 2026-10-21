@@ -115,9 +115,12 @@
   > * { white-space: nowrap; }
 }
 
-// the shame badges a player holds, side by side and never split over two lines
+// the shame badges a player holds: a line of their own below the other tags,
+// side by side and never split over two lines
 .x01-shames {
   display: inline-flex;
+  flex-basis: 100%;
+  justify-content: inherit;
   flex-wrap: nowrap;
   align-items: center;
   gap: 0.25rem;

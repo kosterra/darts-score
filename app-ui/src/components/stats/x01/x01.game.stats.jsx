@@ -120,7 +120,8 @@ const X01GameStats = ({ training = false, quick = false }) => {
             legOutMode: game.legOutMode,
             numberOfSets: game.numberOfSets,
             numberOfLegs: game.numberOfLegs,
-            numberOfPlayers: game.players.length
+            numberOfPlayers: game.players.length,
+            flyingDarts: game.flyingDarts ?? 'players'
         };
 
         let newPlayers = [...game.players];
