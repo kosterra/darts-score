@@ -127,31 +127,6 @@
     &.game-type-clock { --game-type-color: #86bfe6; }
 }
 
-// the action at the end of a game in a list: a quiet round button; continuing a
-// running game in the brand colour, the statistics in grey
-.game-row-action {
-    display: inline-grid;
-    flex-shrink: 0;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: 1px solid var(--border-default);
-    border-radius: 50%;
-    color: var(--text-subtle);
-    font-size: 1rem;
-    text-decoration: none;
-    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
-
-    &:hover { background: rgba(255, 255, 255, 0.06); color: var(--text-default); }
-
-    &.is-continue {
-        border-color: color-mix(in srgb, #{$primaryColor} 55%, transparent);
-        color: $primaryColor;
-
-        &:hover { background: color-mix(in srgb, #{$primaryColor} 15%, transparent); }
-    }
-}
-
 // Game types, each in its own colour: a small label with a short line in that
 // colour, like the panel titles. Orange and blue are taken by the game status
 // (running / finished, the only pills), so types use green, gold and purple.

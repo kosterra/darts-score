@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { FaChartBar } from "react-icons/fa";
@@ -25,6 +25,7 @@ const dayLabel = (date) => {
  * The club's latest games as a timeline, grouped by day.
  */
 const TimelineWidget = ({ widget, games, players }) => {
+    const navigate = useNavigate();
     const [showAll, setShowAll] = useState(false);
 
     const visible = showAll ? games : games.slice(0, INITIAL_GAMES);
@@ -59,8 +60,8 @@ const TimelineWidget = ({ widget, games, players }) => {
                                                 <GamePlayers game={game} players={players} />
                                             </div>
                                             {game.running
-                                                ? <Link to={`/${game.type}/${game.id}`} className="game-row-action is-continue" aria-label="Continue this game" title="Continue playing"><GiDart aria-hidden="true" /></Link>
-                                                : <Link to={`/stats/games/${game.type}/${game.id}`} className="game-row-action" aria-label="Statistics of this game" title="Show statistics"><FaChartBar aria-hidden="true" /></Link>
+                                                ? <Button type="button" icon={<GiDart />} size="small" aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                                : <Button type="button" icon={<FaChartBar />} size="small" severity="secondary" aria-label="Statistics of this game" title="Show statistics" onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
                                             }
                                         </li>
                                     ))}

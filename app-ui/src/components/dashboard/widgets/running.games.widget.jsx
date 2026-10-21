@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
@@ -11,6 +12,7 @@ import GameTypeIcon from '../../elements/game.type.icon';
  * Games in progress, each with a button to continue playing.
  */
 const RunningGamesWidget = ({ widget, games: running, total, players }) => {
+    const navigate = useNavigate();
 
     return (
         <Panel header={widget.title} className="h-100 dashboard-widget">
@@ -28,9 +30,7 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
                                     </div>
                                     <GamePlayers game={game} players={players} />
                                 </div>
-                                <Link to={`/${game.type}/${game.id}`} className="game-row-action is-continue" aria-label="Continue this game" title="Continue playing">
-                                    <GiDart aria-hidden="true" />
-                                </Link>
+                                <Button type="button" icon={<GiDart />} size="small" aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
                             </li>
                         ))}
                         {total > running.length &&
