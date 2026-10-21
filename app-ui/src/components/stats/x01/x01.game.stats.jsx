@@ -27,6 +27,7 @@ import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
 import { sectionHitsOf } from '../charts/chart.theme';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
+import UpLink from '../../elements/up.link';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 
 // the key figures of every player in the header; for the best leg less wins
@@ -105,7 +106,6 @@ const X01GameStats = ({ training = false, quick = false }) => {
     const moments = useMemo(() => game ? matchMoments(game, legs) : [], [game, legs]);
 
     const onNewGame = () => navigate(quick ? '/quick' : training ? '/training/x01' : '/x01', { replace: true });
-    const onFinishGame = () => navigate("/", { replace: true });
 
     const onRestartGame = async (switchPlayers = false, shufflePlayers = false) => {
         if (!game) return;
@@ -163,11 +163,12 @@ const X01GameStats = ({ training = false, quick = false }) => {
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: `Set ${i + 1}`, value: `set-${i + 1}` })),
     ];
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} onHome={onFinishGame} />;
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
+                {!quick && <UpLink to={training ? '/trainings' : '/games'} label={training ? 'Trainings' : 'Games'} />}
                 <GameResultHeader
                     game={game}
                     players={players}

@@ -4,10 +4,10 @@ import { PiShuffle, PiUserSwitch } from 'react-icons/pi';
 
 /**
  * What to do after a game: play it again (the same order, or with two
- * players switched, with more shuffled), set up a new one or go home.
- * onRestart(switchPlayers, shufflePlayers), onNewGame(), onHome().
+ * players switched, with more shuffled) or set up a new one; home is in the
+ * menu. onRestart(switchPlayers, shufflePlayers), onNewGame().
  */
-const GameResultActions = ({ playerCount, onRestart, onNewGame, onHome }) => (
+const GameResultActions = ({ playerCount, onRestart, onNewGame }) => (
     <>
         <div className="result-hero-again">
             <Button label="Play again" icon={<MdReplay className="p-button-icon-left" />} onClick={() => onRestart()} size="small" />
@@ -18,7 +18,6 @@ const GameResultActions = ({ playerCount, onRestart, onNewGame, onHome }) => (
         </div>
         <span className="result-hero-actions-divider" aria-hidden="true" />
         <Button label="New game" icon="pi pi-plus" onClick={onNewGame} size="small" severity="secondary" text />
-        <Button label="Home" icon="pi pi-home" onClick={onHome} size="small" severity="secondary" text />
     </>
 );
 

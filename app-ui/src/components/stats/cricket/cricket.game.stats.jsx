@@ -16,6 +16,7 @@ import CricketBoardPanel from './cricket.board.panel';
 import RoundsLineChart from '../charts/rounds.line.chart';
 import { CRICKET_NUMBERS, replayCricket, cricketFigures, cricketProgress, cricketMoments, hitsBySection } from '../../../utils/cricket.game.summary';
 import { cricketRematch } from '../../../utils/cricket.rematch';
+import UpLink from '../../elements/up.link';
 import { variantOf } from '../../../utils/cricket.variants';
 
 // the key figures of every player in the header
@@ -90,11 +91,12 @@ const CricketGameStats = ({ quick = false }) => {
         navigate(quick ? `/quick/cricket/${newGame.id}` : `/cricket/${newGame.id}`);
     };
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} />;
 
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
+                {!quick && <UpLink to="/games" label="Games" />}
                 <GameResultHeader
                     game={game}
                     players={players}

@@ -14,6 +14,7 @@ import { CLUB_ROLES } from '../../services/user.service';
 import DeletePopup from '../elements/delete.popup';
 import ImageUploader from '../elements/image.uploader';
 import SettingSwitch from '../elements/setting.switch';
+import UpLink from '../elements/up.link';
 import { useAuth } from '../../utils/auth.context';
 import { resolveClubLogo } from '../../utils/image.utils';
 
@@ -144,6 +145,7 @@ const ClubEditPage = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <Toast ref={toast} position="bottom-right" />
+            <UpLink to="/my-clubs" label="My clubs" />
             <Panel header={`Edit ${club.name}`}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     What the club is and who runs it, what it shows of itself and how new members come in. The settings on the right are saved right away.
@@ -184,7 +186,6 @@ const ClubEditPage = () => {
                                 </div>
                             </div>
                             <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
-                                <Button type="button" label="Back to my clubs" icon="pi pi-arrow-left" size="small" severity="secondary" onClick={() => navigate('/my-clubs')} />
                                 <Button type="submit" label="Save" icon="pi pi-save" size="small" loading={saving} disabled={!changed || name.trim().length < 3} />
                             </div>
                         </form>

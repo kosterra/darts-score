@@ -13,6 +13,7 @@ import ImageUploader from '../elements/image.uploader';
 import PageLoader from '../elements/page.loader';
 import PlayerLogin from '../elements/player.login';
 import SettingSwitch from '../elements/setting.switch';
+import UpLink from '../elements/up.link';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
 import PlayerDartPreferences from './player.dart.preferences';
 import PlayerClubs from './player.clubs';
@@ -124,6 +125,7 @@ const PlayerEditPage = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <Toast ref={toast} position="bottom-right" />
+            <UpLink to="/players" label="Players" />
             <Panel header={`Edit ${player.nickname}`}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     {player.guest
@@ -186,7 +188,6 @@ const PlayerEditPage = () => {
                                 </div>
                             </div>
                             <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
-                                <Button type="button" label="Back to the players" icon="pi pi-arrow-left" size="small" severity="secondary" onClick={() => navigate('/players')} />
                                 <Button type="button" label="Statistics and badges" icon="pi pi-chart-line" size="small" severity="secondary" onClick={() => navigate(`/players/${player.id}`)} />
                                 <Button type="submit" label="Save" icon="pi pi-save" size="small" loading={saving} disabled={!changed || !valid} />
                             </div>

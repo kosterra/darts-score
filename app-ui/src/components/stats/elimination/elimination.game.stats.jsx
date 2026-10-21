@@ -17,6 +17,7 @@ import { PLAYER_COLORS } from '../charts/chart.theme';
 import {
     replayElimination, eliminationFigures, eliminationRace, eliminationScoreRanges, eliminationHits, eliminationMoments,
 } from '../../../utils/elimination.game.summary';
+import UpLink from '../../elements/up.link';
 import { eliminationRematch } from '../../../utils/elimination.rematch';
 
 // the key figures of every player in the header; for knock-outs suffered less is better
@@ -92,7 +93,7 @@ const EliminationGameStats = () => {
         navigate(`/elimination/${newGame.id}`);
     };
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/elimination', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/elimination', { replace: true })} />;
 
     const Who = ({ playerId }) => (
         <span className="d-inline-flex align-items-center text-nowrap">
@@ -104,6 +105,7 @@ const EliminationGameStats = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
+                <UpLink to="/games" label="Games" />
                 <GameResultHeader
                     game={game}
                     players={players}

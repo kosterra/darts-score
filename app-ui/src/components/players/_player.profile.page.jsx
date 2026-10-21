@@ -6,6 +6,7 @@ import { PlayerProfileSkeleton } from '../elements/skeletons';
 import PlayerStats from '../stats/players/player.stats';
 import PlayerLatestGames from '../stats/players/player.latest.games';
 import PlayerBadgeCollection from '../badges/player.badge.collection';
+import UpLink from '../elements/up.link';
 import { useAuth } from '../../utils/auth.context';
 
 /**
@@ -58,6 +59,7 @@ const PlayerProfilePage = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
+            <UpLink to="/players" label="Players" />
             <PlayerStats
                 player={player}
                 isOwn={player.user === user.id}

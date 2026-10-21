@@ -13,6 +13,7 @@ import RoundsLineChart from '../charts/rounds.line.chart';
 import { PLAYER_COLORS } from '../charts/chart.theme';
 import { TargetBars } from '../../training/atc.darts.result';
 import { TARGETS, hardestTargets, targetLabel } from '../../../utils/atc.darts';
+import UpLink from '../../elements/up.link';
 import { clockProgress, clockRematch, clockResults, replayClock, skipsAhead } from '../../../utils/clock.game';
 
 // the key figures of every player in the header
@@ -78,13 +79,14 @@ const ClockGameStats = () => {
         navigate(`/clock/${created.id}`);
     };
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/clock', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/clock', { replace: true })} />;
 
     const winners = players.filter(player => game.playerModels?.[player.id]?.hasWonGame);
 
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
+                <UpLink to="/games" label="Games" />
                 <GameResultHeader
                     game={game}
                     players={players}

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom';
+import { noteLocation } from './utils/navigation.trail';
 import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
@@ -65,7 +66,8 @@ function AppContent() {
     // whether the start page of this login was already opened: set once a
     // page shows, so it is only the first page after logging in
     const startHandled = useRef(false);
-    const { pathname } = useLocation();
+    const location = useLocation();
+    const { pathname } = location;
     useEffect(() => {
         startHandled.current = Boolean(user);
     }, [user]);
@@ -73,6 +75,11 @@ function AppContent() {
     // a new page starts at the top, e.g. a game after its long setup; going back
     // keeps where the browser was, and a link to a part of a page goes there
     const navigationType = useNavigationType();
+    // which page came before, for the up links of the pages
+    useEffect(() => {
+        noteLocation(location, navigationType);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.key]);
     useEffect(() => {
         if (navigationType === 'POP' || window.location.hash) return;
         window.scrollTo(0, 0);
