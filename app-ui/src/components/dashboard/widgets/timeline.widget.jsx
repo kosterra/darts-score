@@ -59,10 +59,13 @@ const TimelineWidget = ({ widget, games, players }) => {
                                                 </div>
                                                 <GamePlayers game={game} players={players} />
                                             </div>
-                                            {game.running
-                                                ? <Button type="button" icon={<GiDart />} size="small" aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
-                                                : <Button type="button" icon={<FaChartBar />} size="small" severity="secondary" aria-label="Statistics of this game" title="Show statistics" onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
-                                            }
+                                            {/* the icon buttons of the lists: green to continue, grey for the statistics */}
+                                            <div className="row-actions">
+                                                {game.running
+                                                    ? <Button type="button" icon={<GiDart />} aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                                    : <Button type="button" icon={<FaChartBar />} severity="secondary" aria-label="Statistics of this game" title="Show statistics" onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
+                                                }
+                                            </div>
                                         </li>
                                     ))}
                                 </ol>

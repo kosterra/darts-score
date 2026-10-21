@@ -30,7 +30,10 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
                                     </div>
                                     <GamePlayers game={game} players={players} />
                                 </div>
-                                <Button type="button" icon={<GiDart />} size="small" aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                {/* the icon button of the lists */}
+                                <div className="row-actions">
+                                    <Button type="button" icon={<GiDart />} aria-label="Continue this game" title="Continue playing" onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                </div>
                             </li>
                         ))}
                         {total > running.length &&
