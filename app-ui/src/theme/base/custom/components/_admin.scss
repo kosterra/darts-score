@@ -79,9 +79,12 @@
             color: $textDefaultColor;
         }
 
-        &.p-button-danger:enabled:hover {
-            background: rgba($dangerButtonBg, 0.18);
-            color: lighten($dangerButtonBg, 15%);
+        // deleting: in red, at rest and stronger on hover
+        &.p-button-danger {
+            background: rgba($dangerButtonBg, 0.14);
+            color: lighten($dangerButtonBg, 12%);
+
+            &:enabled:hover { background: rgba($dangerButtonBg, 0.26); color: lighten($dangerButtonBg, 22%); }
         }
 
         // buttons without a severity mark the main action or a switched-on state,
