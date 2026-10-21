@@ -17,6 +17,7 @@ const CHANGELOG = [
             'A club is edited on a page of its own instead of three popups, laid out as the player profile: Edit club on My clubs opens its logo, name and description, its admins, what it shows on the public page, how new members join and the Hall of Shame, the settings saved as soon as they change; deleting the club is at the bottom.',
             'Admins of several clubs add a player to another club, move or remove them on the player\'s edit page, under Clubs, instead of a popup of the players list.',
             'Whether a nickname is shown on the public page is up to the player: with a login only they decide, on their player profile; the club admins decide only for players without a login.',
+            'The mails of the app look professional: the name of the app on top, the text, a button for the link (with the address below it), a footer saying why the mail came, and a plain text version for every mail client. Global admins edit the subject, text and button of each mail under System settings → Mail templates, with placeholders, a live preview, a test mail to themselves and the way back to the default.',
             'The game statistics have tidier buttons: Play again with Switch players (or Shuffle players) right next to it instead of a drop-down, New game and Home as quiet buttons beside them.',
         ],
     },

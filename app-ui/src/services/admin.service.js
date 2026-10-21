@@ -32,6 +32,13 @@ const loadBannerSettings = () => requestJSON(`${API_URL}/banner`);
 const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT', body: banner });
 
 // how long a login lasts: { timeoutHours, limits: { min, max, default } }
+// the mails of the app: their texts, a preview from a draft, a test mail to oneself
+const loadMailTemplates = () => requestJSON(`${API_URL}/mail-templates`);
+const saveMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'PUT', body: draft });
+const resetMailTemplate = (id) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'DELETE' });
+const previewMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/preview`, { method: 'POST', body: draft });
+const testMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/test`, { method: 'POST', body: draft });
+
 // what the public start page shows: { showNumbers }
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
 const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
@@ -77,6 +84,11 @@ const AdminService = {
     saveBanner,
     loadSessionSettings,
     loadStartPageSettings,
+    loadMailTemplates,
+    saveMailTemplate,
+    resetMailTemplate,
+    previewMailTemplate,
+    testMailTemplate,
     saveStartPageSettings,
     saveSessionSettings,
     loadOverview,

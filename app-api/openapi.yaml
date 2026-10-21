@@ -1138,6 +1138,122 @@ paths:
         '403':
           description: Global admin rights required
       operationId: deleteAdminQuickGames
+  /api/admin/mail-templates:
+    get:
+      tags:
+        - Administration
+      summary: The mails of the app with their placeholders, defaults and current texts
+      responses:
+        '200':
+          description: '{ mailEnabled, limits, templates: [{ id, title, description, placeholders, defaults, current, customized }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminMailTemplates
+  /api/admin/mail-templates/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+            - passwordReset
+            - adminAdded
+            - adminInvited
+            - playerAdded
+            - playerInvited
+    put:
+      tags:
+        - Administration
+      summary: Change the text of a mail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplateInput'
+      responses:
+        '200':
+          description: '{ current, customized }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putAdminMailTemplatesByid
+    delete:
+      tags:
+        - Administration
+      summary: Back to the default text of a mail
+      responses:
+        '200':
+          description: '{ current, customized }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: deleteAdminMailTemplatesByid
+  /api/admin/mail-templates/{id}/preview:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Administration
+      summary: The mail as it would look, from a draft, with sample values
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplateInput'
+      responses:
+        '200':
+          description: '{ subject, text, html }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postAdminMailTemplatesByidPreview
+  /api/admin/mail-templates/{id}/test:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Administration
+      summary: Send a draft with sample values to the global admin's own address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MailTemplateInput'
+      responses:
+        '200':
+          description: '{ sentTo }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '409':
+          description: Mail is not set up
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '502':
+          description: The mail could not be sent
+      operationId: postAdminMailTemplatesByidTest
   /api/admin/start-page:
     get:
       tags:
@@ -4289,6 +4405,23 @@ components:
                       - string
                       - 'null'
                     format: date-time
+    MailTemplateInput:
+      type: object
+      required:
+        - subject
+        - body
+        - button
+      properties:
+        subject:
+          type: string
+          maxLength: 150
+        body:
+          type: string
+          maxLength: 4000
+          description: Paragraphs separated by an empty line; placeholders like {{firstname}}
+        button:
+          type: string
+          maxLength: 40
     RoleInput:
       type: object
       required:

@@ -2,7 +2,8 @@ import logger from '../models/logger.model.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
-import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
+import { findOrCreateAccount } from '../utils/accounts.js';
+import { sendClubWelcomeMail } from '../utils/mail.service.js';
 import { removeClubLogoFile } from './file.controller.js';
 import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
@@ -196,12 +197,7 @@ export const addAdmin = async (req, res) => {
     await club.save();
     logger.info(`${user.email} is now an admin of club "${club.name}" (added by ${req.user.email})`);
 
-    sendClubWelcomeMail(
-        user,
-        inviteLink,
-        `You are now an admin of ${club.name}`,
-        `${req.user.firstname} ${req.user.lastname} made you an admin of the club "${club.name}" on Oche.`
-    );
+    sendClubWelcomeMail(user, inviteLink, 'admin', { club: club.name, inviter: `${req.user.firstname} ${req.user.lastname}` });
 
     res.status(201).json(await withAdmins(club));
 };

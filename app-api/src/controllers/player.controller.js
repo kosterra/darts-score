@@ -6,7 +6,8 @@ import db from '../models/db.model.js';
 import { removeProfileImageFile } from './file.controller.js';
 import { CLUB_ROLES } from '../models/user.model.js';
 import { inClub, knownInClub } from '../models/player.model.js';
-import { findOrCreateAccount, sendClubWelcomeMail } from '../utils/accounts.js';
+import { findOrCreateAccount } from '../utils/accounts.js';
+import { sendClubWelcomeMail } from '../utils/mail.service.js';
 import { canManageClub } from '../middleware/auth.middleware.js';
 import { checkoutProfile } from '../utils/checkout.profile.js';
 import { relocateHistory } from '../utils/history.relocation.js';
@@ -338,12 +339,7 @@ export const giveLogin = async (req, res) => {
     }
     logger.info(`${user.email} can now log in as player "${player.nickname}" of club "${req.club.name}"`);
 
-    sendClubWelcomeMail(
-        user,
-        inviteLink,
-        `You can now play at ${req.club.name}`,
-        `${req.user.firstname} ${req.user.lastname} gave you a login as player "${player.nickname}" of the club "${req.club.name}" on Oche. You can start games and trainings there on your own.`
-    );
+    sendClubWelcomeMail(user, inviteLink, 'player', { club: req.club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, nickname: player.nickname });
 
     res.send((await toClient([player], req))[0]);
 };

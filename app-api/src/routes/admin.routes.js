@@ -4,6 +4,7 @@ import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
+import * as MailTemplateController from '../controllers/mail.template.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
 import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
@@ -72,6 +73,15 @@ export default (app) => {
             res.json(settings);
         },
     );
+
+    // the mails of the app: their texts, a preview and a test mail to oneself
+    const templateId = param('id').isAlphanumeric().withMessage('Invalid mail.');
+    const templateFields = ['subject', 'body', 'button'].map(field => body(field).isString().withMessage(`The ${field} is missing.`));
+    router.get('/mail-templates', MailTemplateController.list);
+    router.put('/mail-templates/:id', templateId, templateFields, validate, MailTemplateController.save);
+    router.delete('/mail-templates/:id', templateId, validate, MailTemplateController.reset);
+    router.post('/mail-templates/:id/preview', templateId, templateFields, validate, MailTemplateController.preview);
+    router.post('/mail-templates/:id/test', templateId, templateFields, validate, MailTemplateController.test);
 
     // warnings and errors of the API
     router.get('/logs', SecurityController.logs);

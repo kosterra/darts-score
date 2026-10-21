@@ -4,7 +4,7 @@ import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { hashPassword } from './auth.utils.js';
 import { issuePasswordLink, INVITE_TOKEN_HOURS } from './auth.tokens.js';
-import { isMailConfigured, sendMail } from './mail.utils.js';
+import { isMailConfigured } from './mail.utils.js';
 
 /**
  * Returns the account with this email, creating it when there is none yet —
@@ -37,18 +37,4 @@ export const findOrCreateAccount = async ({ email, firstname, lastname, password
     await user.save();
     logger.info(`User ${user.email} created by ${createdBy.email}`);
     return { user, inviteLink };
-};
-
-/**
- * Tells a user they were added to a club; new accounts get their password link.
- */
-export const sendClubWelcomeMail = (user, inviteLink, subject, intro) => {
-    if (!isMailConfigured()) return;
-    sendMail({
-        to: user.email,
-        subject,
-        text: inviteLink
-            ? `Hello ${user.firstname},\n\n${intro}\n\nChoose your password with this link (valid for 7 days):\n\n${inviteLink}\n`
-            : `Hello ${user.firstname},\n\n${intro}\n\nLog in with your email address to get started.\n`,
-    }).catch(err => logger.error(err, 'Failed to send club welcome mail'));
 };

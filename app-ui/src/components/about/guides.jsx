@@ -212,7 +212,7 @@ export const ADMIN_GUIDE = [
                     <li><strong>Games and trainings</strong> of the clubs chosen, and <strong>Fair play</strong> across all clubs, each entry with its club.</li>
                     <li><strong>Quick games:</strong> the games played on the public start page without an account (X01 or Cricket, the players only names), with how many were started and finished per day. They count for no club and are deleted after 30 days; delete them earlier, one or many, e.g. when someone fills the list with nonsense.</li>
                     <li><strong>Alerts and error log:</strong> unusual activity, e.g. many accounts or games created at once, and errors of the app.</li>
-                    <li><strong>System settings:</strong> how long a login lasts (1 to 24 hours, five by default), the banner shown to everyone, and whether the start page shows the numbers of the installation (clubs, players, games), hidden until they speak for it.</li>
+                    <li><strong>System settings:</strong> how long a login lasts (1 to 24 hours, five by default), the banner shown to everyone, whether the start page shows the numbers of the installation (clubs, players, games), hidden until they speak for it, and the <strong>mail templates</strong>: the subject, text and button of every mail the app sends (password reset, admin added or invited, player login added or invited), with placeholders such as {'{{firstname}}'} or {'{{club}}'}, a preview, a test mail to yourself and the way back to the default.</li>
                 </ul>
             </>
         ),
