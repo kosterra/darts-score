@@ -80,10 +80,12 @@ $labelRed: #ec8b80;
   font-weight: 600;
 }
 
-// the flag of a club's country next to its name: as tall as a capital letter
+// the flag of a country next to a name: from the baseline to the top of the
+// capitals, so it lines up with the letters whatever the font size
 .country-flag {
     display: inline-block;
-    height: 0.8em;
+    height: 0.7em;
+    height: 1cap;
     width: auto;
     aspect-ratio: 3 / 2;
     vertical-align: 0;
