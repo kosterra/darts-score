@@ -4338,8 +4338,8 @@ components:
           maxLength: 500
         country:
           type: string
-          pattern: '^([A-Za-z]{2})?$'
-          description: Where the club plays, as an ISO 3166 country code (CH, DE, …); empty for none
+          pattern: '^([A-Za-z]{2}(-[A-Za-z]{3})?)?$'
+          description: Where the club plays, as an ISO 3166 country code (CH, DE, …) or a nation of the United Kingdom (GB-ENG, GB-SCT, GB-WLS, GB-NIR); empty for none
         isPublic:
           type: boolean
           description: List the club on the public start page
