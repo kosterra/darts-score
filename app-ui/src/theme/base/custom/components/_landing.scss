@@ -470,6 +470,9 @@
 
 // the language before logging in: the code with a globe, as small as the buttons next to it
 .language-switch.p-dropdown {
+    // as tall as the buttons next to it, the code in the middle
+    align-self: stretch;
+    align-items: center;
     background: transparent;
     border-color: rgba(255, 255, 255, 0.12);
 
