@@ -24,7 +24,8 @@
     "build": "vite build",
     "preview": "vite preview --port 3000",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "copy-rules": "node scripts/copy.rules.mjs"
   },
   "dependencies": {
     "@uiw/react-json-view": "^2.0.0-alpha.44",

@@ -17,10 +17,13 @@
  *   columns: [{ key, label, value(playerState, state, ctx) }] for the scoreboard
  *   figures(playerState, state) → [[label, value]] for the statistics
  *   preview(state, id, darts, ctx) → in words what the darts entered so far do
+ *   current(state) → who throws next, for a game whose players do not simply take
+ *     turns (X01: the next leg is started by the next player); null once it is over
+ *   playerOf(state, id) → a player's part of the state (default state.players[id])
  *   stopAnyTime: a visit may end before the third dart (Golf); otherwise darts not thrown are misses
  *   progress: { label, value(playerState) } for the chart of the statistics, after every visit
  */
-import { parseDart } from './darts';
+import { parseDart } from './darts.js';
 
 export const DARTS_PER_VISIT = 3;
 
@@ -51,6 +54,10 @@ export const replayGame = (definition, game) => {
         const darts = (visit.darts ?? []).map(parseDart);
         state = definition.visit(clone(state), visit.player, darts, { settings, round });
         visits.push({ player: visit.player, darts: darts.map(dart => dart.field), round });
+        if (definition.current) {
+            over = definition.over(state, { settings, round });
+            continue;
+        }
         // the next player still in the game; past the last one a new round starts
         let roundComplete = false;
         for (let step = 0; step < order.length; step += 1) {
@@ -68,7 +75,7 @@ export const replayGame = (definition, game) => {
     return {
         state,
         settings,
-        current: over ? null : order[index] ?? null,
+        current: over ? null : definition.current ? definition.current(state) : order[index] ?? null,
         round,
         visits,
         over,
@@ -99,12 +106,15 @@ export const progressOf = (definition, game) => {
     }));
 };
 
+// a player's part of the state (X01 & co. keep them in "playerModels")
+export const playerOf = (definition, state, id) => (definition.playerOf ? definition.playerOf(state, id) : state.players[id]);
+
 /**
  * The players best first, with their place; the same score shares a place.
  */
 export const standingsOf = (definition, state, order) => {
     const higher = definition.higherIsBetter !== false;
-    const rows = order.map(id => ({ id, score: definition.score(state.players[id], state) }));
+    const rows = order.map(id => ({ id, score: definition.score(playerOf(definition, state, id), state) }));
     const better = (a, b) => (higher ? a.score > b.score : a.score < b.score);
     return rows
         .map(row => ({ ...row, place: 1 + rows.filter(other => better(other, row)).length }))
