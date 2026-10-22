@@ -91,6 +91,7 @@ export const update = async (req, res) => {
     if (!club) return;
     club.name = req.body.name;
     if (typeof req.body.description === 'string') club.description = req.body.description;
+    if (typeof req.body.country === 'string') club.country = req.body.country.toUpperCase();
     // Visibility settings are optional, so a plain rename leaves them alone
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];

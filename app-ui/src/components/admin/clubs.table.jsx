@@ -18,6 +18,7 @@ import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import CountryFlag from '../elements/country.flag';
 
 const formatDate = (value) => value ? formatDateTime(value).slice(0, 10) : '–';
 
@@ -82,7 +83,7 @@ const ClubsTable = () => {
         <div className="d-flex align-items-center gap-3">
             <ClubLogo club={club} />
             <div className="d-flex flex-column" style={{ minWidth: 0 }}>
-                <span className="text-default fw-semibold text-break">{club.name}</span>
+                <span className="text-default fw-semibold text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
                 <span className="text-faint fs-8">{t('since')}{' '}{formatDate(club.createdAt)}</span>
             </div>
         </div>

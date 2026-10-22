@@ -335,6 +335,7 @@
  "The banner text can have at most 200 characters.",
  "The big fish",
  "The colour must look like #ff9900.",
+ "The country is a two-letter code, e.g. CH.",
  "The current password is wrong.",
  "The darts do not finish set {{set}}, leg {{leg}}",
  "The darts per target do not add up",

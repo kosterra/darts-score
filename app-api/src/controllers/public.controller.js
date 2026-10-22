@@ -161,6 +161,7 @@ const buildOverview = async () => {
         clubs: publicClubs.map(club => ({
             name: club.name,
             description: club.description ?? '',
+            country: club.country ?? '',
             logo: club.logo || null,
             createdAt: club.createdAt,
             playerCount: countByClub.get(String(club._id)) ?? 0,

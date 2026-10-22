@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
+import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -11,6 +12,8 @@ import { Toast } from 'primereact/toast';
 
 import ClubService from '../../services/club.service';
 import { CLUB_ROLES } from '../../services/user.service';
+import CountryFlag from '../elements/country.flag';
+import { countries } from '../../utils/countries';
 import DeletePopup from '../elements/delete.popup';
 import ImageUploader from '../elements/image.uploader';
 import SettingSwitch from '../elements/setting.switch';
@@ -42,9 +45,12 @@ const ClubEditPage = () => {
     const toast = useRef(null);
     const { clubs, refreshClubs, selectClub, user, mailEnabled } = useAuth();
     const club = clubs.find(entry => entry.id === id);
+    // the countries by their name in the language of the app
+    const countryOptions = useMemo(() => countries(), []);
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [country, setCountry] = useState('');
     const [logoPreview, setLogoPreview] = useState('');
     // 'unchanged' | File (a new logo) | null (the logo removed)
     const [logo, setLogo] = useState('unchanged');
@@ -62,6 +68,7 @@ const ClubEditPage = () => {
         loadedId.current = club.id;
         setName(club.name);
         setDescription(club.description ?? '');
+        setCountry(club.country ?? '');
         setLogoPreview(resolveClubLogo(club.logo));
         setLogo('unchanged');
         setShameMinAge(club.shameMinAge ?? 16);
@@ -73,13 +80,13 @@ const ClubEditPage = () => {
     const showError = (summary, error) => toast.current?.show({ severity: 'error', summary, detail: error.message, life: 4000 });
     const showSaved = (detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 });
 
-    const changed = name.trim() !== club.name || description !== (club.description ?? '') || logo !== 'unchanged';
+    const changed = name.trim() !== club.name || description !== (club.description ?? '') || country !== (club.country ?? '') || logo !== 'unchanged';
 
     const saveClub = async (event) => {
         event.preventDefault();
         setSaving(true);
         try {
-            await ClubService.updateClub(club.id, { name: name.trim(), description });
+            await ClubService.updateClub(club.id, { name: name.trim(), description, country });
             if (logo instanceof File) await ClubService.uploadLogo(club.id, logo);
             else if (logo === null && club.logo) await ClubService.removeLogo(club.id);
             await refreshClubs();
@@ -184,6 +191,26 @@ const ClubEditPage = () => {
                                         aria-label={t('Description')}
                                     />
                                     <span className="text-faint fs-8 text-end">{description.length} / {DESCRIPTION_MAX}{' '}{t('· shown on My clubs, under Join a club and, for a public club, on the start page')}</span>
+                                </div>
+                            </div>
+                            <p className="setting-title">{t('Country')}</p>
+                            <div className="row mx-0 mt-0 setting-body">
+                                <div className="col d-flex flex-column gap-1 pt-1">
+                                    <Dropdown
+                                        value={country || null}
+                                        options={countryOptions}
+                                        optionLabel="name"
+                                        optionValue="code"
+                                        onChange={(event) => setCountry(event.value ?? '')}
+                                        filter
+                                        showClear
+                                        placeholder={t('Choose a country')}
+                                        valueTemplate={(option, props) => option ? <span className="d-inline-flex align-items-center gap-2"><CountryFlag code={option.code} />{option.name}</span> : props.placeholder}
+                                        itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-2"><CountryFlag code={option.code} />{option.name}</span>}
+                                        className="profile-club"
+                                        aria-label={t('Country')}
+                                    />
+                                    <span className="text-faint fs-8">{t('Where the club plays: its flag is shown next to its name in the lists of clubs.')}</span>
                                 </div>
                             </div>
                             <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">

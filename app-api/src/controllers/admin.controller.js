@@ -88,7 +88,7 @@ export const overview = async (req, res) => {
  * Every club, for the club filter of the admin lists.
  */
 export const clubs = async (req, res) => {
-    const all = await db.club.find({}, 'name logo').sort({ name: 1 });
+    const all = await db.club.find({}, 'name logo country').sort({ name: 1 });
     res.json(all.map(club => ({ id: club._id, name: club.name, logo: club.logo })));
 };
 
@@ -102,7 +102,7 @@ const selectedClubs = async (req, res) => {
         res.status(400).json({ message: 'Choose at least one club.' });
         return null;
     }
-    const found = await db.club.find({ _id: { $in: ids } }, 'name logo');
+    const found = await db.club.find({ _id: { $in: ids } }, 'name logo country');
     return new Map(found.map(club => [String(club._id), { id: club._id, name: club.name, logo: club.logo }]));
 };
 
@@ -118,7 +118,7 @@ export const players = async (req, res) => {
     if (!clubsById) return;
     const [found, allClubs] = await Promise.all([
         db.player.find({ clubs: { $in: [...clubsById.keys()] } }).sort({ nickname: 1 }),
-        db.club.find({}, 'name logo'),
+        db.club.find({}, 'name logo country'),
     ]);
     const clubInfo = new Map(allClubs.map(club => [String(club._id), { id: club._id, name: club.name, logo: club.logo }]));
     res.json(found.map(player => ({

@@ -79,3 +79,15 @@ $labelRed: #ec8b80;
   font-size: 0.9rem;
   font-weight: 600;
 }
+
+// the flag of a club's country next to its name: as tall as a capital letter
+.country-flag {
+    display: inline-block;
+    height: 0.8em;
+    width: auto;
+    aspect-ratio: 3 / 2;
+    vertical-align: 0;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    margin-left: 0.15em;
+}

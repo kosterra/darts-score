@@ -11,6 +11,7 @@ import ClubService from '../../services/club.service';
 import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import CountryFlag from '../elements/country.flag';
 
 // after a declined request, asking the same club again waits this long (as the API)
 const ASK_AGAIN_AFTER_DAYS = 7;
@@ -158,7 +159,7 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                             <ClubLogo club={club} size="md" />
                             <div className="my-club-title">
                                 <div className="d-flex flex-wrap align-items-center gap-2">
-                                    <span className="text-default fw-semibold fs-6 text-break">{club.name}</span>
+                                    <span className="text-default fw-semibold fs-6 text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
                                     <Tag value={JOIN_POLICY_LABELS[club.joinPolicy]} severity={club.joinPolicy === 'open' ? 'success' : 'info'} />
                                 </div>
                                 <span className="text-faint fs-8">{club.playerCount} {club.playerCount === 1 ? t('player') : t('players')}</span>

@@ -3,6 +3,8 @@ export default (mongoose) => {
     {
       name:        { type: String, required: true, trim: true },
       description: { type: String, trim: true, default: '' },
+      // where the club plays: an ISO 3166 country code (CH, DE, …); empty when not set
+      country:     { type: String, uppercase: true, trim: true, default: '' },
       // File name of the uploaded logo in IMG_DIR/clubs
       logo:        { type: String, default: '' },
       // A public club is listed on the public start page. Its admins decide

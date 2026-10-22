@@ -29,6 +29,7 @@
   "dependencies": {
     "@uiw/react-json-view": "^2.0.0-alpha.44",
     "bootstrap": "^5.3.8",
+    "country-flag-icons": "1.6.20",
     "dayjs": "^1.11.23",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.9",

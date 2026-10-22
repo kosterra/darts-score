@@ -13,6 +13,7 @@ import { useAuth } from '../../utils/auth.context';
 import ClubMembership from './club.membership';
 import ClubDirectory from './club.directory';
 import { t, tn } from '../../utils/i18n';
+import CountryFlag from '../elements/country.flag';
 
 /**
  * My clubs: the clubs the user runs or plays in, with what they do in each:
@@ -105,7 +106,7 @@ const ClubsPage = () => {
                                     <ClubLogo club={club} size="md" />
                                     <div className="my-club-title">
                                         <div className="d-flex flex-wrap align-items-center gap-2">
-                                            <span className="text-default fw-semibold fs-6 text-break">{club.name}</span>
+                                            <span className="text-default fw-semibold fs-6 text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
                                             <Tag value={isAdmin ? t('Admin') : t('Player')} severity={isAdmin ? 'warning' : 'info'} />
                                             <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />
                                             {club.joinPolicy && club.joinPolicy !== 'closed' && <Tag value={club.joinPolicy === 'open' ? t('Open to join') : t('Admins accept')} severity="secondary" />}

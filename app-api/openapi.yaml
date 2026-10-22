@@ -4336,6 +4336,10 @@ components:
         description:
           type: string
           maxLength: 500
+        country:
+          type: string
+          pattern: '^([A-Za-z]{2})?$'
+          description: Where the club plays, as an ISO 3166 country code (CH, DE, …); empty for none
         isPublic:
           type: boolean
           description: List the club on the public start page
@@ -4429,6 +4433,9 @@ components:
                 type: string
               description:
                 type: string
+              country:
+                type: string
+                description: ISO 3166 country code, empty when not set
               logo:
                 type: string
               joinPolicy:
