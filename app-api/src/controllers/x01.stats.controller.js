@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { x01StatsModel, avgItemModel } from '../models/x01.stats.models.js';
+import { viewOf } from '../utils/game.view.js';
 
 const X01 = db.x01;
 
@@ -35,7 +36,9 @@ async function calculateX01Stats(gameId, Model = X01) {
  * The statistics of one X01 game (a document or the plain game): the averages
  * per leg, the doubles, the score ranges and the sections hit.
  */
-export function x01StatsOf(x01Game) {
+export function x01StatsOf(stored) {
+    // the sets and legs played follow from the visits
+    const x01Game = viewOf('x01', stored);
     const x01Stats = JSON.parse(JSON.stringify(x01StatsModel));
 
     x01Stats.avg = getPlayersAveragesX01(x01Game);

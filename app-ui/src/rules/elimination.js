@@ -48,8 +48,8 @@ export const newEliminationState = (settings, players) => ({
     gameIsRunning: true,
     hasWinner: false,
     players: [...players],
-    startingPlayer: players[0] ?? '',
-    currentPlayerTurn: players[0] ?? '',
+    startingPlayer: players.includes(settings.starter) ? settings.starter : players[0] ?? '',
+    currentPlayerTurn: players.includes(settings.starter) ? settings.starter : players[0] ?? '',
     currentThrow: ['', '', ''],
     allThrows: [],
     playerModels: Object.fromEntries(players.map(id => [id, newEliminationPlayer()])),
@@ -136,6 +136,8 @@ export const ELIMINATION = {
     id: 'elimination',
     minPlayers: 1,
     maxPlayers: 4,
+    // a replay applies each visit to its own state
+    inPlace: true,
     init: (settings, players) => newEliminationState(settings, players),
     visit: (state, id, darts) => eliminationVisit(state, darts.map(dart => dart.field ?? dart)),
     current: (state) => (state.hasWinner ? null : state.currentPlayerTurn),
@@ -144,7 +146,10 @@ export const ELIMINATION = {
     score: (player) => player.score ?? 0,
 };
 
-export const eliminationSettingsOf = (game) => Object.fromEntries(ELIMINATION_SETTINGS.map(key => [key, game[key]]));
+export const eliminationSettingsOf = (game) => ({
+    ...Object.fromEntries(ELIMINATION_SETTINGS.map(key => [key, game[key]])),
+    ...(game.starter ? { starter: game.starter } : {}),
+});
 
 // the whole game from what is stored ({ targetScore, …, players, visits })
 export const replayElimination = (stored) => {

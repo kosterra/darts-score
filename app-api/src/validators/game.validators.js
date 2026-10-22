@@ -45,6 +45,36 @@ const validateX01Handicaps = body('playerModels')
         return true;
     });
 
+// the players' own rules of a handicap, also as "handicap": { [playerId]: { startingScore, legInMode, legOutMode } }
+const validateX01Handicap = body('handicap')
+    .optional({ values: 'null' })
+    .custom((handicap) => {
+        if (typeof handicap !== 'object' || Array.isArray(handicap)) throw new Error('handicap must be an object.');
+        for (const rules of Object.values(handicap)) {
+            if (!VALID_X01_SCORES.includes(Number(rules?.startingScore))) throw new Error(`A player's startingScore must be one of: ${VALID_X01_SCORES.join(', ')}.`);
+            if (!VALID_IN_MODES.includes(rules?.legInMode)) throw new Error(`A player's legInMode must be one of: ${VALID_IN_MODES.join(', ')}.`);
+            if (!VALID_OUT_MODES.includes(rules?.legOutMode)) throw new Error(`A player's legOutMode must be one of: ${VALID_OUT_MODES.join(', ')}.`);
+        }
+        return true;
+    });
+
+// the visits of X01, Cricket, Elimination and Around the Clock: the game follows from them
+const VISIT_DART = /^(0|[SDT]([1-9]|1\d|20)|[SD]25)$/;
+const validateVisits = body('visits')
+    .optional()
+    .isArray({ max: 5000 }).withMessage('visits must be a list.')
+    .bail()
+    .custom((visits, { req }) => {
+        const players = Array.isArray(req.body.players) ? req.body.players : [];
+        for (const visit of visits) {
+            if (!visit || typeof visit !== 'object' || !players.includes(visit.player)) throw new Error('Invalid player.');
+            const darts = (visit.darts ?? []).filter(dart => dart !== '');
+            if (!Array.isArray(visit.darts) || darts.length > 3) throw new Error('A visit has at most three darts.');
+            if (!darts.every(dart => VISIT_DART.test(String(dart)))) throw new Error('Invalid dart.');
+        }
+        return true;
+    });
+
 const validateNumberOfSets = check('numberOfSets')
     .isInt({ min: 1 })
     .withMessage('numberOfSets must be a positive integer.');
@@ -67,6 +97,8 @@ export const validateX01Create = [
     validateNumberOfPlayers,
     validatePlayers,
     validateX01Handicaps,
+    validateX01Handicap,
+    validateVisits,
     validateFlyingDarts,
 ];
 
@@ -76,6 +108,7 @@ export const validateEliminationCreate = [
     check('gameOutMode').isIn(VALID_OUT_MODES).withMessage(`gameOutMode must be one of: ${VALID_OUT_MODES.join(', ')}.`),
     validateNumberOfPlayers,
     validatePlayers,
+    validateVisits,
     validateFlyingDarts,
 ];
 
@@ -86,10 +119,7 @@ export const validateClockCreate = [
     check('skipAhead').optional().isBoolean().withMessage('skipAhead must be true or false.'),
     check('numberOfPlayers').isIn([2, 3, 4]).withMessage('numberOfPlayers must be 2, 3 or 4.'),
     validatePlayers,
-    body('throws').optional().isArray().withMessage('throws must be a list.')
-        .bail()
-        .custom((throws) => throws.every(value => [0, 1, 2, 3].includes(value)))
-        .withMessage('each throw must be 0, 1, 2 or 3.'),
+    validateVisits,
 ];
 
 export const validateGameCreate = [
@@ -103,6 +133,7 @@ export const validateCricketCreate = [
     check('variant').optional().isIn(VALID_CRICKET_VARIANTS).withMessage(`variant must be one of: ${VALID_CRICKET_VARIANTS.join(', ')}.`),
     validateNumberOfPlayers,
     validatePlayers,
+    validateVisits,
     validateFlyingDarts,
 ];
 

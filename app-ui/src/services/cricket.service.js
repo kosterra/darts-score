@@ -2,6 +2,7 @@ import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders
 } from '../utils/service.utils';
+import { gameOf, storedOf } from '../rules/stored';
 
 const API_URL = '/api/';
 
@@ -109,12 +110,13 @@ const deleteCricketGame = async (cricketId, clubId) => {
 
 // Export methods
 const CricketService = {
-    createCricketGame,
+    // stored as its settings, players and visits; the game comes back worked out from them
+    createCricketGame: async (game) => gameOf('cricket', await createCricketGame(storedOf('cricket', { ...game, visits: game.visits ?? [] }))),
     loadRunningCricketGames,
     loadFinishedCricketGames,
     loadAllCricketGames,
-    loadCricketGameById,
-    updateCricketGame,
+    loadCricketGameById: async (id) => gameOf('cricket', await loadCricketGameById(id)),
+    updateCricketGame: (game) => updateCricketGame(storedOf('cricket', game)),
     deleteCricketGame
 }
 

@@ -2442,6 +2442,7 @@
  "X01 starting score": "Score de départ X01",
  "X01 · {{value}} · {{value1}} / {{value2}}": "X01 · {{value}} · {{value1}} / {{value2}}",
  "X01, Cricket, Elimination and Around the Clock for one to four players.": "X01, Cricket, Elimination et Around the Clock pour un à quatre joueurs.",
+ "X01, Cricket, Elimination and Around the Clock run on the same rules engine as the new games: a game is kept as its darts, and everything else (scores, legs, averages, checkouts) is worked out from them, always the same way. Undo now also takes back the visit that won a leg. The figures of a few old games, which an earlier version of the app counted wrong, are worked out correctly now.": "X01, Cricket, Elimination et Around the Clock tournent sur le même moteur de règles que les nouveaux jeux : une partie est gardée sous forme de ses fléchettes, et tout le reste (scores, legs, moyennes, checkouts) en est calculé, toujours de la même façon. Annuler reprend désormais aussi la volée qui a gagné un leg. Les chiffres de quelques anciennes parties, mal comptés par une version précédente de l'app, sont maintenant calculés correctement.",
  "XP": "XP",
  "XP for every badge,": "XP pour chaque badge,",
  "XP for every game played and": "XP pour chaque partie jouée et",

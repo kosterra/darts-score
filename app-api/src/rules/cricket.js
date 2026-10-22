@@ -39,18 +39,18 @@ export const newCricketState = (settings, players) => ({
     gameIsRunning: true,
     hasWinner: false,
     players: [...players],
-    currentPlayerTurn: players[0] ?? '',
+    currentPlayerTurn: players.includes(settings.starter) ? settings.starter : players[0] ?? '',
     currentThrow: ['', '', ''],
     allThrows: [],
     playerModels: Object.fromEntries(players.map(id => [id, newCricketPlayer()])),
 });
 
 // whether every opponent of the player at the oche has closed the number
-const closedByOthers = (game, number) => game.players
+export const closedByOthers = (game, number) => game.players
     .filter(id => id !== game.currentPlayerTurn)
     .every(id => game.playerModels[id].sectionHit[String(number)] >= 3);
 // closed for everybody, the player at the oche included
-const closedForAll = (game, number) => closedByOthers(game, number)
+export const closedForAll = (game, number) => closedByOthers(game, number)
     && game.playerModels[game.currentPlayerTurn].sectionHit[String(number)] >= 3;
 
 export const allClosed = (sectionHit) => CRICKET_NUMBERS.every(number => sectionHit[number] >= 3);
@@ -181,6 +181,8 @@ export const CRICKET = {
     id: 'cricket',
     minPlayers: 1,
     maxPlayers: 4,
+    // a replay applies each visit to its own state
+    inPlace: true,
     init: (settings, players) => newCricketState(settings, players),
     visit: (state, id, darts) => cricketVisit(state, darts.map(dart => dart.field ?? dart)),
     current: (state) => (state.hasWinner ? null : state.currentPlayerTurn),
@@ -189,7 +191,7 @@ export const CRICKET = {
     score: (player) => player.score ?? 0,
 };
 
-export const cricketSettingsOf = (game) => ({ variant: variantOf(game) });
+export const cricketSettingsOf = (game) => ({ variant: variantOf(game), ...(game.starter ? { starter: game.starter } : {}) });
 
 // the whole game from what is stored ({ variant, players, visits, … })
 export const replayCricket = (stored) => {

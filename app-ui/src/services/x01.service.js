@@ -2,6 +2,7 @@ import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders
 } from '../utils/service.utils';
+import { gameOf, storedOf } from '../rules/stored';
 
 const API_URL = '/api/';
 
@@ -133,13 +134,14 @@ const deleteX01Game = async (x01Id, clubId) => {
 
 // Export methods
 const X01Service = {
-    createX01Game,
+    // stored as its settings, players and visits; the game comes back worked out from them
+    createX01Game: async (game) => gameOf('x01', await createX01Game(storedOf('x01', { ...game, visits: game.visits ?? [] }))),
     loadRunningX01Games,
     loadFinishedX01Games,
     loadAllX01Games,
     findX01Games,
-    loadX01GameById,
-    updateX01Game,
+    loadX01GameById: async (id) => gameOf('x01', await loadX01GameById(id)),
+    updateX01Game: (game) => updateX01Game(storedOf('x01', game)),
     deleteX01Game
 }
 

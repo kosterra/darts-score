@@ -19,17 +19,15 @@ export default (mongoose, name = 'x01') => {
       numberOfSets:       { type: Number, min: 1 },
       numberOfLegs:       { type: Number, min: 1 },
       numberOfPlayers:    { type: Number, enum: [1, 2, 3, 4] },
-      startingPlayerLeg:  String,
-      startingPlayerSet:  String,
       currentPlayerTurn:  String,
-      setsPlayed:         { type: Number, default: 0 },
-      legsPlayed:         { type: Number, default: 0 },
-      currentSet:         { type: Number, default: 1 },
-      currentSetLeg:      { type: Number, default: 1 },
-      currentThrow:       [String],
-      currentLegThrows:   [{}],
+      // who throws first, when not the first player (only games from earlier versions of the app)
+      starter:           String,
       players:            [String],
-      allSetsThrows:      mongoose.Schema.Types.Mixed,
+      // a handicap: the players' own rules, { [playerId]: { startingScore, legInMode, legOutMode } }
+      handicap:           mongoose.Schema.Types.Mixed,
+      // every visit in order, { player, darts: ['T20', 'D16', '0'] }: the game follows from them
+      visits:             { type: [{ _id: false, player: String, darts: [String] }], default: [] },
+      // worked out from the visits (the legs, sets and figures follow from them too, see utils/game.view.js)
       playerModels:       mongoose.Schema.Types.Mixed,
       // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off' for everyone
       flyingDarts:        { type: String, enum: ['players', 'on', 'off'], default: 'players' },

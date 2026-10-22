@@ -74,10 +74,13 @@ export const newX01Player = (rules = null, startingScore) => ({
 /**
  * The game before its first visit. settings: the X01 settings, with
  * "handicap" ({ [playerId]: { startingScore, legInMode, legOutMode } }) when
- * the players have rules of their own.
+ * the players have rules of their own, and "starter" when not the first
+ * player throws first.
  */
 export const newX01State = (settings, players) => {
     const handicap = settings.handicap ?? null;
+    // who throws first: the first player, unless the game says otherwise
+    const starter = players.includes(settings.starter) ? settings.starter : players[0] ?? '';
     return {
         ...Object.fromEntries(X01_SETTINGS.map(key => [key, settings[key]])),
         numberOfPlayers: players.length,
@@ -85,9 +88,9 @@ export const newX01State = (settings, players) => {
         gameIsRunning: true,
         hasWinner: false,
         players: [...players],
-        currentPlayerTurn: players[0] ?? '',
-        startingPlayerSet: players[0] ?? '',
-        startingPlayerLeg: players[0] ?? '',
+        currentPlayerTurn: starter,
+        startingPlayerSet: starter,
+        startingPlayerLeg: starter,
         setsPlayed: 0,
         legsPlayed: 0,
         currentSet: 1,
@@ -281,6 +284,8 @@ export const X01 = {
     id: 'x01',
     minPlayers: 1,
     maxPlayers: 4,
+    // a replay applies each visit to its own state
+    inPlace: true,
     init: (settings, players) => newX01State(settings, players),
     visit: (state, id, darts) => x01Visit(state, darts.map(dart => dart.field ?? dart)),
     current: (state) => (state.hasWinner ? null : state.currentPlayerTurn),
@@ -294,6 +299,7 @@ export const X01 = {
 export const x01SettingsOf = (game) => ({
     ...Object.fromEntries(X01_SETTINGS.map(key => [key, game[key]])),
     ...(game.handicap ? { handicap: game.handicap } : {}),
+    ...(game.starter ? { starter: game.starter } : {}),
 });
 
 /**

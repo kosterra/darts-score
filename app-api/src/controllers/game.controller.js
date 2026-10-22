@@ -4,6 +4,7 @@ import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js
 import { removeWithBadges, syncGameBadges } from '../utils/badge.service.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import { knownInClub } from '../models/player.model.js';
+import { answerOf, hasRules, storedOf } from '../utils/game.view.js';
 
 const DEFAULT_LIMIT = 100;
 
@@ -27,10 +28,15 @@ export const playersKnownInClub = async (playerIds, clubId) => {
 };
 
 /**
- * Factory that generates standard CRUD handlers for a game model.
+ * Factory that generates standard CRUD handlers for a game model. "type": the
+ * game's rules (x01, cricket, …) when it is stored as visits: its results are
+ * then worked out here from the visits, whatever the app sent.
  */
-export const createGameController = (Model, gameName) => {
+export const createGameController = (Model, gameName, type = null) => {
     const label = gameName;
+    const toStore = (body) => (type && hasRules(type) ? storedOf(type, body) : body);
+    // one game is answered with its legs and visits worked out; lists only with what is stored
+    const answer = (doc) => (type && hasRules(type) ? answerOf(type, doc) : doc);
 
     // Games are only ever read and changed within the request's club
     const inClub = (req) => ({ _id: req.params.id, club: req.club._id });
@@ -42,10 +48,10 @@ export const createGameController = (Model, gameName) => {
             if (!(await playersBelongToClub(req.body.players, req.club._id))) {
                 return res.status(422).json({ errors: ['All players must belong to the selected club.'] });
             }
-            const doc = new Model({ ...req.body, club: req.club._id });
+            const doc = new Model({ ...toStore(req.body), club: req.club._id });
             const data = await doc.save();
             checkLater(() => noteCreated(req, 'game', { id: data._id, name: label, names: [] }));
-            res.status(201).json(data);
+            res.status(201).json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to create ${label} game`);
             res.status(500).json({ message: err.message || `Error creating ${label} game.` });
@@ -83,7 +89,7 @@ export const createGameController = (Model, gameName) => {
         try {
             const data = validId(req) ? await Model.findOne(inClub(req)) : null;
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
-            res.json(data);
+            res.json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to retrieve ${label} game id=${id}`);
             res.status(500).json({ message: `Error retrieving ${label} game (id=${id}).` });
@@ -99,12 +105,12 @@ export const createGameController = (Model, gameName) => {
             }
             // Use $set explicitly to prevent MongoDB operator injection from req.body;
             // a game never moves to another club
-            const changes = { ...req.body, club: req.club._id };
+            const changes = { ...toStore(req.body), club: req.club._id };
             const data = validId(req) ? await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true }) : null;
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges
             if (data.hasWinner) await syncGameBadges(req.club._id, data);
-            res.json(data);
+            res.json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to update ${label} game id=${id}`);
             res.status(500).json({ message: `Error updating ${label} game (id=${id}).` });

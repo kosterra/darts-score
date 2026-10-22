@@ -146,6 +146,8 @@ export const CLOCK = {
     id: 'clock',
     minPlayers: 1,
     maxPlayers: 4,
+    // a replay applies each visit to its own state
+    inPlace: true,
     init: (settings, players) => newClockState(settings, players),
     visit: (state, id, darts) => {
         for (const dart of darts) {

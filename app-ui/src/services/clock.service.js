@@ -1,5 +1,6 @@
 import { translateAnswer } from '../utils/i18n';
 import { getHeaders } from '../utils/service.utils';
+import { gameOf, storedOf } from '../rules/stored';
 
 const API_URL = '/api/games/clock';
 
@@ -9,11 +10,12 @@ const request = async (url, options = {}) => {
     return translateAnswer(await response.json());
 };
 
-const createClockGame = (game) => request(API_URL, { method: 'POST', headers: getHeaders(true), body: JSON.stringify(game) });
+// stored as its settings, players and visits; the game comes back worked out from them
+const createClockGame = async (game) => gameOf('clock', await request(API_URL, { method: 'POST', headers: getHeaders(true), body: JSON.stringify(storedOf('clock', { ...game, visits: game.visits ?? [] })) }));
 
-const loadClockGameById = (id) => request(`${API_URL}/${id}`, { method: 'GET', headers: getHeaders(false) });
+const loadClockGameById = async (id) => gameOf('clock', await request(`${API_URL}/${id}`, { method: 'GET', headers: getHeaders(false) }));
 
-const updateClockGame = (game) => request(`${API_URL}/${game.id}`, { method: 'PUT', headers: getHeaders(true), body: JSON.stringify(game) });
+const updateClockGame = (game) => request(`${API_URL}/${game.id}`, { method: 'PUT', headers: getHeaders(true), body: JSON.stringify(storedOf('clock', game)) });
 
 // newest first
 const loadAllClockGames = async () => (await request(API_URL, { method: 'GET', headers: getHeaders(false) }))

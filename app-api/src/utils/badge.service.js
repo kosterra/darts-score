@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { getBadge, replayBadges } from './badges.js';
 import { knownInClub } from '../models/player.model.js';
 import { isRulesGame } from './rules.kinds.js';
+import { viewOf } from './game.view.js';
 
 export const GAME_MODELS = {
     x01: () => db.x01,
@@ -32,7 +33,8 @@ export const loadPlayerEvents = async (player) => {
 
     return [
         ...gamesByType.flatMap(({ type, games }) =>
-            games.map(game => ({ type: type === 'rules' ? game.kind : type, id: String(game._id), at: game.updatedAt, data: game }))),
+            // X01 & co. with their legs and visits, worked out from the stored visits
+            games.map(game => ({ type: type === 'rules' ? game.kind : type, id: String(game._id), at: game.updatedAt, data: viewOf(type, game) }))),
         ...trainings.map(entry => ({ type: 'atc', id: String(entry._id), at: entry.createdAt, data: entry })),
         ...rulesTrainings.map(entry => ({ type: 'rulesTraining', id: String(entry._id), at: entry.createdAt, data: entry })),
     ];

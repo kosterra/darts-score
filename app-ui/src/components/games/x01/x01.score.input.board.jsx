@@ -215,7 +215,7 @@ const X01ScoreInputBoard = () => {
                             disabled={botThrowing}
                             className="justify-content-center x01-enter"
                         />
-                        {game.currentLegThrows.length !== 0 &&
+                        {(game.visits?.length ?? 0) !== 0 &&
                             // small next to the main action: an exception, not a second choice
                             <Button
                                 id="submitReturn"

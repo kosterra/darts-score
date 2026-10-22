@@ -1,3 +1,5 @@
+import { withView } from './game.view.js';
+
 /**
  * The figures of a player's X01 form, from the visits of a few games: how
  * often they check out, score a ton or more, throw a weak visit, and how many
@@ -10,7 +12,7 @@ const share = (count, total) => total ? round1(count / total * 100) : null;
 const SCORING_FROM = 100;
 
 // the visits of every leg of the game: [[visit, …], …]
-const legsOf = (game) => Object.values(game.allSetsThrows ?? {})
+const legsOf = (game) => Object.values(withView('x01', game).allSetsThrows ?? {})
     .flatMap(set => Object.values(set ?? {}))
     .filter(Array.isArray);
 

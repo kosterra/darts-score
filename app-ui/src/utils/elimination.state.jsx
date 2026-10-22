@@ -3,11 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Toast } from 'primereact/toast';
 
 import EliminationContext from './elimination.context';
-import EliminationReducer from './elimination.reducer';
+import GameReducer from './game.reducer';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import KnockOut from '../components/games/common/knock.out';
 import EliminationService from '../services/elimination.service';
-import EliminationReturnToPreviousPlayer, { getScoreRangeLabel } from './elimination.return.to.previous.player';
+import { eliminationVisitOutcome, replayElimination } from '../rules/elimination';
 import PlayerService from '../services/player.service';
 import { knockOutScene } from './elimination.moments';
 
@@ -19,18 +19,7 @@ import {
     lastDartIsTriple
 } from './game.utils';
 
-import {
-    SET_LOADING,
-    UPDATE_CURRENT_THROW,
-    SAVE_ALL_GAME_THROWS,
-    RESET_CURRENT_THROW,
-    UPDATE_PLAYER_SCORE,
-    CHANGE_CURRENT_PLAYER,
-    GAME_HAS_WINNER,
-    RETURN_PREV_PLAYER,
-    FETCH_GAME_SUCCESS,
-    FETCH_PLAYERS_SUCCESS
-} from './constants';
+import { FETCH_GAME_SUCCESS, FETCH_PLAYERS_SUCCESS, SET_GAME, SET_LOADING, UPDATE_CURRENT_THROW } from './constants';
 import { t } from './i18n';
 
 const EliminationState = ({ children }) => {
@@ -43,7 +32,7 @@ const EliminationState = ({ children }) => {
         players: [],
         loading: { initGameLoading: true, validateThrow: false }
     };
-    const [state, dispatch] = useReducer(EliminationReducer, initialState);
+    const [state, dispatch] = useReducer(GameReducer, initialState);
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
@@ -245,195 +234,45 @@ const EliminationState = ({ children }) => {
             return;
         }
 
-        // every player's score before the visit, so that undo restores it exactly,
-        // also for those this visit sends back to 0
+        // what the visit does, dart by dart: for its moments
         const scoresBefore = Object.fromEntries((state.game.players || []).map(pid => [pid, playerModels[pid]?.score ?? 0]));
-        const dartCount = currentThrow.filter(d => d && d.trim() !== '').length;
+        const outcome = eliminationVisitOutcome(state.game, currentThrow);
+        const next = replayElimination({ ...state.game, visits: [...(state.game.visits ?? []), { player: playerId, darts: currentThrow.filter(dart => dart.trim() !== '') }] });
 
-        // Work through darts one by one to detect eliminations, busts, and wins
-        let runningScore = playerModels[playerId]?.score ?? 0;
-        // We need a mutable snapshot of all player scores for elimination checks
-        const tempScores = {};
-        Object.keys(playerModels).forEach(pid => {
-            tempScores[pid] = playerModels[pid]?.score ?? 0;
-        });
-
-        let totalRoundScore = 0;
-        const allThrows = [...(state.game.allThrows || [])];
-        const eliminations = []; // players reset during this round
-        let busted = false;
-        let winner = false;
-
-        for (let i = 0; i < currentThrow.length; i++) {
-            const dart = currentThrow[i];
-            if (!dart || dart.trim() === '') continue;
-
-            const dartScore = parseDartScore(dart);
-            const projectedScore = runningScore + dartScore;
-
-            // --- Check for bust ---
-            const target = state.game.targetScore;
-            const outMode = state.game.gameOutMode;
-            let dartBusts = false;
-
-            if (projectedScore > target) {
-                dartBusts = true;
-            } else if (projectedScore === target) {
-                const isDouble = /^d/i.test(dart);
-                const isTriple = /^t/i.test(dart);
-                if (outMode === 'Double Out' && !isDouble) dartBusts = true;
-                if (outMode === 'Master Out' && !isDouble && !isTriple) dartBusts = true;
-            } else if (outMode === 'Double Out' && projectedScore === target - 1) {
-                // Can't finish from 1 remaining (no double available)
-                dartBusts = true;
-            }
-
-            if (dartBusts) {
-                busted = true;
-                break;
-            }
-
-            // --- Check for elimination of other players ---
-            const otherPlayerIds = (state.game.players || []).filter(pid => pid !== playerId);
-            otherPlayerIds.forEach(pid => {
-                if (tempScores[pid] === projectedScore && projectedScore > 0) {
-                    eliminations.push(pid);
-                    tempScores[pid] = 0;
-                }
-            });
-
-            runningScore = projectedScore;
-            totalRoundScore += dartScore;
-            tempScores[playerId] = runningScore;
-
-            // --- Check for win ---
-            if (runningScore === target) {
-                winner = true;
-                break;
-            }
-        }
-
-        if (busted) {
-            const originalScore = playerModels[playerId]?.score ?? 0;
+        if (outcome.busted) {
             toast.current.show({
                 severity: 'warn',
                 summary: t('Bust!'),
-                detail: t('Throw is bust. Score stays at {{originalScore}}.', { originalScore: originalScore }),
+                detail: t('Throw is bust. Score stays at {{originalScore}}.', { originalScore: scoresBefore[playerId] }),
                 life: 3000
             });
-            // a bust is a visit too: its darts count, and undo takes it back first
-            dispatch({
-                type: UPDATE_PLAYER_SCORE,
-                payload: {
-                    playerId,
-                    score: originalScore,
-                    playerModel: {
-                        ...playerModels[playerId],
-                        score: originalScore,
-                        totalThrow: {
-                            darts: (playerModels[playerId]?.totalThrow?.darts ?? 0) + dartCount,
-                            rounds: (playerModels[playerId]?.totalThrow?.rounds ?? 0) + 1
-                        }
-                    }
-                }
-            });
-            dispatch({
-                type: SAVE_ALL_GAME_THROWS,
-                payload: [...allThrows, {
-                    darts: currentThrow,
-                    playerId,
-                    roundScore: 0,
-                    scoreLeft: Math.max(state.game.targetScore - originalScore, 0),
-                    bust: true,
-                    scoresBefore
-                }]
-            });
-            dispatch({ type: RESET_CURRENT_THROW });
-            manageCurrentPlayerChange();
-            setLoading('validateThrow', false);
-            requestSave();
-            return;
+        } else {
+            // the first one sent back is kicked out of their house
+            if (outcome.eliminations.length) {
+                const scene = { key: Date.now(), ...knockOutScene({ game: state.game, players: state.players, playerId, eliminations: outcome.eliminations, scoresBefore }) };
+                // after a 180 the maximum has its moment first
+                clearTimeout(knockOutTimer.current);
+                if (outcome.roundScore === 180) knockOutTimer.current = setTimeout(() => setKnockOut(scene), 2700);
+                else setKnockOut(scene);
+            }
+            if (outcome.roundScore === 180) {
+                const player = state.players?.find(p => p.id === playerId);
+                setOneEighty({ key: Date.now(), name: player?.nickname ?? '' });
+            }
+            if (outcome.winner) {
+                const winnerPlayer = state.players?.find(p => p.id === playerId);
+                toast.current.show({
+                    severity: 'success',
+                    summary: t('Game Won!'),
+                    detail: t('{{name}} wins the game!', { name: winnerPlayer?.nickname || winnerPlayer?.name || t('A player') }),
+                    life: 4000
+                });
+            }
         }
 
-        // Apply eliminations: the first one sent back is kicked out of their house
-        eliminations.forEach(pid => {
-            dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId: pid, score: 0 } });
-        });
-        if (eliminations.length) {
-            const scene = { key: Date.now(), ...knockOutScene({ game: state.game, players: state.players, playerId, eliminations, scoresBefore }) };
-            // after a 180 the maximum has its moment first
-            clearTimeout(knockOutTimer.current);
-            if (totalRoundScore === 180) knockOutTimer.current = setTimeout(() => setKnockOut(scene), 2700);
-            else setKnockOut(scene);
-        }
-
-        if (!busted && totalRoundScore === 180) {
-            const player = state.players?.find(p => p.id === playerId);
-            setOneEighty({ key: Date.now(), name: player?.nickname ?? '' });
-        }
-
-        // Apply stats updates
-        const updatedPlayerModel = {
-            ...playerModels[playerId],
-            score: runningScore,
-            totalThrow: {
-                darts: (playerModels[playerId]?.totalThrow?.darts ?? 0) + dartCount,
-                rounds: (playerModels[playerId]?.totalThrow?.rounds ?? 0) + 1
-            },
-            bestThreeDarts: Math.max(
-                playerModels[playerId]?.bestThreeDarts ?? 0,
-                totalRoundScore
-            ),
-            scoreRanges: updateScoreRanges(playerModels[playerId]?.scoreRanges ?? {}, totalRoundScore)
-        };
-
-        // Save throw record
-        allThrows.push({
-            darts: currentThrow,
-            playerId,
-            roundScore: totalRoundScore,
-            scoreLeft: Math.max(state.game.targetScore - runningScore, 0),
-            scoresBefore
-        });
-
-        if (winner) {
-            // Dispatch winner state
-            dispatch({ type: UPDATE_PLAYER_SCORE, payload: { playerId, score: runningScore, playerModel: updatedPlayerModel } });
-            dispatch({ type: SAVE_ALL_GAME_THROWS, payload: allThrows });
-            dispatch({ type: GAME_HAS_WINNER, payload: playerId });
-
-            const winnerPlayer = state.players?.find(p => p.id === playerId);
-            toast.current.show({
-                severity: 'success',
-                summary: t('Game Won!'),
-                detail: t('{{name}} wins the game!', { name: winnerPlayer?.nickname || winnerPlayer?.name || t('A player') }),
-                life: 4000
-            });
-            dispatch({ type: RESET_CURRENT_THROW });
-            setLoading('validateThrow', false);
-            requestSave();
-            return;
-        }
-
-        // Normal round end
-        dispatch({
-            type: UPDATE_PLAYER_SCORE,
-            payload: { playerId, score: runningScore, playerModel: updatedPlayerModel }
-        });
-        dispatch({ type: SAVE_ALL_GAME_THROWS, payload: allThrows });
-        dispatch({ type: RESET_CURRENT_THROW });
-        manageCurrentPlayerChange();
+        dispatch({ type: SET_GAME, payload: next });
         setLoading('validateThrow', false);
         requestSave();
-    };
-
-    /**
-     * Update score range histogram for statistics.
-     */
-    const updateScoreRanges = (ranges, score) => {
-        const label = getScoreRangeLabel(score);
-        if (!label) return ranges;
-        return { ...ranges, [label]: (ranges[label] ?? 0) + 1 };
     };
 
     const validateWholeThrow = (values, currentScore) => {
@@ -458,17 +297,10 @@ const EliminationState = ({ children }) => {
         return true;
     };
 
-    const manageCurrentPlayerChange = () => {
-        const players = state.game.players;
-        const idx = players.indexOf(state.game.currentPlayerTurn);
-        const next = idx < players.length - 1 ? players[idx + 1] : players[0];
-        dispatch({ type: CHANGE_CURRENT_PLAYER, payload: next });
-    };
-
+    // undo: the game without its last visit
     const onClickReturnToPreviousPlayer = () => {
-        if (!state.game.allThrows || state.game.allThrows.length === 0) return;
-        const newGame = EliminationReturnToPreviousPlayer(state.game);
-        dispatch({ type: RETURN_PREV_PLAYER, payload: newGame });
+        if (!state.game.visits?.length) return;
+        dispatch({ type: SET_GAME, payload: replayElimination({ ...state.game, visits: state.game.visits.slice(0, -1) }) });
         requestSave();
     };
 

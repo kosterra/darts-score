@@ -1,4 +1,5 @@
 import { requestJSON } from '../utils/service.utils';
+import { gameOf, storedOf } from '../rules/stored';
 
 const API_URL = '/api/training/x01';
 
@@ -6,9 +7,10 @@ const API_URL = '/api/training/x01';
  * X01 trainings against the bot: the same calls as the games, so the X01
  * game page plays them too, plus the trainings of a player.
  */
-const createX01Game = (game) => requestJSON(API_URL, { method: 'POST', body: game });
-const loadX01GameById = (id) => requestJSON(`${API_URL}/${id}`);
-const updateX01Game = (game) => requestJSON(`${API_URL}/${game.id}`, { method: 'PUT', body: game });
+// stored as its settings, players and visits; the training comes back worked out from them
+const createX01Game = async (game) => gameOf('x01training', await requestJSON(API_URL, { method: 'POST', body: storedOf('x01training', { ...game, visits: game.visits ?? [] }) }));
+const loadX01GameById = async (id) => gameOf('x01training', await requestJSON(`${API_URL}/${id}`));
+const updateX01Game = (game) => requestJSON(`${API_URL}/${game.id}`, { method: 'PUT', body: storedOf('x01training', game) });
 // the trainings of a player, or without one of the whole club (with who trained)
 const loadTrainings = (playerId) => requestJSON(playerId ? `${API_URL}?player=${encodeURIComponent(playerId)}` : API_URL);
 // the charts of a training, as for a game

@@ -19,6 +19,7 @@
  *   preview(state, id, darts, ctx) → in words what the darts entered so far do
  *   current(state) → who throws next, for a game whose players do not simply take
  *     turns (X01: the next leg is started by the next player); null once it is over
+ *   inPlace: the visit changes the state it gets (the replay's own), it is not copied first
  *   playerOf(state, id) → a player's part of the state (default state.players[id])
  *   stopAnyTime: a visit may end before the third dart (Golf); otherwise darts not thrown are misses
  *   progress: { label, value(playerState) } for the chart of the statistics, after every visit
@@ -52,7 +53,7 @@ export const replayGame = (definition, game) => {
     for (const visit of game.visits ?? []) {
         if (over) break;
         const darts = (visit.darts ?? []).map(parseDart);
-        state = definition.visit(clone(state), visit.player, darts, { settings, round });
+        state = definition.visit(definition.inPlace ? state : clone(state), visit.player, darts, { settings, round });
         visits.push({ player: visit.player, darts: darts.map(dart => dart.field), round });
         if (definition.current) {
             over = definition.over(state, { settings, round });

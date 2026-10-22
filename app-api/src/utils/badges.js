@@ -1,6 +1,7 @@
 import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
 import { isRulesGame } from './rules.kinds.js';
+import { withView } from './game.view.js';
 
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
@@ -379,7 +380,7 @@ const number = (key) => Number(String(key).replace(/\D/g, '')) || 0;
  * { 'set-1': { 'leg-1': [visit, ...] } }.
  */
 export const legsInOrder = (game) =>
-    Object.entries(game.allSetsThrows ?? {})
+    Object.entries(withView('x01', game).allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .flatMap(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg))
         .filter(Array.isArray);
@@ -466,7 +467,7 @@ export const wonInDecidingLeg = (game, playerId) => {
     const setsNeeded = toWin(game.setMode, game.numberOfSets);
     if (legsNeeded === 1 && setsNeeded === 1) return false;
 
-    const sets = Object.entries(game.allSetsThrows ?? {})
+    const sets = Object.entries(withView('x01', game).allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .map(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg).filter(Array.isArray));
     const winnerOf = (leg) => leg.find(visit => visit?.scoreLeft === 0)?.playerId;
@@ -551,7 +552,7 @@ const isWhiteHorse = (darts) => {
  * marks per round of the game.
  */
 const applyCricket = (metrics, game, model, playerId) => {
-    for (const visit of game.allThrows ?? []) {
+    for (const visit of withView('cricket', game).allThrows ?? []) {
         if (visit?.playerId !== playerId) continue;
         applyAnyVisit(metrics, visit);
         if (isWhiteHorse(visit.darts)) metrics.whiteHorses += 1;
@@ -640,7 +641,7 @@ const applyGame = (metrics, type, game, playerId) => {
 
     if (type === 'cricket') applyCricket(metrics, game, model, playerId);
     if (type === 'elimination') {
-        for (const visit of game.allThrows ?? []) if (visit?.playerId === playerId) applyAnyVisit(metrics, visit);
+        for (const visit of withView('elimination', game).allThrows ?? []) if (visit?.playerId === playerId) applyAnyVisit(metrics, visit);
     }
     if (type !== 'x01') return;
 

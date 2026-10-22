@@ -11,9 +11,12 @@ export default (mongoose) => {
       variant:           { type: String, enum: ['Standard', 'Cut-throat', 'No-score'], default: 'Standard' },
       numberOfPlayers:   { type: Number, enum: [1, 2, 3, 4] },
       currentPlayerTurn: String,
-      currentThrow:      [String],
-      allThrows:         [{}],
+      // who throws first, when not the first player (only games from earlier versions of the app)
+      starter:           String,
       players:           [String],
+      // every visit in order, { player, darts: ['T20', 'D16', '0'] }: the game follows from them
+      visits:            { type: [{ _id: false, player: String, darts: [String] }], default: [] },
+      // worked out from the visits
       playerModels:      mongoose.Schema.Types.Mixed,
       // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off' for everyone
       flyingDarts:       { type: String, enum: ['players', 'on', 'off'], default: 'players' },
