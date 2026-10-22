@@ -1,0 +1,213 @@
+// The games and trainings of the rules engine: the cards to choose one, the
+// scoreboard while playing and the hit / miss buttons of a training
+
+.rules-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1rem;
+}
+
+.rules-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.1rem;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+    color: $textDefaultColor;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: border-color 0.15s, transform 0.15s;
+
+    &:hover,
+    &:focus-visible {
+        border-color: $primaryColor;
+        color: $textDefaultColor;
+        transform: translateY(-1px);
+    }
+
+    .rules-card-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .rules-card-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: color-mix(in srgb, $primaryColor 16%, transparent);
+        color: $primaryColor;
+        font-size: 1.2rem;
+    }
+
+    .rules-card-text {
+        color: $textSubtleColor;
+        font-size: 0.875rem;
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    .rules-card-foot {
+        margin-top: auto;
+        color: $textFaintColor;
+        font-size: 0.8rem;
+    }
+}
+
+.rules-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: $textSubtleColor;
+    font-size: 0.875rem;
+    line-height: 1.5;
+
+    li + li {
+        margin-top: 0.25rem;
+    }
+}
+
+// what to aim at now, above the board
+.rules-target {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0 0 1rem 1rem;
+    background: $surfaceTranslucentColor;
+    text-align: center;
+
+    .rules-target-main {
+        color: $textDefaultColor;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .rules-target-sub {
+        color: $textFaintColor;
+        font-size: 0.8rem;
+    }
+}
+
+.rules-scoreboard {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+
+    th,
+    td {
+        padding: 0.4rem 0.5rem;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    th {
+        color: $textFaintColor;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    th:first-child,
+    td:first-child {
+        text-align: left;
+    }
+
+    td:first-child {
+        max-width: 9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    tr + tr td {
+        border-top: 1px solid $surfaceHighColor;
+    }
+
+    .is-current td {
+        background: color-mix(in srgb, $primaryColor 12%, transparent);
+        font-weight: 600;
+    }
+
+    .is-out td {
+        color: $textFaintColor;
+        text-decoration: line-through;
+    }
+}
+
+.rules-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+    gap: 0.75rem;
+
+    .rules-status-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.5rem;
+        border-radius: $borderRadius;
+        background: $surfaceRaisedColor;
+    }
+
+    .rules-status-label {
+        color: $textFaintColor;
+        font-size: 0.75rem;
+    }
+
+    .rules-status-value {
+        color: $textDefaultColor;
+        font-weight: 700;
+        font-size: 1.25rem;
+    }
+}
+
+// a training with only hit or miss to tap
+.rules-hitmiss {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    .p-button {
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 5.5rem;
+        font-size: 1.35rem;
+    }
+
+    // the icon right next to its word
+    .p-button-label {
+        flex: 0 0 auto;
+    }
+
+    .p-button-icon {
+        margin: 0;
+    }
+}
+
+.rules-darts-row {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    span {
+        min-width: 2.6rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: $borderRadius;
+        background: $surfaceHighColor;
+        color: $textDefaultColor;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+
+    .is-empty {
+        color: $textFaintColor;
+    }
+}

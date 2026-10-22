@@ -18,6 +18,10 @@ import X01Service from '../../services/x01.service';
 import CricketService from '../../services/cricket.service';
 import EliminationService from '../../services/elimination.service';
 import ClockService from '../../services/clock.service';
+import RulesService from '../../services/rules.service';
+import { GAMES as RULES_GAMES, gameOf } from '../../rules/games';
+import { playPath } from '../../utils/game.paths';
+import { replayGame } from '../../rules/engine';
 import DeletionRequestService from '../../services/deletion.request.service';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
@@ -66,6 +70,28 @@ const GAME_TYPES = {
         describe: (game) => ({ title: t('Around the Clock · {{value}}', { value: t(game.mode ?? 'All') }) }),
         score: (model) => model.finished ? t('{{value}} darts', { value: model.darts ?? 0 }) : t('{{value}} of 21', { value: model.target ?? 0 }),
     },
+    // Shanghai, Killer, … : loaded together, each game typed by its kind
+    rules: {
+        load: () => RulesService.loadAllGames(),
+    },
+    ...Object.fromEntries(RULES_GAMES.map(definition => [definition.id, {
+        remove: (id, clubId) => RulesService.deleteGame(id, clubId),
+        describe: (game) => ({
+            title: [definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === game.settings?.[option.key])?.label).filter(Boolean)].join(' · '),
+        }),
+        // what its chart follows, e.g. the points, the strokes or the lives
+        score: (model, game, playerId) => {
+            const { state } = replayOf(definition, game);
+            return state.players[playerId] ? `${definition.progress.label} ${definition.progress.value(state.players[playerId], state)}` : '';
+        },
+    }])),
+};
+
+// a game replayed once for all its rows
+const replays = new WeakMap();
+const replayOf = (definition, game) => {
+    if (!replays.has(game)) replays.set(game, replayGame(definition, game));
+    return replays.get(game);
 };
 
 const TYPE_OPTIONS = [
@@ -74,6 +100,7 @@ const TYPE_OPTIONS = [
     { label: t('Cricket'), value: 'cricket' },
     { label: t('Elimination'), value: 'elimination' },
     { label: t('Around the Clock'), value: 'clock' },
+    { label: t('More games'), value: 'rules' },
 ];
 
 const STATUS_OPTIONS = [
@@ -123,8 +150,8 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
 
 
     const loadClubGames = async () => {
-        const loaded = await Promise.all(Object.entries(GAME_TYPES).map(async ([gameType, config]) =>
-            (await config.load()).map(game => ({ ...game, type: gameType }))));
+        const loaded = await Promise.all(Object.entries(GAME_TYPES).filter(([, config]) => config.load).map(async ([gameType, config]) =>
+            (await config.load()).map(game => ({ ...game, type: gameType === 'rules' ? game.kind : gameType }))));
         return loaded.flat();
     };
 
@@ -190,7 +217,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     // each row carries its open request, so the table redraws it when one comes or goes
     const visibleGames = useMemo(() => (games ?? [])
         .map(game => requests.has(game.id) || game.deletion ? { ...game, deletion: requests.get(game.id) ?? null } : game)
-        .filter(game => type === 'all' || game.type === type)
+        .filter(game => type === 'all' || game.type === type || (type === 'rules' && Boolean(gameOf(game.type))))
         .filter(game => status === 'all' || (status === 'requested' ? Boolean(game.deletion) : (status === 'running') === !!game.gameIsRunning))
         .filter(game => !playerId || game.players.includes(playerId)),
     [games, type, status, playerId, requests]);
@@ -246,7 +273,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         <PlayerCell player={playersById.get(id)}>
                             {model.hasWonGame && <FaTrophy className="ms-2 text-gold" aria-label={t('Winner')} />}
                         </PlayerCell>
-                        <span className="text-subtle fs-8 text-nowrap">{GAME_TYPES[game.type].score(model, game)}</span>
+                        <span className="text-subtle fs-8 text-nowrap">{GAME_TYPES[game.type].score(model, game, id)}</span>
                     </div>
                 );
             })}
@@ -284,7 +311,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const actionsBody = (game) => (
         <div className="row-actions">
             {canOpen(game) && (game.gameIsRunning
-                ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title={t('Continue playing')} aria-label={t('Continue playing')}><GiDart /></Link>
+                ? <Link to={playPath(game.type, game.id)} className="row-action-link" title={t('Continue playing')} aria-label={t('Continue playing')}><GiDart /></Link>
                 : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title={t('Show statistics')} aria-label={t('Show statistics')}><FaChartColumn /></Link>
             )}
             {game.deletion &&

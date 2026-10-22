@@ -12,6 +12,8 @@ import { FaTrophy } from 'react-icons/fa6';
 import AdminService from '../../services/admin.service';
 import ATCService from '../../services/atc.service';
 import X01TrainingService from '../../services/x01.training.service';
+import RulesService from '../../services/rules.service';
+import { trainingOf } from '../../rules/trainings';
 import PlayerService from '../../services/player.service';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
@@ -29,6 +31,7 @@ const TYPE_OPTIONS = [
     { label: t('All'), value: 'all' },
     { label: t('Around the Clock'), value: 'atc' },
     { label: t('X01 against the bot'), value: 'x01' },
+    { label: t('More trainings'), value: 'rules' },
 ];
 const WHOSE_OPTIONS = [
     { label: t('Everyone'), value: 'all' },
@@ -60,6 +63,16 @@ const x01Row = (training) => {
     };
 };
 const atcRow = (entry) => ({ ...entry, kind: 'atc', what: entry.mode, raw: entry });
+// Bob's 27, 121 Checkout, … : the kind is the training, "what" its options
+const rulesRow = (entry) => {
+    const definition = trainingOf(entry.kind);
+    return {
+        ...entry,
+        rules: definition,
+        what: (definition?.options ?? []).map(option => option.values.find(value => value.value === entry.settings?.[option.key])?.label).filter(Boolean).join(' · ') || '–',
+        raw: entry,
+    };
+};
 
 /**
  * The trainings in one table: Around the Clock and X01 against the bot,
@@ -94,10 +107,10 @@ const TrainingsTable = ({ scope = 'club' }) => {
             return;
         }
         try {
-            const [atc, x01, loadedPlayers] = await Promise.all(acrossClubs
-                ? [AdminService.loadTrainings(selectedIds), AdminService.loadX01Trainings(selectedIds), AdminService.loadPlayers(selectedIds)]
-                : [ATCService.loadATCEntries(), X01TrainingService.loadTrainings(), PlayerService.searchPlayers('')]);
-            setRows([...(atc ?? []).map(atcRow), ...(x01 ?? []).map(x01Row)]);
+            const [atc, x01, rules, loadedPlayers] = await Promise.all(acrossClubs
+                ? [AdminService.loadTrainings(selectedIds), AdminService.loadX01Trainings(selectedIds), AdminService.loadRulesTrainings(selectedIds), AdminService.loadPlayers(selectedIds)]
+                : [ATCService.loadATCEntries(), X01TrainingService.loadTrainings(), RulesService.loadTrainings(), PlayerService.searchPlayers('')]);
+            setRows([...(atc ?? []).map(atcRow), ...(x01 ?? []).map(x01Row), ...(rules ?? []).filter(entry => trainingOf(entry.kind)).map(rulesRow)]);
             setPlayers(loadedPlayers);
         } catch (error) {
             setRows([]);
@@ -122,6 +135,13 @@ const TrainingsTable = ({ scope = 'club' }) => {
             const key = `${entry.player?.id}-${entry.mode}-${entry.scoring === 'Darts' ? 'darts' : 'time'}`;
             if (scoreOf(entry) && (!best.has(key) || scoreOf(entry) < scoreOf(best.get(key)))) best.set(key, entry);
         });
+        // the trainings of the rules engine: the best per player and kind
+        (rows ?? []).filter(row => row.rules).forEach(entry => {
+            const key = `${entry.player?.id}-${entry.kind}`;
+            const known = best.get(key);
+            const higher = entry.rules.higherIsBetter !== false;
+            if (!known || (higher ? entry.score > known.score : entry.score < known.score)) best.set(key, entry);
+        });
         return new Set([...best.values()].map(entry => entry.id));
     }, [rows]);
 
@@ -131,7 +151,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
 
     const visibleRows = useMemo(() => (rows ?? [])
         .filter(row => whose === 'all' || isMine(row))
-        .filter(row => type === 'all' || row.kind === type)
+        .filter(row => type === 'all' || row.kind === type || (type === 'rules' && Boolean(row.rules)))
         .filter(row => row.kind !== 'atc' || mode === 'any' || row.mode === mode)
         .filter(row => !playerId || row.player?.id === playerId),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,9 +163,11 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const onDelete = async (row) => {
         const clubId = acrossClubs ? row.club?.id : undefined;
         try {
-            const deleted = row.kind === 'x01'
-                ? await X01TrainingService.deleteTraining(row.id, clubId)
-                : await ATCService.deleteATCEntry(row.id, clubId);
+            const deleted = row.rules
+                ? await RulesService.deleteTraining(row.id, clubId)
+                : row.kind === 'x01'
+                    ? await X01TrainingService.deleteTraining(row.id, clubId)
+                    : await ATCService.deleteATCEntry(row.id, clubId);
             if (!deleted) throw new Error(t('The training could not be deleted. Please try again.'));
             toast.current.show({ severity: 'success', summary: t('Training deleted'), life: 3000 });
             await loadRows();
@@ -154,9 +176,16 @@ const TrainingsTable = ({ scope = 'club' }) => {
         }
     };
 
-    const typeBody = (row) => <span className="text-default fs-7 text-nowrap">{row.kind === 'x01' ? t('X01 against the bot') : t('Around the Clock')}</span>;
+    const typeBody = (row) => <span className="text-default fs-7 text-nowrap">{row.rules ? row.rules.title : row.kind === 'x01' ? t('X01 against the bot') : t('Around the Clock')}</span>;
     const whatBody = (row) => <span className="text-subtle fs-7 text-nowrap">{row.what}</span>;
-    const resultBody = (row) => row.kind === 'atc'
+    const resultBody = (row) => row.rules
+        ? (
+            <span className="text-default fw-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {row.rules.format(row.score)}
+                {bestIds.has(row.id) && <FaTrophy className="ms-2 text-gold" title={t('Personal best')} aria-label={t('Personal best')} />}
+            </span>
+        )
+        : row.kind === 'atc'
         ? (
             <span className="text-default fw-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {formatScore(row)}
@@ -193,7 +222,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 {hasOwn && <SelectButton value={whose} options={WHOSE_OPTIONS} onChange={(e) => e.value && setWhose(e.value)} aria-label={t('Whose trainings')} />}
                 <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label={t('Training')} />
-                {type !== 'x01' && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label={t('Mode of Around the Clock')} />}
+                {(type === 'all' || type === 'atc') && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label={t('Mode of Around the Clock')} />}
                 <Dropdown
                     value={playerId}
                     options={playerOptions}

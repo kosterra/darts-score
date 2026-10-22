@@ -25,6 +25,11 @@ const EliminationGameStats = lazy(() => import('./components/stats/elimination/e
 const ClockConfigPage = lazy(() => import('./components/game_config/clock/_clock.config.page'));
 const ClockGamePage = lazy(() => import('./components/games/clock/_clock.game.page'));
 const ClockGameStats = lazy(() => import('./components/stats/clock/clock.game.stats'));
+const MoreGamesPage = lazy(() => import('./components/rules/_more.games.page'));
+const RulesGameSetup = lazy(() => import('./components/rules/rules.game.setup'));
+const RulesGame = lazy(() => import('./components/rules/rules.game'));
+const RulesGameStats = lazy(() => import('./components/rules/rules.game.stats'));
+const RulesTraining = lazy(() => import('./components/rules/rules.training'));
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const X01BotPage = lazy(() => import('./components/training/x01.bot.page'));
@@ -151,6 +156,10 @@ function AppContent() {
                     <Route path="/elimination/:id" element={<EliminationGamePage />} />
                     <Route path="/clock" element={<ClockConfigPage />} />
                     <Route path="/clock/:id" element={<ClockGamePage />} />
+                    {/* Shanghai, Killer, … of the rules engine */}
+                    <Route path="/play" element={<MoreGamesPage />} />
+                    <Route path="/play/:kind" element={<RulesGameSetup />} />
+                    <Route path="/play/:kind/:id" element={<RulesGame />} />
                     <Route path="/stats" element={<Navigate replace to="/stats/players" />} />
                     <Route path="/stats/:id" element={<StatsPage />} />
                     <Route path="/stats/games/:id" element={<GameListRedirect />} />
@@ -163,9 +172,13 @@ function AppContent() {
                     <Route path="/stats/games/cricket/:id" element={<CricketGameStats />} />
                     <Route path="/stats/games/elimination/:id" element={<EliminationGameStats />} />
                     <Route path="/stats/games/clock/:id" element={<ClockGameStats />} />
+                    <Route path="/stats/games/:kind/:id" element={<RulesGameStats />} />
                     <Route path="/training" element={<TrainingPage />} />
                     <Route path="/training/atc" element={<TrainingPage />} />
                     <Route path="/training/x01" element={<X01BotPage />} />
+                    {/* Bob's 27, 121 Checkout, … of the rules engine */}
+                    <Route path="/training/more" element={<MoreGamesPage trainings />} />
+                    <Route path="/training/:kind" element={<RulesTraining />} />
                     <Route path="/training/x01/:id" element={<X01GamePage training />} />
                     <Route path="/stats/training/x01/:id" element={<X01GameStats training />} />
                     <Route path="/about" element={<AboutPage />} />

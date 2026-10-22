@@ -7,7 +7,7 @@ import { MdDashboard, MdSportsCricket } from "react-icons/md";
 import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
-import { GiDart } from "react-icons/gi";
+import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
 import { BsPersonFillCheck } from "react-icons/bs";
 
 import { useAuth } from '../../utils/auth.context';
@@ -140,6 +140,7 @@ const useSections = () => {
                 { label: t('Cricket'), icon: MdSportsCricket, to: '/cricket', end: true },
                 { label: t('Elimination'), icon: BiTargetLock, to: '/elimination', end: true },
                 { label: t('Around the Clock'), icon: PiClockClockwiseBold, to: '/clock', end: true },
+                { label: t('More games'), icon: GiDiceTarget, to: '/play' },
             ],
         },
         {
@@ -149,6 +150,7 @@ const useSections = () => {
                 // in the order of the games above
                 { label: t('X01 against the bot'), icon: FaRobot, to: '/training/x01' },
                 { label: t('Around the Clock'), icon: PiClockCountdownBold, to: '/training/atc' },
+                { label: t('More trainings'), icon: GiStairsGoal, to: '/training/more' },
             ],
         },
         // for global admins, across all clubs: who uses the app, what was played, what needs watching, and the installation

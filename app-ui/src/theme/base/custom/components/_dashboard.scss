@@ -125,6 +125,11 @@
     &.game-type-cricket { --game-type-color: #d4c783; }
     &.game-type-elimination { --game-type-color: #c3a9e6; }
     &.game-type-clock { --game-type-color: #86bfe6; }
+    &.game-type-shanghai { --game-type-color: #e69ac0; }
+    &.game-type-killer { --game-type-color: #e69ac0; }
+    &.game-type-halveit { --game-type-color: #e69ac0; }
+    &.game-type-golf { --game-type-color: #e69ac0; }
+    &.game-type-tactics { --game-type-color: #e69ac0; }
 }
 
 // Game types, each in its own colour: a small label with a short line in that
@@ -153,6 +158,11 @@
     &.game-type-cricket { --game-type-color: #d4c783; }
     &.game-type-elimination { --game-type-color: #c3a9e6; }
     &.game-type-clock { --game-type-color: #86bfe6; }
+    &.game-type-shanghai { --game-type-color: #e69ac0; }
+    &.game-type-killer { --game-type-color: #e69ac0; }
+    &.game-type-halveit { --game-type-color: #e69ac0; }
+    &.game-type-golf { --game-type-color: #e69ac0; }
+    &.game-type-tactics { --game-type-color: #e69ac0; }
 }
 
 // Player picker on the statistics page

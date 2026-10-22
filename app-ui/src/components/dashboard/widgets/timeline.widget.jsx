@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
 import GameTypeIcon from '../../elements/game.type.icon';
+import { playPath } from '../../../utils/game.paths';
 import GameStatusTag from '../../elements/game.status.tag';
 import { t } from '../../../utils/i18n';
 
@@ -63,7 +64,7 @@ const TimelineWidget = ({ widget, games, players }) => {
                                             {/* the icon buttons of the lists: green to continue, grey for the statistics */}
                                             <div className="row-actions">
                                                 {game.running
-                                                    ? <Button type="button" icon={<GiDart />} aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                                    ? <Button type="button" icon={<GiDart />} aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(playPath(game.type, game.id))} />
                                                     : <Button type="button" icon={<FaChartBar />} severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
                                                 }
                                             </div>

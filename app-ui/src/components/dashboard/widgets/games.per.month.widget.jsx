@@ -12,6 +12,7 @@ const TYPES = [
     { key: 'cricket', name: 'Cricket', color: '#d4c783' },
     { key: 'elimination', name: 'Elimination', color: '#c3a9e6' },
     { key: 'clock', name: 'Around the Clock', color: '#86bfe6' },
+    { key: 'rules', name: t('More games'), color: '#e69ac0' },
 ];
 
 /**

@@ -24,6 +24,9 @@ import { useUrlFilters } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { locale, t, tn } from '../../../utils/i18n';
 import CountryFlag from '../../elements/country.flag';
+import { gameOf } from '../../../rules/games';
+import { trainingOf } from '../../../rules/trainings';
+import { rulesIcon } from '../../rules/rules.icons';
 
 const LATEST_BADGES = 5;
 
@@ -78,7 +81,7 @@ const StreakFlames = ({ weeks: count }) => (
 );
 
 // the colours of the game type tags
-const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6' };
+const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6', rules: '#e69ac0' };
 
 // a part further down the profile page: the badge collection or the Hall of Shame
 const scrollTo = (id) => (event) => {
@@ -168,6 +171,9 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
     const cricket = kpis.cricket ?? {};
     const elimination = kpis.elimination ?? {};
     const clock = kpis.clock ?? {};
+    // Shanghai, Killer, … and Bob's 27, 121 Checkout, … : per kind
+    const rulesGames = Object.entries(kpis.rules ?? {}).filter(([kind]) => gameOf(kind));
+    const rulesTrainings = Object.entries(stats.rulesTrainings ?? {}).filter(([kind]) => trainingOf(kind));
     const twoDigits = (value) => value == null ? null : value.toFixed(2);
 
     return (
@@ -363,6 +369,37 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                                     }
                                 </Panel>
                             </div>
+                            {rulesGames.length > 0 &&
+                                <div className="col-12 col-xl-6">
+                                    <Panel header={t('More games')} className="h-100">
+                                        <div className="kpi-headline mb-4">
+                                            <KpiRing label={t('Win rate')} part={wonGames.rules ?? 0} whole={playedGames.rules ?? 0} color={COLORS.rules} detail={t('{{formatNumber}} of {{formatNumber2}} games', { formatNumber: formatNumber(wonGames.rules ?? 0), formatNumber2: formatNumber(playedGames.rules ?? 0) })} />
+                                        </div>
+                                        <div className="kpi-chips">
+                                            {rulesGames.map(([kind, entry]) => (
+                                                <KpiChip key={kind} icon={rulesIcon(kind)} label={gameOf(kind).title} value={t('{{wins}} of {{games}} won', { wins: entry.wins, games: entry.games })} color={COLORS.rules} />
+                                            ))}
+                                        </div>
+                                    </Panel>
+                                </div>
+                            }
+                            {rulesTrainings.length > 0 &&
+                                <div className="col-12 col-xl-6">
+                                    <Panel header={t('More trainings')} className="h-100">
+                                        <div className="kpi-chips">
+                                            {rulesTrainings.map(([kind, entry]) => (
+                                                <KpiChip
+                                                    key={kind}
+                                                    icon={rulesIcon(kind)}
+                                                    label={`${trainingOf(kind).title} · ${tn(entry.count, '{{count}} attempt', '{{count}} attempts')}`}
+                                                    value={entry.best == null ? null : t('Best: {{best}}', { best: trainingOf(kind).format(entry.best) })}
+                                                    color={COLORS.rules}
+                                                />
+                                            ))}
+                                        </div>
+                                    </Panel>
+                                </div>
+                            }
                         </div>
                         {afterFigures}
                         <PlayerStatsCharts playerStats={stats} players={[player]} />

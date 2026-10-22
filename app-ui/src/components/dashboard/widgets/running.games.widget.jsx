@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
 import GameTypeIcon from '../../elements/game.type.icon';
+import { playPath } from '../../../utils/game.paths';
 import { t } from '../../../utils/i18n';
 
 /**
@@ -33,7 +34,7 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
                                 </div>
                                 {/* the icon button of the lists */}
                                 <div className="row-actions">
-                                    <Button type="button" icon={<GiDart />} aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(`/${game.type}/${game.id}`)} />
+                                    <Button type="button" icon={<GiDart />} aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(playPath(game.type, game.id))} />
                                 </div>
                             </li>
                         ))}

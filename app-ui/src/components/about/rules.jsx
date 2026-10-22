@@ -2,6 +2,9 @@ import { MdSportsCricket } from "react-icons/md";
 import { FaBullseye, FaKeyboard } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold } from "react-icons/pi";
+import { GAMES } from '../../rules/games';
+import { TRAININGS } from '../../rules/trainings';
+import { rulesIcon } from '../rules/rules.icons';
 import { t } from '../../utils/i18n';
 
 // one part of a game's rules, with a small heading
@@ -152,6 +155,21 @@ const RULES = [
             </>
         ),
     },
+    // the games and trainings of the rules engine, from their definitions
+    ...[...GAMES, ...TRAININGS].map(definition => ({
+        title: definition.title,
+        icon: rulesIcon(definition.id),
+        body: (
+            <>
+                <p>{definition.description}</p>
+                <Part title={TRAININGS.includes(definition) ? t('Training') : t('Game')}>
+                    <ul className="m-0">
+                        {definition.rules.map((rule, index) => <li key={index}>{rule}</li>)}
+                    </ul>
+                </Part>
+            </>
+        ),
+    })),
 ];
 
 export default RULES;

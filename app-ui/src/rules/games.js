@@ -45,6 +45,7 @@ export const SHANGHAI = {
     over: (state, { settings, round, roundComplete }) => Boolean(state.shanghaiBy) || (roundComplete && round > settings.rounds),
     // a Shanghai beats any score
     score: (player) => (player.shanghai ? 100000 : 0) + player.points,
+    progress: { label: t('Points'), value: (player) => player.points },
     target: (state, id, { round, settings }) => t('Aim at the {{number}} · {{left}}', { number: round, left: tn(roundsLeft(round, settings.rounds), '{{count}} round left', '{{count}} rounds left') }),
     columns: [
         { key: 'points', label: t('Points'), value: (player) => player.points },
@@ -116,6 +117,7 @@ export const KILLER = {
     over: (state) => Object.values(state.players).filter(player => player.lives > 0).length <= 1,
     // the last one standing first, then the one out last
     score: (player) => player.lives > 0 ? 100000 + player.lives : player.outAt ?? 0,
+    progress: { label: t('Lives'), value: (player) => Math.max(0, player.lives) },
     target: (state, id) => state.players[id].killer
         ? t('Killer: hit the doubles of the others')
         : t('Hit double {{number}} to become a killer', { number: state.players[id].number }),
@@ -188,6 +190,7 @@ export const HALVE_IT = {
     },
     over: (state, { round, roundComplete }) => roundComplete && round > HALVE_IT_TARGETS.length,
     score: (player) => player.points,
+    progress: { label: t('Points'), value: (player) => player.points },
     target: (state, id, { round }) => t('Round {{round}} of {{rounds}}: {{target}}', { round, rounds: HALVE_IT_TARGETS.length, target: HALVE_IT_TARGETS[round - 1]?.label ?? '' }),
     columns: [
         { key: 'points', label: t('Points'), value: (player) => player.points },
@@ -231,6 +234,8 @@ export const GOLF = {
     maxPlayers: 8,
     options: [{ key: 'holes', label: t('Holes'), values: [{ value: 9, label: t('9 holes') }, { value: 18, label: t('18 holes') }], default: 9 }],
     higherIsBetter: false,
+    stopAnyTime: true,
+    progress: { label: t('Strokes'), value: (player) => player.strokes },
     init: (settings, ids) => ({ players: playersOf(ids, () => ({ strokes: 0, holes: [], darts: 0 })) }),
     visit: (state, id, darts, { round }) => {
         const player = state.players[id];
@@ -299,6 +304,7 @@ export const TACTICS = {
         return players.some(player => TACTICS_NUMBERS.every(number => player.marks[number] >= 3) && player.points >= top);
     },
     // closing everything first ranks the winner
+    progress: { label: t('Points'), value: (player) => player.points },
     score: (player) => (TACTICS_NUMBERS.every(number => player.marks[number] >= 3) ? 100000 : 0) + player.points,
     target: (state, id) => {
         const open = TACTICS_NUMBERS.filter(number => state.players[id].marks[number] < 3);

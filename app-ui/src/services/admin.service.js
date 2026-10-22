@@ -17,6 +17,8 @@ const loadGames = (clubIds) => requestJSON(`${API_URL}/games${query(clubIds)}`);
 const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(clubIds)}`);
 // the X01 trainings against the bot of the chosen clubs
 const loadX01Trainings = (clubIds) => requestJSON(`${API_URL}/x01-trainings${query(clubIds)}`);
+// Bob's 27, 121 Checkout, … of the rules engine
+const loadRulesTrainings = (clubIds) => requestJSON(`${API_URL}/rules-trainings${query(clubIds)}`);
 
 // the quick games of the public start page: { total, perDay, games }, and deleting some
 const loadQuickGames = () => requestJSON(`${API_URL}/quick-games`);
@@ -98,6 +100,7 @@ const AdminService = {
     loadGames,
     loadTrainings,
     loadX01Trainings,
+    loadRulesTrainings,
     addPlayerToClub,
     removePlayerFromClub,
     deletePlayer,

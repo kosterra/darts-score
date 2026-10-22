@@ -6,6 +6,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import ShameMedal from './shame.medal';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { isRulesKind } from '../../utils/game.paths';
 
 dayjs.extend(relativeTime);
 
@@ -33,7 +34,7 @@ const HallOfShame = ({ shame }) => {
                                         className="avatar-xs bg-surface-high flex-shrink-0"
                                     />
                                     <Link to={`/players/${badge.holder.id}#badges`} className="text-default fs-8 fw-semibold text-truncate">{badge.holder.nickname}</Link>
-                                    {['x01', 'cricket', 'elimination', 'clock'].includes(badge.sourceType)
+                                    {(['x01', 'cricket', 'elimination', 'clock'].includes(badge.sourceType) || isRulesKind(badge.sourceType))
                                         ? <Link to={`/stats/games/${badge.sourceType}/${badge.sourceId}`} className="text-faint fs-9 text-nowrap">{dayjs(badge.since).fromNow()}</Link>
                                         : <span className="text-faint fs-9 text-nowrap">{dayjs(badge.since).fromNow()}</span>}
                                 </span>

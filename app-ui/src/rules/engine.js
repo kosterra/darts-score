@@ -17,7 +17,8 @@
  *   columns: [{ key, label, value(playerState, state, ctx) }] for the scoreboard
  *   figures(playerState, state) → [[label, value]] for the statistics
  *   preview(state, id, darts, ctx) → in words what the darts entered so far do
- *   visitEnds(state, id, darts, ctx) → whether no more darts fit in the visit (default: three darts)
+ *   stopAnyTime: a visit may end before the third dart (Golf); otherwise darts not thrown are misses
+ *   progress: { label, value(playerState) } for the chart of the statistics, after every visit
  */
 import { parseDart } from './darts';
 
@@ -73,6 +74,29 @@ export const replayGame = (definition, game) => {
         over,
         standings: standingsOf(definition, state, order),
     };
+};
+
+/**
+ * Each player's progress after every one of their visits, for a chart:
+ * [{ round, [playerId]: value }] from round 0 (before the first visit).
+ */
+export const progressOf = (definition, game) => {
+    const settings = settingsOf(definition, game.settings);
+    const order = game.players ?? [];
+    const value = (state, id) => definition.progress.value(state.players[id], state);
+    let state = definition.init(settings, order);
+    const after = Object.fromEntries(order.map(id => [id, [value(state, id)]]));
+    const visits = game.visits ?? [];
+    for (let count = 1; count <= visits.length; count += 1) {
+        ({ state } = replayGame(definition, { ...game, visits: visits.slice(0, count) }));
+        const { player } = visits[count - 1];
+        if (after[player]) after[player].push(value(state, player));
+    }
+    const rounds = Math.max(0, ...order.map(id => after[id].length - 1));
+    return Array.from({ length: rounds + 1 }, (_, round) => ({
+        round,
+        ...Object.fromEntries(order.map(id => [id, after[id][Math.min(round, after[id].length - 1)]])),
+    }));
 };
 
 /**

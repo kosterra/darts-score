@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
-import { replayGame, replayTraining, withGameState } from './engine';
+import { progressOf, replayGame, replayTraining, withGameState } from './engine';
 import { GAMES, GOLF, HALVE_IT, KILLER, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
 
@@ -45,6 +45,15 @@ describe('the engine', () => {
         expect(saved.hasWinner).toBe(true);
         expect(saved.playerModels.a).toMatchObject({ rank: 1, hasWonGame: true, darts: 3 });
         expect(saved.playerModels.b.hasWonGame).toBe(false);
+    });
+
+    it('follows every player visit by visit for the chart', () => {
+        const visits = [visit('a', 'S1', '0', '0'), visit('b', 'D1', '0', '0'), visit('a', 'T2', '0', '0')];
+        expect(progressOf(SHANGHAI, game(SHANGHAI, visits))).toEqual([
+            { round: 0, a: 0, b: 0 },
+            { round: 1, a: 1, b: 2 },
+            { round: 2, a: 7, b: 2 },
+        ]);
     });
 
     it('has every game and training complete', () => {
