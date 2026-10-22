@@ -7,7 +7,12 @@ import 'dayjs/locale/fr-ch';
 import 'dayjs/locale/it-ch';
 import 'dayjs/locale/es';
 import { initLanguage } from './utils/i18n';
+import { listenForInstallOffer, registerServiceWorker } from './utils/install';
 import { PRIMEREACT_LOCALES } from './locales/primereact';
+
+// installable on the home screen: the browser's offer can come before the app is shown
+listenForInstallOffer();
+registerServiceWorker();
 
 // the language is chosen and its texts loaded before the app: every text of
 // the app, also those set up when a part of it loads, comes in that language

@@ -5,6 +5,7 @@ import { PrimeReactProvider } from 'primereact/api';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import InstallHint from './components/install/install.hint';
 import SessionWatch from './components/session/session.watch';
 import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
@@ -96,6 +97,7 @@ function AppContent() {
         return (
             <Suspense fallback={<PageLoader />}>
                 <AppBanner />
+                <InstallHint />
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage />} />
@@ -136,6 +138,7 @@ function AppContent() {
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
                 <AppBanner />
+                <InstallHint />
                 {/* Keyed by club so every page reloads its data after switching clubs */}
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
                 <Routes>
