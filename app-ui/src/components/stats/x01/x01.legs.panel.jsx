@@ -79,7 +79,7 @@ const X01LegsPanel = ({ game, players, legs }) => {
                             <YAxis {...AXIS} domain={[0, Math.max(...players.map(player => startingScoreOf(game, player.id)))]} allowDecimals={false} />
                             <Tooltip {...TOOLTIP} labelFormatter={(visit) => visit === 0 ? t('Start') : t('Visit {{visit}}', { visit: visit })} />
                             {players.map((player, index) => (
-                                <Line key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} hide={series.isHidden(player.id)} />
+                                <Line legendType="plainline" key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 2.5, fill: PLAYER_COLORS[index], strokeWidth: 0 }} connectNulls={false} isAnimationActive={false} hide={series.isHidden(player.id)} />
                             ))}
                             {players.length > 1 && <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />}
                         </LineChart>

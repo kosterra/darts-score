@@ -44,7 +44,7 @@ const TrainingProgressChart = ({
                             <YAxis {...AXIS} tickFormatter={format} reversed={false} domain={['auto', 'auto']} width={56} />
                             <Tooltip {...TOOLTIP} formatter={format} />
                             {modes.map((mode, index) => (
-                                <Line key={mode} type="stepAfter" dataKey={mode} name={mode} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden(mode)} />
+                                <Line legendType="plainline" key={mode} type="stepAfter" dataKey={mode} name={mode} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 2.5, fill: PLAYER_COLORS[index], strokeWidth: 0 }} connectNulls hide={series.isHidden(mode)} />
                             ))}
                             <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </LineChart>

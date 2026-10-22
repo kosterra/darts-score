@@ -136,14 +136,14 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = t('Averag
                                 ? (
                                     <>
                                         <Area type="monotone" dataKey="average" name={byPeriod ? (period === 'quarter' ? t('Average per quarter') : t('Average per month')) : t('Game average')} stroke={PLAYER_COLORS[0]} fill={PLAYER_COLORS[0]} fillOpacity={0.18} strokeOpacity={0.5} dot={false} hide={series.isHidden('average')} />
-                                        <Line type="monotone" dataKey="moving" name={t('Trend')} stroke="#efe6d0" strokeWidth={2.5} dot={withLevels ? markersOf('moving') : false} activeDot={{ r: 4 }} isAnimationActive={!withLevels} hide={series.isHidden('moving')} />
+                                        <Line legendType="plainline" type="monotone" dataKey="moving" name={t('Trend')} stroke="#efe6d0" strokeWidth={2.5} dot={withLevels ? markersOf('moving') : false} activeDot={{ r: 4 }} isAnimationActive={!withLevels} hide={series.isHidden('moving')} />
                                         {overall > 0 &&
                                             <ReferenceLine y={overall} stroke={PLAYER_COLORS[1]} strokeDasharray="6 4" label={{ value: `Ø ${overall}`, fill: PLAYER_COLORS[1], fontSize: 12, position: 'insideTopRight' }} />
                                         }
                                     </>
                                 )
                                 : players.map((player, index) => (
-                                    <Line key={player.id} type="monotone" dataKey={`player${index + 1}`} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={withLevels ? markersOf(`player${index + 1}`) : { r: 3 }} isAnimationActive={!withLevels} connectNulls hide={series.isHidden(`player${index + 1}`)} />
+                                    <Line legendType="plainline" key={player.id} type="monotone" dataKey={`player${index + 1}`} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={withLevels ? markersOf(`player${index + 1}`) : { r: 2.5, fill: PLAYER_COLORS[index], strokeWidth: 0 }} isAnimationActive={!withLevels} connectNulls hide={series.isHidden(`player${index + 1}`)} />
                                 ))
                             }
                             {reachedLevels.map(level => (

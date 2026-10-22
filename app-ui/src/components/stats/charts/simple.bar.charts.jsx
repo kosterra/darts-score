@@ -137,15 +137,15 @@ export const FormChart = ({ data = [] }) => {
                                 {...TOOLTIP}
                                 content={(
                                     <ChartTooltip
-                                        formatter={(value, name) => name === 'Win rate' ? `${value} %` : value}
+                                        formatter={(value, name) => name === t('Win rate') ? `${value} %` : value}
                                         // the level of the average only, not of the win rate or the games
                                         levelOf={(value, entry) => entry.dataKey === 'average' ? averageLevelOf(value) : null}
                                     />
                                 )}
                             />
                             <Bar yAxisId="rate" dataKey="winRate" name={t('Win rate')} fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
-                            <Line yAxisId="avg" type="monotone" dataKey="average" name={t('Average')} stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden('average')} />
-                            <Line yAxisId="games" type="monotone" dataKey="games" name={t('Games played')} stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={series.isHidden('games')} />
+                            <Line yAxisId="avg" type="monotone" dataKey="average" name={t('Average')} legendType="plainline" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 2.5, fill: PLAYER_COLORS[1], strokeWidth: 0 }} connectNulls hide={series.isHidden('average')} />
+                            <Line yAxisId="games" type="monotone" dataKey="games" name={t('Games played')} legendType="plainline" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 2.5, fill: PLAYER_COLORS[2], strokeWidth: 0 }} hide={series.isHidden('games')} />
                             <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </ComposedChart>
                     </ResponsiveContainer>
