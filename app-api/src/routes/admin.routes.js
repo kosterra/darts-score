@@ -30,6 +30,7 @@ export default (app) => {
     router.get('/games', AdminController.games);
     router.get('/trainings', AdminController.trainings);
     router.get('/x01-trainings', AdminController.x01Trainings);
+    router.get('/rules-trainings', AdminController.rulesTrainings);
     // the quick games of the public start page
     router.get('/quick-games', QuickGameController.list);
     router.delete('/quick-games',

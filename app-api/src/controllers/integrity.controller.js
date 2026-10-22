@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { RULES_GAMES, isRulesGame } from '../utils/rules.kinds.js';
 import db from '../models/db.model.js';
 import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
 import { removeWithBadges, syncPlayerBadges } from '../utils/badge.service.js';
@@ -36,6 +37,7 @@ export const describe = (type, doc) => {
     if (type === 'x01') return `X01 · ${doc.startingScore ?? ''} · ${doc.legInMode ?? ''} / ${doc.legOutMode ?? ''}`;
     if (type === 'cricket') return `Cricket${doc.variant && doc.variant !== 'Standard' ? ` · ${doc.variant}` : ''}`;
     if (type === 'elimination') return `Elimination · ${doc.targetScore}`;
+    if (isRulesGame(type)) return RULES_GAMES[type];
     return `Around the Clock · ${doc.mode}`;
 };
 

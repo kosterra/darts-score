@@ -1,7 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { CLUB_ROLES } from '../models/user.model.js';
-import { GAME_MODELS, removeWithBadges } from '../utils/badge.service.js';
+import { gameModelOf, removeWithBadges } from '../utils/badge.service.js';
 import { deletionNotices, tally } from '../utils/deletion.requests.js';
 import { describe } from './integrity.controller.js';
 
@@ -48,7 +48,7 @@ const notify = async (event, request, req, auto = false) => {
 
 // the game of a request, in the request's club, or null when it is gone already
 const gameOf = async (request) => {
-    const model = GAME_MODELS[request.type];
+    const model = gameModelOf(request.type);
     if (!model || !db.mongoose.isValidObjectId(request.game)) return null;
     return model().findOne({ _id: request.game, club: request.club });
 };
@@ -104,7 +104,7 @@ export const findOne = async (req, res) => {
 export const create = async (req, res) => {
     const { type, game: gameId, reason = '' } = req.body;
     try {
-        const model = GAME_MODELS[type];
+        const model = gameModelOf(type);
         const game = model ? await model().findOne({ _id: gameId, club: req.club._id }) : null;
         if (!game) return res.status(404).json({ message: 'The game was not found.' });
         const ids = (game.players ?? []).map(String);

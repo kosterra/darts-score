@@ -129,6 +129,8 @@ export const remove = async (req, res) => {
         db.cricket.deleteMany({ club: club._id }),
         db.elimination.deleteMany({ club: club._id }),
         db.clock.deleteMany({ club: club._id }),
+        db.rulesGame.deleteMany({ club: club._id }),
+        db.rulesTraining.deleteMany({ club: club._id }),
         db.atc.deleteMany({ club: club._id }),
         db.x01Training.deleteMany({ club: club._id }),
         db.joinRequest.deleteMany({ club: club._id }),

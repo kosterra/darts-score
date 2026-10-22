@@ -21,6 +21,7 @@ import eliminationRoutes from './elimination.routes.js';
 import clockRoutes from './clock.routes.js';
 import atcRoutes from './atc.routes.js';
 import x01TrainingRoutes from './x01.training.routes.js';
+import rulesRoutes from './rules.routes.js';
 import { playerImageRoutes, clubLogoRoutes } from './player.img.routes.js';
 
 /**
@@ -43,7 +44,7 @@ const apiRoutes = () => {
         delete: (route) => note('delete', route),
     };
     [authRoutes, publicRoutes, clubRoutes, userRoutes, adminRoutes, badgeRoutes, integrityRoutes, notificationRoutes, playerRoutes, statsRoutes,
-        deletionRequestRoutes, x01Routes, cricketRoutes, eliminationRoutes, clockRoutes, atcRoutes, x01TrainingRoutes, playerImageRoutes, clubLogoRoutes]
+        deletionRequestRoutes, x01Routes, cricketRoutes, eliminationRoutes, clockRoutes, atcRoutes, x01TrainingRoutes, rulesRoutes, playerImageRoutes, clubLogoRoutes]
         .forEach(register => register(app));
     return found;
 };

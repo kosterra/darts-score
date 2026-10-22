@@ -3,6 +3,7 @@ import { loadPlayerEvents } from './badge.service.js';
 import { countBadges, replayBadges } from './badges.js';
 import { LEVELS, levelInputs, playerLevel } from './levels.js';
 import { MIN_X01_GAMES, flightStanding } from './flights.js';
+import { isRulesGame } from './rules.kinds.js';
 
 /**
  * Where a player stands with the flights (see flightStanding), worked out
@@ -20,6 +21,7 @@ export const loadFlightStanding = async (player) => {
         cricketGames: gamesOf('cricket'),
         eliminationGames: gamesOf('elimination'),
         clockGames: gamesOf('clock'),
+        rulesGames: events.filter(event => isRulesGame(event.type)).map(event => event.data),
         playerId,
         badgeCount: countBadges(player.badges),
     });

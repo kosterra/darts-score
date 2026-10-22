@@ -56,6 +56,10 @@ tags:
     description: Elimination games
   - name: Around the Clock
     description: Around the Clock games
+  - name: More games
+    description: Shanghai, Killer, Halve-It, Golf and Tactics, played by the rules engine of the app
+  - name: More trainings
+    description: Bob's 27, 121 Checkout, Random checkouts, Scoring, Doubles around the board and Catch 40
   - name: ATC
     description: Around the Clock trainings
   - name: X01 training
@@ -1325,6 +1329,32 @@ paths:
         '403':
           description: Global admin rights required
       operationId: putAdminStartPage
+  /api/admin/rules-trainings:
+    get:
+      tags:
+        - Administration
+      summary: The trainings of Bob's 27, 121 Checkout and the others of the chosen clubs
+      parameters:
+        - name: clubs
+          in: query
+          required: false
+          description: Comma-separated club ids to include
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The trainings, each with its club and player
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesTraining'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminRulesTrainings
   /api/admin/x01-trainings:
     get:
       tags:
@@ -3815,6 +3845,239 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'
       operationId: deleteGamesClockByid
+  /api/games/rules:
+    post:
+      tags:
+        - More games
+      summary: Create a game of Shanghai, Killer, Halve-It, Golf or Tactics
+      description: The app holds the rules; it sends the visits and the result per player (playerModels) worked out from them.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulesGameInput'
+      responses:
+        '201':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesRules
+    get:
+      tags:
+        - More games
+      summary: List the games of Shanghai, Killer, Halve-It, Golf and Tactics
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: The games, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getGamesRules
+  /api/games/rules/find:
+    post:
+      tags:
+        - More games
+      summary: Filter the games of Shanghai, Killer, Halve-It, Golf and Tactics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: The games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesRulesFind
+  /api/games/rules/{id}:
+    get:
+      tags:
+        - More games
+      summary: Get a game
+      responses:
+        '200':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getGamesRulesByid
+    put:
+      tags:
+        - More games
+      summary: Save a game after a visit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulesGameInput'
+      responses:
+        '200':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putGamesRulesByid
+    delete:
+      tags:
+        - More games
+      summary: Delete a game (club admins)
+      description: With the badges earned in it.
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteGamesRulesByid
+  /api/training/rules:
+    post:
+      tags:
+        - More trainings
+      summary: Save a training once it is over (Bob's 27, 121 Checkout, …)
+      description: The answer says whether it beat the player's best of this kind and which badges it earned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulesTrainingInput'
+      responses:
+        '201':
+          description: The training, with isRecord, previousBest and newBadges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesTraining'
+        '400':
+          description: The player is not a member of this club
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postTrainingRules
+    get:
+      tags:
+        - More trainings
+      summary: The trainings of the club, newest first
+      description: Without the trainings of players who keep them to themselves (unless the user is an admin of the club or the player).
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: kind
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - bobs27
+              - checkout121
+              - randomcheckouts
+              - scoring
+              - doublesaround
+              - catch40
+      responses:
+        '200':
+          description: The trainings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesTraining'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getTrainingRules
+  /api/training/rules/{id}:
+    delete:
+      tags:
+        - More trainings
+      summary: Delete a training (the player's own, or as a club admin)
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteTrainingRulesByid
   /api/training/atc:
     get:
       tags:
@@ -4328,6 +4591,133 @@ components:
           type: string
           minLength: 8
           description: Initial password for a new account; without it an invitation is mailed
+    RulesGameInput:
+      type: object
+      required:
+        - kind
+        - players
+      properties:
+        kind:
+          type: string
+          enum:
+            - shanghai
+            - killer
+            - halveit
+            - golf
+            - tactics
+        players:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            type: string
+            description: MongoDB ObjectId of a player
+        settings:
+          type: object
+          description: 'The setup, e.g. { rounds: 7 }, or for Killer { lives: 3, numbers: { playerId: 7 } }'
+        visits:
+          type: array
+          items:
+            type: object
+            properties:
+              player:
+                type: string
+              darts:
+                type: array
+                maxItems: 3
+                items:
+                  type: string
+                  pattern: '^(0|[SDT]([1-9]|1\\d|20)|[SD]25)$'
+                  example: T20
+        currentPlayerTurn:
+          type:
+            - string
+            - 'null'
+        gameIsRunning:
+          type: boolean
+        hasWinner:
+          type: boolean
+        playerModels:
+          type: object
+          description: 'Per player { score, rank, hasWonGame, darts }, worked out by the app'
+        flyingDarts:
+          type: string
+          enum:
+            - players
+            - 'on'
+            - 'off'
+    RulesGame:
+      allOf:
+        - $ref: '#/components/schemas/RulesGameInput'
+        - type: object
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+              description: The kind again, as the type the app shows
+            club:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    RulesTrainingInput:
+      type: object
+      required:
+        - kind
+        - player
+        - score
+      properties:
+        kind:
+          type: string
+          enum:
+            - bobs27
+            - checkout121
+            - randomcheckouts
+            - scoring
+            - doublesaround
+            - catch40
+        player:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+        score:
+          type: number
+          description: What ranks the attempts (higher is better, for Doubles around the board lower)
+        settings:
+          type: object
+        result:
+          type: object
+          description: What the app worked out, e.g. { score, done, attempts }
+        darts:
+          type: array
+          items:
+            type: string
+            description: 'A dart (T20, D16, 0) or H and M for a hit or a miss'
+    RulesTraining:
+      allOf:
+        - $ref: '#/components/schemas/RulesTrainingInput'
+        - type: object
+          properties:
+            id:
+              type: string
+            club:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            isRecord:
+              type: boolean
+            previousBest:
+              type:
+                - number
+                - 'null'
     ClubInput:
       type: object
       required:

@@ -1,3 +1,4 @@
+import { GAME_KINDS } from '../utils/rules.kinds.js';
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
@@ -11,7 +12,7 @@ export default (app) => {
     router.get('/', DeletionRequestController.findOpen);
     router.get('/:id', id, validate, DeletionRequestController.findOne);
     router.post('/',
-        body('type').isIn(['x01', 'cricket', 'elimination', 'clock']).withMessage('Choose the game.'),
+        body('type').isIn(['x01', 'cricket', 'elimination', 'clock', ...GAME_KINDS]).withMessage('Choose the game.'),
         body('game').isMongoId().withMessage('Choose the game.'),
         body('reason').optional().isString().isLength({ max: 300 }).withMessage('The reason is at most 300 characters.'),
         validate, DeletionRequestController.create);

@@ -1,4 +1,5 @@
 import { check, body } from 'express-validator';
+import { DART, GAME_KINDS, TRAINING_KINDS } from '../utils/rules.kinds.js';
 
 const VALID_PLAYER_COUNTS = [1, 2, 3, 4];
 const VALID_SET_LEG_MODES = ['Best of', 'First to'];
@@ -139,4 +140,27 @@ export const validatePlayerIds = [
             }
             return true;
         }),
+];
+
+// the games and trainings of the rules engine: what they are, who plays and every dart
+export const validateRulesGame = [
+    check('kind').isIn(GAME_KINDS).withMessage(`kind must be one of: ${GAME_KINDS.join(', ')}.`),
+    body('players').isArray({ min: 1, max: 8 }).withMessage('A game has 1 to 8 players.'),
+    body('players.*').isMongoId().withMessage('Invalid player.'),
+    body('settings').optional().isObject().withMessage('settings must be an object.'),
+    body('visits').optional().isArray({ max: 2000 }).withMessage('visits must be a list.'),
+    body('visits.*.player').optional().isMongoId().withMessage('Invalid player.'),
+    body('visits.*.darts').optional().isArray({ max: 3 }).withMessage('A visit has at most three darts.'),
+    body('visits.*.darts.*').optional().matches(DART).withMessage('Invalid dart.'),
+    validateFlyingDarts,
+];
+
+export const validateRulesTraining = [
+    check('kind').isIn(TRAINING_KINDS).withMessage(`kind must be one of: ${TRAINING_KINDS.join(', ')}.`),
+    body('player.id').isMongoId().withMessage('player.id must be a player id.'),
+    body('score').isFloat({ min: -10000, max: 100000 }).withMessage('score must be a number.'),
+    body('settings').optional().isObject().withMessage('settings must be an object.'),
+    body('result').optional().isObject().withMessage('result must be an object.'),
+    body('darts').optional().isArray({ max: 5000 }).withMessage('darts must be a list.'),
+    body('darts.*').optional().matches(DART).withMessage('Invalid dart.'),
 ];

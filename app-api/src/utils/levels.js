@@ -47,8 +47,8 @@ export const x01OverallAverage = (x01Games, playerId) => {
 /**
  * What a level is worked out from, out of the player's finished games and badges.
  */
-export const levelInputs = ({ x01Games = [], cricketGames = [], eliminationGames = [], clockGames = [], playerId, badgeCount = 0 }) => {
-    const all = [...x01Games, ...cricketGames, ...eliminationGames, ...clockGames];
+export const levelInputs = ({ x01Games = [], cricketGames = [], eliminationGames = [], clockGames = [], rulesGames = [], playerId, badgeCount = 0 }) => {
+    const all = [...x01Games, ...cricketGames, ...eliminationGames, ...clockGames, ...rulesGames];
     const checkouts = x01Games.map(game => game.playerModels?.[playerId]?.checkout?.game ?? {});
     return {
         games: all.length,

@@ -2,7 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 
 // the games that can follow their players to another club
-const GAME_MODELS = [() => db.x01, () => db.cricket, () => db.elimination, () => db.clock];
+const GAME_MODELS = [() => db.x01, () => db.cricket, () => db.elimination, () => db.clock, () => db.rulesGame];
 
 const same = (a, b) => String(a) === String(b);
 
@@ -58,8 +58,10 @@ export const relocateHistory = async (playerIds) => {
                 }
                 const target = targetClubOfTraining(player, fromClub);
                 if (target) {
-                    const { modifiedCount } = await db.atc.collection.updateMany({ club: fromClub, 'player.id': id }, { $set: { club: target } });
-                    moved.trainings += modifiedCount;
+                    for (const model of [db.atc, db.rulesTraining]) {
+                        const { modifiedCount } = await model.collection.updateMany({ club: fromClub, 'player.id': id }, { $set: { club: target } });
+                        moved.trainings += modifiedCount;
+                    }
                 }
             }
         }

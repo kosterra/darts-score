@@ -7,7 +7,7 @@ import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { withHumans } from './x01.training.controller.js';
 import { withPlayers } from './atc.controller.js';
 
-const GAME_MODELS = [db.x01, db.cricket, db.elimination, db.clock];
+const GAME_MODELS = [db.x01, db.cricket, db.elimination, db.clock, db.rulesGame];
 
 /**
  * Counts per club over one collection, as a map from club id to the result.
@@ -184,12 +184,14 @@ export const games = async (req, res) => {
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
     const filter = { club: { $in: [...clubsById.keys()] } };
-    const [x01, cricket, elimination, clock] = await Promise.all(GAME_MODELS.map(model => model.find(filter).sort({ createdAt: -1 })));
+    const [x01, cricket, elimination, clock, rules] = await Promise.all(GAME_MODELS.map(model => model.find(filter).sort({ createdAt: -1 })));
     res.json([
         ...x01.map(withClub(clubsById, { type: 'x01' })),
         ...cricket.map(withClub(clubsById, { type: 'cricket' })),
         ...elimination.map(withClub(clubsById, { type: 'elimination' })),
         ...clock.map(withClub(clubsById, { type: 'clock' })),
+        // the games of the rules engine are typed by their kind
+        ...rules.map(withClub(clubsById)),
     ]);
 };
 
@@ -199,6 +201,14 @@ export const x01Trainings = async (req, res) => {
     if (!clubsById) return;
     const found = await db.x01Training.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
     res.json(await withHumans(found.map(withClub(clubsById))));
+};
+
+// the trainings of the rules engine (Bob's 27, 121 Checkout, …) of the chosen clubs
+export const rulesTrainings = async (req, res) => {
+    const clubsById = await selectedClubs(req, res);
+    if (!clubsById) return;
+    const found = await db.rulesTraining.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
+    res.json(await withPlayers(found.map(withClub(clubsById))));
 };
 
 export const trainings = async (req, res) => {

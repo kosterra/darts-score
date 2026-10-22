@@ -2,7 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { BADGES, BADGE_CATEGORIES, SHAME_BADGES, currentWeekStreak, getBadge } from '../utils/badges.js';
 import { clubShameHolders, isShameChild, personalShame, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
-import { GAME_MODELS, syncPlayerBadges, syncGameBadges } from '../utils/badge.service.js';
+import { gameModelOf, syncPlayerBadges, syncGameBadges } from '../utils/badge.service.js';
 import { knownInClub } from '../models/player.model.js';
 
 const shameEnabled = (club) => club?.shameBadges !== false;
@@ -58,7 +58,7 @@ export const getPlayerBadges = async (req, res) => {
 export const getGameBadges = async (req, res) => {
     logger.debug('game badges called');
     const { type, id } = req.params;
-    const model = GAME_MODELS[type];
+    const model = gameModelOf(type);
     const game = model && db.mongoose.isValidObjectId(id)
         ? await model().findOne({ _id: id, club: req.club._id }).lean()
         : null;

@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { RULES_GAMES } from '../utils/rules.kinds.js';
 import db from '../models/db.model.js';
 import { knownInClub } from '../models/player.model.js';
 import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insights.js';
@@ -19,6 +20,7 @@ const GAME_TYPES = [
     { type: 'cricket', model: () => db.cricket },
     { type: 'elimination', model: () => db.elimination },
     { type: 'clock', model: () => db.clock },
+    { type: 'rules', model: () => db.rulesGame },
 ];
 
 const describeFormat = (type, game) => {
@@ -26,12 +28,13 @@ const describeFormat = (type, game) => {
         case 'x01': return `${game.startingScore} · ${game.setMode} ${game.numberOfSets} sets · ${game.legMode} ${game.numberOfLegs} legs`;
         case 'elimination': return `Target ${game.targetScore}`;
         case 'clock': return `Around the Clock · ${game.mode ?? 'All'}`;
+        case 'rules': return RULES_GAMES[game.kind] ?? '';
         default: return 'Cricket';
     }
 };
 
 const dartsThrown = (type, model) => {
-    if (type === 'clock') return model.darts ?? 0;
+    if (type === 'clock' || type === 'rules') return model.darts ?? 0;
     return (type === 'elimination' ? model.totalThrow?.darts : model.totalThrow?.game?.darts) ?? 0;
 };
 
@@ -43,7 +46,7 @@ const collectPlayerTotals = (gamesByType) => {
     const of = (playerId) => {
         if (!totals.has(playerId)) {
             totals.set(playerId, {
-                games: 0, wins: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0,
+                games: 0, wins: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0, winsRules: 0,
                 darts: 0, num180s: 0, highestCheckout: 0, averageSum: 0, averageRounds: 0,
             });
         }
@@ -59,7 +62,7 @@ const collectPlayerTotals = (gamesByType) => {
                 player.darts += dartsThrown(type, model);
                 if (model.hasWonGame) {
                     player.wins += 1;
-                    player[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock' }[type]] += 1;
+                    player[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock', rules: 'winsRules' }[type]] += 1;
                 }
                 if (type === 'x01') {
                     player.num180s += model.scoreRanges?.game?.['180'] ?? 0;
@@ -104,7 +107,8 @@ const buildLeaderboards = (totals, memberIds) => {
 
 const summarizeGame = (type, game) => ({
     id: String(game._id),
-    type,
+    // a game of the rules engine by its kind
+    type: type === 'rules' ? game.kind : type,
     format: describeFormat(type, game),
     running: Boolean(game.gameIsRunning) && !game.hasWinner,
     playedAt: game.updatedAt,
@@ -161,6 +165,7 @@ export const getClubStats = async (req, res) => {
             cricket: count('cricket'),
             elimination: count('elimination'),
             clock: count('clock'),
+            rules: count('rules'),
             lastGameAt: recent[0]?.game.updatedAt ?? null,
         },
         // guests are included so past games can show their names; leaderboards only rank club members
@@ -223,18 +228,19 @@ export const getPlayerLevels = async (req, res) => {
     logger.debug('player levels called');
     const players = await db.player.find({ ...knownInClub(req.club._id), guest: { $ne: true } }, 'badges').lean();
     const filter = { players: { $in: players.map(player => String(player._id)) }, gameIsRunning: false };
-    const [x01, cricket, elimination, clock] = await Promise.all([
+    const [x01, cricket, elimination, clock, rules] = await Promise.all([
         db.x01.find(filter).lean(),
         db.cricket.find(filter).lean(),
         db.elimination.find(filter).lean(),
         db.clock.find(filter).lean(),
+        db.rulesGame.find(filter).lean(),
     ]);
     const of = (games, id) => games.filter(game => (game.players ?? []).map(String).includes(id));
     const levels = {};
     for (const player of players) {
         const id = String(player._id);
         const { level, xp } = playerLevel(levelInputs({
-            x01Games: of(x01, id), cricketGames: of(cricket, id), eliminationGames: of(elimination, id), clockGames: of(clock, id),
+            x01Games: of(x01, id), cricketGames: of(cricket, id), eliminationGames: of(elimination, id), clockGames: of(clock, id), rulesGames: of(rules, id),
             playerId: id, badgeCount: countBadges(player.badges),
         }));
         levels[id] = { id: level.id, name: level.name, index: level.index, xp };
