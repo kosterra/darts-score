@@ -182,7 +182,14 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                 <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 20rem' }}>
                     <div>
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">
-                            {player.nickname}{player.country && <>{' '}<CountryFlag code={player.country} /></>}{isOwn && <span className="text-faint fs-5 fw-normal">{' '}{t('(you)')}</span>}
+                            {player.nickname}
+                            {/* the flag goes with the smaller "(you)", centred on it */}
+                            {(player.country || isOwn) && (
+                                <span className="player-name-extras text-faint fs-5 fw-normal">
+                                    <CountryFlag code={player.country} />
+                                    {isOwn && <span>{t('(you)')}</span>}
+                                </span>
+                            )}
                         </h1>
                         <span className="text-subtle">{player.firstname} {player.lastname}</span>
                     </div>

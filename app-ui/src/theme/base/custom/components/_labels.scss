@@ -95,3 +95,15 @@ $labelRed: #ec8b80;
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
     margin-left: 0.15em;
 }
+
+// after a big name: the flag and "(you)" in a smaller line of their own, the
+// flag centred on the text next to it
+.player-name-extras {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    margin-left: 0.4em;
+    vertical-align: baseline;
+
+    .country-flag { top: 0; margin-left: 0; }
+}
