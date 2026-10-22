@@ -36,6 +36,7 @@ const playerUpdateValidator = [
     body('lastname').optional({ values: 'falsy' }).trim().isLength({ max: 50 }),
     nameRule('nickname', 'Nickname', true),
     birthRule(true),
+    body('country').optional().isString().matches(/^([A-Za-z]{2}(-[A-Za-z]{3})?)?$/).withMessage('The country is a code like CH, or GB-ENG for England.'),
 ];
 
 const playerValidator = [

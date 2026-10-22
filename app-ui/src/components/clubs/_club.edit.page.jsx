@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -12,8 +11,7 @@ import { Toast } from 'primereact/toast';
 
 import ClubService from '../../services/club.service';
 import { CLUB_ROLES } from '../../services/user.service';
-import CountryFlag from '../elements/country.flag';
-import { countries } from '../../utils/countries';
+import CountryPicker from '../elements/country.picker';
 import DeletePopup from '../elements/delete.popup';
 import ImageUploader from '../elements/image.uploader';
 import SettingSwitch from '../elements/setting.switch';
@@ -45,8 +43,6 @@ const ClubEditPage = () => {
     const toast = useRef(null);
     const { clubs, refreshClubs, selectClub, user, mailEnabled } = useAuth();
     const club = clubs.find(entry => entry.id === id);
-    // the countries by their name in the language of the app
-    const countryOptions = useMemo(() => countries(), []);
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -196,20 +192,7 @@ const ClubEditPage = () => {
                             <p className="setting-title">{t('Country')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col d-flex flex-column gap-1 pt-1">
-                                    <Dropdown
-                                        value={country || null}
-                                        options={countryOptions}
-                                        optionLabel="name"
-                                        optionValue="code"
-                                        onChange={(event) => setCountry(event.value ?? '')}
-                                        filter
-                                        showClear
-                                        placeholder={t('Choose a country')}
-                                        valueTemplate={(option, props) => option ? <span className="d-inline-flex align-items-center gap-2"><CountryFlag code={option.code} />{option.name}</span> : props.placeholder}
-                                        itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-2"><CountryFlag code={option.code} />{option.name}</span>}
-                                        className="profile-club"
-                                        aria-label={t('Country')}
-                                    />
+                                    <CountryPicker value={country} onChange={setCountry} />
                                     <span className="text-faint fs-8">{t('Where the club plays: its flag is shown next to its name in the lists of clubs.')}</span>
                                 </div>
                             </div>

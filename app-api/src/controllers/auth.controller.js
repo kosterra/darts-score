@@ -135,6 +135,7 @@ export const myPlayers = async (req, res) => {
         firstname: player.firstname,
         lastname: player.lastname,
         profileImg: player.profileImg ?? '',
+        country: player.country ?? '',
         dateOfBirth: player.dateOfBirth ?? null,
         publicProfile: Boolean(player.publicProfile),
         privateTrainings: Boolean(player.privateTrainings),

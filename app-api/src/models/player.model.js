@@ -10,6 +10,9 @@ export default (mongoose) => {
       lastname:   { type: String, required: true, trim: true },
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
+      // where the player comes from: an ISO 3166 country code (CH, DE, …) or a nation
+      // of the United Kingdom (GB-ENG, …); empty when not set
+      country:    { type: String, uppercase: true, trim: true, default: '' },
       // For the handicap suggestion between players of different ages; required
       // when a player is added or edited, older players may still be without one
       dateOfBirth: { type: Date, default: null },

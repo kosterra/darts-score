@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 
 import AuthService, { announceMyPlayersChange } from '../../services/auth.service';
 import PlayerService from '../../services/player.service';
+import CountryPicker from '../elements/country.picker';
 import ImageUploader from '../elements/image.uploader';
 import PageLoader from '../elements/page.loader';
 import ClubLogo from '../elements/club.logo';
@@ -37,6 +38,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
     const navigate = useNavigate();
     const { activeClub, selectClub } = useAuth();
     const [nickname, setNickname] = useState(player.nickname);
+    const [country, setCountry] = useState(player.country ?? '');
     const savedBirth = String(player.dateOfBirth ?? '').slice(0, 10);
     const [birth, setBirth] = useState(savedBirth);
     const [image, setImage] = useState({ action: 'unchanged', file: null, preview: resolvePlayerImg(player.profileImg) });
@@ -46,7 +48,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
     // the player is edited in one of its clubs: the selected one when it plays there
     const clubId = player.clubs.some(club => club.id === activeClub?.id) ? activeClub.id : player.clubs[0]?.id;
     const birthChanged = player.birthEditable && birth && birth !== savedBirth;
-    const changed = nickname.trim() !== player.nickname || image.action !== 'unchanged' || birthChanged;
+    const changed = nickname.trim() !== player.nickname || country !== (player.country ?? '') || image.action !== 'unchanged' || birthChanged;
     const anyPublic = player.clubs.some(club => club.isPublic);
 
     const save = async (event) => {
@@ -55,6 +57,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
         try {
             const formData = new FormData();
             formData.append('nickname', nickname.trim());
+            formData.append('country', country);
             if (birthChanged) formData.append('dateOfBirth', birth);
             if (image.action === 'new' && image.file) formData.append('profileImg', image.file);
             if (image.action === 'cleared') formData.append('clearProfileImg', 'true');
@@ -113,6 +116,13 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                         </div>
                     </div>
 
+                    <p className="setting-title">{t('Country')}</p>
+                    <div className="row mx-0 mt-0 setting-body">
+                        <div className="col d-flex flex-column gap-1 pt-1">
+                            <CountryPicker value={country} onChange={setCountry} />
+                            <span className="text-faint fs-8">{t('Where you come from: the flag is shown next to your nickname, in all your clubs.')}</span>
+                        </div>
+                    </div>
                     <p className="setting-title">{t('About you')}</p>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col d-flex flex-column gap-3">

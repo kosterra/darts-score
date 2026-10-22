@@ -2417,6 +2417,10 @@ paths:
                       enum:
                         - 'true'
                       description: Set to "true" to explicitly remove the current profile image
+                    country:
+                      type: string
+                      pattern: '^([A-Za-z]{2}(-[A-Za-z]{3})?)?$'
+                      description: Where the player comes from (CH, GB-ENG, …); empty for none. A player with a login sets it for all the players of their account
       responses:
         '200':
           description: Update confirmation
@@ -4565,6 +4569,10 @@ components:
               type: string
               description: Stored filename; served under /api/images/players/{profileImg}
               example: 9c3e7a1d-photo.jpg
+            country:
+              type: string
+              description: Where the player comes from (ISO 3166 code or GB-ENG, GB-SCT, GB-WLS, GB-NIR); empty when not set
+              example: CH
             dateOfBirth:
               type:
                 - string

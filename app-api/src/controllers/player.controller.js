@@ -228,6 +228,7 @@ export const update = async (req, res) => {
     player.firstname = player.user ? req.user.firstname : req.body.firstname;
     player.lastname = player.user ? req.user.lastname : req.body.lastname;
     player.nickname = req.body.nickname;
+    if (typeof req.body.country === 'string') player.country = req.body.country.toUpperCase();
     if (ownBirth) player.birthChanges.push({ from: player.dateOfBirth, to: birth, at: new Date() });
     if ((isAdmin || ownBirth) && birth) player.dateOfBirth = birth;
     if (req.file) player.profileImg = req.file.filename;
@@ -241,6 +242,8 @@ export const update = async (req, res) => {
         replaced.push(...others.map(other => other.profileImg));
         await Player.updateMany({ user: player.user, _id: { $ne: player._id } }, { $set: { profileImg: player.profileImg } });
     }
+    // ... and come from one country
+    if (player.user) await Player.updateMany({ user: player.user, _id: { $ne: player._id } }, { $set: { country: player.country } });
     // Only drop an old file once no player uses it any more
     for (const img of new Set(replaced)) {
         if (img && img !== player.profileImg) await removeProfileImageIfUnused(img);

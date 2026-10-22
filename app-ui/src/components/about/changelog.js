@@ -14,6 +14,7 @@ const CHANGELOG = [
             t('Oche as an app on your phone, tablet or computer: install it from the start page (on an iPhone or iPad: Share, then Add to Home Screen) and it opens full screen with its own icon, quickly, even when the network is slow.'),
             t('Names may have any letters, e.g. François or Núñez.'),
             t('Clubs have a country: club admins choose it under Edit club, and its flag is shown next to the club\'s name on My clubs, under Join a club, on the public start page and in the list of all clubs.'),
+            t('Players have a country too, with its flag next to their nickname in the lists of players and on their statistics. A player with a login chooses it on their player profile, for all their clubs; for the others the club admins choose it.'),
             t('The You widget laid out more clearly: the level and the way to the next one under your name, the X01 average, the games and the form as three tiles, the last 5 X01 games below.'),
             t('Running and recent games start with a round badge in the colour of the game type, with the icon of the menu; continuing a game is the green button of the row.'),
             t('The icon buttons of the lists have a soft background that gets stronger on hover; delete buttons are red.'),

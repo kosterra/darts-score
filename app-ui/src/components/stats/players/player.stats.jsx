@@ -23,6 +23,7 @@ import { averageLevelOf } from '../../../utils/average.levels';
 import { useUrlFilters } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { locale, t, tn } from '../../../utils/i18n';
+import CountryFlag from '../../elements/country.flag';
 
 const LATEST_BADGES = 5;
 
@@ -181,7 +182,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                 <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 20rem' }}>
                     <div>
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">
-                            {player.nickname}{isOwn && <span className="text-faint fs-5 fw-normal">{' '}{t('(you)')}</span>}
+                            {player.nickname}{player.country && <>{' '}<CountryFlag code={player.country} /></>}{isOwn && <span className="text-faint fs-5 fw-normal">{' '}{t('(you)')}</span>}
                         </h1>
                         <span className="text-subtle">{player.firstname} {player.lastname}</span>
                     </div>

@@ -9,6 +9,7 @@ import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
 
 import PlayerService from '../../services/player.service';
+import CountryPicker from '../elements/country.picker';
 import ImageUploader from '../elements/image.uploader';
 import PageLoader from '../elements/page.loader';
 import PlayerLogin from '../elements/player.login';
@@ -37,6 +38,7 @@ const fieldsOf = (player) => ({
     firstname: player.firstname ?? '',
     lastname: player.lastname ?? '',
     dateOfBirth: String(player.dateOfBirth ?? '').slice(0, 10),
+    country: player.country ?? '',
 });
 
 /**
@@ -94,6 +96,7 @@ const PlayerEditPage = () => {
             formData.append('firstname', fields.firstname.trim());
             formData.append('lastname', fields.lastname.trim());
             formData.append('dateOfBirth', fields.dateOfBirth);
+            formData.append('country', fields.country);
             if (image.action === 'new' && image.file) formData.append('profileImg', image.file);
             if (image.action === 'cleared') formData.append('clearProfileImg', 'true');
             await PlayerService.updatePlayer({ id: player.id, formData });
@@ -164,6 +167,13 @@ const PlayerEditPage = () => {
                                 <div className="col d-flex flex-wrap gap-3 pt-1 profile-name">
                                     {field('firstname', t('First name'))}
                                     {field('lastname', t('Last name'))}
+                                </div>
+                            </div>
+                            <p className="setting-title">{t('Country')}</p>
+                            <div className="row mx-0 mt-0 setting-body">
+                                <div className="col d-flex flex-column gap-1 pt-1">
+                                    <CountryPicker value={fields.country} onChange={(country) => setFields(current => ({ ...current, country }))} disabled={maintainedByPlayer} />
+                                    <span className="text-faint fs-8">{maintainedByPlayer ? t('{{nickname}} has a login and chooses the country on their player profile.', { nickname: player.nickname }) : t('Where the player comes from: the flag is shown next to the nickname.')}</span>
                                 </div>
                             </div>
                             <p className="setting-title">{t('Date of birth')}</p>
