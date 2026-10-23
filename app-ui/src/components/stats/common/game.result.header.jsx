@@ -11,10 +11,10 @@ import { t } from '../../../utils/i18n';
  * side ("rows" of figures, { [playerId]: { [key]: value } }) with the best
  * ones marked, and what to do next ("actions"). "celebrate": right after the
  * game was won, the winner glows gold. A player alone has the figures beside
- * them instead of a table.
+ * them instead of a table. "footer": what else belongs to the result, at the end.
  * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral? }]
  */
-const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, celebrate = false, className = 'mb-4' }) => {
+const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, footer = null, celebrate = false, className = 'mb-4' }) => {
     const winner = players.find(player => game.playerModels?.[player.id]?.hasWonGame);
     const compare = players.length > 1;
 
@@ -122,6 +122,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                     </tbody>
                 </table>
             </div>}
+            {footer}
         </header>
     );
 };

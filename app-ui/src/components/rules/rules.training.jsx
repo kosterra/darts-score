@@ -104,11 +104,11 @@ const TrainingResult = ({ definition, finished, actions }) => {
                 rows={short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true }))}
                 figures={{ [id]: Object.fromEntries(short.map(([, value], index) => [`figure-${index}`, value])) }}
                 actions={actions}
+                // the long figures in the header too, under the player
+                footer={long.map(([label, value]) => (
+                    <p key={label} className="text-center text-subtle fs-7 mt-3 mb-0"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
+                ))}
             />
-            {long.map(([label, value]) => (
-                <p key={label} className="text-center text-subtle fs-7 mt-3 mb-0"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
-            ))}
-            {saved?.newBadges?.length > 0 && <div className="mt-3"><NewBadges groups={[{ player: saved.player, badges: saved.newBadges }]} /></div>}
         </>
     );
 };
@@ -343,6 +343,14 @@ const RulesTraining = () => {
                                 <Button label={t('Change the setup')} icon="pi pi-sliders-h" size="small" severity="secondary" text onClick={() => setFinished(null)} />
                             </>}
                         />
+                    </div>
+                }
+                {finished?.saved?.newBadges?.length > 0 &&
+                    // on a panel of their own, as wide as the result
+                    <div className="col-12 col-xl-10">
+                        <Panel header={t('New badges')}>
+                            <NewBadges groups={[{ player: finished.saved.player, badges: finished.saved.newBadges }]} heading={false} />
+                        </Panel>
                     </div>
                 }
                 <div className="col-12 col-xl-6">
