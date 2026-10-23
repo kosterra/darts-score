@@ -11,6 +11,7 @@ import DartBoard from '../games/common/dartboard';
 import DartKeypad from '../games/common/dart.keypad';
 import useInputMode, { INPUTS } from '../games/common/use.input.mode';
 import Celebration from '../badges/celebration';
+import NewBadges from '../badges/new.badges';
 import UpLink from '../elements/up.link';
 import RulesList from './rules.list';
 import RulesTrainingBoard from './rules.training.board';
@@ -209,6 +210,7 @@ const RulesTraining = () => {
                             <div className="d-flex flex-column align-items-center gap-3">
                                 <span className="display-6 fw-semibold text-default">{definition.format(finished.result.score)}</span>
                                 <Status items={definition.figures(finished.result)} />
+                                {finished.saved?.newBadges?.length > 0 && <NewBadges groups={[{ player: finished.saved.player, badges: finished.saved.newBadges }]} />}
                                 <span className="text-faint fs-8">
                                     {finished.saving ? t('Saving…')
                                         : finished.error ? t('The training could not be saved.')

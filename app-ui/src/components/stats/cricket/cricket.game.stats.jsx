@@ -99,6 +99,7 @@ const CricketGameStats = ({ quick = false }) => {
             <div className="game-stats-page">
                 {!quick && <UpLink to="/games" label={t('Games')} />}
                 <GameResultHeader
+                    celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
                     title={variantOf(game) === 'Standard' ? t('Cricket · 15 to 20 and the bull') : t('Cricket {{variantOf}} · 15 to 20 and the bull', { variantOf: variantOf(game) })}

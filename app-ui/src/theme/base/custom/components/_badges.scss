@@ -151,6 +151,82 @@ $badgeMetals: (
     }
 }
 
+// the celebration of a win or a record holds nothing up: confetti over the
+// page and a small card at the top; the top tier of a series in the middle
+.celebration.is-burst,
+.celebration.is-rare,
+.tarred {
+    pointer-events: none;
+    background: transparent;
+    transition: opacity 0.25s ease-out;
+
+    &.is-leaving {
+        opacity: 0;
+    }
+}
+
+.celebration.is-burst {
+    // at the bottom: the result and its winner stay in view
+    align-items: flex-end;
+    padding-bottom: 2rem;
+
+    .celebration-card {
+        flex-direction: row;
+        gap: 1rem;
+        width: auto;
+        max-width: min(32rem, calc(100vw - 2rem));
+        margin: 0 auto;
+        padding: 0.9rem 1.5rem;
+        text-align: left;
+        border: 1px solid rgba($momentGoldColor, 0.6);
+    }
+
+    .celebration-trophy {
+        font-size: 2.5rem;
+        flex-shrink: 0;
+    }
+
+    .celebration-title {
+        font-size: 1.5rem;
+    }
+}
+
+.celebration.is-rare {
+    background: rgba($surfaceColor, 0.55);
+
+    .celebration-card {
+        border: 1px solid rgba($momentGoldColor, 0.6);
+    }
+}
+
+// tarred and feathered: the compact card
+.tarred {
+    .tarred-card.is-compact {
+        margin: 0 auto;
+        gap: 0.4rem;
+        width: auto;
+        max-width: min(34rem, calc(100vw - 2rem));
+        padding: 0.9rem 1.5rem;
+    }
+
+    .is-compact .tarred-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .tarred-avatar.is-small {
+        position: relative;
+        display: inline-flex;
+    }
+}
+
+// above the menu bar of a phone
+@media (max-width: 991.98px) {
+    .celebration.is-burst {
+        padding-bottom: 5.5rem;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .badge-pop,
     .celebration .celebration-card,
@@ -324,11 +400,18 @@ $tar: #17110c;
     inset: 0;
     z-index: 5000;
     display: flex;
-    align-items: center;
+    // a small card at the bottom, over a page that stays in view
+    align-items: flex-end;
     justify-content: center;
-    padding: 1rem;
+    padding: 1rem 1rem 2rem;
     overflow-y: auto;
-    background: rgba(#0e0b08, 0.9);
+    background: rgba(#0e0b08, 0.15);
+}
+
+@media (max-width: 991.98px) {
+    .tarred {
+        padding-bottom: 5.5rem;
+    }
 }
 
 .tarred-tar {
@@ -616,4 +699,45 @@ $tar: #17110c;
 
     .release-change-kind { flex-basis: auto; margin-top: 0; }
   }
+}
+
+// badges just earned in the game, right after it: a short gold mark
+.game-badge-new {
+    animation: game-badge-new 1.6s ease-out var(--delay, 0ms) both;
+    border-radius: 999px;
+}
+
+.game-badge-new-tag {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: rgba($momentGoldColor, 0.16);
+    color: $momentGoldColor;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+@keyframes game-badge-new {
+    0% { box-shadow: 0 0 0 0 rgba($momentGoldColor, 0); }
+    30% { box-shadow: 0 0 0 0.4rem rgba($momentGoldColor, 0.35); }
+    100% { box-shadow: 0 0 0 0.9rem rgba($momentGoldColor, 0); }
+}
+
+// the winner right after the game: the portrait glows gold for a while
+.result-hero-player.is-celebrated .result-hero-portrait {
+    border-radius: 50%;
+    animation: winner-glow 1.4s ease-in-out 0.3s 4;
+}
+
+@keyframes winner-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba($momentGoldColor, 0); }
+    50% { box-shadow: 0 0 1.6rem 0.4rem rgba($momentGoldColor, 0.55); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-badge-new,
+    .result-hero-player.is-celebrated .result-hero-portrait {
+        animation: none;
+    }
 }

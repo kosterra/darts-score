@@ -108,6 +108,7 @@ const EliminationGameStats = () => {
             <div className="game-stats-page">
                 <UpLink to="/games" label={t('Games')} />
                 <GameResultHeader
+                    celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
                     title={t('Elimination · first to {{target}}', { target: target })}

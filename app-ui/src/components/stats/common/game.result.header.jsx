@@ -9,10 +9,11 @@ import { t } from '../../../utils/i18n';
  * The top of a finished game: what was played ("title", "subtitle"), the
  * players with their score and a line under it, their key figures side by
  * side ("rows" of figures, { [playerId]: { [key]: value } }) with the best
- * ones marked, and what to do next ("actions").
+ * ones marked, and what to do next ("actions"). "celebrate": right after the
+ * game was won, the winner glows gold.
  * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral? }]
  */
-const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions }) => {
+const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, celebrate = false }) => {
     const winner = players.find(player => game.playerModels?.[player.id]?.hasWonGame);
     const compare = players.length > 1;
 
@@ -36,7 +37,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
 
             <div className={`result-hero-players count-${players.length}`}>
                 {players.map((player, index) => (
-                        <div key={player.id} className={`result-hero-player ${player === winner ? 'is-winner' : ''}`}>
+                        <div key={player.id} className={`result-hero-player ${player === winner ? 'is-winner' : ''} ${player === winner && celebrate ? 'is-celebrated' : ''}`}>
                             <span className="result-hero-portrait">
                                 {player === winner && <span className="result-hero-halo" aria-hidden="true" />}
                                 <Avatar

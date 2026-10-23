@@ -89,6 +89,7 @@ const ClockGameStats = () => {
             <div className="game-stats-page">
                 <UpLink to="/games" label={t('Games')} />
                 <GameResultHeader
+                    celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
                     title={t('Around the Clock · {{mode}}', { mode: t(game.mode) })}

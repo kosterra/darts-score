@@ -99,6 +99,7 @@ const RulesGameStats = () => {
             <div className="game-stats-page">
                 <UpLink to="/games" label={t('Games')} />
                 <GameResultHeader
+                    celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
                     title={[definition.title, ...options].join(' · ')}

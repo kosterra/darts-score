@@ -17,6 +17,7 @@ import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
 import ATCConfigOptions from './atc.config.options';
 import Celebration from '../badges/celebration';
+import NewBadges from '../badges/new.badges';
 import useStopwatch from '../../utils/use.stopwatch';
 import useClockMoment from '../../utils/use.clock.moment';
 import ClockMoment from '../games/common/clock.moments';
@@ -55,6 +56,8 @@ const ATC = () => {
     const [finished, setFinished] = useState(null);
     // what to celebrate after a training: { title, subtitle, player, badgeGroups }
     const [celebration, setCelebration] = useState(null);
+    // the badges the last training earned, shown under it
+    const [earned, setEarned] = useState([]);
     // shown once the new trainings have reached their places on the scoreboard
     const pendingCelebration = useRef(null);
     // the scoreboard has its own mode and scoring; it follows the setup and the training just saved
@@ -170,6 +173,7 @@ const ATC = () => {
     const celebrationFor = (savedTrainings) => {
         const records = savedTrainings.filter(({ saved }) => saved.isRecord);
         const badgeGroups = savedTrainings.filter(({ saved }) => saved.newBadges?.length > 0).map(({ player: who, saved }) => ({ player: who, badges: saved.newBadges }));
+        setEarned(badgeGroups);
         if (!records.length && !badgeGroups.length) return null;
         const what = `${mode}${darts ? t(' with the fewest darts') : ''}`;
         return {
@@ -287,9 +291,10 @@ const ATC = () => {
                                     players={active?.players ?? finished?.players ?? players}
                                     mode={active?.mode ?? finished?.mode ?? mode}
                                     scoring={scoring}
-                                    onSettings={inProgress || finished?.saving ? undefined : () => { setFinished(null); setArrival(null); setStage('setup'); }}
+                                    onSettings={inProgress || finished?.saving ? undefined : () => { setFinished(null); setArrival(null); setEarned([]); setStage('setup'); }}
                                 />
                             }
+                            {!inProgress && <NewBadges groups={earned} className="mt-3" />}
                             {!playing && <>
                             {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
                             <p className="game-setup-section-title">{t('Player')}</p>
@@ -322,7 +327,7 @@ const ATC = () => {
                             {/* the setup only: the stopwatch or the round come once the training starts */}
                             <div className="atc-stopwatch mt-4">
                                 <div className="atc-stopwatch-actions">
-                                    <Button type="button" label={t('Start training')} icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => { rememberSetup(); setStage('training'); }} />
+                                    <Button type="button" label={t('Start training')} icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => { rememberSetup(); setEarned([]); setStage('training'); }} />
                                 </div>
                                 {!players.length && <div className="text-faint fs-8 text-center mt-2">{t('Choose a player to start.')}</div>}
                             </div>

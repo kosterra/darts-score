@@ -18,13 +18,14 @@ const RETRY_MS = 1200;
 /**
  * The badges players earned in one game, and their Hall of Shame of the game
  * (what they got and what they washed off). With "celebrate" (right after the
- * game was won) it also opens the winner celebration, and after it the
- * tarred and feathered for whoever landed in the Hall of Shame.
+ * game was won) the winner is celebrated over the page, then whoever landed in
+ * the Hall of Shame is tarred and feathered, each going by itself; the badges
+ * are marked as new.
  */
 const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false, className = '' }) => {
     const [groups, setGroups] = useState([]);
     const [shame, setShame] = useState([]);
-    // 'celebrating' → 'tarring' → null
+    // 'celebrating' → 'tarring' → null, each a burst over the page
     const [moment, setMoment] = useState(celebrate ? 'celebrating' : null);
 
     useEffect(() => {
@@ -75,9 +76,11 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                                 </Link>
                                 <ul className="list-unstyled m-0 d-flex flex-wrap gap-3">
                                     {group.badges.map((badge, index) => (
-                                        <li key={badge.id} className="d-flex align-items-center gap-2">
-                                            <BadgeMedal badge={badge} size="sm" animate delay={150 * (index + groupIndex * 3)} />
+                                        <li key={badge.id} className={`d-flex align-items-center gap-2 ${celebrate ? 'game-badge-new' : ''}`} style={{ '--delay': `${600 + 150 * (index + groupIndex * 3)}ms` }}>
+                                            <BadgeMedal badge={badge} size="sm" animate delay={600 + 150 * (index + groupIndex * 3)} />
                                             <span className="text-subtle fs-7">{badge.title}</span>
+                                            {/* right after the game: just earned */}
+                                            {celebrate && <span className="game-badge-new-tag">{t('New')}</span>}
                                         </li>
                                     ))}
                                 </ul>

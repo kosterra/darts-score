@@ -171,6 +171,7 @@ const X01GameStats = ({ training = false, quick = false }) => {
             <div className="game-stats-page">
                 {!quick && <UpLink to={training ? '/trainings' : '/games'} label={training ? t('Trainings') : t('Games')} />}
                 <GameResultHeader
+                    celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
                     title={`${hasHandicap(game) ? t('Handicap') : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
