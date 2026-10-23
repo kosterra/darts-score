@@ -10,7 +10,7 @@ import PublicGameCard from './public.game.card';
 import PublicClubCard from './public.club.card';
 import { ShowcaseShot, PhoneShot } from './showcase.shot';
 import { locale, t } from '../../utils/i18n';
-import LanguageSwitch from '../elements/language.switch';
+import { PublicHeader, PublicFooter } from './public.frame';
 
 const REFRESH_MS = 15 * 1000;
 
@@ -113,23 +113,14 @@ const LandingPage = () => {
 
     return (
         <div className="landing container-fluid p-0">
-            <header className="landing-bar">
-                <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
-                    <img alt="" src="/logo.svg" width="40" height="40" />
-                    <span className="fs-5 fw-semibold text-default landing-brand-name">{t('Oche')}</span>
-                </Link>
+            <PublicHeader nav={
                 <nav className="landing-nav" aria-label={t('Sections')}>
                     <a href="#features">{t('Features')}</a>
                     {clubs.length > 0 && <a href="#clubs">{t('Clubs')}</a>}
                     {(liveGames.length > 0 || results.length > 0) && <a href="#live">{liveGames.length > 0 ? t('Live') : t('Results')}</a>}
                     <a href="#faq">{t('FAQ')}</a>
                 </nav>
-                <nav className="d-flex align-items-center gap-2" aria-label={t('Account')}>
-                    <LanguageSwitch />
-                    <Link to="/login"><Button label={t('Log in')} size="small" outlined /></Link>
-                    <Link to="/register"><Button label={t('Register')} size="small" /></Link>
-                </nav>
-            </header>
+            } />
             <div className="landing-hero">
 
                 <section className="container landing-hero-content">
@@ -314,13 +305,7 @@ const LandingPage = () => {
                 </section>
             </main>
 
-            <footer className="landing-footer">
-                <span>{t('Oche · open source under the GPLv3')}</span>
-                <span className="d-flex gap-3">
-                    <Link to="/login">{t('Log in')}</Link>
-                    <Link to="/register">{t('Register')}</Link>
-                </span>
-            </footer>
+            <PublicFooter />
         </div>
     );
 };

@@ -43,7 +43,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <AuthLayout title={t('Register')}>
+        <AuthLayout hide="register" title={t('Register')}>
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
                 <span className="fs-7 text-subtle">
                     {t('Create your account, then set up your own club and add its players, or join a club that takes new members. A club admin can also give you a login for their club.')}
