@@ -5,8 +5,9 @@ for (let day = new Date(); evenings.length < 40; day = new Date(day.getTime() - 
     if ([2, 4].includes(day.getDay())) evenings.push(new Date(day.getFullYear(), day.getMonth(), day.getDate(), 19, 30));
 }
 evenings.shift();
-for (const name of ['x01', 'crickets', 'eliminations', 'clocks']) {
-    const games = db.getCollection(name).find({ hasWinner: true }).sort({ createdAt: -1 }).toArray();
+for (const name of ['x01', 'crickets', 'eliminations', 'clocks', 'rulesgames', 'rulestrainings']) {
+    // the trainings are only saved once they are over
+    const games = db.getCollection(name).find(name === 'rulestrainings' ? {} : { hasWinner: true }).sort({ createdAt: -1 }).toArray();
     games.forEach((game, index) => {
         const evening = evenings[Math.floor(index / 2)];
         const start = new Date(evening.getTime() + (index % 2) * 40 * 60 * 1000);
@@ -15,3 +16,10 @@ for (const name of ['x01', 'crickets', 'eliminations', 'clocks']) {
     });
     print(`${name}: ${games.length} games spread`);
 }
+
+// the club, its players and the account from before the first of those evenings
+const founded = new Date(evenings.at(-1).getTime() - 14 * 864e5);
+for (const name of ['clubs', 'players', 'users']) {
+    db.getCollection(name).updateMany({}, { $set: { createdAt: founded } });
+}
+print(`club founded ${founded.toISOString().slice(0, 10)}`);

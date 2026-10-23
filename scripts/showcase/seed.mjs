@@ -16,6 +16,16 @@ export const PLAYERS = [
     { firstname: 'Tom', lastname: 'Weber', nickname: 'Tommy', dateOfBirth: '1984-11-30' },
 ];
 
+// the club's dashboard as its admin arranged it: three widgets side by side on top
+const DASHBOARD = [
+    { id: 'me', size: 'S' }, { id: 'runningGames', size: 'S' }, { id: 'leaderMostWins', size: 'S' },
+    { id: 'totals', size: 'F' },
+    { id: 'timeline', size: 'L' }, { id: 'whenWePlay', size: 'S' },
+    { id: 'records', size: 'M' }, { id: 'hallOfShame', size: 'M' },
+    { id: 'headToHead', size: 'M' }, { id: 'gamesPerMonth', size: 'M' },
+    { id: 'leaderX01Average', size: 'S' }, { id: 'leader180s', size: 'S' }, { id: 'leaderWinRate', size: 'S' },
+];
+
 const jar = new Map();
 const request = async (base, path, { method = 'GET', body, clubId, form } = {}) => {
     const headers = { Cookie: [...jar].map(([k, v]) => `${k}=${v}`).join('; ') };
@@ -39,7 +49,7 @@ const request = async (base, path, { method = 'GET', body, clubId, form } = {}) 
 export const seed = async (base) => {
     await request(base, '/api/auth/register', { method: 'POST', body: { ...ACCOUNT, formTimeMs: 9000 } });
     const club = await request(base, '/api/clubs', { method: 'POST', body: { name: CLUB.name } });
-    await request(base, `/api/clubs/${club.id}`, { method: 'PUT', body: { ...CLUB, isPublic: true, joinPolicy: 'approval' } });
+    await request(base, `/api/clubs/${club.id}`, { method: 'PUT', body: { ...CLUB, isPublic: true, joinPolicy: 'approval', dashboardLayout: DASHBOARD } });
     const me = await request(base, '/api/players/me', { method: 'POST', body: { nickname: 'Lex' }, clubId: club.id });
     const players = [{ id: me.id, nickname: me.nickname }];
     for (const player of PLAYERS) {
