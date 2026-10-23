@@ -1,6 +1,7 @@
 import { Dragon, Gnome, Monster, Troll } from './one.eighty.figures';
 import useFleeting from './use.fleeting';
 import HatFigure from './hat.figure';
+import { t } from '../../../utils/i18n';
 
 const DURATION_MS = 4400;
 const FIGURES = [Gnome, Monster, Dragon, Troll];
@@ -25,7 +26,7 @@ export const Stage = ({ moment, onDone, className = '', title, detail, children 
  * the bottom edge and dives back in. moment: { key, name }
  */
 export const BigFish = ({ moment, onDone }) => (
-    <Stage moment={moment} onDone={onDone} className="is-big-fish" title="The Big Fish!" detail={<><strong>{moment?.name}</strong> checks out 170</>}>
+    <Stage moment={moment} onDone={onDone} className="is-big-fish" title={t('The Big Fish!')} detail={<><strong>{moment?.name}</strong>{' '}{t('checks out 170')}</>}>
         <div className="big-fish-water" />
         <span className="big-fish-splash is-in" />
         <span className="big-fish-splash is-out" />
@@ -58,7 +59,7 @@ const Burst = ({ x, y, delay, colour }) => (
  * player's figure tipping its top hat. moment: { key, name, playerIndex }
  */
 export const PerfectLeg = ({ moment, onDone }) => (
-    <Stage moment={moment} onDone={onDone} className="is-perfect" title="Perfect leg!" detail={<>A nine-darter by <strong>{moment?.name}</strong></>}>
+    <Stage moment={moment} onDone={onDone} className="is-perfect" title={t('Perfect leg!')} detail={<>{t('A nine-darter by')}{' '}<strong>{moment?.name}</strong></>}>
         {[[18, 28, 0, '#ffc94d'], [78, 22, 0.35, '#7ecca5'], [50, 16, 0.7, '#fff3c4'], [30, 50, 1.05, '#c3a9e6'], [70, 48, 1.4, '#ffc94d'], [12, 62, 1.75, '#86bfe6'], [88, 60, 2.1, '#ff8a6b'], [50, 38, 2.45, '#7ecca5']].map(([x, y, delay, colour]) => (
             <Burst key={`${x}-${y}`} x={x} y={y} delay={delay} colour={colour} />
         ))}
@@ -73,7 +74,7 @@ export const PerfectLeg = ({ moment, onDone }) => (
  * moment: { key, name, checkout }
  */
 export const BullFinish = ({ moment, onDone }) => (
-    <Stage moment={moment} onDone={onDone} className="is-bull" title="Bullseye finish!" detail={<><strong>{moment?.name}</strong> checks out {moment?.checkout} on the bull</>}>
+    <Stage moment={moment} onDone={onDone} className="is-bull" title={t('Bullseye finish!')} detail={<><strong>{moment?.name}</strong>{' '}{t('checks out')}{' '}{moment?.checkout}{' '}{t('on the bull')}</>}>
         <div className="bull-target">
             <svg viewBox="0 0 120 120" className="bull-board">
                 <circle cx="60" cy="60" r="58" fill="#1d1c1a" />
@@ -104,7 +105,7 @@ export const BullFinish = ({ moment, onDone }) => (
 export const BedAndBreakfast = ({ moment, onDone }) => {
     const Figure = FIGURES[(moment?.playerIndex ?? 0) % FIGURES.length];
     return (
-        <Stage moment={moment} onDone={onDone} className="is-bed" title="Bed and Breakfast" detail={<><strong>{moment?.name}</strong> · S20 · S5 · S1 · 26</>}>
+        <Stage moment={moment} onDone={onDone} className="is-bed" title={t('Bed and Breakfast')} detail={<><strong>{moment?.name}</strong>{' '}{t('· S20 · S5 · S1 · 26')}</>}>
             <div className="bed-scene">
                 <svg viewBox="0 0 260 130" className="bed-svg">
                     {/* the sleeper lies with the head on the pillow, under the blanket */}
@@ -125,7 +126,7 @@ export const BedAndBreakfast = ({ moment, onDone }) => {
                     <path d="M250 74 Q258 76 250 82" stroke="#f1ece2" strokeWidth="3" fill="none" />
                     <path className="bed-steam" d="M238 64 Q234 56 240 50 Q246 44 240 36" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
                 </svg>
-                <span className="bed-z">z</span><span className="bed-z">z</span><span className="bed-z">Z</span>
+                <span className="bed-z">{t('z')}</span><span className="bed-z">{t('z')}</span><span className="bed-z">{t('Z')}</span>
             </div>
         </Stage>
     );

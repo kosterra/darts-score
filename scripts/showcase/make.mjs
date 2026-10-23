@@ -11,7 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { seed, ACCOUNT } from './seed.mjs';
 import { seeded } from './thrower.mjs';
-import { playX01, playCricket, startGame } from './play.mjs';
+import { playX01, playCricket, playRulesGame, playHitMissTraining, startGame } from './play.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright');
 const [phase, base = 'http://localhost:5198', out = '.'] = process.argv.slice(2);
@@ -56,6 +56,30 @@ for (let game = 0; game < GAMES; game++) {
     await playX01(page, SKILLS, random);
     lastFinished = new URL(page.url()).pathname;
     log(`game ${game + 1} of ${GAMES}: ${first} against ${second}`);
+}
+
+// the newer games of the rules engine, finished, for the statistics and the pages of the club
+const HALVE_IT_AIMS = [20, 16, 20, 17, 20, 18, 20, 19, 25];
+const RULES_GAMES = [
+    ['shanghai', ['Lex', 'Mia', 'Tommy']],
+    ['golf', ['The Hammer', 'Lena']],
+    ['shanghai', ['Sammy', 'The Hammer']],
+    ['halveit', ['Lex', 'Lena', 'Mia']],
+    ['golf', ['Lex', 'Sammy']],
+];
+for (const [kind, players] of RULES_GAMES) {
+    await startGame(page, base, `play/${kind}`, players, null);
+    // Halve-It goes for its own targets (any double or treble, exactly 41: the 20 does)
+    await playRulesGame(page, SKILLS, random, { players: players.length, targetOf: kind === 'halveit' ? (round) => HALVE_IT_AIMS[round] ?? 20 : undefined });
+    log(`${kind}: ${players.join(', ')}`);
+}
+
+// trainings with Hit and Miss, a few attempts each, for the scoreboards and the bests
+for (const [kind, rate] of [['bobs27', 0.75], ['doublesaround', 0.65]]) {
+    for (const name of NAMES) {
+        for (let attempt = 0; attempt < 2; attempt++) await playHitMissTraining(page, base, kind, name, SKILLS[name] * rate, random);
+    }
+    log(`${kind}: two attempts each`);
 }
 
 // a Cricket game and an X01 game under way, to be seen running

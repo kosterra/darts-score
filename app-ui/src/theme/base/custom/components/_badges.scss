@@ -21,8 +21,8 @@ $badgeMetals: (
     flex-shrink: 0;
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: 50%;
-    font-size: 1.5rem;
+    border-radius: $radius-round;
+    font-size: $text-2xl;
     // the metal colour is set per tier below and tints background, ring and icon
     background: color-mix(in srgb, currentColor 18%, transparent);
     box-shadow: inset 0 0 0 2px color-mix(in srgb, currentColor 55%, transparent);
@@ -31,14 +31,14 @@ $badgeMetals: (
     &.badge-medal-xs {
         width: 1.3rem;
         height: 1.3rem;
-        font-size: 0.6rem;
+        font-size: $text-xs;
         box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 55%, transparent);
     }
 
     &.badge-medal-sm {
         width: 2.25rem;
         height: 2.25rem;
-        font-size: 0.95rem;
+        font-size: $text-base;
         box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 55%, transparent);
     }
 
@@ -61,7 +61,7 @@ $badgeMetals: (
             position: absolute;
             right: -0.3rem;
             bottom: -0.2rem;
-            font-size: 0.85rem;
+            font-size: $text-sm;
             color: $textFaintColor;
         }
     }
@@ -104,7 +104,7 @@ $badgeMetals: (
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: $space-4;
     overflow-y: auto;
     background: rgba($surfaceColor, 0.88);
 
@@ -125,9 +125,9 @@ $badgeMetals: (
         width: 100%;
         max-width: 34rem;
         margin: auto;
-        padding: 2rem 1.5rem;
+        padding: $space-6 $space-5;
         text-align: center;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: $surfaceRaisedColor;
         box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.6);
         animation: celebration-card 0.3s ease-out both;
@@ -146,8 +146,84 @@ $badgeMetals: (
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.5rem;
+        gap: $space-2;
         width: 6.5rem;
+    }
+}
+
+// the celebration of a win or a record holds nothing up: confetti over the
+// page and a small card at the top; the top tier of a series in the middle
+.celebration.is-burst,
+.celebration.is-rare,
+.tarred {
+    pointer-events: none;
+    background: transparent;
+    transition: opacity 0.25s ease-out;
+
+    &.is-leaving {
+        opacity: 0;
+    }
+}
+
+.celebration.is-burst {
+    // at the bottom: the result and its winner stay in view
+    align-items: flex-end;
+    padding-bottom: $space-6;
+
+    .celebration-card {
+        flex-direction: row;
+        gap: $space-4;
+        width: auto;
+        max-width: min(32rem, calc(100vw - 2rem));
+        margin: 0 auto;
+        padding: 0.9rem 1.5rem;
+        text-align: left;
+        border: 1px solid rgba($momentGoldColor, 0.6);
+    }
+
+    .celebration-trophy {
+        font-size: 2.5rem;
+        flex-shrink: 0;
+    }
+
+    .celebration-title {
+        font-size: $text-2xl;
+    }
+}
+
+.celebration.is-rare {
+    background: rgba($surfaceColor, 0.55);
+
+    .celebration-card {
+        border: 1px solid rgba($momentGoldColor, 0.6);
+    }
+}
+
+// tarred and feathered: the compact card
+.tarred {
+    .tarred-card.is-compact {
+        margin: 0 auto;
+        gap: 0.4rem;
+        width: auto;
+        max-width: min(34rem, calc(100vw - 2rem));
+        padding: 0.9rem 1.5rem;
+    }
+
+    .is-compact .tarred-title {
+        font-size: $text-2xl;
+        font-weight: $weight-bold;
+    }
+
+    .tarred-avatar.is-small {
+        position: relative;
+        display: inline-flex;
+    }
+}
+
+// above the menu bar of a phone
+@media (max-width: 991.98px) {
+    .celebration.is-burst {
+        padding-bottom: 5.5rem;
     }
 }
 
@@ -164,8 +240,8 @@ $badgeMetals: (
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 1rem 2rem;
-    padding: 1rem 0.5rem;
+    gap: $space-4 $space-6;
+    padding: $space-4 $space-2;
 
     & + .badge-series {
         border-top: 1px solid $shade700;
@@ -182,7 +258,7 @@ $badgeMetals: (
     .badge-series-tiers {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: $space-4;
     }
 
     .badge-tier {
@@ -204,7 +280,7 @@ $badgeMetals: (
 .about-rules {
     p,
     ul {
-        margin-bottom: 0.75rem;
+        margin-bottom: $space-3;
     }
 
     ul {
@@ -223,10 +299,10 @@ $badgeMetals: (
     flex-shrink: 0;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 50%;
+    border-radius: $radius-round;
     background: $primaryColor;
     color: $primaryTextColor;
-    font-size: 1.15rem;
+    font-size: $text-lg;
 }
 
 // The Hall of Shame: each shame badge with who holds it, in two columns when
@@ -234,13 +310,13 @@ $badgeMetals: (
 .hall-of-shame {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-    gap: 1rem 1.5rem;
+    gap: $space-4 $space-5;
 }
 
 .hall-of-shame-row {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: $space-3;
     min-width: 0;
 }
 
@@ -249,16 +325,16 @@ $badgeMetals: (
 .shame-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
-    gap: 1rem;
+    gap: $space-4;
 }
 
 .shame-card {
     display: flex;
     align-items: flex-start;
-    gap: 1rem;
+    gap: $space-4;
     min-width: 0;
-    padding: 1rem;
-    border-radius: $borderRadius;
+    padding: $space-4;
+    border-radius: $radius-md;
     border-left: 3px solid $shameColor;
     background: rgba($shameColor, 0.08);
 }
@@ -267,15 +343,15 @@ $badgeMetals: (
 .shame-label {
     @include label-shape;
     @include label-tone($shameColor);
-    font-size: 0.75rem;
+    font-size: $text-xs;
 
     &.is-washed { @include label-neutral; color: var(--text-subtle); }
 }
 
 .shame-times {
     color: $shameColor;
-    font-size: 0.8rem;
-    font-weight: 700;
+    font-size: $text-sm;
+    font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
 }
 
@@ -287,16 +363,16 @@ $badgeMetals: (
     gap: 0.4rem;
     margin-top: 0.15rem;
     color: $textDefaultColor;
-    font-size: 0.8rem;
+    font-size: $text-sm;
 
     svg { color: $softGreenText; flex-shrink: 0; align-self: center; }
 }
 
 .shame-others-title {
-    margin: 1.5rem 0 0.75rem;
+    margin: $space-5 0 $space-3;
     color: $textSubtleColor;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: $text-xs;
+    font-weight: $weight-bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
 }
@@ -305,13 +381,13 @@ $badgeMetals: (
 .shame-others {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: 1rem 1.5rem;
+    gap: $space-4 $space-5;
 }
 
 .shame-entry {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: $space-3;
     min-width: 0;
 }
 
@@ -324,11 +400,18 @@ $tar: #17110c;
     inset: 0;
     z-index: 5000;
     display: flex;
-    align-items: center;
+    // a small card at the bottom, over a page that stays in view
+    align-items: flex-end;
     justify-content: center;
-    padding: 1rem;
+    padding: $space-4 $space-4 $space-6;
     overflow-y: auto;
-    background: rgba(#0e0b08, 0.9);
+    background: rgba(#0e0b08, 0.15);
+}
+
+@media (max-width: 991.98px) {
+    .tarred {
+        padding-bottom: 5.5rem;
+    }
 }
 
 .tarred-tar {
@@ -360,7 +443,7 @@ $tar: #17110c;
         bottom: -0.2rem;
         width: 115%;
         aspect-ratio: 1;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: radial-gradient(circle at 35% 30%, #4b3c2f 0 8%, $tar 45%);
         transform: translateX(-50%);
     }
@@ -376,7 +459,7 @@ $tar: #17110c;
 .tarred-feather {
     position: absolute;
     top: -3rem;
-    color: #efe6d0;
+    color: $accentCream;
     opacity: 0.9;
     filter: drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
     animation: tarred-fall linear infinite both;
@@ -391,9 +474,9 @@ $tar: #17110c;
     width: 100%;
     max-width: 36rem;
     margin: auto;
-    padding: 2rem 1.5rem;
+    padding: $space-6 $space-5;
     text-align: center;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
     box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.7);
     animation: celebration-card 0.3s 0.35s ease-out both;
@@ -401,8 +484,8 @@ $tar: #17110c;
 
 .tarred-title {
     color: $shameColor;
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: $text-3xl;
+    font-weight: $weight-bold;
 }
 
 .tarred-avatar {
@@ -414,7 +497,7 @@ $tar: #17110c;
         content: '';
         position: absolute;
         inset: 0;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: radial-gradient(ellipse 75% 32% at 50% 0%, rgba($tar, 0.97) 70%, transparent 72%);
         pointer-events: none;
     }
@@ -434,17 +517,17 @@ $tar: #17110c;
 .tarred-stuck {
     position: absolute;
     z-index: 1;
-    color: #efe6d0;
-    font-size: 1.3rem;
+    color: $accentCream;
+    font-size: $text-2xl;
     filter: drop-shadow(0 0.1rem 0.2rem rgba(0, 0, 0, 0.6));
 }
 
 .tarred-badge {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
     padding: 0.6rem 0.75rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     border-left: 3px solid $shameColor;
     background: rgba($shameColor, 0.08);
 }
@@ -454,7 +537,7 @@ $tar: #17110c;
     align-items: center;
     gap: 0.4rem;
     color: $textSubtleColor;
-    font-size: 0.8rem;
+    font-size: $text-sm;
 
     svg { color: $softGreenText; flex-shrink: 0; }
 }
@@ -491,7 +574,7 @@ $tar: #17110c;
 
 // the soap in front of a shame badge washed off in a game
 .game-shame-soap {
-    margin-right: 0.25rem;
+    margin-right: $space-1;
     color: $softGreenText;
 }
 
@@ -499,15 +582,15 @@ $tar: #17110c;
 .about-levels {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .about-level-row {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $space-2;
   padding: 0.45rem 0.65rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -515,7 +598,7 @@ $tar: #17110c;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: $space-3;
 }
 
 // the flights and barrels a level opens, small, with their names
@@ -529,7 +612,7 @@ $tar: #17110c;
     align-items: center;
     gap: 0.35rem;
     color: var(--text-subtle);
-    font-size: 0.75rem;
+    font-size: $text-xs;
   }
 
   .flight-picture { width: 1rem; height: 1.25rem; }
@@ -541,11 +624,11 @@ $tar: #17110c;
 .about-rule-part {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: $space-3;
   margin: 1.4rem 0 0.6rem;
   color: var(--text-default);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: $text-xs;
+  font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 
@@ -559,31 +642,31 @@ $tar: #17110c;
 
 // What's new on the About page: a card per version, the newest open
 .release {
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
 .release-head {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: $space-3;
   width: 100%;
   padding: 0.8rem 1rem;
   border: 0;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: none;
   color: inherit;
   text-align: left;
   cursor: pointer;
 
   &:hover { background: rgba(255, 255, 255, 0.04); }
-  &:focus-visible { outline: 2px solid $primaryColor; outline-offset: -2px; }
+  &:focus-visible { @include focus-ring(-2px); }
 }
 
 .release-version {
   color: var(--text-default);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: $text-base;
+  font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
 }
 
@@ -598,13 +681,13 @@ $tar: #17110c;
 .release-change {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: $space-3;
   line-height: 1.5;
 
   .release-change-kind {
     flex: 0 0 2.6rem;
     margin-top: 0.1rem;
-    font-size: 0.68rem;
+    font-size: $text-xs;
   }
 }
 
@@ -616,4 +699,221 @@ $tar: #17110c;
 
     .release-change-kind { flex-basis: auto; margin-top: 0; }
   }
+}
+
+// badges just earned in the game, right after it: a short gold mark
+.game-badge-new {
+    animation: game-badge-new 1.6s ease-out var(--delay, 0ms) both;
+    border-radius: $radius-pill;
+}
+
+.game-badge-new-tag {
+    padding: 0.05rem 0.45rem;
+    border-radius: $radius-pill;
+    background: rgba($momentGoldColor, 0.16);
+    color: $momentGoldColor;
+    font-size: $text-xs;
+    font-weight: $weight-bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+@keyframes game-badge-new {
+    0% { box-shadow: 0 0 0 0 rgba($momentGoldColor, 0); }
+    30% { box-shadow: 0 0 0 0.4rem rgba($momentGoldColor, 0.35); }
+    100% { box-shadow: 0 0 0 0.9rem rgba($momentGoldColor, 0); }
+}
+
+// the winner right after the game: the portrait glows gold for a while
+.result-hero-player.is-celebrated .result-hero-portrait {
+    border-radius: $radius-round;
+    animation: winner-glow 1.4s ease-in-out 0.3s 4;
+}
+
+@keyframes winner-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba($momentGoldColor, 0); }
+    50% { box-shadow: 0 0 1.6rem 0.4rem rgba($momentGoldColor, 0.55); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-badge-new,
+    .result-hero-player.is-celebrated .result-hero-portrait {
+        animation: none;
+    }
+}
+
+// the badges of the club: who collected most, the first three on the podium
+.badge-ranking {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+
+    .badge-ranking-row {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 0.65rem 0.9rem;
+        border-radius: $radius-md;
+        border-left: 3px solid var(--podium, transparent);
+        background: $surfaceRaisedColor;
+        color: inherit;
+        text-decoration: none;
+        transition: background 0.15s;
+
+        &:hover {
+            background: $surfaceHighColor;
+        }
+    }
+
+    .badge-ranking-place {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        flex-shrink: 0;
+        color: $textFaintColor;
+        font-weight: $weight-bold;
+        font-size: $text-base;
+    }
+
+    .badge-ranking-bar {
+        display: block;
+        height: 0.3rem;
+        border-radius: $radius-pill;
+        background: $surfaceHighColor;
+        overflow: hidden;
+
+        span {
+            display: block;
+            height: 100%;
+            border-radius: $radius-pill;
+            background: $momentGoldColor;
+        }
+    }
+
+    .badge-ranking-cut {
+        margin: $space-2 0 0;
+        border-color: $surfaceHighColor;
+        opacity: 1;
+    }
+}
+
+// a badge with its title and who has it: the feed, the rarest
+.badge-feed-row {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+}
+
+// the badges nobody has yet: a grid of locked medals
+.badge-unclaimed {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: $space-4 $space-3;
+
+    li {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+    }
+}
+
+.badge-ranking-bar.is-green span {
+    background: $accentGreen;
+}
+
+// what is trained most: each kind with its badge and a bar
+.training-popular {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+    }
+}
+
+// the players page: a level's icon in its colour, as a round mark
+.players-level-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: $radius-round;
+    color: var(--level-color);
+    background: color-mix(in srgb, var(--level-color) 16%, transparent);
+}
+
+.badge-ranking-bar.is-level span {
+    background: var(--level-color);
+}
+
+// players to complete, as small chips leading to their page (or picking them for the list)
+.players-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+
+    a, button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.2rem 0.65rem 0.2rem 0.2rem;
+        border-radius: $radius-pill;
+        background: $surfaceHighColor;
+        color: inherit;
+        font-size: $text-sm;
+        text-decoration: none;
+        border: 0;
+        font: inherit;
+        font-size: $text-sm;
+        cursor: pointer;
+
+        &:hover, &:focus-visible {
+            background: color-mix(in srgb, $surfaceHighColor 70%, #fff 8%);
+        }
+    }
+}
+
+// a club of the global admins' overviews: a row that picks it for the list below
+.badge-ranking .badge-ranking-row.is-button {
+    width: 100%;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: none;
+        background: $surfaceHighColor;
+    }
+}
+
+// a club of the global admins' overview: its logo, name and a line, picking it for the list
+.clubs-overview-row {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    margin: -0.35rem -0.5rem;
+    border: 0;
+    border-radius: $radius-md;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover, &:focus-visible {
+        outline: none;
+        background: $surfaceRaisedColor;
+    }
 }

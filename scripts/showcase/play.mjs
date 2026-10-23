@@ -117,3 +117,64 @@ export const playCricket = async (page, skills, random, visits) => {
         await pause(page, 150);
     }
 };
+
+// a dart aimed at a number: a treble, a double, a single or a miss, the better the player the more often it hits
+const aimedDart = (target, skill, random) => {
+    const roll = random();
+    // the bull has no treble
+    // trebles and doubles rarely, so a Shanghai (all three in one visit) stays rare
+    if (roll < skill * 0.1) return target === 25 ? 'D25' : `T${target}`;
+    if (roll < skill * 0.18) return `D${target}`;
+    if (roll < skill + 0.15) return `S${target}`;
+    return roll < 0.92 ? `S${1 + Math.floor(random() * 20)}` : '0';
+};
+
+/**
+ * Plays the game of the rules engine that is open (Shanghai, Golf, Halve-It,
+ * …) until it is over, or stopAfter visits to leave it running. The darts
+ * go for the number of the round (Shanghai and Golf count up from 1),
+ * "targetOf(round)" chooses another.
+ */
+export const playRulesGame = async (page, skills, random, { players, stopAfter = Infinity, targetOf = (round) => round + 1 } = {}) => {
+    for (let visits = 0; visits < Math.min(stopAfter, 400);) {
+        await dismiss(page);
+        if (!/^\/play\/[^/]+\/[^/]+$/.test(new URL(page.url()).pathname)) return;
+        const { player } = await visitState(page);
+        if (!player) { await pause(page, 400); continue; }
+        const target = targetOf(Math.floor(visits / players));
+        const skill = skills[player] ?? 0.4;
+        try {
+            await enterDarts(page, [0, 1, 2].map(() => aimedDart(target, skill, random)));
+            visits += 1;
+        } catch (error) {
+            await recover(page, error);
+            continue;
+        }
+        await page.waitForFunction((before) => {
+            const title = [...document.querySelectorAll('.p-panel-title')].map(el => el.textContent).find(text => /visit$/.test(text)) ?? '';
+            return title !== before || !/^\/play\/[^/]+\/[^/]+$/.test(location.pathname);
+        }, `${player}'s visit`, { timeout: 5000 }).catch(() => {});
+        await pause(page, 150);
+    }
+};
+
+/**
+ * One attempt at a training with Hit and Miss (Bob's 27, Doubles around the
+ * board) for one player, through its page, saved when it is over.
+ */
+export const playHitMissTraining = async (page, base, kind, nickname, skill, random) => {
+    await page.goto(`${base}/training/${kind}`);
+    await page.waitForSelector('.player-pick-card');
+    await page.locator('button:has-text("Show all")').click({ timeout: 500 }).catch(() => {});
+    const card = page.locator('.player-pick-card', { has: page.locator('.player-pick-name', { hasText: new RegExp(`^${nickname}$`) }) });
+    if ((await card.getAttribute('aria-pressed')) !== 'true') await card.click();
+    await page.click('button:has-text("Start training")');
+    const buttons = page.locator('.rules-hitmiss button');
+    await buttons.first().waitFor({ timeout: 5000 });
+    for (let dart = 0; dart < 400 && await buttons.first().isVisible().catch(() => false); dart++) {
+        await buttons.nth(random() < skill ? 0 : 1).click({ timeout: 2000 }).catch(() => {});
+        await pause(page, 40);
+    }
+    // saved: the page offers the next attempt
+    await page.locator('button:has-text("Again")').waitFor({ timeout: 10000 }).catch(() => {});
+};

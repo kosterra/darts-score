@@ -2,8 +2,11 @@ openapi: 3.1.0
 info:
   title: Oche API
   description: >-
-    REST API for Oche, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock), trainings (Around
-    the Clock, X01 against the bot), statistics, badges and levels, flights to collect, fair play, deletion requests and notifications.
+    REST API for Oche, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock, and Shanghai,
+    Killer, Halve-It, Golf and Tactics on the rules engine), trainings (Around the Clock, X01 against the bot, Bob's 27, 121 Checkout,
+    Random checkouts, Scoring, Doubles around the board and Catch 40), statistics and the overviews of the club's games, trainings and
+    badges, badges and levels, flights to collect, fair play, deletion requests, notifications, quick games without an account, and the
+    administration of the whole installation.
 
 
     **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all
@@ -18,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.11
+  version: 2026.10.12
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
@@ -56,6 +59,10 @@ tags:
     description: Elimination games
   - name: Around the Clock
     description: Around the Clock games
+  - name: More games
+    description: Shanghai, Killer, Halve-It, Golf and Tactics, played by the rules engine of the app
+  - name: More trainings
+    description: Bob's 27, 121 Checkout, Random checkouts, Scoring, Doubles around the board and Catch 40
   - name: ATC
     description: Around the Clock trainings
   - name: X01 training
@@ -206,6 +213,60 @@ paths:
         '409':
           description: Email already registered
       operationId: putAuthMe
+  /api/auth/game-preferences:
+    put:
+      tags:
+        - Auth
+      summary: Save how the player likes to play, on every device
+      description: >-
+        Merged into what the account had: waysOut (all, turn, off), autoSend (the visit is sent after the third dart),
+        leftHanded (the keypad for the left hand), celebrations (full or quiet), inputMode (board or keypad), dateFormat
+        (DD.MM.YYYY, DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, or null for the language's usual one), favourites
+        (per game up to three formats pinned first), setups (per club and game the last setup { settings, friendly,
+        playerIds, savedAt }, merged per club) and training ({ bot, atcMode, atcScoring }). Whatever does not fit is left out.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: The account with its gamePreferences
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Validation error
+      operationId: putAuthGamePreferences
+  /api/auth/language:
+    put:
+      tags:
+        - Auth
+      summary: Save the language of the app on the account
+      description: The app, the mails and the messages of the API then use it for the user.
+      operationId: putAuthLanguage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - language
+              properties:
+                language:
+                  $ref: '#/components/schemas/Language'
+      responses:
+        '200':
+          description: The user, with the language
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/auth/dashboard/{clubId}:
     put:
       tags:
@@ -500,6 +561,57 @@ paths:
         '409':
           description: The club still has players (only for club admins)
       operationId: deleteClubsByid
+  /api/clubs/{id}/game-rules:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags:
+        - Clubs
+      summary: Save the club's own rules for its games (club admins)
+      description: >-
+        Per game (x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics) whether the club plays it, its defaults,
+        the choices it offers and the settings it locks, including the house rules (X01 legStarter, roundLimit and bull; Cricket
+        roundLimit; Shanghai instantWin; Killer become and ownDouble; Halve-It targets). Also the club's own formats (at most 20,
+        each { id, game, name, settings, friendly }), builtInFormats, friendlyChoice (players may mark a game as friendly),
+        handicap { mode off|offered|suggested, maxDifference }, waysOut and halveItTargets. Whatever does not fit is left out. A new
+        game against a locked rule, a choice not offered or the handicap policy is refused with 422; a running game keeps its
+        settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                games:
+                  type: object
+                formats:
+                  type: array
+                  maxItems: 20
+                  items:
+                    type: object
+                builtInFormats:
+                  type: boolean
+                friendlyChoice:
+                  type: boolean
+                handicap:
+                  type: object
+                waysOut:
+                  type: boolean
+                halveItTargets:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: The club with its game rules
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Validation error
+      operationId: putClubsByidGameRules
   /api/clubs/{id}/logo:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -937,6 +1049,48 @@ paths:
           description: Global admin rights required
       description: Global admins only.
       operationId: getAdminClubs
+  /api/admin/insights/players:
+    get:
+      tags:
+        - Users
+      summary: Players of every club at a glance - members, guests, logins, newcomers per week and per club (global admins only)
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      description: Global admins only.
+      operationId: getAdminPlayersInsights
+  /api/admin/insights/games:
+    get:
+      tags:
+        - Users
+      summary: Games of every club at a glance - lately, running, left running, per week, per type and per club (global admins only)
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      description: Global admins only.
+      operationId: getAdminGamesInsights
+  /api/admin/insights/trainings:
+    get:
+      tags:
+        - Users
+      summary: Trainings of every club at a glance - lately, per week, per kind and per club (global admins only)
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      description: Global admins only.
+      operationId: getAdminTrainingsInsights
   /api/admin/players:
     get:
       tags:
@@ -1143,9 +1297,12 @@ paths:
       tags:
         - Administration
       summary: The mails of the app with their placeholders, defaults and current texts
+      description: In one language; every user gets the mails in their own language.
+      parameters:
+        - $ref: '#/components/parameters/MailLanguage'
       responses:
         '200':
-          description: '{ mailEnabled, limits, templates: [{ id, title, description, placeholders, defaults, current, customized }] }'
+          description: '{ mailEnabled, limits, language, languages, templates: [{ id, title, description, placeholders, defaults, current, customized }] }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1164,6 +1321,7 @@ paths:
             - adminInvited
             - playerAdded
             - playerInvited
+      - $ref: '#/components/parameters/MailLanguage'
     put:
       tags:
         - Administration
@@ -1203,6 +1361,7 @@ paths:
         required: true
         schema:
           type: string
+      - $ref: '#/components/parameters/MailLanguage'
     post:
       tags:
         - Administration
@@ -1230,6 +1389,7 @@ paths:
         required: true
         schema:
           type: string
+      - $ref: '#/components/parameters/MailLanguage'
     post:
       tags:
         - Administration
@@ -1290,6 +1450,32 @@ paths:
         '403':
           description: Global admin rights required
       operationId: putAdminStartPage
+  /api/admin/rules-trainings:
+    get:
+      tags:
+        - Administration
+      summary: The trainings of Bob's 27, 121 Checkout and the others of the chosen clubs
+      parameters:
+        - name: clubs
+          in: query
+          required: false
+          description: Comma-separated club ids to include
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The trainings, each with its club and player
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesTraining'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminRulesTrainings
   /api/admin/x01-trainings:
     get:
       tags:
@@ -2382,6 +2568,10 @@ paths:
                       enum:
                         - 'true'
                       description: Set to "true" to explicitly remove the current profile image
+                    country:
+                      type: string
+                      pattern: '^([A-Za-z]{2}(-[A-Za-z]{3})?)?$'
+                      description: Where the player comes from (CH, GB-ENG, …); empty for none. A player with a login sets it for all the players of their account
       responses:
         '200':
           description: Update confirmation
@@ -2730,14 +2920,31 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: getStatsLevels
+  /api/stats/games:
+    get:
+      tags:
+        - Statistics
+      summary: The games of the club at a glance, over all of them
+      description: How many games (in all, in the last 30 days, running), how many members play, the game types by how often they are played (the newer games by their kind), the members ranked by their games with wins, games lately and the type they play most, and the best win rates (from 5 finished games).
+      responses:
+        '200':
+          description: '{ total, last30Days, running, players, popular, ranking, winRates, playersById }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsGames
   /api/stats/badges:
     get:
       tags:
         - Statistics
       summary: Badge overview of the club - every player with their number of badges and the latest ones
+      description: Also the badges earned in all and in the last 30 days, the players collecting, the badges earned lately in the club (recent), the rarest ones held by one or two players (rare) and those nobody has yet, first tiers first (unclaimed).
       responses:
         '200':
-          description: OK
+          description: 'The overview: { total, earned, earnedLast30Days, collectors, players, recent, rare, unclaimed }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2818,8 +3025,9 @@ paths:
         - Statistics
       summary: Get overall statistics for a player
       description: >-
-        Key figures, levels, charts and badges of a player, in the club or all clubs, filtered like the profile. Trainings a player keeps to
-        themselves are left out for the other players.
+        Key figures, levels, charts and badges of a player, in the club or all clubs, filtered like the profile. trainingSummary puts all
+        their trainings in one: how many, in the last 30 days and when last, and the bests of each kind (Around the Clock, X01 against the
+        bot, Bob's 27 and the other trainings of the rules engine). Trainings a player keeps to themselves are left out for the other players.
       parameters:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'
@@ -3776,6 +3984,239 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'
       operationId: deleteGamesClockByid
+  /api/games/rules:
+    post:
+      tags:
+        - More games
+      summary: Create a game of Shanghai, Killer, Halve-It, Golf or Tactics
+      description: The app holds the rules; it sends the visits and the result per player (playerModels) worked out from them.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulesGameInput'
+      responses:
+        '201':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesRules
+    get:
+      tags:
+        - More games
+      summary: List the games of Shanghai, Killer, Halve-It, Golf and Tactics
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Skip'
+      responses:
+        '200':
+          description: The games, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getGamesRules
+  /api/games/rules/find:
+    post:
+      tags:
+        - More games
+      summary: Filter the games of Shanghai, Killer, Halve-It, Golf and Tactics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GameFilterBody'
+      responses:
+        '200':
+          description: The games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postGamesRulesFind
+  /api/games/rules/{id}:
+    get:
+      tags:
+        - More games
+      summary: Get a game
+      responses:
+        '200':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getGamesRulesByid
+    put:
+      tags:
+        - More games
+      summary: Save a game after a visit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulesGameInput'
+      responses:
+        '200':
+          description: The game
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesGame'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putGamesRulesByid
+    delete:
+      tags:
+        - More games
+      summary: Delete a game (club admins)
+      description: With the badges earned in it.
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteGamesRulesByid
+  /api/training/rules:
+    post:
+      tags:
+        - More trainings
+      summary: Save a training once it is over (Bob's 27, 121 Checkout, …)
+      description: The answer says whether it beat the player's best of this kind and which badges it earned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulesTrainingInput'
+      responses:
+        '201':
+          description: The training, with isRecord, previousBest and newBadges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesTraining'
+        '400':
+          description: The player is not a member of this club
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postTrainingRules
+    get:
+      tags:
+        - More trainings
+      summary: The trainings of the club, newest first
+      description: Without the trainings of players who keep them to themselves (unless the user is an admin of the club or the player).
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: kind
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - bobs27
+              - checkout121
+              - randomcheckouts
+              - scoring
+              - doublesaround
+              - catch40
+      responses:
+        '200':
+          description: The trainings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesTraining'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getTrainingRules
+  /api/training/rules/{id}:
+    delete:
+      tags:
+        - More trainings
+      summary: Delete a training (the player's own, or as a club admin)
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: deleteTrainingRulesByid
   /api/training/atc:
     get:
       tags:
@@ -4071,6 +4512,13 @@ components:
       in: cookie
       name: ds_session
   parameters:
+    MailLanguage:
+      name: language
+      in: query
+      required: false
+      description: The language of the texts (English without it)
+      schema:
+        $ref: '#/components/schemas/Language'
     ClubId:
       name: X-Club-Id
       in: header
@@ -4184,6 +4632,17 @@ components:
           type: string
           minLength: 2
           maxLength: 25
+        language:
+          $ref: '#/components/schemas/Language'
+    Language:
+      type: string
+      description: The language of the app, the mails and the messages of the API
+      enum:
+        - en
+        - de
+        - fr
+        - it
+        - es
     LoginInput:
       type: object
       required:
@@ -4271,6 +4730,133 @@ components:
           type: string
           minLength: 8
           description: Initial password for a new account; without it an invitation is mailed
+    RulesGameInput:
+      type: object
+      required:
+        - kind
+        - players
+      properties:
+        kind:
+          type: string
+          enum:
+            - shanghai
+            - killer
+            - halveit
+            - golf
+            - tactics
+        players:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            type: string
+            description: MongoDB ObjectId of a player
+        settings:
+          type: object
+          description: 'The setup, e.g. { rounds: 7 }, or for Killer { lives: 3, numbers: { playerId: 7 } }'
+        visits:
+          type: array
+          items:
+            type: object
+            properties:
+              player:
+                type: string
+              darts:
+                type: array
+                maxItems: 3
+                items:
+                  type: string
+                  pattern: '^(0|[SDT]([1-9]|1\\d|20)|[SD]25)$'
+                  example: T20
+        currentPlayerTurn:
+          type:
+            - string
+            - 'null'
+        gameIsRunning:
+          type: boolean
+        hasWinner:
+          type: boolean
+        playerModels:
+          type: object
+          description: 'Per player { score, rank, hasWonGame, darts }, worked out by the app'
+        flyingDarts:
+          type: string
+          enum:
+            - players
+            - 'on'
+            - 'off'
+    RulesGame:
+      allOf:
+        - $ref: '#/components/schemas/RulesGameInput'
+        - type: object
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+              description: The kind again, as the type the app shows
+            club:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    RulesTrainingInput:
+      type: object
+      required:
+        - kind
+        - player
+        - score
+      properties:
+        kind:
+          type: string
+          enum:
+            - bobs27
+            - checkout121
+            - randomcheckouts
+            - scoring
+            - doublesaround
+            - catch40
+        player:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+        score:
+          type: number
+          description: What ranks the attempts (higher is better, for Doubles around the board lower)
+        settings:
+          type: object
+        result:
+          type: object
+          description: What the app worked out, e.g. { score, done, attempts }
+        darts:
+          type: array
+          items:
+            type: string
+            description: 'A dart (T20, D16, 0) or H and M for a hit or a miss'
+    RulesTraining:
+      allOf:
+        - $ref: '#/components/schemas/RulesTrainingInput'
+        - type: object
+          properties:
+            id:
+              type: string
+            club:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            isRecord:
+              type: boolean
+            previousBest:
+              type:
+                - number
+                - 'null'
     ClubInput:
       type: object
       required:
@@ -4283,6 +4869,10 @@ components:
         description:
           type: string
           maxLength: 500
+        country:
+          type: string
+          pattern: '^([A-Za-z]{2}(-[A-Za-z]{3})?)?$'
+          description: Where the club plays, as an ISO 3166 country code (CH, DE, …) or a nation of the United Kingdom (GB-ENG, GB-SCT, GB-WLS, GB-NIR); empty for none
         isPublic:
           type: boolean
           description: List the club on the public start page
@@ -4376,6 +4966,9 @@ components:
                 type: string
               description:
                 type: string
+              country:
+                type: string
+                description: ISO 3166 country code, empty when not set
               logo:
                 type: string
               joinPolicy:
@@ -4505,6 +5098,10 @@ components:
               type: string
               description: Stored filename; served under /api/images/players/{profileImg}
               example: 9c3e7a1d-photo.jpg
+            country:
+              type: string
+              description: Where the player comes from (ISO 3166 code or GB-ENG, GB-SCT, GB-WLS, GB-NIR); empty when not set
+              example: CH
             dateOfBirth:
               type:
                 - string
@@ -4584,6 +5181,25 @@ components:
           type: string
           format: binary
           description: PNG or JPEG image file (optional)
+    Visits:
+      type: array
+      description: Every visit in order. X01, Cricket, Elimination and Around the Clock are stored as their visits; the results (playerModels, whose turn it is, whether it is over) are worked out from them by the API, whatever else is sent. A game sent with the fields of an older app (allSetsThrows, allThrows, throws) is read from those.
+      items:
+        type: object
+        required:
+          - player
+          - darts
+        properties:
+          player:
+            type: string
+            description: The player who threw
+          darts:
+            type: array
+            maxItems: 3
+            items:
+              type: string
+              pattern: '^(0|[SDT]([1-9]|1\d|20)|[SD]25)$'
+              example: T20
     X01GameCreate:
       type: object
       required:
@@ -4660,6 +5276,14 @@ components:
             - 'on'
             - 'off'
           description: 'Whether the darts fly onto the board: as each player set it (''players''), or on or off for everyone'
+        visits:
+          $ref: '#/components/schemas/Visits'
+        handicap:
+          type: object
+          description: 'The players'' own rules: { [playerId]: { startingScore, legInMode, legOutMode } }'
+        starter:
+          type: string
+          description: Who throws first when not the first player (games of earlier versions of the app)
     X01Game:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -4697,7 +5321,7 @@ components:
                 type: object
             allSetsThrows:
               type: object
-              description: Nested structure indexed by set/leg containing round throw history
+              description: The finished legs by set and leg, visit by visit with what was left; worked out from the visits (only in the answer for one game)
             playerModels:
               type: object
               description: Keyed by player ID; contains per-player scoring state, averages, checkout data, etc.
@@ -4728,6 +5352,8 @@ components:
             - 'on'
             - 'off'
           description: 'Whether the darts fly onto the board: as each player set it (''players''), or on or off for everyone'
+        visits:
+          $ref: '#/components/schemas/Visits'
     CricketGame:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -4800,6 +5426,8 @@ components:
             - 'on'
             - 'off'
           description: 'Whether the darts fly onto the board: as each player set it (''players''), or on or off for everyone'
+        visits:
+          $ref: '#/components/schemas/Visits'
     EliminationGame:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -5162,6 +5790,12 @@ components:
           type: string
           example: classic
           description: A barrel the player owns
+        handicap:
+          type: string
+          enum:
+            - accept
+            - decline
+          description: Whether the player plays with a handicap, or always from the game's own starting score
     MyPlayer:
       allOf:
         - $ref: '#/components/schemas/Player'
@@ -5219,6 +5853,11 @@ components:
             - string
             - 'null'
           description: MongoDB ObjectId
+        language:
+          description: The language chosen; null until the user chose one (mails are then in English)
+          oneOf:
+            - $ref: '#/components/schemas/Language'
+            - type: 'null'
         dashboards:
           type: array
           description: The user's own dashboards, per club
@@ -5715,6 +6354,8 @@ components:
             - players
             - 'on'
             - 'off'
+        visits:
+          $ref: '#/components/schemas/Visits'
     ClockGame:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -5741,6 +6382,13 @@ components:
               type: boolean
             hasWinner:
               type: boolean
+            visits:
+              $ref: '#/components/schemas/Visits'
+            throws:
+              type: array
+              items:
+                type: integer
+              description: The value of every dart (0 a miss, 1 a hit, with skipAhead 1–3); worked out from the visits (only in the answer for one game)
             playerModels:
               type: object
     X01Training:

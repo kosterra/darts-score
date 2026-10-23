@@ -1,15 +1,17 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 
+import { houseRuleLines } from '../../../utils/club.rules.labels';
 import CricketContext from '../../../utils/cricket.context';
 import LiveHero from '../common/live.hero';
 import { CRICKET_NUMBERS, replayCricket } from '../../../utils/cricket.game.summary';
 import { variantOf } from '../../../utils/cricket.variants';
 import { cricketTip, liveMarks, visitMarks } from './cricket.live';
+import { t } from '../../../utils/i18n';
 
 const RULES = {
-    Standard: 'Close 15 to 20 and the bull · marks beyond the third score · most points wins',
-    'Cut-throat': 'Extra marks score for the others · lowest score wins',
-    'No-score': 'Only closing counts',
+    Standard: t('Close 15 to 20 and the bull · marks beyond the third score · most points wins'),
+    'Cut-throat': t('Extra marks score for the others · lowest score wins'),
+    'No-score': t('Only closing counts'),
 };
 
 /**
@@ -48,16 +50,16 @@ const CricketLiveHeader = () => {
         return {
             player,
             isTurn: game.currentPlayerTurn === player.id,
-            line: <>Last visit <strong>{last ? `${visitMarks(last.darts)} marks` : '–'}</strong> · <strong>{mine.length ? (allMarks / mine.length).toFixed(1) : '–'}</strong> per round</>,
+            line: <>{t('Last visit')}{' '}<strong>{last ? t('{{visitMarks}} marks', { visitMarks: visitMarks(last.darts) }) : '–'}</strong> · <strong>{mine.length ? (allMarks / mine.length).toFixed(1) : '–'}</strong>{' '}{t('per round')}</>,
             score: variant === 'No-score' ? `${closed}/7` : scores[player.id],
             scoreClass: flash?.id === player.id ? 'is-taking-lead' : '',
             scoreKey: flash?.id === player.id ? flash.key : 'score',
             below: (
                 <>
-                    <span className="x01-live-route" title={tip?.title}>{tip?.text ?? 'All closed'}</span>
+                    <span className="x01-live-route" title={tip?.title}>{tip?.text ?? t('All closed')}</span>
                     <span className="x01-live-won">
                         <span className="x01-won">
-                            <span className="x01-won-label">Closed</span>
+                            <span className="x01-won-label">{t('Closed')}</span>
                             <span className="x01-won-number">{closed} / 7</span>
                         </span>
                     </span>
@@ -68,8 +70,10 @@ const CricketLiveHeader = () => {
 
     return (
         <LiveHero
-            title={`Cricket${variant === 'Standard' ? '' : ` · ${variant}`}`}
-            subtitle={`${RULES[variant] ?? RULES.Standard} · Round ${round}`}
+            rulesId="cricket"
+            houseRules={houseRuleLines('cricket', game)}
+            title={t('Cricket{{value}}', { value: variant === 'Standard' ? '' : ` · ${variant}` })}
+            subtitle={t('{{value}} · Round {{round}}', { value: RULES[variant] ?? RULES.Standard, round: round })}
             rows={rows}
         />
     );

@@ -1,6 +1,7 @@
 import { thrownDarts } from './badges.js';
 import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
+import { withView } from './game.view.js';
 
 /**
  * Fair play: games and trainings that cannot be real (impossible: the data
@@ -117,7 +118,9 @@ const winnerOf = (game) => (game.players ?? []).find(id => game.playerModels?.[i
  * X01. usualAverage(playerId): the player's usual 3-dart average from their
  * other games, or null.
  */
-export const checkX01 = (game, { usualAverage = () => null } = {}) => {
+export const checkX01 = (stored, { usualAverage = () => null } = {}) => {
+    // the legs, with what was left after every visit, follow from the visits
+    const game = withView('x01', stored);
     const found = [];
     const entries = legEntries(game);
     const legs = entries.map(entry => entry.visits);
@@ -183,7 +186,8 @@ export const checkX01 = (game, { usualAverage = () => null } = {}) => {
     return found;
 };
 
-export const checkCricket = (game) => {
+export const checkCricket = (stored) => {
+    const game = withView('cricket', stored);
     const found = [];
     const visits = game.allThrows ?? [];
     visits.forEach((visit, index) => found.push(...visitProblems(visit, visit?.playerId, `in visit ${index + 1}`, { visit: index })));
@@ -202,7 +206,8 @@ export const checkCricket = (game) => {
     return found;
 };
 
-export const checkElimination = (game) => {
+export const checkElimination = (stored) => {
+    const game = withView('elimination', stored);
     const found = [];
     const visits = game.allThrows ?? [];
     visits.forEach((visit, index) => {
@@ -227,7 +232,8 @@ export const checkElimination = (game) => {
     return found;
 };
 
-export const checkClock = (game) => {
+export const checkClock = (stored) => {
+    const game = withView('clock', stored);
     const found = [];
     const skip = Boolean(game.skipAhead) && game.mode === 'All';
     const wrong = (game.throws ?? []).filter(value => !Number.isInteger(value) || value < 0 || value > (skip ? 3 : 1));
@@ -347,7 +353,8 @@ const isBust = (rest, lastDart, mode) => {
  * visit checks out and none before it does, so no leg changes hands.
  * { possible: true, changed, allSetsThrows } or { possible: false, reason }.
  */
-export const repairX01 = (game) => {
+export const repairX01 = (stored) => {
+    const game = withView('x01', stored);
     const allSetsThrows = structuredClone(game.allSetsThrows ?? {});
     let changed = 0;
     for (const { setKey, legKey, set, leg, visits } of legEntries({ allSetsThrows })) {
@@ -378,7 +385,8 @@ export const repairX01 = (game) => {
  * save. [{ set, leg, visits: [{ playerId, darts, roundScore, scoreLeft, before,
  * expected, repaired }] }]
  */
-export const x01Legs = (game) => {
+export const x01Legs = (stored) => {
+    const game = withView('x01', stored);
     const repair = repairX01(game);
     return legEntries(game).map(({ setKey, legKey, set, leg, visits }) => {
         const left = Object.fromEntries((game.players ?? []).map(id => [id, startingScoreOf(game, id)]));

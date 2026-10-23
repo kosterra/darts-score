@@ -4,7 +4,7 @@
     // outlines left in the app, next to the guest card)
     .drop-zone {
         border: 1px dashed var(--border-default);
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         cursor: pointer;
     
         &.is-dragging, &:hover {

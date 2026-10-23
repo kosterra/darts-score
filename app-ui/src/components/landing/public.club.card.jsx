@@ -3,10 +3,12 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import ClubLogo from '../elements/club.logo';
+import { locale, t } from '../../utils/i18n';
+import CountryFlag from '../elements/country.flag';
 
 dayjs.extend(relativeTime);
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
  * A public club on the start page: what it is, what it played (games, the
@@ -15,23 +17,23 @@ const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
  */
 const PublicClubCard = ({ club }) => {
     const figures = [
-        ['Players', formatNumber(club.playerCount)],
-        ['Games', formatNumber(club.gamesPlayed)],
-        ['Last 30 days', formatNumber(club.gamesLast30Days)],
-        ['X01 average', club.x01Average != null ? club.x01Average.toFixed(1) : '–'],
+        [t('Players'), formatNumber(club.playerCount)],
+        [t('Games'), formatNumber(club.gamesPlayed)],
+        [t('Last 30 days'), formatNumber(club.gamesLast30Days)],
+        [t('X01 average'), club.x01Average != null ? club.x01Average.toFixed(1) : '–'],
         ['180s', formatNumber(club.num180s)],
-        ['Last game', club.lastGameAt ? dayjs(club.lastGameAt).fromNow() : '–'],
+        [t('Last game'), club.lastGameAt ? dayjs(club.lastGameAt).fromNow() : '–'],
     ];
     const takesMembers = club.joinPolicy === 'open' || club.joinPolicy === 'approval';
 
     return (
         <article className="public-club">
-            <div className="d-flex align-items-center gap-3" style={{ minWidth: 0 }}>
+            <div className="d-flex align-items-center gap-3 min-w-0">
                 <ClubLogo club={club} size="md" />
-                <div className="d-flex flex-column" style={{ minWidth: 0 }}>
-                    <h3 className="fs-5 fw-semibold text-default m-0 text-break">{club.name}</h3>
+                <div className="d-flex flex-column min-w-0">
+                    <h3 className="fs-5 fw-semibold text-default m-0 text-break">{club.name}{' '}<CountryFlag code={club.country} /></h3>
                     <span className="text-faint fs-8">
-                        {club.busiestDay ? `Plays mostly on ${club.busiestDay}s` : `With Oche since ${dayjs(club.createdAt).format('MMMM YYYY')}`}
+                        {club.busiestDay ? t(`Plays mostly on ${club.busiestDay}s`) : t('With Oche since {{format}}', { format: dayjs(club.createdAt).format('MMMM YYYY') })}
                     </span>
                 </div>
             </div>
@@ -47,7 +49,7 @@ const PublicClubCard = ({ club }) => {
             {takesMembers &&
                 <Link to="/register" className="public-club-join">
                     <i className="pi pi-user-plus" aria-hidden="true" />
-                    {club.joinPolicy === 'open' ? 'Open to join: register and join' : 'Takes new members: register and ask to join'}
+                    {club.joinPolicy === 'open' ? t('Open to join: register and join') : t('Takes new members: register and ask to join')}
                 </Link>
             }
         </article>

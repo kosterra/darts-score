@@ -1,6 +1,7 @@
 import { Dragon, Gnome, Monster, Troll } from '../common/one.eighty.figures';
 import useFleeting from '../common/use.fleeting';
 import HatFigure from '../common/hat.figure';
+import { t } from '../../../utils/i18n';
 
 const DURATION_MS = 4200;
 const FIGURES = [Gnome, Monster, Dragon, Troll];
@@ -17,7 +18,7 @@ export const HatTrick = ({ moment, onDone }) => {
     return (
         <div key={moment.key} className={`stage-moment ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
             <p className="stage-moment-banner is-high">
-                <span className="stage-moment-title">Hat Trick!</span>
+                <span className="stage-moment-title">{t('Hat Trick!')}</span>
                 <span className="stage-moment-detail"><strong>{moment.name}</strong> · {moment.darts.join(' · ')}</span>
             </p>
             <div className="hat-trick-stage" aria-hidden="true">
@@ -40,9 +41,9 @@ export const ShutOut = ({ moment, onDone }) => {
     return (
         <div key={moment.key} className={`stage-moment ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
             <p className="stage-moment-banner">
-                <span className="stage-moment-title">Shut-out!</span>
+                <span className="stage-moment-title">{t('Shut-out!')}</span>
                 <span className="stage-moment-detail">
-                    <strong>{moment.name}</strong> closed all seven, {moment.victims.join(' and ')} not a single one
+                    <strong>{moment.name}</strong>{' '}{t('closed all seven,')}{' '}{moment.victims.join(` ${t('and')} `)}{' '}{t('not a single one')}
                 </span>
             </p>
             <div className="shut-out-run" aria-hidden="true">

@@ -18,7 +18,9 @@ import { describeFilters } from './filter.summary';
 import X01Service from '../../../services/x01.service';
 import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
+import { useUrlFilters, useUrlState } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { t, tn } from '../../../utils/i18n';
 
 const DEFAULT_FILTERS = {
     type: 'x01',
@@ -31,7 +33,7 @@ const DEFAULT_FILTERS = {
 };
 
 const formatLabel = (game) =>
-    `${game.setMode} ${game.numberOfSets} ${game.numberOfSets === 1 ? 'set' : 'sets'} · ${game.legMode} ${game.numberOfLegs} ${game.numberOfLegs === 1 ? 'leg' : 'legs'}`;
+    `${game.setMode} ${tn(game.numberOfSets, '{{count}} set', '{{count}} sets')} · ${game.legMode} ${tn(game.numberOfLegs, '{{count}} leg', '{{count}} legs')}`;
 
 /**
  * What the server is asked for, from the filters in the header.
@@ -62,10 +64,13 @@ const MAX_PLAYERS = ChartConfigOptions.fillColors.values.length;
 const PlayersStatisticsPage = () => {
     const { user } = useAuth();
     const [players, setPlayers] = useState(null);
-    const [selectedIds, setSelectedIds] = useState([]);
+    // the players compared and the filters live in the address
+    const [chosen, setChosen] = useUrlState({ players: '' });
+    const selectedIds = useMemo(() => chosen.players ? chosen.players.split(',') : [], [chosen.players]);
+    const setSelectedIds = (next) => setChosen({ players: (typeof next === 'function' ? next(selectedIds) : next).join(',') });
     const [search, setSearch] = useState('');
     const [levels, setLevels] = useState({});
-    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const [filters, setFilters] = useUrlFilters(DEFAULT_FILTERS);
     // the X01 formats these players have played together, for the format filter
     const [formats, setFormats] = useState([]);
     // each compared player's current form, from their own latest games
@@ -81,12 +86,13 @@ const PlayersStatisticsPage = () => {
             const sorted = [...loaded].sort((a, b) => a.nickname.localeCompare(b.nickname));
             setPlayers(sorted);
             const own = sorted.find(player => player.user === user.id);
-            if (own) setSelectedIds([own.id]);
+            // unless the address already names the players
+            if (own && !new URLSearchParams(window.location.search).get('players')) setChosen({ players: own.id });
         }).catch(error => {
             console.error('Failed to load players', error);
             setPlayers([]);
         });
-    }, [user.id]);
+    }, [user.id, setChosen]);
 
     const selectedKey = selectedIds.join(',');
     useEffect(() => {
@@ -132,22 +138,22 @@ const PlayersStatisticsPage = () => {
         <div className="container-fluid p-4 border-0">
             <div className="row g-4">
                 <div className="col-12 col-lg-4 col-xxl-3">
-                    <Panel header="Players" className="players-picker">
+                    <Panel header={t('Players')} className="players-picker">
                         <div className="d-flex flex-column gap-3">
                             <span className="p-input-icon-left w-100">
                                 <i className="pi pi-search" />
                                 <InputText
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search players"
-                                    aria-label="Search players"
+                                    placeholder={t('Search players')}
+                                    aria-label={t('Search players')}
                                     className="w-100"
                                 />
                             </span>
                             <span className="text-faint fs-8">
-                                Pick two to {MAX_PLAYERS} players to compare them.
+                                {t('Pick two to')}{' '}{MAX_PLAYERS}{' '}{t('players to compare them.')}
                             </span>
-                            {players.length === 0 && <span className="text-subtle">This club has no players yet.</span>}
+                            {players.length === 0 && <span className="text-subtle">{t('This club has no players yet.')}</span>}
                             <ul className="list-unstyled m-0 d-flex flex-column gap-1">
                                 {visible.map(player => {
                                     const index = selectedIds.indexOf(player.id);
@@ -171,9 +177,9 @@ const PlayersStatisticsPage = () => {
                                                     shape="circle"
                                                     className="avatar-sm bg-surface-high"
                                                 />
-                                                <span className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
+                                                <span className="d-flex flex-column flex-grow-1 min-w-0">
                                                     <span className="text-default fw-semibold text-truncate">
-                                                        {player.nickname}{player.user === user.id && <span className="text-faint fw-normal"> (you)</span>}
+                                                        {player.nickname}{player.user === user.id && <span className="text-faint fw-normal">{' '}{t('(you)')}</span>}
                                                     </span>
                                                     <span className="text-faint fs-8 text-truncate">{player.firstname} {player.lastname}</span>
                                                 </span>
@@ -190,18 +196,18 @@ const PlayersStatisticsPage = () => {
                     </Panel>
                 </div>
 
-                <div className="col-12 col-lg-8 col-xxl-9" style={{ minWidth: 0 }}>
+                <div className="col-12 col-lg-8 col-xxl-9 min-w-0">
                     {selected.length < 2 &&
                         <header className="hero-header rounded-2 p-4 mb-4 d-flex flex-column gap-2">
-                            <h1 className="fs-2 fw-semibold text-default m-0">Player comparison</h1>
+                            <h1 className="fs-2 fw-semibold text-default m-0">{t('Player comparison')}</h1>
                             <span className="text-subtle">
                                 {selected.length === 0
-                                    ? 'Pick two or more players on the left to compare them.'
-                                    : `Pick at least one more player to compare with ${selected[0].nickname}.`}
+                                    ? t('Pick two or more players on the left to compare them.')
+                                    : t('Pick at least one more player to compare with {{nickname}}.', { nickname: selected[0].nickname })}
                             </span>
                             {selected.length === 1 &&
                                 <Link to={`/players/${selected[0].id}`} className="fs-7 align-self-start">
-                                    Open the profile of {selected[0].nickname} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
+                                    {t('Open the profile of')}{' '}{selected[0].nickname} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
                                 </Link>
                             }
                         </header>
@@ -209,12 +215,12 @@ const PlayersStatisticsPage = () => {
                     {selected.length > 1 &&
                         <>
                             <header className="hero-header hero-header-centered rounded-2 p-4 mb-4 d-flex flex-column gap-3">
-                                <span className="text-faint fs-8 text-uppercase text-center" style={{ letterSpacing: '0.08em' }}>Head to head</span>
+                                <span className="text-faint fs-8 text-uppercase text-center" style={{ letterSpacing: '0.08em' }}>{t('Head to head')}</span>
                                 {/* the two sides face each other around "vs.", which stays in the middle under the heading */}
                                 <div className="compare-faceoff">
                                     {[selected.slice(0, Math.ceil(selected.length / 2)), selected.slice(Math.ceil(selected.length / 2))].map((side, sideIndex) => (
                                         <Fragment key={sideIndex}>
-                                            {sideIndex === 1 && <span className="compare-vs text-faint fw-semibold fs-5">vs.</span>}
+                                            {sideIndex === 1 && <span className="compare-vs text-faint fw-semibold fs-5">{t('vs.')}</span>}
                                             <div className={`compare-side ${sideIndex === 0 ? 'is-left' : 'is-right'}`}>
                                                 {side.map(player => {
                                                     const index = selected.indexOf(player);

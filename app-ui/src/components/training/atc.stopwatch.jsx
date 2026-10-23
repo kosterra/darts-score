@@ -2,6 +2,7 @@ import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { formatTrainingTime, toHundredths } from '../../utils/training.time';
 import ATCStopwatchFace from './atc.stopwatch.face';
+import { t } from '../../utils/i18n';
 
 /**
  * The stopwatch of a training: the time, and the one button that matters
@@ -34,36 +35,36 @@ const ATCStopwatch = ({ watch, countdown, withCountdown, onWithCountdownChange, 
             {best &&
                 <div className={`atc-watch-best ${pace ? `is-${pace}` : ''}`}>
                     <span className="atc-watch-best-dot" aria-hidden="true" />
-                    Best {formatTrainingTime(best)}
-                    {pace === 'ahead' && (running ? ' · ahead' : ' · new best!')}
-                    {pace === 'behind' && ' · behind'}
+                    {t('Best')}{' '}{formatTrainingTime(best)}
+                    {pace === 'ahead' && (running ? t(' · ahead') : t(' · new best!'))}
+                    {pace === 'behind' && t(' · behind')}
                 </div>
             }
 
             <div className="atc-stopwatch-actions">
                 {!running && !stopped && !counting &&
-                    <Button type="button" label="Start" icon="pi pi-play" className="atc-stopwatch-main" disabled={!canStart} onClick={() => { onStart?.(); if (withCountdown) countdown.begin(); else start(); }} />
+                    <Button type="button" label={t('Start')} icon="pi pi-play" className="atc-stopwatch-main" disabled={!canStart} onClick={() => { onStart?.(); if (withCountdown) countdown.begin(); else start(); }} />
                 }
                 {counting &&
-                    <Button type="button" label="Cancel" icon="pi pi-times" outlined className="atc-stopwatch-main" onClick={countdown.cancel} />
+                    <Button type="button" label={t('Cancel')} icon="pi pi-times" outlined className="atc-stopwatch-main" onClick={countdown.cancel} />
                 }
                 {running &&
-                    <Button type="button" label="Stop" icon="pi pi-stop" className="atc-stopwatch-main" onClick={stop} />
+                    <Button type="button" label={t('Stop')} icon="pi pi-stop" className="atc-stopwatch-main" onClick={stop} />
                 }
                 {stopped && <>
-                    <Button type="button" label="Save time" icon="pi pi-check" className="atc-stopwatch-main" loading={saving} onClick={() => onSave(toHundredths(elapsedMs))} />
+                    <Button type="button" label={t('Save time')} icon="pi pi-check" className="atc-stopwatch-main" loading={saving} onClick={() => onSave(toHundredths(elapsedMs))} />
                     {/* the way back on (a tool, grey) and the one to throw the time away (soft red), side by side */}
                     <div className="atc-stopwatch-secondary">
-                        <Button type="button" label="Go on" icon="pi pi-play" severity="secondary" disabled={saving} onClick={start} />
-                        <Button type="button" label="Discard" icon="pi pi-trash" severity="danger" disabled={saving} onClick={reset} />
+                        <Button type="button" label={t('Go on')} icon="pi pi-play" severity="secondary" disabled={saving} onClick={start} />
+                        <Button type="button" label={t('Discard')} icon="pi pi-trash" severity="danger" disabled={saving} onClick={reset} />
                     </div>
                 </>}
             </div>
             {!running && !stopped && !counting && <>
-                {!canStart && <div className="text-faint fs-8 text-center mt-2">Choose a player to start.</div>}
+                {!canStart && <div className="text-faint fs-8 text-center mt-2">{t('Choose a player to start.')}</div>}
                 <label className="atc-countdown-switch">
                     <InputSwitch checked={withCountdown} onChange={(e) => onWithCountdownChange(e.value)} />
-                    <span>3-2-1 countdown</span>
+                    <span>{t('3-2-1 countdown')}</span>
                 </label>
             </>}
         </div>

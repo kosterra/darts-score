@@ -10,6 +10,9 @@ export default (mongoose) => {
       lastname:   { type: String, required: true, trim: true },
       nickname:   { type: String, required: true, trim: true },
       profileImg: { type: String, default: '' },
+      // where the player comes from: an ISO 3166 country code (CH, DE, …) or a nation
+      // of the United Kingdom (GB-ENG, …); empty when not set
+      country:    { type: String, uppercase: true, trim: true, default: '' },
       // For the handicap suggestion between players of different ages; required
       // when a player is added or edited, older players may still be without one
       dateOfBirth: { type: Date, default: null },
@@ -74,6 +77,8 @@ export default (mongoose) => {
         flightPattern:   { type: String, default: 'plain' },
         flightShape:     { type: String, default: 'standard' },
         barrel:          { type: String, default: 'classic' },
+        // whether the player plays with a handicap ('accept') or always from the game's own score ('decline')
+        handicap:        { type: String, enum: ['accept', 'decline'], default: 'accept' },
       },
       // the flight shapes, designs and barrels unlocked with flight points ("shape:fantail", "barrel:bomb")
       flights: {

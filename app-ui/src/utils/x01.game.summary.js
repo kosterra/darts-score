@@ -1,3 +1,5 @@
+import { t } from './i18n';
+
 /**
  * What the statistics page of one finished X01 game shows, worked out from
  * the game itself: every leg, the race to zero of a leg, each player's key
@@ -99,20 +101,20 @@ export const playerFigures = (game, playerId, legs = legsOf(game)) => {
  */
 export const matchMoments = (game, legs = legsOf(game)) => {
     const moments = [];
-    const legName = (leg) => (game?.setsPlayed ?? 1) > 1 ? `set ${leg.set}, leg ${leg.legInSet}` : `leg ${leg.legInSet}`;
+    const legName = (leg) => (game?.setsPlayed ?? 1) > 1 ? t('set {{set}}, leg {{legInSet}}', { set: leg.set, legInSet: leg.legInSet }) : t('leg {{legInSet}}', { legInSet: leg.legInSet });
 
     const highest = legs.reduce((best, leg) => leg.highest.score > (best?.highest.score ?? 0) ? leg : best, null);
-    if (highest) moments.push({ id: 'highest', label: 'Highest visit', value: highest.highest.score, playerId: highest.highest.playerId, detail: legName(highest) });
+    if (highest) moments.push({ id: 'highest', label: t('Highest visit'), value: highest.highest.score, playerId: highest.highest.playerId, detail: legName(highest) });
 
     const finished = legs.filter(leg => leg.winner);
     const bestCheckout = finished.reduce((best, leg) => leg.checkout > (best?.checkout ?? 0) ? leg : best, null);
-    if (bestCheckout) moments.push({ id: 'checkout', label: 'Best checkout', value: bestCheckout.checkout, playerId: bestCheckout.winner, detail: legName(bestCheckout) });
+    if (bestCheckout) moments.push({ id: 'checkout', label: t('Best checkout'), value: bestCheckout.checkout, playerId: bestCheckout.winner, detail: legName(bestCheckout) });
 
     const quickest = finished.reduce((best, leg) => leg.winnerDarts < (best?.winnerDarts ?? Infinity) ? leg : best, null);
-    if (quickest) moments.push({ id: 'quickest', label: 'Quickest leg', value: `${quickest.winnerDarts} darts`, playerId: quickest.winner, detail: legName(quickest) });
+    if (quickest) moments.push({ id: 'quickest', label: t('Quickest leg'), value: t('{{winnerDarts}} darts', { winnerDarts: quickest.winnerDarts }), playerId: quickest.winner, detail: legName(quickest) });
 
     const oneEighties = Object.values(game?.playerModels ?? {}).reduce((sum, model) => sum + (model?.scoreRanges?.game?.['180'] ?? 0), 0);
-    if (oneEighties > 0) moments.push({ id: '180s', label: oneEighties === 1 ? '180' : '180s', value: oneEighties, playerId: null, detail: 'in this game' });
+    if (oneEighties > 0) moments.push({ id: '180s', label: oneEighties === 1 ? '180' : '180s', value: oneEighties, playerId: null, detail: t('in this game') });
 
     // the last leg decided it when everyone still in it had won as many legs of that set
     const last = finished[finished.length - 1];
@@ -125,7 +127,7 @@ export const matchMoments = (game, legs = legsOf(game)) => {
         });
         const levelLegs = won.every(count => count === won[0]) && won[0] > 0;
         const levelSets = (game?.setsPlayed ?? 1) === 1 || setsBefore.every(count => count === setsBefore[0]);
-        if (levelLegs && levelSets) moments.push({ id: 'decider', label: 'Deciding leg', value: legName(last), playerId: last.winner, detail: 'won the last leg at all square' });
+        if (levelLegs && levelSets) moments.push({ id: 'decider', label: t('Deciding leg'), value: legName(last), playerId: last.winner, detail: t('won the last leg at all square') });
     }
     return moments;
 };

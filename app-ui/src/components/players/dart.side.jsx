@@ -2,6 +2,7 @@ import { useEffect, useId, useRef } from 'react';
 
 import { FlightArt } from '../flights/flight.art';
 import { BarrelArt } from '../flights/barrel.art';
+import { t } from '../../utils/i18n';
 
 // where the flights sit on the dart, and how fast it turns (one turn in seconds)
 const FLIGHTS_AT = 102;
@@ -133,7 +134,7 @@ const DIAGONAL = -32;
  * or still (spin false); diagonal shows it rising to the right.
  */
 const DartSide = ({ spin = true, diagonal = false, ...props }) => (
-    <svg className={`dart-side ${diagonal ? 'is-diagonal' : ''}`} viewBox={diagonal ? '-4 -100 146 108' : '-3 -22 152 44'} role="img" aria-label="A dart with these flights">
+    <svg className={`dart-side ${diagonal ? 'is-diagonal' : ''}`} viewBox={diagonal ? '-4 -100 146 108' : '-3 -22 152 44'} role="img" aria-label={t('A dart with these flights')}>
         <g transform={diagonal ? `rotate(${DIAGONAL})` : undefined}>
             <DartProfile {...props} spin={spin} />
         </g>
@@ -148,7 +149,7 @@ const SET = [{ x: -9, angle: -101, turn: 20 }, { x: 0, angle: -90, turn: 45 }, {
  * flights fanned out up to the right, standing still.
  */
 export const DartSet = (props) => (
-    <svg className="dart-set" viewBox="-36 -160 172 170" role="img" aria-label="A set of three darts with these flights">
+    <svg className="dart-set" viewBox="-36 -160 172 170" role="img" aria-label={t('A set of three darts with these flights')}>
         <g transform="rotate(32)">
             {SET.map(dart => (
                 <g key={dart.x} transform={`translate(${dart.x}, 0) rotate(${dart.angle})`}>

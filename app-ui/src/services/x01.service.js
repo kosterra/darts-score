@@ -1,6 +1,8 @@
+import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders
 } from '../utils/service.utils';
+import { gameOf, storedOf } from '../rules/stored';
 
 const API_URL = '/api/';
 
@@ -17,7 +19,7 @@ const createX01Game = async (game) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error.message);
     }
@@ -48,7 +50,7 @@ const loadAllX01Games = async () => {
             throw Error(response.statusText);
         };
         
-        let data = await response.json();
+        let data = translateAnswer(await response.json());
         return data.sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
@@ -69,7 +71,7 @@ const findX01Games = async (body) => {
             throw Error(response.statusText);
         };
 
-        let data = await response.json();
+        let data = translateAnswer(await response.json());
         return data.sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
@@ -89,7 +91,7 @@ const loadX01GameById = async (id) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error);
     }
@@ -132,13 +134,14 @@ const deleteX01Game = async (x01Id, clubId) => {
 
 // Export methods
 const X01Service = {
-    createX01Game,
+    // stored as its settings, players and visits; the game comes back worked out from them
+    createX01Game: async (game) => gameOf('x01', await createX01Game(storedOf('x01', { ...game, visits: game.visits ?? [] }))),
     loadRunningX01Games,
     loadFinishedX01Games,
     loadAllX01Games,
     findX01Games,
-    loadX01GameById,
-    updateX01Game,
+    loadX01GameById: async (id) => gameOf('x01', await loadX01GameById(id)),
+    updateX01Game: (game) => updateX01Game(storedOf('x01', game)),
     deleteX01Game
 }
 

@@ -1,12 +1,12 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Avatar } from 'primereact/avatar';
-import { Button } from 'primereact/button';
 import { GiFeather } from 'react-icons/gi';
-import { FaSoap } from 'react-icons/fa6';
 
 import ShameMedal from './shame.medal';
+import useFleeting from '../games/common/use.fleeting';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t } from '../../utils/i18n';
 
 // tar running down from the top edge: where each drip hangs, how wide and long
 const DRIPS = [
@@ -23,29 +23,29 @@ const FEATHERS = Array.from({ length: 22 }, (_, index) => ({
     sway: index % 2 ? 1 : -1,
 }));
 
-// a few feathers stuck to each player
-const STUCK = [[-12, 8, -35], [78, -6, 25], [88, 62, 70], [-6, 70, -80]];
-
 const lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
+
+// as long as the tar and the feathers need to fall
+const SHAME_MS = 6000;
 
 /**
  * The opposite of a celebration, right after a game: the players who got a
- * badge of the Hall of Shame are tarred and feathered.
+ * badge of the Hall of Shame are tarred and feathered, over the page without
+ * holding it up; it goes by itself, at once on a tap or a key.
  *
  * groups: [{ player, got: [shame badge] }]
  */
 const TarredAndFeathered = ({ groups, onClose }) => {
-    useEffect(() => {
-        const onKey = (event) => { if (event.key === 'Escape') onClose(); };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [onClose]);
+    const close = useRef(onClose);
+    useEffect(() => { close.current = onClose; }, [onClose]);
+    const done = useCallback(() => close.current?.(), []);
+    const leaving = useFleeting(true, done, SHAME_MS);
 
     const names = groups.map(group => group.player.nickname);
-    const who = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+    const who = names.length > 1 ? t('{{join}} and {{at}}', { join: names.slice(0, -1).join(', '), at: names.at(-1) }) : names[0];
 
     return createPortal(
-        <div className="tarred" role="dialog" aria-modal="true" aria-label="Tarred and feathered" onClick={onClose}>
+        <div className={`tarred ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite" aria-label={t('Tarred and feathered')}>
             <div className="tarred-tar" aria-hidden="true">
                 {DRIPS.map(([left, width, length], index) => (
                     <span key={index} className="tarred-drip" style={{ left: `${left}%`, width: `${width}rem`, '--length': `${length}rem`, animationDelay: `${(index % 5) * 0.12}s` }} />
@@ -60,42 +60,33 @@ const TarredAndFeathered = ({ groups, onClose }) => {
                     />
                 ))}
             </div>
-            <div className="tarred-card" onClick={(event) => event.stopPropagation()}>
-                <h2 className="tarred-title m-0">Tarred and feathered!</h2>
-                <p className="text-subtle m-0">{who} landed in the Hall of Shame</p>
-                <div className="d-flex flex-wrap justify-content-center gap-4 w-100">
+            {/* short and at the bottom: the page stays in view; what was got is in its Hall of Shame panel */}
+            <div className="tarred-card is-compact">
+                <span className="tarred-title">{t('Tarred and feathered!')}</span>
+                <span className="text-subtle fs-7">{who}{' '}{t('landed in the Hall of Shame')}</span>
+                <div className="d-flex flex-wrap justify-content-center gap-3">
                     {groups.map(group => (
-                        <div key={group.player.id} className="d-flex flex-column align-items-center gap-3" style={{ minWidth: '12rem', flex: '1 1 12rem' }}>
-                            <span className="tarred-avatar">
+                        <div key={group.player.id} className="d-flex align-items-center gap-2">
+                            <span className="tarred-avatar is-small">
                                 <Avatar
                                     label={resolvePlayerInitials(group.player.firstname ?? '?', group.player.lastname ?? '')}
                                     image={resolvePlayerImg(group.player.profileImg)}
                                     shape="circle"
-                                    className="avatar-lg bg-surface-high"
+                                    className="avatar-sm bg-surface-high"
                                 />
-                                {[[28, '28%'], [52, '40%'], [68, '22%']].map(([left, height]) => (
+                                {[[30, '30%'], [60, '42%']].map(([left, height]) => (
                                     <span key={left} className="tarred-avatar-drip" style={{ left: `${left}%`, height }} aria-hidden="true" />
                                 ))}
-                                {STUCK.map(([x, y, turn], index) => (
-                                    <GiFeather key={index} className="tarred-stuck" style={{ left: `${x}%`, top: `${y}%`, transform: `rotate(${turn}deg)` }} aria-hidden="true" />
-                                ))}
                             </span>
-                            <span className="fs-4 fw-semibold text-default text-break">{group.player.nickname}</span>
-                            <ul className="list-unstyled m-0 d-flex flex-column gap-3 w-100">
-                                {group.got.map(badge => (
-                                    <li key={badge.id} className="tarred-badge">
-                                        <ShameMedal badge={badge} size="sm" />
-                                        <div className="d-flex flex-column text-start" style={{ minWidth: 0 }}>
-                                            <span className="text-default fw-semibold">{badge.title}{badge.count > 1 ? ` × ${badge.count}` : ''}</span>
-                                            <span className="tarred-wash"><FaSoap aria-hidden="true" /> {badge.wash ? `Wash it off: ${lowerFirst(badge.wash)}` : ''}</span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
+                            {group.got.map(badge => (
+                                <span key={badge.id} className="d-inline-flex align-items-center gap-1" title={badge.wash ? t('Wash it off: {{lowerFirst}}', { lowerFirst: lowerFirst(badge.wash) }) : undefined}>
+                                    <ShameMedal badge={badge} size="xs" />
+                                    <span className="text-default fs-8 fw-semibold">{badge.title}{badge.count > 1 ? t(' × {{count}}', { count: badge.count }) : ''}</span>
+                                </span>
+                            ))}
                         </div>
                     ))}
                 </div>
-                <Button label="Oh no" severity="secondary" onClick={onClose} autoFocus />
             </div>
         </div>,
         document.body

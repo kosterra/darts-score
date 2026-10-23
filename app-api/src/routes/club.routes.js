@@ -29,7 +29,7 @@ export default (app) => {
         param('id').isMongoId().withMessage('Invalid club.'),
         body('nickname').optional({ values: 'falsy' }).isString().trim()
             .isLength({ min: 3, max: 25 }).withMessage('Nickname must be between 3 and 25 characters.')
-            .matches(/^[A-Za-zéèàäöü\s'-]+$/).withMessage('Nickname contains invalid characters.'),
+            .matches(/^[\p{L}\s'-]+$/u).withMessage('Nickname contains invalid characters.'),
         body('message').optional().isString().isLength({ max: 300 }).withMessage('The message is at most 300 characters.'),
         validate,
         ClubJoinController.join
@@ -51,6 +51,7 @@ export default (app) => {
         body('joinPolicy').optional().isIn(['open', 'approval', 'closed']).withMessage('New members join freely, are accepted by an admin, or are added by the admins only.'),
         body('shameMinAge').optional().isInt({ min: 6, max: 21 }).withMessage('The age limit must be between 6 and 21.').toInt(),
         body('description').optional().isString().trim().isLength({ max: 500 }).withMessage('The description can have at most 500 characters.'),
+        body('country').optional().isString().matches(/^([A-Za-z]{2}(-[A-Za-z]{3})?)?$/).withMessage('The country is a code like CH, or GB-ENG for England.'),
         body('dashboardWidgets').optional().isArray({ max: 40 }).withMessage('dashboardWidgets must be a list.'),
         body('dashboardWidgets.*').isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
         body('dashboardLayout').optional().isArray({ max: 40 }).withMessage('dashboardLayout must be a list.'),
@@ -58,6 +59,15 @@ export default (app) => {
         body('dashboardLayout.*.size').isIn(['S', 'M', 'L', 'F']).withMessage('The width of a widget is S, M, L or F.'),
         validate,
         ClubController.update
+    );
+    // the club's own rules for its games (club admins)
+    router.put('/:id/game-rules',
+        param('id').isMongoId().withMessage('Invalid club.'),
+        body().isObject().withMessage('The game rules are an object.'),
+        body('formats').optional().isArray({ max: 20 }).withMessage('A club has at most 20 formats.'),
+        body('formats.*.name').optional().isString().isLength({ max: 60 }).withMessage('The name of a format can have at most 60 characters.'),
+        validate,
+        ClubController.updateGameRules
     );
     router.delete('/:id', ClubController.remove);
 

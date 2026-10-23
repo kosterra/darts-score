@@ -1,5 +1,6 @@
 import { FaTrophy, FaFire, FaBolt, FaFlagCheckered, FaBullseye, FaFish, FaBroom, FaChartLine, FaBaseballBatBall, FaSkull, FaStar, FaRoute, FaClock, FaStopwatch, FaLock, FaDragon, FaGem, FaHouseCrack, FaBed, FaArrowTrendUp, FaCalendarCheck, FaBoltLightning, FaArrowsSpin, FaDumbbell, FaCalendarWeek, FaLayerGroup, FaCrosshairs, FaArrowUpRightDots, FaRocket, FaCubesStacked, FaBagShopping, FaForwardFast, FaCircleDot, FaHandFist, FaHorse, FaHatCowboy, FaChartColumn, FaUserGroup, FaCakeCandles } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
+import { t } from '../../utils/i18n';
 
 const GROUP_ICONS = {
     games: GiDart,
@@ -60,7 +61,7 @@ const BadgeMedal = ({ badge, locked = false, size = 'md', animate = false, delay
             className={`badge-medal badge-medal-${size} badge-${locked ? 'locked' : badgeMetal(badge)} ${animate ? 'badge-pop' : ''}`}
             style={animate ? { animationDelay: `${delay}ms` } : undefined}
             role="img"
-            aria-label={`${badge.title}${locked ? ' (not earned yet)' : ''}`}
+            aria-label={`${badge.title}${locked ? t(' (not earned yet)') : ''}`}
             title={`${badge.title}: ${badge.description}`}
         >
             <Icon aria-hidden="true" />

@@ -19,14 +19,14 @@
 .leaderboard {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: $space-1;
 
     .leaderboard-row {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: $space-3;
         padding: 0.4rem 0.6rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
     }
 
     // the leader stands out a little
@@ -39,7 +39,7 @@
         flex-shrink: 0;
         text-align: center;
         color: $textFaintColor;
-        font-weight: 600;
+        font-weight: $weight-semibold;
         font-variant-numeric: tabular-nums;
     }
 
@@ -66,10 +66,10 @@
         position: relative;
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: $space-3;
         margin: 0 0 0.45rem 1rem;
         padding: 0.6rem 0.75rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: $surfaceRaisedColor;
 
         &:last-child {
@@ -85,7 +85,7 @@
             width: 0.75rem;
             height: 0.75rem;
             margin-top: -0.375rem;
-            border-radius: 50%;
+            border-radius: $radius-round;
             // the colours of the status tags: soft blue for finished, soft orange for running
             background: $statusFinishedColor;
             border: 2px solid $surfaceColor;
@@ -108,6 +108,33 @@
     }
 }
 
+// a game's type as a tile in its colour with its icon, at the start of a row
+.game-type-icon {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    // round, as the avatars and the colour dots of the app
+    border-radius: $radius-round;
+    background: color-mix(in srgb, var(--game-type-color) 16%, transparent);
+    color: var(--game-type-color);
+    font-size: $text-xl;
+    // the newer games and trainings, unless named below
+    --game-type-color: #{$accentPink};
+
+    &.game-type-x01, &.game-type-bot { --game-type-color: #{$accentGreen}; }
+    &.game-type-atc { --game-type-color: #{$gameColorClock}; }
+    &.game-type-cricket { --game-type-color: #{$gameColorCricket}; }
+    &.game-type-elimination { --game-type-color: #{$gameColorElimination}; }
+    &.game-type-clock { --game-type-color: #{$gameColorClock}; }
+    &.game-type-shanghai { --game-type-color: #{$accentPink}; }
+    &.game-type-killer { --game-type-color: #{$accentPink}; }
+    &.game-type-halveit { --game-type-color: #{$accentPink}; }
+    &.game-type-golf { --game-type-color: #{$accentPink}; }
+    &.game-type-tactics { --game-type-color: #{$accentPink}; }
+}
+
 // Game types, each in its own colour: a small label with a short line in that
 // colour, like the panel titles. Orange and blue are taken by the game status
 // (running / finished, the only pills), so types use green, gold and purple.
@@ -117,8 +144,8 @@
     align-items: flex-start;
     gap: 0.2rem;
     color: $textDefaultColor;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: $text-sm;
+    font-weight: $weight-bold;
     letter-spacing: 0.04em;
     line-height: 1.1;
 
@@ -126,14 +153,19 @@
         content: '';
         width: 1.1rem;
         height: 2px;
-        border-radius: 2px;
+        border-radius: $radius-sm;
         background: var(--game-type-color);
     }
 
-    &.game-type-x01 { --game-type-color: #7ecca5; }
-    &.game-type-cricket { --game-type-color: #d4c783; }
-    &.game-type-elimination { --game-type-color: #c3a9e6; }
-    &.game-type-clock { --game-type-color: #86bfe6; }
+    &.game-type-x01 { --game-type-color: #{$accentGreen}; }
+    &.game-type-cricket { --game-type-color: #{$gameColorCricket}; }
+    &.game-type-elimination { --game-type-color: #{$gameColorElimination}; }
+    &.game-type-clock { --game-type-color: #{$gameColorClock}; }
+    &.game-type-shanghai { --game-type-color: #{$accentPink}; }
+    &.game-type-killer { --game-type-color: #{$accentPink}; }
+    &.game-type-halveit { --game-type-color: #{$accentPink}; }
+    &.game-type-golf { --game-type-color: #{$accentPink}; }
+    &.game-type-tactics { --game-type-color: #{$accentPink}; }
 }
 
 // Player picker on the statistics page
@@ -146,9 +178,9 @@
     .players-picker-row {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: $space-3;
         padding: 0.5rem 0.6rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         cursor: pointer;
         transition: background-color $transitionDuration;
 
@@ -170,7 +202,7 @@
         flex-shrink: 0;
         width: 0.75rem;
         height: 0.75rem;
-        border-radius: 50%;
+        border-radius: $radius-round;
     }
 }
 
@@ -184,9 +216,9 @@
     position: relative;
     display: flex;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: $space-2;
     overflow-x: auto;
-    padding: 0.5rem 0.25rem 0.25rem;
+    padding: $space-2 $space-1 $space-1;
 
     // the line the stops sit on, through the dots
     &::before {
@@ -212,7 +244,7 @@
     .h2h-winner.p-avatar {
         width: 2.4rem;
         height: 2.4rem;
-        font-size: 0.85rem;
+        font-size: $text-sm;
         box-shadow: 0 0 0 2px var(--winner-colour), 0 0.35rem 0.8rem -0.3rem rgba(0, 0, 0, 0.8);
         transition: transform $transitionDuration;
     }
@@ -225,7 +257,7 @@
         position: relative;
         width: 0.7rem;
         height: 0.7rem;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: var(--winner-colour);
         box-shadow: 0 0 0 3px $surfaceColor;
     }
@@ -239,7 +271,7 @@
     }
 
     .h2h-date {
-        font-size: 0.7rem;
+        font-size: $text-xs;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
     }
@@ -270,8 +302,8 @@
 
     .h2h-tooltip-trophy {
         margin-left: 0.4rem;
-        color: #ffc94d;
-        font-size: 0.7rem;
+        color: $accentGold;
+        font-size: $text-xs;
     }
 }
 
@@ -292,7 +324,7 @@
 
     path:hover,
     circle:hover {
-        stroke: #efe6d0;
+        stroke: $accentCream;
         stroke-width: 1;
     }
 }
@@ -312,11 +344,11 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem 1.5rem;
-    margin-bottom: 1.5rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid rgba($primaryColor, 0.6);
-    border-radius: $borderRadius;
+    gap: $space-3 $space-5;
+    margin-bottom: $space-5;
+    padding: $space-3 $space-4;
+    border: 1px solid $borderDefaultColor;
+    border-radius: $radius-md;
     background: var(--surface-raised);
     box-shadow: 0 0.75rem 1.5rem -0.75rem rgba(0, 0, 0, 0.9);
 }
@@ -325,13 +357,13 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    border: 1px dashed rgba($primaryColor, 0.55);
-    border-radius: $borderRadius;
+    border: 1px dashed rgba(255, 255, 255, 0.22);
+    border-radius: $radius-md;
     transition: box-shadow $transitionDuration, opacity $transitionDuration;
 
     &.is-dragged {
         border-style: solid;
-        border-color: $primaryColor;
+        border-color: rgba(255, 255, 255, 0.55);
         box-shadow: 0 1rem 2rem -0.75rem rgba(0, 0, 0, 0.9);
         opacity: 0.75;
     }
@@ -341,7 +373,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     padding: 0.35rem 0.35rem 0.35rem 0.5rem;
     border-bottom: 1px dashed rgba($primaryColor, 0.35);
     background: rgba($primaryColor, 0.08);
@@ -352,18 +384,18 @@
 .dashboard-tile-handle {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     // the title stays readable: the width and remove go to a second line when it is narrow
     flex: 1 1 9rem;
     min-width: 0;
     min-height: 2.25rem;
-    padding: 0 0.5rem;
+    padding: 0 $space-2;
     border: 0;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: transparent;
     color: $textDefaultColor;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
     text-align: left;
     cursor: grab;
     // a finger on it drags the widget instead of scrolling the page
@@ -385,8 +417,8 @@
     .p-button {
         flex: 0 0 auto;
         min-width: 2.1rem;
-        padding: 0.25rem 0.5rem;
-        font-size: 0.72rem;
+        padding: $space-1 $space-2;
+        font-size: $text-xs;
     }
 }
 
@@ -395,7 +427,7 @@
     flex: 0 0 auto;
     color: $textSubtleColor;
 
-    &:enabled:hover { color: #ec8b80; background: rgba(236, 139, 128, 0.12); }
+    &:enabled:hover { color: $accentRed; background: rgba(236, 139, 128, 0.12); }
 }
 
 // the widget itself, as it looks, without reacting while it is arranged
@@ -417,9 +449,9 @@
 .dashboard-available-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
     padding: 0.65rem 0.75rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: var(--surface-raised);
 }
 
@@ -433,7 +465,7 @@
 .activity-month,
 .activity-weekday {
     color: $textFaintColor;
-    font-size: 0.65rem;
+    font-size: $text-xs;
     line-height: 1;
     white-space: nowrap;
 }
@@ -447,13 +479,13 @@
     display: inline-block;
     aspect-ratio: 1;
     min-width: 0.7rem;
-    border-radius: 3px;
+    border-radius: $radius-sm;
     background: $surfaceRaisedColor;
 
-    &.level-1 { background: rgba(#7ecca5, 0.25); }
-    &.level-2 { background: rgba(#7ecca5, 0.45); }
-    &.level-3 { background: rgba(#7ecca5, 0.7); }
-    &.level-4 { background: #7ecca5; }
+    &.level-1 { background: rgba($accentGreen, 0.25); }
+    &.level-2 { background: rgba($accentGreen, 0.45); }
+    &.level-3 { background: rgba($accentGreen, 0.7); }
+    &.level-4 { background: $accentGreen; }
 }
 
 // Head-to-head matrix
@@ -462,13 +494,13 @@
     border-spacing: 4px;
 
     th {
-        font-weight: normal;
+        font-weight: $weight-regular;
         text-align: center;
     }
 
     tbody th {
         text-align: left;
-        padding-right: 0.5rem;
+        padding-right: $space-2;
         max-width: 10rem;
     }
 
@@ -476,14 +508,14 @@
         width: 2.75rem;
         height: 2.75rem;
         min-width: 2.75rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         text-align: center;
-        font-weight: 700;
+        font-weight: $weight-bold;
         font-variant-numeric: tabular-nums;
         background: $surfaceRaisedColor;
         color: $textDefaultColor;
 
-        &.is-lead { background: rgba(#7ecca5, 0.3); color: $shade000; }
+        &.is-lead { background: rgba($accentGreen, 0.3); color: $shade000; }
         &.is-behind { background: rgba(#e07a5f, 0.18); }
         &.is-even { background: rgba($shade000, 0.08); }
         &.is-none { color: $textFaintColor; }
@@ -491,20 +523,19 @@
     }
 }
 
-$momentGoldColor: #ffc94d;
 
 // Club records
 .records-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-    gap: 0.75rem;
+    gap: $space-3;
 }
 
 .record-card {
     display: flex;
     gap: 0.85rem;
     padding: 0.85rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
     min-width: 0;
 }
@@ -516,15 +547,15 @@ $momentGoldColor: #ffc94d;
     flex-shrink: 0;
     width: 2.4rem;
     height: 2.4rem;
-    border-radius: 50%;
+    border-radius: $radius-round;
     background: rgba($momentGoldColor, 0.16);
     color: $momentGoldColor;
 }
 
 .record-value {
     color: $shade000;
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-size: $text-2xl;
+    font-weight: $weight-heavy;
     line-height: 1.15;
     font-variant-numeric: tabular-nums;
 }
@@ -539,7 +570,7 @@ $momentGoldColor: #ffc94d;
 .when-slot,
 .when-day {
     color: $textFaintColor;
-    font-size: 0.7rem;
+    font-size: $text-xs;
     display: flex;
     align-items: center;
 }
@@ -553,12 +584,12 @@ $momentGoldColor: #ffc94d;
     align-items: center;
     justify-content: center;
     height: 2rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     // empty cells stay grey, busy ones turn green
-    background: color-mix(in srgb, #7ecca5 calc(var(--intensity) * 85%), $surfaceRaisedColor);
+    background: color-mix(in srgb, $accentGreen calc(var(--intensity) * 85%), $surfaceRaisedColor);
     color: $shade000;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: $text-xs;
+    font-weight: $weight-bold;
 }
 
 // The header of a page (a player, the club, a comparison): solid like the panels,
@@ -583,14 +614,14 @@ $momentGoldColor: #ffc94d;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    column-gap: 2rem;
-    row-gap: 1rem;
+    column-gap: $space-6;
+    row-gap: $space-4;
 
     .compare-side {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 1.5rem;
+        gap: $space-5;
 
         &.is-left { justify-content: flex-end; }
         &.is-right { justify-content: flex-start; }
@@ -614,22 +645,22 @@ $momentGoldColor: #ffc94d;
 .comparison-filters-divider {
     height: 1px;
     background: $surfaceHighColor;
-    margin: 0.25rem 0;
+    margin: $space-1 0;
 }
 
 // Filters that open from a button; closed, a bar shows what is chosen
 .filter-panel {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: $space-3;
 }
 
 .filter-panel-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding-top: 0.75rem;
+    gap: $space-4;
+    padding-top: $space-3;
     border-top: 1px solid $surfaceHighColor;
 }
 
@@ -658,7 +689,7 @@ $momentGoldColor: #ffc94d;
         min-width: 1.1rem;
         height: 1.1rem;
         line-height: 1.1rem;
-        font-size: 0.65rem;
+        font-size: $text-xs;
     }
 }
 
@@ -678,7 +709,7 @@ $momentGoldColor: #ffc94d;
     align-items: flex-end;
     justify-content: flex-start;
     column-gap: 1.75rem;
-    row-gap: 1rem;
+    row-gap: $space-4;
 
     .p-selectbutton:not(.p-selectbutton-pills) .p-button,
     .p-dropdown,
@@ -703,7 +734,7 @@ $momentGoldColor: #ffc94d;
             flex: 0 0 auto;
             min-width: 3rem;
             padding: 0.4rem 0.9rem;
-            border-radius: 2rem !important;
+            border-radius: $radius-pill !important;
         }
     }
 
@@ -716,17 +747,17 @@ $momentGoldColor: #ffc94d;
 .form-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 
 .form-trend {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
 
-    &.is-up { color: #7ecca5; }
+    &.is-up { color: $accentGreen; }
     &.is-down { color: #e07a5f; }
     &.is-steady { color: $textSubtleColor; }
 
@@ -740,7 +771,7 @@ $momentGoldColor: #ffc94d;
 .me-widget {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: $space-4;
   height: 100%;
 }
 
@@ -750,14 +781,64 @@ $momentGoldColor: #ffc94d;
   gap: 0.85rem;
 }
 
+// the level and the way to the next one, under the name
+.me-widget-next {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+}
+
+// the three figures that matter most, as equal tiles
+.me-widget-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-2;
+}
+
+.me-widget-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: $radius-lg;
+  background: var(--surface-raised);
+
+  .me-widget-average-level { margin-left: 0; }
+}
+
+.me-widget-label {
+  font-size: $text-xs;
+  color: var(--text-faint);
+}
+
+.me-widget-value {
+  font-size: $text-2xl;
+  font-weight: $weight-semibold;
+  line-height: 1.2;
+  color: var(--text-default);
+  font-variant-numeric: tabular-nums;
+}
+
+// the form in a narrow tile: the trend, the line below it
+.form-badge.is-stacked {
+  // the line comes first in the badge: the trend goes on top
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 0.1rem;
+
+  .form-trend { font-size: $text-base; }
+}
+
 .me-widget-figures {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem 1rem;
+  gap: $space-3 $space-4;
   margin: 0;
 
-  dt { font-size: 0.8rem; font-weight: 400; color: var(--text-faint); }
-  dd { margin: 0.1rem 0 0; font-weight: 600; color: var(--text-default); font-variant-numeric: tabular-nums; }
+  dt { font-size: $text-sm; font-weight: $weight-regular; color: var(--text-faint); }
+  dd { margin: 0.1rem 0 0; font-weight: $weight-semibold; color: var(--text-default); font-variant-numeric: tabular-nums; }
 
   .me-widget-wide { grid-column: 1 / -1; }
 }
@@ -767,9 +848,9 @@ $momentGoldColor: #ffc94d;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  margin-left: 0.5rem;
-  font-size: 0.8rem;
-  font-weight: 600;
+  margin-left: $space-2;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
 
   svg { width: 0.85rem; height: 0.85rem; }
 }
@@ -779,7 +860,7 @@ $momentGoldColor: #ffc94d;
     display: grid;
     // two rows of five on a wide screen
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: $space-3;
 
     @media (min-width: 576px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     @media (min-width: 992px) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -789,7 +870,7 @@ $momentGoldColor: #ffc94d;
         gap: 0.4rem 1rem;
 
         .form-figure { padding: 0; background: none; }
-        .form-figure-value { font-size: 1rem; }
+        .form-figure-value { font-size: $text-base; }
     }
 }
 
@@ -798,21 +879,21 @@ $momentGoldColor: #ffc94d;
     flex-direction: column;
     gap: 0.15rem;
     padding: 0.7rem 0.85rem;
-    border-radius: 0.6rem;
+    border-radius: $radius-lg;
     background: var(--surface-raised);
 }
 
 .form-figure-label {
-    font-size: 0.75rem;
+    font-size: $text-xs;
     color: var(--text-faint);
 }
 
 .form-figure-value {
     display: flex;
     align-items: baseline;
-    gap: 0.5rem;
-    font-size: 1.25rem;
-    font-weight: 600;
+    gap: $space-2;
+    font-size: $text-xl;
+    font-weight: $weight-semibold;
     color: var(--text-default);
     font-variant-numeric: tabular-nums;
 }
@@ -821,12 +902,12 @@ $momentGoldColor: #ffc94d;
     display: inline-flex;
     align-items: center;
     gap: 0.15rem;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
 
     svg { font-size: 0.65rem; }
 
-    &.is-better { color: #7ecca5; }
+    &.is-better { color: $accentGreen; }
     &.is-worse { color: #e07a5f; }
     &.is-steady { color: var(--text-faint); }
 }

@@ -1,22 +1,23 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
-import { FaChartBar } from "react-icons/fa";
-import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
 
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
+import GameTypeIcon from '../../elements/game.type.icon';
+import { playPath } from '../../../utils/game.paths';
 import GameStatusTag from '../../elements/game.status.tag';
+import { t } from '../../../utils/i18n';
 
 const INITIAL_GAMES = 8;
 
 const dayLabel = (date) => {
     const day = dayjs(date).startOf('day');
     const today = dayjs().startOf('day');
-    if (day.isSame(today)) return 'Today';
-    if (day.isSame(today.subtract(1, 'day'))) return 'Yesterday';
+    if (day.isSame(today)) return t('Today');
+    if (day.isSame(today.subtract(1, 'day'))) return t('Yesterday');
     return day.format('dddd, DD.MM.YYYY');
 };
 
@@ -24,6 +25,7 @@ const dayLabel = (date) => {
  * The club's latest games as a timeline, grouped by day.
  */
 const TimelineWidget = ({ widget, games, players }) => {
+    const navigate = useNavigate();
     const [showAll, setShowAll] = useState(false);
 
     const visible = showAll ? games : games.slice(0, INITIAL_GAMES);
@@ -38,7 +40,7 @@ const TimelineWidget = ({ widget, games, players }) => {
     return (
         <Panel header={widget.title} className="h-100 dashboard-widget">
             {games.length === 0
-                ? <p className="text-subtle fs-7 m-0 p-2">No games played yet.</p>
+                ? <p className="text-subtle fs-7 m-0 p-2">{t('No games played yet.')}</p>
                 : (
                     <div className="d-flex flex-column gap-3">
                         {days.map(day => (
@@ -48,6 +50,7 @@ const TimelineWidget = ({ widget, games, players }) => {
                                     {day.games.map(game => (
                                         <li key={game.id} className={`timeline-entry ${game.running ? 'timeline-running' : ''}`}>
                                             <span className="timeline-time text-faint fs-8">{dayjs(game.playedAt).format('HH:mm')}</span>
+                                            <GameTypeIcon type={game.type} />
                                             <div className="timeline-body">
                                                 <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                     <GameTypeTag type={game.type} />
@@ -56,10 +59,13 @@ const TimelineWidget = ({ widget, games, players }) => {
                                                 </div>
                                                 <GamePlayers game={game} players={players} />
                                             </div>
-                                            {game.running
-                                                ? <Link to={`/${game.type}/${game.id}`} aria-label="Continue this game"><Button icon={<GiDart />} size="small" title="Continue playing" /></Link>
-                                                : <Link to={`/stats/games/${game.type}/${game.id}`} aria-label="Statistics of this game"><Button icon={<FaChartBar />} size="small" title="Show statistics" /></Link>
-                                            }
+                                            {/* the icon buttons of the lists: green to continue, grey for the statistics */}
+                                            <div className="row-actions">
+                                                {game.running
+                                                    ? <Button type="button" icon="pi pi-play" aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(playPath(game.type, game.id))} />
+                                                    : <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
+                                                }
+                                            </div>
                                         </li>
                                     ))}
                                 </ol>
@@ -68,7 +74,7 @@ const TimelineWidget = ({ widget, games, players }) => {
                         {games.length > INITIAL_GAMES &&
                             <div className="d-flex justify-content-center">
                                 <Button
-                                    label={showAll ? 'Show fewer' : `Show all ${games.length}`}
+                                    label={showAll ? t('Show fewer') : t('Show all {{length}}', { length: games.length })}
                                     size="small"
                                     text
                                     onClick={() => setShowAll(!showAll)}

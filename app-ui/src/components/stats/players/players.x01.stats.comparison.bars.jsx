@@ -1,4 +1,5 @@
 import SideBySide from '../common/side.by.side';
+import { t } from '../../../utils/i18n';
 
 /**
  * The players' X01 figures side by side. Shown inside the "X01 head to head"
@@ -17,22 +18,22 @@ const PlayersX01StatsComparisonBars = ({ playersX01Stats, players }) => {
     const dartsPerLeg = valuesOf('avg.dartsPerLeg');
 
     const rows = [
-        { key: 'won', label: 'Won games', values: valuesOf('wonGames') },
-        { key: '180', label: '180s', values: valuesOf('num180s') },
+        { key: 'won', label: t('Won games'), values: valuesOf('wonGames') },
+        { key: '180', label: t('180s'), values: valuesOf('num180s') },
         { key: '160', label: '160+', values: valuesOf('num160plus') },
         { key: '140', label: '140+', values: valuesOf('num140plus') },
-        { key: 'average', label: '3-dart average', values: averages, texts: averages.map(value => value.toFixed(1)) },
-        { key: 'dartsPerLeg', label: 'Darts per leg', values: dartsPerLeg, lowerIsBetter: true },
+        { key: 'average', label: t('3-dart average'), values: averages, texts: averages.map(value => value.toFixed(1)) },
+        { key: 'dartsPerLeg', label: t('Darts per leg'), values: dartsPerLeg, lowerIsBetter: true },
         {
             key: 'checkout',
-            label: 'Checkout',
+            label: t('Checkout'),
             values: totals.map((total, index) => total ? hits[index] / total : 0),
             texts: totals.map((total, index) => total ? `${Math.round(hits[index] / total * 100)} %` : '–'),
             // the lead in percentage points
             formatLead: (difference) => `${Math.round(difference * 100)} %`,
             details: totals.map((total, index) => total ? `${hits[index]}/${total}` : ''),
         },
-        { key: 'highest', label: 'Highest checkout', values: valuesOf('checkouts.highest') },
+        { key: 'highest', label: t('Highest checkout'), values: valuesOf('checkouts.highest') },
     ];
 
     return <SideBySide rows={rows} players={players} />;

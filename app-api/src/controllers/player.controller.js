@@ -228,6 +228,7 @@ export const update = async (req, res) => {
     player.firstname = player.user ? req.user.firstname : req.body.firstname;
     player.lastname = player.user ? req.user.lastname : req.body.lastname;
     player.nickname = req.body.nickname;
+    if (typeof req.body.country === 'string') player.country = req.body.country.toUpperCase();
     if (ownBirth) player.birthChanges.push({ from: player.dateOfBirth, to: birth, at: new Date() });
     if ((isAdmin || ownBirth) && birth) player.dateOfBirth = birth;
     if (req.file) player.profileImg = req.file.filename;
@@ -241,6 +242,8 @@ export const update = async (req, res) => {
         replaced.push(...others.map(other => other.profileImg));
         await Player.updateMany({ user: player.user, _id: { $ne: player._id } }, { $set: { profileImg: player.profileImg } });
     }
+    // ... and come from one country
+    if (player.user) await Player.updateMany({ user: player.user, _id: { $ne: player._id } }, { $set: { country: player.country } });
     // Only drop an old file once no player uses it any more
     for (const img of new Set(replaced)) {
         if (img && img !== player.profileImg) await removeProfileImageIfUnused(img);
@@ -339,7 +342,7 @@ export const giveLogin = async (req, res) => {
     }
     logger.info(`${user.email} can now log in as player "${player.nickname}" of club "${req.club.name}"`);
 
-    sendClubWelcomeMail(user, inviteLink, 'player', { club: req.club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, nickname: player.nickname });
+    sendClubWelcomeMail(user, inviteLink, 'player', { club: req.club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, nickname: player.nickname, language: req.user.language });
 
     res.send((await toClient([player], req))[0]);
 };
@@ -397,7 +400,8 @@ export const setTrainingPrivacy = async (req, res) => {
 
 /**
  * A player's favourite double and main treble for the ways out ("auto" learns
- * them from the games), and how their darts fly onto the board in X01.
+ * them from the games), how their darts fly onto the board in X01, and
+ * whether they play with a handicap.
  * Club admins, or the player themselves.
  */
 export const setPreferences = async (req, res) => {
@@ -427,6 +431,8 @@ export const setPreferences = async (req, res) => {
         flightPattern: req.body.flightPattern ?? current.flightPattern ?? 'plain',
         flightShape: req.body.flightShape ?? current.flightShape ?? 'standard',
         barrel: req.body.barrel ?? current.barrel ?? 'classic',
+        // whether the player plays with a handicap when the others want one
+        handicap: req.body.handicap ?? current.handicap ?? 'accept',
     };
     await player.save();
     res.send(player.toJSON());

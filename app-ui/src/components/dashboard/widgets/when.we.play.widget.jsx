@@ -1,9 +1,18 @@
 import { useMemo } from 'react';
 import { Panel } from 'primereact/panel';
+import dayjs from 'dayjs';
 
 import { whenWePlay, TIME_SLOTS } from '../../../utils/club.charts';
+import { currentLanguage, t, tn } from '../../../utils/i18n';
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+// German nouns keep their capital letter
+const slotName = (label) => currentLanguage() === 'de' ? label : label.toLowerCase();
+
+// Monday to Sunday, in the language of the app
+const DAYS = [1, 2, 3, 4, 5, 6, 0].map(day => {
+    const name = dayjs().day(day).format('dddd');
+    return name.charAt(0).toUpperCase() + name.slice(1);
+});
 
 /**
  * Games by day of the week and time of day: when the club plays most.
@@ -19,7 +28,7 @@ const WhenWePlayWidget = ({ widget, gameLog }) => {
     return (
         <Panel header={widget.title} className="h-100">
             <p className="text-faint fs-8 mt-0 mb-3">
-                {busiest ? `Busiest: ${DAYS[busiest.day]} ${TIME_SLOTS[busiest.slot].label.toLowerCase()}.` : 'No games yet.'}
+                {busiest ? t('Busiest: {{value}} {{toLowerCase}}.', { value: DAYS[busiest.day], toLowerCase: slotName(TIME_SLOTS[busiest.slot].label) }) : t('No games yet.')}
             </p>
             <div className="when-grid">
                 <span />
@@ -28,7 +37,7 @@ const WhenWePlayWidget = ({ widget, gameLog }) => {
                     <div key={DAYS[day]} style={{ display: 'contents' }}>
                         <span className="when-day">{DAYS[day].slice(0, 3)}</span>
                         {slots.map((count, slot) => {
-                            const title = `${DAYS[day]} ${TIME_SLOTS[slot].label.toLowerCase()}: ${count} ${count === 1 ? 'game' : 'games'}`;
+                            const title = `${DAYS[day]} ${slotName(TIME_SLOTS[slot].label)}: ${tn(count, '{{count}} game', '{{count}} games')}`;
                             return (
                                 <span
                                     key={slot}

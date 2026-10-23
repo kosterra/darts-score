@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
 import { averageTrend, scoringVsFinishing, dartsPerLegDistribution, DARTS_PER_LEG_BUCKETS, threeDartAverage } from '../utils/chart.data.js';
 import { playersX01StatsModel, checkoutItemModel, avgItemModel } from '../models/players.x01.stats.models.js';
+import { viewOf } from '../utils/game.view.js';
 
 const X01 = db.x01;
 
@@ -116,8 +117,9 @@ const calculateDartsPerLegX01Avg = (x01Games, playerId) => {
     return Math.round(totalDarts / legsPlayed, 2);
 }
 
+// the legs and sets played follow from the visits
 const getTotalLegsPlayedX01 = (x01Games) => {
-    return x01Games.map(game => {
+    return x01Games.map(stored => viewOf('x01', stored)).map(game => {
         if ((game.legsPlayed || 0) === 0) {
             return null;
         }
@@ -139,7 +141,7 @@ const getTotalDartsThrownX01 = (x01Games, playerId) => {
 }
 
 const getTotalPointsThrownX01 = (x01Games, playerId) => {
-    return x01Games.map(game => {
+    return x01Games.map(stored => viewOf('x01', stored)).map(game => {
         for (let i = 1; i <= game.setsPlayed || 0; i++) {
             for (let x = 1; x <= game.legsPlayed || 0; x++) {
                 const rounds = (((game.allSetsThrows || {})['set-' + i] || {})['leg-' + x] || {});

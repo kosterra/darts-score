@@ -7,20 +7,22 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import AdminService from '../../services/admin.service';
 import StatTile from '../stats/players/stat.tile';
 import { AdminToolbar } from './admin.common';
+import { t, tn } from '../../utils/i18n';
+import FilterPills from '../elements/filter.pills';
+import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
 
 const LEVEL_OPTIONS = [
-    { label: 'All', value: 'all' },
-    { label: 'Errors', value: 'error' },
-    { label: 'Warnings', value: 'warn' },
+    { label: t('All'), value: 'all' },
+    { label: t('Errors'), value: 'error', icon: 'pi pi-times-circle' },
+    { label: t('Warnings'), value: 'warn', icon: 'pi pi-exclamation-triangle' },
 ];
 
 const LEVEL_TAGS = {
@@ -46,7 +48,7 @@ const ErrorLog = () => {
             setLog(await AdminService.loadLogs({ level, search }));
         } catch (error) {
             setLog({ entries: [] });
-            toast.current?.show({ severity: 'error', summary: 'Load error log', detail: error.message, life: 4000 });
+            toast.current?.show({ severity: 'error', summary: t('Load error log'), detail: error.message, life: 4000 });
         }
     };
 
@@ -58,27 +60,27 @@ const ErrorLog = () => {
     }, [level, search]);
 
     const confirmClear = () => confirmDialog({
-        header: 'Clear error log',
-        message: 'Remove all entries from the error log?',
+        header: t('Clear error log'),
+        message: t('Remove all entries from the error log?'),
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Clear',
-        rejectLabel: 'Cancel',
+        acceptLabel: t('Clear'),
+        rejectLabel: t('Cancel'),
         acceptClassName: 'p-button-danger p-button-sm',
         rejectClassName: 'p-button-secondary p-button-sm',
         accept: async () => {
             try {
                 const { deleted } = await AdminService.clearLogs();
-                toast.current.show({ severity: 'success', summary: 'Error log cleared', detail: `${deleted} entries removed`, life: 3000 });
+                toast.current.show({ severity: 'success', summary: t('Error log cleared'), detail: t('{{deleted}} entries removed', { deleted: deleted }), life: 3000 });
                 await loadLog();
             } catch (error) {
-                toast.current.show({ severity: 'error', summary: 'Clear error log', detail: error.message, life: 4000 });
+                toast.current.show({ severity: 'error', summary: t('Clear error log'), detail: error.message, life: 4000 });
             }
         },
     });
 
     const timeBody = (entry) => (
         <div className="d-flex flex-column">
-            <span className="text-default fs-7 text-nowrap">{dayjs(entry.time).format('DD.MM.YYYY HH:mm:ss')}</span>
+            <span className="text-default fs-7 text-nowrap">{formatDate(entry.time, { time: true, seconds: true })}</span>
             <span className="text-faint fs-8 text-nowrap">{dayjs(entry.time).fromNow()}</span>
         </div>
     );
@@ -86,7 +88,7 @@ const ErrorLog = () => {
     const messageBody = (entry) => {
         const request = entry.context?.request;
         return (
-            <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+            <div className="d-flex flex-column gap-1 min-w-0">
                 <span className="text-default fs-7 text-break">{entry.message || entry.error?.message}</span>
                 {entry.error && entry.error.message !== entry.message &&
                     <span className="text-subtle fs-8 text-break">{entry.error.type}: {entry.error.message}</span>}
@@ -110,21 +112,21 @@ const ErrorLog = () => {
     return (
         <div className="d-flex flex-column gap-4">
             <div className="row g-3">
-                <div className="col-6 col-lg-3"><StatTile label="Errors in 24 hours" value={log?.errorsToday ?? '–'} /></div>
-                <div className="col-6 col-lg-3"><StatTile label="Warnings in 24 hours" value={log?.warningsToday ?? '–'} /></div>
+                <div className="col-6 col-lg-3"><StatTile label={t('Errors in 24 hours')} value={log?.errorsToday ?? '–'} /></div>
+                <div className="col-6 col-lg-3"><StatTile label={t('Warnings in 24 hours')} value={log?.warningsToday ?? '–'} /></div>
             </div>
 
-            <Panel header="Error log">
+            <Panel header={t('Error log')}>
                 <AdminToolbar>
                     <span className="p-input-icon-left">
                         <i className="pi pi-search" />
-                        <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search messages" aria-label="Search messages" />
+                        <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search messages')} aria-label={t('Search messages')} />
                     </span>
-                    <SelectButton value={level} options={LEVEL_OPTIONS} onChange={(e) => e.value && setLevel(e.value)} aria-label="Level" />
+                    <FilterPills value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level')} />
                     <div className="ms-auto d-flex align-items-center gap-3">
-                        {log?.entries && <span className="text-faint fs-7">{log.entries.length} {log.entries.length === 1 ? 'entry' : 'entries'}</span>}
-                        <Button icon="pi pi-refresh" label="Refresh" size="small" severity="secondary" onClick={loadLog} />
-                        <Button icon="pi pi-trash" label="Clear" size="small" severity="danger" disabled={!log?.entries?.length} onClick={confirmClear} />
+                        {log?.entries && <span className="text-faint fs-7">{tn(log.entries.length, '{{count}} entry', '{{count}} entries')}</span>}
+                        <Button icon="pi pi-refresh" label={t('Refresh')} size="small" severity="secondary" onClick={loadLog} />
+                        <Button icon="pi pi-trash" label={t('Clear')} size="small" severity="danger" disabled={!log?.entries?.length} onClick={confirmClear} />
                     </div>
                 </AdminToolbar>
 
@@ -139,16 +141,16 @@ const ErrorLog = () => {
                     paginator
                     rows={25}
                     rowsPerPageOptions={[25, 50, 100]}
-                    emptyMessage="No warnings or errors. All good."
+                    emptyMessage={t('No warnings or errors. All good.')}
                     responsiveLayout="scroll"
                 >
                     <Column expander={hasDetails} style={{ width: '3rem' }} />
-                    <Column header="Time" body={timeBody} />
-                    <Column header="Level" body={(entry) => <Tag {...LEVEL_TAGS[entry.level]} />} />
-                    <Column header="Message" body={messageBody} style={{ minWidth: '20rem' }} />
+                    <Column header={t('Time')} body={timeBody} />
+                    <Column header={t('Level')} body={(entry) => <Tag {...LEVEL_TAGS[entry.level]} />} />
+                    <Column header={t('Message')} body={messageBody} style={{ minWidth: '20rem' }} />
                 </DataTable>
                 <span className="d-block text-faint fs-8 mt-2">
-                    Entries are kept for {log?.retentionDays ?? 30} days; the newest {log?.limit ?? 500} are shown.
+                    {t('Entries are kept for')}{' '}{log?.retentionDays ?? 30}{' '}{t('days; the newest')}{' '}{log?.limit ?? 500}{' '}{t('are shown.')}
                 </span>
             </Panel>
 

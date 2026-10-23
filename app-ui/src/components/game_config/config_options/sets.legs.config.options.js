@@ -1,3 +1,5 @@
+import { tn } from '../../../utils/i18n';
+
 const SetsLegsConfigOptions = {
     setLegModeOptions: {
         values: [
@@ -8,53 +10,53 @@ const SetsLegsConfigOptions = {
     },
     ftLegsNumberOptions: {
         values: [
-            { name: '1 leg', value: 1 },
-            { name: '2 legs', value: 2 },
-            { name: '3 legs', value: 3 },
-            { name: '4 legs', value: 4 },
-            { name: '5 legs', value: 5 },
-            { name: '6 legs', value: 6 },
-            { name: '7 legs', value: 7 },
-            { name: '8 legs', value: 8 },
-            { name: '9 legs', value: 9 },
-            { name: '10 legs', value: 10 },
-            { name: '11 legs', value: 11 }
+            { name: tn(1, '{{count}} leg', '{{count}} legs'), value: 1 },
+            { name: tn(2, '{{count}} leg', '{{count}} legs'), value: 2 },
+            { name: tn(3, '{{count}} leg', '{{count}} legs'), value: 3 },
+            { name: tn(4, '{{count}} leg', '{{count}} legs'), value: 4 },
+            { name: tn(5, '{{count}} leg', '{{count}} legs'), value: 5 },
+            { name: tn(6, '{{count}} leg', '{{count}} legs'), value: 6 },
+            { name: tn(7, '{{count}} leg', '{{count}} legs'), value: 7 },
+            { name: tn(8, '{{count}} leg', '{{count}} legs'), value: 8 },
+            { name: tn(9, '{{count}} leg', '{{count}} legs'), value: 9 },
+            { name: tn(10, '{{count}} leg', '{{count}} legs'), value: 10 },
+            { name: tn(11, '{{count}} leg', '{{count}} legs'), value: 11 }
         ],
         default: 3
     },
     boLegsNumberOptions: {
         values: [
-            { name: '3 legs', value: 3 },
-            { name: '5 legs', value: 5 },
-            { name: '7 legs', value: 7 },
-            { name: '9 legs', value: 9 },
-            { name: '11 legs', value: 11 }
+            { name: tn(3, '{{count}} leg', '{{count}} legs'), value: 3 },
+            { name: tn(5, '{{count}} leg', '{{count}} legs'), value: 5 },
+            { name: tn(7, '{{count}} leg', '{{count}} legs'), value: 7 },
+            { name: tn(9, '{{count}} leg', '{{count}} legs'), value: 9 },
+            { name: tn(11, '{{count}} leg', '{{count}} legs'), value: 11 }
         ],
         default: 3
     },
     ftSetsNumberOptions: {
         values: [
-            { name: '1 set', value: 1 },
-            { name: '2 sets', value: 2 },
-            { name: '3 sets', value: 3 },
-            { name: '4 sets', value: 4 },
-            { name: '5 sets', value: 5 },
-            { name: '6 sets', value: 6 },
-            { name: '7 sets', value: 7 },
-            { name: '8 sets', value: 8 },
-            { name: '9 sets', value: 9 },
-            { name: '10 sets', value: 10 },
-            { name: '11 sets', value: 11 }
+            { name: tn(1, '{{count}} set', '{{count}} sets'), value: 1 },
+            { name: tn(2, '{{count}} set', '{{count}} sets'), value: 2 },
+            { name: tn(3, '{{count}} set', '{{count}} sets'), value: 3 },
+            { name: tn(4, '{{count}} set', '{{count}} sets'), value: 4 },
+            { name: tn(5, '{{count}} set', '{{count}} sets'), value: 5 },
+            { name: tn(6, '{{count}} set', '{{count}} sets'), value: 6 },
+            { name: tn(7, '{{count}} set', '{{count}} sets'), value: 7 },
+            { name: tn(8, '{{count}} set', '{{count}} sets'), value: 8 },
+            { name: tn(9, '{{count}} set', '{{count}} sets'), value: 9 },
+            { name: tn(10, '{{count}} set', '{{count}} sets'), value: 10 },
+            { name: tn(11, '{{count}} set', '{{count}} sets'), value: 11 }
         ],
         default: 3
     },
     boSetsNumberOptions: {
         values: [
-            { name: '3 sets', value: 3 },
-            { name: '5 sets', value: 5 },
-            { name: '7 sets', value: 7 },
-            { name: '9 sets', value: 9 },
-            { name: '11 sets', value: 11 }
+            { name: tn(3, '{{count}} set', '{{count}} sets'), value: 3 },
+            { name: tn(5, '{{count}} set', '{{count}} sets'), value: 5 },
+            { name: tn(7, '{{count}} set', '{{count}} sets'), value: 7 },
+            { name: tn(9, '{{count}} set', '{{count}} sets'), value: 9 },
+            { name: tn(11, '{{count}} set', '{{count}} sets'), value: 11 }
         ],
         default: 3
     },

@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders,
     requestJSON
@@ -19,7 +20,7 @@ const loadPlayerStats = async (playerId, filters = {}) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw Error(error.message);
     }
@@ -37,7 +38,7 @@ const loadX01PlayersStats = async (body) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw Error(error.message);
     }
@@ -55,7 +56,7 @@ const loadX01GameStats = async (gameId) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw Error(error.message);
     }
@@ -76,6 +77,12 @@ const loadClubBadges = () => requestJSON(API_URL + 'stats/badges');
  * The Hall of Shame of the club: who holds each shame badge right now,
  * { enabled, badges: [{ id, title, description, wash, holder, since, sourceType, sourceId }] }.
  */
+/**
+ * The games of the club at a glance, over all of them: { total, last30Days,
+ * running, players, popular, ranking, winRates, playersById }.
+ */
+const loadGamesOverview = () => requestJSON(API_URL + 'stats/games');
+
 const loadClubShame = () => requestJSON(API_URL + 'stats/shame');
 
 /**
@@ -110,6 +117,7 @@ const loadGameBadges = (gameType, gameId) => requestJSON(`${API_URL}stats/badges
 const StatsService = {
     loadClubBadges,
     loadClubShame,
+    loadGamesOverview,
     loadPlayerBadges,
     loadGameBadges,
     loadClubStats,

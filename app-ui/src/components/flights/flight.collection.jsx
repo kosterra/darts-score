@@ -5,11 +5,12 @@ import { ProgressBar } from 'primereact/progressbar';
 import PlayerService from '../../services/player.service';
 import { FlightPicture } from './flight.art';
 import { BarrelPicture } from './barrel.art';
+import { t } from '../../utils/i18n';
 
 const GROUPS = [
-    { key: 'shapes', title: 'Flight shapes' },
-    { key: 'designs', title: 'Flight designs' },
-    { key: 'barrels', title: 'Barrels' },
+    { key: 'shapes', title: t('Flight shapes') },
+    { key: 'designs', title: t('Flight designs') },
+    { key: 'barrels', title: t('Barrels') },
 ];
 
 /**
@@ -43,17 +44,17 @@ const FlightCollection = ({ playerId }) => {
     return (
         <section className="d-flex flex-column gap-3">
             <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
-                <h2 className="fs-4 fw-semibold text-default m-0">Flights and barrels</h2>
-                <span className="text-subtle">{owned} of {all.length} collected</span>
+                <h2 className="fs-4 fw-semibold text-default m-0">{t('Flights and barrels')}</h2>
+                <span className="text-subtle">{owned}{' '}{t('of')}{' '}{all.length}{' '}{t('collected')}</span>
                 <ProgressBar value={Math.round(owned / all.length * 100)} showValue={false} style={{ height: '0.5rem', width: '16rem', maxWidth: '100%' }} />
             </div>
-            <Panel header={`${standing.points.balance} flight points to spend · ${standing.points.earned} earned`}>
+            <Panel header={t('{{balance}} flight points to spend · {{earned}} earned', { balance: standing.points.balance, earned: standing.points.earned })}>
                 <div className="d-flex flex-column gap-3">
                     {GROUPS.map(group => {
                         const items = standing[group.key].filter(item => item.state === 'owned');
                         return (
                             <div key={group.key} className="d-flex flex-column gap-2">
-                                <span className="text-subtle fs-8">{group.title} · {items.length} of {standing[group.key].length}</span>
+                                <span className="text-subtle fs-8">{group.title} · {items.length}{' '}{t('of')}{' '}{standing[group.key].length}</span>
                                 <ul className="flight-album list-unstyled m-0">
                                     {items.map(item => (
                                         <li key={item.id} className={`flight-album-item is-${item.rarity}`} title={item.label}>

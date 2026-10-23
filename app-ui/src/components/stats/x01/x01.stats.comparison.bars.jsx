@@ -1,4 +1,5 @@
 import SideBySide from '../common/side.by.side';
+import { t } from '../../../utils/i18n';
 
 const RANGES = [['180s', '180'], ['160+', '160-179'], ['140+', '140-159'], ['120+', '120-139'], ['100+', '100-119']];
 
@@ -15,7 +16,7 @@ const X01StatsComparisonBars = ({ valueKey, game, players }) => {
     const averages = ids.map(id => modelOf(id).averages?.[valueKey]?.overall ?? 0);
 
     const rows = [
-        { key: 'legs', label: 'Legs won', values: ids.map(id => modelOf(id).legsWon?.[valueKey] ?? 0) },
+        { key: 'legs', label: t('Legs won'), values: ids.map(id => modelOf(id).legsWon?.[valueKey] ?? 0) },
         ...RANGES.map(([label, range]) => ({
             key: range,
             label,
@@ -23,13 +24,13 @@ const X01StatsComparisonBars = ({ valueKey, game, players }) => {
         })),
         {
             key: 'average',
-            label: '3-dart average',
+            label: t('3-dart average'),
             values: averages,
             texts: averages.map(average => average.toFixed(1)),
         },
         {
             key: 'checkout',
-            label: 'Checkout',
+            label: t('Checkout'),
             values: checkouts.map(({ hit = 0, total = 0 }) => total ? hit / total : 0),
             texts: checkouts.map(({ hit = 0, total = 0 }) => total ? `${Math.round(hit / total * 100)} %` : '–'),
             // the lead in percentage points

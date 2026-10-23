@@ -1,5 +1,7 @@
 import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
+import { isRulesGame } from './rules.kinds.js';
+import { withView } from './game.view.js';
 
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
@@ -139,6 +141,11 @@ export const BADGE_GROUPS = [
         tiers: [[3, 'All-Rounder']],
     },
     {
+        group: 'rulesWins', category: 'winning', title: 'More games', metric: 'winsRules',
+        describe: (n) => n === 1 ? 'Win a game of Shanghai, Killer, Halve-It, Golf or Tactics' : `Win ${n} games of Shanghai, Killer, Halve-It, Golf or Tactics`,
+        tiers: [[1, 'Game Changer'], [10, 'Party Animal'], [50, 'Master of Games']],
+    },
+    {
         group: 'weekStreak', category: 'milestones', title: 'Weekly streak', metric: 'bestWeekStreak',
         describe: (n) => `Play in ${n} weeks in a row`,
         tiers: [[4, 'Regular Fixture'], [12, 'Season Ticket'], [26, 'Half-Year Hero'], [52, 'Year-Round']],
@@ -238,6 +245,21 @@ export const BADGE_GROUPS = [
         group: 'trainingDarts', category: 'training', title: 'Sharp shooter', metric: 'bestSinglesDarts', lower: true,
         describe: (n) => `Finish an Around the Clock training on singles with ${n} darts or fewer`,
         tiers: [[40, 'Steady Hand'], [30, 'Sharp Shooter'], [25, 'Sniper']],
+    },
+    {
+        group: 'bobs27', category: 'training', title: 'Bob\'s 27', metric: 'bobs27Best',
+        describe: (n) => `Score ${n} or more in Bob's 27`,
+        tiers: [[100, 'Doubles Apprentice'], [300, 'Doubles Specialist'], [600, 'Doubles Master']],
+    },
+    {
+        group: 'checkout121', category: 'training', title: '121 Checkout', metric: 'checkout121Best',
+        describe: (n) => `Check out ${n} in 121 Checkout`,
+        tiers: [[121, 'One-Two-One'], [130, 'Climber'], [150, 'Summit']],
+    },
+    {
+        group: 'catch40', category: 'training', title: 'Catch 40', metric: 'catch40Best',
+        describe: (n) => `Score ${n} points or more in Catch 40`,
+        tiers: [[40, 'Catcher'], [70, 'Safe Hands'], [100, 'Catch Master']],
     },
 ];
 
@@ -341,6 +363,8 @@ const newMetrics = () => ({
     opponents: 0, opponentIds: new Set(), firstAt: null, daysSinceFirst: 0,
     tonPlusVisits: 0, tonFortyVisits: 0, threeInABeds: 0, bagsOfNuts: 0, bestLegDarts: 0, doubleTops: 0, clutchWins: 0,
     whiteHorses: 0, bullHatTricks: 0, bestMarksPerRound: 0,
+    // the games and trainings of the rules engine
+    winsRules: 0, bobs27Best: 0, checkout121Best: 0, catch40Best: 0,
     trainingDays: 0, lastTrainingDay: null, trainingWeekStreak: 0, bestTrainingWeekStreak: 0, lastTrainingWeek: null,
     trainingModes: 0, trainingModesDone: new Set(), bestSinglesDarts: 0,
     // the Hall of Shame and the good deeds that wash it off
@@ -356,7 +380,7 @@ const number = (key) => Number(String(key).replace(/\D/g, '')) || 0;
  * { 'set-1': { 'leg-1': [visit, ...] } }.
  */
 export const legsInOrder = (game) =>
-    Object.entries(game.allSetsThrows ?? {})
+    Object.entries(withView('x01', game).allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .flatMap(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg))
         .filter(Array.isArray);
@@ -443,7 +467,7 @@ export const wonInDecidingLeg = (game, playerId) => {
     const setsNeeded = toWin(game.setMode, game.numberOfSets);
     if (legsNeeded === 1 && setsNeeded === 1) return false;
 
-    const sets = Object.entries(game.allSetsThrows ?? {})
+    const sets = Object.entries(withView('x01', game).allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .map(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg).filter(Array.isArray));
     const winnerOf = (leg) => leg.find(visit => visit?.scoreLeft === 0)?.playerId;
@@ -528,7 +552,7 @@ const isWhiteHorse = (darts) => {
  * marks per round of the game.
  */
 const applyCricket = (metrics, game, model, playerId) => {
-    for (const visit of game.allThrows ?? []) {
+    for (const visit of withView('cricket', game).allThrows ?? []) {
         if (visit?.playerId !== playerId) continue;
         applyAnyVisit(metrics, visit);
         if (isWhiteHorse(visit.darts)) metrics.whiteHorses += 1;
@@ -579,7 +603,7 @@ export const isLast = (type, game, playerId) => {
         elimination: (id) => Number(model(id).score ?? 0),
         // a higher rank is worse: turn it around so the lowest value is last
         clock: (id) => -(model(id).rank ?? 0),
-    }[type];
+    }[type] ?? (isRulesGame(type) ? (id) => -(model(id).rank ?? 0) : null);
     if (!value || model(playerId).hasWonGame) return false;
     const mine = value(playerId);
     return players.filter(id => id !== playerId).every(id => value(id) > mine);
@@ -593,7 +617,7 @@ const applyGame = (metrics, type, game, playerId) => {
     const competitive = opponents.length > 0;
 
     metrics.games += 1;
-    metrics.darts += (type === 'clock' ? model.darts : type === 'elimination' ? model.totalThrow?.darts : model.totalThrow?.game?.darts) ?? 0;
+    metrics.darts += (type === 'clock' || isRulesGame(type) ? model.darts : type === 'elimination' ? model.totalThrow?.darts : model.totalThrow?.game?.darts) ?? 0;
 
     if (competitive) {
         for (const id of opponents) metrics.opponentIds.add(String(id));
@@ -605,7 +629,7 @@ const applyGame = (metrics, type, game, playerId) => {
             if (metrics.streak === WINS_TO_WARM_UP) metrics.warmUps += 1;
             if (opponents.length >= MIN_PLAYERS_FOR_LAST - 1) metrics.bigGameWins += 1;
             metrics.bestStreak = Math.max(metrics.bestStreak, metrics.streak);
-            metrics[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock' }[type]] += 1;
+            metrics[isRulesGame(type) ? 'winsRules' : { x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock' }[type]] += 1;
             metrics.gameTypesWon = ['winsX01', 'winsCricket', 'winsElimination'].filter(key => metrics[key] > 0).length;
         } else {
             metrics.streak = 0;
@@ -617,7 +641,7 @@ const applyGame = (metrics, type, game, playerId) => {
 
     if (type === 'cricket') applyCricket(metrics, game, model, playerId);
     if (type === 'elimination') {
-        for (const visit of game.allThrows ?? []) if (visit?.playerId === playerId) applyAnyVisit(metrics, visit);
+        for (const visit of withView('elimination', game).allThrows ?? []) if (visit?.playerId === playerId) applyAnyVisit(metrics, visit);
     }
     if (type !== 'x01') return;
 
@@ -687,6 +711,15 @@ const applyTraining = (metrics, entry, date) => {
     if (best === undefined || score < best) metrics.bestTrainingTimes[key] = score;
 };
 
+// a training of the rules engine: a training day, and the best of the kinds with badges
+const RULES_TRAINING_BESTS = { bobs27: 'bobs27Best', checkout121: 'checkout121Best', catch40: 'catch40Best' };
+const applyRulesTraining = (metrics, entry, date) => {
+    metrics.trainings += 1;
+    applyTrainingDay(metrics, date);
+    const best = RULES_TRAINING_BESTS[entry.kind];
+    if (best) metrics[best] = Math.max(metrics[best], Number(entry.score) || 0);
+};
+
 /**
  * Replays a player's history and returns the badges earned along the way plus
  * the final metrics (for progress towards the next tiers).
@@ -706,18 +739,21 @@ export const replayBadges = (events, playerId) => {
     for (const event of [...events].sort((a, b) => a.at - b.at)) {
         const before = Object.fromEntries(SHAME_BADGES.flatMap(badge => [[badge.metric, metrics[badge.metric]], [badge.washMetric, metrics[badge.washMetric]]]));
         if (event.type === 'atc') applyTraining(metrics, event.data, event.at);
+        else if (event.type === 'rulesTraining') applyRulesTraining(metrics, event.data, event.at);
         else applyGame(metrics, event.type, event.data, playerId);
         applyWeek(metrics, event.at);
 
         const source = { at: event.at, sourceType: event.type, sourceId: event.id };
+        // a friendly game is left out of the Hall of Shame: no shame from it, and no good deed either
+        const friendly = event.data?.friendly === true;
         // a good deed first, so a shame in the same game stays
-        for (const badge of SHAME_BADGES) {
+        for (const badge of friendly ? [] : SHAME_BADGES) {
             if (open.has(badge.id) && metrics[badge.washMetric] > before[badge.washMetric]) {
                 washes.push({ badge: badge.id, ...source });
                 open.delete(badge.id);
             }
         }
-        for (const badge of SHAME_BADGES) {
+        for (const badge of friendly ? [] : SHAME_BADGES) {
             const count = metrics[badge.metric] - before[badge.metric];
             if (count > 0) {
                 shame.push({ badge: badge.id, count, club: event.data?.club ? String(event.data.club) : null, ...source });

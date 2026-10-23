@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { GiDart } from 'react-icons/gi';
+import { t } from '../../../utils/i18n';
 
 // how long the card stays, and how long it takes to leave
 const DURATION_MS = { leg: 8000, set: 10000 };
@@ -35,8 +36,8 @@ const GameMoment = ({ moment, onDone }) => {
         <div className="game-moment-dock">
             <div key={moment.key} className={`game-moment-card is-${moment.kind} ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite">
                 <div className="game-moment-top">
-                    <span className="game-moment-tag">{isSet ? 'Set won' : 'Leg won'}</span>
-                    <button type="button" className="game-moment-close" aria-label="Close" onClick={() => setLeaving(true)}>
+                    <span className="game-moment-tag">{isSet ? t('Set won') : t('Leg won')}</span>
+                    <button type="button" className="game-moment-close" aria-label={t('Close')} onClick={() => setLeaving(true)}>
                         <i className="pi pi-times" aria-hidden="true" />
                     </button>
                 </div>
@@ -51,11 +52,11 @@ const GameMoment = ({ moment, onDone }) => {
                             <span className="game-moment-name">{standing.name}</span>
                         </span>
                     ))}
-                    <span className="game-moment-unit">{isSet ? 'sets' : 'legs'}</span>
+                    <span className="game-moment-unit">{isSet ? t('sets') : t('legs')}</span>
                 </div>
                 <div className="game-moment-next">
                     <GiDart aria-hidden="true" />
-                    <span>Next: {moment.next} · <strong>{moment.starter}</strong> throws first</span>
+                    <span>{t('Next:')}{' '}{moment.next} · <strong>{moment.starter}</strong>{' '}{t('throws first')}</span>
                 </div>
             </div>
         </div>

@@ -3,7 +3,6 @@ import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
-import dayjs from 'dayjs';
 
 import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
@@ -25,11 +24,12 @@ import RunningGamesWidget from './widgets/running.games.widget';
 import TimelineWidget from './widgets/timeline.widget';
 import HallOfShameWidget from './widgets/hall.of.shame.widget';
 import MeWidget from './widgets/me.widget';
+import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
-const formatDate = (date) => date ? dayjs(date).format('DD.MM.YYYY') : '–';
 
 // what a club admin arranges: their own dashboard or the club's
-const TARGETS = [{ label: 'My dashboard', value: 'mine' }, { label: "The club's dashboard", value: 'club' }];
+const TARGETS = [{ label: t('My dashboard'), value: 'mine' }, { label: t('The club\'s dashboard'), value: 'club' }];
 
 /**
  * The club dashboard: the club at a glance, followed by the widgets. Members
@@ -67,17 +67,17 @@ const Dashboard = () => {
     const clubLayout = layoutFor(null, activeClub).layout;
 
     if (failed) {
-        return <div className="container-fluid p-4 text-subtle">The dashboard could not be loaded. Please reload the page.</div>;
+        return <div className="container-fluid p-4 text-subtle">{t('The dashboard could not be loaded. Please reload the page.')}</div>;
     }
     if (!stats) return <DashboardSkeleton club={activeClub} widgets={widgets} />;
 
     const { club, totals } = stats;
     const facts = [
-        ['Club since', formatDate(club.createdAt)],
-        ['Players', club.playerCount],
-        ['Admins', club.adminCount],
-        ['Games played', totals.gamesPlayed],
-        ['Last game', formatDate(totals.lastGameAt)],
+        [t('Club since'), formatDate(club.createdAt)],
+        [t('Players'), club.playerCount],
+        [t('Admins'), club.adminCount],
+        [t('Games played'), totals.gamesPlayed],
+        [t('Last game'), formatDate(totals.lastGameAt)],
     ];
 
     // the arrangement to start from: one's own (or the club's, to start one's own from), or the club's
@@ -100,7 +100,7 @@ const Dashboard = () => {
             setEditing(null);
             toast.current?.show({ severity: 'success', summary, life: 3000 });
         } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Dashboard', detail: error.message, life: 4000 });
+            toast.current?.show({ severity: 'error', summary: t('Dashboard'), detail: error.message, life: 4000 });
         } finally {
             setSaving(false);
         }
@@ -109,12 +109,12 @@ const Dashboard = () => {
         ? run(async () => {
             await ClubService.updateClub(activeClub.id, { name: activeClub.name, dashboardLayout: draft });
             await refreshClubs();
-        }, "The club's dashboard is saved")
-        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, draft)), 'Your dashboard is saved');
+        }, t('The club\'s dashboard is saved'))
+        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, draft)), t('Your dashboard is saved'));
     // back to the club's dashboard (one's own) or to the default widgets (the club's, saved with Save)
     const reset = () => editing === 'club'
         ? setDraft(DEFAULT_LAYOUT)
-        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, null)), "You see the club's dashboard again");
+        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, null)), t('You see the club\'s dashboard again'));
 
     const renderWidget = (widget) => {
         switch (widget.kind) {
@@ -137,19 +137,19 @@ const Dashboard = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <header className="dashboard-header hero-header rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div className="d-flex flex-wrap align-items-start gap-4" style={{ minWidth: 0 }}>
+                <div className="d-flex flex-wrap align-items-start gap-4 min-w-0">
                 <ClubLogo club={club} size="lg" />
                 <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 18rem' }}>
                     <div className="d-flex flex-wrap align-items-center gap-3">
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{club.name}</h1>
-                        <Tag value={club.isPublic ? 'Public' : 'Private'} severity="secondary" />
+                        <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />
                     </div>
                     {club.description && <p className="text-subtle m-0" style={{ maxWidth: '60ch' }}>{club.description}</p>}
                     <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         {facts.map(([label, value]) => (
                             <div key={label}>
                                 <dt className="text-faint fs-8 fw-normal">{label}</dt>
-                                <dd className="text-default fw-semibold m-0" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</dd>
+                                <dd className="text-default fw-semibold m-0 tabular-nums">{value}</dd>
                             </div>
                         ))}
                     </dl>
@@ -157,29 +157,29 @@ const Dashboard = () => {
                 </div>
                 {!editing && (
                     <div className="d-flex flex-column align-items-end gap-1">
-                        <Button label="Edit dashboard" icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />
-                        {current.own && <span className="text-faint fs-8">Your own arrangement</span>}
+                        <Button label={t('Edit dashboard')} icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />
+                        {current.own && <span className="text-faint fs-8">{t('Your own arrangement')}</span>}
                     </div>
                 )}
             </header>
 
             {editing && (
-                <div className="dashboard-edit-bar" role="region" aria-label="Arranging the dashboard">
-                    <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+                <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging the dashboard')}>
+                    <div className="d-flex flex-column gap-1 min-w-0">
                         {isClubAdmin
-                            ? <SelectButton value={editing} options={TARGETS} onChange={(event) => switchTarget(event.value)} className="p-selectbutton-pills" aria-label="What to arrange" />
-                            : <span className="text-default fw-semibold">Arranging your dashboard</span>}
+                            ? <SelectButton value={editing} options={TARGETS} onChange={(event) => switchTarget(event.value)} className="p-selectbutton-pills" aria-label={t('What to arrange')} />
+                            : <span className="text-default fw-semibold">{t('Arranging your dashboard')}</span>}
                         <span className="text-faint fs-8">
                             {editing === 'club'
-                                ? 'Everyone in the club sees it, unless they arranged their own.'
-                                : 'Only you see it, in this club. Drag the widgets by their bar, choose their width, remove them or add more below.'}
+                                ? t('Everyone in the club sees it, unless they arranged their own.')
+                                : t('Only you see it, in this club. Drag the widgets by their bar, choose their width, remove them or add more below.')}
                         </span>
                     </div>
                     <div className="d-flex flex-wrap align-items-center gap-2">
                         {(editing === 'club' || current.own) &&
-                            <Button type="button" label={editing === 'club' ? 'Default widgets' : "Use the club's"} icon="pi pi-replay" size="small" severity="secondary" text onClick={reset} disabled={saving} />}
-                        <Button type="button" label="Cancel" size="small" severity="secondary" onClick={() => setEditing(null)} disabled={saving} />
-                        <Button type="button" label="Save" icon="pi pi-check" size="small" onClick={save} loading={saving} disabled={!draft.length} />
+                            <Button type="button" label={editing === 'club' ? t('Default widgets') : t('Use the club\'s')} icon="pi pi-replay" size="small" severity="secondary" text onClick={reset} disabled={saving} />}
+                        <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setEditing(null)} disabled={saving} />
+                        <Button type="button" label={t('Save')} icon="pi pi-check" size="small" onClick={save} loading={saving} disabled={!draft.length} />
                     </div>
                 </div>
             )}

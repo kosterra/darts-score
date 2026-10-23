@@ -5,6 +5,7 @@ import DartBoard from '../common/dartboard';
 import EliminationContext from '../../../utils/elimination.context';
 import useDartMarkers from '../common/use.dart.markers';
 import useBoardDarts from '../common/use.board.darts';
+import { t } from '../../../utils/i18n';
 
 /**
  * The board of Elimination: each dart tapped is marked until the visit is
@@ -21,7 +22,7 @@ const EliminationDartBoard = () => {
         const score = game.playerModels[game.currentPlayerTurn].score + getCurrentThrowScore();
         if (!checkCanThrowMoreDarts(score)) {
             toast.current?.clear();
-            toast.current?.show({ severity: 'error', summary: 'No more darts', detail: 'This visit is complete: enter the score.', life: 2500 });
+            toast.current?.show({ severity: 'error', summary: t('No more darts'), detail: t('This visit is complete: enter the score.'), life: 2500 });
             return;
         }
         remember(value, point);

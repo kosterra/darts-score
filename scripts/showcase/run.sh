@@ -6,11 +6,12 @@
 # Needs the dev containers running (docker compose -f docker-compose.dev.yml up)
 # for their MongoDB and the darts-score-api image, and Playwright with Chromium
 # (npm i playwright && npx playwright install chromium; PLAYWRIGHT may point
-# to the module when it lives elsewhere). Takes about half an hour.
+# to the module when it lives elsewhere). Takes about three quarters of an hour.
 #
 #   scripts/showcase/run.sh
 #
-# KEEP_DB=1 keeps the demo database afterwards; SHOOT_ONLY=1 then only takes
+# OUT=<dir> writes the pictures elsewhere, e.g. for a trial run. KEEP_DB=1 keeps
+# the demo database afterwards; SHOOT_ONLY=1 then only takes
 # the pictures again, from the games played before.
 set -euo pipefail
 
@@ -19,7 +20,7 @@ API_PORT=3902
 UI_PORT=5198
 DB=oche_showcase
 MONGO=darts-score-mongo-1
-OUT="$ROOT/app-ui/public/showcase"
+OUT="${OUT:-$ROOT/app-ui/public/showcase}"
 
 mongo() {
     docker exec -i "$MONGO" sh -c 'mongosh -u "$MONGO_INITDB_ROOT_USERNAME" -p "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --quiet '"$DB"

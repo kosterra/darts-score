@@ -37,6 +37,11 @@ export default defineConfig({
     },
   },
   plugins: [react(), restartOnVersionChange()],
+  // dayjs and its locales pre-bundled together: found apart, the locales point
+  // at an older dayjs bundle and the app does not start
+  optimizeDeps: {
+    include: ['dayjs', 'dayjs/locale/de-ch', 'dayjs/locale/fr-ch', 'dayjs/locale/it-ch', 'dayjs/locale/es'],
+  },
   define: {
     // read as import.meta.env.VITE_APP_VERSION
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),

@@ -191,6 +191,22 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-visits',
+        description: 'Keep X01, Cricket, Elimination and Around the Clock (and the quick games) as their visits, played on the rules engine; a copy of every game stays in "<collection>_before_visits"',
+        run: async () => {
+            const { migrateToVisits } = await import('./visits.migration.js');
+            const { moved, changed } = await migrateToVisits();
+            logger.info(`Moved ${moved} games to visits`);
+            // old games whose stored result the darts do not give (an earlier version of the app got it wrong)
+            for (const { type, id } of changed) logger.warn(`The visits of ${type} ${id} give another result than was stored; the copy before is kept`);
+            // the badges and statistics follow the games as they are now
+            const { syncPlayerBadges } = await import('./badge.service.js');
+            const players = await db.player.find({ guest: { $ne: true }, 'clubs.0': { $exists: true } });
+            for (const player of players) await syncPlayerBadges(player);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

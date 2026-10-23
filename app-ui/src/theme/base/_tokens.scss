@@ -1,0 +1,83 @@
+// ------------------------------------------------------------------------
+// Oche's style guide as tokens: every stylesheet takes its sizes, weights,
+// spacing, radii and accent colours from here. The colours a component
+// needs in JavaScript (charts, inline colours) are in utils/palette.js,
+// with the same values (a test keeps them equal).
+// ------------------------------------------------------------------------
+
+// Type scale: nothing smaller than $text-xs
+$text-xs: 0.75rem;      // tags, chart labels, the smallest captions (fs-9)
+$text-sm: 0.8125rem;    // secondary lines under a title (fs-8)
+$text-md: 0.875rem;     // small text, controls, table cells (fs-7)
+$text-base: 1rem;       // body text
+$text-lg: 1.125rem;     // emphasised lines
+$text-xl: 1.25rem;      // small headings, big names
+$text-2xl: 1.5rem;      // headings
+$text-3xl: 2rem;        // large figures
+// the big numbers of a KPI or a score
+$text-display: clamp(2.2rem, 4vw, 2.9rem);
+
+// Weights: regular text, semibold titles, bold emphasis, heavy only for big numbers
+$weight-regular: 400;
+$weight-semibold: 600;
+$weight-bold: 700;
+$weight-heavy: 800;
+
+// Spacing, on a 4px grid
+$space-1: 0.25rem;   // 4px
+$space-2: 0.5rem;    // 8px
+$space-3: 0.75rem;   // 12px
+$space-4: 1rem;      // 16px
+$space-5: 1.5rem;    // 24px
+$space-6: 2rem;      // 32px
+
+// Radii: small (bars, chips in a row), medium (inputs, panels, cards), large (hero cards), pills and round
+$radius-sm: 3px;
+$radius-md: $borderRadius;
+$radius-lg: 0.75rem;
+$radius-pill: 999px;
+$radius-round: 50%;
+
+// Accent colours (the theme's primary and status colours are in the theme variables)
+$accentGreen: $primaryLighterColor;   // positive figures, bars, KPI numbers (#7ecca5)
+$accentGold: #ffc94d;                 // winners, records, big moments
+$accentAmber: #e9ac2f;                // flight points, what can be bought
+$accentPink: #e69ac0;                 // the newer games
+$accentBlue: #4aa8ff;                 // information, links in charts
+$accentRed: #ec8b80;                  // losses, a bust, the Hall of Shame
+$accentCream: #efe6d0;                // the dartboard's light fields
+$momentGoldColor: $accentGold;
+
+// the colour of each game type: its icon, its line in the charts (the newer games share pink)
+$gameColorX01: $accentGreen;
+$gameColorCricket: #d4c783;
+$gameColorElimination: #c3a9e6;
+$gameColorClock: #86bfe6;
+$gameColorMore: $accentPink;
+
+// the podium: first, second, third
+$podiumGold: #ffc94d;
+$podiumSilver: #c9d1d9;
+$podiumBronze: #d29a6a;
+
+// Focus: one ring for the whole app, light grey and never green
+$focusRingColor: rgba(255, 255, 255, 0.6);
+@mixin focus-ring($offset: 2px) {
+    outline: 2px solid $focusRingColor;
+    outline-offset: $offset;
+}
+
+// Page widths: forms and setups, reading (the About page), lists and statistics take the full width
+$page-narrow: 48rem;
+$page-reading: 62rem;
+
+:root {
+    --accent-green: #{$accentGreen};
+    --accent-gold: #{$accentGold};
+    --accent-amber: #{$accentAmber};
+    --accent-red: #{$accentRed};
+    --podium-gold: #{$podiumGold};
+    --podium-silver: #{$podiumSilver};
+    --podium-bronze: #{$podiumBronze};
+    --focus-ring-color: #{$focusRingColor};
+}

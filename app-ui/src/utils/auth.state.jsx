@@ -5,6 +5,9 @@ import AuthService from '../services/auth.service';
 import ClubService from '../services/club.service';
 import { ROLES, CLUB_ROLES } from '../services/user.service';
 import { SESSION_ENDED, getActiveClubId, setActiveClubId } from './service.utils';
+import { currentLanguage, setLanguage, takeLanguageChosenBeforeLogin } from './i18n';
+import { connectGamePreferences } from './game.preferences';
+import { accountSaver } from './use.game.preferences';
 
 // whether this tab already has its club: then a reload keeps it
 const CLUB_CHOSEN_KEY = 'darts-score.clubChosen';
@@ -21,6 +24,25 @@ const markClubChosenInTab = () => {
     } catch {
         // storage unavailable: the default club is chosen on every reload
     }
+};
+
+/**
+ * The language after logging in: one picked before (on the start page or the
+ * login), or the app's when the account has none yet, is saved on the
+ * account; otherwise the account's language is used, and the app starts
+ * again in it (null then).
+ */
+const settleLanguage = async (loggedInUser) => {
+    const picked = takeLanguageChosenBeforeLogin();
+    if (picked || !loggedInUser.language) {
+        const wanted = picked ?? currentLanguage();
+        return wanted === loggedInUser.language ? loggedInUser : AuthService.saveLanguage(wanted).catch(() => loggedInUser);
+    }
+    if (loggedInUser.language !== currentLanguage()) {
+        setLanguage(loggedInUser.language);
+        return null;
+    }
+    return loggedInUser;
 };
 
 /**
@@ -57,7 +79,10 @@ const AuthState = ({ children }) => {
 
     // fresh: a new login. The user's default club is selected then, and when the
     // app opens in a new tab or browser; a reload keeps the club worked in.
-    const startSession = useCallback(async (loggedInUser, fresh = false) => {
+    const startSession = useCallback(async (sessionUser, fresh = false) => {
+        const loggedInUser = await settleLanguage(sessionUser);
+        // the app starts again in the account's language
+        if (!loggedInUser) return false;
         // Clubs first, so the app never renders a logged-in user without their clubs
         const loaded = await refreshClubs();
         const defaultClub = loggedInUser.defaultClub && loaded.find(club => club.id === String(loggedInUser.defaultClub));
@@ -66,18 +91,21 @@ const AuthState = ({ children }) => {
         setSessionEnded(false);
         setLoggedOut(false);
         setUser(loggedInUser);
+        return true;
     }, [refreshClubs, selectClub]);
 
     useEffect(() => {
         const restoreSession = async () => {
+            // the app starts again in the account's language: it keeps loading until then
+            let reloading = false;
             try {
                 AuthService.getConfig().then(config => setMailEnabled(config.mailEnabled)).catch(() => {});
                 const current = await AuthService.getCurrentUser();
-                if (current) await startSession(current);
+                if (current) reloading = !(await startSession(current));
             } catch (error) {
                 console.error('Failed to restore the session', error);
             } finally {
-                setLoading(false);
+                if (!reloading) setLoading(false);
             }
         };
         restoreSession();
@@ -88,7 +116,7 @@ const AuthState = ({ children }) => {
     }, [startSession]);
 
     const register = useCallback(async (account) => {
-        await startSession(await AuthService.register(account));
+        await startSession(await AuthService.register({ ...account, language: currentLanguage() }));
     }, [startSession]);
 
     const resetPassword = useCallback(async (token, password) => {
@@ -117,6 +145,11 @@ const AuthState = ({ children }) => {
         window.addEventListener(SESSION_ENDED, endSession);
         return () => window.removeEventListener(SESSION_ENDED, endSession);
     }, [user, endSession]);
+
+    // the player's preferences for playing, for the setup memory and the way darts are entered
+    useEffect(() => {
+        connectGamePreferences(user?.gamePreferences, user ? accountSaver(setUser) : null);
+    }, [user]);
 
     const activeClub = clubs.find(club => club.id === activeClubId) ?? null;
 

@@ -6,6 +6,7 @@ import { Message } from 'primereact/message';
 
 import AuthLayout from './auth.layout';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -20,16 +21,16 @@ const ResetPasswordPage = () => {
 
     const [password, setPassword] = useState('');
     const [passwordRepeat, setPasswordRepeat] = useState('');
-    const [error, setError] = useState(token ? '' : 'This link is incomplete. Please use the link from your mail.');
+    const [error, setError] = useState(token ? '' : t('This link is incomplete. Please use the link from your mail.'));
     const [submitting, setSubmitting] = useState(false);
 
     const onSubmit = async (event) => {
         event.preventDefault();
         if (password.length < MIN_PASSWORD_LENGTH) {
-            return setError(`The password needs at least ${MIN_PASSWORD_LENGTH} characters.`);
+            return setError(t('The password needs at least {{MIN_PASSWORD_LENGTH}} characters.', { MIN_PASSWORD_LENGTH: MIN_PASSWORD_LENGTH }));
         }
         if (password !== passwordRepeat) {
-            return setError('The two passwords do not match.');
+            return setError(t('The two passwords do not match.'));
         }
         setError('');
         setSubmitting(true);
@@ -43,7 +44,7 @@ const ResetPasswordPage = () => {
     };
 
     return (
-        <AuthLayout title="Choose a new password">
+        <AuthLayout title={t('Choose a new password')}>
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
                 <span className="p-float-label w-100">
                     <Password
@@ -56,7 +57,7 @@ const ResetPasswordPage = () => {
                         inputClassName="w-100"
                         required
                     />
-                    <label htmlFor="reset-password">New password (at least {MIN_PASSWORD_LENGTH} characters)</label>
+                    <label htmlFor="reset-password">{t('New password (at least')}{' '}{MIN_PASSWORD_LENGTH}{' '}{t('characters)')}</label>
                 </span>
                 <span className="p-float-label w-100">
                     <Password
@@ -69,11 +70,11 @@ const ResetPasswordPage = () => {
                         inputClassName="w-100"
                         required
                     />
-                    <label htmlFor="reset-password-repeat">Repeat new password</label>
+                    <label htmlFor="reset-password-repeat">{t('Repeat new password')}</label>
                 </span>
                 {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
-                <Button type="submit" label="Save password and log in" icon="pi pi-key" loading={submitting} disabled={!token} />
-                <span className="fs-7 text-subtle text-center"><Link to="/login">Back to log in</Link></span>
+                <Button type="submit" label={t('Save password and log in')} icon="pi pi-key" loading={submitting} disabled={!token} />
+                <span className="fs-7 text-subtle text-center"><Link to="/login">{t('Back to log in')}</Link></span>
             </form>
         </AuthLayout>
     );

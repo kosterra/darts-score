@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import dayjs from 'dayjs';
 import { Navigate } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
@@ -12,8 +11,9 @@ import StartPageSettings from './start.page.settings';
 import MailTemplates from './mail.templates';
 import StatTile from '../stats/players/stat.tile';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
-const formatDate = (value) => value ? dayjs(value).format('DD.MM.YYYY') : '–';
 
 const formatBytes = (bytes) => {
     if (bytes == null) return 'unknown';
@@ -40,7 +40,7 @@ const AdministrationPage = () => {
         try {
             setOverview(await AdminService.loadOverview());
         } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Load administration', detail: error.message, life: 4000 });
+            toast.current?.show({ severity: 'error', summary: t('Load administration'), detail: error.message, life: 4000 });
         }
     };
 
@@ -52,33 +52,33 @@ const AdministrationPage = () => {
 
     const system = overview?.system;
     const systemRows = system ? [
-        ['App version', import.meta.env.VITE_APP_VERSION],
-        ['Environment', system.environment],
+        [t('App version'), import.meta.env.VITE_APP_VERSION],
+        [t('Environment'), system.environment],
         ['Node.js', system.nodeVersion],
-        ['Mail', <Tag key="mail" value={system.mailEnabled ? 'Configured' : 'Not configured'} severity={system.mailEnabled ? 'success' : 'warning'} />],
-        ['Database size', formatBytes(system.databaseSize)],
+        [t('Mail'), <Tag key="mail" value={system.mailEnabled ? t('Configured') : t('Not configured')} severity={system.mailEnabled ? 'success' : 'warning'} />],
+        [t('Database size'), formatBytes(system.databaseSize)],
     ] : [];
 
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
             <div className="row g-3">
-                {[['Clubs', 'clubs'], ['Users', 'users'], ['Players', 'players'], ['Games', 'games']].map(([label, key]) => (
+                {[[t('Clubs'), 'clubs'], [t('Users'), 'users'], [t('Players'), 'players'], [t('Games'), 'games']].map(([label, key]) => (
                     <div key={key} className="col-6 col-lg-3">
                         <StatTile label={label} value={overview?.totals[key] ?? '–'} />
                     </div>
                 ))}
             </div>
 
-            <BannerSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Banner saved', detail, life: 3000 })} />
+            <BannerSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Banner saved'), detail, life: 3000 })} />
 
-            <StartPageSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Start page', detail, life: 3000 })} />
+            <StartPageSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Start page'), detail, life: 3000 })} />
 
-            <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Mail templates', detail, life: 3500 })} />
+            <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
 
-            <SessionSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: 'Session saved', detail, life: 3000 })} />
+            <SessionSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Session saved'), detail, life: 3000 })} />
 
             {system &&
-                <Panel header="System">
+                <Panel header={t('System')}>
                     <div className="row g-4">
                         <div className="col-12 col-lg-6">
                             <dl className="m-0 d-grid gap-2" style={{ gridTemplateColumns: 'max-content 1fr', columnGap: '1.5rem' }}>
@@ -91,7 +91,7 @@ const AdministrationPage = () => {
                             </dl>
                         </div>
                         <div className="col-12 col-lg-6">
-                            <span className="text-subtle d-block mb-2">Database migrations</span>
+                            <span className="text-subtle d-block mb-2">{t('Database migrations')}</span>
                             {system.migrations.length
                                 ? (
                                     <ul className="list-unstyled m-0 d-flex flex-column gap-1">
@@ -103,7 +103,7 @@ const AdministrationPage = () => {
                                         ))}
                                     </ul>
                                 )
-                                : <span className="text-faint">None yet</span>
+                                : <span className="text-faint">{t('None yet')}</span>
                             }
                         </div>
                     </div>

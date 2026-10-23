@@ -13,14 +13,16 @@ import RoundsLineChart from '../charts/rounds.line.chart';
 import { PLAYER_COLORS } from '../charts/chart.theme';
 import { TargetBars } from '../../training/atc.darts.result';
 import { TARGETS, hardestTargets, targetLabel } from '../../../utils/atc.darts';
+import UpLink from '../../elements/up.link';
 import { clockProgress, clockRematch, clockResults, replayClock, skipsAhead } from '../../../utils/clock.game';
+import { t } from '../../../utils/i18n';
 
 // the key figures of every player in the header
 const FIGURES = [
-    { key: 'hitRate', label: 'Hit rate', format: (value) => `${value} %` },
-    { key: 'numbers', label: 'Numbers hit', format: (value) => `${value} of ${TARGETS}` },
-    { key: 'turns', label: 'Turns', neutral: true },
-    { key: 'darts', label: 'Darts thrown', neutral: true },
+    { key: 'hitRate', label: t('Hit rate'), format: (value) => `${value} %` },
+    { key: 'numbers', label: t('Numbers hit'), format: (value) => t('{{value}} of {{TARGETS}}', { value: value, TARGETS: TARGETS }) },
+    { key: 'turns', label: t('Turns'), neutral: true },
+    { key: 'darts', label: t('Darts thrown'), neutral: true },
 ];
 
 /**
@@ -46,7 +48,7 @@ const ClockGameStats = () => {
             try {
                 const loaded = await ClockService.loadClockGameById(id);
                 const found = await PlayerService.findPlayersByIds(loaded.players);
-                setPlayers(loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: 'Unknown player' }));
+                setPlayers(loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') }));
                 setGame(loaded);
             } catch {
                 setFailed(true);
@@ -59,7 +61,7 @@ const ClockGameStats = () => {
     const results = useMemo(() => state ? clockResults(state) : [], [state]);
     const progress = useMemo(() => game ? clockProgress(game) : [], [game]);
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">This game could not be found in the selected club.</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{t('This game could not be found in the selected club.')}</div>;
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const resultOf = (playerId) => results.find(result => result.playerId === playerId);
@@ -78,20 +80,22 @@ const ClockGameStats = () => {
         navigate(`/clock/${created.id}`);
     };
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/clock', { replace: true })} onHome={() => navigate('/', { replace: true })} />;
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/clock', { replace: true })} />;
 
     const winners = players.filter(player => game.playerModels?.[player.id]?.hasWonGame);
 
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
+                <UpLink to="/games" label={t('Games')} />
                 <GameResultHeader
+                    celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
-                    title={`Around the Clock · ${game.mode}`}
-                    subtitle={`${skipsAhead(game) ? 'Doubles and trebles move on · ' : ''}${whenPlayed(game)}`}
+                    title={t('Around the Clock · {{mode}}', { mode: t(game.mode) })}
+                    subtitle={`${skipsAhead(game) ? t('Doubles and trebles move on · ') : ''}${whenPlayed(game)}`}
                     scoreOf={(player) => resultOf(player.id).finished ? resultOf(player.id).darts : targetLabel(resultOf(player.id).target, game.mode)}
-                    scoreDetailOf={(player) => resultOf(player.id).finished ? 'darts to finish' : 'next to hit'}
+                    scoreDetailOf={(player) => resultOf(player.id).finished ? t('darts to finish') : t('next to hit')}
                     rows={FIGURES}
                     figures={figures}
                     actions={actions}
@@ -109,8 +113,8 @@ const ClockGameStats = () => {
                 <div className="row g-4">
                     <div className="col-12 col-xl-7">
                         <RoundsLineChart
-                            title="Around the board"
-                            description="The numbers each player had hit after every round; 21 is done, with the bull."
+                            title={t('Around the board')}
+                            description={t('The numbers each player had hit after every round; 21 is done, with the bull.')}
                             data={progress}
                             players={players}
                             target={TARGETS}
@@ -119,7 +123,7 @@ const ClockGameStats = () => {
                         />
                     </div>
                     <div className="col-12 col-xl-5">
-                        <Panel header="Darts per number" className="h-100">
+                        <Panel header={t('Darts per number')} className="h-100">
                             <ol className="atc-result-list">
                                 {results.map(result => {
                                     const index = game.players.indexOf(result.playerId);
@@ -129,14 +133,14 @@ const ClockGameStats = () => {
                                             <div className="d-flex align-items-center gap-2">
                                                 <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />
                                                 <span className="atc-row-name flex-grow-1">{players[index].nickname}</span>
-                                                <span className="text-faint fs-8">{hardest.length ? `hardest ${hardest.map(target => `${targetLabel(target.index, game.mode)} (${target.darts})`).join(', ')}` : 'every number at the first try'}</span>
+                                                <span className="text-faint fs-8">{hardest.length ? t('hardest {{join}}', { join: hardest.map(target => `${targetLabel(target.index, game.mode)} (${target.darts})`).join(', ') }) : t('every number at the first try')}</span>
                                             </div>
                                             <TargetBars perTarget={result.perTarget} hardest={hardest} />
                                         </li>
                                     );
                                 })}
                             </ol>
-                            <span className="d-block text-faint fs-8 mt-2">One bar per number from 1 to 20 and the bull: the darts it took. {skipsAhead(game) ? 'Numbers skipped with a double or treble have no bar.' : ''}</span>
+                            <span className="d-block text-faint fs-8 mt-2">{t('One bar per number from 1 to 20 and the bull: the darts it took.')}{' '}{skipsAhead(game) ? t('Numbers skipped with a double or treble have no bar.') : ''}</span>
                         </Panel>
                     </div>
                 </div>

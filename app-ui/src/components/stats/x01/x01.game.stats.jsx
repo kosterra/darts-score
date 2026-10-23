@@ -27,18 +27,21 @@ import { gameDartsPerLeg, gameScoring } from '../charts/game.chart.data';
 import { sectionHitsOf } from '../charts/chart.theme';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
+import UpLink from '../../elements/up.link';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
+import { t } from '../../../utils/i18n';
+import { ACCENT } from '../../../utils/palette';
 
 // the key figures of every player in the header; for the best leg less wins
 const FIGURES = [
-    { key: 'average', label: '3-dart average' },
-    { key: 'firstNine', label: 'First 9 average' },
-    { key: 'checkoutRate', label: 'Checkout', format: (value) => `${value} %`, detail: (figures) => figures.checkoutDetail },
-    { key: 'highestCheckout', label: 'Highest checkout' },
-    { key: 'bestLeg', label: 'Best leg', format: (value) => `${value} darts`, lowerIsBetter: true },
-    { key: 'highestVisit', label: 'Highest visit' },
-    { key: 'oneEighties', label: '180s' },
-    { key: 'dartsThrown', label: 'Darts thrown', neutral: true },
+    { key: 'average', label: t('3-dart average') },
+    { key: 'firstNine', label: t('First 9 average') },
+    { key: 'checkoutRate', label: t('Checkout'), format: (value) => `${value} %`, detail: (figures) => figures.checkoutDetail },
+    { key: 'highestCheckout', label: t('Highest checkout') },
+    { key: 'bestLeg', label: t('Best leg'), format: (value) => t('{{value}} darts', { value: value }), lowerIsBetter: true },
+    { key: 'highestVisit', label: t('Highest visit') },
+    { key: 'oneEighties', label: t('180s') },
+    { key: 'dartsThrown', label: t('Darts thrown'), neutral: true },
 ];
 
 // a heading above a group of charts
@@ -46,7 +49,7 @@ const SectionTitle = ({ children }) => <h2 className="stats-section-title">{chil
 
 
 // the colour of the game type, as on the dashboard and the profile
-const GAME_COLOR = '#7ecca5';
+const GAME_COLOR = ACCENT.green;
 /**
  * The statistics of one X01 game: the result with each player's key figures,
  * the moments of the match, every leg with its race to zero, the players side
@@ -105,7 +108,6 @@ const X01GameStats = ({ training = false, quick = false }) => {
     const moments = useMemo(() => game ? matchMoments(game, legs) : [], [game, legs]);
 
     const onNewGame = () => navigate(quick ? '/quick' : training ? '/training/x01' : '/x01', { replace: true });
-    const onFinishGame = () => navigate("/", { replace: true });
 
     const onRestartGame = async (switchPlayers = false, shufflePlayers = false) => {
         if (!game) return;
@@ -159,19 +161,21 @@ const X01GameStats = ({ training = false, quick = false }) => {
 
     const bySets = game.numberOfSets > 1;
     const barsScopes = [
-        { label: 'All sets', value: 'game' },
-        ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: `Set ${i + 1}`, value: `set-${i + 1}` })),
+        { label: t('All sets'), value: 'game' },
+        ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: t('Set {{value}}', { value: i + 1 }), value: `set-${i + 1}` })),
     ];
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} onHome={onFinishGame} />;
+    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
+                {!quick && <UpLink to={training ? '/trainings' : '/games'} label={training ? t('Trainings') : t('Games')} />}
                 <GameResultHeader
+                    celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
-                    title={`${hasHandicap(game) ? 'Handicap' : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
+                    title={`${hasHandicap(game) ? t('Handicap') : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
                     subtitle={hasHandicap(game)
                         ? `${players.map(player => `${player.nickname} ${describeRules(rulesOf(game, player.id))}`).join(' · ')} · ${whenPlayed(game)}`
                         : `${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
@@ -203,22 +207,22 @@ const X01GameStats = ({ training = false, quick = false }) => {
                 <X01LegsPanel game={game} players={players} legs={legs} />
 
                 {players.length > 1 &&
-                    <Panel header="Side by side" className="mb-4">
+                    <Panel header={t('Side by side')} className="mb-4">
                         {barsScopes.length > 2 &&
                             <div className="d-flex justify-content-start mb-3">
-                                <SelectButton value={barsScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} className="p-selectbutton-pills pills-inline" aria-label="Whole game or set" />
+                                <SelectButton value={barsScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} className="p-selectbutton-pills pills-inline" aria-label={t('Whole game or set')} />
                             </div>
                         }
                         <X01StatsComparisonBars game={game} valueKey={barsScope} players={players} />
                     </Panel>
                 }
 
-                <SectionTitle>Scoring</SectionTitle>
+                <SectionTitle>{t('Scoring')}</SectionTitle>
                 <div className="row g-4 mb-4">
                     <div className="col-12 col-xl-6">
                         <AverageTrendChart
-                            title="Average per leg"
-                            description="Every player's average in each leg of this game."
+                            title={t('Average per leg')}
+                            description={t('Every player\'s average in each leg of this game.')}
                             data={gameStats?.avg ?? []}
                             players={players}
                         />
@@ -226,18 +230,18 @@ const X01GameStats = ({ training = false, quick = false }) => {
                     <div className="col-12 col-xl-6"><ScoreRangesChart data={gameStats?.scoreRanges ?? []} players={players} /></div>
                 </div>
 
-                <SectionTitle>Finishing</SectionTitle>
+                <SectionTitle>{t('Finishing')}</SectionTitle>
                 <div className="row g-4 mb-4">
                     <div className="col-12 col-xl-6"><ScoringFinishingChart scoring={gameScoring(game, players)} players={players} /></div>
                     <div className="col-12 col-xl-6">
-                        <DartsPerLegChart data={gameDartsPerLeg(game, players)} players={players} description="Darts each player needed for the legs they won in this game." />
+                        <DartsPerLegChart data={gameDartsPerLeg(game, players)} players={players} description={t('Darts each player needed for the legs they won in this game.')} />
                     </div>
                     <div className="col-12"><DoublesChart ratesByPlayer={players.map((_, i) => gameStats?.checkouts?.[`player${i + 1}`] ?? [])} players={players} /></div>
                 </div>
 
-                <SectionTitle>On the board</SectionTitle>
+                <SectionTitle>{t('On the board')}</SectionTitle>
                 <div className="row g-4">
-                    <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} gameName="this game" /></div>
+                    <div className="col-12"><HitsHeatmapChart hitsByPlayer={players.map((_, i) => sectionHitsOf(gameStats?.sectionHits ?? [], i))} players={players} gameName={t('this game')} /></div>
                 </div>
             </div>
         </div>

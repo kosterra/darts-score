@@ -5,12 +5,15 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { gamesPerMonth } from '../../../utils/club.charts';
 import useHiddenSeries from '../../stats/charts/use.hidden.series';
 import { AXIS, BAR_OPACITY, GRID, TOOLTIP, LEGEND } from '../../stats/charts/chart.theme';
+import { t } from '../../../utils/i18n';
+import { GAME_COLORS } from '../../../utils/palette';
 
 const TYPES = [
-    { key: 'x01', name: 'X01', color: '#7ecca5' },
-    { key: 'cricket', name: 'Cricket', color: '#d4c783' },
-    { key: 'elimination', name: 'Elimination', color: '#c3a9e6' },
-    { key: 'clock', name: 'Around the Clock', color: '#86bfe6' },
+    { key: 'x01', name: 'X01', color: GAME_COLORS.x01 },
+    { key: 'cricket', name: 'Cricket', color: GAME_COLORS.cricket },
+    { key: 'elimination', name: 'Elimination', color: GAME_COLORS.elimination },
+    { key: 'clock', name: 'Around the Clock', color: GAME_COLORS.clock },
+    { key: 'rules', name: t('More games'), color: GAME_COLORS.rules },
 ];
 
 /**
@@ -21,7 +24,7 @@ const GamesPerMonthWidget = ({ widget, gameLog }) => {
     const series = useHiddenSeries();
     return (
         <Panel header={widget.title} className="h-100">
-            <p className="text-faint fs-8 mt-0 mb-2">Finished games per month, by game type.</p>
+            <p className="text-faint fs-8 mt-0 mb-2">{t('Finished games per month, by game type.')}</p>
             <div style={{ height: 240 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>

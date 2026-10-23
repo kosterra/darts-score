@@ -15,11 +15,16 @@ export default (mongoose) => {
       skipAhead:         { type: Boolean, default: false },
       numberOfPlayers:   { type: Number, enum: [2, 3, 4] },
       currentPlayerTurn: String,
-      // every dart in order: 0 a miss, 1 a hit (with skipAhead: 1 single, 2 double, 3 treble)
-      throws:            { type: [Number], default: [] },
       players:           [String],
-      // each player's state, worked out from the throws: { target, darts, perTarget, finished, rank, hasWonGame }
+      // every visit in order, { player, darts: ['T20', 'D16', '0'] }: the game follows from them
+      visits:            { type: [{ _id: false, player: String, darts: [String] }], default: [] },
+
+      // each player's state, worked out from the visits: { target, darts, perTarget, finished, rank, hasWonGame }
       playerModels:      mongoose.Schema.Types.Mixed,
+      // a friendly game: left out of the club's leaderboards, records and Hall of Shame
+      friendly:          { type: Boolean, default: false },
+      // the club format it was started from, when one
+      format:            String,
     },
     { timestamps: true }
   );

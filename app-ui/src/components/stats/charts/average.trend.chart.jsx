@@ -1,5 +1,4 @@
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
@@ -7,6 +6,8 @@ import ChartTooltip from './chart.tooltip';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { groupByPeriod } from '../../../utils/trend.grouping';
 import { averageLevelOf, levelChanges, nextAverageLevel } from '../../../utils/average.levels';
+import { t, tn } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 const MOVING_WINDOW = 5;
 // grouped by month or quarter, the trend follows fewer points
@@ -30,7 +31,7 @@ const levelMarker = (changes) => function LevelMarker(props) {
     const average = Math.round(Number(value) * 10) / 10;
     return (
         <g key={`level-${index}`} className="average-level-marker">
-            <title>{`${level.name} · from ${payload?.label ?? ''} · average ${average}`}</title>
+            <title>{t('{{name}} · from {{value}} · average {{average}}', { name: level.name, value: payload?.label ?? '', average: average })}</title>
             {/* the card's colour first, so the line does not show through the soft fill */}
             <circle cx={cx} cy={cy} r={11} fill="#292929" />
             <circle cx={cx} cy={cy} r={11} fill={level.color} fillOpacity={0.18} stroke={level.color} strokeOpacity={0.75} strokeWidth={1.5} />
@@ -50,7 +51,7 @@ const levelMarker = (changes) => function LevelMarker(props) {
  *
  * data: [{ date | label, average }] for one player, [{ date | label, player1, player2, … }] for several
  */
-const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average over time', description }) => {
+const AverageTrendChart = ({ data = [], players = [], overall, title = t('Average over time'), description }) => {
     const series = useHiddenSeries();
     const single = players.length === 1;
     // many games over time: a point per month or quarter, not per game
@@ -62,20 +63,22 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
     const base = grouped ? grouped.rows : data.map(entry => ({
         ...entry,
         // entries either carry their own label (e.g. the leg) or a date
-        label: entry.label ?? dayjs(entry.date).format('DD.MM.YY'),
+        label: entry.label ?? formatDate(entry.date, { year: 'short' }),
     }));
     const rows = single
         ? base.map((entry, index) => ({ ...entry, moving: movingAverage(base.map(d => d.average), index, byPeriod ? MOVING_PERIODS : MOVING_WINDOW) }))
         : base;
     const period = grouped?.step === 'quarter' ? 'quarter' : 'month';
     const STEP_TEXT = {
-        game: 'Average of every X01 game the players played together.',
-        month: 'Average per month of the X01 games the players played together.',
-        quarter: 'Average per quarter of the X01 games the players played together.',
+        game: t('Average of every X01 game the players played together.'),
+        month: t('Average per month of the X01 games the players played together.'),
+        quarter: t('Average per quarter of the X01 games the players played together.'),
     };
     const singleText = byPeriod
-        ? `Average per ${period} of the X01 games, with the trend over the last ${MOVING_PERIODS} ${period}s and the overall average.`
-        : `Average of every X01 game, with the trend over the last ${MOVING_WINDOW} games and the overall average.`;
+        ? (period === 'quarter'
+            ? t('Average per quarter of the X01 games, with the trend over the last {{MOVING_PERIODS}} quarters and the overall average.', { MOVING_PERIODS })
+            : t('Average per month of the X01 games, with the trend over the last {{MOVING_PERIODS}} months and the overall average.', { MOVING_PERIODS }))
+        : t('Average of every X01 game, with the trend over the last {{MOVING_WINDOW}} games and the overall average.', { MOVING_WINDOW: MOVING_WINDOW });
     // average levels: where they change, and the next one to reach
     const withLevels = dated;
     const levelSeries = !withLevels ? [] : single
@@ -103,7 +106,7 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
     // a grouped point says how many games it stands for
     const tooltipLabel = (label, payload) => {
         const games = payload?.[0]?.payload?.games;
-        return byPeriod && games ? `${label} · ${games} ${games === 1 ? 'game' : 'games'}` : label;
+        return byPeriod && games ? `${label} · ${tn(games, '{{count}} game', '{{count}} games')}` : label;
     };
 
     return (
@@ -112,7 +115,7 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
             description={description ?? (single ? singleText : STEP_TEXT[grouped?.step ?? 'game'])}
         >
             {rows.length === 0
-                ? <p className="text-faint fs-7">No averages yet.</p>
+                ? <p className="text-faint fs-7">{t('No averages yet.')}</p>
                 : (
                     <ResponsiveContainer width="100%" height={280}>
                         <ComposedChart data={rows} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
@@ -132,15 +135,15 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = 'Average 
                             {single
                                 ? (
                                     <>
-                                        <Area type="monotone" dataKey="average" name={byPeriod ? `Average per ${period}` : 'Game average'} stroke={PLAYER_COLORS[0]} fill={PLAYER_COLORS[0]} fillOpacity={0.18} strokeOpacity={0.5} dot={false} hide={series.isHidden('average')} />
-                                        <Line type="monotone" dataKey="moving" name="Trend" stroke="#efe6d0" strokeWidth={2.5} dot={withLevels ? markersOf('moving') : false} activeDot={{ r: 4 }} isAnimationActive={!withLevels} hide={series.isHidden('moving')} />
+                                        <Area type="monotone" dataKey="average" name={byPeriod ? (period === 'quarter' ? t('Average per quarter') : t('Average per month')) : t('Game average')} stroke={PLAYER_COLORS[0]} fill={PLAYER_COLORS[0]} fillOpacity={0.18} strokeOpacity={0.5} dot={false} hide={series.isHidden('average')} />
+                                        <Line legendType="plainline" type="monotone" dataKey="moving" name={t('Trend')} stroke="#efe6d0" strokeWidth={2.5} dot={withLevels ? markersOf('moving') : false} activeDot={{ r: 4 }} isAnimationActive={!withLevels} hide={series.isHidden('moving')} />
                                         {overall > 0 &&
                                             <ReferenceLine y={overall} stroke={PLAYER_COLORS[1]} strokeDasharray="6 4" label={{ value: `Ø ${overall}`, fill: PLAYER_COLORS[1], fontSize: 12, position: 'insideTopRight' }} />
                                         }
                                     </>
                                 )
                                 : players.map((player, index) => (
-                                    <Line key={player.id} type="monotone" dataKey={`player${index + 1}`} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={withLevels ? markersOf(`player${index + 1}`) : { r: 3 }} isAnimationActive={!withLevels} connectNulls hide={series.isHidden(`player${index + 1}`)} />
+                                    <Line legendType="plainline" key={player.id} type="monotone" dataKey={`player${index + 1}`} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={withLevels ? markersOf(`player${index + 1}`) : { r: 2.5, fill: PLAYER_COLORS[index], strokeWidth: 0 }} isAnimationActive={!withLevels} connectNulls hide={series.isHidden(`player${index + 1}`)} />
                                 ))
                             }
                             {reachedLevels.map(level => (

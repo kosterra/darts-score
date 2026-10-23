@@ -5,6 +5,7 @@ import { Button } from 'primereact/button';
 import { DARTS_PER_VISIT, TARGETS, targetLabel } from '../../utils/atc.darts';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import ATCTargetBoard from './atc.target.board';
+import { t } from '../../utils/i18n';
 
 const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
     <Avatar
@@ -28,10 +29,11 @@ const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
  * onCancel: without it the round cannot be cancelled here
  * bests: { [playerId]: fewest darts so far in this mode }, to show whether the
  * record is still in reach
+ * withPlayers: the row of the players (a game shows them in its header)
  */
-const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel, rings = false, notice, bests = {} }) => {
+const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel, rings = false, notice, bests = {}, withPlayers = true }) => {
     const [confirmCancel, setConfirmCancel] = useState(false);
-    const playerOf = (id) => players.find(player => player.id === id) ?? { nickname: 'Unknown player' };
+    const playerOf = (id) => players.find(player => player.id === id) ?? { nickname: t('Unknown player') };
     const currentId = round.order[round.current];
     const current = round.players[currentId];
     const solo = round.order.length === 1;
@@ -68,8 +70,8 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
 
     return (
         <div className="atc-round">
-            {!solo &&
-                <ol className="atc-round-players" aria-label="Players">
+            {!solo && withPlayers &&
+                <ol className="atc-round-players" aria-label={t('Players')}>
                     {round.order.map((id, index) => {
                         const state = round.players[id];
                         return (
@@ -81,8 +83,8 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
                                 <span className="atc-round-player-name">{playerOf(id).nickname}</span>
                                 <span className="atc-round-player-state">
                                     {state.finished
-                                        ? <><i className="pi pi-check me-1" aria-hidden="true" />{state.darts} darts</>
-                                        : `${targetLabel(state.target, mode)} · ${state.darts} darts`}
+                                        ? <><i className="pi pi-check me-1" aria-hidden="true" />{state.darts}{' '}{t('darts')}</>
+                                        : t('{{targetLabel}} · {{darts}} darts', { targetLabel: targetLabel(state.target, mode), darts: state.darts })}
                                 </span>
                                 <span className="atc-round-player-bar" aria-hidden="true"><span style={{ width: `${state.target / TARGETS * 100}%` }} /></span>
                             </li>
@@ -94,31 +96,31 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
             <div className="atc-round-current" aria-live="polite">
                 <div className="d-flex align-items-center gap-2">
                     <PlayerAvatar player={playerOf(currentId)} />
-                    <span className="text-default fw-semibold">{solo ? playerOf(currentId).nickname : `${playerOf(currentId).nickname}'s turn`}</span>
+                    <span className="text-default fw-semibold">{solo ? playerOf(currentId).nickname : t('{{nickname}}\'s turn', { nickname: playerOf(currentId).nickname })}</span>
                 </div>
                 <div className="atc-round-aim">
                     <div className="d-flex flex-column align-items-center">
                         {/* the next target ticks in like the hand of a clock */}
                         <div className={`atc-round-target ${onTheBull ? 'is-bull' : ''}`} key={`${currentId}-${current.target}`}>{targetLabel(current.target, mode)}</div>
-                        {onTheBull && <span className="atc-bull-to-win">{solo ? 'Bull to finish' : 'Bull to win'}</span>}
+                        {onTheBull && <span className="atc-bull-to-win">{solo ? t('Bull to finish') : t('Bull to win')}</span>}
                     </div>
                     <ATCTargetBoard target={current.target} mode={mode} />
                 </div>
-                <div className="atc-round-progress" aria-label={`${current.target} of ${TARGETS} targets hit`}>
+                <div className="atc-round-progress" aria-label={t('{{target}} of {{TARGETS}} targets hit', { target: current.target, TARGETS: TARGETS })}>
                     {Array.from({ length: TARGETS }, (_, index) => (
                         <span key={index} className={index < current.target ? 'is-hit' : index === current.target ? 'is-current' : ''} />
                     ))}
                 </div>
                 <div className="d-flex align-items-center gap-3 text-faint fs-8">
-                    <span className="atc-round-visit" aria-label={`Dart ${round.visit.length + 1} of ${DARTS_PER_VISIT}`}>
+                    <span className="atc-round-visit" aria-label={t('Dart {{value}} of {{DARTS_PER_VISIT}}', { value: round.visit.length + 1, DARTS_PER_VISIT: DARTS_PER_VISIT })}>
                         {Array.from({ length: DARTS_PER_VISIT }, (_, index) => (
                             <span key={index} className={index < round.visit.length ? (round.visit[index] ? 'is-hit' : 'is-miss') : ''}>
                                 {rings && round.visit[index] > 1 ? ['', '', 'D', 'T'][round.visit[index]] : ''}
                             </span>
                         ))}
                     </span>
-                    <span>{current.darts} {current.darts === 1 ? 'dart' : 'darts'}</span>
-                    {best && <span className={`atc-record-pace ${recordInReach ? 'is-ahead' : 'is-behind'}`}>Best {best} · {recordInReach ? 'record in reach' : 'record out of reach'}</span>}
+                    <span>{current.darts} {current.darts === 1 ? t('dart') : t('darts')}</span>
+                    {best && <span className={`atc-record-pace ${recordInReach ? 'is-ahead' : 'is-behind'}`}>{t('Best')}{' '}{best} · {recordInReach ? t('record in reach') : t('record out of reach')}</span>}
                 </div>
             </div>
 
@@ -126,26 +128,26 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
 
             {rings
                 ? <div className="atc-round-buttons is-rings">
-                    <Button type="button" label="Miss" icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
-                    <Button type="button" label="Single" className="atc-round-button" onClick={() => onDart(1)} />
-                    <Button type="button" label="Double" className="atc-round-button" onClick={() => onDart(2)} />
-                    <Button type="button" label="Treble" className="atc-round-button" onClick={() => onDart(3)} />
+                    <Button type="button" label={t('Miss')} icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
+                    <Button type="button" label={t('Single')} className="atc-round-button" onClick={() => onDart(1)} />
+                    <Button type="button" label={t('Double')} className="atc-round-button" onClick={() => onDart(2)} />
+                    <Button type="button" label={t('Treble')} className="atc-round-button" onClick={() => onDart(3)} />
                 </div>
                 : <div className="atc-round-buttons">
-                    <Button type="button" label="Miss" icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
-                    <Button type="button" label="Hit" icon="pi pi-check" className="atc-round-button" onClick={() => onDart(1)} />
+                    <Button type="button" label={t('Miss')} icon="pi pi-times" severity="secondary" className="atc-round-button" onClick={() => onDart(0)} />
+                    <Button type="button" label={t('Hit')} icon="pi pi-check" className="atc-round-button" onClick={() => onDart(1)} />
                 </div>
             }
 
             <div className="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-2">
-                <Button type="button" label="Undo" icon="pi pi-undo" size="small" text disabled={!canUndo} onClick={onUndo} />
+                <Button type="button" label={t('Undo')} icon="pi pi-undo" size="small" text disabled={!canUndo} onClick={onUndo} />
                 {onCancel && (confirmCancel
                     ? <>
-                        <span className="text-faint fs-8">Cancel this round? Nothing is saved.</span>
-                        <Button type="button" label="Yes, cancel" size="small" text severity="danger" onClick={onCancel} />
-                        <Button type="button" label="No" size="small" text onClick={() => setConfirmCancel(false)} />
+                        <span className="text-faint fs-8">{t('Cancel this round? Nothing is saved.')}</span>
+                        <Button type="button" label={t('Yes, cancel')} size="small" text severity="danger" onClick={onCancel} />
+                        <Button type="button" label={t('No')} size="small" text onClick={() => setConfirmCancel(false)} />
                     </>
-                    : <Button type="button" label="Cancel round" icon="pi pi-times" size="small" text severity="danger" onClick={() => setConfirmCancel(true)} />
+                    : <Button type="button" label={t('Cancel round')} icon="pi pi-times" size="small" text severity="danger" onClick={() => setConfirmCancel(true)} />
                 )}
             </div>
         </div>

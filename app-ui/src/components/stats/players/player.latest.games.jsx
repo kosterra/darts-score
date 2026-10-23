@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { FaChartColumn } from 'react-icons/fa6';
 import { GiDart } from 'react-icons/gi';
-import dayjs from 'dayjs';
 
 import StatsService from '../../../services/stats.service';
 import GamePlayers from '../../dashboard/widgets/game.players';
 import GameTypeTag from '../../elements/game.type.tag';
 import GameStatusTag from '../../elements/game.status.tag';
+import { t } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 /**
  * A player's latest games as a small timeline, with a way to all their games.
@@ -32,9 +33,9 @@ const PlayerLatestGames = ({ player }) => {
     };
 
     return (
-        <Panel header="Latest games" className="h-100">
+        <Panel header={t('Latest games')} className="h-100">
             {data.games.length === 0
-                ? <p className="text-subtle m-0">{player.nickname} has not played a game yet.</p>
+                ? <p className="text-subtle m-0">{player.nickname}{' '}{t('has not played a game yet.')}</p>
                 : (
                     <div className="d-flex flex-column gap-3">
                         <ol className="timeline list-unstyled m-0">
@@ -42,13 +43,13 @@ const PlayerLatestGames = ({ player }) => {
                                 const result = resultOf(game);
                                 return (
                                     <li key={`${game.type}-${game.id}`} className={`timeline-entry ${game.running ? 'timeline-running' : ''}`}>
-                                        <span className="timeline-time text-faint fs-8 text-nowrap">{dayjs(game.playedAt).format('DD.MM.')}</span>
+                                        <span className="timeline-time text-faint fs-8 text-nowrap">{formatDate(game.playedAt, { year: 'none' })}</span>
                                         <div className="timeline-body">
                                             <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                 <GameTypeTag type={game.type} />
                                                 <span className="text-faint fs-8">{game.format}</span>
                                                 {result
-                                                    ? <span className={`game-result game-result-${result}`}>{result === 'won' ? 'Won' : 'Lost'}</span>
+                                                    ? <span className={`game-result game-result-${result}`}>{result === 'won' ? t('Won') : t('Lost')}</span>
                                                     : <GameStatusTag running />
                                                 }
                                             </div>
@@ -56,8 +57,8 @@ const PlayerLatestGames = ({ player }) => {
                                         </div>
                                         <div className="row-actions">
                                             {game.running
-                                                ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title="Continue playing" aria-label="Continue playing"><GiDart /></Link>
-                                                : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title="Show statistics" aria-label="Show statistics"><FaChartColumn /></Link>
+                                                ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title={t('Continue playing')} aria-label={t('Continue playing')}><GiDart /></Link>
+                                                : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title={t('Show statistics')} aria-label={t('Show statistics')}><FaChartColumn /></Link>
                                             }
                                         </div>
                                     </li>
@@ -65,7 +66,7 @@ const PlayerLatestGames = ({ player }) => {
                             })}
                         </ol>
                         <Link to={`/games?player=${player.id}`} className="align-self-start fs-7">
-                            All {data.total} games of {player.nickname} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
+                            {t('All {{count}} games of {{nickname}}', { count: data.total, nickname: player.nickname })} <i className="pi pi-arrow-right fs-8 ms-1" aria-hidden="true" />
                         </Link>
                     </div>
                 )

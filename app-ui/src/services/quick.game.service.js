@@ -1,3 +1,5 @@
+import { gameOf, storedOf } from '../rules/stored';
+import { currentLanguage, translateAnswer } from '../utils/i18n';
 const API_URL = '/api/public/quick-games';
 
 // the key each quick game was started with stays in this browser: only it plays on
@@ -27,10 +29,11 @@ const request = async (url, { method = 'GET', body, key } = {}) => {
         headers: {
             ...(body !== undefined && { 'Content-Type': 'application/json' }),
             ...(key && { 'X-Quick-Key': key }),
+            'Accept-Language': currentLanguage(),
         },
         ...(body !== undefined && { body: JSON.stringify(body) }),
     });
-    const data = await response.json().catch(() => ({}));
+    const data = translateAnswer(await response.json().catch(() => ({})));
     if (!response.ok) throw new Error(data.errors?.join(' ') || data.message || response.statusText);
     return data;
 };
@@ -39,16 +42,20 @@ const request = async (url, { method = 'GET', body, key } = {}) => {
  * Starts a quick game ('x01' or 'cricket') and keeps its key. → the game
  */
 const createQuickGame = async (kind, game) => {
-    const { game: created, key } = await request(API_URL, { method: 'POST', body: { kind, game } });
+    // stored as its settings, players and visits; the game comes back worked out from them
+    const { game: created, key } = await request(API_URL, { method: 'POST', body: { kind, game: storedOf(kind, { ...game, visits: game.visits ?? [] }) } });
     keepKey(created.id, key);
-    return created;
+    return gameOf(kind, created);
 };
 
-const loadQuickGame = (id) => request(`${API_URL}/${id}`, { key: keyOf(id)?.key });
+const loadQuickGame = async (id) => {
+    const game = await request(`${API_URL}/${id}`, { key: keyOf(id)?.key });
+    return gameOf(game.kind, game);
+};
 
 const loadQuickGameStats = (id) => request(`${API_URL}/${id}/stats`, { key: keyOf(id)?.key });
 
-const updateQuickGame = (game) => request(`${API_URL}/${game.id}`, { method: 'PUT', body: game, key: keyOf(game.id)?.key });
+const updateQuickGame = (game) => request(`${API_URL}/${game.id}`, { method: 'PUT', body: storedOf(game.kind, game), key: keyOf(game.id)?.key });
 
 // the players of a quick game are only names: made to look like players for the game pages
 // in the order they throw in this game (a rematch may switch them)

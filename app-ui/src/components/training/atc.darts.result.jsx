@@ -5,6 +5,7 @@ import { FaMedal } from 'react-icons/fa6';
 import { TARGET_NAMES, hardestTargets, targetLabel } from '../../utils/atc.darts';
 import { ordinal } from '../../utils/atc.scoreboard';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t, tn } from '../../utils/i18n';
 
 const MEDALS = ['gold', 'silver', 'bronze'];
 
@@ -12,13 +13,13 @@ const MEDALS = ['gold', 'silver', 'bronze'];
 export const TargetBars = ({ perTarget, hardest }) => {
     const most = Math.max(...perTarget);
     return (
-        <div className="atc-target-bars" role="img" aria-label={`Darts per target: ${perTarget.map((darts, index) => `${TARGET_NAMES[index]} ${darts}`).join(', ')}`}>
+        <div className="atc-target-bars" role="img" aria-label={t('Darts per target: {{join}}', { join: perTarget.map((darts, index) => `${TARGET_NAMES[index]} ${darts}`).join(', ') })}>
             {perTarget.map((darts, index) => (
                 <span
                     key={index}
                     className={hardest.some(target => target.index === index) ? 'is-hard' : ''}
                     style={{ height: darts ? `${Math.max(12, darts / most * 100)}%` : '3px' }}
-                    title={`${TARGET_NAMES[index]}: ${darts} ${darts === 1 ? 'dart' : 'darts'}`}
+                    title={`${TARGET_NAMES[index]}: ${tn(darts, '{{count}} dart', '{{count}} darts')}`}
                 />
             ))}
         </div>
@@ -34,7 +35,7 @@ export const TargetBars = ({ perTarget, hardest }) => {
  */
 const ATCDartsResult = ({ finished, placeOf, onRetry, onPlayAgain, onDone }) => {
     const { players, mode, results, saving, error } = finished;
-    const playerOf = (id) => players.find(player => player.id === id) ?? { nickname: 'Unknown player' };
+    const playerOf = (id) => players.find(player => player.id === id) ?? { nickname: t('Unknown player') };
     const solo = results.length === 1;
 
     return (
@@ -48,7 +49,7 @@ const ATCDartsResult = ({ finished, placeOf, onRetry, onPlayAgain, onDone }) => 
                         <li key={result.playerId} className="atc-result-player">
                             <div className="d-flex align-items-center gap-3">
                                 {!solo && (result.rank <= 3
-                                    ? <span className={`badge-medal badge-medal-sm badge-${MEDALS[result.rank - 1]} atc-medal`} role="img" aria-label={`${ordinal(result.rank)} in this round`}><FaMedal aria-hidden="true" /></span>
+                                    ? <span className={`badge-medal badge-medal-sm badge-${MEDALS[result.rank - 1]} atc-medal`} role="img" aria-label={t('{{ordinal}} in this round', { ordinal: ordinal(result.rank) })}><FaMedal aria-hidden="true" /></span>
                                     : <span className="atc-rank">{result.rank}</span>)}
                                 <Avatar
                                     image={resolvePlayerImg(player.profileImg)}
@@ -59,11 +60,11 @@ const ATCDartsResult = ({ finished, placeOf, onRetry, onPlayAgain, onDone }) => 
                                 <span className="atc-row-player">
                                     <span className="atc-row-name">{player.nickname}</span>
                                     <span className="atc-row-detail">
-                                        {result.hitRate} % hit
-                                        {hardest.length > 0 && ` · hardest ${hardest.map(target => `${targetLabel(target.index, mode)} (${target.darts})`).join(', ')}`}
+                                        {result.hitRate}{' '}{t('% hit')}
+                                        {hardest.length > 0 && t(' · hardest {{join}}', { join: hardest.map(target => `${targetLabel(target.index, mode)} (${target.darts})`).join(', ') })}
                                     </span>
                                 </span>
-                                <span className="atc-row-time">{result.darts} darts</span>
+                                <span className="atc-row-time">{result.darts}{' '}{t('darts')}</span>
                             </div>
                             <TargetBars perTarget={result.perTarget} hardest={hardest} />
                             {place && <div className="atc-result-place">{place}</div>}
@@ -74,14 +75,14 @@ const ATCDartsResult = ({ finished, placeOf, onRetry, onPlayAgain, onDone }) => 
 
             {error &&
                 <div className="atc-result-error" role="alert">
-                    <span>Not every result was saved.</span>
-                    <Button type="button" label="Try again" icon="pi pi-refresh" size="small" loading={saving} onClick={onRetry} />
+                    <span>{t('Not every result was saved.')}</span>
+                    <Button type="button" label={t('Try again')} icon="pi pi-refresh" size="small" loading={saving} onClick={onRetry} />
                 </div>
             }
             {!error &&
                 <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
-                    <Button type="button" label="Play again" icon="pi pi-replay" loading={saving} onClick={onPlayAgain} />
-                    <Button type="button" label="Done" icon="pi pi-check" outlined disabled={saving} onClick={onDone} />
+                    <Button type="button" label={t('Play again')} icon="pi pi-replay" loading={saving} onClick={onPlayAgain} />
+                    <Button type="button" label={t('Done')} icon="pi pi-check" outlined disabled={saving} onClick={onDone} />
                 </div>
             }
         </div>

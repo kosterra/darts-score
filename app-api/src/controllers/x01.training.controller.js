@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf, seesTrainingsOf } from '../utils/training.privacy.js';
+import { answerOf, storedOf } from '../utils/game.view.js';
 
 // the bot is no player of the club: it only lives in its trainings
 export const BOT_ID = 'bot';
@@ -42,9 +43,9 @@ export const create = async (req, res) => {
     const player = await loadPlayer(req, res, humanOf(req.body.players));
     if (!player) return;
     try {
-        const training = await Training.create({ ...req.body, club: req.club._id, bot: botOf(req.body.bot) });
+        const training = await Training.create({ ...storedOf('x01training', req.body), club: req.club._id, bot: botOf(req.body.bot) });
         logger.info(`${req.user.email} started an X01 training against the bot as "${player.nickname}"`);
-        res.status(201).json(training);
+        res.status(201).json(answerOf('x01training', training));
     } catch (err) {
         logger.error(err, 'Failed to start an X01 training');
         res.status(500).json({ message: 'The training could not be started.' });
@@ -56,7 +57,7 @@ export const findOne = async (req, res) => {
     const training = await Training.findOne({ _id: req.params.id, club: req.club._id });
     // a player who keeps their trainings to themselves: not for the others
     if (!training || !(await seesTrainingsOf(req, humanOf(training.players)))) return res.status(404).json({ message: 'Not found.' });
-    res.json(training);
+    res.json(answerOf('x01training', training));
 };
 
 /**
@@ -79,14 +80,17 @@ export const withHumans = async (trainings) => {
 // fields of the database (version, timestamps) that must not be written back
 export const update = async (req, res) => {
     if (!db.mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
-    const training = await Training.findOne({ _id: req.params.id, club: req.club._id }, 'players');
+    const training = await Training.findOne({ _id: req.params.id, club: req.club._id }, 'players bot');
     if (!training) return res.status(404).json({ message: 'Not found.' });
     if (!(await loadPlayer(req, res, humanOf(training.players)))) return;
     // eslint-disable-next-line no-unused-vars
-    const { players, bot, club, _id, id, __v, createdAt, updatedAt, ...changes } = req.body;
+    const { players, bot, club, _id, id, __v, createdAt, updatedAt, ...sent } = req.body;
+    // the results follow from the visits, worked out here; the players stay
+    // eslint-disable-next-line no-unused-vars
+    const { players: same, ...changes } = storedOf('x01training', { ...sent, players: training.players });
     try {
         const saved = await Training.findOneAndUpdate({ _id: training._id }, { $set: changes }, { returnDocument: 'after' });
-        res.json(saved);
+        res.json(answerOf('x01training', saved));
     } catch (err) {
         logger.error(err, `Failed to save the X01 training ${req.params.id}`);
         res.status(500).json({ message: 'The training could not be saved.' });

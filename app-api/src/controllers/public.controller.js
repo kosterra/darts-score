@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { RULES_GAMES } from '../utils/rules.kinds.js';
 import db from '../models/db.model.js';
 import { clubFigures } from '../utils/public.figures.js';
 import { getStartPageSettings } from '../utils/start.page.settings.js';
@@ -21,6 +22,8 @@ const GAME_TYPES = [
     { type: 'cricket', label: 'Cricket', model: () => db.cricket },
     { type: 'elimination', label: 'Elimination', model: () => db.elimination },
     { type: 'clock', label: 'Around the Clock', model: () => db.clock },
+    // the games of the rules engine: each shown by its kind
+    { type: 'rules', label: 'More games', model: () => db.rulesGame },
 ];
 
 const describeFormat = (type, game) => {
@@ -28,6 +31,8 @@ const describeFormat = (type, game) => {
         case 'x01': return `${game.startingScore} · ${game.setMode} ${game.numberOfSets} sets · ${game.legMode} ${game.numberOfLegs} legs`;
         case 'elimination': return `Target ${game.targetScore}`;
         case 'clock': return `Around the Clock · ${game.mode ?? 'All'}`;
+        case 'rules': return RULES_GAMES[game.kind] ?? '';
+        case 'shanghai': case 'killer': case 'halveit': case 'golf': case 'tactics': return RULES_GAMES[type];
         default: return 'Cricket';
     }
 };
@@ -61,7 +66,7 @@ const loadGames = async (filter, clubIds, limit) => {
     if (clubIds.length === 0) return [];
     const perType = await Promise.all(GAME_TYPES.map(async ({ type, label, model }) => {
         const games = await model().find({ ...filter, club: { $in: clubIds } }).sort({ updatedAt: -1 }).limit(limit).lean();
-        return games.map(game => ({ type, label, game }));
+        return games.map(game => (type === 'rules' ? { type: game.kind, label: RULES_GAMES[game.kind], game } : { type, label, game }));
     }));
     return perType.flat().sort((a, b) => b.game.updatedAt - a.game.updatedAt).slice(0, limit);
 };
@@ -161,6 +166,7 @@ const buildOverview = async () => {
         clubs: publicClubs.map(club => ({
             name: club.name,
             description: club.description ?? '',
+            country: club.country ?? '',
             logo: club.logo || null,
             createdAt: club.createdAt,
             playerCount: countByClub.get(String(club._id)) ?? 0,

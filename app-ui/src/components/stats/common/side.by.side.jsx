@@ -1,4 +1,5 @@
 import { PLAYER_COLORS } from '../charts/chart.theme';
+import { t } from '../../../utils/i18n';
 
 /**
  * Figures of the players side by side, like the "tale of the tape" on TV.
@@ -13,7 +14,7 @@ import { PLAYER_COLORS } from '../charts/chart.theme';
  */
 const SideBySide = ({ rows, players }) => {
     const shown = rows.filter(row => row.values.some(value => Number(value) > 0));
-    if (!shown.length) return <p className="text-subtle m-0">Nothing to compare yet.</p>;
+    if (!shown.length) return <p className="text-subtle m-0">{t('Nothing to compare yet.')}</p>;
 
     const textOf = (row, index) => row.texts?.[index] ?? row.values[index];
     const isBest = (row, index) => {

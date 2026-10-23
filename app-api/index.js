@@ -25,6 +25,7 @@ import clockRoutes     from './src/routes/clock.routes.js';
 import { playerImageRoutes, clubLogoRoutes } from './src/routes/player.img.routes.js';
 import atcRoutes       from './src/routes/atc.routes.js';
 import x01TrainingRoutes from './src/routes/x01.training.routes.js';
+import rulesRoutes     from './src/routes/rules.routes.js';
 import authRoutes      from './src/routes/auth.routes.js';
 import clubRoutes      from './src/routes/club.routes.js';
 import userRoutes      from './src/routes/user.routes.js';
@@ -169,6 +170,7 @@ clockRoutes(app);
 playerImageRoutes(app);
 atcRoutes(app);
 x01TrainingRoutes(app);
+rulesRoutes(app);
 
 // ---------------------------------------------------------------------------
 // SPA fallback — serve index.html for all non-API routes (client-side routing);

@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { x01StatsOf } from './x01.stats.controller.js';
 import { hashKey, keyMatches, newKey, quickGameError, quickGameView, winnerOf } from '../utils/quick.games.js';
+import { storedOf } from '../utils/game.view.js';
 
 const QuickGame = db.quickGame;
 
@@ -12,13 +13,17 @@ const gameOf = (body) => Object.fromEntries(Object.entries(body ?? {}).filter(([
 // the key of the browser that started the game
 const keyOf = (req) => req.get('x-quick-key') ?? '';
 
-const fields = (game) => ({
-    data: game,
-    names: game.quickPlayers.map(player => player.nickname.trim()),
-    winner: winnerOf(game),
-    gameIsRunning: game.gameIsRunning !== false,
-    hasWinner: Boolean(game.hasWinner),
-});
+// the game is kept as its visits, with the results worked out from them
+const fields = (kind, sent) => {
+    const game = storedOf(kind, sent);
+    return {
+        data: game,
+        names: game.quickPlayers.map(player => player.nickname.trim()),
+        winner: winnerOf(game),
+        gameIsRunning: game.gameIsRunning !== false,
+        hasWinner: Boolean(game.hasWinner),
+    };
+};
 
 // the game, when the request carries its key; otherwise a response is sent
 const loadOwn = async (req, res) => {
@@ -41,7 +46,7 @@ export const create = async (req, res) => {
     const error = quickGameError(kind, game);
     if (error) return res.status(422).json({ errors: [error] });
     const key = newKey();
-    const created = await QuickGame.create({ kind, keyHash: hashKey(key), ...fields(game) });
+    const created = await QuickGame.create({ kind, keyHash: hashKey(key), ...fields(kind, game) });
     logger.info(`Quick ${kind} game started with ${created.names.length} players`);
     res.status(201).json({ game: quickGameView(created), key });
 };
@@ -71,7 +76,7 @@ export const update = async (req, res) => {
     const data = gameOf(req.body);
     const error = quickGameError(game.kind, data, game.data);
     if (error) return res.status(422).json({ errors: [error] });
-    Object.assign(game, fields(data));
+    Object.assign(game, fields(game.kind, data));
     game.markModified('data');
     await game.save();
     res.json(quickGameView(game));

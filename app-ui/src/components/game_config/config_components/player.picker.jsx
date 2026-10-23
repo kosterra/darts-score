@@ -4,12 +4,13 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import PlayerFlight from '../../flights/player.flight';
 
-import PlayerForm from '../../elements/player.form';
+import usePlayerForm from '../../elements/player.form';
 import GuestForm from '../../elements/guest.form';
 import PlayerService from '../../../services/player.service';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { useAuth } from '../../../utils/auth.context';
 import { MAX_PLAYERS, MIN_PLAYERS, moveItem, offeredPlayers, playedWhen, shuffled, toggled, withStarter } from '../../../utils/player.picker';
+import { t, tn } from '../../../utils/i18n';
 
 // cards shown before "Show all": with the guest card three rows of four
 const SHOWN_PLAYERS = 11;
@@ -64,6 +65,8 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
             setLoading(false);
         }
     };
+    // a new player: the form opens below the search
+    const [newPlayerButton, newPlayerForm] = usePlayerForm({ onPlayerAdd: load, label: t('New player') });
 
     // once on mount: the last game's players are restored from the first props only
     useEffect(() => {
@@ -106,15 +109,16 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                     <InputText
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search players"
-                        aria-label="Search players"
+                        placeholder={t('Search players')}
+                        aria-label={t('Search players')}
                         className="w-100"
                     />
                 </span>
-                {isClubAdmin && <PlayerForm onPlayerAdd={load} label="New player" />}
+                {isClubAdmin && newPlayerButton}
             </div>
+            {isClubAdmin && newPlayerForm}
 
-            <div className="player-picker-grid" role="group" aria-label="Players of the club">
+            <div className="player-picker-grid" role="group" aria-label={t('Players of the club')}>
                 {shown.map(player => {
                     const position = positionOf(player);
                     const chosen = position >= 0;
@@ -126,14 +130,14 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                             className={`player-pick-card ${chosen ? 'is-chosen' : ''}`}
                             aria-pressed={chosen}
                             disabled={!chosen && isFull}
-                            title={!chosen && isFull ? `Up to ${MAX_PLAYERS} players` : undefined}
+                            title={!chosen && isFull ? t('Up to {{MAX_PLAYERS}} players', { MAX_PLAYERS: MAX_PLAYERS }) : undefined}
                             onClick={() => choose(player)}
                         >
-                            {chosen && !single && <span className="player-pick-number" aria-label={`Throws ${position + 1}.`}>{position + 1}</span>}
+                            {chosen && !single && <span className="player-pick-number" aria-label={t('Throws {{value}}.', { value: position + 1 })}>{position + 1}</span>}
                             <PlayerAvatar player={player} />
                             <span className="player-pick-name">{player.nickname}</span>
                             <span className="player-pick-detail">
-                                {player.guest ? 'Guest' : when ? `Played ${when}` : `${player.firstname} ${player.lastname}`}
+                                {player.guest ? t('Guest') : when ? t('Played {{when}}', { when: when }) : `${player.firstname} ${player.lastname}`}
                             </span>
                         </button>
                     );
@@ -143,33 +147,33 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                     trigger={(open) => (
                         <button type="button" className="player-pick-card is-guest" onClick={open} disabled={isFull}>
                             <span className="player-pick-plus pi pi-user-plus" aria-hidden="true" />
-                            <span className="player-pick-name">Guest</span>
-                            <span className="player-pick-detail">Plays this game only</span>
+                            <span className="player-pick-name">{t('Guest')}</span>
+                            <span className="player-pick-detail">{t('Plays this game only')}</span>
                         </button>
                     )}
                 />
             </div>
             {hidden > 0 &&
                 <div className="text-center mt-2">
-                    <Button type="button" label={`Show all ${offered.length} players`} icon="pi pi-chevron-down" size="small" text onClick={() => setShowAll(true)} />
+                    <Button type="button" label={t('Show all {{length}} players', { length: offered.length })} icon="pi pi-chevron-down" size="small" text onClick={() => setShowAll(true)} />
                 </div>
             }
-            {!loading && !offered.length && search && <div className="text-faint fs-7 mt-2">No player matches “{search}”.</div>}
+            {!loading && !offered.length && search && <div className="text-faint fs-7 mt-2">{t('No player matches “')}{search}”.</div>}
 
-            {!single && <div className="player-order mt-4" aria-label="Throwing order">
+            {!single && <div className="player-order mt-4" aria-label={t('Throwing order')}>
                 <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                     <span className="text-subtle fs-7 fw-semibold">
-                        Throwing order
-                        <span className="text-faint fw-normal"> · {selected.length} of {MAX_PLAYERS}</span>
+                        {t('Throwing order')}
+                        <span className="text-faint fw-normal"> · {selected.length}{' '}{t('of')}{' '}{MAX_PLAYERS}</span>
                     </span>
                     <div className="d-flex gap-2">
                         <Button
-                            type="button" icon="pi pi-sync" label="Shuffle" size="small" text
+                            type="button" icon="pi pi-sync" label={t('Shuffle')} size="small" text
                             disabled={selected.length < 2}
                             onClick={() => { onChange(shuffled(selected)); setBullOff(false); }}
                         />
                         <Button
-                            type="button" icon="pi pi-bullseye" label="Bull-off" size="small" text
+                            type="button" icon="pi pi-bullseye" label={t('Bull-off')} size="small" text
                             disabled={selected.length < 2}
                             aria-expanded={bullOff}
                             onClick={() => setBullOff(open => !open)}
@@ -179,7 +183,7 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
 
                 {bullOff && selected.length >= 2 &&
                     <div className="player-bull-off mb-2">
-                        <span className="text-subtle fs-8">Who was closest to the bull? They throw first.</span>
+                        <span className="text-subtle fs-8">{t('Who was closest to the bull? They throw first.')}</span>
                         <div className="d-flex flex-wrap gap-2 mt-2">
                             {selected.map(player => (
                                 <Button
@@ -209,13 +213,13 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                                     <span className="player-order-name">{player.nickname}</span>
                                     <PlayerFlight player={player} seat={index} />
                                     <span className="player-order-actions">
-                                        <button type="button" className="player-order-button" aria-label={`Move ${player.nickname} earlier`} title="Earlier" disabled={index === 0} onClick={() => move(index, index - 1)}>
+                                        <button type="button" className="player-order-button" aria-label={t('Move {{nickname}} earlier', { nickname: player.nickname })} title={t('Earlier')} disabled={index === 0} onClick={() => move(index, index - 1)}>
                                             <i className="pi pi-chevron-left" aria-hidden="true" />
                                         </button>
-                                        <button type="button" className="player-order-button" aria-label={`Move ${player.nickname} later`} title="Later" disabled={index === selected.length - 1} onClick={() => move(index, index + 1)}>
+                                        <button type="button" className="player-order-button" aria-label={t('Move {{nickname}} later', { nickname: player.nickname })} title={t('Later')} disabled={index === selected.length - 1} onClick={() => move(index, index + 1)}>
                                             <i className="pi pi-chevron-right" aria-hidden="true" />
                                         </button>
-                                        <button type="button" className="player-order-button" aria-label={`Remove ${player.nickname}`} title="Remove" onClick={() => choose(player)}>
+                                        <button type="button" className="player-order-button" aria-label={t('Remove {{nickname}}', { nickname: player.nickname })} title={t('Remove')} onClick={() => choose(player)}>
                                             <i className="pi pi-times" aria-hidden="true" />
                                         </button>
                                     </span>
@@ -223,9 +227,9 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                             ))}
                         </ol>
                     )
-                    : <div className="text-faint fs-7">Tap the players who play, in the order they throw.</div>
+                    : <div className="text-faint fs-7">{t('Tap the players who play, in the order they throw.')}</div>
                 }
-                {selected.length > 0 && missing > 0 && <div className="text-faint fs-8 mt-2">Choose {missing} more {missing === 1 ? 'player' : 'players'} to start.</div>}
+                {selected.length > 0 && missing > 0 && <div className="text-faint fs-8 mt-2">{tn(missing, 'Choose {{count}} more player to start.', 'Choose {{count}} more players to start.')}</div>}
             </div>}
         </div>
     );

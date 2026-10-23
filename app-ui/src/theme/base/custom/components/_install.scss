@@ -1,0 +1,63 @@
+// the card that offers Oche for the home screen: above the menu bar on phones,
+// in the corner on bigger screens
+.install-hint {
+    position: fixed;
+    z-index: 950;
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: flex-start;
+    gap: $space-3;
+    width: min(24rem, calc(100vw - 2rem));
+    padding: 0.85rem 2.25rem 0.85rem 0.85rem;
+    background: $shade800;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: $radius-lg;
+    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.55);
+    animation: install-hint-in 0.35s ease-out both;
+
+    img { flex-shrink: 0; border-radius: $radius-lg; }
+
+    @media (max-width: 767.98px) {
+        right: 1rem;
+        left: 1rem;
+        width: auto;
+        // above the menu bar at the bottom
+        bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+.install-hint-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    border-radius: $radius-round;
+    color: var(--text-faint);
+    cursor: pointer;
+
+    &:hover { color: var(--text-default); background: rgba(255, 255, 255, 0.06); }
+}
+
+@keyframes install-hint-in {
+    from { opacity: 0; transform: translateY(0.75rem); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .install-hint { animation: none; }
+}
+
+// opened from the home screen: room for a notch or rounded corners at the sides
+@media (display-mode: standalone) {
+    body {
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
+    }
+}

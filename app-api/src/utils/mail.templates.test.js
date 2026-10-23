@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MAIL_TEMPLATES, effectiveTemplate, renderMail, sampleVars, templateError } from './mail.templates.js';
+import { MAIL_LANGUAGES, MAIL_TEMPLATES, defaultsOf, effectiveTemplate, renderMail, sampleVars, templateError, validityOf } from './mail.templates.js';
 
 describe('mail templates', () => {
     it('fills the placeholders in the subject, the text and the button', () => {
@@ -39,5 +39,35 @@ describe('mail templates', () => {
             expect(templateError(template.id, template)).toBeNull();
             expect(renderMail(template, sampleVars(template.id)).html).not.toContain('{{');
         }
+    });
+
+    it('has its defaults in every language, with the placeholders of the English text', () => {
+        for (const language of MAIL_LANGUAGES) {
+            for (const template of MAIL_TEMPLATES) {
+                const defaults = defaultsOf(template.id, language);
+                expect(templateError(template.id, defaults), `${language} ${template.id}`).toBeNull();
+                const placeholders = (text) => [...text.matchAll(/\{\{\s*(\w+)\s*\}\}/g)].map(match => match[1]).sort();
+                expect(placeholders(`${defaults.subject} ${defaults.body} ${defaults.button}`)).toEqual(placeholders(`${template.subject} ${template.body} ${template.button}`));
+                if (language === 'de') expect(`${defaults.subject}${defaults.body}${defaults.button}`).not.toContain('ß');
+            }
+        }
+    });
+
+    it('writes a mail in the language of its reader, layout and validity too', () => {
+        const mail = renderMail(effectiveTemplate('passwordReset', {}, 'de'), { firstname: 'Anna', validity: validityOf(1, 'de'), link: 'https://x/r', appUrl: 'https://x' }, 'de');
+        expect(mail.subject).toBe('Setze dein Oche-Passwort zurück');
+        expect(mail.text).toContain('läuft in 1 Stunde ab');
+        expect(mail.text).toContain('Diese E-Mail wurde von Oche (https://x) gesendet.');
+        expect(mail.html).toContain('<html lang="de">');
+        expect(mail.html).toContain('Falls der Knopf nicht funktioniert');
+        expect(validityOf(7 * 24, 'fr')).toBe('7 jours');
+        expect(validityOf(7 * 24)).toBe('7 days');
+    });
+
+    it('keeps what the global admins changed per language', () => {
+        const overrides = { passwordReset: { subject: 'New password' }, 'passwordReset:it': { subject: 'Nuova password' } };
+        expect(effectiveTemplate('passwordReset', overrides).subject).toBe('New password');
+        expect(effectiveTemplate('passwordReset', overrides, 'it').subject).toBe('Nuova password');
+        expect(effectiveTemplate('passwordReset', overrides, 'fr').subject).toBe('Réinitialise ton mot de passe Oche');
     });
 });

@@ -16,13 +16,13 @@
   flex-direction: column;
   align-items: center;
   // straight in the panel, no box of its own
-  padding: 0.5rem 1rem 0.25rem;
+  padding: $space-2 $space-4 $space-1;
 }
 
 .atc-stopwatch-time {
   color: var(--text-default);
   font-size: clamp(2rem, 9vw, 3rem);
-  font-weight: 600;
+  font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
   letter-spacing: -0.01em;
@@ -33,7 +33,7 @@
 .atc-watch-wrap {
   position: relative;
   width: clamp(11rem, 42vw, 14rem);
-  margin-bottom: 0.5rem;
+  margin-bottom: $space-2;
 }
 
 .atc-watch {
@@ -64,7 +64,7 @@
   justify-content: center;
   color: var(--primary-color);
   font-size: clamp(3rem, 12vw, 4.5rem);
-  font-weight: 800;
+  font-weight: $weight-heavy;
   text-shadow: 0 0 1rem rgba(246, 242, 232, 0.9);
 }
 
@@ -72,20 +72,20 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  margin-bottom: 1rem;
+  margin-bottom: $space-4;
   color: var(--text-subtle);
-  font-size: 0.85rem;
+  font-size: $text-sm;
   font-variant-numeric: tabular-nums;
 
-  &.is-ahead { color: #7ecca5; }
-  &.is-behind { color: #ec8b80; }
+  &.is-ahead { color: $accentGreen; }
+  &.is-behind { color: $accentRed; }
 }
 
 .atc-watch-best-dot {
   width: 0.6rem;
   height: 0.6rem;
-  border-radius: 50%;
-  background: #e9ac2f;
+  border-radius: $radius-round;
+  background: $accentAmber;
 }
 
 .atc-stopwatch-actions {
@@ -100,7 +100,7 @@
 .atc-stopwatch-main.p-button {
   justify-content: center;
   padding-block: 0.9rem;
-  font-size: 1.1rem;
+  font-size: $text-lg;
 }
 
 .atc-countdown {
@@ -118,10 +118,10 @@
 .atc-countdown-switch {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-2;
   margin-top: 0.9rem;
   color: var(--text-subtle);
-  font-size: 0.8rem;
+  font-size: $text-sm;
   cursor: pointer;
 }
 
@@ -131,10 +131,10 @@
 
 // where the time just saved ended up, under the stopwatch
 .atc-result {
-  margin-top: 0.75rem;
+  margin-top: $space-3;
   color: var(--text-subtle);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
   text-align: center;
 }
 
@@ -171,9 +171,9 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: $space-3;
   padding: 0.55rem 0.85rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 
   // the latest time of today
@@ -182,13 +182,13 @@
   &.is-latest,
   &.is-arriving {
     background: linear-gradient(90deg, rgba(233, 172, 47, 0.16), rgba(233, 172, 47, 0.04) 70%), var(--surface-raised);
-    box-shadow: inset 3px 0 0 #e9ac2f;
+    box-shadow: inset 3px 0 0 $accentAmber;
   }
 
   // on its way up: floating above the rows it passes
   &.is-arriving {
     z-index: 1;
-    box-shadow: inset 3px 0 0 #e9ac2f, 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
+    box-shadow: inset 3px 0 0 $accentAmber, 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
   }
 
   &.is-entering { animation: atc-row-enter 0.45s ease-out both; }
@@ -205,18 +205,18 @@
   flex-shrink: 0;
   width: 2rem;
   height: 2rem;
-  border-radius: 50%;
+  border-radius: $radius-round;
   background: $surfaceHighColor;
   color: var(--text-default);
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: $text-sm;
+  font-weight: $weight-bold;
 }
 
 // the podium as badge medals, a little smaller than the small badges
 .atc-medal.badge-medal-sm {
   width: 2rem;
   height: 2rem;
-  font-size: 0.85rem;
+  font-size: $text-sm;
   // the ring around the medal in the colour of the row
   box-shadow: 0 0 0 2px var(--surface-raised), 0 0 8px -2px currentColor;
 }
@@ -237,19 +237,19 @@
 
 .atc-row-name {
   color: var(--text-default);
-  font-weight: 600;
+  font-weight: $weight-semibold;
 }
 
 .atc-row-detail {
   color: var(--text-faint);
-  font-size: 0.75rem;
+  font-size: $text-xs;
 }
 
 .atc-row-time {
   flex-shrink: 0;
   color: var(--text-default);
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: $text-lg;
+  font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
 }
 
@@ -279,10 +279,10 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas: "avatar name" "avatar state" "bar bar";
-  column-gap: 0.5rem;
+  column-gap: $space-2;
   align-items: center;
   padding: 0.45rem 0.6rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
   transition: background 0.15s, opacity 0.15s;
 
@@ -298,8 +298,8 @@
   grid-area: name;
   overflow: hidden;
   color: var(--text-default);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -307,7 +307,7 @@
 .atc-round-player-state {
   grid-area: state;
   color: var(--text-faint);
-  font-size: 0.75rem;
+  font-size: $text-xs;
   font-variant-numeric: tabular-nums;
 }
 
@@ -315,7 +315,7 @@
   grid-area: bar;
   height: 3px;
   margin-top: 0.4rem;
-  border-radius: 2px;
+  border-radius: $radius-sm;
   background: $surfaceHighColor;
   overflow: hidden;
 
@@ -332,15 +332,15 @@
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
-  padding: 1rem;
-  border-radius: $borderRadius;
+  padding: $space-4;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
 .atc-round-target {
   color: var(--text-default);
   font-size: clamp(3rem, 15vw, 5rem);
-  font-weight: 700;
+  font-weight: $weight-bold;
   line-height: 1;
   animation: atc-target 0.3s ease-out both;
 }
@@ -366,16 +366,16 @@
 
   // on the bull: gold, it decides the round
   &.is-bull {
-    color: #ffc94d;
+    color: $accentGold;
     text-shadow: 0 0 1.2rem rgba(255, 201, 77, 0.55);
   }
 }
 
 .atc-bull-to-win {
   @include label-shape;
-  @include label-tone(#e9ac2f);
+  @include label-tone($accentAmber);
   margin-top: 0.35rem;
-  font-size: 0.7rem;
+  font-size: $text-xs;
   animation: match-dart-pulse 1.6s ease-in-out infinite;
 }
 
@@ -390,11 +390,11 @@
   .is-red { fill: #6e3a33; }
   .is-green { fill: #34503f; }
   .is-number { fill: #8a857c; }
-  .is-lit-number { fill: #ffc94d; }
+  .is-lit-number { fill: $accentGold; }
 
   // the target: gold and glowing
   .is-lit {
-    fill: #ffc94d;
+    fill: $accentGold;
     filter: drop-shadow(0 0 1.5px rgba(255, 201, 77, 0.9));
     animation: target-glow 1.4s ease-in-out infinite alternate;
   }
@@ -407,8 +407,8 @@
 
 // the record with the fewest darts: still in reach (green) or not any more (red)
 .atc-record-pace {
-  &.is-ahead { color: #7ecca5; }
-  &.is-behind { color: #ec8b80; }
+  &.is-ahead { color: $accentGreen; }
+  &.is-behind { color: $accentRed; }
 }
 
 // a player who takes the lead flashes gold
@@ -431,7 +431,7 @@
 
   span {
     height: 0.45rem;
-    border-radius: 2px;
+    border-radius: $radius-sm;
     background: $surfaceHighColor;
 
     &.is-hit { background: var(--primary-color); }
@@ -447,7 +447,7 @@
     width: 0.7rem;
     height: 0.7rem;
     border: 1px solid var(--border-default);
-    border-radius: 50%;
+    border-radius: $radius-round;
 
     &.is-hit { border-color: var(--primary-color); background: var(--primary-color); }
     &.is-miss { border-color: $shade600; background: $shade600; }
@@ -463,7 +463,7 @@
 .atc-round-button.p-button {
   justify-content: center;
   min-height: 4.5rem;
-  font-size: 1.25rem;
+  font-size: $text-xl;
   // quick taps one after the other must not zoom the page
   touch-action: manipulation;
 }
@@ -472,7 +472,7 @@
 .atc-result-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $space-2;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -480,7 +480,7 @@
 
 .atc-result-player {
   padding: 0.7rem 0.85rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -503,8 +503,8 @@
 .atc-result-place {
   margin-top: 0.4rem;
   color: var(--text-subtle);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
 }
 
 .atc-result-error {
@@ -512,10 +512,10 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
+  gap: $space-3;
+  margin-top: $space-3;
   color: var(--text-subtle);
-  font-size: 0.85rem;
+  font-size: $text-sm;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -531,10 +531,10 @@
 .atc-summary {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: $space-3;
+  margin-bottom: $space-4;
   padding: 0.6rem 0.85rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -547,20 +547,20 @@
 .atc-summary-names {
   overflow: hidden;
   color: var(--text-default);
-  font-weight: 600;
+  font-weight: $weight-semibold;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .atc-summary-detail {
   color: var(--text-faint);
-  font-size: 0.75rem;
+  font-size: $text-xs;
 }
 
 .atc-summary-avatars {
   display: flex;
   flex-shrink: 0;
-  gap: 0.25rem;
+  gap: $space-1;
 }
 
 // icon and label together in the middle of the big buttons
@@ -579,7 +579,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .atc-filter-toggle {
@@ -594,7 +594,7 @@
   right: 0.35rem;
   width: 0.5rem;
   height: 0.5rem;
-  border-radius: 50%;
+  border-radius: $radius-round;
   background: var(--primary-color);
   pointer-events: none;
 }
@@ -604,9 +604,9 @@
   // two groups side by side where there is room, one below the other on a phone
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   gap: 0.85rem 1.25rem;
-  margin-bottom: 1rem;
+  margin-bottom: $space-4;
   padding: 0.85rem 1rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -619,8 +619,8 @@
 
 .atc-filter-label {
   color: var(--text-faint);
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: $text-xs;
+  font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -638,7 +638,7 @@
 // a little smaller than the pills of the setup, so each group fits on one line
 .atc-filter-group .p-selectbutton.pills-inline .p-button {
   padding: 0.35rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: $text-sm;
 }
 
 // with doubles and trebles moving on: four buttons, two by two on a phone
@@ -653,17 +653,17 @@
   place-items: center;
   color: var(--primary-color-text);
   font-size: 0.5rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
 }
 
 // e.g. "Last round: everybody gets as many turns"
 .atc-round-notice {
-  padding: 0.5rem 0.75rem;
-  border-radius: $borderRadius;
-  background: color-mix(in srgb, #ffc94d 16%, transparent);
-  color: #ffc94d;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  background: color-mix(in srgb, $accentGold 16%, transparent);
+  color: $accentGold;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
   text-align: center;
 }
 
@@ -671,11 +671,11 @@
 .clock-skip-switch {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin: 0 auto 1rem;
+  gap: $space-3;
+  margin: 0 auto $space-4;
   padding: 0.7rem 0.9rem;
   max-width: 30rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
   cursor: pointer;
 
@@ -705,10 +705,10 @@
 // the label of the training just saved
 .atc-row-new {
   @include label-shape;
-  @include label-tone(#e9ac2f);
-  margin-left: 0.5rem;
+  @include label-tone($accentAmber);
+  margin-left: $space-2;
   padding: 0.05rem 0.45rem;
-  font-size: 0.65rem;
+  font-size: $text-xs;
   vertical-align: middle;
 }
 
@@ -718,7 +718,7 @@
   align-items: center;
   gap: 0.6rem;
   // the size of the hints in the X01 setup
-  font-size: 0.85rem;
+  font-size: $text-sm;
   color: var(--text-subtle);
 
   svg { flex-shrink: 0; color: $primaryColor; font-size: 1.1rem; }
@@ -730,7 +730,7 @@
   align-items: center;
   gap: 0.85rem;
   padding: 0.65rem 0.85rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -741,12 +741,12 @@
   min-width: 4.2rem;
   justify-content: center;
 
-  &.is-won { @include label-tone(#7ecca5); }
-  &.is-lost { @include label-tone(#ec8b80); }
+  &.is-won { @include label-tone($accentGreen); }
+  &.is-lost { @include label-tone($accentRed); }
 }
 
 // what a training does not count for, as a hint of the setup
 .x01-bot-hint {
-  font-size: 0.85rem;
+  font-size: $text-sm;
   color: var(--text-faint);
 }

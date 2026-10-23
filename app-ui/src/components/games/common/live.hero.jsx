@@ -4,7 +4,10 @@ import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
+import useGameRules from './game.rules';
 import PlayerFlight from '../../flights/player.flight';
+import QuickHeroBrand from '../../quick/quick.hero.brand';
+import { t } from '../../../utils/i18n';
 
 /**
  * The top of a running game in the look of the X01 page: what is played, and
@@ -14,19 +17,27 @@ import PlayerFlight from '../../flights/player.flight';
  *
  * rows: [{ player, isTurn, line, tags, score, scoreClass, scoreKey, below }];
  * a new scoreKey plays the score's animation again (e.g. taking the lead).
+ * rulesId: the game's rules (see about/rules), opened from the header;
+ * houseRules: the club's house rules the game is played with, in words.
  */
-const LiveHero = ({ title, subtitle, rows }) => {
+const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [] }) => {
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
+    const [rulesButton, rules] = useGameRules(rulesId, houseRules);
 
     return (
         <header className="hero-header result-hero x01-live-hero">
             <div className="result-hero-top">
-                <div className="d-flex flex-column">
-                    <span className="text-default fw-semibold">{title}</span>
-                    {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
+                <div className="d-flex align-items-center gap-3 min-w-0">
+                    <QuickHeroBrand />
+                    <div className="d-flex flex-column min-w-0">
+                        <span className="text-default fw-semibold">{title}</span>
+                        {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
+                    </div>
                 </div>
+                {rulesButton}
             </div>
+            {rules}
 
             <div className={`x01-hero-players count-${rows.length}`}>
                 {rows.map(({ player, isTurn, line, tags, score, scoreClass = '', scoreKey, below }, index) => (
@@ -49,14 +60,14 @@ const LiveHero = ({ title, subtitle, rows }) => {
                             </span>
                             {line && <span className="x01-live-leg">{line}</span>}
                             <span className="x01-live-tags">
-                                {isTurn && <span className="x01-live-turn">Throwing</span>}
+                                {isTurn && <span className="x01-live-turn">{t('Throwing')}</span>}
                                 {tags}
                                 {heldBy(shame, player.id).length > 0 &&
                                     // the shame badges keep together: they go to the next line as one
                                     <span className="x01-shames">
                                         {heldBy(shame, player.id).map(badge => (
                                             <span key={badge.id} className="x01-shame">
-                                                <ShameMedal badge={badge} size="xs" title={`Holds the ${badge.title} in the club. Wash it off: ${badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}`} />
+                                                <ShameMedal badge={badge} size="xs" title={t('Holds the {{title}} in the club. Wash it off: {{value}}', { title: badge.title, value: badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1) })} />
                                             </span>
                                         ))}
                                     </span>}

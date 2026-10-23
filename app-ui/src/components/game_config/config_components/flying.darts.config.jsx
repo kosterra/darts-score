@@ -1,11 +1,12 @@
 import { SelectButton } from 'primereact/selectbutton';
 
 import { FLYING_DARTS_OPTIONS } from '../../../utils/flights';
+import { t } from '../../../utils/i18n';
 
 const HINTS = {
-    players: 'A dart flies to the field you tap. Each player switches it on or off on their player profile (on unless they switched it off).',
-    on: 'A dart flies to the field you tap, for everyone in this game.',
-    off: 'The field you tap just lights up, for everyone in this game.',
+    players: t('A dart flies to the field you tap. Each player switches it on or off on their profile (off unless they switched it on).'),
+    on: t('A dart flies to the field you tap, for everyone in this game.'),
+    off: t('The field you tap just lights up, for everyone in this game.'),
 };
 
 /**
@@ -14,7 +15,7 @@ const HINTS = {
  */
 const FlyingDartsConfig = ({ value = 'players', onChange }) => (
     <div>
-        <p className="setting-title">Dart animation</p>
+        <p className="setting-title">{t('Dart animation')}</p>
         <div className="row mx-0 mt-0 setting-body">
             <div className="col d-flex flex-column gap-2">
                 <SelectButton
@@ -22,7 +23,7 @@ const FlyingDartsConfig = ({ value = 'players', onChange }) => (
                     onChange={(e) => e.value && onChange(e.value)}
                     options={FLYING_DARTS_OPTIONS}
                     className="p-selectbutton-pills flex-wrap"
-                    aria-label="Dart animation"
+                    aria-label={t('Dart animation')}
                 />
                 <span className="text-faint fs-8">{HINTS[value]}</span>
             </div>

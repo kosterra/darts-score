@@ -47,7 +47,7 @@ export const KpiHero = ({ label, value, detail, color }) => (
 export const KpiChip = ({ icon: Icon, label, value, color, detail }) => (
     <div className="kpi-chip" style={{ '--kpi-color': color }}>
         <span className="kpi-chip-icon" aria-hidden="true"><Icon /></span>
-        <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+        <span className="d-flex flex-column min-w-0">
             <span className="kpi-chip-value">{value ?? '–'}</span>
             <span className="kpi-chip-label">{label}</span>
             {detail && <span className="kpi-chip-detail">{detail}</span>}

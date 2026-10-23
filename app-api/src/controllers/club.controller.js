@@ -9,6 +9,7 @@ import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
+import { normalizeClubRules } from '../rules/club.rules.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -91,6 +92,7 @@ export const update = async (req, res) => {
     if (!club) return;
     club.name = req.body.name;
     if (typeof req.body.description === 'string') club.description = req.body.description;
+    if (typeof req.body.country === 'string') club.country = req.body.country.toUpperCase();
     // Visibility settings are optional, so a plain rename leaves them alone
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
@@ -103,6 +105,20 @@ export const update = async (req, res) => {
         club.dashboardLayout = normalizeLayout(req.body.dashboardLayout);
         club.dashboardWidgets = undefined;
     }
+    await club.save();
+    res.json(await withAdmins(club));
+};
+
+/**
+ * The club's own rules for its games, as its admins set them (see
+ * rules/club.rules.js); whatever does not fit is left out.
+ */
+export const updateGameRules = async (req, res) => {
+    logger.debug('clubs update game rules called');
+    const club = await loadManagedClub(req, res);
+    if (!club) return;
+    club.gameRules = normalizeClubRules(req.body);
+    club.markModified('gameRules');
     await club.save();
     res.json(await withAdmins(club));
 };
@@ -128,6 +144,8 @@ export const remove = async (req, res) => {
         db.cricket.deleteMany({ club: club._id }),
         db.elimination.deleteMany({ club: club._id }),
         db.clock.deleteMany({ club: club._id }),
+        db.rulesGame.deleteMany({ club: club._id }),
+        db.rulesTraining.deleteMany({ club: club._id }),
         db.atc.deleteMany({ club: club._id }),
         db.x01Training.deleteMany({ club: club._id }),
         db.joinRequest.deleteMany({ club: club._id }),
@@ -197,7 +215,7 @@ export const addAdmin = async (req, res) => {
     await club.save();
     logger.info(`${user.email} is now an admin of club "${club.name}" (added by ${req.user.email})`);
 
-    sendClubWelcomeMail(user, inviteLink, 'admin', { club: club.name, inviter: `${req.user.firstname} ${req.user.lastname}` });
+    sendClubWelcomeMail(user, inviteLink, 'admin', { club: club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, language: req.user.language });
 
     res.status(201).json(await withAdmins(club));
 };

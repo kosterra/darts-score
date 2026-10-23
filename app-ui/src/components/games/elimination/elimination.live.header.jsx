@@ -4,6 +4,7 @@ import EliminationContext from '../../../utils/elimination.context';
 import LiveHero from '../common/live.hero';
 import { checkoutRoutes, formatRoute } from '../../../utils/checkout.routes';
 import { knockBacks, liveScores, visitsOf } from './elimination.live';
+import { t } from '../../../utils/i18n';
 
 /**
  * The top of a running Elimination game: every player with their score (live
@@ -45,25 +46,25 @@ const EliminationLiveHeader = () => {
         return {
             player,
             isTurn,
-            line: <>Last visit <strong>{last ? (last.bust ? 'Bust' : last.roundScore) : '–'}</strong> · <strong>{darts}</strong> darts</>,
+            line: <>{t('Last visit')}{' '}<strong>{last ? (last.bust ? t('Bust') : last.roundScore) : '–'}</strong> · <strong>{darts}</strong>{' '}{t('darts')}</>,
             score: busted ? 'BUST' : score,
             scoreClass: [busted ? 'is-bust' : '', inDanger.has(player.id) ? 'is-in-danger' : '', flash?.id === player.id ? 'is-taking-lead' : ''].filter(Boolean).join(' '),
             scoreKey: flash?.id === player.id ? flash.key : 'score',
-            tags: inDanger.has(player.id) ? <span className="elimination-danger-tag">In reach</span> : null,
+            tags: inDanger.has(player.id) ? <span className="elimination-danger-tag">{t('In reach')}</span> : null,
             below: (
                 <>
                     <span
                         className={`x01-live-route ${route ? '' : 'is-setup'}`}
-                        title={knock ? `Lands on ${nickname(knock.playerId)}'s score: back to 0` : undefined}
+                        title={knock ? t('Lands on {{nickname}}\'s score: back to 0', { nickname: nickname(knock.playerId) }) : undefined}
                     >
                         {route ? formatRoute(route)
-                            : knock ? <>{knock.dart}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />{nickname(knock.playerId)} back to 0</span></>
-                            : `${game.targetScore - score} to go`}
+                            : knock ? <>{knock.dart}<span className="x01-route-leaves"><i className="pi pi-arrow-right" aria-hidden="true" />{nickname(knock.playerId)}{' '}{t('back to 0')}</span></>
+                            : t('{{value}} to go', { value: game.targetScore - score })}
                     </span>
                     <span className="x01-live-won">
                         <span className="x01-won">
-                            <span className="x01-won-label">To pass</span>
-                            <span className="x01-won-number">{toPass === '-' || !toPass ? 'Leads' : toPass}</span>
+                            <span className="x01-won-label">{t('To pass')}</span>
+                            <span className="x01-won-number">{toPass === '-' || !toPass ? t('Leads') : toPass}</span>
                         </span>
                     </span>
                 </>
@@ -75,8 +76,9 @@ const EliminationLiveHeader = () => {
 
     return (
         <LiveHero
-            title={`Elimination · ${game.targetScore}`}
-            subtitle={`${modes} · land on an opponent's score to send them back to 0 · Round ${round}`}
+            rulesId="elimination"
+            title={t('Elimination · {{targetScore}}', { targetScore: game.targetScore })}
+            subtitle={t('{{modes}} · land on an opponent\'s score to send them back to 0 · Round {{round}}', { modes: modes, round: round })}
             rows={rows}
         />
     );

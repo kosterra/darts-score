@@ -4,6 +4,7 @@ import DoublesChart from '../charts/doubles.chart';
 import TrainingProgressChart from '../charts/training.progress.chart';
 import AtcTargetsChart from '../charts/atc.targets.chart';
 import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart, FormChart } from '../charts/simple.bar.charts';
+import { t } from '../../../utils/i18n';
 
 /**
  * All charts of one player's profile.
@@ -26,8 +27,8 @@ const PlayerStatsCharts = ({ playerStats = {}, players = [] }) => {
                 <div className="col-12 col-xl-6">
                     <TrainingProgressChart
                         progress={trainingDarts.progress}
-                        title="Around the Clock · fewest darts"
-                        description="Fewest darts per mode, and how it improved with every round. Lower is better; 21 is perfect."
+                        title={t('Around the Clock · fewest darts')}
+                        description={t('Fewest darts per mode, and how it improved with every round. Lower is better; 21 is perfect.')}
                         format={(value) => `${value}`}
                     />
                 </div>

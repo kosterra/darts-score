@@ -4,8 +4,9 @@ import rateLimit from 'express-rate-limit';
 import { validate } from '../utils/validation.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import * as AuthController from '../controllers/auth.controller.js';
+import { LANGUAGES } from '../models/user.model.js';
 
-const NAME_PATTERN = /^[A-Za-zéèàäöü\s'-]+$/;
+const NAME_PATTERN = /^[\p{L}\s'-]+$/u;
 
 export const emailValidator = body('email')
     .trim()
@@ -39,7 +40,7 @@ const credentialLimiter = rateLimit({
 export default (app) => {
     const router = Router();
 
-    router.post('/register', credentialLimiter, emailValidator, nameValidators(), passwordValidator('password'), validate, AuthController.register);
+    router.post('/register', credentialLimiter, emailValidator, nameValidators(), passwordValidator('password'), body('language').optional().isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.register);
     router.post('/login', credentialLimiter, emailValidator, body('password').isString().notEmpty().withMessage('Password is required.'), validate, AuthController.login);
     router.post('/logout', AuthController.logout);
 
@@ -64,6 +65,9 @@ export default (app) => {
         body('layout.*.id').optional().isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
         body('layout.*.size').optional().isIn(['S', 'M', 'L', 'F']).withMessage('The width of a widget is S, M, L or F.'),
         validate, AuthController.setDashboard);
+    // how the player likes to play (merged into what they had)
+    router.put('/game-preferences', requireAuth, body().isObject().withMessage('The preferences are an object.'), validate, AuthController.setGamePreferences);
+    router.put('/language', requireAuth, body('language').isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.setLanguage);
     router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), body('defaultClub').optional({ values: 'null' }).isMongoId().withMessage('Choose one of your clubs.'), validate, AuthController.updateMe);
     router.put('/password',
         requireAuth,

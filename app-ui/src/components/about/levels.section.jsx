@@ -4,10 +4,11 @@ import LevelBadge from '../players/level.badge';
 import { FlightPicture } from '../flights/flight.art';
 import { BarrelPicture } from '../flights/barrel.art';
 import { AVERAGE_LEVELS } from '../../utils/average.levels';
+import { locale, t } from '../../utils/i18n';
 
-const formatNumber = (value) => new Intl.NumberFormat().format(value ?? 0);
+const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
-const KINDS = { shape: 'flight shape', design: 'flight design', barrel: 'barrel' };
+const KINDS = { shape: t('flight shape'), design: t('flight design'), barrel: t('barrel') };
 
 // the flights and barrels a level unlocks, small, each with its name
 const Unlocks = ({ items }) => {
@@ -16,7 +17,7 @@ const Unlocks = ({ items }) => {
     return (
         <ul className="about-unlocks list-unstyled m-0">
             {items.map(item => (
-                <li key={`${item.kind}-${item.id}`} title={`${item.label}: ${KINDS[item.kind]}, ${item.cost} flight points`}>
+                <li key={`${item.kind}-${item.id}`} title={t('{{label}}: {{value}}, {{cost}} flight points', { label: item.label, value: KINDS[item.kind], cost: item.cost })}>
                     {item.kind === 'barrel'
                         ? <BarrelPicture barrel={item.id} uid={`${uid}-${item.kind}-${item.id}`} />
                         : <FlightPicture shape={item.kind === 'shape' ? item.id : 'standard'} design={item.kind === 'design' ? item.id : 'plain'} color="#7d8791" uid={`${uid}-${item.kind}-${item.id}`} />}
@@ -43,13 +44,11 @@ const LevelsSection = ({ levels, rules, flights }) => {
     return (
     <div className="d-flex flex-column gap-4 p-2">
         <section className="d-flex flex-column gap-3">
-            <h2 className="game-setup-section-title m-0">Player levels</h2>
+            <h2 className="game-setup-section-title m-0">{t('Player levels')}</h2>
             <p className="text-subtle fs-7 m-0">
-                Every player collects XP for playing, winning, badges and skill. From League Player on a level also needs a minimum X01 average,
-                so it stands for how someone plays and not only for how much. The level follows the current statistics, so it shows today&apos;s form
-                and can go down again. Each profile shows the level, the way to the next one and what its XP are made of.
+                {t('Every player collects XP for playing, winning, badges and skill. From League Player on a level also needs a minimum X01 average, so it stands for how someone plays and not only for how much. The level follows the current statistics, so it shows today\'s form and can go down again. Each profile shows the level, the way to the next one and what its XP are made of.')}
             </p>
-            {!levels && <span className="text-faint fs-7">Loading levels…</span>}
+            {!levels && <span className="text-faint fs-7">{t('Loading levels…')}</span>}
             {levels &&
                 <ol className="list-unstyled m-0 about-levels">
                     {levels.map((level, index) => (
@@ -57,9 +56,9 @@ const LevelsSection = ({ levels, rules, flights }) => {
                             <div className="about-level-head">
                                 <LevelBadge level={{ ...level, index: index + 1 }} />
                                 <span className="text-subtle fs-8 text-end">
-                                    {formatNumber(level.xp)} XP
-                                    {level.minAverage && ` · X01 average ${level.minAverage}`}
-                                    {level.minGames && ` · ${level.minGames} games`}
+                                    {formatNumber(level.xp)}{' '}{t('XP')}
+                                    {level.minAverage && t(' · X01 average {{minAverage}}', { minAverage: level.minAverage })}
+                                    {level.minGames && t(' · {{minGames}} games', { minGames: level.minGames })}
                                 </span>
                             </div>
                             <Unlocks items={byLevel(index + 1)} />
@@ -69,22 +68,21 @@ const LevelsSection = ({ levels, rules, flights }) => {
             }
             {rules &&
                 <div className="about-xp">
-                    <h3 className="fs-7 fw-semibold text-default mb-2">How XP are earned</h3>
+                    <h3 className="fs-7 fw-semibold text-default mb-2">{t('How XP are earned')}</h3>
                     <ul className="text-subtle fs-7 m-0 ps-4 d-flex flex-column gap-1">
-                        <li>{rules.perGame} XP for every game played and {rules.perWin} more for every win</li>
-                        <li>{rules.perBadge} XP for every badge, {rules.per180} for every 180</li>
-                        <li>{rules.perAveragePoint} XP per point of X01 average and {rules.perCheckoutPercent} per percent of checkout rate, once {rules.minX01Games} X01 games are played</li>
-                        <li>{rules.perMarkPerRound} XP per Cricket mark per round, once {rules.minCricketGames} Cricket games are played</li>
+                        <li>{rules.perGame}{' '}{t('XP for every game played and')}{' '}{rules.perWin}{' '}{t('more for every win')}</li>
+                        <li>{rules.perBadge}{' '}{t('XP for every badge,')}{' '}{rules.per180}{' '}{t('for every 180')}</li>
+                        <li>{rules.perAveragePoint}{' '}{t('XP per point of X01 average and')}{' '}{rules.perCheckoutPercent}{' '}{t('per percent of checkout rate, once')}{' '}{rules.minX01Games}{' '}{t('X01 games are played')}</li>
+                        <li>{rules.perMarkPerRound}{' '}{t('XP per Cricket mark per round, once')}{' '}{rules.minCricketGames}{' '}{t('Cricket games are played')}</li>
                     </ul>
                 </div>
             }
         </section>
 
         <section className="d-flex flex-column gap-3">
-            <h2 className="game-setup-section-title m-0">Average levels</h2>
+            <h2 className="game-setup-section-title m-0">{t('Average levels')}</h2>
             <p className="text-subtle fs-7 m-0">
-                The 3-dart average of X01 has a level of its own, on the same steps as the averages the player levels need. The profile names the level
-                of a player&apos;s average, and the average over time marks every change of level, up and down, with lines for the level reached and the next one.
+                {t('The 3-dart average of X01 has a level of its own, on the same steps as the averages the player levels need. The profile names the level of a player\'s average, and the average over time marks every change of level, up and down, with lines for the level reached and the next one.')}
             </p>
             <ol className="list-unstyled m-0 about-levels">
                 {AVERAGE_LEVELS.map((level, index) => {
@@ -98,7 +96,7 @@ const LevelsSection = ({ levels, rules, flights }) => {
                                     <span className="level-badge-name">{level.name}</span>
                                 </span>
                                 <span className="text-subtle fs-8 text-end">
-                                    {level.min === 0 ? `average below ${next.min}` : `average from ${level.min}`}
+                                    {level.min === 0 ? t('average below {{min}}', { min: next.min }) : t('average from {{min}}', { min: level.min })}
                                 </span>
                             </div>
                             <Unlocks items={byAverage(level.min)} />
@@ -108,13 +106,13 @@ const LevelsSection = ({ levels, rules, flights }) => {
             </ol>
             {both.length > 0 && (
                 <div className="d-flex flex-column gap-2">
-                    <span className="text-subtle fs-7">Some need a player level and an average together:</span>
+                    <span className="text-subtle fs-7">{t('Some need a player level and an average together:')}</span>
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {[...new Set([...both].sort((a, b) => a.level - b.level || a.average - b.average).map(item => `${item.level}|${item.average}`))].map(key => {
                             const [level, average] = key.split('|').map(Number);
                             return (
                                 <li key={key} className="about-level-row">
-                                    <span className="text-default fs-7 fw-semibold">{levels?.[level - 1]?.name ?? `Level ${level}`} and an average of {average}</span>
+                                    <span className="text-default fs-7 fw-semibold">{levels?.[level - 1]?.name ?? t('Level {{level}}', { level: level })}{' '}{t('and an average of')}{' '}{average}</span>
                                     <Unlocks items={both.filter(item => item.level === level && item.average === average)} />
                                 </li>
                             );
@@ -126,21 +124,19 @@ const LevelsSection = ({ levels, rules, flights }) => {
 
         {flights && (
             <section className="d-flex flex-column gap-3">
-                <h2 className="game-setup-section-title m-0">Flight points</h2>
+                <h2 className="game-setup-section-title m-0">{t('Flight points')}</h2>
                 <p className="text-subtle fs-7 m-0">
-                    Every player collects flight points by playing and training, and spends them on the flight shapes, designs and barrels they like, on their
-                    player profile. Besides the starters, a flight costs from 60 to 650 points; many also need a player level or an average level, shown above
-                    with the level they belong to. The points are worked out from the games and trainings, so a deleted game takes its points along.
+                    {t('Every player collects flight points by playing and training, and spends them on the flight shapes, designs and barrels they like, on their profile. Besides the starters, a flight costs from 60 to 650 points; many also need a player level or an average level, shown above with the level they belong to. The points are worked out from the games and trainings, so a deleted game takes its points along.')}
                 </p>
                 <div className="about-xp">
-                    <h3 className="fs-7 fw-semibold text-default mb-2">How flight points are earned</h3>
+                    <h3 className="fs-7 fw-semibold text-default mb-2">{t('How flight points are earned')}</h3>
                     <ul className="text-subtle fs-7 m-0 ps-4 d-flex flex-column gap-1">
-                        {flights.pointRules.map(rule => <li key={rule.id}>{rule.label}: {rule.per} each</li>)}
+                        {flights.pointRules.map(rule => <li key={rule.id}>{rule.label}: {rule.per}{' '}{t('each')}</li>)}
                     </ul>
                 </div>
                 {legendary.length > 0 && (
                     <div className="d-flex flex-column gap-2">
-                        <span className="text-subtle fs-7">The legendary ones cannot be bought; they come with a feat:</span>
+                        <span className="text-subtle fs-7">{t('The legendary ones cannot be bought; they come with a feat:')}</span>
                         <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                             {legendary.map(item => (
                                 <li key={`${item.kind}-${item.id}`} className="about-level-row">

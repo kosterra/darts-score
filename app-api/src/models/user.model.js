@@ -2,6 +2,8 @@
 // they are one of its admins, or they are linked to one of its players.
 export const ROLES = { GLOBAL_ADMIN: 'globalAdmin', USER: 'user' };
 export const CLUB_ROLES = { ADMIN: 'admin', PLAYER: 'player' };
+// The languages of the app; the mails and messages of the API follow the user's
+export const LANGUAGES = ['en', 'de', 'fr', 'it', 'es'];
 
 export default (mongoose) => {
   const schema = mongoose.Schema(
@@ -14,9 +16,13 @@ export default (mongoose) => {
       startPage:      { type: String, enum: ['dashboard', 'myStatistics'], default: 'dashboard' },
       // the club the app opens in after logging in; null: the one used last on the device
       defaultClub:    { type: mongoose.Schema.Types.ObjectId, ref: 'club', default: null },
+      // the language of the app and of the mails sent to the user; null: not chosen yet (English for mails)
+      language:       { type: String, enum: [...LANGUAGES, null], default: null },
       // the user's own dashboards, per club, instead of the club's: [{ club, layout: [{ id, size }] }]
       dashboards:     { type: [{ _id: false, club: { type: mongoose.Schema.Types.ObjectId, ref: 'club' }, layout: [{ _id: false, id: String, size: String }] }], default: [] },
       role:           { type: String, enum: Object.values(ROLES), default: ROLES.USER },
+      // how the player likes to play, on every device: the ways out, the keypad, the last setups, … (see rules/club.rules.js)
+      gamePreferences: { type: mongoose.Schema.Types.Mixed, default: undefined },
       // Bumped on password change so older session cookies stop working
       sessionVersion: { type: Number, default: 0 },
       // Hash of the token from a "set your password" mail, and when it stops working

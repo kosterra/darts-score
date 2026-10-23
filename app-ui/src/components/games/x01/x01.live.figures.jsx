@@ -1,4 +1,5 @@
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
+import { t } from '../../../utils/i18n';
 
 const TON_PLUS = ['180', '160-179', '140-159', '120-139', '100-119'];
 
@@ -14,14 +15,14 @@ const X01LiveFigures = ({ game, players }) => {
     const leg = `leg-${game.currentSetLeg}`;
     const ranges = (model, names) => names.reduce((sum, name) => sum + (Number(model?.scoreRanges?.game?.[name]) || 0), 0);
     const rows = [
-        { label: 'Average', value: (m) => oneDecimal(nested(m, ['averages', 'game', 'overall'])) },
-        ...(game.numberOfSets > 1 ? [{ label: 'This set', value: (m) => oneDecimal(nested(m, ['averages', set, 'overall'])) }] : []),
-        { label: 'This leg', value: (m) => oneDecimal(nested(m, ['averages', set, leg, 'overall'])) },
-        { label: 'Best visit', value: (m) => nested(m, ['bestThreeDarts', 'game', 'value']) || null },
+        { label: t('Average'), value: (m) => oneDecimal(nested(m, ['averages', 'game', 'overall'])) },
+        ...(game.numberOfSets > 1 ? [{ label: t('This set'), value: (m) => oneDecimal(nested(m, ['averages', set, 'overall'])) }] : []),
+        { label: t('This leg'), value: (m) => oneDecimal(nested(m, ['averages', set, leg, 'overall'])) },
+        { label: t('Best visit'), value: (m) => nested(m, ['bestThreeDarts', 'game', 'value']) || null },
         { label: '100+', value: (m) => ranges(m, TON_PLUS) },
-        { label: '180s', value: (m) => ranges(m, ['180']) },
-        { label: 'Highest checkout', value: (m) => Math.max(0, ...Object.keys(m?.checkoutScores?.game ?? {}).map(Number).filter(Number.isFinite)) || null },
-        { label: 'Darts thrown', value: (m) => nested(m, ['totalThrow', 'game', 'darts']) ?? 0, neutral: true },
+        { label: t('180s'), value: (m) => ranges(m, ['180']) },
+        { label: t('Highest checkout'), value: (m) => Math.max(0, ...Object.keys(m?.checkoutScores?.game ?? {}).map(Number).filter(Number.isFinite)) || null },
+        { label: t('Darts thrown'), value: (m) => nested(m, ['totalThrow', 'game', 'darts']) ?? 0, neutral: true },
     ];
     const compare = players.length > 1;
 
@@ -30,7 +31,7 @@ const X01LiveFigures = ({ game, players }) => {
             {compare &&
                 <thead>
                     <tr>
-                        <th aria-label="Figure" />
+                        <th aria-label={t('Figure')} />
                         {players.map((player, index) => (
                             <th key={player.id} scope="col">
                                 <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />

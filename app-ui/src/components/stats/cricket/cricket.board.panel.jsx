@@ -3,6 +3,7 @@ import { Panel } from 'primereact/panel';
 import RoundsLineChart from '../charts/rounds.line.chart';
 import { PLAYER_COLORS } from '../charts/chart.theme';
 import { CRICKET_NUMBERS } from '../../../utils/cricket.game.summary';
+import { t } from '../../../utils/i18n';
 
 // the marks on a number as on a cricket scoreboard: /, X, then a circled X once it is closed
 const MARK_SYMBOLS = ['', '/', '✕', 'ⓧ'];
@@ -20,19 +21,19 @@ const CricketBoardPanel = ({ board, players, closing }) => {
     return (
         <div className="row g-4 mb-4">
             <div className="col-12 col-xl-6">
-                <Panel header="The board" className="h-100">
+                <Panel header={t('The board')} className="h-100">
                     <div className="cricket-board-wrap">
                         <table className="cricket-board">
                             <thead>
                                 <tr>
-                                    <th scope="col"><span className="d-none d-sm-inline">Number</span><span className="d-sm-none">No.</span></th>
+                                    <th scope="col"><span className="d-none d-sm-inline">{t('Number')}</span><span className="d-sm-none">{t('No.')}</span></th>
                                     {players.map((player, index) => (
                                         <th key={player.id} scope="col" className="text-center" title={player.nickname}>
                                             <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />
                                             <span className="cricket-board-name">{player.nickname}</span>
                                         </th>
                                     ))}
-                                    <th scope="col"><span className="d-none d-sm-inline">Closed first</span><span className="d-sm-none">First</span></th>
+                                    <th scope="col"><span className="d-none d-sm-inline">{t('Closed first')}</span><span className="d-sm-none">{t('First')}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -49,7 +50,7 @@ const CricketBoardPanel = ({ board, players, closing }) => {
                                                     <td key={player.id}>
                                                         {/* the same two columns in every row, so the marks line up */}
                                                         <span className="cricket-cell">
-                                                            <span className={`cricket-marks ${marks >= 3 ? 'is-closed' : ''}`} aria-label={`${Math.min(marks, 3)} of 3 marks`}>
+                                                            <span className={`cricket-marks ${marks >= 3 ? 'is-closed' : ''}`} aria-label={t('{{min}} of 3 marks', { min: Math.min(marks, 3) })}>
                                                                 {MARK_SYMBOLS[Math.min(marks, 3)] || '·'}
                                                             </span>
                                                             <span className="cricket-points">{points > 0 ? `+${points}` : ''}</span>
@@ -61,7 +62,7 @@ const CricketBoardPanel = ({ board, players, closing }) => {
                                                 {closer
                                                     // on a phone only the player's colour, the names are in the head of the table
                                                     ? <span title={players[indexOf.get(closer)]?.nickname}><span className="result-hero-dot" style={{ background: PLAYER_COLORS[indexOf.get(closer)] }} aria-hidden="true" /><span className="d-none d-sm-inline">{players[indexOf.get(closer)]?.nickname}</span></span>
-                                                    : <span className="text-faint">open</span>}
+                                                    : <span className="text-faint">{t('open')}</span>}
                                             </td>
                                         </tr>
                                     );
@@ -69,17 +70,17 @@ const CricketBoardPanel = ({ board, players, closing }) => {
                             </tbody>
                         </table>
                     </div>
-                    <span className="d-block text-faint fs-8 mt-2">/ one mark, ✕ two, ⓧ closed; +points scored on the number.</span>
+                    <span className="d-block text-faint fs-8 mt-2">{t('/ one mark, ✕ two, ⓧ closed; +points scored on the number.')}</span>
                 </Panel>
             </div>
             <div className="col-12 col-xl-6">
                 <RoundsLineChart
-                    title="Race to close"
-                    description="How far each player was towards closing 15 to 20 and the bull (21 marks) after every round."
+                    title={t('Race to close')}
+                    description={t('How far each player was towards closing 15 to 20 and the bull (21 marks) after every round.')}
                     data={closing}
                     players={players}
                     max={21}
-                    unit="of 21 marks"
+                    unit={t('of 21 marks')}
                 />
             </div>
         </div>

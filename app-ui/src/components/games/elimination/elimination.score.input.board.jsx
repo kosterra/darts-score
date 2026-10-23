@@ -7,6 +7,7 @@ import VisitInput from '../common/visit.input';
 import DartKeypad from '../common/dart.keypad';
 import useInputMode from '../common/use.input.mode';
 import { liveScores } from './elimination.live';
+import { t } from '../../../utils/i18n';
 
 /**
  * The playing area of Elimination as on the X01 page: the board or the
@@ -53,10 +54,10 @@ const EliminationScoreInputBoard = () => {
     };
 
     const summary = busted
-        ? <span><strong>Bust</strong> · the score stays at {before}</span>
+        ? <span><strong>{t('Bust')}</strong>{' '}{t('· the score stays at')}{' '}{before}</span>
         : score === game.targetScore
-            ? <span><strong>Game shot</strong> · enter the score to win</span>
-            : <span>Visit <strong>{throwScore}</strong> · total <strong>{score}</strong>{sentBack.length > 0 && <> · <strong>{sentBack.map(nickname).join(', ')}</strong> back to 0</>}</span>;
+            ? <span><strong>{t('Game shot')}</strong>{' '}{t('· enter the score to win')}</span>
+            : <span>{t('Visit')}{' '}<strong>{throwScore}</strong>{' '}{t('· total')}{' '}<strong>{score}</strong>{sentBack.length > 0 && <> · <strong>{sentBack.map(nickname).join(', ')}</strong>{' '}{t('back to 0')}</>}</span>;
 
     return (
         <VisitInput
@@ -73,7 +74,7 @@ const EliminationScoreInputBoard = () => {
                 />
             }
             aside={<EliminationStandings />}
-            asideTitle="Race to the target"
+            asideTitle={t('Race to the target')}
             darts={darts}
             shown={shown}
             onDart={(index, value) => updateCurrentThrowManual(score, value, index)}

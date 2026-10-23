@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import EliminationContext from '../../../utils/elimination.context';
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { knockBacks, liveScores } from './elimination.live';
+import { t } from '../../../utils/i18n';
 
 /**
  * The race to the target: the players by score, live while the darts are
@@ -45,9 +46,9 @@ const EliminationStandings = () => {
                                 <span className="result-hero-dot" style={{ background: colourOf(id) }} aria-hidden="true" />{player?.nickname}
                             </span>
                             <span className="text-nowrap">
-                                {knocks.has(id) && <span className="elimination-knock" title={`${knocks.get(id)} lands on this score: back to 0`}>{knocks.get(id)} sends back</span>}
+                                {knocks.has(id) && <span className="elimination-knock" title={t('{{get}} lands on this score: back to 0', { get: knocks.get(id) })}>{knocks.get(id)}{' '}{t('sends back')}</span>}
                                 <strong className="text-default">{scores[id]}</strong>
-                                <span className="text-faint fs-8"> · {game.targetScore - scores[id]} to go</span>
+                                <span className="text-faint fs-8"> · {game.targetScore - scores[id]}{' '}{t('to go')}</span>
                             </span>
                         </span>
                         <span className="elimination-track" aria-hidden="true">

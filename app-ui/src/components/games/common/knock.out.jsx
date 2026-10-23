@@ -1,5 +1,6 @@
 import { Dragon, Gnome, Monster, Troll } from './one.eighty.figures';
 import useFleeting from './use.fleeting';
+import { t } from '../../../utils/i18n';
 
 const DURATION_MS = 4200;
 const FIGURES = [Gnome, Monster, Dragon, Troll];
@@ -54,7 +55,7 @@ const Ball = () => (
     </svg>
 );
 
-const names = (list) => list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0];
+const names = (list) => list.length > 1 ? t('{{join}} and {{at}}', { join: list.slice(0, -1).join(', '), at: list.at(-1) }) : list[0];
 
 // the figure of a player, never the same as the one next to it in a scene
 const figureFor = (index, avoid) => {
@@ -82,10 +83,10 @@ const KnockOut = ({ knockOut, onDone }) => {
     const [victim] = victims;
     const Victim = figureFor(victim.index, byIndex);
     const banner = {
-        kick: { detail: <><strong>{by}</strong> sends <strong>{victim.name}</strong> back to 0!</> },
-        revenge: { title: 'Revenge!', detail: <><strong>{by}</strong> pays <strong>{victim.name}</strong> back: back to 0</> },
-        close: { title: 'So close!', detail: <><strong>{victim.name}</strong> was {victim.left} from the target: back to 0</> },
-        strike: { title: 'Strike!', detail: <><strong>{by}</strong> sends <strong>{names(victims.map(entry => entry.name))}</strong> back to 0</> },
+        kick: { detail: <><strong>{by}</strong>{' '}{t('sends')}{' '}<strong>{victim.name}</strong>{' '}{t('back to 0!')}</> },
+        revenge: { title: t('Revenge!'), detail: <><strong>{by}</strong>{' '}{t('pays')}{' '}<strong>{victim.name}</strong>{' '}{t('back: back to 0')}</> },
+        close: { title: t('So close!'), detail: <><strong>{victim.name}</strong>{' '}{t('was {{left}} from the target: back to 0', { left: victim.left })}</> },
+        strike: { title: t('Strike!'), detail: <><strong>{by}</strong>{' '}{t('sends')}{' '}<strong>{names(victims.map(entry => entry.name))}</strong>{' '}{t('back to 0')}</> },
     }[kind];
 
     return (

@@ -1,6 +1,8 @@
+import { translateAnswer } from '../utils/i18n';
 import {
     getHeaders
 } from '../utils/service.utils';
+import { gameOf, storedOf } from '../rules/stored';
 
 const API_URL = '/api/';
 
@@ -17,7 +19,7 @@ const createEliminationGame = async (game) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error.message);
     }
@@ -48,7 +50,7 @@ const loadAllEliminationGames = async () => {
             throw Error(response.statusText);
         };
         
-        let data = await response.json();
+        let data = translateAnswer(await response.json());
         return data.sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
@@ -69,7 +71,7 @@ const findEliminationGames = async (body) => {
             throw Error(response.statusText);
         };
 
-        let data = await response.json();
+        let data = translateAnswer(await response.json());
         return data.sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
         });
@@ -89,7 +91,7 @@ const loadEliminationGameById = async (id) => {
             throw Error(response.statusText);
         };
 
-        return await response.json();
+        return translateAnswer(await response.json());
     } catch (error) {
         throw new Error(error);
     }
@@ -132,13 +134,14 @@ const deleteEliminationGame = async (gameId, clubId) => {
 
 // Export methods
 const EliminationService = {
-    createEliminationGame,
+    // stored as its settings, players and visits; the game comes back worked out from them
+    createEliminationGame: async (game) => gameOf('elimination', await createEliminationGame(storedOf('elimination', { ...game, visits: game.visits ?? [] }))),
     loadRunningEliminationGames,
     loadFinishedEliminationGames,
     loadAllEliminationGames,
     findEliminationGames,
-    loadEliminationGameById,
-    updateEliminationGame,
+    loadEliminationGameById: async (id) => gameOf('elimination', await loadEliminationGameById(id)),
+    updateEliminationGame: (game) => updateEliminationGame(storedOf('elimination', game)),
     deleteEliminationGame
 }
 

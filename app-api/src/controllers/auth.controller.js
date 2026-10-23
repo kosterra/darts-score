@@ -1,6 +1,7 @@
+import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { ROLES } from '../models/user.model.js';
+import { LANGUAGES, ROLES } from '../models/user.model.js';
 import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
@@ -17,7 +18,7 @@ const User = db.user;
 
 export const register = async (req, res) => {
     logger.debug('auth register called');
-    const { email, password, firstname, lastname } = req.body;
+    const { email, password, firstname, lastname, language } = req.body;
 
     const refused = await checkRegistration(req);
     if (refused) return res.status(refused.status).json({ message: refused.message });
@@ -32,6 +33,7 @@ export const register = async (req, res) => {
         lastname,
         passwordHash: await hashPassword(password),
         role: ROLES.USER,
+        language: LANGUAGES.includes(language) ? language : null,
     });
     logger.info(`Registered user ${user.email}`);
     checkLater(() => noteRegistration(req, user));
@@ -91,6 +93,31 @@ export const setDashboard = async (req, res) => {
     res.json(req.user);
 };
 
+// the language of the app, saved on the account: { language }
+export const setLanguage = async (req, res) => {
+    req.user.language = req.body.language;
+    await req.user.save();
+    res.json(req.user);
+};
+
+/**
+ * The player's own preferences for playing, merged into what they had:
+ * whatever does not fit is left out (see rules/club.rules.js).
+ */
+export const setGamePreferences = async (req, res) => {
+    const merged = { ...normalizeGamePreferences(req.user.gamePreferences), ...(req.body ?? {}) };
+    // the setups are merged per club, so saving one game's setup keeps the others
+    if (req.body?.setups) {
+        const before = normalizeGamePreferences(req.user.gamePreferences).setups;
+        merged.setups = { ...before };
+        for (const [clubId, games] of Object.entries(req.body.setups ?? {})) merged.setups[clubId] = { ...before[clubId], ...games };
+    }
+    req.user.gamePreferences = normalizeGamePreferences(merged);
+    req.user.markModified('gamePreferences');
+    await req.user.save();
+    res.json(req.user.toJSON());
+};
+
 export const updateMe = async (req, res) => {
     logger.debug('auth update profile called');
     const { email, firstname, lastname, startPage, defaultClub } = req.body;
@@ -127,6 +154,7 @@ export const myPlayers = async (req, res) => {
         firstname: player.firstname,
         lastname: player.lastname,
         profileImg: player.profileImg ?? '',
+        country: player.country ?? '',
         dateOfBirth: player.dateOfBirth ?? null,
         publicProfile: Boolean(player.publicProfile),
         privateTrainings: Boolean(player.privateTrainings),
@@ -172,7 +200,7 @@ export const forgotPassword = async (req, res) => {
         const link = issuePasswordLink(user, RESET_TOKEN_HOURS);
         await user.save();
         // Mail problems are logged, not shown: the answer must not reveal whether the account exists
-        sendTemplateMail('passwordReset', user.email, { firstname: user.firstname, link, validity: validityOf(RESET_TOKEN_HOURS) })
+        sendTemplateMail('passwordReset', user.email, { firstname: user.firstname, link, validity: validityOf(RESET_TOKEN_HOURS, user.language ?? 'en') }, user.language ?? 'en')
             .catch(err => logger.error(err, 'Failed to send password reset mail'));
     }
 

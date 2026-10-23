@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import X01Context from '../../../utils/x01.context';
 import { outModeOf } from '../../../utils/x01.rules';
 import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../../../utils/checkout.routes';
+import { t } from '../../../utils/i18n';
 
 // the usual way and this many others: nobody looks through hundreds
 const OTHER_WAYS = 4;
@@ -11,7 +12,7 @@ const OTHER_WAYS = 4;
 const Plan = ({ darts, leaves, note, preferred }) => (
     <div className="x01-ways-setup">
         <span className={`x01-ways-route ${preferred ? 'is-preferred' : ''}`}>{formatRoute(darts)}</span>
-        <span className="x01-route-leaves text-subtle fs-8"><i className="pi pi-arrow-right" aria-hidden="true" />leaves <strong className="text-default">{leaves}</strong>{note ? `, ${note}` : ''}</span>
+        <span className="x01-route-leaves text-subtle fs-8"><i className="pi pi-arrow-right" aria-hidden="true" />{t('leaves')}{' '}<strong className="text-default">{leaves}</strong>{note ? `, ${note}` : ''}</span>
     </div>
 );
 
@@ -24,15 +25,15 @@ const Plan = ({ darts, leaves, note, preferred }) => (
 const ProfileNote = ({ profile, about }) => {
     if (!profile) return null;
     if (about === 'double') {
-        if (profile.doubleSource === 'set') return <span className="x01-ways-note">Your favourite double first: {profile.favouriteDouble} (set in the player profile).</span>;
+        if (profile.doubleSource === 'set') return <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</span>;
         if (profile.doubleSource === 'history') {
             const best = profile.doubles[0];
-            return <span className="x01-ways-note">Your best doubles first: {best.double} hit {best.rate} % of {best.total} darts in your games.</span>;
+            return <span className="x01-ways-note">{t('Your best doubles first: {{double}} hit {{rate}} % of {{total}} darts in your games.', { double: best.double, rate: best.rate, total: best.total })}</span>;
         }
         return null;
     }
-    if (profile.trebleSource === 'set') return <span className="x01-ways-note">Your main treble: {profile.mainTreble} (set in the player profile).</span>;
-    if (profile.trebleSource === 'history') return <span className="x01-ways-note">Your main treble from your games: {profile.mainTreble}.</span>;
+    if (profile.trebleSource === 'set') return <span className="x01-ways-note">{t('Your main treble:')}{' '}{profile.mainTreble}{' '}{t('(set in the profile).')}</span>;
+    if (profile.trebleSource === 'history') return <span className="x01-ways-note">{t('Your main treble from your games:')}{' '}{profile.mainTreble}.</span>;
     return null;
 };
 
@@ -46,16 +47,16 @@ const X01WaysOut = () => {
     const profile = checkoutProfiles[playerId];
     const own = { doubles: profile?.doubleOrder ?? [], mainTreble: profile?.mainTreble };
 
-    if (checkIfScoreIsBusted(score)) return <p className="text-subtle fs-8 m-0">Bust: the score stays as it was.</p>;
+    if (checkIfScoreIsBusted(score)) return <p className="text-subtle fs-8 m-0">{t('Bust: the score stays as it was.')}</p>;
 
     if (dartsLeft === 0) {
         const next = checkoutRoutes(score, { outMode, ...own })[0];
         return (
             <div className="x01-ways">
-                <p className="text-subtle fs-8 m-0">All three darts are in: Enter score finishes the visit{score === 0 ? ' and the leg' : ''}.</p>
+                <p className="text-subtle fs-8 m-0">{t('All three darts are in: Enter score finishes the visit')}{score === 0 ? t(' and the leg') : ''}.</p>
                 {next &&
                     <div className="x01-ways-group">
-                        <span className="x01-ways-label">Next visit</span>
+                        <span className="x01-ways-label">{t('Next visit')}</span>
                         <div className="x01-ways-setup"><span className="x01-ways-route is-preferred">{formatRoute(next)}</span></div>
                     </div>
                 }
@@ -69,12 +70,12 @@ const X01WaysOut = () => {
         return (
             <div className="x01-ways">
                 <div className="x01-ways-group">
-                    <span className="x01-ways-label">Usual way</span>
+                    <span className="x01-ways-label">{t('Usual way')}</span>
                     <div className="x01-ways-setup"><span className="x01-ways-route is-preferred">{formatRoute(routes[0])}</span></div>
                 </div>
                 {others.length > 0 &&
                     <div className="x01-ways-group">
-                        <span className="x01-ways-label">Other ways</span>
+                        <span className="x01-ways-label">{t('Other ways')}</span>
                         <div className="x01-ways-list">
                             {others.map(route => <span key={route.join()} className="x01-ways-route">{formatRoute(route)}</span>)}
                         </div>
@@ -91,35 +92,37 @@ const X01WaysOut = () => {
     const main = own.mainTreble === 'T19' || own.mainTreble === 'T18' ? own.mainTreble : 'T20';
     const other = main === 'T20' ? 'T19' : 'T20';
     const status = score > 170
-        ? `${score} left: no finish in one visit (170 is the highest).`
-        : `No finish for ${score} with ${dartsLeft} ${dartsLeft === 1 ? 'dart' : 'darts'}${outMode === 'Double Out' ? ' and a double' : ''}.`;
+        ? t('{{score}} left: no finish in one visit (170 is the highest).', { score: score })
+        : outMode === 'Double Out'
+            ? (dartsLeft === 1 ? t('No finish for {{score}} with 1 dart and a double.', { score }) : t('No finish for {{score}} with {{darts}} darts and a double.', { score, darts: dartsLeft }))
+            : (dartsLeft === 1 ? t('No finish for {{score}} with 1 dart.', { score }) : t('No finish for {{score}} with {{darts}} darts.', { score, darts: dartsLeft }));
     // like the ways out: a label, the darts as chips, and short notes below
     return (
         <div className="x01-ways">
             {setups.length > 0 &&
                 <div className="x01-ways-group">
-                    <span className="x01-ways-label">Set up instead</span>
+                    <span className="x01-ways-label">{t('Set up instead')}</span>
                     {setups.map((setup, index) => <Plan key={setup.darts.join()} {...setup} preferred={index === 0} />)}
                 </div>
             }
             {tip?.darts &&
                 <div className="x01-ways-group">
-                    <span className="x01-ways-label">Score</span>
+                    <span className="x01-ways-label">{t('Score')}</span>
                     <Plan darts={tip.darts} leaves={tip.leaves} preferred />
                 </div>
             }
             {tip && !tip.darts &&
                 <div className="x01-ways-group">
-                    <span className="x01-ways-label">Aim at</span>
+                    <span className="x01-ways-label">{t('Aim at')}</span>
                     <div className="x01-ways-setup">
                         <span className="x01-ways-route is-preferred">{main}</span>
                         <span className="x01-ways-route">{other}</span>
-                        <span className="text-subtle fs-8">if the {main.slice(1)} is blocked</span>
+                        <span className="text-subtle fs-8">{t('if the')}{' '}{main.slice(1)}{' '}{t('is blocked')}</span>
                     </div>
                 </div>
             }
             <div className="d-flex flex-column gap-1">
-                <span className="x01-ways-note">{status}{tip?.darts ? (tip.advice ? ` ${tip.advice}` : ' This leaves a finish for the next visit.') : ''}</span>
+                <span className="x01-ways-note">{status}{tip?.darts ? (tip.advice ? ` ${tip.advice}` : t(' This leaves a finish for the next visit.')) : ''}</span>
                 <ProfileNote profile={profile} about={setups.length ? 'double' : 'treble'} />
             </div>
         </div>

@@ -1,23 +1,28 @@
-import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
+import { PublicFooter, PublicHeader } from '../landing/public.frame';
 
 /**
- * Centered card used by the login and register pages.
+ * The frame of the login, registration and password pages: the bar and the
+ * footer of the start page (the language on the right), and the card in the
+ * middle. hide: 'login' or 'register', the page itself, left out of the bar.
  */
-const AuthLayout = ({ title, children }) => {
+const AuthLayout = ({ title, hide, children }) => {
     return (
-        <div className="container-fluid p-4">
-            <div className="row justify-content-center">
-                <div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
-                    <Link to="/" className="d-flex flex-column align-items-center gap-2 my-4" aria-label="Oche start page">
-                        <img alt="" src="/logo.svg" width="96" height="96" />
-                        <span className="fs-4 fw-semibold text-default">Oche</span>
-                    </Link>
-                    <Panel header={title}>
-                        {children}
-                    </Panel>
+        <div className="auth-page">
+            <PublicHeader hide={hide} />
+            <main className="auth-page-content container-fluid p-4">
+                <div className="row justify-content-center">
+                    <div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+                        <div className="d-flex justify-content-center mb-4">
+                            <img alt="" src="/logo.svg" width="96" height="96" />
+                        </div>
+                        <Panel header={title}>
+                            {children}
+                        </Panel>
+                    </div>
                 </div>
-            </div>
+            </main>
+            <PublicFooter />
         </div>
     );
 };

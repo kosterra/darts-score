@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Dart from './dart.shape';
+import { t } from '../../../utils/i18n';
 
 // the magnifier: its size on screen and how much it enlarges
 const LOUPE_SIZE = 128;
 const LOUPE_ZOOM = 2.6;
 
 // a field as players say it
-const labelOf = (field) => !field || field === '0' ? 'Miss' : field === 'D25' ? 'Bull' : field === 'S25' ? '25' : field;
+const labelOf = (field) => !field || field === '0' ? t('Miss') : field === 'D25' ? 'Bull' : field === 'S25' ? '25' : field;
 
 // the board itself: every field with its id ("T20", "D25", "0" outside)
 const BoardShapes = () => (
@@ -572,7 +573,7 @@ const DartBoard = (props) => {
                     <BoardShapes />
                 </svg>
                 <span className="dartboard-loupe-cross" />
-                <span className="dartboard-loupe-label">{loupe.field === null ? 'Off the board' : labelOf(loupe.field)}</span>
+                <span className="dartboard-loupe-label">{loupe.field === null ? t('Off the board') : labelOf(loupe.field)}</span>
             </div>,
             document.body
         )}

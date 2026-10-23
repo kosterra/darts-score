@@ -97,6 +97,9 @@ describe('replayBadges', () => {
         expect(shame({ 'leg-1': [v(['S1', '0', 'D1'], 0)] })).toContain('madhouse');
         expect(shame({ 'leg-1': [v(['S5', 'S20', 'S1'], 475)] })).toContain('bedAndBreakfast');
         expect(ids([game({ 'leg-1': [v(['S5', 'S20', 'S1'], 475)] })])).not.toContain('bedAndBreakfast-1');
+        // a friendly game is left out of the Hall of Shame
+        const friendly = game({ 'leg-1': [v(['S5', 'S20', 'S1'], 475)] });
+        expect(replayBadges([{ ...friendly, data: { ...friendly.data, friendly: true } }], P).shame).toEqual([]);
     });
 
     it('awards a comeback only after being two legs down', () => {

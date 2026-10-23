@@ -1,4 +1,5 @@
 import useFleeting from './use.fleeting';
+import { t } from '../../../utils/i18n';
 
 const DURATION_MS = 4200;
 
@@ -23,7 +24,7 @@ const WhiteHorse = ({ moment, onDone }) => {
     return (
         <div key={moment.key} className={`white-horse ${leaving ? 'is-leaving' : ''}`} aria-live="polite">
             <p className="white-horse-banner">
-                <span className="white-horse-title">White Horse!</span>
+                <span className="white-horse-title">{t('White Horse!')}</span>
                 <span className="white-horse-detail"><strong>{moment.name}</strong> · {moment.darts.join(' · ')}</span>
             </p>
             <div className="white-horse-run" aria-hidden="true">

@@ -4,6 +4,7 @@
  * days, and only the browser that started it (with its key) plays on.
  */
 import crypto from 'node:crypto';
+import { viewOf } from './game.view.js';
 
 export const QUICK_KINDS = ['x01', 'cricket'];
 export const QUICK_KEEP_DAYS = 30;
@@ -13,6 +14,8 @@ export const QUICK_X01 = { startingScores: [301, 501], outModes: ['Double Out', 
 export const QUICK_CRICKET = { variants: ['Standard', 'Cut-throat'] };
 // a whole game of five legs between four players stays well below this
 export const MAX_GAME_SIZE = 400 * 1024;
+// a dart of a visit: a miss, a single, double or treble of 1–20, the outer bull or the bullseye
+const DART = /^(0|[SDT]([1-9]|1\d|20)|[SD]25)$/;
 const NAME = /^[\p{L}\p{N}][\p{L}\p{N} '.-]{0,19}$/u;
 
 export const newKey = () => crypto.randomBytes(24).toString('hex');
@@ -53,6 +56,12 @@ export const quickGameError = (kind, game, before = null) => {
         return 'A quick Cricket game is Standard or Cut-throat.';
     }
     if (game.flyingDarts !== 'off') return 'Quick games have no dart animation.';
+    const visits = game.visits ?? [];
+    if (!Array.isArray(visits)) return 'The visits of the game are not valid.';
+    for (const visit of visits) {
+        const darts = Array.isArray(visit?.darts) ? visit.darts.filter(dart => dart !== '') : null;
+        if (!players.includes(visit?.player) || !darts || darts.length > 3 || !darts.every(dart => DART.test(String(dart)))) return 'The visits of the game are not valid.';
+    }
 
     if (before) {
         const setup = ['startingScore', 'legOutMode', 'numberOfLegs', 'variant'];
@@ -67,7 +76,8 @@ export const quickGameError = (kind, game, before = null) => {
  * The game without what the server keeps for itself, as the game page reads it.
  */
 export const quickGameView = (doc) => ({
-    ...doc.data,
+    // with the legs and visits worked out from the visits, as the game page reads them
+    ...viewOf(doc.kind, doc.data),
     id: String(doc._id),
     quick: true,
     kind: doc.kind,

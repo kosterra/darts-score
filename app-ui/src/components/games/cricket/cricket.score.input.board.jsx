@@ -8,6 +8,7 @@ import DartKeypad from '../common/dart.keypad';
 import useInputMode from '../common/use.input.mode';
 import { variantOf } from '../../../utils/cricket.variants';
 import { visitMarks } from './cricket.live';
+import { t } from '../../../utils/i18n';
 
 // only these count in Cricket; every other dart is a miss
 const CRICKET_KEYS = [15, 16, 17, 18, 19, 20];
@@ -51,8 +52,8 @@ const CricketScoreInputBoard = () => {
     };
 
     const summary = decided
-        ? <span><strong>Game shot</strong> · enter the score to win</span>
-        : <span>Visit <strong>{marks}</strong> {marks === 1 ? 'mark' : 'marks'}{variantOf(game) === 'Standard' && <> · <strong>+{gained}</strong> points</>}</span>;
+        ? <span><strong>{t('Game shot')}</strong>{' '}{t('· enter the score to win')}</span>
+        : <span>{t('Visit')}{' '}<strong>{marks}</strong> {marks === 1 ? t('mark') : t('marks')}{variantOf(game) === 'Standard' && <> · <strong>+{gained}</strong>{' '}{t('points')}</>}</span>;
 
     return (
         <VisitInput
@@ -71,7 +72,7 @@ const CricketScoreInputBoard = () => {
                 />
             }
             aside={<CricketNumbersPanel />}
-            asideTitle="Marks"
+            asideTitle={t('Marks')}
             asideFirstOnPhone
             darts={darts}
             shown={shown}

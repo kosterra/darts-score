@@ -6,6 +6,7 @@ import X01Context from '../../../utils/x01.context';
 import { BOT_ID } from '../../../utils/x01.bot';
 import { pointForDart, seededRandom } from '../../../utils/dartboard.geometry';
 import useBoardDarts from '../common/use.board.darts';
+import { t } from '../../../utils/i18n';
 
 const X01DartBoard = () => {
   const {
@@ -44,8 +45,8 @@ const X01DartBoard = () => {
       toast.current.show(
         {
           severity: 'error',
-          summary: 'No more darts',
-          detail: 'You can\'t throw any more darts',
+          summary: t('No more darts'),
+          detail: t('You can\'t throw any more darts'),
           life: 3000
         }
       );

@@ -7,6 +7,7 @@ import { groupByPeriod } from '../../../utils/trend.grouping';
 import ChartTooltip from './chart.tooltip';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { AXIS, BAR_OPACITY, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
+import { t } from '../../../utils/i18n';
 
 const RANGE_ORDER = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
 const rangeLabel = (range) => range === 'ZERO' ? '0' : range.replace('-', '–');
@@ -30,7 +31,7 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
     });
 
     return (
-        <ChartCard title="Score per visit" description={`How often each score range was thrown, as a share of all visits.${players.length > 1 ? ' Click a name below the chart to show or hide that player.' : ''}`}>
+        <ChartCard title={t('Score per visit')} description={t('How often each score range was thrown, as a share of all visits.{{value}}', { value: players.length > 1 ? ' Click a name below the chart to show or hide that player.' : '' })}>
             <ResponsiveContainer width="100%" height={Math.max(260, rows.length * (players.length > 1 ? 30 : 26))}>
                 <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 40, left: 10, bottom: 0 }} barGap={2}>
                     <CartesianGrid {...GRID} horizontal={false} vertical />
@@ -57,11 +58,11 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
 export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
     const series = useHiddenSeries();
     const rows = [
-        { phase: 'Scoring', ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.opening ?? 0])) },
-        { phase: 'Finishing', ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.finishing ?? 0])) },
+        { phase: t('Scoring'), ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.opening ?? 0])) },
+        { phase: t('Finishing'), ...Object.fromEntries(players.map((_, index) => [`p${index}`, scoring[index]?.finishing ?? 0])) },
     ];
     return (
-        <ChartCard title="Scoring vs. finishing" description="Average at the start and in the middle of a leg, against the average at the end of the leg, where the doubles decide.">
+        <ChartCard title={t('Scoring vs. finishing')} description={t('Average at the start and in the middle of a leg, against the average at the end of the leg, where the doubles decide.')}>
             <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={rows} margin={{ top: 20, right: 16, left: -10, bottom: 0 }} barGap={6}>
                     <CartesianGrid {...GRID} />
@@ -84,14 +85,14 @@ export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
  * How many darts the won 501 legs needed.
  * data: [{ bucket, count }] for one player, [{ bucket, player1, … }] for several
  */
-export const DartsPerLegChart = ({ data = [], players = [], description = 'Darts needed for the 501 legs won. Nine is the perfect leg.' }) => {
+export const DartsPerLegChart = ({ data = [], players = [], description = t('Darts needed for the 501 legs won. Nine is the perfect leg.') }) => {
     const series = useHiddenSeries();
     const keyOf = (index) => players.length === 1 ? 'count' : `player${index + 1}`;
     const empty = data.every(entry => players.every((_, index) => !entry[keyOf(index)]));
     return (
-        <ChartCard title="Darts per leg" description={description}>
+        <ChartCard title={t('Darts per leg')} description={description}>
             {empty
-                ? <p className="text-faint fs-7">No legs won yet.</p>
+                ? <p className="text-faint fs-7">{t('No legs won yet.')}</p>
                 : (
                     <ResponsiveContainer width="100%" height={240}>
                         <BarChart data={data} margin={{ top: 20, right: 16, left: -10, bottom: 0 }} barGap={2}>
@@ -120,9 +121,9 @@ export const FormChart = ({ data = [] }) => {
     const series = useHiddenSeries();
 
     return (
-        <ChartCard title="Form" description="Win rate (bars), X01 average and games played (lines) per month: how the form goes with how often you play. Click an entry below the chart to show or hide it.">
+        <ChartCard title={t('Form')} description={t('Win rate (bars), X01 average and games played (lines) per month: how the form goes with how often you play. Click an entry below the chart to show or hide it.')}>
             {rows.length === 0
-                ? <p className="text-faint fs-7">No games yet.</p>
+                ? <p className="text-faint fs-7">{t('No games yet.')}</p>
                 : (
                     <ResponsiveContainer width="100%" height={260}>
                         <ComposedChart data={rows} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
@@ -136,15 +137,15 @@ export const FormChart = ({ data = [] }) => {
                                 {...TOOLTIP}
                                 content={(
                                     <ChartTooltip
-                                        formatter={(value, name) => name === 'Win rate' ? `${value} %` : value}
+                                        formatter={(value, name) => name === t('Win rate') ? `${value} %` : value}
                                         // the level of the average only, not of the win rate or the games
                                         levelOf={(value, entry) => entry.dataKey === 'average' ? averageLevelOf(value) : null}
                                     />
                                 )}
                             />
-                            <Bar yAxisId="rate" dataKey="winRate" name="Win rate" fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
-                            <Line yAxisId="avg" type="monotone" dataKey="average" name="Average" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 3 }} connectNulls hide={series.isHidden('average')} />
-                            <Line yAxisId="games" type="monotone" dataKey="games" name="Games played" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} hide={series.isHidden('games')} />
+                            <Bar yAxisId="rate" dataKey="winRate" name={t('Win rate')} fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
+                            <Line yAxisId="avg" type="monotone" dataKey="average" name={t('Average')} legendType="plainline" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 2.5, fill: PLAYER_COLORS[1], strokeWidth: 0 }} connectNulls hide={series.isHidden('average')} />
+                            <Line yAxisId="games" type="monotone" dataKey="games" name={t('Games played')} legendType="plainline" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 2.5, fill: PLAYER_COLORS[2], strokeWidth: 0 }} hide={series.isHidden('games')} />
                             <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </ComposedChart>
                     </ResponsiveContainer>
@@ -172,14 +173,14 @@ export const LegsPerGameChart = ({ games = [], players = [] }) => {
     const perPeriod = step !== 'game';
     const tooltipLabel = (label, payload) => {
         const count = payload?.[0]?.payload?.games;
-        return perPeriod && count ? `${label} · ${count} ${count === 1 ? 'game' : 'games'}` : label;
+        return perPeriod && count ? `${label} · ${t(count === 1 ? '{{count}} game' : '{{count}} games', { count })}` : label;
     };
     return (
         <ChartCard
-            title={perPeriod ? `Legs per ${step}` : 'Legs per game'}
+            title={perPeriod ? (step === 'quarter' ? t('Legs per quarter') : t('Legs per month')) : t('Legs per game')}
             description={perPeriod
-                ? `Legs each player won per ${step} in the games they played together.`
-                : 'Legs each player won in every game they played together, oldest first.'}
+                ? (step === 'quarter' ? t('Legs each player won per quarter in the games they played together.') : t('Legs each player won per month in the games they played together.'))
+                : t('Legs each player won in every game they played together, oldest first.')}
         >
             <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={rows} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>

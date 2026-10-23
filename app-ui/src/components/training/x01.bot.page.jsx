@@ -6,7 +6,6 @@ import { SelectButton } from 'primereact/selectbutton';
 import { Skeleton } from 'primereact/skeleton';
 import { Toast } from 'primereact/toast';
 import { FaRobot } from 'react-icons/fa6';
-import dayjs from 'dayjs';
 
 import X01Models from '../../models/x01.models';
 import X01TrainingService from '../../services/x01.training.service';
@@ -24,12 +23,15 @@ import { useAuth } from '../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
 import { BOT_ID, BOT_LEVELS, BOT_PRESETS, LIKE_ME, botStrength, knowsPlayer } from '../../utils/x01.bot';
 import { ageOn, strengthOf } from '../../utils/handicap';
+import { t } from '../../utils/i18n';
+import useGameRules from '../games/common/game.rules';
+import { formatDate } from '../../utils/dates';
 
 // the starting scores of a training (a choice of the club may follow)
 const TRAINING_SCORES = [101, 170, 301, 501, 701].map(value => ({ value }));
 // two rows: the fixed bots, and the ones as strong as the player
 const PRESET_MODES = BOT_PRESETS.map(({ value, label }) => ({ value, label }));
-const PLAYER_MODES = BOT_LEVELS.map(({ value }) => ({ value: `${LIKE_ME}-${value}`, label: { easier: 'Easier than me', same: 'Like me', harder: 'Harder than me' }[value] }));
+const PLAYER_MODES = BOT_LEVELS.map(({ value }) => ({ value: `${LIKE_ME}-${value}`, label: { easier: t('Easier than me'), same: t('Like me'), harder: t('Harder than me') }[value] }));
 
 // what a training starts with, and what of it is remembered for the next one
 const MEMORY = 'x01Bot';
@@ -53,6 +55,8 @@ const resultOf = (training, playerId) => {
  * Trainings count for no game statistics, badges or levels.
  */
 const X01BotPage = () => {
+    // the rules of the game, opened from the title of the setup
+    const [rulesButton, rules] = useGameRules('x01');
     const navigate = useNavigate();
     const toast = useRef(null);
     const { activeClub, isGlobalAdmin } = useAuth();
@@ -99,7 +103,7 @@ const X01BotPage = () => {
         setGame(current => ({ ...current, [name]: ['setMode', 'legMode', 'legInMode', 'legOutMode', 'flyingDarts'].includes(name) ? value : Number(value) }));
     };
 
-    const missing = !player ? 'Choose who trains' : !strength ? 'Working out the bot…' : null;
+    const missing = !player ? t('Choose who trains') : !strength ? t('Working out the bot…') : null;
     const summary = [
         `${game.startingScore} · ${game.legInMode} / ${game.legOutMode}`,
         setsLegsSummary(game),
@@ -136,21 +140,22 @@ const X01BotPage = () => {
             });
             navigate(`/training/x01/${training.id}`);
         } catch (error) {
-            toast.current?.show({ severity: 'error', summary: 'Not started', detail: error.message, life: 5000 });
+            toast.current?.show({ severity: 'error', summary: t('Not started'), detail: error.message, life: 5000 });
             setStarting(false);
         }
     };
 
     if (isGlobalAdmin) {
-        return <div className="container-fluid p-4 text-subtle">Global admins belong to no club and have no player to train with.</div>;
+        return <div className="container-fluid p-4 text-subtle">{t('Global admins belong to no club and have no player to train with.')}</div>;
     }
 
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header="X01 against the bot" className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('X01 against the bot')} className="page-narrow" icons={rulesButton}>
+                {rules}
                 <div className="container">
-                    {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
-                    <p className="game-setup-section-title">Player</p>
+                    {remembered && <GameSetupMemory training onReset={startFresh} />}
+                    <p className="game-setup-section-title">{t('Player')}</p>
                     {/* the player of the last training, else the own one (restarted once it is known) */}
                     <PlayerPicker
                         single
@@ -160,35 +165,35 @@ const X01BotPage = () => {
                         key={remembered?.playerIds?.length ? 'remembered' : `own-${myPlayer?.id ?? 'none'}`}
                     />
 
-                    <p className="game-setup-section-title mt-4">Bot</p>
+                    <p className="game-setup-section-title mt-4">{t('Bot')}</p>
                     <div>
-                        <p className="setting-title">Strength</p>
+                        <p className="setting-title">{t('Strength')}</p>
                         <div className="row mx-0 mt-0 setting-body">
                             <div className="col d-flex flex-column gap-3">
-                                <SelectButton value={choice} options={PRESET_MODES} onChange={(e) => e.value && setChoice(e.value)} className="p-selectbutton-pills flex-wrap" aria-label="A fixed bot" />
-                                <SelectButton value={choice} options={PLAYER_MODES} onChange={(e) => e.value && setChoice(e.value)} className="p-selectbutton-pills flex-wrap" aria-label="A bot like the player" />
+                                <SelectButton value={choice} options={PRESET_MODES} onChange={(e) => e.value && setChoice(e.value)} className="p-selectbutton-pills flex-wrap" aria-label={t('A fixed bot')} />
+                                <SelectButton value={choice} options={PLAYER_MODES} onChange={(e) => e.value && setChoice(e.value)} className="p-selectbutton-pills flex-wrap" aria-label={t('A bot like the player')} />
                                 {!player
-                                    ? <span className="text-faint fs-8">Choose who trains first.</span>
+                                    ? <span className="text-faint fs-8">{t('Choose who trains first.')}</span>
                                     : !strength
                                         ? <Skeleton width="80%" height="0.9rem" />
                                         : (
                                             <span className="x01-bot-strength">
                                                 <FaRobot aria-hidden="true" />
                                                 <span>
-                                                    Averages <strong>{strength.average.toFixed(1)}</strong>
-                                                    {strength.checkoutRate != null && <> and hits <strong>{Math.round(strength.checkoutRate * 100)} %</strong> at the doubles</>}
+                                                    {t('Averages')}{' '}<strong>{strength.average.toFixed(1)}</strong>
+                                                    {strength.checkoutRate != null && <>{' '}{t('and hits')}{' '}<strong>{Math.round(strength.checkoutRate * 100)} %</strong>{' '}{t('at the doubles')}</>}
                                                     <span className="text-faint"> · {mode === LIKE_ME ? `${player.nickname}: ${strength.basis}` : strength.basis}</span>
-                                                    {guessed && <span className="d-block text-faint">Without X01 games of {player.nickname} this is a guess; Normal is a good start.</span>}
+                                                    {guessed && <span className="d-block text-faint">{t('Without X01 games of')}{' '}{player.nickname}{' '}{t('this is a guess; Normal is a good start.')}</span>}
                                                 </span>
                                             </span>
                                         )
                                 }
-                                <span className="x01-bot-hint">Trainings count for no game statistics, badges or levels.</span>
+                                <span className="x01-bot-hint">{t('Trainings count for no game statistics, badges or levels.')}</span>
                             </div>
                         </div>
                     </div>
 
-                    <p className="game-setup-section-title mt-4">Game</p>
+                    <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     <X01ScoreConfig scoreOption={game.startingScore} onScoreChange={handleConfigChange} options={TRAINING_SCORES} pillsClassName="pills-fit" />
                     <X01InOutConfig legInOption={game.legInMode} legOutOption={game.legOutMode} onInOutChange={handleConfigChange} />
                     <SetsLegsConfig
@@ -199,15 +204,15 @@ const X01BotPage = () => {
                         onSetsLegsChange={handleConfigChange}
                     />
                     <div>
-                        <p className="setting-title">Who starts</p>
+                        <p className="setting-title">{t('Who starts')}</p>
                         <div className="row mx-0 mt-0 setting-body">
                             <div className="col">
                                 <SelectButton
                                     value={botStarts}
-                                    options={[{ label: player?.nickname ?? 'The player', value: 'player' }, { label: 'The bot', value: 'bot' }]}
+                                    options={[{ label: player?.nickname ?? t('The player'), value: 'player' }, { label: t('The bot'), value: 'bot' }]}
                                     onChange={(e) => e.value && setBotStarts(e.value)}
                                     className="p-selectbutton-pills flex-wrap"
-                                    aria-label="Who starts"
+                                    aria-label={t('Who starts')}
                                 />
                             </div>
                         </div>
@@ -215,12 +220,12 @@ const X01BotPage = () => {
 
                     <FlyingDartsConfig value={game.flyingDarts} onChange={(value) => handleConfigChange('flyingDarts', value)} />
 
-                    <GameSetupStart label="Start training" summary={summary} missing={missing} loading={starting} onStart={start} />
+                    <GameSetupStart label={t('Start training')} summary={summary} missing={missing} loading={starting} onStart={start} />
                 </div>
             </Panel>
 
             {player && trainings?.length > 0 &&
-                <Panel header="Recent trainings" className="w-100 w-md-75 w-xxl-50 mx-auto mt-4">
+                <Panel header={t('Recent trainings')} className="page-narrow mt-4">
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {trainings.slice(0, 10).map(training => {
                             const result = resultOf(training, player.id);
@@ -228,18 +233,18 @@ const X01BotPage = () => {
                             return (
                                 <li key={training.id} className="x01-bot-training">
                                     <span className={`x01-bot-training-result ${finished ? (result.won ? 'is-won' : 'is-lost') : ''}`}>
-                                        {finished ? (result.won ? 'Won' : 'Lost') : 'Running'}
+                                        {finished ? (result.won ? t('Won') : t('Lost')) : t('Running')}
                                     </span>
-                                    <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                                    <div className="d-flex flex-column min-w-0">
                                         <span className="text-default fw-semibold">{training.startingScore} {training.legOutMode} · {result.legs}</span>
                                         <span className="text-faint fs-8">
-                                            {dayjs(training.createdAt).format('DD.MM.YYYY HH:mm')}
-                                            {result.average != null && ` · ${player.nickname} ${result.average.toFixed(1)}, bot ${result.botAverage?.toFixed(1) ?? '–'}`}
+                                            {formatDate(training.createdAt, { time: true })}
+                                            {result.average != null && t(' · {{nickname}} {{toFixed}}, bot {{value}}', { nickname: player.nickname, toFixed: result.average.toFixed(1), value: result.botAverage?.toFixed(1) ?? '–' })}
                                         </span>
                                     </div>
                                     <Button
                                         type="button"
-                                        label={finished ? 'View' : 'Continue'}
+                                        label={finished ? t('View') : t('Continue')}
                                         icon={finished ? 'pi pi-chart-bar' : 'pi pi-play'}
                                         size="small"
                                         severity="secondary"

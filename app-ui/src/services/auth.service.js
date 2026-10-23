@@ -29,12 +29,19 @@ const saveDashboard = (clubId, layout) =>
 const updateProfile = (profile) =>
     requestJSON(API_URL + 'me', { method: 'PUT', body: profile });
 
+// the language of the app, saved on the account; the user
+const saveLanguage = (language) =>
+    requestJSON(API_URL + 'language', { method: 'PUT', body: { language } });
+
 const changePassword = (currentPassword, newPassword) =>
     requestJSON(API_URL + 'password', { method: 'PUT', body: { currentPassword, newPassword } });
 
 /**
  * Settings the login pages need: whether the server can send mails.
  */
+// how the player likes to play, on every device (merged into what the account has)
+const setGamePreferences = (preferences) => requestJSON(API_URL + 'game-preferences', { method: 'PUT', body: preferences });
+
 const getConfig = () => requestJSON(API_URL + 'config');
 
 const requestPasswordReset = (email) =>
@@ -72,7 +79,9 @@ const AuthService = {
     logout,
     updateProfile,
     saveDashboard,
-    changePassword
+    saveLanguage,
+    changePassword,
+    setGamePreferences,
 };
 
 export default AuthService;

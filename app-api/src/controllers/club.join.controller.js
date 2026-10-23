@@ -55,6 +55,7 @@ const clubCard = (club, { members, counts, requests }) => ({
     id: String(club._id),
     name: club.name,
     description: club.description ?? '',
+    country: club.country ?? '',
     logo: club.logo ?? '',
     joinPolicy: club.joinPolicy,
     playerCount: counts.get(String(club._id)) ?? 0,
@@ -83,7 +84,7 @@ const requestView = (request, club) => ({
 export const directory = async (req, res) => {
     const q = String(req.query.q ?? '').trim().slice(0, 50);
     const filter = { ...TAKES_MEMBERS, ...(q && { name: { $regex: escapeRegex(q), $options: 'i' } }) };
-    const clubs = await Club.find(filter, 'name description logo joinPolicy').sort({ name: 1 }).limit(100);
+    const clubs = await Club.find(filter, 'name description country logo joinPolicy').sort({ name: 1 }).limit(100);
     const ids = clubs.map(club => club._id);
     const [members, countList, requestList, player] = await Promise.all([
         memberClubIds(req.user),

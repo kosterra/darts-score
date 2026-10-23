@@ -4,6 +4,7 @@ import { Panel } from 'primereact/panel';
 import PageLoader from '../elements/page.loader';
 import { useAuth } from '../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
+import { t } from '../../utils/i18n';
 
 /**
  * /me: the user's own statistics in the selected club, e.g. as the start
@@ -18,10 +19,10 @@ const MyStatistics = () => {
     if (player) return <Navigate replace to={`/players/${player.id}`} />;
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header="My statistics">
+            <Panel header={t('My statistics')}>
                 <p className="text-subtle fs-7 m-0">
-                    You do not play in {activeClub?.name ?? 'this club'}, so there are no statistics of your own here.
-                    {' '}Switch to a club you play in, or add yourself as a player under <Link to="/my-clubs">My clubs</Link>.
+                    {t('You do not play in')}{' '}{activeClub?.name ?? t('this club')}{t(', so there are no statistics of your own here.')}
+                    {' '}{t('Switch to a club you play in, or add yourself as a player under')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>.
                 </p>
             </Panel>
         </div>

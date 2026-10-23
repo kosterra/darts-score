@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { FaTrash } from "react-icons/fa";
 
 import ImageCropper from './image.cropper';
+import { t } from '../../utils/i18n';
 
 const ImageUploader = (props) => {
 
@@ -81,7 +82,7 @@ const ImageUploader = (props) => {
                         <Button
                             type="button"
                             severity="danger"
-                            rounded aria-label="Delete Profile Image"
+                            rounded aria-label={t('Delete Profile Image')}
                             onClick={handleOnFileDelete}>
                             <FaTrash />
                         </Button>
@@ -95,7 +96,7 @@ const ImageUploader = (props) => {
                 onDrop={handleOnDrop}
                 onClick={() => fileInput.current.click()}
             >
-                <span className="fs-7 text-faint"><ins>Upload</ins> or Drag and drop image</span>
+                <span className="fs-7 text-faint"><ins>{t('Upload')}</ins>{' '}{t('or Drag and drop image')}</span>
                 <input
                     type="file"
                     accept="image/png, image/jpg, image/jpeg"

@@ -3,6 +3,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { githubDarkTheme } from '@uiw/react-json-view/githubDark';
 import JsonView from '@uiw/react-json-view';
+import { t } from '../../utils/i18n';
 
 const JSONViewer = (props) => {
     const {
@@ -31,7 +32,7 @@ const JSONViewer = (props) => {
                 }
                 {!data &&
                     <div className="d-flex justify-content-center mt-4">
-                        <span className="empty-text text-faint">No JSON data found</span>
+                        <span className="empty-text text-faint">{t('No JSON data found')}</span>
                     </div>
                 }
             </Dialog>
@@ -40,8 +41,8 @@ const JSONViewer = (props) => {
                 <Button
                     severity="info"
                     icon="pi pi-code"
-                    title="Show the raw data"
-                    aria-label="Show the raw data"
+                    title={t('Show the raw data')}
+                    aria-label={t('Show the raw data')}
                     onClick={() => setShowDialog(true)}
                 />
             </div>

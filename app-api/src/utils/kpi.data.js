@@ -1,5 +1,6 @@
 import { legsInOrder, thrownDarts } from './badges.js';
 import { startingScoreOf } from './x01.rules.js';
+import { withView } from './game.view.js';
 
 // Key figures of a player per game type, for the statistics page.
 
@@ -113,7 +114,7 @@ export const clockKpis = (clockGames, playerId) => {
  */
 export const eliminationKpis = (eliminationGames, playerId) => {
     const visits = eliminationGames.flatMap(game =>
-        (Array.isArray(game.allThrows) ? game.allThrows : []).filter(visit => visit?.playerId === playerId));
+        (withView('elimination', game).allThrows ?? []).filter(visit => visit?.playerId === playerId));
     const scores = visits.map(visit => Number(visit.roundScore ?? 0));
     return {
         games: eliminationGames.length,

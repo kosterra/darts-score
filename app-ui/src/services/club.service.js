@@ -1,3 +1,4 @@
+import { translateAnswer } from '../utils/i18n';
 import { getHeaders, requestJSON } from '../utils/service.utils';
 
 const API_URL = '/api/clubs';
@@ -11,6 +12,8 @@ const createClub = (name) => requestJSON(API_URL, { method: 'POST', body: { name
  * { name, isPublic, publicLiveGames, publicResults }.
  */
 const updateClub = (clubId, settings) => requestJSON(`${API_URL}/${clubId}`, { method: 'PUT', body: settings });
+// the club's own rules for its games (see rules/club.rules.js)
+const updateGameRules = (clubId, rules) => requestJSON(`${API_URL}/${clubId}/game-rules`, { method: 'PUT', body: rules });
 
 const deleteClub = (clubId) => requestJSON(`${API_URL}/${clubId}`, { method: 'DELETE' });
 
@@ -46,7 +49,7 @@ const uploadLogo = async (clubId, file) => {
     const formData = new FormData();
     formData.append('logo', file);
     const response = await fetch(`${API_URL}/${clubId}/logo`, { method: 'PUT', headers: getHeaders(false), body: formData });
-    const data = await response.json().catch(() => ({}));
+    const data = translateAnswer(await response.json().catch(() => ({})));
     if (!response.ok) throw new Error(data.errors?.join(' ') || data.message || response.statusText);
     return data;
 };
@@ -83,6 +86,7 @@ const ClubService = {
     loadClubs,
     createClub,
     updateClub,
+    updateGameRules,
     deleteClub,
     findPlayerOfUser,
     addCurrentUserAsPlayer,

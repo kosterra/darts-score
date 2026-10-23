@@ -1,3 +1,5 @@
+import { t } from './i18n';
+
 // The Cricket variants:
 // - Standard: marks beyond three score the number for yourself while an
 //   opponent has it open; with all numbers closed the highest score wins.
@@ -5,10 +7,11 @@
 //   open; with all numbers closed the lowest score (or a tie) wins.
 // - No-score: only closing counts; who closes everything first wins.
 
+// the value stays English (it is stored and counted by), the label is the language of the app
 export const CRICKET_VARIANTS = [
-    { value: 'Standard', description: 'Extra marks score for you; highest score wins.' },
-    { value: 'Cut-throat', description: 'Extra marks score for opponents still open; lowest score wins.' },
-    { value: 'No-score', description: 'Only closing counts; first to close all wins.' },
+    { value: 'Standard', label: t('Standard'), description: t('Extra marks score for you; highest score wins.') },
+    { value: 'Cut-throat', label: t('Cut-throat'), description: t('Extra marks score for opponents still open; lowest score wins.') },
+    { value: 'No-score', label: t('No-score'), description: t('Only closing counts; first to close all wins.') },
 ];
 
 export const DEFAULT_VARIANT = 'Standard';

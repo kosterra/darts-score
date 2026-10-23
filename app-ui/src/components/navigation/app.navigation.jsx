@@ -3,6 +3,7 @@ import { Sidebar } from 'primereact/sidebar';
 import { FaBars, FaAnglesLeft, FaAnglesRight } from "react-icons/fa6";
 
 import NavigationContent from './navigation.content';
+import { t } from '../../utils/i18n';
 
 const COLLAPSED_KEY = 'darts-score.navigationCollapsed';
 
@@ -41,16 +42,17 @@ const AppNavigation = () => {
                     type="button"
                     className="nav-edge-toggle"
                     onClick={toggle}
-                    aria-label={collapsed ? 'Expand the menu' : 'Collapse the menu'}
-                    title={collapsed ? 'Expand the menu' : 'Collapse the menu'}
+                    aria-label={collapsed ? t('Expand the menu') : t('Collapse the menu')}
+                    title={collapsed ? t('Expand the menu') : t('Collapse the menu')}
                 >
                     {collapsed ? <FaAnglesRight /> : <FaAnglesLeft />}
                 </button>
             </aside>
 
             <div className="app-navigation-bar d-md-none">
-                <button type="button" className="nav-icon-button" onClick={() => setDrawerOpen(true)} aria-label="Open the menu">
-                    <FaBars />
+                <button type="button" className="nav-bar-button" onClick={() => setDrawerOpen(true)} aria-label={t('Open the menu')}>
+                    <FaBars aria-hidden="true" />
+                    <span>{t('Menu')}</span>
                 </button>
             </div>
             <Sidebar

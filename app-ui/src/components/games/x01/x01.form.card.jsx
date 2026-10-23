@@ -4,11 +4,12 @@ import { FaArrowTrendUp, FaArrowTrendDown, FaArrowRightLong } from 'react-icons/
 
 import { formOf } from '../../../utils/x01.form';
 import { PLAYER_COLORS, TOOLTIP } from '../../stats/charts/chart.theme';
+import { t } from '../../../utils/i18n';
 
 const TRENDS = {
-    up: { label: 'Getting better', icon: FaArrowTrendUp, className: 'is-up' },
-    down: { label: 'Dropping', icon: FaArrowTrendDown, className: 'is-down' },
-    steady: { label: 'Steady', icon: FaArrowRightLong, className: 'is-steady' },
+    up: { label: t('Getting better'), icon: FaArrowTrendUp, className: 'is-up' },
+    down: { label: t('Dropping'), icon: FaArrowTrendDown, className: 'is-down' },
+    steady: { label: t('Steady'), icon: FaArrowRightLong, className: 'is-steady' },
 };
 
 const formatAverage = (value) => value == null ? '–' : value.toFixed(1);
@@ -19,15 +20,15 @@ const VisitTooltip = ({ active, payload, color }) => {
     const visit = payload[0].payload;
     return (
         <div className="chart-tooltip">
-            <div className="chart-tooltip-label">Visit {visit.index} · Leg {visit.leg}</div>
+            <div className="chart-tooltip-label">{t('Visit')}{' '}{visit.index}{' '}{t('· Leg')}{' '}{visit.leg}</div>
             <div className="chart-tooltip-row">
                 <span className="chart-tooltip-dot" style={{ background: '#9a9a9a' }} />
-                <span className="chart-tooltip-name">Score</span>
+                <span className="chart-tooltip-name">{t('Score')}</span>
                 <span className="chart-tooltip-value">{visit.score}</span>
             </div>
             <div className="chart-tooltip-row">
                 <span className="chart-tooltip-dot" style={{ background: color }} />
-                <span className="chart-tooltip-name">Last 3 average</span>
+                <span className="chart-tooltip-name">{t('Last 3 average')}</span>
                 <span className="chart-tooltip-value">{formatAverage(visit.rolling)}</span>
             </div>
         </div>
@@ -45,17 +46,17 @@ const X01FormCard = ({ game, playerId }) => {
     const trend = TRENDS[form.trend];
 
     const figures = [
-        ['Last 3', form.recentAverage],
-        ['Leg', form.legAverage],
-        ['Game', form.gameAverage],
+        [t('Last 3'), form.recentAverage],
+        [t('Leg'), form.legAverage],
+        [t('Game'), form.gameAverage],
     ];
 
     return (
         <div className="x01-form-card rounded-2 p-2">
             <div className="d-flex justify-content-between align-items-center mb-1">
-                <span className="text-subtle fs-8 fw-semibold">Form</span>
+                <span className="text-subtle fs-8 fw-semibold">{t('Form')}</span>
                 {trend && (
-                    <span className={`x01-form-trend ${trend.className}`} title="The last 5 visits compared with the game average">
+                    <span className={`x01-form-trend ${trend.className}`} title={t('The last 5 visits compared with the game average')}>
                         <trend.icon aria-hidden="true" /> {trend.label}
                     </span>
                 )}
@@ -63,14 +64,14 @@ const X01FormCard = ({ game, playerId }) => {
             <div className="d-flex justify-content-around text-center">
                 {figures.map(([label, value]) => (
                     <div key={label} className="d-flex flex-column">
-                        <span className="text-default fw-semibold fs-6" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatAverage(value)}</span>
+                        <span className="text-default fw-semibold fs-6 tabular-nums">{formatAverage(value)}</span>
                         <span className="text-faint fs-9">{label}</span>
                     </div>
                 ))}
             </div>
             {form.visits.length > 1
                 ? (
-                    <div style={{ height: 64 }} className="mt-1" aria-label="Score of every visit with the average of the last three">
+                    <div style={{ height: 64 }} className="mt-1" aria-label={t('Score of every visit with the average of the last three')}>
                         <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={form.visits} margin={{ top: 4, right: 2, bottom: 0, left: 2 }}>
                                 <YAxis hide domain={[0, 180]} />
@@ -82,7 +83,7 @@ const X01FormCard = ({ game, playerId }) => {
                         </ResponsiveContainer>
                     </div>
                 )
-                : <div className="text-faint fs-9 text-center mt-1">The trend shows after a few visits.</div>
+                : <div className="text-faint fs-9 text-center mt-1">{t('The trend shows after a few visits.')}</div>
             }
         </div>
     );

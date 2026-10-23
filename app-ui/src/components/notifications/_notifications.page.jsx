@@ -1,6 +1,7 @@
 import { Panel } from 'primereact/panel';
 
 import NotificationList from './notification.list';
+import { t } from '../../utils/i18n';
 
 /**
  * Everything the user was told, e.g. that an admin deleted or repaired one of
@@ -8,7 +9,7 @@ import NotificationList from './notification.list';
  */
 const NotificationsPage = () => (
     <div className="container-fluid p-4 border-0">
-        <Panel header="Notifications">
+        <Panel header={t('Notifications')}>
             <NotificationList />
         </Panel>
     </div>

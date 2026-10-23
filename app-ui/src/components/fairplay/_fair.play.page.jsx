@@ -7,7 +7,6 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { SelectButton } from 'primereact/selectbutton';
 import { Avatar } from 'primereact/avatar';
 import { Toast } from 'primereact/toast';
-import dayjs from 'dayjs';
 
 import IntegrityService, { announceFairPlayChange } from '../../services/integrity.service';
 import ClubLogo from '../elements/club.logo';
@@ -18,6 +17,8 @@ import FairPlayDetails from './fair.play.details';
 import { LEVEL_LABELS, listOf } from './fair.play.lists';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 /**
  * Asks why an entry is marked: as fine (a false alarm; needed for what the
@@ -29,17 +30,17 @@ const ReviewDialog = ({ review, onCancel, onSave }) => {
     if (!review) return null;
     const { entry, status } = review;
     const needed = status === 'ok' && entry.level === 'impossible';
-    const header = status === 'watch' ? 'Keep on the watch list' : entry.level === 'suspicious' ? 'Looks fine' : 'False alarm';
+    const header = status === 'watch' ? t('Keep on the watch list') : entry.level === 'suspicious' ? t('Looks fine') : t('False alarm');
 
     return (
         <Dialog header={header} visible onHide={onCancel} draggable={false} blockScroll style={{ width: 'min(32rem, calc(100vw - 2rem))' }}>
             <p className="text-subtle fs-7 mt-0">
                 {status === 'watch'
-                    ? 'It stays on the watch list, to be looked at again.'
-                    : 'It goes to "Looks fine" and stays as it is. Who marked it and why stays visible for the other admins.'}
+                    ? t('It stays on the watch list, to be looked at again.')
+                    : t('It goes to "Looks fine" and stays as it is. Who marked it and why stays visible for the other admins.')}
             </p>
             <label htmlFor="fair-play-reason" className="text-default fs-7 fw-semibold d-block mb-2">
-                Why{needed ? '' : ' (optional)'}
+                {t('Why')}{needed ? '' : t(' (optional)')}
             </label>
             <InputTextarea
                 id="fair-play-reason"
@@ -49,11 +50,11 @@ const ReviewDialog = ({ review, onCancel, onSave }) => {
                 maxLength={300}
                 autoResize
                 className="w-100"
-                placeholder={needed ? 'e.g. the score was corrected with undo during the game' : ''}
+                placeholder={needed ? t('e.g. the score was corrected with undo during the game') : ''}
             />
             <div className="d-flex justify-content-end gap-2 mt-3">
-                <Button type="button" label="Cancel" size="small" severity="secondary" onClick={onCancel} />
-                <Button type="button" label="Save" size="small" disabled={needed && !reason.trim()} onClick={() => onSave(entry, status, reason.trim())} />
+                <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={onCancel} />
+                <Button type="button" label={t('Save')} size="small" disabled={needed && !reason.trim()} onClick={() => onSave(entry, status, reason.trim())} />
             </div>
         </Dialog>
     );
@@ -61,27 +62,26 @@ const ReviewDialog = ({ review, onCancel, onSave }) => {
 
 // what a repair does, before it is done
 const RepairDialog = ({ entry, onCancel, onRepair }) => entry && (
-    <Dialog header="Repair the game" visible onHide={onCancel} draggable={false} blockScroll style={{ width: 'min(32rem, calc(100vw - 2rem))' }}>
+    <Dialog header={t('Repair the game')} visible onHide={onCancel} draggable={false} blockScroll style={{ width: 'min(32rem, calc(100vw - 2rem))' }}>
         <p className="text-subtle fs-7 mt-0">
-            The scores left of {entry.summary} are worked out again from the darts thrown. The darts, who won each leg
-            and the statistics stay as they are; the badges are worked out again. The players and the club admins are told.
+            {t('The scores left of')}{' '}{entry.summary}{' '}{t('are worked out again from the darts thrown. The darts, who won each leg and the statistics stay as they are; the badges are worked out again. The players and the club admins are told.')}
         </p>
         <div className="d-flex justify-content-end gap-2 mt-3">
-            <Button type="button" label="Cancel" size="small" severity="secondary" onClick={onCancel} />
-            <Button type="button" label="Repair" icon="pi pi-wrench" size="small" onClick={() => onRepair(entry)} />
+            <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={onCancel} />
+            <Button type="button" label={t('Repair')} icon="pi pi-wrench" size="small" onClick={() => onRepair(entry)} />
         </div>
     </Dialog>
 );
 
 // putting back the date of birth of a player who made themselves younger
 const RestoreDialog = ({ entry, onCancel, onRestore }) => entry && (
-    <Dialog header="Restore the date of birth" visible onHide={onCancel} draggable={false} blockScroll style={{ width: 'min(32rem, calc(100vw - 2rem))' }}>
+    <Dialog header={t('Restore the date of birth')} visible onHide={onCancel} draggable={false} blockScroll style={{ width: 'min(32rem, calc(100vw - 2rem))' }}>
         <p className="text-subtle fs-7 mt-0">
-            {entry.players[0]?.nickname} gets back the date of birth from before the change, and is told. The games then count as before.
+            {entry.players[0]?.nickname}{' '}{t('gets back the date of birth from before the change, and is told. The games then count as before.')}
         </p>
         <div className="d-flex justify-content-end gap-2 mt-3">
-            <Button type="button" label="Cancel" size="small" severity="secondary" onClick={onCancel} />
-            <Button type="button" label="Restore date" icon="pi pi-replay" size="small" onClick={() => onRestore(entry)} />
+            <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={onCancel} />
+            <Button type="button" label={t('Restore date')} icon="pi pi-replay" size="small" onClick={() => onRestore(entry)} />
         </div>
     </Dialog>
 );
@@ -127,15 +127,15 @@ const FairPlayPage = ({ all = false }) => {
     // the list to start with: what needs doing first
     const shown = list ?? ['impossible', 'error', 'suspicious', 'watch'].find(name => counts[name]) ?? 'suspicious';
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">The games could not be checked. Please reload the page.</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{t('The games could not be checked. Please reload the page.')}</div>;
     if (!data) return <PageLoader />;
 
     const options = [
-        { label: `Impossible · ${counts.impossible}`, value: 'impossible' },
-        { label: `Data errors · ${counts.error}`, value: 'error' },
-        { label: `Suspicious · ${counts.suspicious}`, value: 'suspicious' },
-        { label: `Watched · ${counts.watch}`, value: 'watch' },
-        { label: `Looks fine · ${counts.fine}`, value: 'fine' },
+        { label: t('Impossible · {{impossible}}', { impossible: counts.impossible }), value: 'impossible' },
+        { label: t('Data errors · {{error}}', { error: counts.error }), value: 'error' },
+        { label: t('Suspicious · {{suspicious}}', { suspicious: counts.suspicious }), value: 'suspicious' },
+        { label: t('Watched · {{watch}}', { watch: counts.watch }), value: 'watch' },
+        { label: t('Looks fine · {{fine}}', { fine: counts.fine }), value: 'fine' },
     ];
     const entries = data.entries.filter(entry => inFilter(entry) && listOf(entry) === shown);
 
@@ -155,7 +155,7 @@ const FairPlayPage = ({ all = false }) => {
             setData(current => ({ ...current, entries: current.entries.map(item => item.id === entry.id ? { ...item, review } : item) }));
             announceFairPlayChange();
         } catch (error) {
-            fail('Not saved', error);
+            fail(t('Not saved'), error);
         } finally {
             setBusy(null);
         }
@@ -165,11 +165,11 @@ const FairPlayPage = ({ all = false }) => {
         setBusy(entry.id);
         try {
             const { repaired } = await IntegrityService.repair(entry.type, entry.id);
-            toast.current?.show({ severity: 'success', summary: 'Repaired', detail: `${repaired} ${repaired === 1 ? 'score' : 'scores'} left worked out again from the darts.`, life: 4000 });
+            toast.current?.show({ severity: 'success', summary: t('Repaired'), detail: tn(repaired, '{{count}} score left worked out again from the darts.', '{{count}} scores left worked out again from the darts.'), life: 4000 });
             announceFairPlayChange();
             await load();
         } catch (error) {
-            fail('Not repaired', error);
+            fail(t('Not repaired'), error);
         } finally {
             setBusy(null);
         }
@@ -179,11 +179,11 @@ const FairPlayPage = ({ all = false }) => {
         setBusy(entry.id);
         try {
             await IntegrityService.restoreBirth(entry.id);
-            toast.current?.show({ severity: 'success', summary: 'Date of birth restored', detail: `${entry.players[0]?.nickname} has the earlier date again and is told.`, life: 4000 });
+            toast.current?.show({ severity: 'success', summary: t('Date of birth restored'), detail: t('{{nickname}} has the earlier date again and is told.', { nickname: entry.players[0]?.nickname }), life: 4000 });
             setData(current => ({ ...current, entries: current.entries.filter(item => item.id !== entry.id) }));
             announceFairPlayChange();
         } catch (error) {
-            fail('Not restored', error);
+            fail(t('Not restored'), error);
         } finally {
             setBusy(null);
         }
@@ -195,7 +195,7 @@ const FairPlayPage = ({ all = false }) => {
         try {
             await IntegrityService.removeMany(items);
         } catch (error) {
-            fail('Not everything was deleted', error);
+            fail(t('Not everything was deleted'), error);
         } finally {
             setBusy(null);
             announceFairPlayChange();
@@ -209,7 +209,7 @@ const FairPlayPage = ({ all = false }) => {
             setData(current => ({ ...current, entries: current.entries.filter(item => item.id !== entry.id) }));
             announceFairPlayChange();
         } catch (error) {
-            fail('Not deleted', error);
+            fail(t('Not deleted'), error);
         } finally {
             setBusy(null);
         }
@@ -221,23 +221,22 @@ const FairPlayPage = ({ all = false }) => {
             <ReviewDialog review={reviewing} onCancel={() => setReviewing(null)} onSave={saveReview} />
             <RepairDialog entry={repairing} onCancel={() => setRepairing(null)} onRepair={repair} />
             <RestoreDialog entry={restoring} onCancel={() => setRestoring(null)} onRestore={restoreBirth} />
-            <Panel header={all ? 'Fair play · all clubs' : 'Fair play'}>
+            <Panel header={all ? t('Fair play · all clubs') : t('Fair play')}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    Games and trainings checked for what cannot be real or is far out of the ordinary. Open an entry with Details to see what was thrown.
-                    <strong className="text-default"> Impossible</strong> ones (e.g. Around the Clock in a few seconds, a dart that is not on the board) cannot come from a real game: delete them, with the badges earned in them, or mark them as a false alarm.
-                    <strong className="text-default"> Data errors</strong> are wrong but no cheat (e.g. a score left that does not add up after an undo): repair them where the darts allow it.
-                    <strong className="text-default"> Suspicious</strong> ones are possible but worth a look (e.g. a world-class time, an opponent who never threw): mark them as fine, or keep them on the watch list.
-                    The players and the club admins are told when a game is deleted or repaired.
+                    {t('Games and trainings checked for what cannot be real or is far out of the ordinary. Open an entry with Details to see what was thrown.')}
+                    <strong className="text-default">{' '}{t('Impossible')}</strong>{' '}{t('ones (e.g. Around the Clock in a few seconds, a dart that is not on the board) cannot come from a real game: delete them, with the badges earned in them, or mark them as a false alarm.')}
+                    <strong className="text-default">{' '}{t('Data errors')}</strong>{' '}{t('are wrong but no cheat (e.g. a score left that does not add up after an undo): repair them where the darts allow it.')}
+                    <strong className="text-default">{' '}{t('Suspicious')}</strong>{' '}{t('ones are possible but worth a look (e.g. a world-class time, an opponent who never threw): mark them as fine, or keep them on the watch list. The players and the club admins are told when a game is deleted or repaired.')}
                 </p>
                 <div className="fair-play-filters">
-                    <SelectButton value={shown} options={options} onChange={(e) => e.value && setList(e.value)} className="p-selectbutton-pills pills-inline flex-wrap" aria-label="List" />
+                    <SelectButton value={shown} options={options} onChange={(e) => e.value && setList(e.value)} className="p-selectbutton-pills pills-inline flex-wrap" aria-label={t('List')} />
                     {shown === 'impossible' && entries.length > 1 &&
                         <DeletePopup
                             data={entries}
-                            header="Delete all for fair play"
-                            message={`all ${entries.length} games and trainings that cannot be real${all && clubFilter.length ? ' of the chosen clubs' : ''}, with the badges earned in them`}
+                            header={t('Delete all for fair play')}
+                            message={t('all {{length}} games and trainings that cannot be real{{value}}, with the badges earned in them', { length: entries.length, value: all && clubFilter.length ? ' of the chosen clubs' : '' })}
                             handleDelete={removeAll}
-                            label={busy === 'all' ? 'Deleting…' : `Delete all ${entries.length}`}
+                            label={busy === 'all' ? t('Deleting…') : t('Delete all {{length}}', { length: entries.length })}
                             size="small"
                         />
                     }
@@ -247,7 +246,7 @@ const FairPlayPage = ({ all = false }) => {
                 </div>
 
                 {entries.length === 0
-                    ? <p className="text-faint fs-7 py-4 text-center m-0">{shown === 'impossible' ? 'Nothing impossible: no data that cannot be real.' : shown === 'error' ? 'No data errors.' : 'Nothing here.'}</p>
+                    ? <p className="text-faint fs-7 py-4 text-center m-0">{shown === 'impossible' ? t('Nothing impossible: no data that cannot be real.') : shown === 'error' ? t('No data errors.') : t('Nothing here.')}</p>
                     : (
                         <ul className="fair-play-list list-unstyled m-0">
                             {entries.map(entry => {
@@ -259,13 +258,13 @@ const FairPlayPage = ({ all = false }) => {
                                         {all &&
                                             <div className="fair-play-club">
                                                 <ClubLogo club={entry.club} size="sm" />
-                                                <span className="text-default fw-semibold">{entry.club.name || 'Unknown club'}</span>
+                                                <span className="text-default fw-semibold">{entry.club.name || t('Unknown club')}</span>
                                             </div>
                                         }
                                         <div className="fair-play-head">
                                             <span className={`fair-play-level is-${entry.level}`}>{LEVEL_LABELS[entry.level]}</span>
                                             <span className="text-default fw-semibold">{entry.summary}</span>
-                                            <span className="text-faint fs-8">{dayjs(entry.at).format('DD.MM.YYYY HH:mm')}</span>
+                                            <span className="text-faint fs-8">{formatDate(entry.at, { time: true })}</span>
                                         </div>
                                         <div className="fair-play-players">
                                             {entry.players.map(player => (
@@ -292,27 +291,27 @@ const FairPlayPage = ({ all = false }) => {
                                         {expanded && <FairPlayDetails entry={entry} />}
                                         {entry.review &&
                                             <span className="text-faint fs-8">
-                                                {entry.review.status === 'ok' ? 'Marked as fine' : 'Kept on the watch list'} by {entry.review.byName}, {dayjs(entry.review.at).format('DD.MM.YYYY')}
+                                                {entry.review.status === 'ok' ? t('Marked as fine') : t('Kept on the watch list')}{' '}{t('by')}{' '}{entry.review.byName}, {formatDate(entry.review.at)}
                                                 {entry.review.reason && <>: <span className="text-subtle">{entry.review.reason}</span></>}
                                             </span>
                                         }
                                         <div className="fair-play-actions">
-                                            <Button type="button" label={expanded ? 'Hide details' : 'Details'} icon={`pi ${expanded ? 'pi-chevron-up' : 'pi-search'}`} size="small" severity="secondary" onClick={() => toggle(entry)} aria-expanded={expanded} />
-                                            {viewable && <Button type="button" label="View" icon="pi pi-chart-bar" size="small" severity="secondary" onClick={() => navigate(`/stats/games/${entry.type}/${entry.id}`)} />}
+                                            <Button type="button" label={expanded ? t('Hide details') : t('Details')} icon={`pi ${expanded ? 'pi-chevron-up' : 'pi-search'}`} size="small" severity="secondary" onClick={() => toggle(entry)} aria-expanded={expanded} />
+                                            {viewable && <Button type="button" label={t('View')} icon="pi pi-chart-bar" size="small" severity="secondary" onClick={() => navigate(`/stats/games/${entry.type}/${entry.id}`)} />}
                                             {entry.repairable && entry.review?.status !== 'ok' &&
-                                                <Button type="button" label="Repair" icon="pi pi-wrench" size="small" disabled={busy === entry.id} onClick={() => setRepairing(entry)} />}
+                                                <Button type="button" label={t('Repair')} icon="pi pi-wrench" size="small" disabled={busy === entry.id} onClick={() => setRepairing(entry)} />}
                                             {entry.review?.status !== 'ok' &&
-                                                <Button type="button" label={entry.level === 'suspicious' ? 'Looks fine' : 'False alarm'} icon="pi pi-check" size="small" outlined disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'ok' })} />}
+                                                <Button type="button" label={entry.level === 'suspicious' ? t('Looks fine') : t('False alarm')} icon="pi pi-check" size="small" outlined disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'ok' })} />}
                                             {entry.level !== 'impossible' && entry.review?.status !== 'watch' &&
-                                                <Button type="button" label="Watch" icon="pi pi-eye" size="small" severity="secondary" disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'watch' })} />}
+                                                <Button type="button" label={t('Watch')} icon="pi pi-eye" size="small" severity="secondary" disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'watch' })} />}
                                             {entry.type === 'birth' &&
-                                                <Button type="button" label="Restore date" icon="pi pi-replay" size="small" disabled={busy === entry.id} onClick={() => setRestoring(entry)} />}
+                                                <Button type="button" label={t('Restore date')} icon="pi pi-replay" size="small" disabled={busy === entry.id} onClick={() => setRestoring(entry)} />}
                                             {entry.type !== 'birth' && <DeletePopup
                                                 data={entry}
-                                                header="Delete for fair play"
-                                                message={`this ${entry.type === 'training' ? 'training' : 'game'} (${entry.summary}) and the badges earned in it`}
+                                                header={t('Delete for fair play')}
+                                                message={(entry.type === 'training' ? t('this training ({{summary}}) and the badges earned in it', { summary: entry.summary }) : t('this game ({{summary}}) and the badges earned in it', { summary: entry.summary }))}
                                                 handleDelete={() => remove(entry)}
-                                                label="Delete"
+                                                label={t('Delete')}
                                                 size="small"
                                             />}
                                         </div>

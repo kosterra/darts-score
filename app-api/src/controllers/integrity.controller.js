@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { RULES_GAMES, isRulesGame } from '../utils/rules.kinds.js';
 import db from '../models/db.model.js';
 import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
 import { removeWithBadges, syncPlayerBadges } from '../utils/badge.service.js';
@@ -6,6 +7,7 @@ import {
     LEVELS, THRESHOLDS, checkBirthChange, checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages, x01Legs,
 } from '../utils/integrity.js';
 import { fairPlayNotices } from '../utils/notices.js';
+import { withView } from '../utils/game.view.js';
 
 // what can be checked: the games, and the trainings of Around the Clock
 const SOURCES = {
@@ -36,6 +38,7 @@ export const describe = (type, doc) => {
     if (type === 'x01') return `X01 · ${doc.startingScore ?? ''} · ${doc.legInMode ?? ''} / ${doc.legOutMode ?? ''}`;
     if (type === 'cricket') return `Cricket${doc.variant && doc.variant !== 'Standard' ? ` · ${doc.variant}` : ''}`;
     if (type === 'elimination') return `Elimination · ${doc.targetScore}`;
+    if (isRulesGame(type)) return RULES_GAMES[type];
     return `Around the Clock · ${doc.mode}`;
 };
 
@@ -317,7 +320,7 @@ export const details = async (req, res) => {
     if (type === 'x01') {
         result.legs = x01Legs(plain);
     } else if (type === 'cricket' || type === 'elimination') {
-        result.visits = (plain.allThrows ?? []).map(visit => ({
+        result.visits = (withView(type, plain).allThrows ?? []).map(visit => ({
             playerId: visit?.playerId ?? null,
             darts: (visit?.darts ?? []).filter(dart => dart !== '' && dart != null),
             roundScore: visit?.roundScore ?? null,
@@ -384,6 +387,8 @@ export const repair = async (req, res) => {
     const findings = compact(checkX01(plain));
     const fixed = repairX01(plain);
     if (!fixed.possible) return res.status(409).json({ message: `It cannot be repaired: ${fixed.reason}.` });
+    // a game stored as its visits has its scores left worked out from them: nothing to write
+    if (!fixed.changed) return res.json({ repaired: 0 });
     try {
         // the raw collection keeps when the game was played (updatedAt)
         await db.x01.collection.updateOne({ _id: doc._id }, { $set: { allSetsThrows: fixed.allSetsThrows } });

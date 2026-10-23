@@ -1,3 +1,5 @@
+import { t } from './i18n';
+
 /**
  * What the statistics page of one Elimination game shows, worked out by
  * replaying its visits with the rules of the game: everyone climbs from 0 to
@@ -126,21 +128,21 @@ export const eliminationHits = (playerId, replay) => {
 export const eliminationMoments = (game, replay = replayElimination(game)) => {
     const moments = [];
     const highest = replay.visits.reduce((top, visit) => visit.score > (top?.score ?? 0) ? visit : top, null);
-    if (highest) moments.push({ id: 'highest', label: 'Highest visit', value: highest.score, playerId: highest.playerId, detail: `round ${highest.turn}` });
+    if (highest) moments.push({ id: 'highest', label: t('Highest visit'), value: highest.score, playerId: highest.playerId, detail: t('round {{turn}}', { turn: highest.turn }) });
 
     const biggest = replay.eliminations.reduce((top, event) => event.at > (top?.at ?? 0) ? event : top, null);
-    if (biggest) moments.push({ id: 'knockout', label: 'Biggest knock-out', value: `${biggest.at} points`, playerId: biggest.by, detail: `round ${biggest.turn}`, victim: biggest.victim });
+    if (biggest) moments.push({ id: 'knockout', label: t('Biggest knock-out'), value: t('{{at}} points', { at: biggest.at }), playerId: biggest.by, detail: t('round {{turn}}', { turn: biggest.turn }), victim: biggest.victim });
 
     if (replay.eliminations.length) {
-        moments.push({ id: 'eliminations', label: replay.eliminations.length === 1 ? 'Knock-out' : 'Knock-outs', value: replay.eliminations.length, playerId: null, detail: 'in this game' });
+        moments.push({ id: 'eliminations', label: replay.eliminations.length === 1 ? t('Knock-out') : t('Knock-outs'), value: replay.eliminations.length, playerId: null, detail: t('in this game') });
     }
 
     const winnerId = (game?.players ?? []).find(id => game.playerModels?.[id]?.hasWonGame);
     const finish = winnerId ? [...replay.visits].reverse().find(visit => visit.playerId === winnerId) : null;
-    if (finish) moments.push({ id: 'finish', label: 'Winning visit', value: finish.score, playerId: winnerId, detail: `round ${finish.turn}, ${finish.darts.join(' ')}` });
+    if (finish) moments.push({ id: 'finish', label: t('Winning visit'), value: finish.score, playerId: winnerId, detail: t('round {{turn}}, {{join}}', { turn: finish.turn, join: finish.darts.join(' ') }) });
 
     if (winnerId && replay.eliminations.some(event => event.victim === winnerId)) {
-        moments.push({ id: 'comeback', label: 'Comeback', value: 'Back from 0', playerId: winnerId, detail: 'won after a knock-out' });
+        moments.push({ id: 'comeback', label: t('Comeback'), value: t('Back from 0'), playerId: winnerId, detail: t('won after a knock-out') });
     }
     return moments;
 };

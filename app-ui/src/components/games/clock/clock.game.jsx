@@ -9,6 +9,9 @@ import PlayerService from '../../../services/player.service';
 import { replayClock, skipsAhead, withClockState } from '../../../utils/clock.game';
 import useClockMoment from '../../../utils/use.clock.moment';
 import ClockMoment from '../common/clock.moments';
+import LiveHero from '../common/live.hero';
+import { TARGETS, targetLabel } from '../../../utils/atc.darts';
+import { t } from '../../../utils/i18n';
 
 /**
  * An Around the Clock game being played: whose turn it is and their target,
@@ -32,7 +35,7 @@ const ClockGame = () => {
                 // a finished game shows its result
                 if (loaded.hasWinner) return navigate(`/stats/games/clock/${id}`, { replace: true });
                 const found = await PlayerService.findPlayersByIds(loaded.players);
-                setPlayers(loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: 'Unknown player' }));
+                setPlayers(loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') }));
                 setGame(loaded);
             } catch {
                 setFailed(true);
@@ -59,7 +62,7 @@ const ClockGame = () => {
             .then(() => {
                 if (next.hasWinner) setSavedOver(next.id);
             })
-            .catch(() => toast.current?.show({ severity: 'error', summary: 'Not saved', detail: 'The last dart could not be saved. Check the connection and throw on: the next dart saves everything.', life: 5000 }));
+            .catch(() => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail: t('The last dart could not be saved. Check the connection and throw on: the next dart saves everything.'), life: 5000 }));
     }, []);
 
     const change = useCallback((throws) => {
@@ -77,22 +80,35 @@ const ClockGame = () => {
         if (game?.throws?.length) change(game.throws.slice(0, -1));
     }, [game, change]);
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">This game could not be found in the selected club.</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{t('This game could not be found in the selected club.')}</div>;
     if (!game || !state) return <PageLoader />;
 
-    const nameOf = (playerId) => players.find(player => player.id === playerId)?.nickname ?? 'Unknown player';
+    const nameOf = (playerId) => players.find(player => player.id === playerId)?.nickname ?? t('Unknown player');
     const notice = state.lastRound !== null && !state.done
-        ? `${state.finished.map(nameOf).join(' and ')} ${state.finished.length > 1 ? 'are' : 'is'} done: last round, everybody gets ${state.lastRound} turns.`
+        ? state.finished.length > 1
+            ? t('{{names}} are done: last round, everybody gets {{lastRound}} turns.', { names: state.finished.map(nameOf).join(` ${t('and')} `), lastRound: state.lastRound })
+            : t('{{name}} is done: last round, everybody gets {{lastRound}} turns.', { name: nameOf(state.finished[0]), lastRound: state.lastRound })
         : null;
 
     return (
         <div className="col-12 clock-game">
-            <div className="d-flex justify-content-center mb-4">
-                <div className="d-flex flex-column align-items-center rounded-bottom-4 bg-surface-translucent p-2 px-4">
-                    <div className="text-default fw-semibold fs-7">Around the Clock · {game.mode}</div>
-                    <div className="text-faint fs-8">{skipsAhead(game) ? 'Doubles and trebles move on · ' : ''}first to finish wins</div>
-                </div>
-            </div>
+            <LiveHero
+                rulesId="clock"
+                title={t('Around the Clock ·') + ' ' + t(game.mode)}
+                subtitle={`${skipsAhead(game) ? t('Doubles and trebles move on · ') : ''}${t('first to finish wins')}`}
+                rows={players.map(player => {
+                    const own = state.players[player.id];
+                    const numbers = Math.min(own.target, TARGETS);
+                    return {
+                        player,
+                        isTurn: !state.done && state.order[state.current] === player.id,
+                        line: <>{t('Hit rate')}{' '}<strong>{own.darts ? `${Math.round(own.hits / own.darts * 100)} %` : '–'}</strong> · <strong>{own.darts}</strong>{' '}{t('darts')}</>,
+                        tags: own.finished && <span className="x01-dart-for">{t('Done')}</span>,
+                        score: own.finished ? '✔' : targetLabel(own.target, game.mode),
+                        below: <span className="x01-live-route">{t('{{value}} of {{TARGETS}}', { value: numbers, TARGETS })}</span>,
+                    };
+                })}
+            />
             <div className="clock-game-board">
                 <ATCDartsRound
                     players={players}
@@ -102,6 +118,7 @@ const ClockGame = () => {
                     onUndo={onUndo}
                     canUndo={game.throws?.length > 0}
                     rings={skipsAhead(game)}
+                    withPlayers={false}
                     notice={notice}
                 />
             </div>

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Panel } from 'primereact/panel';
@@ -10,11 +9,14 @@ import dayjs from 'dayjs';
 import ClubService from '../../services/club.service';
 import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
+import CountryFlag from '../elements/country.flag';
+import { formatDate } from '../../utils/dates';
 
 // after a declined request, asking the same club again waits this long (as the API)
 const ASK_AGAIN_AFTER_DAYS = 7;
 
-const JOIN_POLICY_LABELS = { open: 'Open to join', approval: 'Admins accept' };
+const JOIN_POLICY_LABELS = { open: t('Open to join'), approval: t('Admins accept') };
 
 /**
  * Join a club: the clubs that take new members, searchable by name. An open
@@ -60,13 +62,13 @@ const ClubDirectory = ({ onSuccess, onError }) => {
             if (result.status === 'member') {
                 await refreshClubs();
                 if (!activeClub) selectClub(club.id);
-                onSuccess('Welcome', `You are a member of ${club.name} now, as ${result.player?.nickname ?? nickname}.`);
+                onSuccess(t('Welcome'), t('You are a member of {{name}} now, as {{value}}.', { name: club.name, value: result.player?.nickname ?? nickname }));
             } else {
-                onSuccess('Request sent', `The admins of ${club.name} decide. You get a notification with their answer.`);
+                onSuccess(t('Request sent'), t('The admins of {{name}} decide. You get a notification with their answer.', { name: club.name }));
             }
             await load(search.trim());
         } catch (error) {
-            onError(`Join ${club.name}`, error);
+            onError(t('Join {{name}}', { name: club.name }), error);
         } finally {
             setBusy(false);
         }
@@ -75,10 +77,10 @@ const ClubDirectory = ({ onSuccess, onError }) => {
     const withdraw = async (clubId, clubName) => {
         try {
             await ClubService.withdrawJoinRequest(clubId);
-            onSuccess('Request taken back', clubName);
+            onSuccess(t('Request taken back'), clubName);
             await load(search.trim());
         } catch (error) {
-            onError('Take the request back', error);
+            onError(t('Take the request back'), error);
         }
     };
 
@@ -91,37 +93,37 @@ const ClubDirectory = ({ onSuccess, onError }) => {
         : null;
 
     const action = (club) => {
-        if (club.isMember) return <Tag value="Your club" severity="success" />;
+        if (club.isMember) return <Tag value={t('Your club')} severity="success" />;
         if (club.request?.status === 'open') {
             return <>
-                <span className="text-faint fs-8">Asked {dayjs(club.request.at).format('DD.MM.YYYY')}, waiting for the admins</span>
-                <Button label="Take back" size="small" severity="secondary" text onClick={() => withdraw(club.id, club.name)} />
+                <span className="text-faint fs-8">{t('Asked')}{' '}{formatDate(club.request.at)}{t(', waiting for the admins')}</span>
+                <Button label={t('Take back')} size="small" severity="secondary" text onClick={() => withdraw(club.id, club.name)} />
             </>;
         }
         const again = askAgainOn(club.request);
         if (club.joinPolicy === 'approval' && again && again.isAfter(dayjs())) {
-            return <span className="text-faint fs-8">Declined. You can ask again from {again.format('DD.MM.YYYY')}.</span>;
+            return <span className="text-faint fs-8">{t('Declined. You can ask again from')}{' '}{formatDate(again)}.</span>;
         }
         return club.joinPolicy === 'open'
-            ? <Button label="Join" icon="pi pi-sign-in" size="small" onClick={() => setJoining({ club, nickname: '', message: '' })} />
-            : <Button label="Ask to join" icon="pi pi-send" size="small" severity="secondary" onClick={() => setJoining({ club, nickname: '', message: '' })} />;
+            ? <Button label={t('Join')} icon="pi pi-sign-in" size="small" onClick={() => setJoining({ club, nickname: '', message: '' })} />
+            : <Button label={t('Ask to join')} icon="pi pi-send" size="small" severity="secondary" onClick={() => setJoining({ club, nickname: '', message: '' })} />;
     };
 
     const needsNickname = data && !data.nickname;
-    const validNickname = !needsNickname || /^[A-Za-zéèàäöü\s'-]{3,25}$/.test(joining?.nickname.trim() ?? '');
+    const validNickname = !needsNickname || /^[\p{L}\s'-]{3,25}$/u.test(joining?.nickname.trim() ?? '');
 
     return (
-        <Panel header="Join a club" className="mt-4">
+        <Panel header={t('Join a club')} className="mt-4">
             <div className="my-clubs-top">
                 <p className="text-subtle fs-7 m-0">
-                    Clubs that take new members. An open club you join at once; elsewhere the admins accept you first.
+                    {t('Clubs that take new members. An open club you join at once; elsewhere the admins accept you first.')}
                     {data?.nickname
-                        ? <> You play there as <span className="text-default fw-semibold">{data.nickname}</span>, with your statistics and badges.</>
-                        : ' You choose your nickname when you join.'}
+                        ? <>{' '}{t('You play there as')}{' '}<span className="text-default fw-semibold">{data.nickname}</span>{t(', with your statistics and badges.')}</>
+                        : t(' You choose your nickname when you join.')}
                 </p>
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" aria-hidden="true" />
-                    <InputText value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search clubs" aria-label="Search clubs" maxLength={50} style={{ minWidth: '14rem' }} />
+                    <InputText value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('Search clubs')} aria-label={t('Search clubs')} maxLength={50} style={{ minWidth: '14rem' }} />
                 </span>
             </div>
 
@@ -133,10 +135,10 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                                 <ClubLogo club={{ name: request.clubName, logo: request.clubLogo }} size="md" />
                                 <div className="my-club-title">
                                     <span className="text-default fw-semibold fs-6 text-break">{request.clubName}</span>
-                                    <span className="text-faint fs-8">Asked {dayjs(request.at).format('DD.MM.YYYY')} as {request.nickname}, waiting for the admins</span>
+                                    <span className="text-faint fs-8">{t('Asked')}{' '}{formatDate(request.at)}{' '}{t('as')}{' '}{request.nickname}{t(', waiting for the admins')}</span>
                                 </div>
                                 <div className="my-club-actions">
-                                    <Button label="Take back" size="small" severity="secondary" text onClick={() => withdraw(request.club, request.clubName)} />
+                                    <Button label={t('Take back')} size="small" severity="secondary" text onClick={() => withdraw(request.club, request.clubName)} />
                                 </div>
                             </div>
                         </li>
@@ -144,10 +146,10 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                 </ul>
             }
 
-            {failed && <p className="text-subtle fs-7 m-0">The clubs could not be loaded. Please reload the page.</p>}
+            {failed && <p className="text-subtle fs-7 m-0">{t('The clubs could not be loaded. Please reload the page.')}</p>}
             {data && clubs.length === 0 &&
                 <p className="text-subtle fs-7 py-3 text-center m-0">
-                    {search.trim() ? `No club called like "${search.trim()}" takes new members.` : 'No club takes new members on their own yet. Ask a club admin to add you, or create your own club.'}
+                    {search.trim() ? t('No club called like "{{trim}}" takes new members.', { trim: search.trim() }) : t('No club takes new members on their own yet. Ask a club admin to add you, or create your own club.')}
                 </p>
             }
             <ul className="my-clubs list-unstyled m-0">
@@ -157,55 +159,46 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                             <ClubLogo club={club} size="md" />
                             <div className="my-club-title">
                                 <div className="d-flex flex-wrap align-items-center gap-2">
-                                    <span className="text-default fw-semibold fs-6 text-break">{club.name}</span>
-                                    <Tag value={JOIN_POLICY_LABELS[club.joinPolicy]} severity={club.joinPolicy === 'open' ? 'success' : 'info'} />
+                                    <span className="text-default fw-semibold fs-6 text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
+                                    <Tag value={JOIN_POLICY_LABELS[club.joinPolicy]} severity="secondary" />
                                 </div>
-                                <span className="text-faint fs-8">{club.playerCount} {club.playerCount === 1 ? 'player' : 'players'}</span>
+                                <span className="text-faint fs-8">{club.playerCount} {club.playerCount === 1 ? t('player') : t('players')}</span>
                                 {club.description && <span className="text-subtle fs-8 text-break">{club.description}</span>}
                             </div>
-                            <div className="my-club-actions">{action(club)}</div>
+                            <div className="my-club-actions">{joining?.club.id === club.id ? null : action(club)}</div>
                         </div>
+                        {/* joining opens in place, under the club */}
+                        {joining?.club.id === club.id &&
+                            <form onSubmit={join} className="my-club-join d-flex flex-column gap-3">
+                                <p className="text-subtle fs-7 m-0">
+                                    {joining.club.joinPolicy === 'open'
+                                        ? t('You are a member at once and can play in the club right away. Its admins are told who joined.')
+                                        : t('The admins of the club are asked and decide. You get a notification with their answer.')}
+                                </p>
+                                {needsNickname
+                                    ? <label className="d-flex flex-column gap-1">
+                                        <span className="text-subtle fs-8">{t('Nickname')}</span>
+                                        <InputText value={joining.nickname} onChange={(event) => setJoining({ ...joining, nickname: event.target.value })} minLength={3} maxLength={25} required autoFocus />
+                                        <span className="text-faint fs-8">{t('How the club and the games call you, 3 to 25 letters.')}</span>
+                                    </label>
+                                    : <p className="text-subtle fs-7 m-0">{t('You play as')}{' '}<span className="text-default fw-semibold">{data.nickname}</span>{t(', with your statistics, badges and flights.')}</p>
+                                }
+                                {joining.club.joinPolicy === 'approval' &&
+                                    <label className="d-flex flex-column gap-1">
+                                        <span className="text-subtle fs-8">{t('A few words for the admins (optional)')}</span>
+                                        <InputTextarea value={joining.message} onChange={(event) => setJoining({ ...joining, message: event.target.value })} rows={3} maxLength={300} autoResize placeholder={t('Who you are, when you play')} />
+                                    </label>
+                                }
+                                <div className="d-flex justify-content-end gap-2">
+                                    <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setJoining(null)} />
+                                    <Button type="submit" label={joining.club.joinPolicy === 'open' ? t('Join') : t('Ask to join')} icon={joining.club.joinPolicy === 'open' ? 'pi pi-sign-in' : 'pi pi-send'} size="small" loading={busy} disabled={!validNickname} />
+                                </div>
+                            </form>
+                        }
                     </li>
                 ))}
             </ul>
 
-            <Dialog
-                header={joining ? `${joining.club.joinPolicy === 'open' ? 'Join' : 'Ask to join'} ${joining.club.name}` : ''}
-                visible={!!joining}
-                onHide={() => setJoining(null)}
-                blockScroll
-                draggable={false}
-                className="m-4"
-                style={{ width: '30rem', maxWidth: '100%' }}
-            >
-                {joining &&
-                    <form onSubmit={join} className="d-flex flex-column gap-3 pt-1">
-                        <p className="text-subtle fs-7 m-0">
-                            {joining.club.joinPolicy === 'open'
-                                ? 'You are a member at once and can play in the club right away. Its admins are told who joined.'
-                                : 'The admins of the club are asked and decide. You get a notification with their answer.'}
-                        </p>
-                        {needsNickname
-                            ? <label className="d-flex flex-column gap-1">
-                                <span className="text-subtle fs-8">Nickname</span>
-                                <InputText value={joining.nickname} onChange={(event) => setJoining({ ...joining, nickname: event.target.value })} minLength={3} maxLength={25} required autoFocus />
-                                <span className="text-faint fs-8">How the club and the games call you, 3 to 25 letters.</span>
-                            </label>
-                            : <p className="text-subtle fs-7 m-0">You play as <span className="text-default fw-semibold">{data.nickname}</span>, with your statistics, badges and flights.</p>
-                        }
-                        {joining.club.joinPolicy === 'approval' &&
-                            <label className="d-flex flex-column gap-1">
-                                <span className="text-subtle fs-8">A few words for the admins (optional)</span>
-                                <InputTextarea value={joining.message} onChange={(event) => setJoining({ ...joining, message: event.target.value })} rows={3} maxLength={300} autoResize placeholder="Who you are, when you play" />
-                            </label>
-                        }
-                        <div className="d-flex justify-content-end gap-2">
-                            <Button type="button" label="Cancel" size="small" severity="secondary" onClick={() => setJoining(null)} />
-                            <Button type="submit" label={joining.club.joinPolicy === 'open' ? 'Join' : 'Ask to join'} icon={joining.club.joinPolicy === 'open' ? 'pi pi-sign-in' : 'pi pi-send'} size="small" loading={busy} disabled={!validNickname} />
-                        </div>
-                    </form>
-                }
-            </Dialog>
         </Panel>
     );
 };

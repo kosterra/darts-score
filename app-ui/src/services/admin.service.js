@@ -10,6 +10,11 @@ const loadOverview = () => requestJSON(`${API_URL}/overview`);
 // every club, for the club filter of the admin lists
 const loadClubs = () => requestJSON(`${API_URL}/clubs`);
 
+// the whole installation at a glance, above the lists of players, games and trainings
+const loadPlayersInsights = () => requestJSON(`${API_URL}/insights/players`);
+const loadGamesInsights = () => requestJSON(`${API_URL}/insights/games`);
+const loadTrainingsInsights = () => requestJSON(`${API_URL}/insights/trainings`);
+
 // players, games and trainings of the given clubs, each with its club
 const query = (clubIds) => `?clubs=${clubIds.map(encodeURIComponent).join(',')}`;
 const loadPlayers = (clubIds) => requestJSON(`${API_URL}/players${query(clubIds)}`);
@@ -17,6 +22,8 @@ const loadGames = (clubIds) => requestJSON(`${API_URL}/games${query(clubIds)}`);
 const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(clubIds)}`);
 // the X01 trainings against the bot of the chosen clubs
 const loadX01Trainings = (clubIds) => requestJSON(`${API_URL}/x01-trainings${query(clubIds)}`);
+// Bob's 27, 121 Checkout, … of the rules engine
+const loadRulesTrainings = (clubIds) => requestJSON(`${API_URL}/rules-trainings${query(clubIds)}`);
 
 // the quick games of the public start page: { total, perDay, games }, and deleting some
 const loadQuickGames = () => requestJSON(`${API_URL}/quick-games`);
@@ -33,11 +40,12 @@ const saveBanner = (banner) => requestJSON(`${API_URL}/banner`, { method: 'PUT',
 
 // how long a login lasts: { timeoutHours, limits: { min, max, default } }
 // the mails of the app: their texts, a preview from a draft, a test mail to oneself
-const loadMailTemplates = () => requestJSON(`${API_URL}/mail-templates`);
-const saveMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'PUT', body: draft });
-const resetMailTemplate = (id) => requestJSON(`${API_URL}/mail-templates/${id}`, { method: 'DELETE' });
-const previewMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/preview`, { method: 'POST', body: draft });
-const testMailTemplate = (id, draft) => requestJSON(`${API_URL}/mail-templates/${id}/test`, { method: 'POST', body: draft });
+// the mails in one language: every user gets them in their own
+const loadMailTemplates = (language = 'en') => requestJSON(`${API_URL}/mail-templates?language=${language}`);
+const saveMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}?language=${language}`, { method: 'PUT', body: draft });
+const resetMailTemplate = (id, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}?language=${language}`, { method: 'DELETE' });
+const previewMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/preview?language=${language}`, { method: 'POST', body: draft });
+const testMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/test?language=${language}`, { method: 'POST', body: draft });
 
 // what the public start page shows: { showNumbers }
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
@@ -92,11 +100,15 @@ const AdminService = {
     saveStartPageSettings,
     saveSessionSettings,
     loadOverview,
+    loadPlayersInsights,
+    loadGamesInsights,
+    loadTrainingsInsights,
     loadClubs,
     loadPlayers,
     loadGames,
     loadTrainings,
     loadX01Trainings,
+    loadRulesTrainings,
     addPlayerToClub,
     removePlayerFromClub,
     deletePlayer,

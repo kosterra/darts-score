@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { RULES_GAMES } from '../utils/rules.kinds.js';
 import db from '../models/db.model.js';
 import { knownInClub } from '../models/player.model.js';
 import { clubKpis, headToHead, clubRecords, gameLog } from '../utils/club.insights.js';
@@ -7,6 +8,7 @@ import { countBadges } from '../utils/badges.js';
 import { recentForm } from '../utils/chart.data.js';
 import { formFigures } from '../utils/form.figures.js';
 import { isShameChild, shameCountIn, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
+import { gamesOverview } from '../utils/games.overview.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -19,6 +21,7 @@ const GAME_TYPES = [
     { type: 'cricket', model: () => db.cricket },
     { type: 'elimination', model: () => db.elimination },
     { type: 'clock', model: () => db.clock },
+    { type: 'rules', model: () => db.rulesGame },
 ];
 
 const describeFormat = (type, game) => {
@@ -26,12 +29,13 @@ const describeFormat = (type, game) => {
         case 'x01': return `${game.startingScore} · ${game.setMode} ${game.numberOfSets} sets · ${game.legMode} ${game.numberOfLegs} legs`;
         case 'elimination': return `Target ${game.targetScore}`;
         case 'clock': return `Around the Clock · ${game.mode ?? 'All'}`;
+        case 'rules': return RULES_GAMES[game.kind] ?? '';
         default: return 'Cricket';
     }
 };
 
 const dartsThrown = (type, model) => {
-    if (type === 'clock') return model.darts ?? 0;
+    if (type === 'clock' || type === 'rules') return model.darts ?? 0;
     return (type === 'elimination' ? model.totalThrow?.darts : model.totalThrow?.game?.darts) ?? 0;
 };
 
@@ -43,7 +47,7 @@ const collectPlayerTotals = (gamesByType) => {
     const of = (playerId) => {
         if (!totals.has(playerId)) {
             totals.set(playerId, {
-                games: 0, wins: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0,
+                games: 0, wins: 0, winsX01: 0, winsCricket: 0, winsElimination: 0, winsClock: 0, winsRules: 0,
                 darts: 0, num180s: 0, highestCheckout: 0, averageSum: 0, averageRounds: 0,
             });
         }
@@ -59,7 +63,7 @@ const collectPlayerTotals = (gamesByType) => {
                 player.darts += dartsThrown(type, model);
                 if (model.hasWonGame) {
                     player.wins += 1;
-                    player[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock' }[type]] += 1;
+                    player[{ x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock', rules: 'winsRules' }[type]] += 1;
                 }
                 if (type === 'x01') {
                     player.num180s += model.scoreRanges?.game?.['180'] ?? 0;
@@ -104,7 +108,8 @@ const buildLeaderboards = (totals, memberIds) => {
 
 const summarizeGame = (type, game) => ({
     id: String(game._id),
-    type,
+    // a game of the rules engine by its kind
+    type: type === 'rules' ? game.kind : type,
     format: describeFormat(type, game),
     running: Boolean(game.gameIsRunning) && !game.hasWinner,
     playedAt: game.updatedAt,
@@ -135,6 +140,8 @@ export const getClubStats = async (req, res) => {
     ]);
 
     const finishedByType = gamesByType.map(({ type, games }) => ({ type, games: games.filter(game => game.hasWinner) }));
+    // friendly games are left out of the club's rankings: the leaderboards and the records
+    const rankedByType = finishedByType.map(({ type, games }) => ({ type, games: games.filter(game => !game.friendly) }));
     const allGames = gamesByType.flatMap(({ type, games }) => games.map(game => ({ type, game })));
     const members = players.filter(player => !player.guest);
 
@@ -161,6 +168,7 @@ export const getClubStats = async (req, res) => {
             cricket: count('cricket'),
             elimination: count('elimination'),
             clock: count('clock'),
+            rules: count('rules'),
             lastGameAt: recent[0]?.game.updatedAt ?? null,
         },
         // guests are included so past games can show their names; leaderboards only rank club members
@@ -172,15 +180,38 @@ export const getClubStats = async (req, res) => {
             profileImg: player.profileImg,
             guest: player.guest,
         })),
-        leaderboards: buildLeaderboards(collectPlayerTotals(finishedByType), new Set(members.map(player => String(player._id)))),
+        leaderboards: buildLeaderboards(collectPlayerTotals(rankedByType), new Set(members.map(player => String(player._id)))),
         recentGames: recent.map(({ type, game }) => summarizeGame(type, game)),
         runningGames: running.slice(0, RUNNING_GAMES).map(({ type, game }) => summarizeGame(type, game)),
         // key figures, who beats whom, records and when the club plays
         kpis: clubKpis({ finishedByType, allGames, members }),
         headToHead: headToHead(finishedByType, new Set(members.map(player => String(player._id)))),
-        records: clubRecords(finishedByType.find(entry => entry.type === 'x01').games),
+        records: clubRecords(rankedByType.find(entry => entry.type === 'x01').games),
         gameLog: gameLog(allGames),
     });
+};
+
+/**
+ * The games of the club at a glance, over all of them (the lists show only
+ * the latest): see utils/games.overview.js, with the players to show.
+ */
+export const getGamesOverview = async (req, res) => {
+    logger.debug('games overview called');
+    try {
+        const filter = { club: req.club._id };
+        const [players, gamesByType] = await Promise.all([
+            db.player.find(knownInClub(req.club._id), 'firstname lastname nickname profileImg guest').lean(),
+            Promise.all(GAME_TYPES.map(async ({ type, model }) => ({ type, games: await model().find(filter, 'players playerModels hasWinner gameIsRunning kind friendly createdAt updatedAt').lean() }))),
+        ]);
+        const members = players.filter(player => !player.guest);
+        res.json({
+            ...gamesOverview(gamesByType, new Set(members.map(player => String(player._id)))),
+            playersById: Object.fromEntries(members.map(({ _id, firstname, lastname, nickname, profileImg }) => [String(_id), { id: String(_id), firstname, lastname, nickname, profileImg }])),
+        });
+    } catch (err) {
+        logger.error(err, 'Failed to load the games overview');
+        res.status(500).json({ message: 'The games could not be loaded.' });
+    }
 };
 
 const PLAYER_GAMES = 5;
@@ -223,18 +254,19 @@ export const getPlayerLevels = async (req, res) => {
     logger.debug('player levels called');
     const players = await db.player.find({ ...knownInClub(req.club._id), guest: { $ne: true } }, 'badges').lean();
     const filter = { players: { $in: players.map(player => String(player._id)) }, gameIsRunning: false };
-    const [x01, cricket, elimination, clock] = await Promise.all([
+    const [x01, cricket, elimination, clock, rules] = await Promise.all([
         db.x01.find(filter).lean(),
         db.cricket.find(filter).lean(),
         db.elimination.find(filter).lean(),
         db.clock.find(filter).lean(),
+        db.rulesGame.find(filter).lean(),
     ]);
     const of = (games, id) => games.filter(game => (game.players ?? []).map(String).includes(id));
     const levels = {};
     for (const player of players) {
         const id = String(player._id);
         const { level, xp } = playerLevel(levelInputs({
-            x01Games: of(x01, id), cricketGames: of(cricket, id), eliminationGames: of(elimination, id), clockGames: of(clock, id),
+            x01Games: of(x01, id), cricketGames: of(cricket, id), eliminationGames: of(elimination, id), clockGames: of(clock, id), rulesGames: of(rules, id),
             playerId: id, badgeCount: countBadges(player.badges),
         }));
         levels[id] = { id: level.id, name: level.name, index: level.index, xp };

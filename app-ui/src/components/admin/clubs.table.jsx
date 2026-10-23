@@ -4,7 +4,6 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -12,17 +11,22 @@ import AdminService from '../../services/admin.service';
 import ClubService from '../../services/club.service';
 import ClubLogo from '../elements/club.logo';
 import DeletePopup from '../elements/delete.popup';
-import ClubAdminsDialog from '../clubs/club.admins.dialog';
+import ClubAdminsEditor from '../clubs/club.admins.editor';
 import { AdminToolbar } from './admin.common';
-import { formatDateTime } from './admin.format';
+import ClubsOverview from './clubs.overview';
+import { formatDate } from '../../utils/dates';
+import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
+import CountryFlag from '../elements/country.flag';
+import FilterPills from '../elements/filter.pills';
 
-const formatDate = (value) => value ? formatDateTime(value).slice(0, 10) : '–';
+const clubDate = (value) => formatDate(value);
 
 const STATE_OPTIONS = [
-    { label: 'All', value: 'all' },
-    { label: 'Public', value: 'public' },
-    { label: 'Needs an admin', value: 'needsAdmin' },
+    { label: t('All'), value: 'all' },
+    { label: t('Public'), value: 'public', icon: 'pi pi-globe' },
+    { label: t('Needs an admin'), value: 'needsAdmin', icon: 'pi pi-exclamation-circle' },
 ];
 
 /**
@@ -32,8 +36,11 @@ const ClubsTable = () => {
     const toast = useRef(null);
     const { refreshClubs } = useAuth();
     const [clubs, setClubs] = useState(null);
-    const [search, setSearch] = useState('');
-    const [state, setState] = useState('all');
+    // the search, filter, page and order live in the address
+    const [view, setView] = useUrlState({ search: '', state: 'all', ...TABLE_DEFAULTS });
+    const { search, state } = view;
+    const setSearch = (value) => setView({ search: value, page: 1 });
+    const setState = (value) => setView({ state: value, page: 1 });
     const [adminsOfClubId, setAdminsOfClubId] = useState(null);
 
     const loadClubs = async () => {
@@ -41,7 +48,7 @@ const ClubsTable = () => {
             setClubs((await AdminService.loadOverview()).clubs);
         } catch (error) {
             setClubs([]);
-            toast.current?.show({ severity: 'error', summary: 'Load clubs', detail: error.message, life: 4000 });
+            toast.current?.show({ severity: 'error', summary: t('Load clubs'), detail: error.message, life: 4000 });
         }
     };
 
@@ -66,27 +73,27 @@ const ClubsTable = () => {
     const onDeleteClub = async (club) => {
         try {
             await ClubService.deleteClub(club.id);
-            toast.current.show({ severity: 'success', summary: 'Club deleted', detail: club.name, life: 3000 });
+            toast.current.show({ severity: 'success', summary: t('Club deleted'), detail: club.name, life: 3000 });
             await onAdminsChange();
         } catch (error) {
-            toast.current.show({ severity: 'error', summary: 'Delete club', detail: error.message, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Delete club'), detail: error.message, life: 4000 });
         }
     };
 
     const clubBody = (club) => (
         <div className="d-flex align-items-center gap-3">
             <ClubLogo club={club} />
-            <div className="d-flex flex-column" style={{ minWidth: 0 }}>
-                <span className="text-default fw-semibold text-break">{club.name}</span>
-                <span className="text-faint fs-8">since {formatDate(club.createdAt)}</span>
+            <div className="d-flex flex-column min-w-0">
+                <span className="text-default fw-semibold text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
+                <span className="text-faint fs-8">{t('since')}{' '}{clubDate(club.createdAt)}</span>
             </div>
         </div>
     );
 
-    const visibilityBody = (club) => <Tag value={club.isPublic ? 'Public' : 'Private'} severity={club.isPublic ? 'success' : 'secondary'} />;
+    const visibilityBody = (club) => <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />;
 
     const adminsBody = (club) => club.needsAdmin
-        ? <Tag value="Needs an admin" severity="warning" />
+        ? <Tag value={t('Needs an admin')} severity="warning" />
         : <span className="text-subtle fs-7">{club.admins.map(admin => `${admin.firstname} ${admin.lastname}`).join(', ')}</span>;
 
     const actionsBody = (club) => (
@@ -94,60 +101,58 @@ const ClubsTable = () => {
             <Button
                 icon="pi pi-users"
                 severity="secondary"
-                aria-label={`Admins of ${club.name}`}
-                tooltip="Admins"
+                aria-label={t('Admins of {{name}}', { name: club.name })}
+                tooltip={t('Admins')}
                 tooltipOptions={{ position: 'top' }}
-                onClick={() => setAdminsOfClubId(club.id)}
+                onClick={() => setAdminsOfClubId(adminsOfClubId === club.id ? null : club.id)}
             />
             <DeletePopup
                 data={club}
-                header="Delete Club"
-                message={`club ${club.name} with all its players, games and training entries`}
+                header={t('Delete Club')}
+                message={t('club {{name}} with all its players, games and training entries', { name: club.name })}
                 handleDelete={onDeleteClub}
             />
         </div>
     );
 
     return (
-        <Panel header="Clubs">
+        <>
+        {/* the clubs at a glance; a club picked there shows in the list */}
+        <ClubsOverview clubs={clubs} onPick={(club) => setView({ search: club.name, state: 'all', page: 1 })} />
+        <Panel id="admin-list" header={t('Clubs')}>
             <AdminToolbar>
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
-                    <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clubs or admins" aria-label="Search clubs or admins" />
+                    <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search clubs or admins')} aria-label={t('Search clubs or admins')} />
                 </span>
-                <SelectButton value={state} options={STATE_OPTIONS} onChange={(e) => e.value && setState(e.value)} aria-label="Show clubs" />
-                <span className="ms-auto text-faint fs-7">{visibleClubs.length} {visibleClubs.length === 1 ? 'club' : 'clubs'}</span>
+                <FilterPills value={state} options={STATE_OPTIONS} onChange={setState} ariaLabel={t('Show clubs')} />
+                <span className="ms-auto text-faint fs-7">{visibleClubs.length} {visibleClubs.length === 1 ? t('club') : t('clubs')}</span>
             </AdminToolbar>
 
             <DataTable
                 value={visibleClubs}
                 dataKey="id"
+                // the admins of a club open under its row
+                expandedRows={adminsOfClubId ? { [adminsOfClubId]: true } : null}
+                rowExpansionTemplate={(club) => <ClubAdminsEditor club={club} onHide={() => setAdminsOfClubId(null)} onChange={onAdminsChange} />}
                 className="admin-table"
                 loading={clubs === null}
-                sortField="name"
-                sortOrder={1}
-                paginator
-                rows={15}
-                rowsPerPageOptions={[15, 30, 60]}
-                emptyMessage={clubs?.length ? 'No clubs match these filters.' : 'No clubs yet.'}
+                {...tableState(view, setView, { sortField: 'name', sortOrder: 1 })}
+                emptyMessage={clubs?.length ? t('No clubs match these filters.') : t('No clubs yet.')}
                 responsiveLayout="scroll"
             >
-                <Column field="name" header="Club" sortable body={clubBody} style={{ minWidth: '14rem' }} />
-                <Column header="Visibility" body={visibilityBody} />
-                <Column header="Admins" body={adminsBody} />
-                <Column field="playerCount" header="Players" sortable />
-                <Column field="gameCount" header="Games" sortable />
-                <Column field="lastActivityAt" header="Last activity" sortable body={(club) => <span className="text-subtle fs-7 text-nowrap">{formatDate(club.lastActivityAt)}</span>} />
+                <Column field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
+                <Column header={t('Visibility')} body={visibilityBody} />
+                <Column header={t('Admins')} body={adminsBody} />
+                <Column field="playerCount" header={t('Players')} sortable />
+                <Column field="gameCount" header={t('Games')} sortable />
+                <Column field="lastActivityAt" header={t('Last activity')} sortable body={(club) => <span className="text-subtle fs-7 text-nowrap">{clubDate(club.lastActivityAt)}</span>} />
                 <Column body={actionsBody} />
             </DataTable>
 
-            <ClubAdminsDialog
-                club={clubs?.find(club => club.id === adminsOfClubId) ?? null}
-                onHide={() => setAdminsOfClubId(null)}
-                onChange={onAdminsChange}
-            />
             <Toast ref={toast} position="bottom-right" />
         </Panel>
+        </>
     );
 };
 

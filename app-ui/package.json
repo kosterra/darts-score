@@ -24,11 +24,13 @@
     "build": "vite build",
     "preview": "vite preview --port 3000",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "copy-rules": "node scripts/copy.rules.mjs"
   },
   "dependencies": {
     "@uiw/react-json-view": "^2.0.0-alpha.44",
     "bootstrap": "^5.3.8",
+    "country-flag-icons": "1.6.20",
     "dayjs": "^1.11.23",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.9",

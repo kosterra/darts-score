@@ -4,8 +4,22 @@ import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js
 import { removeWithBadges, syncGameBadges } from '../utils/badge.service.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import { knownInClub } from '../models/player.model.js';
+import { answerOf, hasRules, storedOf } from '../utils/game.view.js';
+import { GAME_SETTINGS, RULES_KINDS, ruleViolations } from '../rules/club.rules.js';
 
 const DEFAULT_LIMIT = 100;
+
+// what a game was set up with, and stays with: its settings, the handicap and whether it is friendly
+const SET_UP = ['handicap', 'friendly', 'format'];
+const keepSetUp = (game, stored, changes) => {
+    const keys = RULES_KINDS.includes(game) ? ['settings', 'kind', ...SET_UP] : [...(GAME_SETTINGS[game] ?? []).map(setting => setting.key), ...SET_UP];
+    const plain = typeof stored.toObject === 'function' ? stored.toObject() : stored;
+    for (const key of keys) {
+        if (key in plain) changes[key] = plain[key];
+        else delete changes[key];
+    }
+    return changes;
+};
 
 /**
  * True when every given player id belongs to the club.
@@ -27,10 +41,15 @@ export const playersKnownInClub = async (playerIds, clubId) => {
 };
 
 /**
- * Factory that generates standard CRUD handlers for a game model.
+ * Factory that generates standard CRUD handlers for a game model. "type": the
+ * game's rules (x01, cricket, …) when it is stored as visits: its results are
+ * then worked out here from the visits, whatever the app sent.
  */
-export const createGameController = (Model, gameName) => {
+export const createGameController = (Model, gameName, type = null) => {
     const label = gameName;
+    const toStore = (body) => (type && hasRules(type) ? storedOf(type, body) : body);
+    // one game is answered with its legs and visits worked out; lists only with what is stored
+    const answer = (doc) => (type && hasRules(type) ? answerOf(type, doc) : doc);
 
     // Games are only ever read and changed within the request's club
     const inClub = (req) => ({ _id: req.params.id, club: req.club._id });
@@ -42,10 +61,13 @@ export const createGameController = (Model, gameName) => {
             if (!(await playersBelongToClub(req.body.players, req.club._id))) {
                 return res.status(422).json({ errors: ['All players must belong to the selected club.'] });
             }
-            const doc = new Model({ ...req.body, club: req.club._id });
+            // the club's own rules: its games, its locked settings, its handicap policy
+            const problems = ruleViolations(type ?? req.body.kind, req.club.gameRules, req.body);
+            if (problems.length) return res.status(422).json({ errors: problems });
+            const doc = new Model({ ...toStore(req.body), club: req.club._id });
             const data = await doc.save();
             checkLater(() => noteCreated(req, 'game', { id: data._id, name: label, names: [] }));
-            res.status(201).json(data);
+            res.status(201).json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to create ${label} game`);
             res.status(500).json({ message: err.message || `Error creating ${label} game.` });
@@ -83,7 +105,7 @@ export const createGameController = (Model, gameName) => {
         try {
             const data = validId(req) ? await Model.findOne(inClub(req)) : null;
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
-            res.json(data);
+            res.json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to retrieve ${label} game id=${id}`);
             res.status(500).json({ message: `Error retrieving ${label} game (id=${id}).` });
@@ -99,12 +121,15 @@ export const createGameController = (Model, gameName) => {
             }
             // Use $set explicitly to prevent MongoDB operator injection from req.body;
             // a game never moves to another club
-            const changes = { ...req.body, club: req.club._id };
-            const data = validId(req) ? await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true }) : null;
+            const stored = validId(req) ? await Model.findOne(inClub(req)) : null;
+            if (!stored) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            // a game keeps what it was set up with, also when the club's rules change meanwhile
+            const changes = keepSetUp(type ?? stored.kind, stored, { ...toStore(req.body), club: req.club._id });
+            const data = await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true });
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges
             if (data.hasWinner) await syncGameBadges(req.club._id, data);
-            res.json(data);
+            res.json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to update ${label} game id=${id}`);
             res.status(500).json({ message: `Error updating ${label} game (id=${id}).` });

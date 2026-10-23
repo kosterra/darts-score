@@ -49,7 +49,7 @@ export const clubKpis = ({ finishedByType, allGames, members, now = new Date() }
         for (const game of games) {
             for (const playerId of game.players ?? []) {
                 const playerModel = model(game, playerId);
-                darts += (type === 'clock' ? playerModel.darts : type === 'elimination' ? playerModel.totalThrow?.darts : playerModel.totalThrow?.game?.darts) ?? 0;
+                darts += (type === 'clock' || type === 'rules' ? playerModel.darts : type === 'elimination' ? playerModel.totalThrow?.darts : playerModel.totalThrow?.game?.darts) ?? 0;
             }
         }
     }

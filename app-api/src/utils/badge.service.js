@@ -2,31 +2,41 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { getBadge, replayBadges } from './badges.js';
 import { knownInClub } from '../models/player.model.js';
+import { isRulesGame } from './rules.kinds.js';
+import { viewOf } from './game.view.js';
 
 export const GAME_MODELS = {
     x01: () => db.x01,
     cricket: () => db.cricket,
     elimination: () => db.elimination,
     clock: () => db.clock,
+    // the games of the rules engine: each by its kind (shanghai, killer, …)
+    rules: () => db.rulesGame,
 };
+
+// the model of a game by its type; the games of the rules engine by their kind
+export const gameModelOf = (type) => GAME_MODELS[type] ?? (isRulesGame(type) ? GAME_MODELS.rules : null);
 
 /**
  * Everything a player finished, in all their clubs, as events for the badge replay.
  */
 export const loadPlayerEvents = async (player) => {
     const playerId = String(player._id);
-    const [gamesByType, trainings] = await Promise.all([
+    const [gamesByType, trainings, rulesTrainings] = await Promise.all([
         Promise.all(Object.entries(GAME_MODELS).map(async ([type, model]) => ({
             type,
             games: await model().find({ players: playerId, hasWinner: true }).lean(),
         }))),
         db.atc.find({ 'player.id': playerId }).lean(),
+        db.rulesTraining.find({ 'player.id': playerId }).lean(),
     ]);
 
     return [
         ...gamesByType.flatMap(({ type, games }) =>
-            games.map(game => ({ type, id: String(game._id), at: game.updatedAt, data: game }))),
+            // X01 & co. with their legs and visits, worked out from the stored visits
+            games.map(game => ({ type: type === 'rules' ? game.kind : type, id: String(game._id), at: game.updatedAt, data: viewOf(type, game) }))),
         ...trainings.map(entry => ({ type: 'atc', id: String(entry._id), at: entry.createdAt, data: entry })),
+        ...rulesTrainings.map(entry => ({ type: 'rulesTraining', id: String(entry._id), at: entry.createdAt, data: entry })),
     ];
 };
 

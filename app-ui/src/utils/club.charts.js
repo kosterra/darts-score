@@ -1,9 +1,13 @@
 import dayjs from 'dayjs';
+import { t } from './i18n';
+import { isRulesKind } from './game.paths';
 
 // Dashboard charts from the club's game log ([{ at, type, finished, points?, rounds? }]),
 // grouped by day, month and hour in the visitor's own time zone.
 
-const GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock'];
+// Shanghai, Killer, … count together as "rules"
+const GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'rules'];
+const seriesOf = (type) => (isRulesKind(type) ? 'rules' : type);
 
 // Monday-based day of the week: 0 = Monday … 6 = Sunday
 const weekday = (date) => (date.day() + 6) % 7;
@@ -43,7 +47,7 @@ export const gamesPerMonth = (gameLog, today = dayjs(), months = 12) => lastMont
     const entry = { month: month.format('YYYY-MM'), label: month.format('MMM YY') };
     GAME_TYPES.forEach(type => { entry[type] = 0; });
     for (const game of gameLog) {
-        if (game.finished && dayjs(game.at).isSame(month, 'month') && entry[game.type] !== undefined) entry[game.type] += 1;
+        if (game.finished && dayjs(game.at).isSame(month, 'month') && entry[seriesOf(game.type)] !== undefined) entry[seriesOf(game.type)] += 1;
     }
     return entry;
 });
@@ -64,10 +68,10 @@ export const clubFormPerMonth = (gameLog, today = dayjs(), months = 12) => lastM
 });
 
 export const TIME_SLOTS = [
-    { id: 'morning', label: 'Morning', from: 6, to: 12 },
-    { id: 'afternoon', label: 'Afternoon', from: 12, to: 17 },
-    { id: 'evening', label: 'Evening', from: 17, to: 21 },
-    { id: 'night', label: 'Night', from: 21, to: 30 },
+    { id: 'morning', label: t('Morning'), from: 6, to: 12 },
+    { id: 'afternoon', label: t('Afternoon'), from: 12, to: 17 },
+    { id: 'evening', label: t('Evening'), from: 17, to: 21 },
+    { id: 'night', label: t('Night'), from: 21, to: 30 },
 ];
 
 /**

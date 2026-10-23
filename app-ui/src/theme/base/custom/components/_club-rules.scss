@@ -1,0 +1,276 @@
+// The club's own rules for its games: the mark of a locked setting in the setups,
+// and the editor of the club admins on the Edit club page.
+
+// a setting the club locked: a small grey tag next to its title
+.club-rule-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: $radius-pill;
+    background: $surfaceHighColor;
+    color: $textSubtleColor;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    letter-spacing: 0.02em;
+
+    .pi { font-size: 0.65rem; }
+}
+
+// a locked house rule's value in the setup
+.club-rule-value {
+    padding: 0.45rem 0.9rem;
+    border-radius: $radius-pill;
+    background: rgba($primaryColor, 0.42);
+    color: $buttonTextColor;
+    font-size: $text-sm;
+    font-weight: $weight-bold;
+}
+
+// a friendly format among the quick formats
+.quick-format-tag {
+    margin-left: $space-2;
+    padding: 0.05rem 0.45rem;
+    border-radius: $radius-pill;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+}
+
+// the editor: every game a card, opened to its settings
+.club-rules-game {
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+
+    &.is-off .club-rules-game-title { opacity: 0.55; }
+}
+
+.club-rules-game-head {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.6rem 0.9rem;
+}
+
+.club-rules-game-title {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    flex-grow: 1;
+    min-width: 0;
+    padding: $space-1 $space-2;
+    border: 0;
+    border-radius: $radius-md;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover:not(:disabled), &:focus-visible { outline: none; background: $surfaceHighColor; }
+    &:disabled { cursor: default; }
+}
+
+.club-rules-game-body {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+    padding: $space-1 $space-4 $space-4;
+}
+
+.club-rules-setting {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.club-rules-setting-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $space-3;
+}
+
+.club-rules-setting-body {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    flex-wrap: wrap;
+}
+
+// "Starts with", "Offered": a column of the same width, so the choices line up
+.club-rules-caption {
+    flex: 0 0 6.5rem;
+}
+
+.club-rules-house {
+    margin-left: $space-2;
+    padding: 0.05rem 0.45rem;
+    border-radius: $radius-pill;
+    background: $surfaceHighColor;
+    color: $textSubtleColor;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+}
+
+// locked or free: quiet, a soft background when locked
+.p-button.club-rules-lock {
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    &.is-locked { background: $surfaceHighColor; color: $textDefaultColor; }
+}
+
+.club-rules-dropdown { min-width: 10rem; }
+.club-rules-offered { flex: 1 1 14rem; max-width: 100%; }
+
+// the club's Halve-It targets: chips in their order
+.club-rules-targets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-2;
+}
+
+.club-rules-target {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border: 0;
+    border-radius: $radius-pill;
+    background: $surfaceHighColor;
+    color: $textDefaultColor;
+    font: inherit;
+    font-size: $text-sm;
+    cursor: pointer;
+
+    .pi { font-size: 0.6rem; opacity: 0.6; }
+    &:hover, &:focus-visible { outline: none; background: color-mix(in srgb, $surfaceHighColor 70%, #fff 8%); }
+}
+
+// a format of the club
+.club-rules-format {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+}
+
+.club-rules-format-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.club-rules-format-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-top: $space-2;
+}
+
+@media (max-width: 575.98px) {
+    .club-rules-caption { flex-basis: 100%; }
+    .club-rules-setting-head { flex-direction: column; }
+}
+
+// the house rules of a setup: closed to one line while the usual rules apply
+.house-rules-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    width: 100%;
+    margin-bottom: $space-2;
+    padding: 0.4rem 0.5rem;
+    border: 0;
+    border-radius: $radius-md;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover, &:focus-visible { outline: none; background: $surfaceHighColor; }
+}
+
+// a player who throws left-handed: the rings and the extra keys mirrored, the numbers in their order
+.x01-keypad.is-left-handed {
+    .x01-keypad-rings, .x01-keypad-extras { direction: rtl; }
+    .x01-key { direction: ltr; }
+}
+
+// quieter celebrations, as a player prefers: the number alone
+.one-eighty.is-quiet {
+    .one-eighty-flash, .one-eighty-ring, .one-eighty-spark, .one-eighty-figures { display: none; }
+}
+
+// a quick format with its pin: the player's favourites come first
+.quick-format-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.quick-format-pin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 0;
+    border-radius: $radius-round;
+    background: transparent;
+    color: $textFaintColor;
+    cursor: pointer;
+
+    .pi { font-size: 0.75rem; }
+    &:hover, &:focus-visible { outline: none; background: $surfaceHighColor; color: $textDefaultColor; }
+    &[aria-pressed="true"] { color: $momentGoldColor; }
+}
+
+// the house rules a game is played with, first in its Rules panel
+.game-house-rules {
+    margin-bottom: 0.9rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: $radius-md;
+    background: $surfaceHighColor;
+}
+
+// longer choices (house rules, the editor): the pill grows with its words and wraps them, nothing cut off
+.p-selectbutton.pills-wrap-text .p-button {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+
+    .p-button-label { white-space: normal; overflow: visible; text-overflow: clip; }
+}
+
+// a page or its data loading: small and quiet, in the middle of the content
+.page-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $space-3;
+    min-height: 12rem;
+    padding: 3rem 1rem;
+}
+
+// the limit of a handicap, under its choice in the same box, set apart by a line
+.club-rules-handicap-limit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2 $space-3;
+  margin-top: $space-1;
+  padding-top: $space-3;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}

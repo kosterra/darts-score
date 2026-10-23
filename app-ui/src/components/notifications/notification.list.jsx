@@ -7,6 +7,8 @@ import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft, FaFlag, FaTrashCan, Fa
 
 import NotificationService, { announceNotificationsChange } from '../../services/notification.service';
 import { useAuth } from '../../utils/auth.context';
+import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
 
@@ -27,8 +29,8 @@ const NotificationList = ({ limit }) => {
         NotificationService.loadNotifications().then(setData).catch(() => setFailed(true));
     }, []);
 
-    if (failed) return <p className="text-faint fs-7 m-0">The notifications could not be loaded.</p>;
-    if (!data) return <p className="text-faint fs-7 m-0">Loading…</p>;
+    if (failed) return <p className="text-faint fs-7 m-0">{t('The notifications could not be loaded.')}</p>;
+    if (!data) return <p className="text-faint fs-7 m-0">{t('Loading…')}</p>;
 
     const update = (changes) => {
         setData(current => changes(current));
@@ -72,12 +74,12 @@ const NotificationList = ({ limit }) => {
         <div className="notification-list">
             {data.unread > 0 &&
                 <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                    <span className="text-subtle fs-7">{data.unread} unread</span>
-                    <Button type="button" label="Mark all as read" icon="pi pi-check" size="small" severity="secondary" onClick={markAllRead} />
+                    <span className="text-subtle fs-7">{data.unread}{' '}{t('unread')}</span>
+                    <Button type="button" label={t('Mark all as read')} icon="pi pi-check" size="small" severity="secondary" onClick={markAllRead} />
                 </div>
             }
             {shown.length === 0
-                ? <p className="text-faint fs-7 m-0 py-3 text-center">No notifications. You are told here when a player asks to delete a game you played, when an admin deletes or repairs one of your games, and how your requests to join a club were answered.</p>
+                ? <p className="text-faint fs-7 m-0 py-3 text-center">{t('No notifications. You are told here when a player asks to delete a game you played, when an admin deletes or repairs one of your games, and how your requests to join a club were answered.')}</p>
                 : (
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {shown.map(notice => {
@@ -89,7 +91,7 @@ const NotificationList = ({ limit }) => {
                                         {/* like the other lists: the title with when and who beside it, the message below */}
                                         <div className="notification-head">
                                             <span className="text-default fw-semibold">{notice.title}</span>
-                                            <span className="notification-meta" title={dayjs(notice.at).format('DD.MM.YYYY HH:mm')}>
+                                            <span className="notification-meta" title={formatDate(notice.at, { time: true })}>
                                                 <i className="pi pi-clock" aria-hidden="true" />
                                                 {dayjs(notice.at).fromNow()}{notice.byName && ` · ${notice.byName}`}
                                             </span>
@@ -97,9 +99,9 @@ const NotificationList = ({ limit }) => {
                                         {notice.body && <span className="text-subtle fs-7">{notice.body}</span>}
                                     </div>
                                     <div className="notification-actions">
-                                        {notice.link && <Button type="button" label="Open" size="small" severity="secondary" onClick={() => open(notice)} />}
-                                        {!notice.read && <Button type="button" icon="pi pi-check" size="small" text severity="secondary" onClick={() => markRead(notice)} aria-label="Mark as read" title="Mark as read" />}
-                                        <Button type="button" icon="pi pi-times" size="small" text severity="secondary" onClick={() => remove(notice)} aria-label="Remove" title="Remove" />
+                                        {notice.link && <Button type="button" label={t('Open')} size="small" severity="secondary" onClick={() => open(notice)} />}
+                                        {!notice.read && <Button type="button" icon="pi pi-check" size="small" text severity="secondary" onClick={() => markRead(notice)} aria-label={t('Mark as read')} title={t('Mark as read')} />}
+                                        <Button type="button" icon="pi pi-times" size="small" text severity="secondary" onClick={() => remove(notice)} aria-label={t('Remove')} title={t('Remove')} />
                                     </div>
                                 </li>
                             );
@@ -108,7 +110,7 @@ const NotificationList = ({ limit }) => {
                 )
             }
             {limit && data.notifications.length > limit &&
-                <Link to="/notifications" className="text-subtle fs-8">All {data.notifications.length} notifications</Link>
+                <Link to="/notifications" className="text-subtle fs-8">{t('All {{count}} notifications', { count: data.notifications.length })}</Link>
             }
         </div>
     );

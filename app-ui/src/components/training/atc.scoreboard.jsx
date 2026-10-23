@@ -10,6 +10,8 @@ import Confetti from '../badges/confetti';
 import ATCConfigOptions from './atc.config.options';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { LISTS, PERIODS, formatScore, ordinal, scoreboardRows } from '../../utils/atc.scoreboard';
+import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 // rows shown before "Show all"
 const SHOWN_ROWS = 10;
@@ -22,8 +24,8 @@ const ENTER_MS = 700;
 const MEDALS = ['gold', 'silver', 'bronze'];
 
 const SCORINGS = [
-    { label: 'Time', value: 'Time' },
-    { label: 'Darts', value: 'Darts' },
+    { label: t('Time'), value: 'Time' },
+    { label: t('Darts'), value: 'Darts' },
 ];
 const MODES = ATCConfigOptions.modeOptions.values.map(({ value }) => ({ label: value, value }));
 
@@ -56,10 +58,10 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
         >
             {rank <= 3
                 // the podium as medals, like the badges
-                ? <span className={`badge-medal badge-medal-sm badge-${MEDALS[rank - 1]} atc-medal ${podium ? 'badge-pop' : ''}`} role="img" aria-label={`${ordinal(rank)} place`} title={`${ordinal(rank)} place`}>
+                ? <span className={`badge-medal badge-medal-sm badge-${MEDALS[rank - 1]} atc-medal ${podium ? 'badge-pop' : ''}`} role="img" aria-label={t('{{ordinal}} place', { ordinal: ordinal(rank) })} title={t('{{ordinal}} place', { ordinal: ordinal(rank) })}>
                     <FaMedal aria-hidden="true" />
                 </span>
-                : <span className="atc-rank" aria-label={`${ordinal(rank)} place`}>{rank}</span>
+                : <span className="atc-rank" aria-label={t('{{ordinal}} place', { ordinal: ordinal(rank) })}>{rank}</span>
             }
             <Avatar
                 image={resolvePlayerImg(player.profileImg)}
@@ -69,10 +71,10 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
             />
             <span className="atc-row-player">
                 <span className="atc-row-name">
-                    {player.nickname || 'Unknown player'}
-                    {(latest || phase) && <span className="atc-row-new">New</span>}
+                    {player.nickname || t('Unknown player')}
+                    {(latest || phase) && <span className="atc-row-new">{t('New')}</span>}
                 </span>
-                <span className="atc-row-detail">{showDate ? dayjs(entry.createdAt).format('DD.MM.YYYY HH:mm') : dayjs(entry.createdAt).format('HH:mm')}</span>
+                <span className="atc-row-detail">{showDate ? formatDate(entry.createdAt, { time: true }) : dayjs(entry.createdAt).format('HH:mm')}</span>
             </span>
             <span className="atc-row-time">{formatScore(entry)}</span>
         </li>
@@ -218,15 +220,15 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
     const filtered = Object.keys(defaultView).some(key => view[key] !== defaultView[key]);
     const summary = [
         view.mode,
-        view.scoring === 'Darts' ? 'fewest darts' : 'against the clock',
+        view.scoring === 'Darts' ? t('fewest darts') : t('against the clock'),
         PERIODS.find(option => option.value === view.period)?.label.toLowerCase(),
-        view.list === 'mine' ? 'my attempts' : LISTS.find(option => option.value === view.list)?.label.toLowerCase(),
+        view.list === 'mine' ? t('my attempts') : LISTS.find(option => option.value === view.list)?.label.toLowerCase(),
     ].join(' · ');
 
     const header = (
         <div className="p-panel-header atc-scoreboard-header">
             <span className="p-panel-title">
-                <span>Scoreboard</span>
+                <span>{t('Scoreboard')}</span>
                 <span className="text-faint fs-8 fw-normal">{summary}</span>
             </span>
             <span className="atc-filter-toggle">
@@ -235,12 +237,12 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                     icon="pi pi-filter"
                     severity="secondary"
                     className={filtersOpen ? 'is-open' : ''}
-                    aria-label={filtersOpen ? 'Hide the filters' : 'Show the filters'}
+                    aria-label={filtersOpen ? t('Hide the filters') : t('Show the filters')}
                     aria-expanded={filtersOpen}
-                    title="Filter"
+                    title={t('Filter')}
                     onClick={toggleFilters}
                 />
-                {filtered && <span className="atc-filter-dot" aria-label="Filtered" />}
+                {filtered && <span className="atc-filter-dot" aria-label={t('Filtered')} />}
             </span>
         </div>
     );
@@ -251,24 +253,24 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
             {filtersOpen &&
                 <div className="atc-filters">
                     <div className="atc-filter-group">
-                        <span className="atc-filter-label">Scoring</span>
-                        <SelectButton value={view.scoring} options={SCORINGS} onChange={(e) => e.value && setView({ scoring: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Scoring" />
+                        <span className="atc-filter-label">{t('Scoring')}</span>
+                        <SelectButton value={view.scoring} options={SCORINGS} onChange={(e) => e.value && setView({ scoring: e.value })} className="p-selectbutton-pills pills-inline" aria-label={t('Scoring')} />
                     </div>
                     <div className="atc-filter-group">
-                        <span className="atc-filter-label">Mode</span>
-                        <SelectButton value={view.mode} options={MODES} onChange={(e) => e.value && setView({ mode: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Mode" />
+                        <span className="atc-filter-label">{t('Mode')}</span>
+                        <SelectButton value={view.mode} options={MODES} onChange={(e) => e.value && setView({ mode: e.value })} className="p-selectbutton-pills pills-inline" aria-label={t('Mode')} />
                     </div>
                     <div className="atc-filter-group">
-                        <span className="atc-filter-label">Period</span>
-                        <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Period" />
+                        <span className="atc-filter-label">{t('Period')}</span>
+                        <SelectButton value={view.period} options={PERIODS} onChange={(e) => e.value && setView({ period: e.value })} className="p-selectbutton-pills pills-inline" aria-label={t('Period')} />
                     </div>
                     <div className="atc-filter-group">
-                        <span className="atc-filter-label">Show</span>
-                        <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label="Listed" />
+                        <span className="atc-filter-label">{t('Show')}</span>
+                        <SelectButton value={view.list} options={lists} onChange={(e) => e.value && setView({ list: e.value })} className="p-selectbutton-pills pills-inline" aria-label={t('Listed')} />
                     </div>
                     {filtered &&
                         <div className="atc-filter-reset">
-                            <Button type="button" label="Reset" icon="pi pi-filter-slash" size="small" link className="p-0" onClick={() => setView(defaultView)} />
+                            <Button type="button" label={t('Reset')} icon="pi pi-filter-slash" size="small" link className="p-0" onClick={() => setView(defaultView)} />
                         </div>
                     }
                 </div>
@@ -294,14 +296,14 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
                 )
                 : <div className="text-faint fs-7 text-center py-4">
                     {view.list === 'mine'
-                        ? `You have no ${noun} here${view.period === 'today' ? ' today' : view.period === 'month' ? ' this month' : ''} yet.`
-                        : view.period === 'today' ? `No ${noun} today yet. Be the first!` : view.period === 'month' ? `No ${noun} this month yet.` : `No ${noun} yet.`}
+                        ? (view.period === 'today' ? t('You have no {{noun}} here today yet.', { noun }) : view.period === 'month' ? t('You have no {{noun}} here this month yet.', { noun }) : t('You have no {{noun}} here yet.', { noun }))
+                        : view.period === 'today' ? t('No {{noun}} today yet. Be the first!', { noun: noun }) : view.period === 'month' ? t('No {{noun}} this month yet.', { noun: noun }) : t('No {{noun}} yet.', { noun: noun })}
                 </div>
             }
 
             {rows.length > (around ? around.length : SHOWN_ROWS) && !expanded &&
                 <div className="text-center mt-2">
-                    <Button type="button" label={`Show all ${rows.length}`} icon="pi pi-chevron-down" size="small" text onClick={() => setExpanded(true)} />
+                    <Button type="button" label={t('Show all {{length}}', { length: rows.length })} icon="pi pi-chevron-down" size="small" text onClick={() => setExpanded(true)} />
                 </div>
             }
             {celebrate && <Confetti className="atc-scoreboard-confetti" />}

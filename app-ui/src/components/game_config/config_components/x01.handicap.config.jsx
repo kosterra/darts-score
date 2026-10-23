@@ -7,6 +7,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import SetsLegsConfigOptions from '../config_options/sets.legs.config.options';
 import StatsService from '../../../services/stats.service';
 import { ageOn, suggestHandicap, X01_STARTING_SCORES } from '../../../utils/handicap';
+import { t } from '../../../utils/i18n';
 
 const SCORES = X01_STARTING_SCORES.map(score => ({ label: String(score), value: score }));
 const IN_MODES = SetsLegsConfigOptions.legInOptions.values.map(option => ({ label: option.value, value: option.value }));
@@ -23,8 +24,11 @@ const rulesOfGame = (game) => ({ startingScore: Number(game.startingScore), legI
  * game: the game's settings, players: the chosen players
  * rules: { [playerId]: { startingScore, legInMode, legOutMode } } or null when off
  * onChange(rules | null)
+ * suggest: whether the club offers the suggestion; maxDifference: the most points the
+ * starting scores may differ by (0: no limit); declined: the nicknames of players who
+ * play without a handicap
  */
-const X01HandicapConfig = ({ game, players, rules, onChange }) => {
+const X01HandicapConfig = ({ game, players, rules, onChange, suggest = true, maxDifference = 0, declined = [] }) => {
     const [form, setForm] = useState({});
     const [levels, setLevels] = useState({});
     const [ages, setAges] = useState({});
@@ -82,33 +86,36 @@ const X01HandicapConfig = ({ game, players, rules, onChange }) => {
                 <InputSwitch
                     inputId="x01-handicap"
                     checked={enabled}
-                    disabled={players.length < 2}
+                    disabled={players.length < 2 || declined.length > 0}
                     onChange={(e) => onChange(e.value ? Object.fromEntries(players.map(player => [player.id, rulesOfGame(game)])) : null)}
                 />
                 <label htmlFor="x01-handicap" className="d-flex flex-column">
-                    <span className="text-default fw-semibold">Handicap</span>
+                    <span className="text-default fw-semibold">{t('Handicap')}</span>
                     <span className="text-faint fs-8">
                         {players.length < 2
-                            ? 'Choose the players first.'
-                            : 'Own starting score and in/out per player, for players of different strength.'}
+                            ? t('Choose the players first.')
+                            : declined.length
+                                ? t('{{names}} play without a handicap.', { names: declined.join(', ') })
+                                : t('Own starting score and in/out per player, for players of different strength.')}
+                        {maxDifference > 0 && players.length >= 2 && !declined.length && <> {t('The club allows a difference of {{points}} points at most.', { points: maxDifference })}</>}
                     </span>
                 </label>
             </div>
 
             {enabled && players.length >= 2 &&
                 <div className="x01-handicap-players mt-3">
-                    <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                        <span className="text-faint fs-8">Suggested from each player&apos;s recent average, level and age.</span>
+                    {suggest && <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                        <span className="text-faint fs-8">{t('Suggested from each player\'s recent average, level and age.')}</span>
                         <Button
                             type="button"
                             icon={isSuggested ? 'pi pi-check' : 'pi pi-sparkles'}
-                            label={isSuggested ? 'Suggestion applied' : 'Apply suggestion'}
+                            label={isSuggested ? t('Suggestion applied') : t('Apply suggestion')}
                             size="small"
                             outlined={isSuggested}
                             disabled={isSuggested}
                             onClick={apply}
                         />
-                    </div>
+                    </div>}
                     {players.map(player => {
                         const rule = ruleOf(player.id);
                         const needsAge = !player.dateOfBirth;
@@ -116,23 +123,23 @@ const X01HandicapConfig = ({ game, players, rules, onChange }) => {
                             <div key={player.id} className="x01-handicap-player">
                                 <div className="x01-handicap-who">
                                     <span className="text-default fw-semibold">{player.nickname}</span>
-                                    <span className="text-faint fs-8">{suggestion[player.id]?.reason}</span>
+                                    {suggest && <span className="text-faint fs-8">{suggestion[player.id]?.reason}</span>}
                                 </div>
                                 <div className="x01-handicap-fields">
                                     {needsAge &&
-                                        <span className="x01-handicap-age" title={player.guest ? 'Guests have no date of birth: their age helps the suggestion' : 'No date of birth yet: edit the player to add it'}>
+                                        <span className="x01-handicap-age" title={player.guest ? t('Guests have no date of birth: their age helps the suggestion') : t('No date of birth yet: edit the player to add it')}>
                                             <InputNumber
                                                 value={ages[player.id] ?? null}
                                                 onValueChange={(e) => setAges(current => ({ ...current, [player.id]: e.value ?? undefined }))}
-                                                min={3} max={110} placeholder="Age" useGrouping={false}
-                                                aria-label={`Age of ${player.nickname}`}
+                                                min={3} max={110} placeholder={t('Age')} useGrouping={false}
+                                                aria-label={t('Age of {{nickname}}', { nickname: player.nickname })}
                                                 inputClassName="p-inputtext-sm"
                                             />
                                         </span>
                                     }
-                                    <Dropdown value={rule.startingScore} options={SCORES} onChange={(e) => setRule(player.id, 'startingScore', e.value)} aria-label={`Starting score of ${player.nickname}`} className="p-inputtext-sm x01-handicap-score" />
-                                    <Dropdown value={rule.legInMode} options={IN_MODES} onChange={(e) => setRule(player.id, 'legInMode', e.value)} aria-label={`Starting in of ${player.nickname}`} className="p-inputtext-sm" />
-                                    <Dropdown value={rule.legOutMode} options={OUT_MODES} onChange={(e) => setRule(player.id, 'legOutMode', e.value)} aria-label={`Checkout of ${player.nickname}`} className="p-inputtext-sm" />
+                                    <Dropdown value={rule.startingScore} options={SCORES} onChange={(e) => setRule(player.id, 'startingScore', e.value)} aria-label={t('Starting score of {{nickname}}', { nickname: player.nickname })} className="p-inputtext-sm x01-handicap-score" />
+                                    <Dropdown value={rule.legInMode} options={IN_MODES} onChange={(e) => setRule(player.id, 'legInMode', e.value)} aria-label={t('Starting in of {{nickname}}', { nickname: player.nickname })} className="p-inputtext-sm" />
+                                    <Dropdown value={rule.legOutMode} options={OUT_MODES} onChange={(e) => setRule(player.id, 'legOutMode', e.value)} aria-label={t('Checkout of {{nickname}}', { nickname: player.nickname })} className="p-inputtext-sm" />
                                 </div>
                             </div>
                         );
