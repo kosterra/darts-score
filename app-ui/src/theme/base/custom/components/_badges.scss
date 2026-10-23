@@ -818,3 +818,20 @@ $tar: #17110c;
         gap: 0.4rem;
     }
 }
+
+.badge-ranking-bar.is-green span {
+    background: #7ecca5;
+}
+
+// what is trained most: each kind with its badge and a bar
+.training-popular {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+    }
+}

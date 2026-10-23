@@ -15,6 +15,7 @@ import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
 import TypeFilter from '../elements/type.filter';
 import GameTypeIcon from '../elements/game.type.icon';
+import TrainingsOverview from './trainings.overview';
 import { TRAINING_TYPE_GROUPS, typesFrom, typesText } from '../elements/type.groups';
 import PlayerService from '../../services/player.service';
 import DeletePopup from '../elements/delete.popup';
@@ -222,6 +223,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
     );
 
     return (
+        <>
+        {/* the club's trainings at a glance, above the list */}
+        {!acrossClubs && rows && <TrainingsOverview rows={rows} playerOf={playerOf} />}
         <Panel header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
@@ -268,6 +272,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
 
             <Toast ref={toast} position="bottom-right" />
         </Panel>
+        </>
     );
 };
 
