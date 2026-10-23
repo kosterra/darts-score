@@ -19,6 +19,7 @@ import joinRequestModel from './join.request.model.js';
 import quickGameModel from './quick.game.model.js';
 import rulesGameModel from './rules.game.model.js';
 import rulesTrainingModel from './rules.training.model.js';
+import clubTallyModel from './club.tally.model.js';
 
 const db = {
   mongoose,
@@ -43,6 +44,7 @@ const db = {
   quickGame: quickGameModel(mongoose),
   rulesGame: rulesGameModel(mongoose),
   rulesTraining: rulesTrainingModel(mongoose),
+  clubTally: clubTallyModel(mongoose),
 };
 
 export default db;

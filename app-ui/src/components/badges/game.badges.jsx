@@ -7,6 +7,7 @@ import StatsService from '../../services/stats.service';
 import BadgeMedal from './badge.medal';
 import Celebration from './celebration';
 import ShameMedal from './shame.medal';
+import { ClubBadgeNews } from './club.badges';
 import TarredAndFeathered from './tarred.and.feathered';
 import { FaSoap } from 'react-icons/fa6';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
@@ -25,6 +26,7 @@ const RETRY_MS = 1200;
 const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false, className = '' }) => {
     const [groups, setGroups] = useState([]);
     const [shame, setShame] = useState([]);
+    const [clubBadges, setClubBadges] = useState([]);
     // 'celebrating' → 'tarring' → null, each a burst over the page
     const [moment, setMoment] = useState(celebrate ? 'celebrating' : null);
 
@@ -46,6 +48,7 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                 setGroups(result.players
                     .map(entry => ({ player: players.find(player => player.id === entry.player), badges: entry.badges }))
                     .filter(group => group.player));
+                setClubBadges(result.club ?? []);
                 setShame((result.shame ?? [])
                     .map(entry => ({ ...entry, player: players.find(player => player.id === entry.player) }))
                     .filter(group => group.player));
@@ -87,6 +90,11 @@ const GameBadges = ({ gameType, gameId, players = [], winner, celebrate = false,
                             </div>
                         ))}
                     </div>
+                </Panel>
+            }
+            {clubBadges.length > 0 &&
+                <Panel header={t('Club badge')} className={className}>
+                    <div className="p-2"><ClubBadgeNews badges={clubBadges} /></div>
                 </Panel>
             }
             {shame.length > 0 &&

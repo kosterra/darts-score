@@ -13,6 +13,7 @@ import DartKeypad from '../games/common/dart.keypad';
 import useInputMode, { INPUTS } from '../games/common/use.input.mode';
 import Celebration from '../badges/celebration';
 import NewBadges from '../badges/new.badges';
+import { ClubBadgeNews } from '../badges/club.badges';
 import UpLink from '../elements/up.link';
 import RulesTrainingBoard from './rules.training.board';
 import LiveHero from '../games/common/live.hero';
@@ -345,11 +346,14 @@ const RulesTraining = () => {
                         />
                     </div>
                 }
-                {finished?.saved?.newBadges?.length > 0 &&
-                    // on a panel of their own, as wide as the result
+                {(finished?.saved?.newBadges?.length > 0 || finished?.saved?.clubBadges?.length > 0) &&
+                    // on a panel of their own, as wide as the result; the club's below the player's
                     <div className="col-12 col-xl-10">
                         <Panel header={t('New badges')}>
-                            <NewBadges groups={[{ player: finished.saved.player, badges: finished.saved.newBadges }]} heading={false} />
+                            <div className="d-flex flex-column gap-4">
+                                <NewBadges groups={[{ player: finished.saved.player, badges: finished.saved.newBadges ?? [] }]} heading={false} />
+                                <ClubBadgeNews badges={finished.saved.clubBadges ?? []} training />
+                            </div>
                         </Panel>
                     </div>
                 }

@@ -128,7 +128,7 @@ export const createGameController = (Model, gameName, type = null) => {
             const data = await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true });
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges
-            if (data.hasWinner) await syncGameBadges(req.club._id, data);
+            if (data.hasWinner) await syncGameBadges(req.club._id, data, type ?? data.kind);
             res.json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to update ${label} game id=${id}`);

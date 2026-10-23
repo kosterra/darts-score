@@ -13,6 +13,7 @@ import { useAuth } from '../../utils/auth.context';
 import ClubMembership from './club.membership';
 import ClubDirectory from './club.directory';
 import { t, tn } from '../../utils/i18n';
+import { ClubMedalRow } from '../badges/club.badges';
 import CountryFlag from '../elements/country.flag';
 
 /**
@@ -116,6 +117,8 @@ const ClubsPage = () => {
                                             {club.playerCount} {club.playerCount === 1 ? t('player') : t('players')} · {club.admins.length === 1 ? t('Admin') : t('Admins')}: {club.admins.map(admin => `${admin.firstname} ${admin.lastname}`).join(', ')}
                                         </span>
                                         {club.description && <span className="text-subtle fs-8 text-break">{club.description}</span>}
+                                        {/* the club's best badges: to all of them on its badges page */}
+                                        {club.badges?.length > 0 && <ClubMedalRow badges={club.badges} count={club.badgeCount} />}
                                     </div>
                                     <div className="my-club-actions">
                                         {isAdmin && club.openJoinRequests > 0 &&

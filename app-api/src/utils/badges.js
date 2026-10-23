@@ -913,6 +913,17 @@ const applyRulesTraining = (metrics, entry, date) => {
 };
 
 /**
+ * What one finished game shows for one of its players, on its own: the darts,
+ * the 180s, the big fish, nine-darters and Shanghai finishes (for the club's
+ * badges, which add up the games of all members).
+ */
+export const gameFeats = (type, game, playerId) => {
+    const metrics = newMetrics();
+    applyGame(metrics, type, game, playerId);
+    return metrics;
+};
+
+/**
  * Replays a player's history and returns the badges earned along the way plus
  * the final metrics (for progress towards the next tiers).
  *

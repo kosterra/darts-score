@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft, FaFlag, FaTrashCan, FaCheck, FaUserPlus, FaUserCheck, FaUserXmark } from 'react-icons/fa6';
+import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft, FaFlag, FaTrashCan, FaCheck, FaUserPlus, FaUserCheck, FaUserXmark, FaShieldHalved, FaFlagCheckered } from 'react-icons/fa6';
 
 import NotificationService, { announceNotificationsChange } from '../../services/notification.service';
 import { useAuth } from '../../utils/auth.context';
@@ -12,7 +12,7 @@ import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
 
-const ICONS = { fairPlayDeleted: FaScaleBalanced, fairPlayRepaired: FaWrench, fairPlayRestored: FaRotateLeft, deletionRequested: FaFlag, deletionDone: FaTrashCan, deletionKept: FaCheck, joinRequested: FaUserPlus, clubJoined: FaUserPlus, joinAccepted: FaUserCheck, joinDeclined: FaUserXmark };
+const ICONS = { fairPlayDeleted: FaScaleBalanced, fairPlayRepaired: FaWrench, fairPlayRestored: FaRotateLeft, deletionRequested: FaFlag, deletionDone: FaTrashCan, deletionKept: FaCheck, joinRequested: FaUserPlus, clubJoined: FaUserPlus, joinAccepted: FaUserCheck, joinDeclined: FaUserXmark, clubBadge: FaShieldHalved, clubGoal: FaFlagCheckered };
 
 /**
  * The notifications of the user, newest first; unread ones stand out until

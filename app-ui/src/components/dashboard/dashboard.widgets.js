@@ -23,6 +23,7 @@ export const DASHBOARD_WIDGETS = [
     { id: 'activityCalendar', title: t('Activity'), description: t('A calendar of the last six months, greener the more games'), kind: 'activityCalendar', size: 'L' },
     { id: 'whenWePlay', title: t('When we play'), description: t('Games by day of the week and time of day'), kind: 'whenWePlay', size: 'S' },
     { id: 'records', title: t('Club records'), description: t('Best leg, highest checkout, most 180s and best average, with who set them'), kind: 'records', size: 'M' },
+    { id: 'clubGoals', title: t('Club badges and goals'), description: t('The goals of the club admins with how far the club is, or the club badges it is closest to'), kind: 'clubGoals', size: 'S' },
     { id: 'hallOfShame', title: t('Hall of Shame'), description: t('Who holds Bed and Breakfast, Madhouse and the other badges nobody wants'), kind: 'hallOfShame', size: 'M' },
     { id: 'headToHead', title: t('Head to head'), description: t('Who beats whom among the players who play most'), kind: 'headToHead', size: 'M' },
     { id: 'gamesPerMonth', title: t('Games per month'), description: t('Finished games of the last year by game type'), kind: 'gamesPerMonth', size: 'M' },
@@ -42,7 +43,7 @@ export const DASHBOARD_WIDGETS = [
     { id: 'leaderMostDarts', title: t('Most darts thrown'), description: t('Darts thrown over all game types'), kind: 'leaderboard', board: 'mostDarts', unit: 'darts', format: integer, size: 'S' },
 ];
 
-export const DEFAULT_WIDGET_IDS = ['me', 'totals', 'runningGames', 'timeline', 'activityCalendar', 'whenWePlay', 'records', 'hallOfShame', 'headToHead', 'leaderMostWins', 'leaderX01Average', 'leader180s'];
+export const DEFAULT_WIDGET_IDS = ['me', 'totals', 'runningGames', 'timeline', 'activityCalendar', 'whenWePlay', 'records', 'hallOfShame', 'clubGoals', 'headToHead', 'leaderMostWins', 'leaderX01Average', 'leader180s'];
 
 const widgetOf = (id) => DASHBOARD_WIDGETS.find(widget => widget.id === id);
 // the widgets with their own widths

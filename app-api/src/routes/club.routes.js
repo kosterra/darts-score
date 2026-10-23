@@ -69,6 +69,16 @@ export default (app) => {
         validate,
         ClubController.updateGameRules
     );
+    // the club's goals, e.g. 100 × 180 by the end of the season (club admins)
+    router.put('/:id/goals',
+        param('id').isMongoId().withMessage('Invalid club.'),
+        body('goals').isArray({ max: 3 }).withMessage('A club has at most 3 goals.'),
+        body('goals.*.metric').isString().withMessage('A goal needs what it counts.'),
+        body('goals.*.target').isInt({ min: 1, max: 10000000 }).withMessage('A goal needs a number between 1 and 10,000,000.'),
+        body('goals.*.until').optional({ values: 'null' }).isISO8601().withMessage('The end of a goal is a date.'),
+        validate,
+        ClubController.updateGoals
+    );
     router.delete('/:id', ClubController.remove);
 
     // Club logo

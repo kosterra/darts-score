@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import { RULES_GAMES } from '../utils/rules.kinds.js';
 import db from '../models/db.model.js';
 import { clubFigures } from '../utils/public.figures.js';
+import { topClubBadges } from '../utils/club.badges.js';
 import { getStartPageSettings } from '../utils/start.page.settings.js';
 
 // A game counts as "live" while it is running and was updated this recently;
@@ -171,6 +172,8 @@ const buildOverview = async () => {
             createdAt: club.createdAt,
             playerCount: countByClub.get(String(club._id)) ?? 0,
             joinPolicy: club.joinPolicy ?? 'closed',
+            badges: topClubBadges(club.badges),
+            badgeCount: club.badges?.length ?? 0,
             ...(figures.get(String(club._id)) ?? { gamesPlayed: 0, gamesLast30Days: 0, lastGameAt: null, x01Average: null, num180s: 0, busiestDay: null }),
         })),
         liveGames: live.map(toSummary),

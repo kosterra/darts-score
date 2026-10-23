@@ -17,6 +17,7 @@ import ImageUploader from '../elements/image.uploader';
 import SettingSwitch from '../elements/setting.switch';
 import UpLink from '../elements/up.link';
 import ClubGameRules from './club.game.rules';
+import ClubGoalsEditor from './club.goals.editor';
 import { useAuth } from '../../utils/auth.context';
 import { resolveClubLogo } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
@@ -346,6 +347,8 @@ const ClubEditPage = () => {
                     </div>
                 </div>
             </Panel>
+            {/* what the club earned together, and the goals its admins set */}
+            <ClubGoalsEditor club={club} key={`goals-${club.id}`} onError={showError} />
             {/* the club's own rules for its games */}
             <ClubGameRules club={club} key={club.id} onSaved={refreshClubs} onError={showError} />
         </div>

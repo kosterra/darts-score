@@ -219,6 +219,22 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-club-badges',
+        description: 'Work out what every finished game added to its club, and the badges each club earned together so far (without telling the members about the old ones)',
+        run: async () => {
+            const { buildClubTallies, syncClubBadges } = await import('./club.badge.service.js');
+            const clubs = await db.club.find({});
+            let games = 0;
+            let badges = 0;
+            for (const club of clubs) {
+                games += await buildClubTallies(club._id);
+                badges += (await syncClubBadges(club, { notify: false })).fresh.length;
+            }
+            logger.info(`Club badges: ${games} games counted in ${clubs.length} clubs, ${badges} badges earned`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

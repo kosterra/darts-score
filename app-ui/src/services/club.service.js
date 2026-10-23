@@ -15,6 +15,9 @@ const updateClub = (clubId, settings) => requestJSON(`${API_URL}/${clubId}`, { m
 // the club's own rules for its games (see rules/club.rules.js)
 const updateGameRules = (clubId, rules) => requestJSON(`${API_URL}/${clubId}/game-rules`, { method: 'PUT', body: rules });
 
+// the club's goals: [{ id?, metric, target, until }], at most three; answers with how far each is
+const updateGoals = (clubId, goals) => requestJSON(`${API_URL}/${clubId}/goals`, { method: 'PUT', body: { goals } });
+
 const deleteClub = (clubId) => requestJSON(`${API_URL}/${clubId}`, { method: 'DELETE' });
 
 /**
@@ -79,6 +82,7 @@ const decideJoinRequest = (clubId, requestId, accept) =>
     requestJSON(`${API_URL}/${clubId}/join-requests/${requestId}`, { method: 'PUT', body: { accept } });
 
 const ClubService = {
+    updateGoals,
     uploadLogo,
     removeLogo,
     addAdmin,

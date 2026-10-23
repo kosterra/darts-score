@@ -32,6 +32,10 @@ export default (mongoose) => {
       // and the settings locked; its own formats; whether players may mark a game as
       // friendly; the handicap policy; the ways out. See rules/club.rules.js
       gameRules:       { type: mongoose.Schema.Types.Mixed, default: undefined },
+      // the badges the club earned together: { badge, earnedAt, sourceType, sourceId, player, nickname }
+      badges: { type: [{ _id: false, badge: String, earnedAt: Date, sourceType: String, sourceId: String, player: String, nickname: String }], default: [] },
+      // the goals the club admins set: { id, metric, target, from, until, reachedAt, reachedBy, nickname }
+      goals:  { type: [{ _id: false, id: String, metric: String, target: Number, from: Date, until: Date, reachedAt: Date, reachedBy: String, nickname: String }], default: [] },
       // Users who manage the club; always at least one
       admins: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }], index: true },
     },

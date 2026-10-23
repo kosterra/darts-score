@@ -1,6 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { syncPlayerBadges } from '../utils/badge.service.js';
+import { clubBadgeView, syncClubAfterTraining } from '../utils/club.badge.service.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 
@@ -71,6 +72,8 @@ export const create = async (req, res) => {
             isRecord: Boolean(previousBest) && data[field] < previousBest[field],
             previousBest: previousBest?.[field] ?? null,
             newBadges,
+            // the club's badges this training tipped
+            clubBadges: (await syncClubAfterTraining(req.club._id)).map(clubBadgeView).filter(Boolean),
         });
     } catch (err) {
         logger.error(err, 'Failed to create ATC entry');

@@ -21,8 +21,8 @@ const Fact = ({ width = '4.5rem' }) => (
     </div>
 );
 
-// a few lines of a card, the first one longer
-const Lines = ({ count = 3 }) => (
+// a few lines of a card, the first one longer (also for a card that loads on its own)
+export const Lines = ({ count = 3 }) => (
     <div className="d-flex flex-column gap-3">
         {Array.from({ length: count }, (_, index) => <Skeleton key={index} width={index === 0 ? '70%' : index % 2 ? '90%' : '55%'} height="0.9rem" />)}
     </div>

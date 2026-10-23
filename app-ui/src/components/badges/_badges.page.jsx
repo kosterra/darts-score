@@ -11,6 +11,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import StatsService from '../../services/stats.service';
 import PageLoader from '../elements/page.loader';
 import BadgeMedal from './badge.medal';
+import { ClubBadgeList, ClubGoalList } from './club.badges';
 import HallOfShame from './hall.of.shame';
 import { useClubShame } from './hall.of.shame.data';
 import { KpiHero } from '../stats/players/kpi';
@@ -100,13 +101,20 @@ const Ranking = ({ players, all, total }) => (
  */
 const BadgesOverview = () => {
     const [overview, setOverview] = useState(null);
+    const [club, setClub] = useState(null);
     const shame = useClubShame();
     const [search, setSearch] = useState('');
     const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
         StatsService.loadClubBadges().then(setOverview).catch(error => console.error('Failed to load badges', error));
+        StatsService.loadClubOwnBadges().then(setClub).catch(error => console.error('Failed to load the club badges', error));
     }, []);
+
+    // from a notification: straight to the club's badges once they are there
+    useEffect(() => {
+        if (club && window.location.hash === '#club') document.getElementById('club')?.scrollIntoView({ block: 'start' });
+    }, [club]);
 
     if (!overview) return <PageLoader />;
     const unclaimed = overview.unclaimed ?? [];
@@ -148,6 +156,26 @@ const BadgesOverview = () => {
                     <KpiHero label={t('Nobody has yet')} value={`${formatNumber(unclaimed.length)} / ${formatNumber(overview.total)}`} color={GOLD} />
                 </div>
             </Panel>
+
+            {/* what the club earned together; beside it the goals of its admins */}
+            {club &&
+                <div className="row g-4" id="club">
+                    <div className={club.goals.length ? 'col-12 col-xl-8' : 'col-12'}>
+                        <Panel header={t('Club badges')}>
+                            <p className="text-subtle fs-7 mt-0 mb-4">
+                                {t('Badges the club earns together: every game and training of its members adds to them. {{earned}} of {{total}} so far.', { earned: club.earnedCount, total: club.total })}
+                            </p>
+                            <ClubBadgeList badges={club.badges} />
+                        </Panel>
+                    </div>
+                    {club.goals.length > 0 &&
+                        <div className="col-12 col-xl-4">
+                            <Panel header={t('Club goals')} className="h-100">
+                                <p className="text-faint fs-8 mt-0">{t('Set by the club admins: what the club plays until the end date counts.')}</p>
+                                <ClubGoalList goals={club.goals} />
+                            </Panel>
+                        </div>}
+                </div>}
 
             {/* the ranking with what was earned lately; next to it the Hall of Shame (or, without it, what was earned lately) */}
             <div className="row g-4">

@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { BADGES, BADGE_CATEGORIES, SHAME_BADGES, currentWeekStreak, getBadge } from '../utils/badges.js';
 import { clubShameHolders, isShameChild, personalShame, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
 import { gameModelOf, syncPlayerBadges, syncGameBadges } from '../utils/badge.service.js';
+import { clubBadgeView, clubBadgesOverview } from '../utils/club.badge.service.js';
 import { knownInClub } from '../models/player.model.js';
 
 const shameEnabled = (club) => club?.shameBadges !== false;
@@ -64,7 +65,7 @@ export const getGameBadges = async (req, res) => {
         : null;
     if (!game) return res.status(404).json({ message: 'Game not found.' });
 
-    if (game.hasWinner) await syncGameBadges(req.club._id, game);
+    if (game.hasWinner) await syncGameBadges(req.club._id, game, game.kind ?? type);
 
     const ids = (game.players ?? []).filter(playerId => db.mongoose.isValidObjectId(playerId));
     const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(req.club._id) }, 'badges dateOfBirth shame shameWashes').lean();
@@ -79,7 +80,21 @@ export const getGameBadges = async (req, res) => {
             .filter(entry => entry.badges.length > 0),
         // the Hall of Shame of this game: what each player got in it and what they washed off
         shame: shameEnabled(req.club) ? gameShame(players, id, shameMinAgeOf(req.club)) : [],
+        // the club's badges this game tipped (its 1,000th game, the first 180, …)
+        club: ((await db.club.findById(req.club._id, 'badges').lean())?.badges ?? [])
+            .filter(entry => entry.sourceId === id)
+            .map(clubBadgeView)
+            .filter(Boolean),
     });
+};
+
+/**
+ * The badges the club earned together, with the progress towards the others,
+ * and the goals of its admins.
+ */
+export const getClubOwnBadges = async (req, res) => {
+    logger.debug('club own badges called');
+    res.json(await clubBadgesOverview(req.club));
 };
 
 /**

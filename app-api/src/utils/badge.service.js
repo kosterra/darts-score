@@ -4,6 +4,7 @@ import { getBadge, replayBadges } from './badges.js';
 import { knownInClub } from '../models/player.model.js';
 import { isRulesGame } from './rules.kinds.js';
 import { viewOf } from './game.view.js';
+import { syncClubAfterGame } from './club.badge.service.js';
 
 export const GAME_MODELS = {
     x01: () => db.x01,
@@ -71,10 +72,12 @@ export const syncPlayerBadges = async (player) => {
 };
 
 /**
- * Updates the badges of everyone who played a finished game. Failures are
+ * Updates the badges of everyone who played a finished game, and with its
+ * type ("x01", … or the kind of a newer game) those of the club. Failures are
  * logged, never thrown: a badge must not get in the way of saving a game.
+ * Resolves to the club badges the game earned.
  */
-export const syncGameBadges = async (clubId, game) => {
+export const syncGameBadges = async (clubId, game, type = null) => {
     try {
         const ids = (game.players ?? []).filter(id => db.mongoose.isValidObjectId(id));
         const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(clubId), guest: { $ne: true } });
@@ -82,6 +85,7 @@ export const syncGameBadges = async (clubId, game) => {
     } catch (err) {
         logger.error(err, 'Failed to update badges after a game');
     }
+    return type ? syncClubAfterGame(clubId, type, game) : [];
 };
 
 /**
@@ -96,6 +100,8 @@ export const removeWithBadges = async (type, doc) => {
         .filter(playerId => playerId && db.mongoose.isValidObjectId(playerId));
     await doc.deleteOne();
     await db.integrityReview.deleteMany({ sourceType: type, sourceId: id });
+    // what it added to the club goes too (the club keeps the badges it earned)
+    await db.clubTally.deleteOne({ sourceId: id });
     const players = await db.player.find({ _id: { $in: playerIds } });
     for (const player of players) {
         const before = player.badges.length;

@@ -10,6 +10,8 @@ import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { normalizeClubRules } from '../rules/club.rules.js';
+import { GOAL_METRICS, topClubBadges } from '../utils/club.badges.js';
+import { syncClubBadges } from '../utils/club.badge.service.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -72,6 +74,9 @@ export const findAll = async (req, res) => {
                 return isAdmin ? { ...publicFields, email } : publicFields;
             }),
             playerCount: countByClub.get(String(club._id)) ?? 0,
+            // the club's best medals for its card, and how many it has
+            badges: topClubBadges(club.badges),
+            badgeCount: club.badges?.length ?? 0,
             ...(isAdmin && { openJoinRequests: requestsByClub.get(String(club._id)) ?? 0 }),
         };
     }));
@@ -107,6 +112,43 @@ export const update = async (req, res) => {
     }
     await club.save();
     res.json(await withAdmins(club));
+};
+
+/**
+ * The club's goals, as its admins set them: up to three, each a metric (see
+ * GOAL_METRICS), a target and maybe an end. A goal that stays the same keeps
+ * when it started and whether it was reached; a new or changed one starts now.
+ * Answers with the goals and how far each is.
+ */
+export const updateGoals = async (req, res) => {
+    logger.debug('clubs update goals called');
+    const club = await loadManagedClub(req, res);
+    if (!club) return;
+    const unknown = req.body.goals.find(goal => !GOAL_METRICS[goal.metric]);
+    if (unknown) return res.status(422).json({ errors: [`A club cannot set a goal on ${unknown.metric}.`] });
+    const before = new Map((club.goals ?? []).map(goal => [goal.id, goal]));
+    const now = new Date();
+    club.goals = req.body.goals.map(goal => {
+        const kept = goal.id ? before.get(goal.id) : null;
+        const same = kept && kept.metric === goal.metric && kept.target === Number(goal.target);
+        return {
+            id: kept?.id ?? new db.mongoose.Types.ObjectId().toString(),
+            metric: goal.metric,
+            target: Number(goal.target),
+            from: same ? kept.from : now,
+            until: goal.until ? new Date(goal.until) : null,
+            reachedAt: same ? kept.reachedAt ?? null : null,
+        };
+    });
+    await club.save();
+    const { progress } = await syncClubBadges(club, { notify: false });
+    const saved = await Club.findById(club._id, 'goals').lean();
+    res.json((saved?.goals ?? []).map(goal => ({
+        ...goal,
+        title: GOAL_METRICS[goal.metric].title,
+        description: GOAL_METRICS[goal.metric].describe(goal.target),
+        progress: Math.min(progress[goal.id] ?? 0, goal.target),
+    })));
 };
 
 /**
