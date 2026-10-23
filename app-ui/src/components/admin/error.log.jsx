@@ -7,7 +7,6 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -15,13 +14,14 @@ import AdminService from '../../services/admin.service';
 import StatTile from '../stats/players/stat.tile';
 import { AdminToolbar } from './admin.common';
 import { t, tn } from '../../utils/i18n';
+import FilterPills from '../elements/filter.pills';
 
 dayjs.extend(relativeTime);
 
 const LEVEL_OPTIONS = [
     { label: t('All'), value: 'all' },
-    { label: t('Errors'), value: 'error' },
-    { label: t('Warnings'), value: 'warn' },
+    { label: t('Errors'), value: 'error', icon: 'pi pi-times-circle' },
+    { label: t('Warnings'), value: 'warn', icon: 'pi pi-exclamation-triangle' },
 ];
 
 const LEVEL_TAGS = {
@@ -121,7 +121,7 @@ const ErrorLog = () => {
                         <i className="pi pi-search" />
                         <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search messages')} aria-label={t('Search messages')} />
                     </span>
-                    <SelectButton value={level} options={LEVEL_OPTIONS} onChange={(e) => e.value && setLevel(e.value)} aria-label={t('Level')} />
+                    <FilterPills value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level')} />
                     <div className="ms-auto d-flex align-items-center gap-3">
                         {log?.entries && <span className="text-faint fs-7">{tn(log.entries.length, '{{count}} entry', '{{count}} entries')}</span>}
                         <Button icon="pi pi-refresh" label={t('Refresh')} size="small" severity="secondary" onClick={loadLog} />

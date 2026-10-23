@@ -8,7 +8,6 @@ import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -19,12 +18,13 @@ import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { announceAlertsChange } from './alert.events';
 import { t } from '../../utils/i18n';
+import FilterPills from '../elements/filter.pills';
 
 dayjs.extend(relativeTime);
 
 const STATUS_OPTIONS = [
-    { label: t('Open'), value: 'open' },
-    { label: t('Resolved'), value: 'resolved' },
+    { label: t('Open'), value: 'open', icon: 'pi pi-bell' },
+    { label: t('Resolved'), value: 'resolved', icon: 'pi pi-check' },
     { label: t('All'), value: 'all' },
 ];
 
@@ -189,7 +189,7 @@ const AlertsPage = () => {
 
             <Panel header={t('Alerts')}>
                 <AdminToolbar>
-                    <SelectButton value={status} options={STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label={t('Status')} />
+                    <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
                     <div className="ms-auto d-flex align-items-center gap-3">
                         {alerts && <span className="text-faint fs-7">{alerts.length} {alerts.length === 1 ? t('alert') : t('alerts')}</span>}
                         {status === 'open' &&

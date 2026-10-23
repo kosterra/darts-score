@@ -5,7 +5,6 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -24,11 +23,12 @@ import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import useClubSelection from './use.club.selection';
 import { t } from '../../utils/i18n';
+import FilterPills from '../elements/filter.pills';
 
 const KIND_OPTIONS = [
     { label: t('All'), value: 'all' },
-    { label: t('Members'), value: 'members' },
-    { label: t('Guests'), value: 'guests' },
+    { label: t('Members'), value: 'members', icon: 'pi pi-id-card' },
+    { label: t('Guests'), value: 'guests', icon: 'pi pi-user-plus' },
 ];
 
 const matches = (player, term) => [player.nickname, player.firstname, player.lastname]
@@ -230,7 +230,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search players')} aria-label={t('Search players')} />
                 </span>
-                <SelectButton value={kind} options={KIND_OPTIONS} onChange={(e) => e.value && setKind(e.value)} aria-label={t('Members or guests')} />
+                <FilterPills value={kind} options={KIND_OPTIONS} onChange={setKind} ariaLabel={t('Members or guests')} />
                 <div className="ms-auto d-flex align-items-center gap-3">
                     {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
                     {(acrossClubs || isClubAdmin) && newPlayerButton}

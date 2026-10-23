@@ -6,7 +6,6 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { FaTrophy, FaChartColumn } from 'react-icons/fa6';
@@ -27,6 +26,7 @@ import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import GameStatusTag from '../elements/game.status.tag';
 import GameTypeTag from '../elements/game.type.tag';
+import GameTypeIcon from '../elements/game.type.icon';
 import TypeFilter from '../elements/type.filter';
 import { GAME_TYPE_GROUPS, typesFrom, typesText } from '../elements/type.groups';
 import { useAuth } from '../../utils/auth.context';
@@ -37,6 +37,7 @@ import useClubSelection from './use.club.selection';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dialogs';
 import { t } from '../../utils/i18n';
+import FilterPills from '../elements/filter.pills';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
 const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
@@ -99,11 +100,11 @@ const replayOf = (definition, game) => {
 
 const STATUS_OPTIONS = [
     { label: t('All'), value: 'all' },
-    { label: t('Running'), value: 'running' },
-    { label: t('Finished'), value: 'finished' },
+    { label: t('Running'), value: 'running', icon: 'pi pi-play' },
+    { label: t('Finished'), value: 'finished', icon: 'pi pi-check-circle' },
 ];
 // in a club: also the games someone asked to delete
-const CLUB_STATUS_OPTIONS = [...STATUS_OPTIONS, { label: t('Deletion asked'), value: 'requested' }];
+const CLUB_STATUS_OPTIONS = [...STATUS_OPTIONS, { label: t('Deletion asked'), value: 'requested', icon: 'pi pi-flag' }];
 
 // what the user may do about deleting their games, in the toasts
 const DONE = {
@@ -250,12 +251,16 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const gameBody = (game) => {
         const { title, detail } = GAME_TYPES[game.type].describe(game);
         return (
-            <div className="d-flex flex-column align-items-start gap-1">
-                <div className="d-flex align-items-center gap-2 flex-wrap">
-                    <GameTypeTag type={game.type} />
-                    <span className="text-default fs-7 fw-semibold">{title}</span>
+            // the type at a glance: its round badge in its colour, as on the dashboard
+            <div className="d-flex align-items-center gap-3">
+                <GameTypeIcon type={game.type} />
+                <div className="d-flex flex-column align-items-start gap-1">
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                        <GameTypeTag type={game.type} />
+                        <span className="text-default fs-7 fw-semibold">{title}</span>
+                    </div>
+                    {detail && <span className="text-faint fs-8">{detail}</span>}
                 </div>
-                {detail && <span className="text-faint fs-8">{detail}</span>}
             </div>
         );
     };
@@ -336,7 +341,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
-                <SelectButton value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label={t('Status')} />
+                <FilterPills value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}

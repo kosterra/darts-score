@@ -735,6 +735,17 @@ $fair-play-suspicious: #e9ac2f;
     min-width: 14rem;
     max-width: 22rem;
 
+    // the font of the other filter fields (e.g. the players): faint while it is every type
+    .p-multiselect-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: $textFaintColor;
+    }
+
+    &.is-narrowed .p-multiselect-label {
+        color: $textDefaultColor;
+    }
+
     // narrowed down: the field says so in the colour of a chosen filter
     &.is-narrowed {
         border-color: $primaryColor;
@@ -815,4 +826,9 @@ $fair-play-suspicious: #e9ac2f;
             max-width: none;
         }
     }
+}
+
+// the icon in a filter pill
+.filter-pills .filter-pill-icon {
+    font-size: 0.85rem;
 }

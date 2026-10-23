@@ -4,7 +4,6 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
@@ -19,13 +18,14 @@ import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.sta
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import CountryFlag from '../elements/country.flag';
+import FilterPills from '../elements/filter.pills';
 
 const formatDate = (value) => value ? formatDateTime(value).slice(0, 10) : '–';
 
 const STATE_OPTIONS = [
     { label: t('All'), value: 'all' },
-    { label: t('Public'), value: 'public' },
-    { label: t('Needs an admin'), value: 'needsAdmin' },
+    { label: t('Public'), value: 'public', icon: 'pi pi-globe' },
+    { label: t('Needs an admin'), value: 'needsAdmin', icon: 'pi pi-exclamation-circle' },
 ];
 
 /**
@@ -121,7 +121,7 @@ const ClubsTable = () => {
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search clubs or admins')} aria-label={t('Search clubs or admins')} />
                 </span>
-                <SelectButton value={state} options={STATE_OPTIONS} onChange={(e) => e.value && setState(e.value)} aria-label={t('Show clubs')} />
+                <FilterPills value={state} options={STATE_OPTIONS} onChange={setState} ariaLabel={t('Show clubs')} />
                 <span className="ms-auto text-faint fs-7">{visibleClubs.length} {visibleClubs.length === 1 ? t('club') : t('clubs')}</span>
             </AdminToolbar>
 

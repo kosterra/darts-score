@@ -5,7 +5,6 @@ import { Column } from 'primereact/column';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { DataTable } from 'primereact/datatable';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Toast } from 'primereact/toast';
 import { FaTrophy } from 'react-icons/fa6';
 import dayjs from 'dayjs';
@@ -18,9 +17,10 @@ import { AdminToolbar } from './admin.common';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { formatDateTime } from './admin.format';
 import { t } from '../../utils/i18n';
+import FilterPills from '../elements/filter.pills';
 
 const TYPE_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }];
-const STATUS_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('Running'), value: 'running' }, { label: t('Finished'), value: 'finished' }];
+const STATUS_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('Running'), value: 'running', icon: 'pi pi-play' }, { label: t('Finished'), value: 'finished', icon: 'pi pi-check-circle' }];
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
 const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
@@ -135,8 +135,8 @@ const QuickGamesList = () => {
             </p>
 
             <AdminToolbar>
-                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label={t('Game type')} />
-                <SelectButton value={status} options={STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label={t('Status')} />
+                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} />
+                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
                 <div className="ms-auto d-flex align-items-center gap-3">
                     <span className="text-faint fs-7">{plural(games.length, 'game')}</span>
                     <Button

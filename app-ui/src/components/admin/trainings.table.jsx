@@ -5,7 +5,6 @@ import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dropdown } from 'primereact/dropdown';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Toast } from 'primereact/toast';
 import { FaTrophy } from 'react-icons/fa6';
 
@@ -15,6 +14,7 @@ import X01TrainingService from '../../services/x01.training.service';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
 import TypeFilter from '../elements/type.filter';
+import GameTypeIcon from '../elements/game.type.icon';
 import { TRAINING_TYPE_GROUPS, typesFrom, typesText } from '../elements/type.groups';
 import PlayerService from '../../services/player.service';
 import DeletePopup from '../elements/delete.popup';
@@ -28,10 +28,11 @@ import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { BOT_ID } from '../../utils/x01.bot';
 import { t } from '../../utils/i18n';
+import FilterPills from '../elements/filter.pills';
 
 const WHOSE_OPTIONS = [
-    { label: t('Everyone'), value: 'all' },
-    { label: t('Mine'), value: 'mine' },
+    { label: t('Everyone'), value: 'all', icon: 'pi pi-users' },
+    { label: t('Mine'), value: 'mine', icon: 'pi pi-user' },
 ];
 // "All" is itself a training mode (every segment), so the filter for every mode is called "Any"
 const MODE_OPTIONS = [
@@ -175,7 +176,12 @@ const TrainingsTable = ({ scope = 'club' }) => {
         }
     };
 
-    const typeBody = (row) => <span className="text-default fs-7 text-nowrap">{row.rules ? row.rules.title : row.kind === 'x01' ? t('X01 against the bot') : t('Around the Clock')}</span>;
+    const typeBody = (row) => (
+        <span className="d-flex align-items-center gap-3">
+            <GameTypeIcon type={row.rules ? row.kind : row.kind === 'x01' ? 'bot' : 'atc'} />
+            <span className="text-default fs-7 text-nowrap">{row.rules ? row.rules.title : row.kind === 'x01' ? t('X01 against the bot') : t('Around the Clock')}</span>
+        </span>
+    );
     const whatBody = (row) => <span className="text-subtle fs-7 text-nowrap">{row.what}</span>;
     const resultBody = (row) => row.rules
         ? (
@@ -219,9 +225,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
         <Panel header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
-                {hasOwn && <SelectButton value={whose} options={WHOSE_OPTIONS} onChange={(e) => e.value && setWhose(e.value)} aria-label={t('Whose trainings')} />}
+                {hasOwn && <FilterPills value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}
                 <TypeFilter groups={TRAINING_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All trainings')} ariaLabel={t('Training')} />
-                {withAtc && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label={t('Mode of Around the Clock')} />}
+                {withAtc && <FilterPills value={mode} options={MODE_OPTIONS} onChange={setMode} ariaLabel={t('Mode of Around the Clock')} />}
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
