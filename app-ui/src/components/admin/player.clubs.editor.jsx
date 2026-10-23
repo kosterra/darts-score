@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 
 import ClubLogo from '../elements/club.logo';
 import { PlayerCell } from './admin.common';
 import { t } from '../../utils/i18n';
+import RowEditor from './row.editor';
 
 /**
  * The clubs a player is a member of: add them to another club, move them
@@ -17,7 +17,7 @@ import { t } from '../../utils/i18n';
  * onRemove(club)
  * currentClubId: the club the list works in; moving leaves it
  */
-const PlayerClubsDialog = ({ player, memberships, targets, currentClubId, onAdd, onRemove, onHide, onChange, onError }) => {
+const PlayerClubsEditor = ({ player, memberships, targets, currentClubId, onAdd, onRemove, onHide, onChange, onError }) => {
     const [clubToAdd, setClubToAdd] = useState(null);
     const [busy, setBusy] = useState(false);
 
@@ -42,13 +42,7 @@ const PlayerClubsDialog = ({ player, memberships, targets, currentClubId, onAdd,
     };
 
     return (
-        <Dialog
-            header={t('Clubs of the player')}
-            visible={Boolean(player)}
-            onHide={() => { setClubToAdd(null); onHide(); }}
-            style={{ width: 'min(34rem, 95vw)' }}
-            blockScroll
-        >
+        <RowEditor title={t('Clubs of the player')} onClose={() => { setClubToAdd(null); onHide(); }}>
             <div className="d-flex flex-column gap-4">
                 <PlayerCell player={player} />
 
@@ -122,8 +116,8 @@ const PlayerClubsDialog = ({ player, memberships, targets, currentClubId, onAdd,
                     {player.guest && <span className="text-faint fs-8">{t('A guest belongs to the club of their game. Make them a club member to add them to other clubs.')}</span>}
                 </div>
             </div>
-        </Dialog>
+        </RowEditor>
     );
 };
 
-export default PlayerClubsDialog;
+export default PlayerClubsEditor;

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 
 import UserService from '../../services/user.service';
 import { t } from '../../utils/i18n';
+import RowEditor from './row.editor';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -24,7 +24,7 @@ const absolute = (link) => link.startsWith('/') ? `${window.location.origin}${li
  * password, or create a "choose your password" link to pass on to them,
  * e.g. when their email address does not work.
  */
-const UserEditDialog = ({ user, onHide, onSaved, onError }) => {
+const UserEditor = ({ user, onHide, onSaved, onError }) => {
     const [account, setAccount] = useState({ firstname: '', lastname: '', email: '' });
     const [password, setPassword] = useState('');
     const [link, setLink] = useState(null);
@@ -66,7 +66,7 @@ const UserEditDialog = ({ user, onHide, onSaved, onError }) => {
     const changed = account.firstname !== user.firstname || account.lastname !== user.lastname || account.email !== user.email;
 
     return (
-        <Dialog header={t('Edit {{firstname}} {{lastname}}', { firstname: user.firstname, lastname: user.lastname })} visible={Boolean(user)} onHide={onHide} style={{ width: 'min(36rem, 95vw)' }} blockScroll>
+        <RowEditor title={t('Edit {{firstname}} {{lastname}}', { firstname: user.firstname, lastname: user.lastname })} onClose={onHide}>
             <div className="d-flex flex-column gap-4">
                 <section className="d-flex flex-column gap-3">
                     <span className="text-subtle fs-7 fw-semibold">{t('Account')}</span>
@@ -166,8 +166,8 @@ const UserEditDialog = ({ user, onHide, onSaved, onError }) => {
                     {link && <Message severity="info" text={t('A newer link replaces this one; the old one stops working.')} className="justify-content-start" />}
                 </section>
             </div>
-        </Dialog>
+        </RowEditor>
     );
 };
 
-export default UserEditDialog;
+export default UserEditor;

@@ -13,7 +13,7 @@ import UserService, { ROLES, ROLE_LABELS, CLUB_ROLES } from '../../services/user
 import AdminService from '../../services/admin.service';
 import { announceAlertsChange } from './alert.events';
 import DeletePopup from '../elements/delete.popup';
-import UserEditDialog from './user.edit.dialog';
+import UserEditor from './user.editor';
 import { ClubCell, ClubFilter } from './club.filter';
 import { AdminToolbar } from './admin.common';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
@@ -135,7 +135,7 @@ const UsersList = () => {
                 aria-label={t('Edit {{email}}', { email: user.email })}
                 tooltip={t('Edit: name, email, new password or a password link')}
                 tooltipOptions={{ position: 'top' }}
-                onClick={() => setEditedId(user.id)}
+                onClick={() => setEditedId(editedId === user.id ? null : user.id)}
             />
             {user.role !== ROLES.GLOBAL_ADMIN &&
                 <Button
@@ -171,6 +171,19 @@ const UsersList = () => {
             <DataTable
                 value={visibleUsers}
                 dataKey="id"
+                // a user is edited under their row
+                expandedRows={editedId ? { [editedId]: true } : null}
+                rowExpansionTemplate={(user) => (
+                    <UserEditor
+                        user={user}
+                        onHide={() => setEditedId(null)}
+                        onSaved={async (summary, detail) => {
+                            toast.current.show({ severity: 'success', summary, detail, life: 4000 });
+                            await loadUsers();
+                        }}
+                        onError={showError}
+                    />
+                )}
                 className="admin-table"
                 {...tableState(view, setView, { sortField: 'lastname', sortOrder: 1 })}
                 emptyMessage={users.length ? t('No users match these filters.') : t('No users found.')}
@@ -184,15 +197,6 @@ const UsersList = () => {
                 <Column field="lastLoginAt" header={t('Last login')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{formatDate(user.lastLoginAt)}</span>} />
                 <Column body={actionBody} />
             </DataTable>
-            <UserEditDialog
-                user={users.find(user => user.id === editedId) ?? null}
-                onHide={() => setEditedId(null)}
-                onSaved={async (summary, detail) => {
-                    toast.current.show({ severity: 'success', summary, detail, life: 4000 });
-                    await loadUsers();
-                }}
-                onError={showError}
-            />
             <Toast ref={toast} position="bottom-right" />
         </Panel>
     );

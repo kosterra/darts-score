@@ -4,7 +4,7 @@ import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 
-import ScoreInputBoardHelp from './score.input.board.help';
+import useEnteringHelp from './score.input.board.help';
 import { INPUTS } from './use.input.mode';
 import { t } from '../../../utils/i18n';
 
@@ -27,6 +27,7 @@ const VisitInput = ({
     darts, shown, onDart, onClearDart, summary, busted = false,
     onSubmit, onUndo, canUndo, loading = false,
 }) => {
+    const [helpButton, help] = useEnteringHelp(true);
     // Enter enters the visit, also after darts were tapped on the board; in a
     // dart field the browser submits the form itself
     useEffect(() => {
@@ -57,7 +58,7 @@ const VisitInput = ({
                     className="p-selectbutton-pills pills-inline x01-input-switch"
                     aria-label={t('Enter the darts with')}
                 />
-                <ScoreInputBoardHelp label="" plainSingles compact />
+                {helpButton}
             </span>
         </div>
     );
@@ -75,6 +76,7 @@ const VisitInput = ({
             <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                 <Panel headerTemplate={() => header} className="x01-input">
                     <form onSubmit={submit}>
+                        {help}
                         <div className="x01-darts">
                             {shown.map((visible, index) => visible && (
                                 <label key={index} className="x01-dart-field">

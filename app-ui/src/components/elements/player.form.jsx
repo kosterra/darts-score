@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { Calendar } from 'primereact/calendar';
@@ -14,8 +13,9 @@ import PlayerModel from '../../models/player.model';
 import { t } from '../../utils/i18n';
 
 /**
- * Adds a player, in a dialog (a player is edited on a page of its own,
- * _player.edit.page). With "clubs" (global admins) the new player can be
+ * Adds a player: a button, and the form opening in place where the page puts
+ * it (a player is edited on a page of its own, _player.edit.page).
+ * → [button, form] With "clubs" (global admins) the new player can be
  * added to any of these clubs, "defaultClubId" first; otherwise to the
  * selected club.
  */
@@ -33,7 +33,7 @@ const fromDate = (date) => date instanceof Date && !Number.isNaN(date.getTime())
 // with no date yet the calendar opens ten years back: most new players with a date that matters are children
 const tenYearsAgo = () => new Date(new Date().getFullYear() - 10, 0, 1);
 
-const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
+const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
     const toast = useRef(null);
     const choosesClub = Array.isArray(clubs);
     const [clubId, setClubId] = useState(null);
@@ -139,15 +139,12 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
     const firstname = watch('firstname');
     const lastname  = watch('lastname');
 
-    return (
-        <div>
-            <Dialog
-                header={t('Add New Player')}
-                visible={showDialog}
-                blockScroll={true}
-                onHide={resetDialog}
-                className="m-4"
-            >
+    const form = showDialog && (
+        <div className="row-editor player-form-inline">
+            <div className="row-editor-head">
+                <span className="text-default fw-semibold">{t('Add New Player')}</span>
+                <Button type="button" icon="pi pi-times" text rounded severity="secondary" aria-label={t('Close')} onClick={resetDialog} />
+            </div>
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-column gap-2">
                     <div className="row">
                         <div className="col-12 d-flex justify-content-center">
@@ -270,8 +267,11 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                         {footerContent}
                     </div>
                 </form>
-            </Dialog>
+        </div>
+    );
 
+    const button = (
+        <>
             <div className="d-flex justify-content-center">
                 {/* with a label (e.g. next to the players of a game) it is a secondary action: soft */}
                 <Button
@@ -282,12 +282,14 @@ const PlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                     aria-label={label ? undefined : t('Add a player')}
                     label={label}
                     size={label ? 'small' : undefined}
-                    onClick={handleOpen}
+                    onClick={() => (showDialog ? resetDialog() : handleOpen())}
                 />
             </div>
             <Toast ref={toast} position="bottom-right" />
-        </div>
+        </>
     );
+
+    return [button, form];
 };
 
-export default PlayerForm;
+export default usePlayerForm;

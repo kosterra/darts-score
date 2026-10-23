@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Dialog } from 'primereact/dialog';
 import { ProgressBar } from 'primereact/progressbar';
 
 import LevelBadge from './level.badge';
@@ -44,10 +43,11 @@ const PlayerLevel = ({ level }) => {
                     <span className="text-faint fs-8">{t('needs')}{' '}{level.next.missing.map(entry => missingText(entry, level)).join(` ${t('and')} `)}</span>
                 }
             </div>
-            <button type="button" className="level-help" onClick={() => setOpen(true)}><i className="pi pi-info-circle me-1" aria-hidden="true" />{t('How levels work')}</button>
+            <button type="button" className="level-help" aria-expanded={open} onClick={() => setOpen(!open)}><i className={`pi ${open ? 'pi-chevron-up' : 'pi-info-circle'} me-1`} aria-hidden="true" />{t('How levels work')}</button>
 
-            <Dialog header={t('Player levels')} visible={open} onHide={() => setOpen(false)} blockScroll draggable={false} className="m-4" style={{ width: '40rem', maxWidth: '100%' }}>
-                <div className="d-flex flex-column gap-4">
+            {/* opens in place, below the level */}
+            {open &&
+                <div className="level-details d-flex flex-column gap-4 w-100">
                     <p className="text-subtle m-0">
                         {t('Players collect XP for every game, win and badge, and for their skill. From League Player on a level also needs a minimum X01 average. The level follows the current statistics, so it shows the form of today.')}
                     </p>
@@ -88,7 +88,7 @@ const PlayerLevel = ({ level }) => {
                         </ol>
                     </section>
                 </div>
-            </Dialog>
+            }
         </div>
     );
 };

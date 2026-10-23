@@ -12,7 +12,7 @@ import AdminService from '../../services/admin.service';
 import ClubService from '../../services/club.service';
 import ClubLogo from '../elements/club.logo';
 import DeletePopup from '../elements/delete.popup';
-import ClubAdminsDialog from '../clubs/club.admins.dialog';
+import ClubAdminsEditor from '../clubs/club.admins.editor';
 import { AdminToolbar } from './admin.common';
 import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
@@ -103,7 +103,7 @@ const ClubsTable = () => {
                 aria-label={t('Admins of {{name}}', { name: club.name })}
                 tooltip={t('Admins')}
                 tooltipOptions={{ position: 'top' }}
-                onClick={() => setAdminsOfClubId(club.id)}
+                onClick={() => setAdminsOfClubId(adminsOfClubId === club.id ? null : club.id)}
             />
             <DeletePopup
                 data={club}
@@ -128,6 +128,9 @@ const ClubsTable = () => {
             <DataTable
                 value={visibleClubs}
                 dataKey="id"
+                // the admins of a club open under its row
+                expandedRows={adminsOfClubId ? { [adminsOfClubId]: true } : null}
+                rowExpansionTemplate={(club) => <ClubAdminsEditor club={club} onHide={() => setAdminsOfClubId(null)} onChange={onAdminsChange} />}
                 className="admin-table"
                 loading={clubs === null}
                 {...tableState(view, setView, { sortField: 'name', sortOrder: 1 })}
@@ -143,11 +146,6 @@ const ClubsTable = () => {
                 <Column body={actionsBody} />
             </DataTable>
 
-            <ClubAdminsDialog
-                club={clubs?.find(club => club.id === adminsOfClubId) ?? null}
-                onHide={() => setAdminsOfClubId(null)}
-                onChange={onAdminsChange}
-            />
             <Toast ref={toast} position="bottom-right" />
         </Panel>
     );

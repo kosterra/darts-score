@@ -565,3 +565,24 @@
 
   &:hover { color: var(--text-default); }
 }
+
+// the guest card as a small form: the name asked for in place
+.player-pick-card.is-editing {
+  cursor: default;
+  padding: 0.6rem;
+  gap: 0.5rem;
+  // a little wider than a card, so the name fits
+  grid-column: span 2;
+
+  .player-pick-detail {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+// joining a club: the form under the club in the list
+.my-club-join {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--surface-high);
+}

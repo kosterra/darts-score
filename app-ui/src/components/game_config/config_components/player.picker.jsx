@@ -4,7 +4,7 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import PlayerFlight from '../../flights/player.flight';
 
-import PlayerForm from '../../elements/player.form';
+import usePlayerForm from '../../elements/player.form';
 import GuestForm from '../../elements/guest.form';
 import PlayerService from '../../../services/player.service';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
@@ -65,6 +65,8 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
             setLoading(false);
         }
     };
+    // a new player: the form opens below the search
+    const [newPlayerButton, newPlayerForm] = usePlayerForm({ onPlayerAdd: load, label: t('New player') });
 
     // once on mount: the last game's players are restored from the first props only
     useEffect(() => {
@@ -112,8 +114,9 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                         className="w-100"
                     />
                 </span>
-                {isClubAdmin && <PlayerForm onPlayerAdd={load} label={t('New player')} />}
+                {isClubAdmin && newPlayerButton}
             </div>
+            {isClubAdmin && newPlayerForm}
 
             <div className="player-picker-grid" role="group" aria-label={t('Players of the club')}>
                 {shown.map(player => {

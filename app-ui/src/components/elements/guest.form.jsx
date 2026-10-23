@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 
@@ -9,29 +8,32 @@ import { t } from '../../utils/i18n';
 
 /**
  * Adds a guest for the game being set up. Guests do not become club members.
+ * The name is asked for in place: the card (or button) turns into a small
+ * form. No <form> of its own, since it lives inside the setup.
  *
- * trigger(open): what opens the dialog, a button when not given
+ * trigger(open): what opens it, a button when not given
  */
 const GuestForm = ({ onGuestAdd, trigger }) => {
-    const [showDialog, setShowDialog] = useState(false);
+    const [open, setOpen] = useState(false);
     const [name, setName] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     const close = () => {
-        setShowDialog(false);
+        setOpen(false);
         setName('');
         setError('');
     };
 
-    const onSubmit = async (event) => {
-        event.preventDefault();
-        // the dialog renders outside the game setup form, but submit events still bubble up through React
-        event.stopPropagation();
+    const add = async () => {
+        if (name.trim().length < 2) {
+            setError(t('A name has 2 to 25 letters.'));
+            return;
+        }
         setError('');
         setSubmitting(true);
         try {
-            onGuestAdd(await PlayerService.createGuest(name));
+            onGuestAdd(await PlayerService.createGuest(name.trim()));
             close();
         } catch (err) {
             setError(err.message);
@@ -39,25 +41,33 @@ const GuestForm = ({ onGuestAdd, trigger }) => {
         setSubmitting(false);
     };
 
+    if (!open) {
+        return trigger
+            ? trigger(() => setOpen(true))
+            : <Button type="button" label={t('Guest')} icon="pi pi-plus" severity="secondary" aria-label={t('Add a guest for this game')} onClick={() => setOpen(true)} />;
+    }
+
     return (
-        <div>
-            <Dialog header={t('Add Guest')} visible={showDialog} blockScroll onHide={close} draggable={false} className="m-4" style={{ width: '28rem', maxWidth: '100%' }}>
-                <form onSubmit={onSubmit} className="d-flex flex-column gap-3 pt-2">
-                    <span className="fs-7 text-subtle">
-                        {t('A guest plays in this game only. They are not added to the club and are not offered for later games.')}
-                    </span>
-                    <InputText id="guest-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Name of the guest')} aria-label={t('Name of the guest')} minLength={2} maxLength={25} required autoFocus />
-                    {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
-                    <div className="d-flex justify-content-end gap-3">
-                        <Button type="button" label={t('Cancel')} severity="secondary" size="small" onClick={close} />
-                        <Button type="submit" label={t('Add guest')} icon="pi pi-user-plus" size="small" loading={submitting} />
-                    </div>
-                </form>
-            </Dialog>
-            {trigger
-                ? trigger(() => setShowDialog(true))
-                : <Button type="button" label={t('Guest')} icon="pi pi-plus" severity="secondary" aria-label={t('Add a guest for this game')} onClick={() => setShowDialog(true)} />
-            }
+        <div className="player-pick-card is-guest is-editing" role="group" aria-label={t('Add guest')}>
+            <span className="player-pick-detail">{t('Plays this game only, not added to the club')}</span>
+            <InputText
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); add(); }
+                    if (e.key === 'Escape') close();
+                }}
+                placeholder={t('Name of the guest')}
+                aria-label={t('Name of the guest')}
+                maxLength={25}
+                autoFocus
+                className="w-100"
+            />
+            {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
+            <div className="d-flex gap-2 justify-content-center">
+                <Button type="button" icon="pi pi-times" severity="secondary" size="small" text aria-label={t('Cancel')} onClick={close} />
+                <Button type="button" label={t('Add')} icon="pi pi-user-plus" size="small" loading={submitting} onClick={add} />
+            </div>
         </div>
     );
 };

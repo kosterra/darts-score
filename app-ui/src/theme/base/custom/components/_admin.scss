@@ -713,3 +713,19 @@ $fair-play-suspicious: #e9ac2f;
   border-radius: $borderRadius;
   background: #f2f3f1;
 }
+
+// an editor under a row of a list, instead of a popup
+.row-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 40rem;
+    padding: 0.5rem 0.25rem;
+
+    .row-editor-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+}

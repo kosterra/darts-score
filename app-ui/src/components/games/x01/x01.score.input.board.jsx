@@ -9,7 +9,7 @@ import X01Context from '../../../utils/x01.context';
 import X01DartBoard from './x01.dartboard';
 import X01WaysOut from './x01.ways.out';
 import X01Keypad from './x01.keypad';
-import ScoreInputBoardHelp from '../common/score.input.board.help';
+import useEnteringHelp from '../common/score.input.board.help';
 import { t } from '../../../utils/i18n';
 
 
@@ -55,6 +55,7 @@ const X01ScoreInputBoard = () => {
     // state lagged one render behind, and a quick Enter submitted the score before the last dart
     const score = game.playerModels[game.currentPlayerTurn].score - getCurrentThrowScore();
     const [input, setInput] = useState(() => readInput());
+    const [helpButton, help] = useEnteringHelp(true);
     const chooseInput = (value) => {
         if (!value) return;
         setInput(value);
@@ -140,7 +141,7 @@ const X01ScoreInputBoard = () => {
                     className="p-selectbutton-pills pills-inline x01-input-switch"
                     aria-label={t('Enter the darts with')}
                 />
-                <ScoreInputBoardHelp label="" plainSingles compact />
+                {helpButton}
             </span>
         </div>
     );
@@ -158,6 +159,7 @@ const X01ScoreInputBoard = () => {
                 {botThrowing && <div className="x01-bot-turn" role="status"><FaRobot aria-hidden="true" />{' '}{t('The bot is throwing…')}</div>}
                 <Panel headerTemplate={() => visitHeader} className="x01-input">
                     <form onSubmit={submitHandler}>
+                        {help}
                         <div className="x01-darts">
                             {shown.map((visible, index) => visible && (
                                 <label key={index} className="x01-dart-field">

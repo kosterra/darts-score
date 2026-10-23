@@ -13,9 +13,8 @@ import AdminService from '../../services/admin.service';
 import PlayerService from '../../services/player.service';
 import StatsService from '../../services/stats.service';
 import LevelBadge from '../players/level.badge';
-import PlayerForm from '../elements/player.form';
-import PlayerLogin from '../elements/player.login';
-import PlayerClubsDialog from './player.clubs.dialog';
+import usePlayerForm from '../elements/player.form';
+import PlayerClubsEditor from './player.clubs.editor';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import { useAuth } from '../../utils/auth.context';
@@ -143,6 +142,10 @@ const PlayersTable = ({ scope = 'club' }) => {
         if (clubId && !selectedIds.includes(clubId)) select([...selectedIds, clubId]);
         else await loadPlayers();
     };
+    // a new player: the form opens below the toolbar
+    const [newPlayerButton, newPlayerForm] = usePlayerForm(acrossClubs
+        ? { onPlayerAdd: onPlayerAdded, clubs, defaultClubId: selectedIds[0], label: t('New player') }
+        : { onPlayerAdd: loadPlayers });
 
     const onClubsChange = async (summary) => {
         toast.current.show({ severity: 'success', summary, detail: players?.find(player => player.id === clubsOfPlayerId)?.nickname, life: 3000 });
@@ -176,7 +179,16 @@ const PlayersTable = ({ scope = 'club' }) => {
                 {player.guest
                     ? <Button type="button" icon="pi pi-user-plus" severity="secondary" aria-label={t('Make {{nickname}} a club member', { nickname: player.nickname })} tooltip={t('Make club member')} tooltipOptions={{ position: 'top' }} onClick={() => onMakeMember(player)} />
                     : <>
-                        <PlayerLogin player={player} onChange={loadPlayers} />
+                        {/* the login is given on the player's page, opened at it */}
+                        <Button
+                            type="button"
+                            icon="pi pi-key"
+                            severity={player.user ? 'primary' : 'secondary'}
+                            aria-label={player.user ? t('Login of {{nickname}}', { nickname: player.nickname }) : t('Give {{nickname}} a login', { nickname: player.nickname })}
+                            tooltip={player.user ? t('Has a login') : t('Give a login')}
+                            tooltipOptions={{ position: 'top' }}
+                            onClick={() => navigate(`/players/${player.id}/edit#login`)}
+                        />
                         <Button
                             type="button"
                             icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
@@ -194,7 +206,7 @@ const PlayersTable = ({ scope = 'club' }) => {
             </>}
             {/* a club admin of several clubs finds the clubs of a player on the player's page */}
             {acrossClubs &&
-                <Button type="button" icon="pi pi-building" severity="secondary" aria-label={t('Clubs of {{nickname}}', { nickname: player.nickname })} tooltip={t('Clubs: add to or remove from a club')} tooltipOptions={{ position: 'top' }} onClick={() => setClubsOfPlayerId(player.id)} />
+                <Button type="button" icon="pi pi-building" severity="secondary" aria-label={t('Clubs of {{nickname}}', { nickname: player.nickname })} tooltip={t('Clubs: add to or remove from a club')} tooltipOptions={{ position: 'top' }} onClick={() => setClubsOfPlayerId(clubsOfPlayerId === player.id ? null : player.id)} />
             }
             <JSONViewer data={player} header={t('Player _RAW Data')} />
             <DeletePopup
@@ -221,10 +233,10 @@ const PlayersTable = ({ scope = 'club' }) => {
                 <SelectButton value={kind} options={KIND_OPTIONS} onChange={(e) => e.value && setKind(e.value)} aria-label={t('Members or guests')} />
                 <div className="ms-auto d-flex align-items-center gap-3">
                     {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
-                    {!acrossClubs && isClubAdmin && <PlayerForm onPlayerAdd={loadPlayers} />}
-                    {acrossClubs && <PlayerForm onPlayerAdd={onPlayerAdded} clubs={clubs} defaultClubId={selectedIds[0]} label={t('New player')} />}
+                    {(acrossClubs || isClubAdmin) && newPlayerButton}
                 </div>
             </AdminToolbar>
+            {(acrossClubs || isClubAdmin) && newPlayerForm}
 
             {needsClubs
                 ? <ChooseClubsHint what="players" />
@@ -232,6 +244,20 @@ const PlayersTable = ({ scope = 'club' }) => {
                     <DataTable
                         value={visiblePlayers}
                         dataKey="id"
+                        // the clubs of a player open under their row
+                        expandedRows={acrossClubs && clubsPlayer ? { [clubsPlayer.id]: true } : null}
+                        rowExpansionTemplate={(player) => (
+                            <PlayerClubsEditor
+                                player={player}
+                                memberships={player?.clubs ?? []}
+                                targets={clubs}
+                                onAdd={(clubId) => AdminService.addPlayerToClub(player.id, clubId)}
+                                onRemove={(club) => AdminService.removePlayerFromClub(player.id, club.id)}
+                                onHide={() => setClubsOfPlayerId(null)}
+                                onChange={onClubsChange}
+                                onError={showError}
+                            />
+                        )}
                         className="admin-table"
                         loading={players === null}
                         {...tableState(view, setView, { sortField: 'nickname', sortOrder: 1 })}
@@ -269,18 +295,6 @@ const PlayersTable = ({ scope = 'club' }) => {
                 )
             }
 
-            {acrossClubs &&
-                <PlayerClubsDialog
-                    player={clubsPlayer}
-                    memberships={clubsPlayer?.clubs ?? []}
-                    targets={clubs}
-                    onAdd={(clubId) => AdminService.addPlayerToClub(clubsPlayer.id, clubId)}
-                    onRemove={(club) => AdminService.removePlayerFromClub(clubsPlayer.id, club.id)}
-                    onHide={() => setClubsOfPlayerId(null)}
-                    onChange={onClubsChange}
-                    onError={showError}
-                />
-            }
             <Toast ref={toast} position="bottom-right" />
         </Panel>
     );

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Message } from 'primereact/message';
@@ -8,13 +7,14 @@ import { Message } from 'primereact/message';
 import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import RowEditor from '../admin/row.editor';
 
 const EMPTY_ADMIN = { email: '', firstname: '', lastname: '', password: '' };
 
 /**
  * Lists the admins of a club and lets an admin add or remove others.
  */
-const ClubAdminsDialog = ({ club, onHide, onChange }) => {
+const ClubAdminsEditor = ({ club, onHide, onChange }) => {
     const { user, mailEnabled } = useAuth();
 
     const [newAdmin, setNewAdmin] = useState(EMPTY_ADMIN);
@@ -48,7 +48,7 @@ const ClubAdminsDialog = ({ club, onHide, onChange }) => {
     };
 
     return (
-        <Dialog header={club ? t('Admins of {{name}}', { name: club.name }) : ''} visible={!!club} blockScroll onHide={onHide} draggable={false} className="m-4" style={{ width: '36rem', maxWidth: '100%' }}>
+        <RowEditor title={club ? t('Admins of {{name}}', { name: club.name }) : ''} onClose={onHide}>
             {club &&
                 <div className="d-flex flex-column gap-3 pt-2">
                     {club.admins.map(admin => (
@@ -103,8 +103,8 @@ const ClubAdminsDialog = ({ club, onHide, onChange }) => {
                     </form>
                 </div>
             }
-        </Dialog>
+        </RowEditor>
     );
 };
 
-export default ClubAdminsDialog;
+export default ClubAdminsEditor;

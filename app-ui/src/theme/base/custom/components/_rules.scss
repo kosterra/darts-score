@@ -247,3 +247,39 @@
         margin-bottom: 0;
     }
 }
+
+// help that opens in place (how to enter darts, the rules of a training)
+.entering-help {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+    color: $textSubtleColor;
+    font-size: 0.8rem;
+
+    ul {
+        padding-left: 1.1rem;
+    }
+
+    .entering-help-close {
+        border: 0;
+        padding: 0;
+        background: none;
+        color: $primaryColor;
+        font-weight: 600;
+        cursor: pointer;
+    }
+}
+
+.score-help-button.is-open {
+    color: $primaryColor;
+}
+
+// how levels work, below the level of a player
+.level-details {
+    margin-top: 0.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: $borderRadius;
+    background: $surfaceRaisedColor;
+    max-width: 44rem;
+}

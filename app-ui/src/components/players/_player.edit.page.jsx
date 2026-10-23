@@ -73,6 +73,10 @@ const PlayerEditPage = () => {
         }
     }, [id]);
     useEffect(() => { load(); }, [load]);
+    // opened at the login (from the key of the players list): there once the player is loaded
+    useEffect(() => {
+        if (player && window.location.hash === '#login') document.getElementById('login')?.scrollIntoView({ block: 'center' });
+    }, [player]);
 
     const showError = (summary, error) => toast.current?.show({ severity: 'error', summary, detail: error.message, life: 4000 });
 
@@ -215,10 +219,10 @@ const PlayerEditPage = () => {
                                     disabled={maintainedByPlayer}
                                     onChange={togglePublic}
                                 />
-                                <p className="setting-title">{t('Login')}</p>
+                                <p className="setting-title" id="login">{t('Login')}</p>
                                 <div className="row mx-0 mt-0 setting-body">
                                     <div className="col">
-                                        <PlayerLogin player={player} onChange={load} inline />
+                                        <PlayerLogin player={player} onChange={load} />
                                     </div>
                                 </div>
                                 {managesSeveralClubs && <>

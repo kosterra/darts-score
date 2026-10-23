@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Panel } from 'primereact/panel';
@@ -165,49 +164,40 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                                 <span className="text-faint fs-8">{club.playerCount} {club.playerCount === 1 ? t('player') : t('players')}</span>
                                 {club.description && <span className="text-subtle fs-8 text-break">{club.description}</span>}
                             </div>
-                            <div className="my-club-actions">{action(club)}</div>
+                            <div className="my-club-actions">{joining?.club.id === club.id ? null : action(club)}</div>
                         </div>
+                        {/* joining opens in place, under the club */}
+                        {joining?.club.id === club.id &&
+                            <form onSubmit={join} className="my-club-join d-flex flex-column gap-3">
+                                <p className="text-subtle fs-7 m-0">
+                                    {joining.club.joinPolicy === 'open'
+                                        ? t('You are a member at once and can play in the club right away. Its admins are told who joined.')
+                                        : t('The admins of the club are asked and decide. You get a notification with their answer.')}
+                                </p>
+                                {needsNickname
+                                    ? <label className="d-flex flex-column gap-1">
+                                        <span className="text-subtle fs-8">{t('Nickname')}</span>
+                                        <InputText value={joining.nickname} onChange={(event) => setJoining({ ...joining, nickname: event.target.value })} minLength={3} maxLength={25} required autoFocus />
+                                        <span className="text-faint fs-8">{t('How the club and the games call you, 3 to 25 letters.')}</span>
+                                    </label>
+                                    : <p className="text-subtle fs-7 m-0">{t('You play as')}{' '}<span className="text-default fw-semibold">{data.nickname}</span>{t(', with your statistics, badges and flights.')}</p>
+                                }
+                                {joining.club.joinPolicy === 'approval' &&
+                                    <label className="d-flex flex-column gap-1">
+                                        <span className="text-subtle fs-8">{t('A few words for the admins (optional)')}</span>
+                                        <InputTextarea value={joining.message} onChange={(event) => setJoining({ ...joining, message: event.target.value })} rows={3} maxLength={300} autoResize placeholder={t('Who you are, when you play')} />
+                                    </label>
+                                }
+                                <div className="d-flex justify-content-end gap-2">
+                                    <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setJoining(null)} />
+                                    <Button type="submit" label={joining.club.joinPolicy === 'open' ? t('Join') : t('Ask to join')} icon={joining.club.joinPolicy === 'open' ? 'pi pi-sign-in' : 'pi pi-send'} size="small" loading={busy} disabled={!validNickname} />
+                                </div>
+                            </form>
+                        }
                     </li>
                 ))}
             </ul>
 
-            <Dialog
-                header={joining ? (joining.club.joinPolicy === 'open' ? t('Join {{name}}', { name: joining.club.name }) : t('Ask to join {{name}}', { name: joining.club.name })) : ''}
-                visible={!!joining}
-                onHide={() => setJoining(null)}
-                blockScroll
-                draggable={false}
-                className="m-4"
-                style={{ width: '30rem', maxWidth: '100%' }}
-            >
-                {joining &&
-                    <form onSubmit={join} className="d-flex flex-column gap-3 pt-1">
-                        <p className="text-subtle fs-7 m-0">
-                            {joining.club.joinPolicy === 'open'
-                                ? t('You are a member at once and can play in the club right away. Its admins are told who joined.')
-                                : t('The admins of the club are asked and decide. You get a notification with their answer.')}
-                        </p>
-                        {needsNickname
-                            ? <label className="d-flex flex-column gap-1">
-                                <span className="text-subtle fs-8">{t('Nickname')}</span>
-                                <InputText value={joining.nickname} onChange={(event) => setJoining({ ...joining, nickname: event.target.value })} minLength={3} maxLength={25} required autoFocus />
-                                <span className="text-faint fs-8">{t('How the club and the games call you, 3 to 25 letters.')}</span>
-                            </label>
-                            : <p className="text-subtle fs-7 m-0">{t('You play as')}{' '}<span className="text-default fw-semibold">{data.nickname}</span>{t(', with your statistics, badges and flights.')}</p>
-                        }
-                        {joining.club.joinPolicy === 'approval' &&
-                            <label className="d-flex flex-column gap-1">
-                                <span className="text-subtle fs-8">{t('A few words for the admins (optional)')}</span>
-                                <InputTextarea value={joining.message} onChange={(event) => setJoining({ ...joining, message: event.target.value })} rows={3} maxLength={300} autoResize placeholder={t('Who you are, when you play')} />
-                            </label>
-                        }
-                        <div className="d-flex justify-content-end gap-2">
-                            <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setJoining(null)} />
-                            <Button type="submit" label={joining.club.joinPolicy === 'open' ? t('Join') : t('Ask to join')} icon={joining.club.joinPolicy === 'open' ? 'pi pi-sign-in' : 'pi pi-send'} size="small" loading={busy} disabled={!validNickname} />
-                        </div>
-                    </form>
-                }
-            </Dialog>
         </Panel>
     );
 };
