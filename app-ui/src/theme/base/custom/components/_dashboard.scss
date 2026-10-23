@@ -361,11 +361,11 @@
     border-radius: $radius-md;
     transition: box-shadow $transitionDuration, opacity $transitionDuration;
 
+    // where the dragged widget will land; the copy under the pointer carries it
     &.is-dragged {
-        border-style: solid;
-        border-color: rgba(255, 255, 255, 0.55);
-        box-shadow: 0 1rem 2rem -0.75rem rgba(0, 0, 0, 0.9);
-        opacity: 0.75;
+        border-color: rgba($primaryColor, 0.8);
+        background: rgba($primaryColor, 0.06);
+        opacity: 0.45;
     }
 }
 
@@ -435,6 +435,9 @@
     flex: 1 1 auto;
     pointer-events: none;
     user-select: none;
+    // its inside does not change while the widgets change places: moving it lays out
+    // the grid only, not every chart and list again
+    contain: layout paint style;
 
     > * { height: 100%; }
 }
@@ -910,4 +913,35 @@
     &.is-better { color: $accentGreen; }
     &.is-worse { color: #e07a5f; }
     &.is-steady { color: var(--text-faint); }
+}
+
+// while arranging: the widgets' places are measured from the grid
+.dashboard-grid {
+    position: relative;
+}
+
+// the copy of the dragged widget's bar that follows the pointer; moved with a
+// transform only, so following it costs no layout
+.dashboard-drag-ghost {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    min-height: 2.75rem;
+    padding: 0 $space-3;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+    color: $textDefaultColor;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    box-shadow: 0 1rem 2rem -0.5rem rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+    cursor: grabbing;
+    will-change: transform;
+
+    i { color: $primaryColor; }
 }
