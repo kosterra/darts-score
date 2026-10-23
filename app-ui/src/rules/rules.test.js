@@ -193,4 +193,19 @@ describe('trainings', () => {
         expect(first.state.points).toBe(3);
         expect(first.state.target).toBe(62);
     });
+
+    it('the checkout trainings know what is left and the darts for it in the visit', () => {
+        const checkoutOf = (definition, darts, settings = {}) => {
+            const { state, settings: replayed } = train(definition, darts, settings);
+            return definition.checkout(state, { settings: replayed });
+        };
+        expect(checkoutOf(CATCH_40, [])).toEqual({ left: 61, dartsLeft: 3 });
+        expect(checkoutOf(CATCH_40, ['S20'])).toEqual({ left: 41, dartsLeft: 2 });
+        // the second visit of the six darts
+        expect(checkoutOf(CATCH_40, ['S1', 'S1', 'S1'])).toEqual({ left: 58, dartsLeft: 3 });
+        expect(checkoutOf(RANDOM_CHECKOUTS, ['S1'], { attempts: 10, targets: Array(10).fill(40) })).toEqual({ left: 39, dartsLeft: 2 });
+        // seven of nine darts thrown: two left, not the three of a new visit
+        expect(checkoutOf(CHECKOUT_121, Array(7).fill('S1'), { attempts: 10, darts: 9 })).toEqual({ left: 114, dartsLeft: 2 });
+        expect(SCORING.checkout).toBeUndefined();
+    });
 });

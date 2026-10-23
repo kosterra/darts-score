@@ -24,6 +24,9 @@ import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
 import useGameRules from '../games/common/game.rules';
 import GameResultHeader from '../stats/common/game.result.header';
+import PlayerService from '../../services/player.service';
+import { checkoutRoutes, formatRoute, setupSuggestions } from '../../utils/checkout.routes';
+import useGamePreferences from '../../utils/use.game.preferences';
 
 // a training under way survives a reload of the page
 const runningKey = (kind) => `oche.rulesTraining.${kind}`;
@@ -115,6 +118,49 @@ const TrainingResult = ({ definition, finished, actions }) => {
  * every dart (hit or miss, or the field on the board), and once it is over the
  * result, saved for the scoreboard of the club.
  */
+// the usual way and this many others, as in X01
+const OTHER_WAYS = 4;
+
+/**
+ * The ways out of a checkout training, as in X01: the usual way with the
+ * darts left in the visit (the player's own doubles first) and a few others;
+ * without a finish what to set up. ways: { routes, setup, profile }
+ */
+const TrainingWaysOut = ({ ways }) => {
+    const { routes, setup, profile } = ways;
+    const others = routes.slice(1, 1 + OTHER_WAYS);
+    return (
+        <div className="x01-ways">
+            {routes.length > 0 &&
+                <div className="x01-ways-group">
+                    <span className="x01-ways-label">{t('Usual way')}</span>
+                    <div className="x01-ways-setup"><span className="x01-ways-route is-preferred">{formatRoute(routes[0])}</span></div>
+                </div>
+            }
+            {others.length > 0 &&
+                <div className="x01-ways-group">
+                    <span className="x01-ways-label">{t('Other ways')}</span>
+                    <div className="x01-ways-list">
+                        {others.map(route => <span key={route.join()} className="x01-ways-route">{formatRoute(route)}</span>)}
+                    </div>
+                </div>
+            }
+            {setup &&
+                <div className="x01-ways-group">
+                    <span className="x01-ways-label">{t('Set up instead')}</span>
+                    <div className="x01-ways-setup">
+                        <span className="x01-ways-route is-preferred">{formatRoute(setup.darts)}</span>
+                        <span className="x01-route-leaves text-subtle fs-8"><i className="pi pi-arrow-right" aria-hidden="true" />{t('leaves')}{' '}<strong className="text-default">{setup.leaves}</strong></span>
+                    </div>
+                </div>
+            }
+            {routes.length > 0 && profile?.doubleSource === 'set' && <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</span>}
+            {routes.length > 0 && profile?.doubleSource === 'history' && profile.doubles?.[0] &&
+                <span className="x01-ways-note">{t('Your best doubles first: {{double}} hit {{rate}} % of {{total}} darts in your games.', { double: profile.doubles[0].double, rate: profile.doubles[0].rate, total: profile.doubles[0].total })}</span>}
+        </div>
+    );
+};
+
 const RulesTraining = () => {
     const { kind } = useParams();
     const definition = trainingOf(kind);
@@ -137,6 +183,23 @@ const RulesTraining = () => {
     useEffect(() => writeRunning(kind, running), [kind, running]);
 
     const replay = useMemo(() => running && definition ? replayTraining(definition, running) : null, [running, definition]);
+    // the ways out of a checkout training, as the player wants them in X01, with their own doubles
+    const [preferences] = useGamePreferences();
+    const [checkoutProfile, setCheckoutProfile] = useState(null);
+    const playerId = running?.player?.id;
+    const checksOut = Boolean(definition?.checkout);
+    useEffect(() => {
+        setCheckoutProfile(null);
+        if (!checksOut || !playerId) return;
+        PlayerService.loadCheckoutProfiles([playerId]).then(profiles => setCheckoutProfile(profiles?.[playerId] ?? null)).catch(() => {});
+    }, [checksOut, playerId]);
+    const ways = useMemo(() => {
+        if (!replay || replay.done || !definition?.checkout || preferences.waysOut === 'off') return null;
+        const { left, dartsLeft } = definition.checkout(replay.state, { settings: replay.settings });
+        const throwing = { dartsLeft, outMode: 'Double Out', doubles: checkoutProfile?.doubleOrder ?? [] };
+        const routes = checkoutRoutes(left, throwing);
+        return { routes, setup: routes.length ? null : setupSuggestions(left, throwing)[0] ?? null, profile: checkoutProfile };
+    }, [replay, definition, preferences.waysOut, checkoutProfile]);
 
     const saveResult = useCallback(async (done, attempt) => {
         setFinished({ saving: true, result: done.result, player: attempt.player, settings: attempt.settings });
@@ -212,7 +275,10 @@ const RulesTraining = () => {
                         isTurn: true,
                         line: definition.status(replay.state, ctx).map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
                         score: definition.hero ? definition.hero(replay.state, ctx) : definition.target(replay.state, ctx),
-                        below: <span className="x01-live-route">{definition.target(replay.state, ctx)}</span>,
+                        // the way out to throw, as in X01; without one the target
+                        below: ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
+                            : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
+                                : <span className="x01-live-route">{definition.target(replay.state, ctx)}</span>,
                     }]}
                 />
                 <div className="row g-4 justify-content-center">
@@ -222,28 +288,27 @@ const RulesTraining = () => {
                                 <Button label={t('Hit')} icon="pi pi-check" onClick={() => throwDart('H')} />
                                 <Button label={t('Miss')} icon="pi pi-times" severity="secondary" onClick={() => throwDart('M')} />
                             </div>
-                            : <>
-                                <div className="d-flex justify-content-end mb-2">
-                                    <SelectButton
-                                        value={input}
-                                        options={INPUTS}
-                                        onChange={(e) => chooseInput(e.value)}
-                                        itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-1"><i className={option.icon} aria-hidden="true" />{option.label}</span>}
-                                        className="p-selectbutton-pills pills-inline x01-input-switch"
-                                        aria-label={t('Enter the darts with')}
-                                    />
-                                </div>
-                                {input === 'keypad'
-                                    ? <DartKeypad canThrow onDart={throwDart} onClearLast={undoDart} entered={running.darts.length % 3} />
-                                    : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} markers={[]} /></div></div>}
-                            </>}
+                            : input === 'keypad'
+                                ? <DartKeypad canThrow onDart={throwDart} onClearLast={undoDart} entered={running.darts.length % 3} />
+                                : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} markers={[]} /></div></div>}
                     </div>
                     <div className="col-12 col-lg-5 d-flex flex-column gap-4">
-                        <Panel header={t('Training')}>
+                        {/* the board or the keypad in the panel's header, as in the games */}
+                        <Panel header={t('Training')} icons={definition.input === 'hitmiss' ? null : (
+                            <SelectButton
+                                value={input}
+                                options={INPUTS}
+                                onChange={(e) => chooseInput(e.value)}
+                                itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-1"><i className={option.icon} aria-hidden="true" />{option.label}</span>}
+                                className="p-selectbutton-pills pills-inline x01-input-switch"
+                                aria-label={t('Enter the darts with')}
+                            />
+                        )}>
                             <Status items={definition.status(replay.state, ctx)} />
                             <div className="rules-darts-row mt-3" aria-label={t('Last darts')}>
                                 {[0, 1, 2].map(index => <span key={index} className={lastDarts[index] ? '' : 'is-empty'}>{lastDarts[index] === 'H' ? t('Hit') : lastDarts[index] === 'M' ? t('Miss') : lastDarts[index] ?? '–'}</span>)}
                             </div>
+                            {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}
                             <div className="d-flex gap-2 justify-content-center mt-3">
                                 <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!running.darts.length} onClick={undoDart} />
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />

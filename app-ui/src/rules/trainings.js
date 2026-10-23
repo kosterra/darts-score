@@ -16,6 +16,10 @@ const percent = (part, whole) => (whole ? `${Math.round(part / whole * 100)} %` 
  * bull. Each hit adds the double's value; no hit takes it off. Below 1 the
  * training is over.
  */
+// what a checkout training has left and the darts for it in this visit (at most
+// the darts left of the attempt), for the ways out
+const wayOut = (state, darts) => ({ left: state.left, dartsLeft: Math.min(3 - state.inAttempt % 3, darts - state.inAttempt) });
+
 export const BOBS_27 = {
     id: 'bobs27',
     title: t('Bob\'s 27'),
@@ -108,6 +112,7 @@ export const CHECKOUT_121 = {
     done: (state, { settings }) => state.attempt >= settings.attempts,
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
+    checkout: (state, { settings }) => wayOut(state, settings.darts),
     status: (state, { settings }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
@@ -168,6 +173,7 @@ export const RANDOM_CHECKOUTS = {
     done: (state, { settings }) => state.index >= settings.attempts,
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
+    checkout: (state) => wayOut(state, 3),
     status: (state, { settings }) => [[t('Checked out'), state.done], [t('Attempt'), `${state.index + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     result: (state, { settings }) => ({ score: Math.round(state.done / settings.attempts * 100), done: state.done, attempts: settings.attempts, best: state.best, darts: state.darts }),
     higherIsBetter: true,
@@ -298,6 +304,7 @@ export const CATCH_40 = {
     done: (state) => state.target > 100,
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
+    checkout: (state) => wayOut(state, 6),
     status: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt} / 6`]],
     result: (state) => ({ score: state.points, done: state.done, darts: state.darts }),
     higherIsBetter: true,
