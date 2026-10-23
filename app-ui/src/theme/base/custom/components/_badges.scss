@@ -835,3 +835,43 @@ $tar: #17110c;
         gap: 0.9rem;
     }
 }
+
+// the players page: a level's icon in its colour, as a round mark
+.players-level-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: var(--level-color);
+    background: color-mix(in srgb, var(--level-color) 16%, transparent);
+}
+
+.badge-ranking-bar.is-level span {
+    background: var(--level-color);
+}
+
+// players to complete, as small chips leading to their page
+.players-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.2rem 0.65rem 0.2rem 0.2rem;
+        border-radius: 999px;
+        background: $surfaceHighColor;
+        color: inherit;
+        font-size: 0.8125rem;
+        text-decoration: none;
+
+        &:hover, &:focus-visible {
+            background: color-mix(in srgb, $surfaceHighColor 70%, #fff 8%);
+        }
+    }
+}

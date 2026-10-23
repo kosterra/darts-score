@@ -14,6 +14,7 @@ import StatsService from '../../services/stats.service';
 import LevelBadge from '../players/level.badge';
 import usePlayerForm from '../elements/player.form';
 import PlayerClubsEditor from './player.clubs.editor';
+import PlayersOverview from './players.overview';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import { useAuth } from '../../utils/auth.context';
@@ -223,6 +224,9 @@ const PlayersTable = ({ scope = 'club' }) => {
     const needsClubs = acrossClubs && !selectedIds.length;
 
     return (
+        <>
+        {/* the club's players at a glance, above the list */}
+        {!acrossClubs && <PlayersOverview players={players} levels={levels} canManage={canManage} />}
         <Panel header={acrossClubs ? t('Players of all clubs') : t('Players')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
@@ -297,6 +301,7 @@ const PlayersTable = ({ scope = 'club' }) => {
 
             <Toast ref={toast} position="bottom-right" />
         </Panel>
+        </>
     );
 };
 
