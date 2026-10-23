@@ -261,31 +261,34 @@ const ClubGameRules = ({ club, onSaved, onError }) => {
                         checked={rules.waysOut}
                         onChange={(value) => change({ ...rules, waysOut: value })}
                     />
+                    {/* a box as the other settings: the choice, what it means, and the limit */}
                     <p className="setting-title">{t('Handicap in X01')}</p>
-                    <div className="d-flex flex-column gap-2 mb-3">
-                        <SelectButton
-                            value={rules.handicap.mode}
-                            options={HANDICAP_MODES}
-                            onChange={(e) => e.value && change({ ...rules, handicap: { ...rules.handicap, mode: e.value } })}
-                            className="p-selectbutton-pills flex-wrap"
-                            aria-label={t('Handicap in X01')}
-                        />
-                        <span className="text-faint fs-8">
-                            {rules.handicap.mode === 'off' ? t('Everyone plays from the same starting score.')
-                                : rules.handicap.mode === 'offered' ? t('The players set each one\'s starting score and in/out by hand.')
-                                    : t('As by hand, with a suggestion from each player\'s recent average, level and age.')}
-                        </span>
-                        {rules.handicap.mode !== 'off' &&
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                                <span className="text-subtle fs-8">{t('The starting scores differ by at most')}</span>
-                                <Dropdown
-                                    value={rules.handicap.maxDifference}
-                                    options={MAX_DIFFERENCES}
-                                    onChange={(e) => change({ ...rules, handicap: { ...rules.handicap, maxDifference: e.value } })}
-                                    className="club-rules-dropdown"
-                                    aria-label={t('The largest difference of the starting scores')}
-                                />
-                            </div>}
+                    <div className="row mx-0 mt-0 setting-body">
+                        <div className="col d-flex flex-column gap-2">
+                            <SelectButton
+                                value={rules.handicap.mode}
+                                options={HANDICAP_MODES}
+                                onChange={(e) => e.value && change({ ...rules, handicap: { ...rules.handicap, mode: e.value } })}
+                                className="p-selectbutton-pills flex-wrap"
+                                aria-label={t('Handicap in X01')}
+                            />
+                            <span className="text-faint fs-8">
+                                {rules.handicap.mode === 'off' ? t('Everyone plays from the same starting score.')
+                                    : rules.handicap.mode === 'offered' ? t('The players set each one\'s starting score and in/out by hand.')
+                                        : t('As by hand, with a suggestion from each player\'s recent average, level and age.')}
+                            </span>
+                            {rules.handicap.mode !== 'off' &&
+                                <div className="club-rules-handicap-limit">
+                                    <span className="text-subtle fs-7">{t('The starting scores differ by at most')}</span>
+                                    <Dropdown
+                                        value={rules.handicap.maxDifference}
+                                        options={MAX_DIFFERENCES}
+                                        onChange={(e) => change({ ...rules, handicap: { ...rules.handicap, maxDifference: e.value } })}
+                                        className="club-rules-dropdown"
+                                        aria-label={t('The largest difference of the starting scores')}
+                                    />
+                                </div>}
+                        </div>
                     </div>
 
                     <p className="game-setup-section-title mt-4">{t('The club\'s formats')}</p>

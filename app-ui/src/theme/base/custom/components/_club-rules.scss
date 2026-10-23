@@ -262,3 +262,15 @@
     min-height: 12rem;
     padding: 3rem 1rem;
 }
+
+// the limit of a handicap, under its choice in the same box, set apart by a line
+.club-rules-handicap-limit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2 $space-3;
+  margin-top: $space-1;
+  padding-top: $space-3;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
