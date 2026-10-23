@@ -5,11 +5,12 @@ import { SelectButton } from 'primereact/selectbutton';
  * of a few, each with an icon where it helps.
  * options: [{ label, value, icon (a PrimeIcons class, e.g. 'pi pi-play') }]
  */
-const FilterPills = ({ value, options, onChange, ariaLabel, className = '' }) => (
+const FilterPills = ({ value, options, onChange, ariaLabel, className = '', disabled = false }) => (
     <SelectButton
         value={value}
         options={options}
         onChange={(e) => e.value != null && onChange(e.value)}
+        disabled={disabled}
         itemTemplate={(option) => (
             // the label of a pill, as PrimeReact draws it (the size of every pill)
             <span className="p-button-label d-inline-flex align-items-center gap-2">

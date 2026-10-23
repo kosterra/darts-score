@@ -3,7 +3,7 @@ import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
-import { SelectButton } from 'primereact/selectbutton';
+import FilterPills from '../../elements/filter.pills';
 import { t } from '../../../utils/i18n';
 
 const GAME_TYPES = [
@@ -60,8 +60,8 @@ export const FilterPanel = ({ summary, changed, children }) => {
 };
 
 const SCOPES = [
-    { label: t('This club'), value: 'club' },
-    { label: t('All clubs'), value: 'all' },
+    { label: t('This club'), value: 'club', icon: 'pi pi-home' },
+    { label: t('All clubs'), value: 'all', icon: 'pi pi-globe' },
 ];
 
 /**
@@ -82,18 +82,18 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
             {withScope &&
                 <Filter label={t('Clubs')}>
                     <span title={scopeHint ?? undefined}>
-                        <SelectButton value={filters.scope} options={SCOPES} onChange={(e) => e.value && set({ scope: e.value })} disabled={Boolean(scopeHint)} aria-label={t('Clubs')} />
+                        <FilterPills value={filters.scope} options={SCOPES} onChange={(value) => set({ scope: value })} disabled={Boolean(scopeHint)} ariaLabel={t('Clubs')} />
                     </span>
                 </Filter>
             }
             {withType &&
                 <Filter label={t('Game type')}>
-                    <SelectButton value={filters.type} options={GAME_TYPES} onChange={(e) => e.value && set({ type: e.value })} aria-label={t('Game type')} />
+                    <FilterPills value={filters.type} options={GAME_TYPES} onChange={(value) => set({ type: value })} ariaLabel={t('Game type')} />
                 </Filter>
             }
             <Filter label={t('Period')}>
                 <div className="d-flex flex-wrap align-items-center gap-2">
-                    <SelectButton value={filters.period} options={PERIODS} onChange={(e) => e.value && set({ period: e.value })} className="p-selectbutton-pills" aria-label={t('Period')} />
+                    <FilterPills value={filters.period} options={PERIODS} onChange={(value) => set({ period: value })} ariaLabel={t('Period')} />
                     {filters.period === 'Custom' &&
                         <Calendar
                             value={filters.range}
@@ -111,7 +111,7 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
                 </div>
             </Filter>
             <Filter label={lastGamesLabel}>
-                <SelectButton value={filters.lastGames} options={LAST_GAMES} onChange={(e) => e.value && set({ lastGames: e.value })} className="p-selectbutton-pills" aria-label={lastGamesLabel} />
+                <FilterPills value={filters.lastGames} options={LAST_GAMES} onChange={(value) => set({ lastGames: value })} ariaLabel={lastGamesLabel} />
             </Filter>
             {isX01 && <>
                 <Filter label={withType ? t('Starting score') : t('X01 starting score')}>
