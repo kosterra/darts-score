@@ -15,6 +15,7 @@ import LevelBadge from '../players/level.badge';
 import usePlayerForm from '../elements/player.form';
 import PlayerClubsEditor from './player.clubs.editor';
 import PlayersOverview from './players.overview';
+import PlayersInsights from './players.insights';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import { useAuth } from '../../utils/auth.context';
@@ -227,7 +228,9 @@ const PlayersTable = ({ scope = 'club' }) => {
         <>
         {/* the club's players at a glance, above the list */}
         {!acrossClubs && <PlayersOverview players={players} levels={levels} canManage={canManage} />}
-        <Panel header={acrossClubs ? t('Players of all clubs') : t('Players')}>
+        {/* across clubs: every club at a glance, a club picked there shows in the list */}
+        {acrossClubs && <PlayersInsights onPickClub={(id) => select([id])} />}
+        <Panel id="admin-list" header={acrossClubs ? t('Players of all clubs') : t('Players')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <span className="p-input-icon-left">

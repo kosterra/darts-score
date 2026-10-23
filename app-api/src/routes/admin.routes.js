@@ -21,6 +21,10 @@ export default (app) => {
 
     router.get('/overview', AdminController.overview);
     router.get('/clubs', AdminController.clubs);
+    // the whole installation at a glance, above the lists of players, games and trainings
+    router.get('/insights/players', AdminController.playersInsightsOfAll);
+    router.get('/insights/games', AdminController.gamesInsights);
+    router.get('/insights/trainings', AdminController.trainingsInsights);
     // players, games and trainings of the clubs in ?clubs=id1,id2
     router.get('/players', AdminController.players);
     // a player's clubs, and deleting a player from every club

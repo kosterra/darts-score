@@ -24,6 +24,7 @@ import { useAuth } from '../../utils/auth.context';
 import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import useClubSelection from './use.club.selection';
+import ActivityInsights from './activity.insights';
 import { formatDateTime } from './admin.format';
 import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
@@ -226,7 +227,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
         <>
         {/* the club's trainings at a glance, above the list */}
         {!acrossClubs && rows && <TrainingsOverview rows={rows} playerOf={playerOf} />}
-        <Panel header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
+        {/* across clubs: every club at a glance, a club picked there shows in the list */}
+        {acrossClubs && <ActivityInsights what="trainings" onPickClub={(id) => select([id])} />}
+        <Panel id="admin-list" header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 {hasOwn && <FilterPills value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}

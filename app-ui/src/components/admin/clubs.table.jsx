@@ -13,6 +13,7 @@ import ClubLogo from '../elements/club.logo';
 import DeletePopup from '../elements/delete.popup';
 import ClubAdminsEditor from '../clubs/club.admins.editor';
 import { AdminToolbar } from './admin.common';
+import ClubsOverview from './clubs.overview';
 import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
@@ -115,7 +116,10 @@ const ClubsTable = () => {
     );
 
     return (
-        <Panel header={t('Clubs')}>
+        <>
+        {/* the clubs at a glance; a club picked there shows in the list */}
+        <ClubsOverview clubs={clubs} onPick={(club) => setView({ search: club.name, state: 'all', page: 1 })} />
+        <Panel id="admin-list" header={t('Clubs')}>
             <AdminToolbar>
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
@@ -148,6 +152,7 @@ const ClubsTable = () => {
 
             <Toast ref={toast} position="bottom-right" />
         </Panel>
+        </>
     );
 };
 

@@ -8,6 +8,7 @@ import GameTypeIcon from '../elements/game.type.icon';
 import PlayerRanking from '../elements/player.ranking';
 import { KpiHero } from '../stats/players/kpi';
 import { trainingOf } from '../../rules/trainings';
+import { trainingIcon as iconOf, trainingTitle as titleOf } from './kind.titles';
 import { trainingOverview } from '../../utils/training.overview';
 import { formatTrainingTime } from '../../utils/training.time';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
@@ -16,9 +17,6 @@ import { locale, t, tn } from '../../utils/i18n';
 const GREEN = '#7ecca5';
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
-// a kind of training: its name and the icon of its badge (see game.type.icon)
-const titleOf = (kind) => (kind === 'atc' ? t('Around the Clock') : kind === 'x01' ? t('X01 against the bot') : trainingOf(kind)?.title ?? kind);
-const iconOf = (kind) => (kind === 'atc' ? 'atc' : kind === 'x01' ? 'bot' : kind);
 
 const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
     <Avatar

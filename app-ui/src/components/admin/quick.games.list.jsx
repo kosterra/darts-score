@@ -14,6 +14,7 @@ import DeletePopup from '../elements/delete.popup';
 import GameTypeTag from '../elements/game.type.tag';
 import GameStatusTag from '../elements/game.status.tag';
 import { AdminToolbar } from './admin.common';
+import QuickGamesOverview from './quick.games.overview';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { formatDateTime } from './admin.format';
 import { t } from '../../utils/i18n';
@@ -63,7 +64,6 @@ const QuickGamesList = () => {
             return { day, games: byDay.get(day)?.games ?? 0, finished: byDay.get(day)?.finished ?? 0 };
         });
     }, [data]);
-    const most = Math.max(1, ...days.map(day => day.games));
 
     const deleteGames = async (ids) => {
         try {
@@ -117,21 +117,12 @@ const QuickGamesList = () => {
     );
 
     return (
+        <>
+        {/* the quick games at a glance, with the last 30 days */}
+        <QuickGamesOverview data={data} days={days} />
         <Panel header={t('Quick games')}>
             <p className="text-subtle fs-7 mt-0 mb-3">
                 {t('Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started.')}
-            </p>
-
-            <div className="quick-games-days" aria-label={t('Quick games started per day, the last 30 days')}>
-                {days.map(day => (
-                    <span key={day.day} className="quick-games-day" title={t('{{format}}: {{games}} started, {{finished}} finished', { format: dayjs(day.day).format('DD.MM.YYYY'), games: day.games, finished: day.finished })}>
-                        <span className="is-started" style={{ height: `${(day.games / most) * 100}%` }} />
-                        <span className="is-finished" style={{ height: `${(day.finished / most) * 100}%` }} />
-                    </span>
-                ))}
-            </div>
-            <p className="text-faint fs-8 mt-1 mb-3">
-                {t('The last 30 days: started')}{' '}<span className="quick-games-key is-started" />{' '}{t('and finished')}{' '}<span className="quick-games-key is-finished" />. {plural(data?.total ?? 0, t('quick game'))}{' '}{t('kept now.')}
             </p>
 
             <AdminToolbar>
@@ -179,6 +170,7 @@ const QuickGamesList = () => {
             <ConfirmDialog />
             <Toast ref={toast} position="bottom-right" />
         </Panel>
+        </>
     );
 };
 

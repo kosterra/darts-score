@@ -7,14 +7,12 @@ import GameTypeIcon from '../elements/game.type.icon';
 import PlayerRanking from '../elements/player.ranking';
 import { KpiHero } from '../stats/players/kpi';
 import StatsService from '../../services/stats.service';
-import { gameOf } from '../../rules/games';
+import { gameTitle as titleOf } from './kind.titles';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
 
 const GREEN = '#7ecca5';
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
-const NAMES = { x01: 'X01', cricket: 'Cricket', elimination: 'Elimination', clock: 'Around the Clock' };
-const titleOf = (type) => (NAMES[type] ? t(NAMES[type]) : gameOf(type)?.title ?? type);
 
 /**
  * The games of the club at a glance, above the list: how many (in all,

@@ -10,6 +10,11 @@ const loadOverview = () => requestJSON(`${API_URL}/overview`);
 // every club, for the club filter of the admin lists
 const loadClubs = () => requestJSON(`${API_URL}/clubs`);
 
+// the whole installation at a glance, above the lists of players, games and trainings
+const loadPlayersInsights = () => requestJSON(`${API_URL}/insights/players`);
+const loadGamesInsights = () => requestJSON(`${API_URL}/insights/games`);
+const loadTrainingsInsights = () => requestJSON(`${API_URL}/insights/trainings`);
+
 // players, games and trainings of the given clubs, each with its club
 const query = (clubIds) => `?clubs=${clubIds.map(encodeURIComponent).join(',')}`;
 const loadPlayers = (clubIds) => requestJSON(`${API_URL}/players${query(clubIds)}`);
@@ -95,6 +100,9 @@ const AdminService = {
     saveStartPageSettings,
     saveSessionSettings,
     loadOverview,
+    loadPlayersInsights,
+    loadGamesInsights,
+    loadTrainingsInsights,
     loadClubs,
     loadPlayers,
     loadGames,

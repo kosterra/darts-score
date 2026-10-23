@@ -14,6 +14,7 @@ import AdminService from '../../services/admin.service';
 import { announceAlertsChange } from './alert.events';
 import DeletePopup from '../elements/delete.popup';
 import UserEditor from './user.editor';
+import UsersOverview from './users.overview';
 import { ClubCell, ClubFilter } from './club.filter';
 import { AdminToolbar } from './admin.common';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
@@ -157,7 +158,10 @@ const UsersList = () => {
     );
 
     return (
-        <Panel header={t('Users')}>
+        <>
+        {/* the users at a glance; an account picked there shows in the list */}
+        <UsersOverview users={users} onPick={(user) => setView({ search: user.email, clubs: '', page: 1 })} />
+        <Panel id="admin-list" header={t('Users')}>
             <AdminToolbar>
                 <ClubFilter clubs={clubs} selectedIds={clubIds} onChange={setClubIds} optional />
                 <span className="p-input-icon-left">
@@ -199,6 +203,7 @@ const UsersList = () => {
             </DataTable>
             <Toast ref={toast} position="bottom-right" />
         </Panel>
+        </>
     );
 };
 

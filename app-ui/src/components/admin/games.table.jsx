@@ -35,6 +35,7 @@ import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDateTime } from './admin.format';
 import useClubSelection from './use.club.selection';
+import ActivityInsights from './activity.insights';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dialogs';
 import { t } from '../../utils/i18n';
@@ -341,7 +342,9 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         <>
         {/* the club's games at a glance, above the list */}
         {!acrossClubs && <GamesOverview />}
-        <Panel header={acrossClubs ? t('Games of all clubs') : t('Games')}>
+        {/* across clubs: every club at a glance, a club picked there shows in the list */}
+        {acrossClubs && <ActivityInsights what="games" onPickClub={(id) => select([id])} />}
+        <Panel id="admin-list" header={acrossClubs ? t('Games of all clubs') : t('Games')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />

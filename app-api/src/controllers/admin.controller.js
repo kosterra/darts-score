@@ -4,7 +4,8 @@ import { ROLES } from '../models/user.model.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { addToClub, removeFromClub } from './player.controller.js';
 import { removeProfileImageIfUnused } from '../utils/player.images.js';
-import { withHumans } from './x01.training.controller.js';
+import { BOT_ID, withHumans } from './x01.training.controller.js';
+import { activityInsights, playersInsights } from '../utils/admin.insights.js';
 import { withPlayers } from './atc.controller.js';
 
 const GAME_MODELS = [db.x01, db.cricket, db.elimination, db.clock, db.rulesGame];
@@ -217,4 +218,82 @@ export const trainings = async (req, res) => {
     if (!clubsById) return;
     const found = await db.atc.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
     res.json(await withPlayers(found.map(withClub(clubsById))));
+};
+
+// every club by its id, for the insights of the whole installation
+const allClubsById = async () => {
+    const clubs = await db.club.find({}, 'name logo').lean();
+    return Object.fromEntries(clubs.map(club => [String(club._id), { id: String(club._id), name: club.name, logo: club.logo ?? '' }]));
+};
+
+const GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'rules'];
+
+/**
+ * The games of every club at a glance, for the overview above the admin list
+ * (which only loads the clubs picked): see activityInsights.
+ */
+export const gamesInsights = async (req, res) => {
+    logger.debug('admin games insights called');
+    const [clubsById, ...byType] = await Promise.all([
+        allClubsById(),
+        ...GAME_MODELS.map(model => model.find({}, 'club kind players gameIsRunning hasWinner createdAt updatedAt').lean()),
+    ]);
+    const records = byType.flatMap((games, index) => games.map(game => ({
+        club: game.club,
+        kind: GAME_TYPES[index] === 'rules' ? game.kind : GAME_TYPES[index],
+        createdAt: game.createdAt,
+        updatedAt: game.updatedAt,
+        running: Boolean(game.gameIsRunning) && !game.hasWinner,
+        finished: Boolean(game.hasWinner),
+        playerIds: game.players ?? [],
+    })));
+    res.json({ ...activityInsights(records), clubsById });
+};
+
+/**
+ * The trainings of every club at a glance: Around the Clock ('atc'), X01
+ * against the bot ('x01') and the trainings of the rules engine (their kind).
+ */
+export const trainingsInsights = async (req, res) => {
+    logger.debug('admin trainings insights called');
+    const [clubsById, atc, x01, rules] = await Promise.all([
+        allClubsById(),
+        db.atc.find({}, 'club player createdAt updatedAt').lean(),
+        db.x01Training.find({}, 'club players gameIsRunning hasWinner createdAt updatedAt').lean(),
+        db.rulesTraining.find({}, 'club kind player createdAt updatedAt').lean(),
+    ]);
+    const record = (training, kind, extra = {}) => ({
+        club: training.club,
+        kind,
+        createdAt: training.createdAt,
+        updatedAt: training.updatedAt,
+        running: false,
+        finished: true,
+        playerIds: [training.player?.id],
+        ...extra,
+    });
+    const records = [
+        ...atc.map(training => record(training, 'atc')),
+        ...x01.map(training => record(training, 'x01', {
+            running: Boolean(training.gameIsRunning) && !training.hasWinner,
+            finished: Boolean(training.hasWinner),
+            playerIds: (training.players ?? []).filter(id => id !== BOT_ID),
+        })),
+        ...rules.map(training => record(training, training.kind)),
+    ];
+    res.json({ ...activityInsights(records), clubsById });
+};
+
+/**
+ * The players of every club at a glance: see playersInsights.
+ */
+export const playersInsightsOfAll = async (req, res) => {
+    logger.debug('admin players insights called');
+    const [clubsById, players] = await Promise.all([
+        allClubsById(),
+        db.player.find({}, 'clubs guest user createdAt').lean(),
+    ]);
+    const insights = playersInsights(players);
+    // only clubs that still exist
+    res.json({ ...insights, clubs: insights.clubs.filter(club => clubsById[club.clubId]), clubsById });
 };

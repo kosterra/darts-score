@@ -4,7 +4,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
     gap: 1rem;
-    align-items: center;
+    // the numbers on one line, also when one has a line under it
+    align-items: start;
     justify-items: center;
 }
 

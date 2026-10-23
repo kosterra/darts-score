@@ -970,6 +970,48 @@ paths:
           description: Global admin rights required
       description: Global admins only.
       operationId: getAdminClubs
+  /api/admin/insights/players:
+    get:
+      tags:
+        - Users
+      summary: Players of every club at a glance - members, guests, logins, newcomers per week and per club (global admins only)
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      description: Global admins only.
+      operationId: getAdminPlayersInsights
+  /api/admin/insights/games:
+    get:
+      tags:
+        - Users
+      summary: Games of every club at a glance - lately, running, left running, per week, per type and per club (global admins only)
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      description: Global admins only.
+      operationId: getAdminGamesInsights
+  /api/admin/insights/trainings:
+    get:
+      tags:
+        - Users
+      summary: Trainings of every club at a glance - lately, per week, per kind and per club (global admins only)
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      description: Global admins only.
+      operationId: getAdminTrainingsInsights
   /api/admin/players:
     get:
       tags:
