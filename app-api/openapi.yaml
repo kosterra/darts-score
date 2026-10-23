@@ -1950,8 +1950,8 @@ paths:
         - Badges
       summary: 'The catalogue: badges, levels and flights'
       description: >-
-        Every badge and the Hall of Shame, the player levels with their XP rules, and the flights and barrels to collect with what they cost
-        and need. The same for every club; shown on the About page.
+        Every badge and the Hall of Shame, the badges a club earns together, the player levels with their XP rules, and the flights and
+        barrels to collect with what they cost and need. The same for every club; shown on the About page.
       responses:
         '200':
           description: The catalogue
@@ -6060,6 +6060,18 @@ components:
           type: array
           items:
             type: object
+        club:
+          type: object
+          description: The badges a club earns together, with their categories (together, club life, club firsts)
+          properties:
+            categories:
+              type: array
+              items:
+                type: object
+            badges:
+              type: array
+              items:
+                type: object
         levels:
           type: array
           items:

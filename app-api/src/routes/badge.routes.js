@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { BADGES, BADGE_CATEGORIES, SHAME_BADGES } from '../utils/badges.js';
 import { publicShameBadge } from '../controllers/badge.controller.js';
 import { LEVELS, XP_RULES } from '../utils/levels.js';
+import { CLUB_BADGES, CLUB_BADGE_CATEGORIES, publicClubBadge } from '../utils/club.badges.js';
 import { CATALOG, FEATS, POINT_RULES, RARITIES } from '../utils/flights.js';
 
 export default (app) => {
@@ -15,6 +16,8 @@ export default (app) => {
             badges: BADGES.map(({ metric, ...badge }) => badge),
             // the Hall of Shame: what nobody wants, and how to wash it off
             shame: SHAME_BADGES.map(publicShameBadge),
+            // the badges a club earns together, in their categories
+            club: { categories: CLUB_BADGE_CATEGORIES, badges: CLUB_BADGES.map(publicClubBadge) },
             // the player levels: the XP each needs (and from League Player on an X01 average), and the XP per thing
             levels: LEVELS,
             xpRules: XP_RULES,

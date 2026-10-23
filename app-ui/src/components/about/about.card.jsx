@@ -10,6 +10,7 @@ import LevelsSection from './levels.section';
 import ReleaseNotes from './release.notes';
 import BadgeMedal from '../badges/badge.medal';
 import ShameMedal from '../badges/shame.medal';
+import ClubMedal from '../badges/club.medal';
 import { requestJSON } from '../../utils/service.utils';
 import { Lines } from '../elements/skeletons';
 import { locale, t } from '../../utils/i18n';
@@ -66,6 +67,12 @@ const AboutCard = () => {
         }
         return { category, title, series };
     });
+    // the club's badges as series too
+    const clubSeries = [];
+    for (const badge of catalogue?.club?.badges ?? []) {
+        if (clubSeries.at(-1)?.[0].group !== badge.group) clubSeries.push([]);
+        clubSeries.at(-1).push(badge);
+    }
 
     return (
         <div className="d-flex flex-column gap-4 page-reading">
@@ -153,11 +160,34 @@ const AboutCard = () => {
                             </ul>
                         </section>
                     ))}
+                    {catalogue?.club?.badges?.length > 0 &&
+                        <section className="d-flex flex-column gap-3">
+                            <h2 className="game-setup-section-title m-0">{t('Club badges')}</h2>
+                            <p className="text-subtle fs-7 m-0">
+                                {t('Badges the club earns together: every game and training of its members adds to them. Each is a shield, with the game or training that tipped it and who made it happen; the members hear about each new one. They add no XP. The club admins also set up to three goals for the whole club, under Edit club. All of them are under')}{' '}<Link to="/badges#club">{t('Club → Badges')}</Link>.
+                            </p>
+                            <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+                                {clubSeries.map(badges => (
+                                    <li key={badges[0].group} className="d-flex align-items-center gap-3">
+                                        <ClubMedal badge={badges.at(-1)} size="sm" />
+                                        <div className="d-flex flex-column min-w-0">
+                                            <span className="text-default fs-7 fw-semibold">{badges[0].groupTitle}</span>
+                                            <span className="text-faint fs-8">
+                                                {badges.length === 1
+                                                    ? `${badges[0].title}: ${badges[0].description}`
+                                                    : badges.map(badge => `${badge.title} (${badge.targetLabel})`).join(' · ')}
+                                            </span>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    }
                     {catalogue?.shame?.length > 0 &&
                         <section className="d-flex flex-column gap-3">
                             <h2 className="game-setup-section-title m-0">{t('Hall of Shame')}</h2>
                             <p className="text-subtle fs-7 m-0">
-                                {t('Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01, Cricket and Elimination games. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP. A club admin can switch them off in the club settings, or keep them and leave children out (under 16, or another age the club chooses). A player without a date of birth is never in the Hall of Shame: their age is unknown.')}
+                                {t('Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01, Cricket and Elimination games. Shanghai, Killer, Halve-It, Golf, Tactics and Bob\'s 27 have shame badges of their own too, listed below. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP. A club admin can switch them off in the club settings, or keep them and leave children out (under 16, or another age the club chooses). A player without a date of birth is never in the Hall of Shame: their age is unknown.')}
                             </p>
                             <ul className="list-unstyled m-0 d-flex flex-column gap-3">
                                 {catalogue.shame.map(badge => (

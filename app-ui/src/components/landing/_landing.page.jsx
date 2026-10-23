@@ -44,7 +44,7 @@ const SHOWCASE = [
         eyebrow: t('Progress'),
         title: t('Levels, badges and darts to collect'),
         text: t('Every game earns experience: from Beginner to Legend, with an average level for X01. Badges mark the milestones, and flight points unlock flights and barrels for your own darts.'),
-        points: [t('Player levels and average levels'), t('Badges for 180s, big checkouts and streaks'), t('17 flight shapes, 40 designs, 13 barrels')],
+        points: [t('Player levels and average levels'), t('Badges for 180s, big checkouts and streaks'), t('Club badges and goals, earned together'), t('17 flight shapes, 40 designs, 13 barrels')],
         shot: 'player-stats',
         alt: t('The statistics of a player: level, averages and form over time'),
     },

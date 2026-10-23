@@ -7,6 +7,18 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.13',
+        changes: [
+            t('Badges for the newer games: a win series for each of Shanghai, Killer, Halve-It, Golf and Tactics, and Untouchable (a Killer win without losing a life), Instant Shanghai, Triple Kill (three lives in one visit), Never Halved, Hole in One and Clean Sheet (all twelve numbers of Tactics). The All-rounder counts all nine games now: 3, 6 or 9 game types won. Games played before count too.'),
+            t('Badges for the trainings that had none: Random checkouts (the checkout rate over ten attempts or more), Scoring (the training average) and Doubles around the board (the fewest darts), and All the Drills for every kind of training.'),
+            t('The Hall of Shame for the newer games: Friendly Fire (a life lost on your own double), First Blood (out first in Killer), Shanghaied (beaten by an instant Shanghai), Half-Wit (halved three times), In the Rough (three missed holes of Golf) and Locked Out (a Tactics game lost without a number closed), each with its good deed to wash it off. Bob\'s Bust only counts while the club sees your trainings.'),
+            t('Club badges: the club earns badges together, as shields: its 100th, 1,000th and 10,000th game, darts thrown, 180s together, a club night of eight or sixteen players, a game every week, members, anniversaries, every game and every training played, and the club\'s firsts (the first 180, big fish, nine-darter and Shanghai finish). Each shows who made it happen; the end of the game that tipped it says so, and every member gets a notification. The best three are on the club\'s card under My clubs, Join a club and on the start page, all of them under Club → Badges.'),
+            t('Club goals: the club admins set up to three goals for the whole club under Edit club, e.g. 100 × 180 until the end of the season, on games, 180s, darts, ton-plus visits, high finishes or trainings. They show with their progress on the badges page and in the new dashboard widget Club badges and goals; everyone hears when one is reached.'),
+            t('Arranging the dashboard is smooth now: a copy of the widget follows your finger or mouse, its place shows where it will land, and the other widgets glide out of the way.'),
+            t('Pages and lists show their shape while their data loads, instead of a spinner or an empty list: the overviews, the lists of games, players and trainings, the badges, the profile and the statistics.'),
+        ],
+    },
+    {
         version: '2026.10.12',
         changes: [
             t('Oche speaks German, French, Italian and Spanish as well as English: the whole app, the rules and guides, What\'s new, the messages, badges and notifications and the mails. It starts in the language of the browser; the switch on the start page and the login changes it, and your user profile saves it on your account, so it follows you to every device. The darts terms stay English: leg, set, bust, checkout, bull, 180 and the names of the games.'),
