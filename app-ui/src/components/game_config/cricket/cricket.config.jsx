@@ -14,8 +14,11 @@ import CricketService from '../../../services/cricket.service';
 import { CRICKET_VARIANTS, DEFAULT_VARIANT } from '../../../utils/cricket.variants';
 import { clearSetup, loadSetup, saveSetup } from '../../../utils/setup.memory';
 import { t } from '../../../utils/i18n';
+import useGameRules from '../../games/common/game.rules';
 
 const CricketConfig = () => {
+    // the rules of the game, opened from the title of the setup
+    const [rulesButton, rules] = useGameRules('cricket');
     // the page starts set up like the last game
     const [remembered, setRemembered] = useState(() => loadSetup('cricket'));
     const [variant, setVariant] = useState(remembered?.settings?.variant ?? DEFAULT_VARIANT);
@@ -62,7 +65,8 @@ const CricketConfig = () => {
 
     return (
         <>
-            <Panel header={t('Cricket')} className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('Cricket')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+                {rules}
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>

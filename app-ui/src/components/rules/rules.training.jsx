@@ -13,7 +13,6 @@ import useInputMode, { INPUTS } from '../games/common/use.input.mode';
 import Celebration from '../badges/celebration';
 import NewBadges from '../badges/new.badges';
 import UpLink from '../elements/up.link';
-import RulesList from './rules.list';
 import RulesTrainingBoard from './rules.training.board';
 import LiveHero from '../games/common/live.hero';
 import RulesService from '../../services/rules.service';
@@ -22,6 +21,7 @@ import { replayTraining, settingsOf } from '../../rules/engine';
 import { parseDart } from '../../rules/darts';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
+import useGameRules from '../games/common/game.rules';
 
 // a training under way survives a reload of the page
 const runningKey = (kind) => `oche.rulesTraining.${kind}`;
@@ -74,6 +74,8 @@ const RulesTraining = () => {
     // the scoreboard reloads after a training is saved
     const [boardVersion, setBoardVersion] = useState(0);
     const toast = useRef(null);
+    // the rules of the training: open from the start in the setup
+    const [rulesButton, rules] = useGameRules(kind, true);
 
     useEffect(() => writeRunning(kind, running), [kind, running]);
 
@@ -227,7 +229,8 @@ const RulesTraining = () => {
                     </div>
                 }
                 <div className="col-12 col-xl-6">
-                    <Panel header={definition.title}>
+                    <Panel header={definition.title} icons={rulesButton}>
+                        {rules}
                         <p className="text-subtle fs-7 mt-0">{definition.description}</p>
                         <p className="game-setup-section-title">{t('Player')}</p>
                         <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} single minPlayers={1} />
@@ -245,8 +248,6 @@ const RulesTraining = () => {
                                 </div>
                             </div>
                         ))}
-                        <p className="game-setup-section-title mt-4">{t('Rules')}</p>
-                        <RulesList rules={definition.rules} />
                         <GameSetupStart
                             summary={[definition.title, ...chosen, players[0]?.nickname].filter(Boolean).join(' · ')}
                             missing={missing}

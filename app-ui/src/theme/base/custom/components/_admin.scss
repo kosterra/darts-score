@@ -695,7 +695,7 @@ $fair-play-suspicious: #e9ac2f;
   font-size: 0.8rem;
   cursor: pointer;
 
-  &:hover { color: var(--text-default); border-color: $primaryColor; }
+  &:hover { color: var(--text-default); background: rgba(255, 255, 255, 0.09); }
 }
 
 .mail-preview-subject {
@@ -744,11 +744,6 @@ $fair-play-suspicious: #e9ac2f;
 
     &.is-narrowed .p-multiselect-label {
         color: $textDefaultColor;
-    }
-
-    // narrowed down: the field says so in the colour of a chosen filter
-    &.is-narrowed {
-        border-color: $primaryColor;
     }
 }
 

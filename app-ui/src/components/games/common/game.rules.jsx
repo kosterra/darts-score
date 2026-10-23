@@ -6,9 +6,10 @@ import { t } from '../../../utils/i18n';
 /**
  * The rules of a game while it is played, as on the About page: a button in
  * the header that opens them right there, without a popup. → [button, panel]
+ * initiallyOpen: open from the start (a game the players may not know yet)
  */
-const useGameRules = (id) => {
-    const [open, setOpen] = useState(false);
+const useGameRules = (id, initiallyOpen = false) => {
+    const [open, setOpen] = useState(initiallyOpen);
     const entry = RULES.find(rule => rule.id === id);
     if (!entry) return [null, null];
     const button = (

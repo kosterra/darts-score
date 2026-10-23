@@ -25,6 +25,7 @@ import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
 import { BOT_ID, BOT_LEVELS, BOT_PRESETS, LIKE_ME, botStrength, knowsPlayer } from '../../utils/x01.bot';
 import { ageOn, strengthOf } from '../../utils/handicap';
 import { t } from '../../utils/i18n';
+import useGameRules from '../games/common/game.rules';
 
 // the starting scores of a training (a choice of the club may follow)
 const TRAINING_SCORES = [101, 170, 301, 501, 701].map(value => ({ value }));
@@ -54,6 +55,8 @@ const resultOf = (training, playerId) => {
  * Trainings count for no game statistics, badges or levels.
  */
 const X01BotPage = () => {
+    // the rules of the game, opened from the title of the setup
+    const [rulesButton, rules] = useGameRules('x01');
     const navigate = useNavigate();
     const toast = useRef(null);
     const { activeClub, isGlobalAdmin } = useAuth();
@@ -148,7 +151,8 @@ const X01BotPage = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header={t('X01 against the bot')} className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('X01 against the bot')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+                {rules}
                 <div className="container">
                     {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Player')}</p>

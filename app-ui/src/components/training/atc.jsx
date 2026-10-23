@@ -28,6 +28,7 @@ import { roundResults } from '../../utils/atc.darts';
 import { resultLine, scoreboardRows } from '../../utils/atc.scoreboard';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
+import useGameRules from '../games/common/game.rules';
 
 const SCORINGS = [
     { label: t('Against the clock'), value: 'Time', description: t('Stop the clock with your last hit; the fastest time wins.') },
@@ -39,6 +40,8 @@ const names = (players) => players.length > 1
     : players[0]?.nickname ?? '';
 
 const ATC = () => {
+    // the rules, opened from the title of the panel
+    const [rulesButton, rules] = useGameRules('clock');
     const { user, activeClub } = useAuth();
     // the player the logged-in user plays as in this club, for "Mine" on the scoreboard
     const [myPlayerId, setMyPlayerId] = useState(null);
@@ -284,7 +287,8 @@ const ATC = () => {
             <div className="row g-4">
                 <div className="col-12 col-xl-6">
                     <div ref={panelRef} className="atc-panel-anchor">
-                    <Panel header={t('Around the Clock')}>
+                    <Panel header={t('Around the Clock')} icons={rulesButton}>
+                        {rules}
                         <div className="container">
                             {playing &&
                                 <ATCTrainingSummary

@@ -17,12 +17,14 @@
     color: $textDefaultColor;
     text-decoration: none;
     border: 1px solid transparent;
-    transition: border-color 0.15s, transform 0.15s;
+    transition: background 0.15s, transform 0.15s;
 
+    // as the other cards: a lighter background, no coloured border
     &:hover,
     &:focus-visible {
-        border-color: $primaryColor;
+        background: $surfaceHighColor;
         color: $textDefaultColor;
+        outline: none;
         transform: translateY(-1px);
     }
 
@@ -225,13 +227,15 @@
     font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
+    transition: background 0.15s, color 0.15s;
 
+    // as the other quiet buttons: a lighter background, no coloured border
     &:hover,
     &:focus-visible,
     &.is-open {
-        border-color: $primaryColor;
+        background: $surfaceHighColor;
         color: $textDefaultColor;
+        outline: none;
     }
 }
 
@@ -282,4 +286,9 @@
     border-radius: $borderRadius;
     background: $surfaceRaisedColor;
     max-width: 44rem;
+}
+
+// the rules at the top of a setup: room before the setup
+.p-panel-content > .game-rules {
+    margin: 0 auto 1.5rem;
 }

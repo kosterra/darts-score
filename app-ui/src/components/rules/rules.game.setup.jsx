@@ -9,12 +9,12 @@ import GameSetupStart from '../game_config/config_components/game.setup.start';
 import GameSetupMemory from '../game_config/config_components/game.setup.memory';
 import FlyingDartsConfig from '../game_config/config_components/flying.darts.config';
 import { playersSummary } from '../game_config/config_components/game.setup.summary';
-import RulesList from './rules.list';
 import RulesService from '../../services/rules.service';
 import { gameOf } from '../../rules/games';
 import { settingsOf, withGameState } from '../../rules/engine';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
+import useGameRules from '../games/common/game.rules';
 
 const defaultsOf = (definition) => settingsOf(definition, {});
 
@@ -33,6 +33,8 @@ const RulesGameSetup = () => {
     const [starting, setStarting] = useState(false);
     const toast = useRef(null);
     const navigate = useNavigate();
+    // a game the players may not know yet: its rules open from the start
+    const [rulesButton, rules] = useGameRules(kind, true);
 
     if (!definition) return <Navigate replace to="/play" />;
 
@@ -69,7 +71,8 @@ const RulesGameSetup = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header={definition.title} className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={definition.title} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+                {rules}
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
@@ -94,8 +97,6 @@ const RulesGameSetup = () => {
                         <FlyingDartsConfig value={flyingDarts} onChange={setFlyingDarts} />
                     </div>
 
-                    <p className="game-setup-section-title mt-4">{t('Rules')}</p>
-                    <RulesList rules={definition.rules} />
                     <GameSetupStart summary={summary} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>
             </Panel>

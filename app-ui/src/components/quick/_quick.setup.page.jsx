@@ -11,6 +11,7 @@ import CricketModels from '../../models/cricket.models';
 import { QuickCricketService, QuickX01Service } from '../../services/quick.game.service';
 import QuickLayout from './quick.layout';
 import { t } from '../../utils/i18n';
+import useGameRules from '../games/common/game.rules';
 
 const GAMES = [{ label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }];
 const SCORES = [{ label: '301', value: 301 }, { label: '501', value: 501 }];
@@ -59,6 +60,8 @@ const QuickSetupPage = () => {
     const toast = useRef(null);
     const remembered = readSetup();
     const [kind, setKind] = useState(remembered?.kind ?? 'x01');
+    // the rules of the game chosen, opened from the title of the setup
+    const [rulesButton, rules] = useGameRules(kind);
     const [names, setNames] = useState(remembered?.names?.length ? remembered.names : ['', '']);
     const [startingScore, setStartingScore] = useState(remembered?.startingScore ?? 501);
     const [legOutMode, setLegOutMode] = useState(remembered?.legOutMode ?? 'Double Out');
@@ -123,7 +126,8 @@ const QuickSetupPage = () => {
     return (
         <QuickLayout>
             <Toast ref={toast} position="bottom-right" />
-            <Panel header={t('Quick game')} className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('Quick game')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+                {rules}
                 <form className="container" onSubmit={start}>
                     <p className="text-subtle fs-7 mt-0">
                         {t('Play right away, without an account: the players only need a name. The game and its statistics stay on this device for 30 days.')}{' '}

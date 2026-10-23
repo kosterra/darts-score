@@ -14,6 +14,7 @@ import ClockService from '../../../services/clock.service';
 import { newClockGame } from '../../../utils/clock.game';
 import { clearSetup, loadSetup, saveSetup } from '../../../utils/setup.memory';
 import { t } from '../../../utils/i18n';
+import useGameRules from '../../games/common/game.rules';
 
 const MODES = ATCConfigOptions.modeOptions.values;
 const DEFAULT_MODE = 'All';
@@ -23,6 +24,8 @@ const DEFAULT_MODE = 'All';
  * counts and, when every ring counts, whether doubles and trebles move on.
  */
 const ClockConfig = () => {
+    // the rules of the game, opened from the title of the setup
+    const [rulesButton, rules] = useGameRules('clock');
     // the page starts set up like the last game
     const [remembered, setRemembered] = useState(() => loadSetup('clock'));
     const [mode, setMode] = useState(remembered?.settings?.mode ?? DEFAULT_MODE);
@@ -59,7 +62,8 @@ const ClockConfig = () => {
 
     return (
         <>
-            <Panel header={t('Around the Clock')} className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('Around the Clock')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+                {rules}
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>

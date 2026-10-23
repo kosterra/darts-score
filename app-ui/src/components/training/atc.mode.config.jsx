@@ -1,11 +1,9 @@
 import { SelectButton } from 'primereact/selectbutton';
 import ATCConfigOptions from './atc.config.options';
-import useATCHelp from './atc.help';
 import { t } from '../../utils/i18n';
 
 const ATCModeConfig = ({ atcModeOption, onATCModeChange, disabled = false }) => {
     const options = ATCConfigOptions.modeOptions.values;
-    const [helpButton, help] = useATCHelp();
     return (
         <div className="setting-box d-flex flex-column align-items-center gap-2">
             <p className="setting-title align-self-stretch">{t('Mode')}</p>
@@ -20,9 +18,7 @@ const ATCModeConfig = ({ atcModeOption, onATCModeChange, disabled = false }) => 
             />
             <span className="text-faint fs-8 text-center">
                 {options.find(option => option.value === atcModeOption)?.description}
-                {helpButton}
             </span>
-            {help}
         </div>
     );
 };

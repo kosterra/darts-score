@@ -18,10 +18,13 @@ import { MIN_PLAYERS } from '../../../utils/player.picker';
 import { clearSetup, fitToPlayers, loadSetup, saveSetup, X01_QUICK_FORMATS } from '../../../utils/setup.memory';
 import { missingPlayers, playersSummary, setsLegsSummary } from '../config_components/game.setup.summary';
 import { t } from '../../../utils/i18n';
+import useGameRules from '../../games/common/game.rules';
 
 const SETTINGS = ['startingScore', 'legInMode', 'legOutMode', 'setMode', 'numberOfSets', 'legMode', 'numberOfLegs', 'flyingDarts'];
 
 const X01Config = () => {
+    // the rules of the game, opened from the title of the setup
+    const [rulesButton, rules] = useGameRules('x01');
     // the page starts set up like the last game
     const [remembered, setRemembered] = useState(() => loadSetup('x01'));
     const [game, setGame] = useState(() => ({ ...X01Models.X01GameModel, ...remembered?.settings }));
@@ -105,7 +108,8 @@ const X01Config = () => {
 
     return (
         <>
-            <Panel header={t('X01')} className="w-100 w-md-75 w-xxl-50 mx-auto">
+            <Panel header={t('X01')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+                {rules}
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
