@@ -17,12 +17,13 @@ import { t } from '../../../utils/i18n';
  *
  * rows: [{ player, isTurn, line, tags, score, scoreClass, scoreKey, below }];
  * a new scoreKey plays the score's animation again (e.g. taking the lead).
- * rulesId: the game's rules (see about/rules), opened from the header.
+ * rulesId: the game's rules (see about/rules), opened from the header;
+ * houseRules: the club's house rules the game is played with, in words.
  */
-const LiveHero = ({ title, subtitle, rows, rulesId }) => {
+const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [] }) => {
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
-    const [rulesButton, rules] = useGameRules(rulesId);
+    const [rulesButton, rules] = useGameRules(rulesId, false, houseRules);
 
     return (
         <header className="hero-header result-hero x01-live-hero">

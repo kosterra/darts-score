@@ -14,6 +14,8 @@ import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
 import useGameRules from '../common/game.rules';
 import QuickHeroBrand from '../../quick/quick.hero.brand';
+import useWaysOut from './use.ways.out';
+import { houseRuleLines } from '../../../utils/club.rules.labels';
 import { t } from '../../../utils/i18n';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
@@ -51,7 +53,8 @@ const X01LiveHeader = () => {
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const handicap = hasHandicap(game);
-    const [rulesButton, rules] = useGameRules('x01');
+    const [rulesButton, rules] = useGameRules('x01', false, houseRuleLines('x01', game));
+    const waysOut = useWaysOut();
 
     // a visit of 100 or more: a short "TON!" next to the score of the player who threw it
     const [ton, setTon] = useState(null);
@@ -98,10 +101,12 @@ const X01LiveHeader = () => {
                     // the player's own doubles and main treble, set or learned from their games
                     const profile = checkoutProfiles[player.id];
                     const throwing = { dartsLeft: dartsLeft || 3, outMode: outModeOf(game, player.id), doubles: profile?.doubleOrder ?? [], mainTreble: profile?.mainTreble };
-                    const routes = busted ? [] : checkoutRoutes(score, throwing);
+                    // the ways out as the club and the player want them: for everyone, the one at the oche only, or none
+                    const shown = waysOut === 'all' || (waysOut === 'turn' && isTurn);
+                    const routes = busted || !shown ? [] : checkoutRoutes(score, throwing);
                     // no finish: what to set up instead, as the checkout table suggests, or what to score
-                    const setup = busted || routes.length ? null : setupSuggestions(score, throwing)[0];
-                    const tip = busted || routes.length || setup ? null : scoringTip(score, throwing);
+                    const setup = busted || !shown || routes.length ? null : setupSuggestions(score, throwing)[0];
+                    const tip = busted || !shown || routes.length || setup ? null : scoringTip(score, throwing);
                     const plan = setup ?? (tip?.darts ? tip : null);
                     const leg = legSummaryOf(game, player.id);
                     // on a finish that wins the match (or the set)

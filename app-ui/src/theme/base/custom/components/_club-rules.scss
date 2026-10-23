@@ -197,3 +197,57 @@
 
     &:hover, &:focus-visible { outline: none; background: $surfaceHighColor; }
 }
+
+// a player who throws left-handed: the rings and the extra keys mirrored, the numbers in their order
+.x01-keypad.is-left-handed {
+    .x01-keypad-rings, .x01-keypad-extras { direction: rtl; }
+    .x01-key { direction: ltr; }
+}
+
+// quieter celebrations, as a player prefers: the number alone
+.one-eighty.is-quiet {
+    .one-eighty-flash, .one-eighty-ring, .one-eighty-spark, .one-eighty-figures { display: none; }
+}
+
+// a quick format with its pin: the player's favourites come first
+.quick-format-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.quick-format-pin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: $textFaintColor;
+    cursor: pointer;
+
+    .pi { font-size: 0.75rem; }
+    &:hover, &:focus-visible { outline: none; background: $surfaceHighColor; color: $textDefaultColor; }
+    &[aria-pressed="true"] { color: $momentGoldColor; }
+}
+
+// the house rules a game is played with, first in its Rules panel
+.game-house-rules {
+    margin-bottom: 0.9rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: $borderRadius;
+    background: $surfaceHighColor;
+}
+
+// longer choices (house rules, the editor): the pill grows with its words and wraps them, nothing cut off
+.p-selectbutton.pills-wrap-text .p-button {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+
+    .p-button-label { white-space: normal; overflow: visible; text-overflow: clip; }
+}

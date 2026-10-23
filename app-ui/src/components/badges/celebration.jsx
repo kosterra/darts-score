@@ -5,6 +5,7 @@ import { FaTrophy } from "react-icons/fa6";
 
 import BadgeMedal from './badge.medal';
 import Confetti from './confetti';
+import useGamePreferences from '../../utils/use.game.preferences';
 import useFleeting from '../games/common/use.fleeting';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { tn } from '../../utils/i18n';
@@ -26,6 +27,8 @@ const isRareBadge = (badge) => badge.tiers >= 3 && badge.tier === badge.tiers;
  * badgeGroups: [{ player: { nickname, ... }, badges: [badge] }]
  */
 const Celebration = ({ title, subtitle, player, badgeGroups = [], onClose }) => {
+    // a player who likes it quieter: the card without the confetti
+    const [{ celebrations }] = useGamePreferences();
     // the page may give a new function on every render: the timer keeps running
     const close = useRef(onClose);
     useEffect(() => { close.current = onClose; }, [onClose]);
@@ -37,7 +40,7 @@ const Celebration = ({ title, subtitle, player, badgeGroups = [], onClose }) => 
 
     return createPortal(
         <div className={`celebration ${rare.length ? 'is-rare' : 'is-burst'} ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="polite">
-            <Confetti />
+            {celebrations !== 'quiet' && <Confetti />}
             <div className="celebration-card">
                 <FaTrophy className="celebration-trophy text-gold" aria-hidden="true" />
                 <div className="d-flex flex-column align-items-center gap-1">

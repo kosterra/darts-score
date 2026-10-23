@@ -744,14 +744,16 @@ export const replayBadges = (events, playerId) => {
         applyWeek(metrics, event.at);
 
         const source = { at: event.at, sourceType: event.type, sourceId: event.id };
+        // a friendly game is left out of the Hall of Shame: no shame from it, and no good deed either
+        const friendly = event.data?.friendly === true;
         // a good deed first, so a shame in the same game stays
-        for (const badge of SHAME_BADGES) {
+        for (const badge of friendly ? [] : SHAME_BADGES) {
             if (open.has(badge.id) && metrics[badge.washMetric] > before[badge.washMetric]) {
                 washes.push({ badge: badge.id, ...source });
                 open.delete(badge.id);
             }
         }
-        for (const badge of SHAME_BADGES) {
+        for (const badge of friendly ? [] : SHAME_BADGES) {
             const count = metrics[badge.metric] - before[badge.metric];
             if (count > 0) {
                 shame.push({ badge: badge.id, count, club: event.data?.club ? String(event.data.club) : null, ...source });

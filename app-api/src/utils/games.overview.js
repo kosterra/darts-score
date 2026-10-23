@@ -35,10 +35,16 @@ export const gamesOverview = (gamesByType, memberIds, now = new Date()) => {
             kinds.set(kind, entry);
             for (const playerId of game.players ?? []) {
                 if (!memberIds.has(String(playerId))) continue;
-                const player = players.get(playerId) ?? { playerId: String(playerId), games: 0, finished: 0, wins: 0, last30Days: 0, kinds: new Map() };
+                const player = players.get(playerId) ?? { playerId: String(playerId), games: 0, finished: 0, wins: 0, last30Days: 0, kinds: new Map(), rankedFinished: 0, rankedWins: 0 };
+                const won = Boolean(game.playerModels?.[playerId]?.hasWonGame);
                 player.games += 1;
                 if (game.hasWinner) player.finished += 1;
-                if (game.playerModels?.[playerId]?.hasWonGame) player.wins += 1;
+                if (won) player.wins += 1;
+                // the win rates leave the friendly games out
+                if (game.hasWinner && !game.friendly) {
+                    player.rankedFinished += 1;
+                    if (won) player.rankedWins += 1;
+                }
                 if (lately) player.last30Days += 1;
                 player.kinds.set(kind, (player.kinds.get(kind) ?? 0) + 1);
                 players.set(playerId, player);
@@ -55,10 +61,11 @@ export const gamesOverview = (gamesByType, memberIds, now = new Date()) => {
         running,
         players: players.size,
         popular: [...kinds.values()].sort((a, b) => b.count - a.count),
-        ranking,
+        // eslint-disable-next-line no-unused-vars
+        ranking: ranking.map(({ rankedFinished, rankedWins, ...player }) => player),
         winRates: ranking
-            .filter(player => player.finished >= MIN_GAMES_FOR_WIN_RATE)
-            .map(player => ({ playerId: player.playerId, games: player.finished, wins: player.wins, rate: Math.round(player.wins / player.finished * 1000) / 10 }))
+            .filter(player => player.rankedFinished >= MIN_GAMES_FOR_WIN_RATE)
+            .map(player => ({ playerId: player.playerId, games: player.rankedFinished, wins: player.rankedWins, rate: Math.round(player.rankedWins / player.rankedFinished * 1000) / 10 }))
             .sort((a, b) => b.rate - a.rate || b.games - a.games)
             .slice(0, WIN_RATES),
     };

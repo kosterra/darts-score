@@ -61,7 +61,7 @@ export const HouseRules = ({ game, club, settings, onChange }) => {
                                     value={settings[setting.key]}
                                     onChange={(e) => e.value !== null && e.value !== undefined && onChange(setting.key, e.value)}
                                     options={settingOptions(game, setting.key, club.options(setting.key, setting.values))}
-                                    className="p-selectbutton-pills flex-wrap justify-content-center"
+                                    className="p-selectbutton-pills flex-wrap justify-content-center pills-wrap-text"
                                     aria-label={SETTING_LABELS[setting.key]}
                                 />}
                             {SETTING_HINTS[setting.key] && <span className="text-faint fs-8 text-center">{SETTING_HINTS[setting.key]}</span>}

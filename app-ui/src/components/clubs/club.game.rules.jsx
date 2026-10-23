@@ -35,7 +35,7 @@ const Choice = ({ game, setting, value, values, onChange, label, disabled = fals
                 value={value ?? null}
                 options={withEmpty}
                 onChange={(e) => (e.value !== undefined && (e.value !== null || emptyLabel)) && onChange(e.value)}
-                className="p-selectbutton-pills flex-wrap"
+                className="p-selectbutton-pills flex-wrap pills-wrap-text"
                 disabled={disabled}
                 aria-label={label}
             />
@@ -164,7 +164,7 @@ const FormatRow = ({ format, onChange, onRemove }) => {
                                 setting={setting}
                                 value={format.settings[setting.key] ?? null}
                                 values={setting.values}
-                                emptyLabel={t('Open')}
+                                emptyLabel={t('Any')}
                                 label={SETTING_LABELS[setting.key]}
                                 onChange={(value) => {
                                     const next = { ...format.settings };

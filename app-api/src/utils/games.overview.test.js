@@ -27,3 +27,14 @@ describe('gamesOverview', () => {
         expect(overview.winRates).toEqual([{ playerId: 'a', games: 6, wins: 4, rate: 66.7 }, { playerId: 'b', games: 6, wins: 2, rate: 33.3 }]);
     });
 });
+
+describe('friendly games', () => {
+    it('count for the games and the wins, but not for the win rates', () => {
+        const game = (winner, friendly) => ({ players: ['a', 'b'], hasWinner: true, friendly, playerModels: { a: { hasWonGame: winner === 'a' }, b: { hasWonGame: winner === 'b' } }, createdAt: new Date() });
+        const games = [...Array(5)].map(() => game('a', false)).concat([...Array(5)].map(() => game('b', true)));
+        const overview = gamesOverview([{ type: 'x01', games }], new Set(['a', 'b']));
+        expect(overview.ranking.find(entry => entry.playerId === 'a')).toMatchObject({ games: 10, wins: 5 });
+        expect(overview.winRates.find(entry => entry.playerId === 'a')).toMatchObject({ games: 5, wins: 5, rate: 100 });
+        expect(overview.winRates.find(entry => entry.playerId === 'b')).toMatchObject({ games: 5, wins: 0, rate: 0 });
+    });
+});

@@ -102,7 +102,7 @@ const EliminationConfig = () => {
                     <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
-                    {formats.length > 0 && <QuickFormats formats={formats} settings={game} playerCount={players.length} onApply={applyFormat} />}
+                    {formats.length > 0 && <QuickFormats game="elimination" formats={formats} settings={game} playerCount={players.length} onApply={applyFormat} />}
                     <EliminationScoreConfig
                         scoreOption={game.targetScore}
                         onScoreChange={handleConfigChange}

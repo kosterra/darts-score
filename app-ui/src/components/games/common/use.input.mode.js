@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { t } from '../../../utils/i18n';
+import { gamePreferences, saveGamePreferences } from '../../../utils/game.preferences';
 
-// how the darts are entered, chosen per device for every game: the board, or
-// the keypad (the default on a phone, where the fields of the board are small)
+// how the darts are entered, for every game: the board, or the keypad (the
+// default on a phone, where the fields of the board are small). The choice of
+// this device first, then the player's (with their account), then the screen.
 const INPUT_KEY = 'oche.x01Input';
 
 export const INPUTS = [
@@ -17,6 +19,7 @@ const readInput = () => {
     } catch {
         // storage unavailable: the default below
     }
+    if (gamePreferences().inputMode) return gamePreferences().inputMode;
     return window.matchMedia?.('(max-width: 767.98px)').matches ? 'keypad' : 'board';
 };
 
@@ -37,6 +40,7 @@ const useInputMode = () => {
         if (!value) return;
         setInput(value);
         writeInput(value);
+        saveGamePreferences({ inputMode: value });
     };
     return [input, choose];
 };

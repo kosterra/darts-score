@@ -17,7 +17,7 @@ const nameOf = (double) => double === 'D25' ? 'Bull (D25)' : double;
  * clubId: the club the player is edited in
  */
 const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onError }) => {
-    const [preferences, setPreferences] = useState({ favouriteDouble: 'auto', mainTreble: 'auto', ...player.preferences });
+    const [preferences, setPreferences] = useState({ favouriteDouble: 'auto', mainTreble: 'auto', handicap: 'accept', ...player.preferences });
     // what the games say, for the "Automatic" choice
     const [learned, setLearned] = useState(null);
 
@@ -67,6 +67,21 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onError }) => {
             </label>
             <span className="text-faint fs-8 player-checkout-preferences-hint">
                 {t('In X01 the ways out finish on the favourite double first and the scoring tips stay on the main treble.')}
+            </span>
+            <label className="d-flex flex-column gap-1">
+                <span className="text-subtle fs-8">{t('Handicap')}</span>
+                <Dropdown
+                    value={preferences.handicap ?? 'accept'}
+                    options={[
+                        { label: t('Plays with a handicap'), value: 'accept' },
+                        { label: t('Always from the game\'s own score'), value: 'decline' },
+                    ]}
+                    onChange={(e) => save({ handicap: e.value })}
+                    className="w-100"
+                />
+            </label>
+            <span className="text-faint fs-8 player-checkout-preferences-hint">
+                {t('Without a handicap, an X01 game with this player is played from the same score for everyone.')}
             </span>
         </div>
     );

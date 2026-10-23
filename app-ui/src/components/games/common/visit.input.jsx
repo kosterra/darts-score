@@ -6,6 +6,7 @@ import { SelectButton } from 'primereact/selectbutton';
 
 import useEnteringHelp from './score.input.board.help';
 import { INPUTS } from './use.input.mode';
+import useAutoSend from './use.auto.send';
 import { t } from '../../../utils/i18n';
 
 // s, d and t work as well: the dart is written in capitals once typed
@@ -27,6 +28,8 @@ const VisitInput = ({
     darts, shown, onDart, onClearDart, summary, busted = false,
     onSubmit, onUndo, canUndo, loading = false,
 }) => {
+    // the visit goes by itself after the third dart, when the player wants it
+    useAutoSend(darts);
     const [helpButton, help] = useEnteringHelp(true);
     // Enter enters the visit, also after darts were tapped on the board; in a
     // dart field the browser submits the form itself

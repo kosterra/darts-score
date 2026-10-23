@@ -92,7 +92,7 @@ const CricketConfig = () => {
                     <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
-                    {formats.length > 0 && <QuickFormats formats={formats} settings={settings} playerCount={players.length} onApply={applyFormat} />}
+                    {formats.length > 0 && <QuickFormats game="cricket" formats={formats} settings={settings} playerCount={players.length} onApply={applyFormat} />}
                     <div>
                         <SettingTitle locked={club.locked('variant')}>{t('Variant')}</SettingTitle>
                         <div className="row mx-0 mt-0 setting-body">

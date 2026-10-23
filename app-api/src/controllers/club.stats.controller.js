@@ -140,6 +140,8 @@ export const getClubStats = async (req, res) => {
     ]);
 
     const finishedByType = gamesByType.map(({ type, games }) => ({ type, games: games.filter(game => game.hasWinner) }));
+    // friendly games are left out of the club's rankings: the leaderboards and the records
+    const rankedByType = finishedByType.map(({ type, games }) => ({ type, games: games.filter(game => !game.friendly) }));
     const allGames = gamesByType.flatMap(({ type, games }) => games.map(game => ({ type, game })));
     const members = players.filter(player => !player.guest);
 
@@ -178,13 +180,13 @@ export const getClubStats = async (req, res) => {
             profileImg: player.profileImg,
             guest: player.guest,
         })),
-        leaderboards: buildLeaderboards(collectPlayerTotals(finishedByType), new Set(members.map(player => String(player._id)))),
+        leaderboards: buildLeaderboards(collectPlayerTotals(rankedByType), new Set(members.map(player => String(player._id)))),
         recentGames: recent.map(({ type, game }) => summarizeGame(type, game)),
         runningGames: running.slice(0, RUNNING_GAMES).map(({ type, game }) => summarizeGame(type, game)),
         // key figures, who beats whom, records and when the club plays
         kpis: clubKpis({ finishedByType, allGames, members }),
         headToHead: headToHead(finishedByType, new Set(members.map(player => String(player._id)))),
-        records: clubRecords(finishedByType.find(entry => entry.type === 'x01').games),
+        records: clubRecords(rankedByType.find(entry => entry.type === 'x01').games),
         gameLog: gameLog(allGames),
     });
 };
@@ -199,7 +201,7 @@ export const getGamesOverview = async (req, res) => {
         const filter = { club: req.club._id };
         const [players, gamesByType] = await Promise.all([
             db.player.find(knownInClub(req.club._id), 'firstname lastname nickname profileImg guest').lean(),
-            Promise.all(GAME_TYPES.map(async ({ type, model }) => ({ type, games: await model().find(filter, 'players playerModels hasWinner gameIsRunning kind createdAt updatedAt').lean() }))),
+            Promise.all(GAME_TYPES.map(async ({ type, model }) => ({ type, games: await model().find(filter, 'players playerModels hasWinner gameIsRunning kind friendly createdAt updatedAt').lean() }))),
         ]);
         const members = players.filter(player => !player.guest);
         res.json({

@@ -86,3 +86,8 @@ export const settingsSummary = (game, settings) => (GAME_SETTINGS[game] ?? [])
     .filter(setting => settings?.[setting.key] !== undefined)
     .map(setting => `${SETTING_LABELS[setting.key]}: ${valueLabel(game, setting.key, settings[setting.key])}`)
     .join(' · ');
+
+// the house rules a game is played with that differ from the usual ones, in words, for its Rules panel
+export const houseRuleLines = (game, settings = {}) => (GAME_SETTINGS[game] ?? [])
+    .filter(setting => setting.house && settings[setting.key] !== undefined && settings[setting.key] !== setting.default)
+    .map(setting => `${SETTING_LABELS[setting.key]}: ${valueLabel(game, setting.key, settings[setting.key])}`);

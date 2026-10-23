@@ -12,6 +12,7 @@ import AuthService from '../../services/auth.service';
 import { ROLE_LABELS } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
 import { LANGUAGES, currentLanguage, setLanguage, t } from '../../utils/i18n';
+import PlayingPreferences from './playing.preferences';
 
 const MIN_PASSWORD_LENGTH = 8;
 // "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
@@ -98,7 +99,7 @@ const ProfilePage = () => {
             <Toast ref={toast} position="bottom-right" />
             <Panel header={t('User profile')}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    {t('Your account: the name your clubs see, the email you log in with, what opens after logging in and your password.')}
+                    {t('Your account: the name your clubs see, the email you log in with, what opens after logging in, your password and how you like to play.')}
                     {isGlobalAdmin && <> <Tag value={ROLE_LABELS[user.role]} severity="warning" className="ms-1" /></>}
                 </p>
                 {/* laid out as the player profile and the game setup: a section title, then a box per setting */}
@@ -176,7 +177,8 @@ const ProfilePage = () => {
                         </div>
                     </form>
 
-                    <form onSubmit={onChangePassword} className="col-12 col-xl-6">
+                    <div className="col-12 col-xl-6">
+                    <form onSubmit={onChangePassword}>
                         <p className="game-setup-section-title">{t('Security')}</p>
                         <p className="setting-title">{t('Change password')}</p>
                         <div className="row mx-0 mt-0 setting-body">
@@ -190,6 +192,11 @@ const ProfilePage = () => {
                             </div>
                         </div>
                     </form>
+                    {/* how you like to play, on every device */}
+                    <div className="mt-4">
+                        <PlayingPreferences onSaved={(detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 })} />
+                    </div>
+                    </div>
                 </div>
             </Panel>
         </div>

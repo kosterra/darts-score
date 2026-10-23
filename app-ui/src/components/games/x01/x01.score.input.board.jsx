@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { FaRobot } from 'react-icons/fa6';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
@@ -10,32 +10,11 @@ import X01DartBoard from './x01.dartboard';
 import X01WaysOut from './x01.ways.out';
 import X01Keypad from './x01.keypad';
 import useEnteringHelp from '../common/score.input.board.help';
+import useInputMode, { INPUTS } from '../common/use.input.mode';
+import useAutoSend from '../common/use.auto.send';
+import useWaysOut from './use.ways.out';
 import { t } from '../../../utils/i18n';
 
-
-// how the darts are entered, chosen per device: the board, or the keypad
-// (the default on a phone, where the fields of the board are small)
-const INPUT_KEY = 'oche.x01Input';
-const INPUTS = [
-    { label: t('Board'), value: 'board', icon: 'pi pi-bullseye' },
-    { label: t('Keypad'), value: 'keypad', icon: 'pi pi-th-large' },
-];
-const readInput = () => {
-    try {
-        const saved = localStorage.getItem(INPUT_KEY);
-        if (saved === 'board' || saved === 'keypad') return saved;
-    } catch {
-        // storage unavailable: the default below
-    }
-    return window.matchMedia?.('(max-width: 767.98px)').matches ? 'keypad' : 'board';
-};
-const writeInput = (input) => {
-    try {
-        localStorage.setItem(INPUT_KEY, input);
-    } catch {
-        // storage unavailable: the default again next time
-    }
-};
 
 const X01ScoreInputBoard = () => {
     const {
@@ -54,13 +33,12 @@ const X01ScoreInputBoard = () => {
     // the score left after the darts entered so far, worked out on every render: a copy in
     // state lagged one render behind, and a quick Enter submitted the score before the last dart
     const score = game.playerModels[game.currentPlayerTurn].score - getCurrentThrowScore();
-    const [input, setInput] = useState(() => readInput());
+    // the board or the keypad, as on every game
+    const [input, chooseInput] = useInputMode();
+    const waysOut = useWaysOut();
+    // the visit goes by itself after the third dart, when the player wants it (not the bot's)
+    useAutoSend(botThrowing ? [] : game.currentThrow);
     const [helpButton, help] = useEnteringHelp(true);
-    const chooseInput = (value) => {
-        if (!value) return;
-        setInput(value);
-        writeInput(value);
-    };
 
     // s, d and t work as well: the dart is written in capitals once typed
     const keyfilterPattern = /^[SDTsdt0-9]{1,3}$/;
@@ -235,9 +213,11 @@ const X01ScoreInputBoard = () => {
                         </div>
                     </form>
                 </Panel>
-                <Panel header={t('Ways out')} className="x01-ways-panel">
-                    <X01WaysOut />
-                </Panel>
+                {/* without the ways out when the club plays without them, or the player switched them off */}
+                {waysOut !== 'off' &&
+                    <Panel header={t('Ways out')} className="x01-ways-panel">
+                        <X01WaysOut />
+                    </Panel>}
             </div>
         </div>
     )

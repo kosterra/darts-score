@@ -7,8 +7,9 @@ import { t } from '../../../utils/i18n';
  * The rules of a game while it is played, as on the About page: a button in
  * the header that opens them right there, without a popup. → [button, panel]
  * initiallyOpen: open from the start (a game the players may not know yet)
+ * houseRules: the club's house rules this game is played with, in words, shown first
  */
-const useGameRules = (id, initiallyOpen = false) => {
+const useGameRules = (id, initiallyOpen = false, houseRules = []) => {
     const [open, setOpen] = useState(initiallyOpen);
     const entry = RULES.find(rule => rule.id === id);
     if (!entry) return [null, null];
@@ -21,6 +22,11 @@ const useGameRules = (id, initiallyOpen = false) => {
     );
     const panel = open && (
         <div className="game-rules text-subtle fs-7 about-rules">
+            {houseRules.length > 0 &&
+                <div className="game-house-rules">
+                    <strong className="text-default">{t('House rules of this game')}</strong>
+                    <ul className="mb-0">{houseRules.map(line => <li key={line}>{line}</li>)}</ul>
+                </div>}
             {entry.body}
         </div>
     );

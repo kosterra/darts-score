@@ -6,6 +6,8 @@ import ClubService from '../services/club.service';
 import { ROLES, CLUB_ROLES } from '../services/user.service';
 import { SESSION_ENDED, getActiveClubId, setActiveClubId } from './service.utils';
 import { currentLanguage, setLanguage, takeLanguageChosenBeforeLogin } from './i18n';
+import { connectGamePreferences } from './game.preferences';
+import { accountSaver } from './use.game.preferences';
 
 // whether this tab already has its club: then a reload keeps it
 const CLUB_CHOSEN_KEY = 'darts-score.clubChosen';
@@ -143,6 +145,11 @@ const AuthState = ({ children }) => {
         window.addEventListener(SESSION_ENDED, endSession);
         return () => window.removeEventListener(SESSION_ENDED, endSession);
     }, [user, endSession]);
+
+    // the player's preferences for playing, for the setup memory and the way darts are entered
+    useEffect(() => {
+        connectGamePreferences(user?.gamePreferences, user ? accountSaver(setUser) : null);
+    }, [user]);
 
     const activeClub = clubs.find(club => club.id === activeClubId) ?? null;
 

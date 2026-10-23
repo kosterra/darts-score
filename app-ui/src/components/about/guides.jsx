@@ -36,7 +36,9 @@ export const PLAYER_GUIDE = [
                 <ul>
                     <li>{t('Tap the players: those who played lately come first, and a guest who is not in the club is one tap away. Drag them into the throwing order, shuffle it or let the winner of the bull-off start.')}</li>
                     <li>{t('Pick the settings; the start button says what will be played. In X01 a handicap gives players of different strength their own starting score and in/out mode, with a suggestion from their recent average, level and age.')}</li>
-                    <li><strong>{t('Rules')}</strong>{' '}{t('in the title of the setup and in the header of the game opens the rules of the game right there.')}</li>
+                    <li><strong>{t('Rules')}</strong>{' '}{t('in the title of the setup and in the header of the game opens the rules of the game right there, with the house rules this game is played with first.')}</li>
+                    <li>{t('Your club may have its own rules: what a game starts with, the formats of the club (first among the quick formats), and settings it locked, shown with Club rule. Pin your favourite formats with their star: they come first, on every device.')}</li>
+                    <li><strong>{t('Friendly game')}</strong>{t(': it counts for your own statistics, XP and badges, but not for the club\'s leaderboards, records and Hall of Shame. Mark it in the setup, or start one of the club\'s friendly formats.')}</li>
                     <li>{t('During the game enter the darts on the board or the keypad and send the visit. Undo takes the last visit back. The tips above the board show the way out or what to aim at. On the board of X01, Cricket and Elimination a dart flies to the field you tap, if you left the dart animation on in your profile; the setup can switch it on or off for everyone.')}</li>
                     <li>{t('When the game is won its statistics open: the result, the moments of the game and charts. The confetti and the gold of the winner go by themselves, the badges just earned are marked as new, and Play again starts the next game. Every game is saved after each visit, so a game left running can be continued from')}{' '}<strong>{t('Games')}</strong>{' '}{t('or the dashboard.')}</li>
                     <li>{t('A game that should not count, e.g. one entered by mistake: ask to delete it with the flag in its row under')}{' '}<strong>{t('Games')}</strong>{t('. The other players are asked to agree; when every player has a login and all agree, it is deleted, otherwise a club admin decides. You are told how it ended.')}</li>
@@ -94,6 +96,7 @@ export const PLAYER_GUIDE = [
                 <p>{t('Tap your name at the bottom of the menu: it opens User profile, Player profile, My clubs, Notifications and Log out. The number on your avatar counts the notifications you have not read.')}</p>
                 <ul>
                     <li><strong>{t('User profile:')}</strong>{' '}{t('your account: name, email, password and the language of the app and of your mails (your name is also the name of your player), and what opens after logging in: your default club, and its dashboard or your statistics.')}</li>
+                    <li><strong>{t('Playing:')}</strong>{' '}{t('on your user profile, with your account on every device: the ways out in X01 (for every player, the one at the oche only, or off), board or keypad, sending the visit by itself after the third dart, a keypad for the left hand and quieter celebrations. The setups and trainings start as you left them, also on another device.')}</li>
                     <li><strong>{t('Player profile:')}</strong>{' '}{t('how you appear in your clubs. Your nickname and picture are yours to keep up to date (the picture also shows on your avatar), the date of birth is set by your club admins, and as an adult you can correct it (never to a date under 18, or the Hall of Shame age of your clubs). Here too: whether your nickname appears on the public start page, whether the other players see your trainings, the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you), and your darts (see Your darts).')}</li>
                     <li>{t('Your country, with its flag next to your nickname in the lists and on your statistics, is chosen on your player profile too, for all your clubs.')}</li>
                     <li><strong>{t('My clubs:')}</strong>{' '}{t('the clubs you play in or run, to switch between them; your name there opens your statistics and badges.')}</li>
@@ -135,6 +138,22 @@ export const ADMIN_GUIDE = [
                     <li><strong>{t('New members:')}</strong>{' '}{t('whether people with an account join at once, ask and wait for an admin, or are only added by the admins (see below).')}</li>
                     <li><strong>{t('Hall of Shame:')}</strong>{' '}{t('on or off, and whether children are left out of it (under 16, or another age). A player without a date of birth is always left out of it.')}</li>
                     <li>{t('These settings are saved as soon as they change. At the bottom the club can be deleted, once its players are removed.')}</li>
+                </ul>
+            </>
+        ),
+    },
+    {
+        title: t('Game rules of the club'),
+        icon: FaBullseye,
+        body: (
+            <>
+                <p>{t('Under')}{' '}<Link to="/my-clubs">{t('Edit club')}</Link>{' '}<strong>{t('→ Game rules')}</strong>{' '}{t('the club sets its own rules. They are saved as you go; a running game keeps the rules it started with.')}</p>
+                <ul>
+                    <li><strong>{t('The games:')}</strong>{' '}{t('switch off those the club does not play: they leave the menu and More games. For each game choose what it starts with, narrow the choices the setups offer (e.g. only 301, 501 and 701), and lock a setting for every game: the setups show it as Club rule, and a game against it is refused.')}</li>
+                    <li><strong>{t('House rules:')}</strong>{' '}{t('in X01 who starts the next leg (the loser of the leg, with two players), a round limit after which the fewest points left win the leg, and the outer bull as 50; in Cricket a round limit; a Shanghai that only scores; Killer by any hit on the number and a safe own double; the club\'s own Halve-It targets.')}</li>
+                    <li><strong>{t('The club\'s formats:')}</strong>{' '}{t('named setups, e.g. Club night, first among the quick formats; a friendly one marks its games as friendly. The app\'s own formats can stay or go.')}</li>
+                    <li><strong>{t('Friendly games:')}</strong>{' '}{t('whether players may mark a game as friendly in the setup, or only the club\'s friendly formats are. They stay out of the leaderboards, records, best win rates and the Hall of Shame.')}</li>
+                    <li><strong>{t('Handicap and ways out:')}</strong>{' '}{t('a handicap in X01 off, set by hand or with suggestions, and the most points the starting scores may differ by; and whether X01 shows the ways out (some leagues play without). Players may choose to always play without a handicap, on their player profile.')}</li>
                 </ul>
             </>
         ),

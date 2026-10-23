@@ -64,7 +64,8 @@ const X01Config = () => {
         setGame(current => fitToPlayers(current, chosen.length));
         const restoring = pendingHandicap.current;
         pendingHandicap.current = null;
-        if (chosen.length < MIN_PLAYERS) setHandicap(null);
+        // a player who plays without a handicap: everyone from the game's own score
+        if (chosen.length < MIN_PLAYERS || chosen.some(player => player.preferences?.handicap === 'decline')) setHandicap(null);
         else if (restoring && club.handicap.mode !== 'off' && chosen.every(player => restoring[player.id])) setHandicap(restoring);
         else if (handicap) setHandicap(Object.fromEntries(chosen.filter(player => handicap[player.id]).map(player => [player.id, handicap[player.id]])));
     };
@@ -144,7 +145,7 @@ const X01Config = () => {
                     <PlayerPicker selected={players} onChange={onPlayersChange} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
-                    {formats.length > 0 && <QuickFormats formats={formats} settings={game} playerCount={players.length} onApply={applyFormat} />}
+                    {formats.length > 0 && <QuickFormats game="x01" formats={formats} settings={game} playerCount={players.length} onApply={applyFormat} />}
                     <X01ScoreConfig
                         scoreOption={game.startingScore}
                         onScoreChange={handleConfigChange}
@@ -178,6 +179,7 @@ const X01Config = () => {
                             onChange={setHandicap}
                             suggest={club.handicap.mode === 'suggested'}
                             maxDifference={club.handicap.maxDifference}
+                            declined={players.filter(player => player.preferences?.handicap === 'decline').map(player => player.nickname)}
                         />}
                     <FlyingDartsConfig value={game.flyingDarts} onChange={(value) => handleConfigChange('flyingDarts', value)} />
                     <FriendlyGame club={club} value={friendly} onChange={setFriendlyChosen} />

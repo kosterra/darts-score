@@ -260,6 +260,8 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                         <GameTypeTag type={game.type} />
                         <span className="text-default fs-7 fw-semibold">{title}</span>
+                        {/* left out of the club's leaderboards, records and Hall of Shame */}
+                        {game.friendly && <span className="quick-format-tag ms-0" title={t('A friendly game: not in the club\'s leaderboards, records and Hall of Shame')}>{t('Friendly')}</span>}
                     </div>
                     {detail && <span className="text-faint fs-8">{detail}</span>}
                 </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { houseRuleLines } from '../../utils/club.rules.labels';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Toast } from 'primereact/toast';
 
@@ -177,7 +178,7 @@ const RulesGame = () => {
 
     return (
         <div className="container-fluid bg-transparent border-0 x01-game-page">
-            <LiveHero rulesId={kind} title={title} subtitle={subtitle} rows={heroRows} />
+            <LiveHero rulesId={kind} title={title} subtitle={subtitle} rows={heroRows} houseRules={houseRuleLines(kind, game.settings)} />
             <VisitInput
                 nickname={nameOf(current)}
                 input={input}

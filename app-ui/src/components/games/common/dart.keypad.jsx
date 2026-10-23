@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Toast } from 'primereact/toast';
+import useGamePreferences from '../../../utils/use.game.preferences';
 import { t } from '../../../utils/i18n';
 
 const ALL_NUMBERS = Array.from({ length: 20 }, (_, index) => index + 1);
@@ -29,6 +30,8 @@ const Key = ({ id, pressed, label, onClick, className = '', disabled = false, ar
  * needs 15 to 20).
  */
 const DartKeypad = ({ canThrow, onDart, onClearLast, entered, numbers = ALL_NUMBERS, className = '' }) => {
+    // a player who throws left-handed has the rings and the extra keys mirrored
+    const [{ leftHanded }] = useGamePreferences();
     // 'D' or 'T' for the next dart, null for a single
     const [ring, setRing] = useState(null);
     // the button just pressed, lit for a moment
@@ -51,7 +54,7 @@ const DartKeypad = ({ canThrow, onDart, onClearLast, entered, numbers = ALL_NUMB
     const number = (n) => enter(`${ring ?? 'S'}${n}`, `n${n}`);
 
     return (
-        <div className={`x01-keypad ${ring ? `is-${ring === 'D' ? 'double' : 'treble'}` : ''} ${className}`} aria-label={t('Keypad')}>
+        <div className={`x01-keypad ${ring ? `is-${ring === 'D' ? 'double' : 'treble'}` : ''} ${leftHanded ? 'is-left-handed' : ''} ${className}`} aria-label={t('Keypad')}>
             {/* the ring of the next dart: Single is always there to go back to */}
             <div className="x01-keypad-rings" role="radiogroup" aria-label={t('Ring of the next dart')}>
                 {[[null, t('Single')], ['D', t('Double')], ['T', t('Treble')]].map(([value, label]) => (

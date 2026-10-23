@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 
+import { houseRuleLines } from '../../../utils/club.rules.labels';
 import CricketContext from '../../../utils/cricket.context';
 import LiveHero from '../common/live.hero';
 import { CRICKET_NUMBERS, replayCricket } from '../../../utils/cricket.game.summary';
@@ -70,6 +71,7 @@ const CricketLiveHeader = () => {
     return (
         <LiveHero
             rulesId="cricket"
+            houseRules={houseRuleLines('cricket', game)}
             title={t('Cricket{{value}}', { value: variant === 'Standard' ? '' : ` · ${variant}` })}
             subtitle={t('{{value}} · Round {{round}}', { value: RULES[variant] ?? RULES.Standard, round: round })}
             rows={rows}
