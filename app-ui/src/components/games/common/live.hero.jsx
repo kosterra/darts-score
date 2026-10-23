@@ -23,7 +23,7 @@ import { t } from '../../../utils/i18n';
 const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [] }) => {
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
-    const [rulesButton, rules] = useGameRules(rulesId, false, houseRules);
+    const [rulesButton, rules] = useGameRules(rulesId, houseRules);
 
     return (
         <header className="hero-header result-hero x01-live-hero">

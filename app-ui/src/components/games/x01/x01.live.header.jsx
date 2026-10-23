@@ -53,7 +53,7 @@ const X01LiveHeader = () => {
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const handicap = hasHandicap(game);
-    const [rulesButton, rules] = useGameRules('x01', false, houseRuleLines('x01', game));
+    const [rulesButton, rules] = useGameRules('x01', houseRuleLines('x01', game));
     const waysOut = useWaysOut();
 
     // a visit of 100 or more: a short "TON!" next to the score of the player who threw it

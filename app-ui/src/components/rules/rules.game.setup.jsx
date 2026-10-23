@@ -42,7 +42,7 @@ const RulesGameSetup = () => {
     const toast = useRef(null);
     const navigate = useNavigate();
     // a game the players may not know yet: its rules open from the start
-    const [rulesButton, rules] = useGameRules(kind, true);
+    const [rulesButton, rules] = useGameRules(kind);
 
     if (!definition) return <Navigate replace to="/play" />;
 

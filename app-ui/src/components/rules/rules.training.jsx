@@ -178,7 +178,7 @@ const RulesTraining = () => {
     const [boardVersion, setBoardVersion] = useState(0);
     const toast = useRef(null);
     // the rules of the training: open from the start in the setup
-    const [rulesButton, rules] = useGameRules(kind, true);
+    const [rulesButton, rules] = useGameRules(kind);
 
     useEffect(() => writeRunning(kind, running), [kind, running]);
 
