@@ -18,6 +18,10 @@ export default (mongoose) => {
       visits:            { type: [{ _id: false, player: String, darts: [String] }], default: [] },
       playerModels:      mongoose.Schema.Types.Mixed,
       flyingDarts:       { type: String, enum: ['players', 'on', 'off'], default: 'players' },
+      // a friendly game: left out of the club's leaderboards, records and Hall of Shame
+      friendly:          { type: Boolean, default: false },
+      // the club format it was started from, when one
+      format:            String,
     },
     { timestamps: true }
   );

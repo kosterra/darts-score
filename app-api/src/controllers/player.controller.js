@@ -400,7 +400,8 @@ export const setTrainingPrivacy = async (req, res) => {
 
 /**
  * A player's favourite double and main treble for the ways out ("auto" learns
- * them from the games), and how their darts fly onto the board in X01.
+ * them from the games), how their darts fly onto the board in X01, and
+ * whether they play with a handicap.
  * Club admins, or the player themselves.
  */
 export const setPreferences = async (req, res) => {
@@ -430,6 +431,8 @@ export const setPreferences = async (req, res) => {
         flightPattern: req.body.flightPattern ?? current.flightPattern ?? 'plain',
         flightShape: req.body.flightShape ?? current.flightShape ?? 'standard',
         barrel: req.body.barrel ?? current.barrel ?? 'classic',
+        // whether the player plays with a handicap when the others want one
+        handicap: req.body.handicap ?? current.handicap ?? 'accept',
     };
     await player.save();
     res.send(player.toJSON());

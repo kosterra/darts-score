@@ -24,8 +24,11 @@ const rulesOfGame = (game) => ({ startingScore: Number(game.startingScore), legI
  * game: the game's settings, players: the chosen players
  * rules: { [playerId]: { startingScore, legInMode, legOutMode } } or null when off
  * onChange(rules | null)
+ * suggest: whether the club offers the suggestion; maxDifference: the most points the
+ * starting scores may differ by (0: no limit); declined: the nicknames of players who
+ * play without a handicap
  */
-const X01HandicapConfig = ({ game, players, rules, onChange }) => {
+const X01HandicapConfig = ({ game, players, rules, onChange, suggest = true, maxDifference = 0, declined = [] }) => {
     const [form, setForm] = useState({});
     const [levels, setLevels] = useState({});
     const [ages, setAges] = useState({});
@@ -83,7 +86,7 @@ const X01HandicapConfig = ({ game, players, rules, onChange }) => {
                 <InputSwitch
                     inputId="x01-handicap"
                     checked={enabled}
-                    disabled={players.length < 2}
+                    disabled={players.length < 2 || declined.length > 0}
                     onChange={(e) => onChange(e.value ? Object.fromEntries(players.map(player => [player.id, rulesOfGame(game)])) : null)}
                 />
                 <label htmlFor="x01-handicap" className="d-flex flex-column">
@@ -91,14 +94,17 @@ const X01HandicapConfig = ({ game, players, rules, onChange }) => {
                     <span className="text-faint fs-8">
                         {players.length < 2
                             ? t('Choose the players first.')
-                            : t('Own starting score and in/out per player, for players of different strength.')}
+                            : declined.length
+                                ? t('{{names}} play without a handicap.', { names: declined.join(', ') })
+                                : t('Own starting score and in/out per player, for players of different strength.')}
+                        {maxDifference > 0 && players.length >= 2 && !declined.length && <> {t('The club allows a difference of {{points}} points at most.', { points: maxDifference })}</>}
                     </span>
                 </label>
             </div>
 
             {enabled && players.length >= 2 &&
                 <div className="x01-handicap-players mt-3">
-                    <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                    {suggest && <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                         <span className="text-faint fs-8">{t('Suggested from each player\'s recent average, level and age.')}</span>
                         <Button
                             type="button"
@@ -109,7 +115,7 @@ const X01HandicapConfig = ({ game, players, rules, onChange }) => {
                             disabled={isSuggested}
                             onClick={apply}
                         />
-                    </div>
+                    </div>}
                     {players.map(player => {
                         const rule = ruleOf(player.id);
                         const needsAge = !player.dateOfBirth;
@@ -117,7 +123,7 @@ const X01HandicapConfig = ({ game, players, rules, onChange }) => {
                             <div key={player.id} className="x01-handicap-player">
                                 <div className="x01-handicap-who">
                                     <span className="text-default fw-semibold">{player.nickname}</span>
-                                    <span className="text-faint fs-8">{suggestion[player.id]?.reason}</span>
+                                    {suggest && <span className="text-faint fs-8">{suggestion[player.id]?.reason}</span>}
                                 </div>
                                 <div className="x01-handicap-fields">
                                     {needsAge &&

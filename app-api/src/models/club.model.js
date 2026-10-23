@@ -28,6 +28,10 @@ export default (mongoose) => {
       // once), 'approval' (they ask, an admin accepts or declines) or 'closed' (only the
       // admins add players). Clubs that take members are listed under "Join a club".
       joinPolicy:      { type: String, enum: ['open', 'approval', 'closed'], default: 'closed' },
+      // The club's own rules for its games: per game the defaults, the choices offered
+      // and the settings locked; its own formats; whether players may mark a game as
+      // friendly; the handicap policy; the ways out. See rules/club.rules.js
+      gameRules:       { type: mongoose.Schema.Types.Mixed, default: undefined },
       // Users who manage the club; always at least one
       admins: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }], index: true },
     },

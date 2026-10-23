@@ -5,6 +5,8 @@ import { GAMES } from '../../rules/games';
 import { TRAININGS } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import { t } from '../../utils/i18n';
+import { useAuth } from '../../utils/auth.context';
+import { isEnabled } from '../../rules/club.rules';
 
 const playersLine = (definition) => definition.minPlayers === definition.maxPlayers
     ? t('{{count}} players', { count: definition.minPlayers })
@@ -17,7 +19,9 @@ const playersLine = (definition) => definition.minPlayers === definition.maxPlay
  * and a tap to set one up.
  */
 const MoreGamesPage = ({ trainings = false }) => {
-    const definitions = trainings ? TRAININGS : GAMES;
+    const { activeClub } = useAuth();
+    // the games the club plays
+    const definitions = trainings ? TRAININGS : GAMES.filter(definition => isEnabled(definition.id, activeClub?.gameRules));
     return (
         <div className="container-fluid p-4 border-0">
             <Panel header={trainings ? t('More trainings') : t('More games')} className="w-100 w-xxl-75 mx-auto">

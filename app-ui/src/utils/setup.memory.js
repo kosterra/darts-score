@@ -15,12 +15,13 @@ export const loadSetup = (type) => {
     }
 };
 
-// setup: { settings, playerIds, handicap }; guests play one game only and are left out
-export const saveSetup = (type, { settings, players = [], handicap = null }) => {
+// setup: { settings, playerIds, handicap, friendly }; guests play one game only and are left out
+export const saveSetup = (type, { settings, players = [], handicap = null, friendly = false }) => {
     const members = players.filter(player => !player.guest).map(player => player.id);
     try {
         localStorage.setItem(keyOf(type), JSON.stringify({
             settings,
+            friendly,
             playerIds: members,
             handicap: handicap && Object.fromEntries(Object.entries(handicap).filter(([id]) => members.includes(id))),
         }));

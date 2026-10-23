@@ -60,6 +60,15 @@ export default (app) => {
         validate,
         ClubController.update
     );
+    // the club's own rules for its games (club admins)
+    router.put('/:id/game-rules',
+        param('id').isMongoId().withMessage('Invalid club.'),
+        body().isObject().withMessage('The game rules are an object.'),
+        body('formats').optional().isArray({ max: 20 }).withMessage('A club has at most 20 formats.'),
+        body('formats.*.name').optional().isString().isLength({ max: 60 }).withMessage('The name of a format can have at most 60 characters.'),
+        validate,
+        ClubController.updateGameRules
+    );
     router.delete('/:id', ClubController.remove);
 
     // Club logo

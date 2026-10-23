@@ -65,6 +65,8 @@ export default (app) => {
         body('layout.*.id').optional().isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
         body('layout.*.size').optional().isIn(['S', 'M', 'L', 'F']).withMessage('The width of a widget is S, M, L or F.'),
         validate, AuthController.setDashboard);
+    // how the player likes to play (merged into what they had)
+    router.put('/game-preferences', requireAuth, body().isObject().withMessage('The preferences are an object.'), validate, AuthController.setGamePreferences);
     router.put('/language', requireAuth, body('language').isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.setLanguage);
     router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), body('defaultClub').optional({ values: 'null' }).isMongoId().withMessage('Choose one of your clubs.'), validate, AuthController.updateMe);
     router.put('/password',

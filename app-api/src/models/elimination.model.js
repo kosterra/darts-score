@@ -22,6 +22,10 @@ export default (mongoose) => {
       playerModels:      mongoose.Schema.Types.Mixed,
       // whether the darts fly onto the board: 'players' as each player set it, 'on' or 'off' for everyone
       flyingDarts:       { type: String, enum: ['players', 'on', 'off'], default: 'players' },
+      // a friendly game: left out of the club's leaderboards, records and Hall of Shame
+      friendly:          { type: Boolean, default: false },
+      // the club format it was started from, when one
+      format:            String,
     },
     { timestamps: true }
   );

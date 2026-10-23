@@ -4,6 +4,7 @@
  */
 import { isBull, isDouble, isTreble } from './darts';
 import { t, tn } from '../utils/i18n';
+import { HALVE_IT_CLASSIC, HALVE_IT_SHORT } from './club.rules';
 
 const sum = (values) => values.reduce((total, value) => total + value, 0);
 const playersOf = (ids, make) => Object.fromEntries(ids.map(id => [id, make(id)]));
@@ -29,7 +30,7 @@ export const SHANGHAI = {
     maxPlayers: 8,
     options: [{ key: 'rounds', label: t('Rounds'), values: [{ value: 7, label: t('7 rounds (1 to 7)') }, { value: 20, label: t('20 rounds (1 to 20)') }], default: 7 }],
     init: (settings, ids) => ({ players: playersOf(ids, () => ({ points: 0, shanghai: false, hits: 0, darts: 0, last: null })), shanghaiBy: null }),
-    visit: (state, id, darts, { round }) => {
+    visit: (state, id, darts, { round, settings }) => {
         const player = state.players[id];
         const onTarget = darts.filter(dart => dart.number === round);
         player.points += sum(onTarget.map(dart => dart.points));
@@ -39,13 +40,17 @@ export const SHANGHAI = {
         const rings = new Set(onTarget.map(dart => dart.ring));
         if (rings.has('S') && rings.has('D') && rings.has('T')) {
             player.shanghai = true;
-            state.shanghaiBy = state.shanghaiBy ?? id;
+            // a house rule may let a Shanghai only score
+            if (settings?.instantWin !== false) {
+                player.shanghaiWin = true;
+                state.shanghaiBy = state.shanghaiBy ?? id;
+            }
         }
         return state;
     },
     over: (state, { settings, round, roundComplete }) => Boolean(state.shanghaiBy) || (roundComplete && round > settings.rounds),
     // a Shanghai beats any score
-    score: (player) => (player.shanghai ? 100000 : 0) + player.points,
+    score: (player) => (player.shanghaiWin ? 100000 : 0) + player.points,
     progress: { label: t('Points'), value: (player) => player.points },
     hero: (player) => ({
         score: player.points,
@@ -63,10 +68,11 @@ export const SHANGHAI = {
         [t('Hit rate'), player.darts ? `${Math.round(player.hits / player.darts * 100)} %` : '–'],
         [t('Shanghai'), player.shanghai ? t('Yes') : t('No')],
     ],
-    preview: (state, id, darts, { round }) => {
+    preview: (state, id, darts, { round, settings }) => {
         const points = sum(darts.filter(dart => dart.number === round).map(dart => dart.points));
         const rings = new Set(darts.filter(dart => dart.number === round).map(dart => dart.ring));
-        return rings.has('S') && rings.has('D') && rings.has('T') ? t('Shanghai! The game is won.') : t('{{points}} points this visit', { points });
+        if (!(rings.has('S') && rings.has('D') && rings.has('T'))) return t('{{points}} points this visit', { points });
+        return settings?.instantWin === false ? t('Shanghai! {{points}} points this visit', { points }) : t('Shanghai! The game is won.');
     },
 };
 
@@ -97,14 +103,22 @@ export const KILLER = {
         players: playersOf(ids, id => ({ number: settings.numbers?.[id] ?? ids.indexOf(id) + 1, lives: settings.lives, killer: false, kills: 0, outAt: null, darts: 0 })),
         visits: 0,
     }),
-    visit: (state, id, darts) => {
+    visit: (state, id, darts, { settings } = {}) => {
         state.visits += 1;
         const player = state.players[id];
         player.darts += darts.length;
+        // house rules: any hit on the number may make a killer, and a killer's own double may be safe
+        const anyHit = settings?.become === 'any';
+        const ownSafe = settings?.ownDouble === 'safe';
         for (const dart of darts) {
-            if (!isDouble(dart) || player.lives <= 0) continue;
+            if (player.lives <= 0) continue;
+            if (!player.killer && anyHit && dart.number === player.number) {
+                player.killer = true;
+                continue;
+            }
+            if (!isDouble(dart)) continue;
             if (dart.number === player.number) {
-                if (player.killer) player.lives -= 1;
+                if (player.killer) { if (!ownSafe) player.lives -= 1; }
                 else player.killer = true;
                 continue;
             }
@@ -133,9 +147,11 @@ export const KILLER = {
     }),
     moment: (before, after) => (after.killer && !before.killer ? { words: t('Killer!'), number: String(after.number), sign: t('Killer') }
         : after.kills - before.kills >= 2 ? { words: t('{{count}} lives taken!', { count: after.kills - before.kills }), number: String(after.kills - before.kills), sign: t('Killer') } : null),
-    target: (state, id) => state.players[id].killer
+    target: (state, id, { settings } = {}) => state.players[id].killer
         ? t('Killer: hit the doubles of the others')
-        : t('Hit double {{number}} to become a killer', { number: state.players[id].number }),
+        : settings?.become === 'any'
+            ? t('Hit the {{number}} to become a killer', { number: state.players[id].number })
+            : t('Hit double {{number}} to become a killer', { number: state.players[id].number }),
     columns: [
         { key: 'number', label: t('Number'), value: (player) => player.number },
         { key: 'lives', label: t('Lives'), value: (player) => player.lives > 0 ? '♥'.repeat(player.lives) : t('Out') },
@@ -146,27 +162,29 @@ export const KILLER = {
         [t('Lives left'), Math.max(0, player.lives)],
         [t('Lives taken'), player.kills],
     ],
-    preview: (state, id, darts) => {
+    preview: (state, id, darts, { settings } = {}) => {
         const player = state.players[id];
-        const taken = player.killer || darts.some(dart => isDouble(dart) && dart.number === player.number)
+        const becomes = (dart) => dart.number === player.number && (isDouble(dart) || settings?.become === 'any');
+        const taken = player.killer || darts.some(becomes)
             ? darts.filter(dart => isDouble(dart) && dart.number !== player.number && Object.values(state.players).some(other => other.number === dart.number && other.lives > 0)).length
             : 0;
         return taken ? tn(taken, '{{count}} life taken', '{{count}} lives taken') : t('Nobody hit yet');
     },
 };
 
-// Halve-It: the targets of the rounds, in order
-const HALVE_IT_TARGETS = [
-    { key: '20', label: '20', points: (darts) => sum(darts.filter(dart => dart.number === 20).map(dart => dart.points)) },
-    { key: '16', label: '16', points: (darts) => sum(darts.filter(dart => dart.number === 16).map(dart => dart.points)) },
-    { key: 'double', label: t('Any double'), points: (darts) => sum(darts.filter(isDouble).map(dart => dart.points)) },
-    { key: '17', label: '17', points: (darts) => sum(darts.filter(dart => dart.number === 17).map(dart => dart.points)) },
-    { key: 'treble', label: t('Any treble'), points: (darts) => sum(darts.filter(isTreble).map(dart => dart.points)) },
-    { key: '18', label: '18', points: (darts) => sum(darts.filter(dart => dart.number === 18).map(dart => dart.points)) },
-    { key: '41', label: t('Exactly 41'), points: (darts) => sum(darts.map(dart => dart.points)) === 41 ? 41 : 0 },
-    { key: '19', label: '19', points: (darts) => sum(darts.filter(dart => dart.number === 19).map(dart => dart.points)) },
-    { key: 'bull', label: t('Bull'), points: (darts) => sum(darts.filter(isBull).map(dart => dart.points)) },
-];
+// Halve-It: a target of a round, from its key (a number, 'double', 'treble', '41' or 'bull')
+const onNumber = (number) => (darts) => sum(darts.filter(dart => dart.number === number).map(dart => dart.points));
+const HALVE_IT_SPECIAL = {
+    double: { label: t('Any double'), points: (darts) => sum(darts.filter(isDouble).map(dart => dart.points)) },
+    treble: { label: t('Any treble'), points: (darts) => sum(darts.filter(isTreble).map(dart => dart.points)) },
+    41: { label: t('Exactly 41'), points: (darts) => sum(darts.map(dart => dart.points)) === 41 ? 41 : 0 },
+    bull: { label: t('Bull'), points: (darts) => sum(darts.filter(isBull).map(dart => dart.points)) },
+};
+export const halveItTarget = (key) => ({ key, ...(HALVE_IT_SPECIAL[key] ?? { label: String(key), points: onNumber(Number(key)) }) });
+// the targets of the rounds, in order: the classic ones, unless the setup chose others (a club's own: targetList)
+const halveItTargetsOf = (settings) => (settings?.targetList?.length ? settings.targetList
+    : settings?.targets === 'short' ? HALVE_IT_SHORT : HALVE_IT_CLASSIC).map(halveItTarget);
+const HALVE_IT_TARGETS = HALVE_IT_CLASSIC.map(halveItTarget);
 const HALVE_IT_START = 40;
 
 /**
@@ -188,9 +206,9 @@ export const HALVE_IT = {
     maxPlayers: 8,
     options: [],
     init: (settings, ids) => ({ players: playersOf(ids, () => ({ points: HALVE_IT_START, halved: 0, best: 0, rounds: [], darts: 0 })) }),
-    visit: (state, id, darts, { round }) => {
+    visit: (state, id, darts, { round, settings }) => {
         const player = state.players[id];
-        const target = HALVE_IT_TARGETS[round - 1];
+        const target = halveItTargetsOf(settings)[round - 1];
         const points = target ? target.points(darts) : 0;
         player.darts += darts.length;
         if (points > 0) {
@@ -203,7 +221,7 @@ export const HALVE_IT = {
         player.rounds.push(points);
         return state;
     },
-    over: (state, { round, roundComplete }) => roundComplete && round > HALVE_IT_TARGETS.length,
+    over: (state, { round, roundComplete, settings }) => roundComplete && round > halveItTargetsOf(settings).length,
     score: (player) => player.points,
     progress: { label: t('Points'), value: (player) => player.points },
     hero: (player) => ({
@@ -215,7 +233,10 @@ export const HALVE_IT = {
         const last = after.rounds.at(-1);
         return last >= 100 ? { words: t('{{points}} in one round!', { points: last }), number: String(last), sign: t('Halve-It') } : null;
     },
-    target: (state, id, { round }) => t('Round {{round}} of {{rounds}}: {{target}}', { round, rounds: HALVE_IT_TARGETS.length, target: HALVE_IT_TARGETS[round - 1]?.label ?? '' }),
+    target: (state, id, { round, settings }) => {
+        const targets = halveItTargetsOf(settings);
+        return t('Round {{round}} of {{rounds}}: {{target}}', { round, rounds: targets.length, target: targets[round - 1]?.label ?? '' });
+    },
     columns: [
         { key: 'points', label: t('Points'), value: (player) => player.points },
         { key: 'halved', label: t('Halved'), value: (player) => player.halved },
@@ -225,8 +246,8 @@ export const HALVE_IT = {
         [t('Halved'), player.halved],
         [t('Best round'), player.best],
     ],
-    preview: (state, id, darts, { round }) => {
-        const target = HALVE_IT_TARGETS[round - 1];
+    preview: (state, id, darts, { round, settings }) => {
+        const target = halveItTargetsOf(settings)[round - 1];
         const points = target ? target.points(darts) : 0;
         return points > 0 ? t('{{points}} points this visit', { points }) : t('No hit yet: the score would be halved');
     },

@@ -33,6 +33,8 @@ export const newCricketPlayer = () => ({
 
 export const newCricketState = (settings, players) => ({
     variant: settings.variant ?? DEFAULT_VARIANT,
+    // a club's house rule: after so many rounds the game is decided (0: no limit)
+    roundLimit: Number(settings.roundLimit) || 0,
     startingScore: 0,
     numberOfPlayers: players.length,
     isSoloGame: false,
@@ -140,6 +142,32 @@ export const scoreWins = (game, score, sectionHit) => {
     return winsWithScore(variant, score, others);
 };
 
+// the numbers a player closed, and all their marks
+const closedOf = (model) => CRICKET_NUMBERS.filter(number => (model.sectionHit?.[number] ?? 0) >= 3).length;
+const allMarksOf = (model) => CRICKET_NUMBERS.reduce((total, number) => total + Math.min(model.sectionHit?.[number] ?? 0, 3), 0);
+
+/**
+ * A club's round limit: after a full round at or past the limit the game is
+ * decided on the score (the highest, in Cut-throat the lowest; No-score on
+ * the numbers closed), then the numbers closed, then the marks; a tie plays
+ * on, round by round. → the winner's id or null
+ */
+const roundLimitWinner = (game) => {
+    const limit = Number(game.roundLimit) || 0;
+    const visits = game.allThrows.length;
+    if (!limit || visits % game.players.length !== 0 || visits / game.players.length < limit) return null;
+    const variant = variantOf(game);
+    const rank = (id) => {
+        const model = game.playerModels[id];
+        const score = variant === 'No-score' ? 0 : variant === 'Cut-throat' ? -(model.score ?? 0) : (model.score ?? 0);
+        return [score, closedOf(model), allMarksOf(model)];
+    };
+    const better = (a, b) => a.findIndex((value, index) => value !== b[index]);
+    const ranked = game.players.map(id => ({ id, rank: rank(id) }))
+        .sort((a, b) => { const at = better(a.rank, b.rank); return at === -1 ? 0 : b.rank[at] - a.rank[at]; });
+    return ranked.length > 1 && better(ranked[0].rank, ranked[1].rank) === -1 ? null : ranked[0].id;
+};
+
 /**
  * The game after one visit of the player at the oche. Changes "game" itself.
  */
@@ -168,9 +196,11 @@ export const cricketVisit = (game, darts) => {
     }
     game.currentThrow = ['', '', ''];
 
-    if (won) {
+    // a club's round limit may decide the game after the round
+    const winner = won ? playerId : roundLimitWinner(game);
+    if (winner) {
         Object.assign(game, { gameIsRunning: false, hasWinner: true });
-        model.hasWonGame = true;
+        game.playerModels[winner].hasWonGame = true;
         return game;
     }
     game.currentPlayerTurn = game.players[(game.players.indexOf(playerId) + 1) % game.players.length];
@@ -191,7 +221,7 @@ export const CRICKET = {
     score: (player) => player.score ?? 0,
 };
 
-export const cricketSettingsOf = (game) => ({ variant: variantOf(game), ...(game.starter ? { starter: game.starter } : {}) });
+export const cricketSettingsOf = (game) => ({ variant: variantOf(game), roundLimit: Number(game.roundLimit) || 0, ...(game.starter ? { starter: game.starter } : {}) });
 
 // the whole game from what is stored ({ variant, players, visits, … })
 export const replayCricket = (stored) => {

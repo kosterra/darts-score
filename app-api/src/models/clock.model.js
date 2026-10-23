@@ -21,6 +21,10 @@ export default (mongoose) => {
 
       // each player's state, worked out from the visits: { target, darts, perTarget, finished, rank, hasWonGame }
       playerModels:      mongoose.Schema.Types.Mixed,
+      // a friendly game: left out of the club's leaderboards, records and Hall of Shame
+      friendly:          { type: Boolean, default: false },
+      // the club format it was started from, when one
+      format:            String,
     },
     { timestamps: true }
   );

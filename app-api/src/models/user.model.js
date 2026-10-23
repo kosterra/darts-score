@@ -21,6 +21,8 @@ export default (mongoose) => {
       // the user's own dashboards, per club, instead of the club's: [{ club, layout: [{ id, size }] }]
       dashboards:     { type: [{ _id: false, club: { type: mongoose.Schema.Types.ObjectId, ref: 'club' }, layout: [{ _id: false, id: String, size: String }] }], default: [] },
       role:           { type: String, enum: Object.values(ROLES), default: ROLES.USER },
+      // how the player likes to play, on every device: the ways out, the keypad, the last setups, … (see rules/club.rules.js)
+      gamePreferences: { type: mongoose.Schema.Types.Mixed, default: undefined },
       // Bumped on password change so older session cookies stop working
       sessionVersion: { type: Number, default: 0 },
       // Hash of the token from a "set your password" mail, and when it stops working

@@ -22,7 +22,7 @@ describe('setup memory', () => {
             players: [{ id: 'a' }, { id: 'g', guest: true }, { id: 'b' }],
             handicap: { a: { startingScore: 501 }, g: { startingScore: 101 } },
         });
-        expect(loadSetup('x01')).toEqual({ settings: { startingScore: 301 }, playerIds: ['a', 'b'], handicap: { a: { startingScore: 501 } } });
+        expect(loadSetup('x01')).toEqual({ settings: { startingScore: 301 }, friendly: false, playerIds: ['a', 'b'], handicap: { a: { startingScore: 501 } } });
         expect(loadSetup('cricket')).toBeNull();
         localStorage.setItem('darts-score.activeClub', 'club-2');
         expect(loadSetup('x01')).toBeNull();

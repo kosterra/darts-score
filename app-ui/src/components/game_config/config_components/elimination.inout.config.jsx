@@ -1,12 +1,18 @@
 import { SelectButton } from 'primereact/selectbutton';
 import SetsLegsConfigOptions from '../config_options/sets.legs.config.options';
 import { t } from '../../../utils/i18n';
+import { SettingTitle } from '../club_rules/club.rules.setup';
 
 const EliminationInOutConfig = (props) => {
     const {
         gameInOption,
         gameOutOption,
-        onInOutChange
+        onInOutChange,
+        // the choices the club offers, and its locks
+        inOptions = SetsLegsConfigOptions.legInOptions.values,
+        outOptions = SetsLegsConfigOptions.legOutOptions.values,
+        inLocked = false,
+        outLocked = false,
     } = props;
 
     return (
@@ -14,28 +20,30 @@ const EliminationInOutConfig = (props) => {
         <div>
             <div className="row">
                 <div className="col-12 col-xl-6">
-                    <p className="setting-title">{t('Starting In')}</p>
+                    <SettingTitle locked={inLocked}>{t('Starting In')}</SettingTitle>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col">
                             <SelectButton
                                 value={gameInOption}
                                 onChange={(e) => onInOutChange('gameInMode', e.value)}
                                 optionLabel="value"
-                                options={SetsLegsConfigOptions.legInOptions.values}
+                                options={inLocked ? inOptions.filter(option => option.value === gameInOption) : inOptions}
+                                disabled={inLocked}
                                 className="p-selectbutton-pills flex-wrap"
                             />
                         </div>
                     </div>
                 </div>
                 <div className="col-12 col-xl-6">
-                    <p className="setting-title">{t('Checkout')}</p>
+                    <SettingTitle locked={outLocked}>{t('Checkout')}</SettingTitle>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col">
                             <SelectButton
                                 value={gameOutOption}
                                 onChange={(e) => onInOutChange('gameOutMode', e.value)}
                                 optionLabel="value"
-                                options={SetsLegsConfigOptions.legOutOptions.values}
+                                options={outLocked ? outOptions.filter(option => option.value === gameOutOption) : outOptions}
+                                disabled={outLocked}
                                 className="p-selectbutton-pills flex-wrap"
                             />
                         </div>

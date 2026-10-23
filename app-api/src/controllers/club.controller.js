@@ -9,6 +9,7 @@ import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
+import { normalizeClubRules } from '../rules/club.rules.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -104,6 +105,20 @@ export const update = async (req, res) => {
         club.dashboardLayout = normalizeLayout(req.body.dashboardLayout);
         club.dashboardWidgets = undefined;
     }
+    await club.save();
+    res.json(await withAdmins(club));
+};
+
+/**
+ * The club's own rules for its games, as its admins set them (see
+ * rules/club.rules.js); whatever does not fit is left out.
+ */
+export const updateGameRules = async (req, res) => {
+    logger.debug('clubs update game rules called');
+    const club = await loadManagedClub(req, res);
+    if (!club) return;
+    club.gameRules = normalizeClubRules(req.body);
+    club.markModified('gameRules');
     await club.save();
     res.json(await withAdmins(club));
 };

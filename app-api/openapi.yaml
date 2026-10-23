@@ -213,6 +213,30 @@ paths:
         '409':
           description: Email already registered
       operationId: putAuthMe
+  /api/auth/game-preferences:
+    put:
+      tags:
+        - Auth
+      summary: Save how the player likes to play, on every device
+      description: >-
+        Merged into what the account had: waysOut (all, turn, off), autoSend (the visit is sent after the third dart),
+        leftHanded (the keypad for the left hand), celebrations (full or quiet), inputMode (board or keypad), favourites
+        (per game up to three formats pinned first), setups (per club and game the last setup { settings, friendly,
+        playerIds, savedAt }, merged per club) and training ({ bot, atcMode, atcScoring }). Whatever does not fit is left out.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: The account with its gamePreferences
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Validation error
+      operationId: putAuthGamePreferences
   /api/auth/language:
     put:
       tags:
@@ -536,6 +560,57 @@ paths:
         '409':
           description: The club still has players (only for club admins)
       operationId: deleteClubsByid
+  /api/clubs/{id}/game-rules:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags:
+        - Clubs
+      summary: Save the club's own rules for its games (club admins)
+      description: >-
+        Per game (x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics) whether the club plays it, its defaults,
+        the choices it offers and the settings it locks, including the house rules (X01 legStarter, roundLimit and bull; Cricket
+        roundLimit; Shanghai instantWin; Killer become and ownDouble; Halve-It targets). Also the club's own formats (at most 20,
+        each { id, game, name, settings, friendly }), builtInFormats, friendlyChoice (players may mark a game as friendly),
+        handicap { mode off|offered|suggested, maxDifference }, waysOut and halveItTargets. Whatever does not fit is left out. A new
+        game against a locked rule, a choice not offered or the handicap policy is refused with 422; a running game keeps its
+        settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                games:
+                  type: object
+                formats:
+                  type: array
+                  maxItems: 20
+                  items:
+                    type: object
+                builtInFormats:
+                  type: boolean
+                friendlyChoice:
+                  type: boolean
+                handicap:
+                  type: object
+                waysOut:
+                  type: boolean
+                halveItTargets:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: The club with its game rules
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Validation error
+      operationId: putClubsByidGameRules
   /api/clubs/{id}/logo:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -5714,6 +5789,12 @@ components:
           type: string
           example: classic
           description: A barrel the player owns
+        handicap:
+          type: string
+          enum:
+            - accept
+            - decline
+          description: Whether the player plays with a handicap, or always from the game's own starting score
     MyPlayer:
       allOf:
         - $ref: '#/components/schemas/Player'

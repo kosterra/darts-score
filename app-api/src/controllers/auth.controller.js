@@ -1,3 +1,4 @@
+import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { LANGUAGES, ROLES } from '../models/user.model.js';
@@ -97,6 +98,24 @@ export const setLanguage = async (req, res) => {
     req.user.language = req.body.language;
     await req.user.save();
     res.json(req.user);
+};
+
+/**
+ * The player's own preferences for playing, merged into what they had:
+ * whatever does not fit is left out (see rules/club.rules.js).
+ */
+export const setGamePreferences = async (req, res) => {
+    const merged = { ...normalizeGamePreferences(req.user.gamePreferences), ...(req.body ?? {}) };
+    // the setups are merged per club, so saving one game's setup keeps the others
+    if (req.body?.setups) {
+        const before = normalizeGamePreferences(req.user.gamePreferences).setups;
+        merged.setups = { ...before };
+        for (const [clubId, games] of Object.entries(req.body.setups ?? {})) merged.setups[clubId] = { ...before[clubId], ...games };
+    }
+    req.user.gamePreferences = normalizeGamePreferences(merged);
+    req.user.markModified('gamePreferences');
+    await req.user.save();
+    res.json(req.user.toJSON());
 };
 
 export const updateMe = async (req, res) => {

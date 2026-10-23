@@ -5,8 +5,21 @@ import { removeWithBadges, syncGameBadges } from '../utils/badge.service.js';
 import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import { knownInClub } from '../models/player.model.js';
 import { answerOf, hasRules, storedOf } from '../utils/game.view.js';
+import { GAME_SETTINGS, RULES_KINDS, ruleViolations } from '../rules/club.rules.js';
 
 const DEFAULT_LIMIT = 100;
+
+// what a game was set up with, and stays with: its settings, the handicap and whether it is friendly
+const SET_UP = ['handicap', 'friendly', 'format'];
+const keepSetUp = (game, stored, changes) => {
+    const keys = RULES_KINDS.includes(game) ? ['settings', 'kind', ...SET_UP] : [...(GAME_SETTINGS[game] ?? []).map(setting => setting.key), ...SET_UP];
+    const plain = typeof stored.toObject === 'function' ? stored.toObject() : stored;
+    for (const key of keys) {
+        if (key in plain) changes[key] = plain[key];
+        else delete changes[key];
+    }
+    return changes;
+};
 
 /**
  * True when every given player id belongs to the club.
@@ -48,6 +61,9 @@ export const createGameController = (Model, gameName, type = null) => {
             if (!(await playersBelongToClub(req.body.players, req.club._id))) {
                 return res.status(422).json({ errors: ['All players must belong to the selected club.'] });
             }
+            // the club's own rules: its games, its locked settings, its handicap policy
+            const problems = ruleViolations(type ?? req.body.kind, req.club.gameRules, req.body);
+            if (problems.length) return res.status(422).json({ errors: problems });
             const doc = new Model({ ...toStore(req.body), club: req.club._id });
             const data = await doc.save();
             checkLater(() => noteCreated(req, 'game', { id: data._id, name: label, names: [] }));
@@ -105,8 +121,11 @@ export const createGameController = (Model, gameName, type = null) => {
             }
             // Use $set explicitly to prevent MongoDB operator injection from req.body;
             // a game never moves to another club
-            const changes = { ...toStore(req.body), club: req.club._id };
-            const data = validId(req) ? await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true }) : null;
+            const stored = validId(req) ? await Model.findOne(inClub(req)) : null;
+            if (!stored) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            // a game keeps what it was set up with, also when the club's rules change meanwhile
+            const changes = keepSetUp(type ?? stored.kind, stored, { ...toStore(req.body), club: req.club._id });
+            const data = await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true });
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges
             if (data.hasWinner) await syncGameBadges(req.club._id, data);

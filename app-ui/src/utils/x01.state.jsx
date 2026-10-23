@@ -12,7 +12,7 @@ import X01Service from '../services/x01.service';
 import X01TrainingService from '../services/x01.training.service';
 import { QuickX01Service, quickPlayersOf } from '../services/quick.game.service';
 import { BOT_ID, botDart, botPlayer, botSkill } from './x01.bot';
-import { replayX01 } from '../rules/x01';
+import { replayX01, visitPoints } from '../rules/x01';
 import PlayerService from '../services/player.service';
 
 import {
@@ -342,26 +342,8 @@ const X01State = props => {
         return dartsThrown < 3 && currentScore > 0 && !checkIfScoreIsBusted(currentScore);
     };
 
-    const getCurrentThrowScore = () => {
-        let totalScore = [...state.game.currentThrow].reduce((total, dart) => {
-            let dartIsValid = validateDartValue(dart);
-
-            if (!dartIsValid) return total += 0;
-
-            if (Number(dart) === 0 || dart === '') return total += 0;
-
-            let score = Number(dart.slice(1));
-            if ((score >= 1 && score <= 20) || /[SD]25/i.test(dart)) {
-                if (/t/i.test(dart[0])) score *= 3;
-                if (/d/i.test(dart[0])) score *= 2;
-                return total += score;
-            }
-
-            return total += 0;
-        }, 0);
-
-        return totalScore;
-    }
+    // the points of the visit being entered, as the rules count them (with the club's bull)
+    const getCurrentThrowScore = () => visitPoints(state.game.currentThrow.filter(dart => validateDartValue(dart)), state.game.bull);
 
     // undo: the game without its last visit
     const onClickReturnToPreviousPlayer = () => {

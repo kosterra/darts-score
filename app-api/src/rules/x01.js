@@ -15,7 +15,7 @@
 import { DARTS_PER_VISIT, replayGame } from './engine.js';
 
 // what the stored game keeps besides its visits and the cached results
-export const X01_SETTINGS = ['startingScore', 'setMode', 'legMode', 'legInMode', 'legOutMode', 'numberOfSets', 'numberOfLegs'];
+export const X01_SETTINGS = ['startingScore', 'setMode', 'legMode', 'legInMode', 'legOutMode', 'numberOfSets', 'numberOfLegs', 'legStarter', 'roundLimit', 'bull'];
 
 const PLAYER_RULES = ['startingScore', 'legInMode', 'legOutMode'];
 
@@ -26,18 +26,20 @@ export const outModeOf = (game, playerId) => own(game, playerId).legOutMode ?? g
 
 const thrown = (darts) => darts.filter(dart => dart && String(dart).trim() !== '');
 
-// the points of a dart as the app has always counted them ('0', 'S20', 'D25', …)
-export const dartPoints = (dart) => {
+// the points of a dart as the app has always counted them ('0', 'S20', 'D25', …);
+// bull 'fifty' (a club's house rule): the outer bull counts 50 as the bullseye
+export const dartPoints = (dart, bull = 'split') => {
     const value = String(dart ?? '').trim().toUpperCase();
     if (value === '' || Number(value) === 0) return 0;
     const match = value.match(/^([SDT])(\d{1,2})$/);
     if (!match) return 0;
     const number = Number(match[2]);
     if (!((number >= 1 && number <= 20) || (number === 25 && match[1] !== 'T'))) return 0;
+    if (number === 25 && bull === 'fifty') return 50;
     return number * { S: 1, D: 2, T: 3 }[match[1]];
 };
 
-export const visitPoints = (darts) => darts.reduce((total, dart) => total + dartPoints(dart), 0);
+export const visitPoints = (darts, bull = 'split') => darts.reduce((total, dart) => total + dartPoints(dart, bull), 0);
 
 /**
  * Whether what is left after the darts of the visit so far is a bust: below
@@ -155,11 +157,11 @@ const countVisit = (game, model, darts, points, busted) => {
 };
 
 // the chances to check out in the visit, dart by dart, by the out mode of the player
-const countCheckouts = (model, darts, outMode, set, leg) => {
+const countCheckouts = (model, darts, outMode, set, leg, bull) => {
     let left = model.score;
     for (const dart of thrown(darts)) {
         const value = String(dart);
-        const points = Number(value) === 0 ? 0 : Number(value.slice(1)) * (/^t/i.test(value) ? 3 : /^d/i.test(value) ? 2 : 1);
+        const points = Number(value) === 0 ? 0 : bull === 'fifty' && /^s25$/i.test(value) ? 50 : Number(value.slice(1)) * (/^t/i.test(value) ? 3 : /^d/i.test(value) ? 2 : 1);
         const [gameEntry, setEntry, legEntry] = levels(model.checkout, set, leg, () => ({ total: 0, miss: 0, hit: 0 }));
         const count = (entries, hit) => entries.forEach(entry => { entry.total += 1; entry[hit ? 'hit' : 'miss'] += 1; });
         if (outMode === 'Double Out' && couldCheckoutInDouble(left)) {
@@ -181,6 +183,52 @@ const countCheckouts = (model, darts, outMode, set, leg) => {
 const nextOf = (players, id) => players[(players.indexOf(id) + 1) % players.length];
 
 /**
+ * A leg won by "winnerId", by a checkout or (a club's round limit) with the
+ * fewest points left: the legs and sets counted, the leg kept with its
+ * visits. → { wonSet, wonGame }
+ */
+const winLeg = (game, winnerId, set, leg, legThrows) => {
+    const model = game.playerModels[winnerId];
+    game.legsPlayed += 1;
+    model.legsWon = { ...model.legsWon, game: (model.legsWon?.game ?? 0) + 1, [set]: (model.legsWon?.[set] ?? 0) + 1 };
+    const legsToWin = game.legMode === 'Best of' ? Math.round(game.numberOfLegs / 2) : game.numberOfLegs;
+    const wonSet = model.currentSetLegsWon + 1 === legsToWin;
+    let wonGame = false;
+    model.currentSetLegsWon += 1;
+    if (!game.allSetsThrows[set]) game.allSetsThrows[set] = {};
+    game.allSetsThrows[set][leg] = legThrows;
+    if (wonSet) {
+        const setsToWin = game.setMode === 'Best of' ? Math.round(game.numberOfSets / 2) : game.numberOfSets;
+        wonGame = model.setsWon + 1 === setsToWin;
+        if (!wonGame) {
+            game.currentSet += 1;
+            game.currentSetLeg = 1;
+        }
+        game.setsPlayed += 1;
+        model.setsWon += 1;
+        game.players.forEach(id => Object.assign(game.playerModels[id], { currentSetLegsWon: 0, currentSetLeg: 1 }));
+    } else {
+        game.currentSetLeg += 1;
+    }
+    game.currentLegThrows = [];
+    return { wonSet, wonGame };
+};
+
+/**
+ * A club's round limit: after a full round of the leg at or past the limit,
+ * the one with the fewest points left wins it; a tie plays on, round by round.
+ * → the winner's id or null
+ */
+const roundLimitWinner = (game) => {
+    const limit = Number(game.roundLimit) || 0;
+    const visits = game.currentLegThrows.length;
+    if (!limit || visits % game.players.length !== 0 || visits / game.players.length < limit) return null;
+    const scores = game.players.map(id => game.playerModels[id].score);
+    const fewest = Math.min(...scores);
+    return scores.filter(score => score === fewest).length === 1 ? game.players[scores.indexOf(fewest)] : null;
+};
+
+/**
  * The game after one visit of the player at the oche: darts as entered (up to
  * three; the in mode is applied when they are entered). Changes "game" itself.
  */
@@ -188,7 +236,7 @@ export const x01Visit = (game, darts) => {
     const playerId = game.currentPlayerTurn;
     const model = game.playerModels[playerId];
     const currentThrow = [...darts, '', '', ''].slice(0, DARTS_PER_VISIT).map(dart => (dart == null ? '' : String(dart)));
-    const points = visitPoints(currentThrow);
+    const points = visitPoints(currentThrow, game.bull);
     const scoreLeft = model.score - points;
     const outMode = outModeOf(game, playerId);
     const busted = isBust(scoreLeft, currentThrow, outMode);
@@ -196,7 +244,8 @@ export const x01Visit = (game, darts) => {
     const leg = `leg-${game.currentSetLeg}`;
     const before = model.score;
 
-    let wonLeg = false;
+    // who won the leg (the thrower by a checkout, or anyone by the round limit), and what it decided
+    let legWinner = null;
     let wonSet = false;
     let wonGame = false;
 
@@ -205,29 +254,9 @@ export const x01Visit = (game, darts) => {
     } else if (scoreLeft === 0) {
         levels(model.checkoutScores, set, leg, () => ({})).forEach(entry => { entry[points] = (entry[points] ?? 0) + 1; });
         countVisit(game, model, currentThrow, points, false);
-        wonLeg = true;
-        game.legsPlayed += 1;
-        model.legsWon = { ...model.legsWon, game: (model.legsWon?.game ?? 0) + 1, [set]: (model.legsWon?.[set] ?? 0) + 1 };
-        const legsToWin = game.legMode === 'Best of' ? Math.round(game.numberOfLegs / 2) : game.numberOfLegs;
-        wonSet = model.currentSetLegsWon + 1 === legsToWin;
-        model.currentSetLegsWon += 1;
+        legWinner = playerId;
         const legThrows = [...game.currentLegThrows, { darts: currentThrow, playerId, roundScore: points, scoreLeft }];
-        if (!game.allSetsThrows[set]) game.allSetsThrows[set] = {};
-        game.allSetsThrows[set][leg] = legThrows;
-        if (wonSet) {
-            const setsToWin = game.setMode === 'Best of' ? Math.round(game.numberOfSets / 2) : game.numberOfSets;
-            wonGame = model.setsWon + 1 === setsToWin;
-            if (!wonGame) {
-                game.currentSet += 1;
-                game.currentSetLeg = 1;
-            }
-            game.setsPlayed += 1;
-            model.setsWon += 1;
-            game.players.forEach(id => Object.assign(game.playerModels[id], { currentSetLegsWon: 0, currentSetLeg: 1 }));
-        } else {
-            game.currentSetLeg += 1;
-        }
-        game.currentLegThrows = [];
+        ({ wonSet, wonGame } = winLeg(game, playerId, set, leg, legThrows));
         model.score = scoreLeft;
     } else {
         countVisit(game, model, currentThrow, points, false);
@@ -243,10 +272,10 @@ export const x01Visit = (game, darts) => {
     // the chances to check out count from the score before the visit
     const after = model.score;
     model.score = before;
-    countCheckouts(model, currentThrow, outMode, set, leg);
+    countCheckouts(model, currentThrow, outMode, set, leg, game.bull);
     model.score = after;
 
-    if (!wonLeg) {
+    if (!legWinner) {
         game.currentLegThrows = [...game.currentLegThrows, {
             playerId,
             darts: thrown(currentThrow),
@@ -254,23 +283,31 @@ export const x01Visit = (game, darts) => {
             // a bust keeps the score
             scoreLeft: busted ? before : before - points,
         }];
+        // a club's round limit may decide the leg after the round
+        const byLimit = roundLimitWinner(game);
+        if (byLimit) {
+            legWinner = byLimit;
+            ({ wonSet, wonGame } = winLeg(game, byLimit, set, leg, game.currentLegThrows));
+        }
     }
     game.currentThrow = ['', '', ''];
 
     if (wonGame) {
         Object.assign(game, { gameIsRunning: false, hasWinner: true, currentSet: 0, currentSetLeg: 0 });
-        model.hasWonGame = true;
+        game.playerModels[legWinner].hasWonGame = true;
         return game;
     }
-    if (wonLeg) game.players.forEach(id => { game.playerModels[id].score = startingScoreOf(game, id); });
+    if (legWinner) game.players.forEach(id => { game.playerModels[id].score = startingScoreOf(game, id); });
 
-    if (!wonLeg) {
+    // the next leg: the next player in turn starts, or (a club's house rule, two players) the loser of the leg
+    const loserStarts = game.legStarter === 'loser' && game.players.length === 2;
+    if (!legWinner) {
         game.currentPlayerTurn = nextOf(game.players, playerId);
     } else if (wonSet) {
-        const starter = nextOf(game.players, game.startingPlayerSet);
+        const starter = loserStarts ? game.players.find(id => id !== legWinner) : nextOf(game.players, game.startingPlayerSet);
         Object.assign(game, { currentPlayerTurn: starter, startingPlayerLeg: starter, startingPlayerSet: starter });
     } else {
-        const starter = nextOf(game.players, game.startingPlayerLeg);
+        const starter = loserStarts ? game.players.find(id => id !== legWinner) : nextOf(game.players, game.startingPlayerLeg);
         Object.assign(game, { currentPlayerTurn: starter, startingPlayerLeg: starter });
     }
     return game;

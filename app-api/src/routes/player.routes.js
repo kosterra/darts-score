@@ -156,6 +156,7 @@ export default (app) => {
         body('flightPattern').optional().isIn(FLIGHT_DESIGNS.map(design => design.id)).withMessage('flightPattern must be one of the flight designs.'),
         body('flightShape').optional().isIn(FLIGHT_SHAPES.map(shape => shape.id)).withMessage('flightShape must be one of the flight shapes.'),
         body('barrel').optional().isIn(DART_BARRELS.map(barrel => barrel.id)).withMessage('barrel must be one of the barrels.'),
+        body('handicap').optional().isIn(['accept', 'decline']).withMessage('handicap is accept or decline.'),
         validate,
         PlayerController.setPreferences
     );

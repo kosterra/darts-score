@@ -77,6 +77,8 @@ export default (mongoose) => {
         flightPattern:   { type: String, default: 'plain' },
         flightShape:     { type: String, default: 'standard' },
         barrel:          { type: String, default: 'classic' },
+        // whether the player plays with a handicap ('accept') or always from the game's own score ('decline')
+        handicap:        { type: String, enum: ['accept', 'decline'], default: 'accept' },
       },
       // the flight shapes, designs and barrels unlocked with flight points ("shape:fantail", "barrel:bomb")
       flights: {

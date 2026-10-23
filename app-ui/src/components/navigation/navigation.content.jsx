@@ -11,6 +11,7 @@ import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
 import { BsPersonFillCheck } from "react-icons/bs";
 
 import { useAuth } from '../../utils/auth.context';
+import { isEnabled, RULES_KINDS } from '../../rules/club.rules';
 import { ROLE_LABELS } from '../../services/user.service';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
@@ -136,11 +137,14 @@ const useSections = () => {
             title: t('Let\'s play darts'),
             visible: hasClub,
             items: [
-                { label: t('X01'), icon: FaBullseye, to: '/x01', end: true },
-                { label: t('Cricket'), icon: MdSportsCricket, to: '/cricket', end: true },
-                { label: t('Elimination'), icon: BiTargetLock, to: '/elimination', end: true },
-                { label: t('Around the Clock'), icon: PiClockClockwiseBold, to: '/clock', end: true },
-                { label: t('More games'), icon: GiDiceTarget, to: '/play' },
+                // only the games the club plays
+                ...[
+                    { game: 'x01', label: t('X01'), icon: FaBullseye, to: '/x01', end: true },
+                    { game: 'cricket', label: t('Cricket'), icon: MdSportsCricket, to: '/cricket', end: true },
+                    { game: 'elimination', label: t('Elimination'), icon: BiTargetLock, to: '/elimination', end: true },
+                    { game: 'clock', label: t('Around the Clock'), icon: PiClockClockwiseBold, to: '/clock', end: true },
+                ].filter(item => isEnabled(item.game, activeClub?.gameRules)),
+                ...(RULES_KINDS.some(kind => isEnabled(kind, activeClub?.gameRules)) ? [{ label: t('More games'), icon: GiDiceTarget, to: '/play' }] : []),
             ],
         },
         {

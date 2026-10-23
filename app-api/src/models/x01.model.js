@@ -33,6 +33,14 @@ export default (mongoose, name = 'x01') => {
       flyingDarts:        { type: String, enum: ['players', 'on', 'off'], default: 'players' },
       // a training against the bot: how strong it plays { average, checkoutRate, basis }
       bot:                mongoose.Schema.Types.Mixed,
+      // a friendly game: left out of the club's leaderboards, records and Hall of Shame
+      friendly:          { type: Boolean, default: false },
+      // the club format it was started from, when one
+      format:            String,
+      // the club's house rules: who starts the next leg, a limit of rounds per leg, the bull as 50
+      legStarter:        { type: String, enum: ['rotate', 'loser'], default: 'rotate' },
+      roundLimit:        { type: Number, min: 0, default: 0 },
+      bull:              { type: String, enum: ['split', 'fifty'], default: 'split' },
     },
     { timestamps: true }
   );
