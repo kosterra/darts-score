@@ -104,21 +104,38 @@ export const gameShame = (players, gameId, minAge) => players
 
 const LATEST_BADGES = 3;
 
+const RECENT_BADGES = 12;
+const RARE_BADGES = 8;
+const DAY = 24 * 60 * 60 * 1000;
+
 /**
  * Badge overview of the club: every player with how many badges they have
- * and the ones they earned most recently.
+ * and the ones they earned most recently; the badges earned lately in the
+ * club, the rarest ones (one or two players have them) and those nobody has
+ * yet (easiest first), and how many were earned in all and lately.
  */
-export const getClubBadges = async (req, res) => {
-    logger.debug('club badges called');
-    const players = await db.player
-        .find({ clubs: req.club._id, guest: { $ne: true } }, 'firstname lastname nickname profileImg badges activity')
-        .lean();
+export const clubBadgeOverview = (players, now = new Date()) => {
+    const ref = (player) => ({ id: String(player._id), nickname: player.nickname, firstname: player.firstname, lastname: player.lastname, profileImg: player.profileImg });
+    const earnedOf = (player) => (player.badges ?? []).filter(entry => getBadge(entry.badge));
+    const holders = new Map();
+    const all = [];
+    for (const player of players) {
+        for (const entry of earnedOf(player)) {
+            all.push({ player, entry });
+            holders.set(entry.badge, [...(holders.get(entry.badge) ?? []), player]);
+        }
+    }
+    const since = now.getTime() - 30 * DAY;
+    const tierOf = (badge) => badge.tier ?? 1;
 
-    res.json({
+    return {
         total: BADGES.length,
+        earned: all.length,
+        earnedLast30Days: all.filter(({ entry }) => new Date(entry.earnedAt).getTime() >= since).length,
+        collectors: players.filter(player => earnedOf(player).length > 0).length,
         players: players
             .map(player => {
-                const earned = (player.badges ?? []).filter(entry => getBadge(entry.badge));
+                const earned = earnedOf(player);
                 return {
                     id: String(player._id),
                     firstname: player.firstname,
@@ -134,7 +151,27 @@ export const getClubBadges = async (req, res) => {
                 };
             })
             .sort((a, b) => b.earnedCount - a.earnedCount || a.nickname.localeCompare(b.nickname)),
-    });
+        recent: [...all]
+            .sort((a, b) => new Date(b.entry.earnedAt) - new Date(a.entry.earnedAt))
+            .slice(0, RECENT_BADGES)
+            .map(({ player, entry }) => ({ player: ref(player), badge: getBadge(entry.badge), earnedAt: entry.earnedAt })),
+        // held by one or two players: the higher the tier, the rarer
+        rare: [...holders.entries()]
+            .filter(([, list]) => list.length <= 2)
+            .map(([id, list]) => ({ badge: getBadge(id), holders: list.map(ref) }))
+            .sort((a, b) => a.holders.length - b.holders.length || tierOf(b.badge) - tierOf(a.badge))
+            .slice(0, RARE_BADGES),
+        // nobody has them yet: the first tiers first, as the next to go for
+        unclaimed: BADGES.filter(badge => !holders.has(badge.id)).sort((a, b) => tierOf(a) - tierOf(b)),
+    };
+};
+
+export const getClubBadges = async (req, res) => {
+    logger.debug('club badges called');
+    const players = await db.player
+        .find({ clubs: req.club._id, guest: { $ne: true } }, 'firstname lastname nickname profileImg badges activity')
+        .lean();
+    res.json(clubBadgeOverview(players));
 };
 
 /**

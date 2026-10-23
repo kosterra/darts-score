@@ -2804,9 +2804,10 @@ paths:
       tags:
         - Statistics
       summary: Badge overview of the club - every player with their number of badges and the latest ones
+      description: Also the badges earned in all and in the last 30 days, the players collecting, the badges earned lately in the club (recent), the rarest ones held by one or two players (rare) and those nobody has yet, first tiers first (unclaimed).
       responses:
         '200':
-          description: OK
+          description: 'The overview: { total, earned, earnedLast30Days, collectors, players, recent, rare, unclaimed }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
