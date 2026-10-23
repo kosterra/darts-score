@@ -25,8 +25,8 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.ut
 import { locale, t, tn } from '../../../utils/i18n';
 import CountryFlag from '../../elements/country.flag';
 import { gameOf } from '../../../rules/games';
-import { trainingOf } from '../../../rules/trainings';
 import { rulesIcon } from '../../rules/rules.icons';
+import TrainingsPanel from './trainings.panel';
 
 const LATEST_BADGES = 5;
 
@@ -173,7 +173,6 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
     const clock = kpis.clock ?? {};
     // Shanghai, Killer, … and Bob's 27, 121 Checkout, … : per kind
     const rulesGames = Object.entries(kpis.rules ?? {}).filter(([kind]) => gameOf(kind));
-    const rulesTrainings = Object.entries(stats.rulesTrainings ?? {}).filter(([kind]) => trainingOf(kind));
     const twoDigits = (value) => value == null ? null : value.toFixed(2);
 
     return (
@@ -383,21 +382,9 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                                     </Panel>
                                 </div>
                             }
-                            {rulesTrainings.length > 0 &&
-                                <div className="col-12 col-xl-6">
-                                    <Panel header={t('More trainings')} className="h-100">
-                                        <div className="kpi-chips">
-                                            {rulesTrainings.map(([kind, entry]) => (
-                                                <KpiChip
-                                                    key={kind}
-                                                    icon={rulesIcon(kind)}
-                                                    label={`${trainingOf(kind).title} · ${tn(entry.count, '{{count}} attempt', '{{count}} attempts')}`}
-                                                    value={entry.best == null ? null : t('Best: {{best}}', { best: trainingOf(kind).format(entry.best) })}
-                                                    color={COLORS.rules}
-                                                />
-                                            ))}
-                                        </div>
-                                    </Panel>
+                            {stats.trainingSummary?.total > 0 &&
+                                <div className="col-12">
+                                    <TrainingsPanel summary={stats.trainingSummary} />
                                 </div>
                             }
                         </div>

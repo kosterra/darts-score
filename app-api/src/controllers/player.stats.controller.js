@@ -8,6 +8,7 @@ import { playerLevel, levelInputs } from '../utils/levels.js';
 import { countBadges } from '../utils/badges.js';
 import { seesTrainingsOf } from '../utils/training.privacy.js';
 import { rulesKpis, rulesTrainingBests } from '../utils/rules.stats.js';
+import { trainingSummary } from '../utils/training.summary.js';
 import { createGameFilterQuery, findFilteredGames, profileFiltersOf, isUnfiltered } from '../utils/game.utils.js';
 import { viewOf } from '../utils/game.view.js';
 
@@ -158,6 +159,10 @@ async function calculatePlayerStats(playerId, filters = profileFiltersOf(), club
     // the trainings of the rules engine: per kind the count, the best and the latest scores
     const rulesTrainings = hideTrainings ? [] : await db.rulesTraining.find(trainingQuery).sort({ createdAt: 1 }).lean();
     playerStats.rulesTrainings = rulesTrainingBests(rulesTrainings);
+    // every training of the player in one: the trainings against the bot by their players
+    const { 'player.id': trainee, ...botScope } = trainingQuery;
+    const bots = hideTrainings ? [] : await db.x01Training.find({ ...botScope, players: trainee }, 'players playerModels hasWinner createdAt').sort({ createdAt: 1 }).lean();
+    playerStats.trainingSummary = trainingSummary({ atc: trainings, bots, rules: rulesTrainings, playerId });
     playerStats.training = trainingProgress(trainings);
     playerStats.trainingDarts = trainingDarts(trainings);
 

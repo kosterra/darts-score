@@ -278,3 +278,62 @@
         text-decoration: underline;
     }
 }
+
+// the trainings of a player: a card per kind
+.training-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 0.75rem;
+}
+
+.training-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: $borderRadius;
+    border-left: 3px solid var(--kpi-color);
+    background: $surfaceRaisedColor;
+
+    .training-card-head {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-width: 0;
+    }
+
+    .training-card-title {
+        color: $textDefaultColor;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .training-card-count {
+        color: $textFaintColor;
+        font-size: 0.75rem;
+    }
+
+    .training-card-body {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .training-card-value {
+        color: $textDefaultColor;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+
+    .training-card-detail {
+        color: $textFaintColor;
+        font-size: 0.75rem;
+    }
+
+    .training-spark {
+        flex-shrink: 0;
+    }
+}
