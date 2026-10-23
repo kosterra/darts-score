@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
+import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
 import { FaFire, FaTrophy } from "react-icons/fa6";
 import dayjs from 'dayjs';
@@ -19,6 +21,8 @@ dayjs.extend(relativeTime);
 
 const GOLD = '#ffc94d';
 const UNCLAIMED_SHOWN = 12;
+// the ranking shows the first ones; a search or "Show all" the others
+const RANKING_SHOWN = 10;
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 const weeks = (count) => tn(count, '{{count}} week', '{{count}} weeks');
 // the places on the podium
@@ -57,11 +61,11 @@ const WeekStreak = ({ streak }) => {
  * Who collected most: every player ranked, the first three on the podium,
  * with the share of the collection, the latest badges and the week streak.
  */
-const Ranking = ({ players, total }) => (
+const Ranking = ({ players, all, total }) => (
     <ol className="badge-ranking list-unstyled m-0">
         {players.map((player, index) => {
-            // the same count shares a place
-            const place = players.findIndex(other => other.earnedCount === player.earnedCount) + 1;
+            // the same count shares a place, among all players of the club
+            const place = all.findIndex(other => other.earnedCount === player.earnedCount) + 1;
             const podium = player.earnedCount > 0 && place <= 3 ? PODIUM[place - 1] : null;
             return (
                 <li key={player.id}>
@@ -82,7 +86,8 @@ const Ranking = ({ players, total }) => (
                             {player.latest.map(badge => <BadgeMedal key={badge.id} badge={badge} size="sm" />)}
                         </span>
                     </Link>
-                    {index === 2 && players.length > 3 && <hr className="badge-ranking-cut" />}
+                    {/* where the podium ends: before the first player behind the first three places */}
+                    {podium && players[index + 1] && !(players[index + 1].earnedCount > 0 && all.findIndex(other => other.earnedCount === players[index + 1].earnedCount) < 3) && <hr className="badge-ranking-cut" />}
                 </li>
             );
         })}
@@ -96,6 +101,8 @@ const Ranking = ({ players, total }) => (
 const BadgesOverview = () => {
     const [overview, setOverview] = useState(null);
     const shame = useClubShame();
+    const [search, setSearch] = useState('');
+    const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
         StatsService.loadClubBadges().then(setOverview).catch(error => console.error('Failed to load badges', error));
@@ -103,6 +110,11 @@ const BadgesOverview = () => {
 
     if (!overview) return <PageLoader />;
     const unclaimed = overview.unclaimed ?? [];
+    // the first ones, all of them, or those matching the search (with their place in the club)
+    const term = search.trim().toLowerCase();
+    const shownPlayers = term
+        ? overview.players.filter(player => [player.nickname, player.firstname, player.lastname, `${player.firstname} ${player.lastname}`].some(text => text?.toLowerCase().includes(term)))
+        : showAll ? overview.players : overview.players.slice(0, RANKING_SHOWN);
     // the badges earned lately in the club, newest first
     const recentPanel = (
                 <Panel header={t('Recently earned')}>
@@ -143,7 +155,25 @@ const BadgesOverview = () => {
                     <Panel header={t('Most badges')}>
                         {overview.players.length === 0
                             ? <span className="text-subtle">{t('This club has no players yet.')}</span>
-                            : <Ranking players={overview.players} total={overview.total} />}
+                            : <>
+                                {overview.players.length > RANKING_SHOWN &&
+                                    <span className="p-input-icon-left w-100 mb-3">
+                                        <i className="pi pi-search" />
+                                        <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search players')} aria-label={t('Search players')} className="w-100" />
+                                    </span>}
+                                {shownPlayers.length
+                                    ? <Ranking players={shownPlayers} all={overview.players} total={overview.total} />
+                                    : <span className="text-faint fs-7">{t('No player matches “')}{search}”.</span>}
+                                <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+                                    {!term && !showAll && overview.players.length > RANKING_SHOWN
+                                        ? <Button type="button" label={t('Show all {{length}} players', { length: overview.players.length })} icon="pi pi-chevron-down" size="small" text onClick={() => setShowAll(true)} />
+                                        : <span />}
+                                    {/* the players list, for the statistics of any player */}
+                                    <Link to={term ? `/players?search=${encodeURIComponent(search.trim())}` : '/players'} className="text-subtle fs-8">
+                                        {t('All players of the club')}{' '}<i className="pi pi-arrow-right fs-9" aria-hidden="true" />
+                                    </Link>
+                                </div>
+                            </>}
                     </Panel>
                     {shame?.enabled && recentPanel}
                 </div>
