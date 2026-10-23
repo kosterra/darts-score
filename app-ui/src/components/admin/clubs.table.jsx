@@ -83,14 +83,14 @@ const ClubsTable = () => {
     const clubBody = (club) => (
         <div className="d-flex align-items-center gap-3">
             <ClubLogo club={club} />
-            <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+            <div className="d-flex flex-column min-w-0">
                 <span className="text-default fw-semibold text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
                 <span className="text-faint fs-8">{t('since')}{' '}{clubDate(club.createdAt)}</span>
             </div>
         </div>
     );
 
-    const visibilityBody = (club) => <Tag value={club.isPublic ? t('Public') : t('Private')} severity={club.isPublic ? 'success' : 'secondary'} />;
+    const visibilityBody = (club) => <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />;
 
     const adminsBody = (club) => club.needsAdmin
         ? <Tag value={t('Needs an admin')} severity="warning" />

@@ -67,10 +67,10 @@ const AboutCard = () => {
     });
 
     return (
-        <div className="d-flex flex-column gap-4 mx-auto" style={{ maxWidth: '62rem' }}>
+        <div className="d-flex flex-column gap-4 page-reading">
             <header className="hero-header rounded-2 p-4 d-flex flex-wrap align-items-center gap-4">
                 <img alt="" src="/logo.svg" width="80" height="80" />
-                <div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                <div className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                     <h1 className="fs-2 fw-semibold text-default m-0">{t('Oche')}</h1>
                     <span className="text-subtle">{t('The scoreboard for your club, your pub team or your living room.')}</span>
                     <span className="text-faint fs-7">{t('Version')}{' '}{import.meta.env.VITE_APP_VERSION}{' '}{t('· open source under the GPLv3')}</span>
@@ -139,7 +139,7 @@ const AboutCard = () => {
                                 {category.series.map(badges => (
                                     <li key={badges[0].group} className="d-flex align-items-center gap-3">
                                         <BadgeMedal badge={badges.at(-1)} size="sm" />
-                                        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                                        <div className="d-flex flex-column min-w-0">
                                             <span className="text-default fs-7 fw-semibold">{badges[0].groupTitle}</span>
                                             <span className="text-faint fs-8">
                                                 {badges.length === 1
@@ -162,7 +162,7 @@ const AboutCard = () => {
                                 {catalogue.shame.map(badge => (
                                     <li key={badge.id} className="d-flex align-items-center gap-3">
                                         <ShameMedal badge={badge} size="sm" />
-                                        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                                        <div className="d-flex flex-column min-w-0">
                                             <span className="text-default fs-7 fw-semibold">{badge.title}</span>
                                             <span className="text-faint fs-8">{badge.description}{' '}{t('· Wash it off:')}{' '}{badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}</span>
                                         </div>

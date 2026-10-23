@@ -87,10 +87,11 @@ $scaleSM: 0.875 !default;
 $scaleLG: 1.25 !default;
 
 //focus
-$focusOutlineColor: $shade700Translucent !default;
+// the focus ring of the whole app: light grey, never green (as $focusRingColor in base/_tokens.scss)
+$focusOutlineColor: rgba(255, 255, 255, 0.6) !default;
 $focusOutline: 0 none !default;
 $focusOutlineOffset: 0 !default;
-$focusShadow: 0 0 0 0.2rem $focusOutlineColor !default;
+$focusShadow: 0 0 0 2px $focusOutlineColor !default;
 
 //action icons
 $actionIconWidth: 2rem !default;

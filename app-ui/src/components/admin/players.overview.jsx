@@ -11,8 +11,9 @@ import { playersOverview } from '../../utils/players.overview';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { ACCENT } from '../../utils/palette';
 
-const GREEN = '#7ecca5';
+const GREEN = ACCENT.green;
 const CHIPS = 12;
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
@@ -97,7 +98,7 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                                     return (
                                         <li key={level.id} style={{ '--level-color': style.color }}>
                                             <span className="players-level-mark" aria-hidden="true"><Icon /></span>
-                                            <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                                            <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                                                 <span className="d-flex align-items-baseline justify-content-between gap-2">
                                                     <span className="text-default fs-7 fw-semibold text-truncate">{t('Level {{index}}: {{name}}', { index: level.index, name: level.name })}</span>
                                                     <span className="text-subtle fs-8 text-nowrap"><strong className="text-default">{level.count}</strong>{' '}{level.count === 1 ? t('player') : t('players')}</span>
@@ -119,9 +120,9 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                         <ul className="training-popular list-unstyled m-0">
                             {overview.newest.map(player => (
                                 <li key={player.id}>
-                                    <Link to={`/players/${player.id}`} className="d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none" style={{ minWidth: 0 }}>
+                                    <Link to={`/players/${player.id}`} className="d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
                                         <PlayerAvatar player={player} className="avatar-md" />
-                                        <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+                                        <span className="d-flex flex-column min-w-0">
                                             <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
                                             <span className="text-faint fs-8 text-nowrap">{t('added {{date}}', { date: formatDate(player.createdAt) })}</span>
                                         </span>
@@ -139,7 +140,7 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                             : <ul className="training-popular list-unstyled m-0">
                                 {overview.birthdays.map(entry => (
                                     <li key={entry.player.id}>
-                                        <Link to={`/players/${entry.player.id}`} className="d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none" style={{ minWidth: 0 }}>
+                                        <Link to={`/players/${entry.player.id}`} className="d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
                                             <PlayerAvatar player={entry.player} className="avatar-md" />
                                             <span className="text-default fw-semibold text-truncate">{entry.player.nickname}</span>
                                             <span className={`ms-auto fs-7 text-nowrap ${entry.inDays === 0 ? 'text-warning fw-semibold' : 'text-subtle'}`}>

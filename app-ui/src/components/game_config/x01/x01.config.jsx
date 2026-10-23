@@ -136,7 +136,7 @@ const X01Config = () => {
 
     return (
         <>
-            <Panel header={t('X01')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+            <Panel header={t('X01')} className="page-narrow" icons={rulesButton}>
                 {rules}
                 {!club.enabled ? <NotPlayedHere title={t('X01')} /> :
                 <div className="container">

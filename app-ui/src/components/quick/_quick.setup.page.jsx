@@ -126,7 +126,7 @@ const QuickSetupPage = () => {
     return (
         <QuickLayout>
             <Toast ref={toast} position="bottom-right" />
-            <Panel header={t('Quick game')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+            <Panel header={t('Quick game')} className="page-narrow" icons={rulesButton}>
                 {rules}
                 <form className="container" onSubmit={start}>
                     <p className="text-subtle fs-7 mt-0">

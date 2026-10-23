@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
-import { FaChartBar } from "react-icons/fa";
-import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
 
 import GamePlayers from './game.players';
@@ -64,8 +62,8 @@ const TimelineWidget = ({ widget, games, players }) => {
                                             {/* the icon buttons of the lists: green to continue, grey for the statistics */}
                                             <div className="row-actions">
                                                 {game.running
-                                                    ? <Button type="button" icon={<GiDart />} aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(playPath(game.type, game.id))} />
-                                                    : <Button type="button" icon={<FaChartBar />} severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
+                                                    ? <Button type="button" icon="pi pi-play" aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(playPath(game.type, game.id))} />
+                                                    : <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
                                                 }
                                             </div>
                                         </li>

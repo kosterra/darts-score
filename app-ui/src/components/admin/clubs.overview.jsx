@@ -8,8 +8,9 @@ import { KpiHero } from '../stats/players/kpi';
 import { QUIET_DAYS, clubsOverview } from '../../utils/admin.overviews';
 import { t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { ACCENT } from '../../utils/palette';
 
-const GREEN = '#7ecca5';
+const GREEN = ACCENT.green;
 const SHOWN = 6;
 
 // a few clubs with a line each, e.g. the quiet or the newest ones
@@ -21,7 +22,7 @@ const ClubList = ({ clubs, lineOf, onPick, empty }) => clubs.length === 0
                 <li key={club.id}>
                     <button type="button" className="clubs-overview-row" onClick={() => onPick(club)}>
                         <ClubLogo club={club} size="sm" className="flex-shrink-0" />
-                        <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+                        <span className="d-flex flex-column min-w-0">
                             <span className="text-default fw-semibold text-truncate">{club.name}</span>
                             <span className="text-faint fs-8">{lineOf(club)}</span>
                         </span>

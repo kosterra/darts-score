@@ -33,9 +33,9 @@ export const ClubFilter = ({ clubs, selectedIds, onChange, optional = false }) =
  * under the name, e.g. the user's role in the club.
  */
 export const ClubCell = ({ club, detail }) => (
-    <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
+    <div className="d-flex align-items-center gap-2 min-w-0">
         <ClubLogo club={club} />
-        <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+        <span className="d-flex flex-column min-w-0">
             <span className="text-default fs-7 text-truncate">{club?.name ?? t('Unknown club')}</span>
             {detail && <span className="text-faint fs-8">{detail}</span>}
         </span>

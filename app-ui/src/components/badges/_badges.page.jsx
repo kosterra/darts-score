@@ -16,17 +16,17 @@ import { useClubShame } from './hall.of.shame.data';
 import { KpiHero } from '../stats/players/kpi';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
+import { ACCENT, PODIUM } from '../../utils/palette';
 
 dayjs.extend(relativeTime);
 
-const GOLD = '#ffc94d';
+const GOLD = ACCENT.gold;
 const UNCLAIMED_SHOWN = 12;
 // the ranking shows the first ones; a search or "Show all" the others
 const RANKING_SHOWN = 10;
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 const weeks = (count) => tn(count, '{{count}} week', '{{count}} weeks');
 // the places on the podium
-const PODIUM = ['#ffc94d', '#c9d1d9', '#d29a6a'];
 
 const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
     <Avatar
@@ -74,7 +74,7 @@ const Ranking = ({ players, all, total }) => (
                             {podium ? <FaTrophy style={{ color: podium }} aria-hidden="true" /> : place}
                         </span>
                         <PlayerAvatar player={player} className="avatar-md" />
-                        <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                        <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                             <span className="d-flex align-items-baseline justify-content-between gap-2">
                                 <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
                                 <span className="text-subtle fs-8 text-nowrap"><strong className="text-default">{player.earnedCount}</strong>{' '}{t('of')}{' '}{total}</span>
@@ -124,7 +124,7 @@ const BadgesOverview = () => {
                             {overview.recent.map((entry, index) => (
                                 <li key={`${entry.player.id}-${entry.badge.id}-${index}`} className="badge-feed-row">
                                     <BadgeMedal badge={entry.badge} size="sm" />
-                                    <span className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
+                                    <span className="d-flex flex-column flex-grow-1 min-w-0">
                                         <span className="text-default fs-7 fw-semibold text-truncate" title={entry.badge.description}>{entry.badge.title}</span>
                                         <Link to={toPlayer(entry.player)} className="text-subtle fs-8 text-truncate">{entry.player.nickname}</Link>
                                     </span>
@@ -197,7 +197,7 @@ const BadgesOverview = () => {
                                 {overview.rare.map(entry => (
                                     <li key={entry.badge.id} className="badge-feed-row">
                                         <BadgeMedal badge={entry.badge} size="sm" />
-                                        <span className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
+                                        <span className="d-flex flex-column flex-grow-1 min-w-0">
                                             <span className="text-default fs-7 fw-semibold">{entry.badge.title}</span>
                                             <span className="text-faint fs-8">{entry.badge.description}</span>
                                         </span>

@@ -21,8 +21,8 @@ $badgeMetals: (
     flex-shrink: 0;
     width: 3.5rem;
     height: 3.5rem;
-    border-radius: 50%;
-    font-size: 1.5rem;
+    border-radius: $radius-round;
+    font-size: $text-2xl;
     // the metal colour is set per tier below and tints background, ring and icon
     background: color-mix(in srgb, currentColor 18%, transparent);
     box-shadow: inset 0 0 0 2px color-mix(in srgb, currentColor 55%, transparent);
@@ -31,14 +31,14 @@ $badgeMetals: (
     &.badge-medal-xs {
         width: 1.3rem;
         height: 1.3rem;
-        font-size: 0.6rem;
+        font-size: $text-xs;
         box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 55%, transparent);
     }
 
     &.badge-medal-sm {
         width: 2.25rem;
         height: 2.25rem;
-        font-size: 0.95rem;
+        font-size: $text-base;
         box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 55%, transparent);
     }
 
@@ -61,7 +61,7 @@ $badgeMetals: (
             position: absolute;
             right: -0.3rem;
             bottom: -0.2rem;
-            font-size: 0.85rem;
+            font-size: $text-sm;
             color: $textFaintColor;
         }
     }
@@ -127,7 +127,7 @@ $badgeMetals: (
         margin: auto;
         padding: 2rem 1.5rem;
         text-align: center;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: $surfaceRaisedColor;
         box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.6);
         animation: celebration-card 0.3s ease-out both;
@@ -187,7 +187,7 @@ $badgeMetals: (
     }
 
     .celebration-title {
-        font-size: 1.5rem;
+        font-size: $text-2xl;
     }
 }
 
@@ -210,8 +210,8 @@ $badgeMetals: (
     }
 
     .is-compact .tarred-title {
-        font-size: 1.4rem;
-        font-weight: 700;
+        font-size: $text-2xl;
+        font-weight: $weight-bold;
     }
 
     .tarred-avatar.is-small {
@@ -299,10 +299,10 @@ $badgeMetals: (
     flex-shrink: 0;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 50%;
+    border-radius: $radius-round;
     background: $primaryColor;
     color: $primaryTextColor;
-    font-size: 1.15rem;
+    font-size: $text-lg;
 }
 
 // The Hall of Shame: each shame badge with who holds it, in two columns when
@@ -334,7 +334,7 @@ $badgeMetals: (
     gap: 1rem;
     min-width: 0;
     padding: 1rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     border-left: 3px solid $shameColor;
     background: rgba($shameColor, 0.08);
 }
@@ -343,15 +343,15 @@ $badgeMetals: (
 .shame-label {
     @include label-shape;
     @include label-tone($shameColor);
-    font-size: 0.75rem;
+    font-size: $text-xs;
 
     &.is-washed { @include label-neutral; color: var(--text-subtle); }
 }
 
 .shame-times {
     color: $shameColor;
-    font-size: 0.8rem;
-    font-weight: 700;
+    font-size: $text-sm;
+    font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
 }
 
@@ -363,7 +363,7 @@ $badgeMetals: (
     gap: 0.4rem;
     margin-top: 0.15rem;
     color: $textDefaultColor;
-    font-size: 0.8rem;
+    font-size: $text-sm;
 
     svg { color: $softGreenText; flex-shrink: 0; align-self: center; }
 }
@@ -371,8 +371,8 @@ $badgeMetals: (
 .shame-others-title {
     margin: 1.5rem 0 0.75rem;
     color: $textSubtleColor;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: $text-xs;
+    font-weight: $weight-bold;
     letter-spacing: 0.12em;
     text-transform: uppercase;
 }
@@ -443,7 +443,7 @@ $tar: #17110c;
         bottom: -0.2rem;
         width: 115%;
         aspect-ratio: 1;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: radial-gradient(circle at 35% 30%, #4b3c2f 0 8%, $tar 45%);
         transform: translateX(-50%);
     }
@@ -459,7 +459,7 @@ $tar: #17110c;
 .tarred-feather {
     position: absolute;
     top: -3rem;
-    color: #efe6d0;
+    color: $accentCream;
     opacity: 0.9;
     filter: drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
     animation: tarred-fall linear infinite both;
@@ -476,7 +476,7 @@ $tar: #17110c;
     margin: auto;
     padding: 2rem 1.5rem;
     text-align: center;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
     box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.7);
     animation: celebration-card 0.3s 0.35s ease-out both;
@@ -484,8 +484,8 @@ $tar: #17110c;
 
 .tarred-title {
     color: $shameColor;
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: $text-3xl;
+    font-weight: $weight-bold;
 }
 
 .tarred-avatar {
@@ -497,7 +497,7 @@ $tar: #17110c;
         content: '';
         position: absolute;
         inset: 0;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: radial-gradient(ellipse 75% 32% at 50% 0%, rgba($tar, 0.97) 70%, transparent 72%);
         pointer-events: none;
     }
@@ -517,8 +517,8 @@ $tar: #17110c;
 .tarred-stuck {
     position: absolute;
     z-index: 1;
-    color: #efe6d0;
-    font-size: 1.3rem;
+    color: $accentCream;
+    font-size: $text-2xl;
     filter: drop-shadow(0 0.1rem 0.2rem rgba(0, 0, 0, 0.6));
 }
 
@@ -527,7 +527,7 @@ $tar: #17110c;
     align-items: center;
     gap: 0.75rem;
     padding: 0.6rem 0.75rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     border-left: 3px solid $shameColor;
     background: rgba($shameColor, 0.08);
 }
@@ -537,7 +537,7 @@ $tar: #17110c;
     align-items: center;
     gap: 0.4rem;
     color: $textSubtleColor;
-    font-size: 0.8rem;
+    font-size: $text-sm;
 
     svg { color: $softGreenText; flex-shrink: 0; }
 }
@@ -590,7 +590,7 @@ $tar: #17110c;
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.45rem 0.65rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -612,7 +612,7 @@ $tar: #17110c;
     align-items: center;
     gap: 0.35rem;
     color: var(--text-subtle);
-    font-size: 0.75rem;
+    font-size: $text-xs;
   }
 
   .flight-picture { width: 1rem; height: 1.25rem; }
@@ -627,8 +627,8 @@ $tar: #17110c;
   gap: 0.75rem;
   margin: 1.4rem 0 0.6rem;
   color: var(--text-default);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: $text-xs;
+  font-weight: $weight-bold;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 
@@ -642,7 +642,7 @@ $tar: #17110c;
 
 // What's new on the About page: a card per version, the newest open
 .release {
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -653,20 +653,20 @@ $tar: #17110c;
   width: 100%;
   padding: 0.8rem 1rem;
   border: 0;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: none;
   color: inherit;
   text-align: left;
   cursor: pointer;
 
   &:hover { background: rgba(255, 255, 255, 0.04); }
-  &:focus-visible { outline: 2px solid $primaryColor; outline-offset: -2px; }
+  &:focus-visible { @include focus-ring(-2px); }
 }
 
 .release-version {
   color: var(--text-default);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: $text-base;
+  font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
 }
 
@@ -687,7 +687,7 @@ $tar: #17110c;
   .release-change-kind {
     flex: 0 0 2.6rem;
     margin-top: 0.1rem;
-    font-size: 0.68rem;
+    font-size: $text-xs;
   }
 }
 
@@ -704,16 +704,16 @@ $tar: #17110c;
 // badges just earned in the game, right after it: a short gold mark
 .game-badge-new {
     animation: game-badge-new 1.6s ease-out var(--delay, 0ms) both;
-    border-radius: 999px;
+    border-radius: $radius-pill;
 }
 
 .game-badge-new-tag {
     padding: 0.05rem 0.45rem;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: rgba($momentGoldColor, 0.16);
     color: $momentGoldColor;
-    font-size: 0.7rem;
-    font-weight: 700;
+    font-size: $text-xs;
+    font-weight: $weight-bold;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
@@ -726,7 +726,7 @@ $tar: #17110c;
 
 // the winner right after the game: the portrait glows gold for a while
 .result-hero-player.is-celebrated .result-hero-portrait {
-    border-radius: 50%;
+    border-radius: $radius-round;
     animation: winner-glow 1.4s ease-in-out 0.3s 4;
 }
 
@@ -753,7 +753,7 @@ $tar: #17110c;
         align-items: center;
         gap: 0.9rem;
         padding: 0.65rem 0.9rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         border-left: 3px solid var(--podium, transparent);
         background: $surfaceRaisedColor;
         color: inherit;
@@ -772,21 +772,21 @@ $tar: #17110c;
         width: 1.75rem;
         flex-shrink: 0;
         color: $textFaintColor;
-        font-weight: 700;
-        font-size: 1.05rem;
+        font-weight: $weight-bold;
+        font-size: $text-base;
     }
 
     .badge-ranking-bar {
         display: block;
         height: 0.3rem;
-        border-radius: 999px;
+        border-radius: $radius-pill;
         background: $surfaceHighColor;
         overflow: hidden;
 
         span {
             display: block;
             height: 100%;
-            border-radius: 999px;
+            border-radius: $radius-pill;
             background: $momentGoldColor;
         }
     }
@@ -820,7 +820,7 @@ $tar: #17110c;
 }
 
 .badge-ranking-bar.is-green span {
-    background: #7ecca5;
+    background: $accentGreen;
 }
 
 // what is trained most: each kind with its badge and a bar
@@ -844,7 +844,7 @@ $tar: #17110c;
     width: 2.25rem;
     height: 2.25rem;
     flex-shrink: 0;
-    border-radius: 50%;
+    border-radius: $radius-round;
     color: var(--level-color);
     background: color-mix(in srgb, var(--level-color) 16%, transparent);
 }
@@ -864,14 +864,14 @@ $tar: #17110c;
         align-items: center;
         gap: 0.4rem;
         padding: 0.2rem 0.65rem 0.2rem 0.2rem;
-        border-radius: 999px;
+        border-radius: $radius-pill;
         background: $surfaceHighColor;
         color: inherit;
-        font-size: 0.8125rem;
+        font-size: $text-sm;
         text-decoration: none;
         border: 0;
         font: inherit;
-        font-size: 0.8125rem;
+        font-size: $text-sm;
         cursor: pointer;
 
         &:hover, &:focus-visible {
@@ -905,7 +905,7 @@ $tar: #17110c;
     padding: 0.35rem 0.5rem;
     margin: -0.35rem -0.5rem;
     border: 0;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: transparent;
     color: inherit;
     font: inherit;

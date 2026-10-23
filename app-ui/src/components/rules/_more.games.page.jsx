@@ -24,7 +24,7 @@ const MoreGamesPage = ({ trainings = false }) => {
     const definitions = trainings ? TRAININGS : GAMES.filter(definition => isEnabled(definition.id, activeClub?.gameRules));
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header={trainings ? t('More trainings') : t('More games')} className="w-100 w-xxl-75 mx-auto">
+            <Panel header={trainings ? t('More trainings') : t('More games')} className="page-reading">
                 <p className="text-subtle fs-7 mt-0 mb-4">
                     {trainings
                         ? t('Practise one thing at a time: the doubles, the checkouts or your scoring. Every attempt is kept, with your best on the scoreboard of the club.')

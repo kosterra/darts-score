@@ -15,14 +15,14 @@
   min-width: 0;
   padding: 0.85rem 0.5rem 0.7rem;
   border: 0;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
   color: var(--text-default);
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
 
   &:hover:not(:disabled) { background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
-  &:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+  &:focus-visible { @include focus-ring(2px); }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 
   // chosen: tinted in the green of the chosen pills (and numbered), no border
@@ -48,11 +48,11 @@
   place-items: center;
   width: 1.4rem;
   height: 1.4rem;
-  border-radius: 50%;
+  border-radius: $radius-round;
   background: var(--primary-color);
   color: var(--primary-color-text);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: $text-xs;
+  font-weight: $weight-bold;
 }
 
 .player-pick-plus {
@@ -60,9 +60,9 @@
   place-items: center;
   width: 3.5rem;
   height: 3.5rem;
-  border-radius: 50%;
+  border-radius: $radius-round;
   border: 1px dashed var(--border-default);
-  font-size: 1.3rem;
+  font-size: $text-2xl;
 }
 
 .player-pick-name {
@@ -70,8 +70,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: $weight-semibold;
+  font-size: $text-md;
 }
 
 .player-pick-detail {
@@ -80,12 +80,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text-faint);
-  font-size: 0.72rem;
+  font-size: $text-xs;
 }
 
 .player-order {
   padding: 0.75rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -103,7 +103,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.3rem 0.3rem 0.3rem 0.5rem;
-  border-radius: 999px;
+  border-radius: $radius-pill;
   background: rgba(255, 255, 255, 0.08);
   cursor: grab;
 
@@ -112,13 +112,13 @@
 
 .player-order-number {
   color: var(--primary-color);
-  font-weight: 700;
+  font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
 }
 
 .player-order-name {
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-weight: $weight-semibold;
+  font-size: $text-sm;
   max-width: 8rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -133,10 +133,10 @@
   width: 1.6rem;
   height: 1.6rem;
   border: 0;
-  border-radius: 50%;
+  border-radius: $radius-round;
   background: transparent;
   color: var(--text-subtle);
-  font-size: 0.7rem;
+  font-size: $text-xs;
   cursor: pointer;
 
   &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
@@ -145,7 +145,7 @@
 
 .player-bull-off {
   padding: 0.6rem 0.75rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -160,13 +160,13 @@
 
 .game-setup-summary {
   color: var(--text-subtle);
-  font-size: 0.8rem;
+  font-size: $text-sm;
   text-align: center;
 }
 
 .x01-handicap {
   padding: 0.85rem 1rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 }
 
@@ -177,7 +177,7 @@
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 
   .p-inputswitch { flex-shrink: 0; }
@@ -232,16 +232,16 @@
   // the look of the other pills: grey, the chosen one soft green
   padding: 0.45rem 0.9rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: $radius-pill;
   background: rgba(255, 255, 255, 0.07);
   color: var(--text-default);
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: $text-sm;
+  font-weight: $weight-bold;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
   &:hover { background: rgba(255, 255, 255, 0.12); }
-  &:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+  &:focus-visible { @include focus-ring(2px); }
 
   &.is-active {
     background: rgba($primaryColor, 0.42);
@@ -257,7 +257,7 @@
   gap: 0.25rem 0.75rem;
   margin-bottom: 1rem;
   color: var(--text-faint);
-  font-size: 0.8rem;
+  font-size: $text-sm;
 }
 
 // a player's favourite double and main treble, side by side where there is room
@@ -281,7 +281,7 @@
 .setting-box {
   margin-bottom: 1rem;
   padding: 0.7rem 0.9rem 0.9rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 
   > .setting-title {
@@ -297,8 +297,8 @@
   border-radius: $borderRadius $borderRadius 0 0;
   background: var(--surface-raised);
   color: var(--text-subtle);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
   text-align: left;
 }
 
@@ -324,7 +324,7 @@
   display: flex;
   justify-content: center;
   padding: 0.75rem 1rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: rgba(0, 0, 0, 0.22);
 
   .dart-side { width: 100%; max-width: 36rem; height: auto; }
@@ -341,11 +341,11 @@
   height: 2rem;
   padding: 0;
   border: 2px solid transparent;
-  border-radius: 50%;
+  border-radius: $radius-round;
   cursor: pointer;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
 
-  &:focus-visible { outline: 2px solid $primaryColor; outline-offset: 2px; }
+  &:focus-visible { @include focus-ring(2px); }
 
   &.is-selected {
     border-color: $shade000;
@@ -382,9 +382,9 @@
 }
 
 .flight-points-balance {
-  color: #e9ac2f;
+  color: $accentAmber;
   font-size: 1.6rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   line-height: 1;
 }
 
@@ -393,10 +393,10 @@
   grid-template-columns: max-content 1fr;
   gap: 0.25rem 1rem;
   margin: 0.25rem 0 0;
-  font-size: 0.8rem;
+  font-size: $text-sm;
 
   > div { display: contents; }
-  dt { color: var(--text-subtle); font-weight: 600; }
+  dt { color: var(--text-subtle); font-weight: $weight-semibold; }
   dd { margin: 0; color: var(--text-default); }
 }
 
@@ -416,7 +416,7 @@
   gap: 0.2rem;
   padding: 0.6rem 0.4rem 0.5rem;
   border: 1px solid var(--rarity);
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: rgba(0, 0, 0, 0.18);
   color: var(--text-default);
   cursor: pointer;
@@ -432,16 +432,16 @@
   }
 
   &:hover { background: rgba(255, 255, 255, 0.06); }
-  &:focus-visible { outline: 2px solid $primaryColor; outline-offset: 2px; }
+  &:focus-visible { @include focus-ring(2px); }
 
   &.is-selected {
-    border-color: $primaryColor;
-    box-shadow: 0 0 0 2px $primaryColor;
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
     background: rgba($primaryColor, 0.14);
   }
 
   // only points missing: the design in full, the price in gold once it can be paid
-  &.is-available .flight-tile-status { color: #e9ac2f; font-weight: 600; }
+  &.is-available .flight-tile-status { color: $accentAmber; font-weight: $weight-semibold; }
   &.is-available:hover { box-shadow: 0 0 0 1px rgba(233, 172, 47, 0.6), 0 0 0.9rem rgba(233, 172, 47, 0.2); }
   &.is-expensive { cursor: default; }
 
@@ -470,24 +470,24 @@
   justify-content: center;
   width: 1.3rem;
   height: 1.3rem;
-  border-radius: 50%;
+  border-radius: $radius-round;
   background: rgba(0, 0, 0, 0.55);
   color: var(--text-subtle);
   font-size: 0.62rem;
 
-  .is-available & { color: #e9ac2f; }
+  .is-available & { color: $accentAmber; }
 }
 
 .flight-tile-name {
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
   text-align: center;
   line-height: 1.2;
 }
 
 .flight-tile-status {
   color: var(--text-faint);
-  font-size: 0.68rem;
+  font-size: $text-xs;
   text-align: center;
   line-height: 1.25;
 }
@@ -527,7 +527,7 @@
   width: 4.4rem;
   padding: 0.4rem 0.25rem 0.3rem;
   border: 1px solid var(--rarity);
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: rgba(0, 0, 0, 0.18);
 
   &.is-common { --rarity: rgba(124, 198, 160, 0.55); }
@@ -541,7 +541,7 @@
 
   span {
     color: var(--text-subtle);
-    font-size: 0.66rem;
+    font-size: $text-xs;
     text-align: center;
     line-height: 1.2;
   }
@@ -557,8 +557,8 @@
   gap: 0.2rem;
   margin: 0 0 0.75rem;
   color: var(--text-subtle);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
   text-decoration: none;
 
   i { font-size: 0.8rem; }

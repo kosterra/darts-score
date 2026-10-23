@@ -48,7 +48,7 @@
     a {
         color: var(--text-subtle);
         text-decoration: none;
-        font-size: 0.95rem;
+        font-size: $text-base;
 
         &:hover { color: var(--text-default); }
     }
@@ -68,22 +68,22 @@
 
 .landing-eyebrow {
     color: $primaryColor;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 .landing-title {
     font-size: clamp(2.4rem, 5vw, 3.6rem);
-    font-weight: 600;
+    font-weight: $weight-semibold;
     line-height: 1.08;
     color: var(--text-default);
 }
 
 .landing-heading {
     font-size: clamp(1.6rem, 3vw, 2.2rem);
-    font-weight: 600;
+    font-weight: $weight-semibold;
     line-height: 1.2;
     color: var(--text-default);
 }
@@ -101,11 +101,11 @@
     i {
         margin-right: 0.45rem;
         color: $primaryColor;
-        font-size: 0.85rem;
+        font-size: $text-sm;
     }
 }
 
-.landing-ticks { font-size: 0.9rem; }
+.landing-ticks { font-size: $text-md; }
 
 .landing-points {
     flex-direction: column;
@@ -138,7 +138,7 @@
 
 .showcase-shot {
     overflow: hidden;
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     background: $shade800;
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 0, 0, 0.3);
@@ -162,14 +162,14 @@
     span {
         width: 0.6rem;
         height: 0.6rem;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: rgba(255, 255, 255, 0.18);
     }
 }
 
 .showcase-phone {
     overflow: hidden;
-    border-radius: 1.4rem;
+    border-radius: $radius-lg;
     border: 0.4rem solid #111;
     background: #111;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
@@ -181,7 +181,7 @@
         aspect-ratio: 390 / 844;
         object-fit: cover;
         object-position: top;
-        border-radius: 1rem;
+        border-radius: $radius-lg;
     }
 }
 
@@ -198,7 +198,7 @@
     gap: 1rem;
     padding: 1.75rem 1rem;
     text-align: center;
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     background: $surfaceTranslucentColor;
 
     @media (max-width: 767.98px) { grid-template-columns: repeat(2, 1fr); row-gap: 1.5rem; }
@@ -206,7 +206,7 @@
 
 .landing-number {
     font-size: clamp(1.8rem, 4vw, 2.6rem);
-    font-weight: 600;
+    font-weight: $weight-semibold;
     color: var(--text-default);
     font-variant-numeric: tabular-nums;
 }
@@ -230,7 +230,7 @@
     gap: 0.5rem;
     height: 100%;
     padding: 1.25rem;
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     background: $surfaceTranslucentColor;
     transition: background-color 0.2s;
 
@@ -242,10 +242,10 @@
     place-items: center;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 0.6rem;
+    border-radius: $radius-lg;
     background: rgba($primaryColor, 0.16);
     color: $primaryColor;
-    font-size: 1.2rem;
+    font-size: $text-xl;
 }
 
 .landing-step {
@@ -253,7 +253,7 @@
     gap: 1rem;
     height: 100%;
     padding: 1.25rem;
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     background: $surfaceTranslucentColor;
 }
 
@@ -263,11 +263,11 @@
     place-items: center;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 50%;
+    border-radius: $radius-round;
     background: $primaryColor;
     color: #fff;
-    font-weight: 600;
-    font-size: 1.1rem;
+    font-weight: $weight-semibold;
+    font-size: $text-lg;
 }
 
 // a public club with its figures
@@ -277,7 +277,7 @@
     gap: 1rem;
     height: 100%;
     padding: 1.25rem;
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     background: var(--surface-raised);
     border: 1px solid rgba(255, 255, 255, 0.04);
 }
@@ -299,14 +299,14 @@
     border-top: 1px solid var(--border-default);
 
     dt {
-        font-weight: normal;
-        font-size: 0.75rem;
+        font-weight: $weight-regular;
+        font-size: $text-xs;
         color: var(--text-faint);
     }
 
     dd {
         margin: 0;
-        font-weight: 600;
+        font-weight: $weight-semibold;
         color: var(--text-default);
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
@@ -320,8 +320,8 @@
     align-items: center;
     gap: 0.5rem;
     color: $primaryColor;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
     text-decoration: none;
 
     &:hover { text-decoration: underline; }
@@ -335,7 +335,7 @@
 
     details {
         padding: 1rem 1.25rem;
-        border-radius: 0.6rem;
+        border-radius: $radius-lg;
         background: $surfaceTranslucentColor;
 
         &[open] summary::after { transform: rotate(45deg); }
@@ -349,14 +349,14 @@
         cursor: pointer;
         list-style: none;
         color: var(--text-default);
-        font-weight: 600;
+        font-weight: $weight-semibold;
 
         &::-webkit-details-marker { display: none; }
 
         &::after {
             content: '+';
             color: $primaryColor;
-            font-size: 1.25rem;
+            font-size: $text-xl;
             line-height: 1;
             transition: transform 0.2s;
         }
@@ -370,7 +370,7 @@
     gap: 1rem;
     padding: 3.5rem 1.5rem;
     text-align: center;
-    border-radius: 1rem;
+    border-radius: $radius-lg;
     background:
         radial-gradient(ellipse at top, rgba($primaryColor, 0.25), transparent 70%),
         $surfaceTranslucentColor;
@@ -384,7 +384,7 @@
     padding: 1.5rem;
     border-top: 1px solid var(--border-default);
     color: var(--text-faint);
-    font-size: 0.85rem;
+    font-size: $text-sm;
 
     a { color: var(--text-subtle); text-decoration: none; }
     a:hover { color: var(--text-default); }
@@ -430,11 +430,11 @@
     place-items: center;
     width: 1.9rem;
     height: 1.9rem;
-    border-radius: 50%;
+    border-radius: $radius-round;
     background: rgba($primaryColor, 0.18);
     color: $primaryColor;
-    font-weight: 600;
-    font-size: 0.85rem;
+    font-weight: $weight-semibold;
+    font-size: $text-sm;
 }
 
 // under the result of a quick game: what an account adds
@@ -445,11 +445,11 @@
     justify-content: space-between;
     gap: 1rem 2rem;
     padding: 1.25rem 1.5rem;
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     background:
         radial-gradient(ellipse at left, rgba($primaryColor, 0.2), transparent 70%),
         var(--surface-raised);
-    border: 1px solid rgba($primaryColor, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
 
     > div:first-child { flex: 1 1 24rem; }
 }
@@ -462,11 +462,11 @@
     justify-content: space-between;
     gap: 1.25rem 2rem;
     padding: 2rem;
-    border-radius: 1rem;
+    border-radius: $radius-lg;
     background:
         radial-gradient(ellipse at right, rgba($primaryColor, 0.28), transparent 65%),
         $surfaceTranslucentColor;
-    border: 1px solid rgba($primaryColor, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
 
     > div { flex: 1 1 26rem; max-width: 44rem; }
 
@@ -483,7 +483,7 @@
 
     .p-dropdown-label {
         padding: 0.4rem 0.65rem;
-        font-size: 0.875rem;
+        font-size: $text-md;
         color: var(--text-subtle);
     }
 
@@ -534,7 +534,7 @@
 .quick-hero-brand {
     display: inline-flex;
     flex-shrink: 0;
-    border-radius: 50%;
+    border-radius: $radius-round;
     transition: transform 0.15s;
 
     &:hover, &:focus-visible { transform: scale(1.08); outline: none; }

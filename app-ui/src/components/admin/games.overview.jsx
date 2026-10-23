@@ -10,8 +10,9 @@ import StatsService from '../../services/stats.service';
 import { gameTitle as titleOf } from './kind.titles';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
+import { ACCENT } from '../../utils/palette';
 
-const GREEN = '#7ecca5';
+const GREEN = ACCENT.green;
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
@@ -66,7 +67,7 @@ const GamesOverview = () => {
                             {overview.popular.map(entry => (
                                 <li key={entry.type}>
                                     <GameTypeIcon type={entry.type} />
-                                    <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                                    <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                                         <span className="d-flex align-items-baseline justify-content-between gap-2">
                                             <span className="text-default fs-7 fw-semibold text-truncate">{titleOf(entry.type)}</span>
                                             <span className="text-subtle fs-8 text-nowrap"><strong className="text-default">{entry.count}</strong>{entry.last30Days ? ` · ${t('{{count}} lately', { count: entry.last30Days })}` : ''}</span>

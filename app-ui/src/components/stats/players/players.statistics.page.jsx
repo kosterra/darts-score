@@ -177,7 +177,7 @@ const PlayersStatisticsPage = () => {
                                                     shape="circle"
                                                     className="avatar-sm bg-surface-high"
                                                 />
-                                                <span className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
+                                                <span className="d-flex flex-column flex-grow-1 min-w-0">
                                                     <span className="text-default fw-semibold text-truncate">
                                                         {player.nickname}{player.user === user.id && <span className="text-faint fw-normal">{' '}{t('(you)')}</span>}
                                                     </span>
@@ -196,7 +196,7 @@ const PlayersStatisticsPage = () => {
                     </Panel>
                 </div>
 
-                <div className="col-12 col-lg-8 col-xxl-9" style={{ minWidth: 0 }}>
+                <div className="col-12 col-lg-8 col-xxl-9 min-w-0">
                     {selected.length < 2 &&
                         <header className="hero-header rounded-2 p-4 mb-4 d-flex flex-column gap-2">
                             <h1 className="fs-2 fw-semibold text-default m-0">{t('Player comparison')}</h1>

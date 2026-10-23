@@ -43,7 +43,7 @@ export const HouseRules = ({ game, club, settings, onChange }) => {
     return (
         <div className="setting-box">
             <button type="button" className="house-rules-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
-                <span className="d-flex flex-column align-items-start" style={{ minWidth: 0 }}>
+                <span className="d-flex flex-column align-items-start min-w-0">
                     <span className="text-default fw-semibold fs-7">{t('House rules')}{!unusual && <span className="text-faint fw-normal"> · {t('as usual')}</span>}</span>
                     {!open && <span className="text-faint fs-8 text-start">{line}</span>}
                 </span>

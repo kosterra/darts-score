@@ -8,8 +8,9 @@ import { KpiHero } from '../stats/players/kpi';
 import { gameTitle, trainingIcon, trainingTitle } from './kind.titles';
 import { t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { ACCENT } from '../../utils/palette';
 
-const GREEN = '#7ecca5';
+const GREEN = ACCENT.green;
 
 // what differs between the games and the trainings
 const OF = {

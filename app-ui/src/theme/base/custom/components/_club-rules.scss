@@ -7,11 +7,11 @@
     align-items: center;
     gap: 0.3rem;
     padding: 0.1rem 0.5rem;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: $surfaceHighColor;
     color: $textSubtleColor;
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
     letter-spacing: 0.02em;
 
     .pi { font-size: 0.65rem; }
@@ -20,26 +20,26 @@
 // a locked house rule's value in the setup
 .club-rule-value {
     padding: 0.45rem 0.9rem;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: rgba($primaryColor, 0.42);
     color: $buttonTextColor;
-    font-size: 0.8rem;
-    font-weight: 700;
+    font-size: $text-sm;
+    font-weight: $weight-bold;
 }
 
 // a friendly format among the quick formats
 .quick-format-tag {
     margin-left: 0.5rem;
     padding: 0.05rem 0.45rem;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: rgba(255, 255, 255, 0.12);
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
 }
 
 // the editor: every game a card, opened to its settings
 .club-rules-game {
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
 
     &.is-off .club-rules-game-title { opacity: 0.55; }
@@ -60,7 +60,7 @@
     min-width: 0;
     padding: 0.25rem 0.5rem;
     border: 0;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: transparent;
     color: inherit;
     font: inherit;
@@ -108,11 +108,11 @@
 .club-rules-house {
     margin-left: 0.5rem;
     padding: 0.05rem 0.45rem;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: $surfaceHighColor;
     color: $textSubtleColor;
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
 }
 
 // locked or free: quiet, a soft background when locked
@@ -140,11 +140,11 @@
     gap: 0.4rem;
     padding: 0.3rem 0.7rem;
     border: 0;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: $surfaceHighColor;
     color: $textDefaultColor;
     font: inherit;
-    font-size: 0.8rem;
+    font-size: $text-sm;
     cursor: pointer;
 
     .pi { font-size: 0.6rem; opacity: 0.6; }
@@ -157,7 +157,7 @@
     flex-direction: column;
     gap: 0.4rem;
     padding: 0.75rem 0.9rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
 }
 
@@ -189,7 +189,7 @@
     margin-bottom: 0.5rem;
     padding: 0.4rem 0.5rem;
     border: 0;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: transparent;
     color: inherit;
     font: inherit;
@@ -223,7 +223,7 @@
     width: 1.6rem;
     height: 1.6rem;
     border: 0;
-    border-radius: 50%;
+    border-radius: $radius-round;
     background: transparent;
     color: $textFaintColor;
     cursor: pointer;
@@ -237,7 +237,7 @@
 .game-house-rules {
     margin-bottom: 0.9rem;
     padding: 0.6rem 0.9rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceHighColor;
 }
 

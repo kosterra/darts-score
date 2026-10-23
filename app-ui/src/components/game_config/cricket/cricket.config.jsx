@@ -83,7 +83,7 @@ const CricketConfig = () => {
 
     return (
         <>
-            <Panel header={t('Cricket')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+            <Panel header={t('Cricket')} className="page-narrow" icons={rulesButton}>
                 {rules}
                 {!club.enabled ? <NotPlayedHere title={t('Cricket')} /> :
                 <div className="container">

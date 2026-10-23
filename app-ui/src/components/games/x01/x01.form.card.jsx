@@ -64,7 +64,7 @@ const X01FormCard = ({ game, playerId }) => {
             <div className="d-flex justify-content-around text-center">
                 {figures.map(([label, value]) => (
                     <div key={label} className="d-flex flex-column">
-                        <span className="text-default fw-semibold fs-6" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatAverage(value)}</span>
+                        <span className="text-default fw-semibold fs-6 tabular-nums">{formatAverage(value)}</span>
                         <span className="text-faint fs-9">{label}</span>
                     </div>
                 ))}

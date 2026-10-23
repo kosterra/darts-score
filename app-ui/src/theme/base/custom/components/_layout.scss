@@ -1,0 +1,33 @@
+// ------------------------------------------------------------------------
+// The layout of the pages (see base/_tokens.scss for the values):
+//
+// Widths: a page takes the full width (lists, statistics, the dashboard),
+// .page-narrow (setups and forms) or .page-reading (the About page, cards to
+// read); both centred.
+//
+// Headings, from the top:
+//   hero      the name on an identity page (club, player, Oche): h1.fs-2 in a .hero-header
+//   page      the title of a panel, with the green line under it (PrimeReact Panel)
+//   section   .game-setup-section-title: small, upper case, a line to the right
+//   setting   .setting-title: the name of a setting above its choices
+// ------------------------------------------------------------------------
+
+.page-narrow,
+.page-reading {
+    width: 100%;
+    margin-inline: auto;
+}
+
+.page-narrow { max-width: $page-narrow; }
+.page-reading { max-width: $page-reading; }
+
+// behind the app's pages the dartboard stays a calm backdrop: darker than on
+// the start page and the login, so the panels and the faint text stand out
+.app-shell {
+    min-height: 100vh;
+    background: rgba($shade900, 0.55);
+}
+
+// utilities Bootstrap lacks: a flex child that may shrink below its content, figures that line up
+.min-w-0 { min-width: 0; }
+.tabular-nums { font-variant-numeric: tabular-nums; }

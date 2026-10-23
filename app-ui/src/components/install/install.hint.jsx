@@ -42,7 +42,7 @@ const InstallHint = () => {
     return (
         <aside className="install-hint" aria-label={t('Install Oche')}>
             <img src="/icons/icon-192.png" alt="" width="44" height="44" />
-            <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+            <div className="d-flex flex-column gap-1 min-w-0">
                 <strong className="text-default fs-7">{t('Oche on your home screen')}</strong>
                 <span className="text-subtle fs-8">
                     {ios

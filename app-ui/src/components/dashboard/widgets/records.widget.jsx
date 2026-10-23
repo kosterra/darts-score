@@ -26,11 +26,11 @@ const RecordsWidget = ({ widget, records, players }) => (
                 return (
                     <div key={key} className="record-card">
                         <span className="record-icon" aria-hidden="true"><Icon /></span>
-                        <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                        <div className="d-flex flex-column min-w-0">
                             <span className="text-faint fs-8">{label}</span>
                             <span className="record-value">{record ? format(record.value) : '–'}</span>
                             {record &&
-                                <span className="d-flex align-items-center gap-2 mt-1" style={{ minWidth: 0 }}>
+                                <span className="d-flex align-items-center gap-2 mt-1 min-w-0">
                                     <Avatar
                                         label={resolvePlayerInitials(player?.firstname, player?.lastname)}
                                         image={resolvePlayerImg(player?.profileImg)}

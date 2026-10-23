@@ -1,7 +1,7 @@
 // Leg and set wins: a card at the bottom of the screen, in the look of the
 // panels, that covers nothing the players need while the game goes on
 
-$momentGold: #e9ac2f;
+$momentGold: $accentAmber;
 
 // bottom right, over the panels below the visit: the board and the input stay
 // free. The dock does not catch clicks, only the card does.
@@ -25,7 +25,7 @@ $momentGold: #e9ac2f;
     max-width: 27rem;
     padding: 0.85rem 1rem 0.9rem 1.15rem;
     border-left: 4px solid var(--primary-color);
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: color-mix(in srgb, var(--surface) 96%, transparent);
     box-shadow: 0 1rem 2.5rem -0.5rem rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(6px);
@@ -55,24 +55,24 @@ $momentGold: #e9ac2f;
     width: 1.75rem;
     height: 1.75rem;
     border: 0;
-    border-radius: 50%;
+    border-radius: $radius-round;
     background: transparent;
     color: var(--text-faint);
     cursor: pointer;
 
     &:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
-    &:focus-visible { outline: 2px solid #4aa8ff; outline-offset: 2px; }
+    &:focus-visible { outline: 2px solid $accentBlue; outline-offset: 2px; }
 }
 
 .game-moment-headline {
     color: var(--text-subtle);
-    font-size: 1rem;
+    font-size: $text-base;
 }
 
 .game-moment-winner {
     color: var(--text-default);
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-size: $text-lg;
+    font-weight: $weight-bold;
 }
 
 .game-moment-standings {
@@ -88,23 +88,23 @@ $momentGold: #e9ac2f;
 
 .game-moment-value {
     color: var(--text-default);
-    font-size: 1.35rem;
-    font-weight: 700;
+    font-size: $text-2xl;
+    font-weight: $weight-bold;
 
     .is-winner & { color: var(--primary-color-text, #fff); }
     .is-set .is-winner & { color: $momentGold; }
 }
 
-.game-moment-name { font-size: 0.8rem; }
+.game-moment-name { font-size: $text-sm; }
 .game-moment-dash { margin: 0 0.15rem; color: var(--text-faint); }
-.game-moment-unit { color: var(--text-faint); font-size: 0.75rem; }
+.game-moment-unit { color: var(--text-faint); font-size: $text-xs; }
 
 .game-moment-next {
     display: flex;
     align-items: center;
     gap: 0.4rem;
     color: var(--text-subtle);
-    font-size: 0.8rem;
+    font-size: $text-sm;
 
     svg { color: var(--primary-color); }
     strong { color: var(--text-default); }
@@ -146,11 +146,11 @@ $momentGold: #e9ac2f;
     align-items: center;
     gap: 0.3rem;
     padding: 0.2rem 0.4rem;
-    border-radius: $borderRadius;
-    font-size: 0.7rem;
-    font-weight: 700;
+    border-radius: $radius-md;
+    font-size: $text-xs;
+    font-weight: $weight-bold;
 
-    &.is-up { background: rgba(#7ecca5, 0.16); color: #7ecca5; }
+    &.is-up { background: rgba($accentGreen, 0.16); color: $accentGreen; }
     &.is-down { background: rgba(#e07a5f, 0.16); color: #e8957e; }
     &.is-steady { background: rgba($shade000, 0.08); color: $textSubtleColor; }
 }
@@ -160,6 +160,6 @@ $momentGold: #e9ac2f;
   @include label-shape;
   @include label-neutral;
   margin-top: 0.25rem;
-  font-size: 0.7rem;
+  font-size: $text-xs;
   font-variant-numeric: tabular-nums;
 }

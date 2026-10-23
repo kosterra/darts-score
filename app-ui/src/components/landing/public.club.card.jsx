@@ -28,9 +28,9 @@ const PublicClubCard = ({ club }) => {
 
     return (
         <article className="public-club">
-            <div className="d-flex align-items-center gap-3" style={{ minWidth: 0 }}>
+            <div className="d-flex align-items-center gap-3 min-w-0">
                 <ClubLogo club={club} size="md" />
-                <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                <div className="d-flex flex-column min-w-0">
                     <h3 className="fs-5 fw-semibold text-default m-0 text-break">{club.name}{' '}<CountryFlag code={club.country} /></h3>
                     <span className="text-faint fs-8">
                         {club.busiestDay ? t(`Plays mostly on ${club.busiestDay}s`) : t('With Oche since {{format}}', { format: dayjs(club.createdAt).format('MMMM YYYY') })}

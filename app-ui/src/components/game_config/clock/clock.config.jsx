@@ -79,7 +79,7 @@ const ClockConfig = () => {
 
     return (
         <>
-            <Panel header={t('Around the Clock')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+            <Panel header={t('Around the Clock')} className="page-narrow" icons={rulesButton}>
                 {rules}
                 {!club.enabled ? <NotPlayedHere title={t('Around the Clock')} /> :
                 <div className="container">

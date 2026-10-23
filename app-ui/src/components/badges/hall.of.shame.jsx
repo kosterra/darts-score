@@ -22,11 +22,11 @@ const HallOfShame = ({ shame }) => {
             {shame.badges.map(badge => (
                 <li key={badge.id} className="hall-of-shame-row">
                     <ShameMedal badge={badge} size="sm" washed={!badge.holder} />
-                    <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                    <div className="d-flex flex-column min-w-0">
                         <span className="text-default fw-semibold" title={badge.description}>{badge.title}</span>
                         {badge.holder
                             ? (
-                                <span className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
+                                <span className="d-flex align-items-center gap-2 min-w-0">
                                     <Avatar
                                         label={resolvePlayerInitials(badge.holder.firstname, badge.holder.lastname)}
                                         image={resolvePlayerImg(badge.holder.profileImg)}

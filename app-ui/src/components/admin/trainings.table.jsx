@@ -187,14 +187,14 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const whatBody = (row) => <span className="text-subtle fs-7 text-nowrap">{row.what}</span>;
     const resultBody = (row) => row.rules
         ? (
-            <span className="text-default fw-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+            <span className="text-default fw-semibold tabular-nums">
                 {row.rules.format(row.score)}
                 {bestIds.has(row.id) && <FaTrophy className="ms-2 text-gold" title={t('Personal best')} aria-label={t('Personal best')} />}
             </span>
         )
         : row.kind === 'atc'
         ? (
-            <span className="text-default fw-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+            <span className="text-default fw-semibold tabular-nums">
                 {formatScore(row)}
                 {bestIds.has(row.id) && <FaTrophy className="ms-2 text-gold" title={t('Personal best in this mode')} aria-label={t('Personal best')} />}
             </span>

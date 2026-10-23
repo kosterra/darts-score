@@ -165,7 +165,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
                     <ul className="dashboard-available list-unstyled m-0">
                         {available.map(widget => (
                             <li key={widget.id} className="dashboard-available-item">
-                                <div className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
+                                <div className="d-flex flex-column flex-grow-1 min-w-0">
                                     <span className="text-default fs-7 fw-semibold">{widget.title}</span>
                                     <span className="text-faint fs-8">{widget.description}</span>
                                 </div>

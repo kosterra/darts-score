@@ -28,9 +28,9 @@ const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [] }) => {
     return (
         <header className="hero-header result-hero x01-live-hero">
             <div className="result-hero-top">
-                <div className="d-flex align-items-center gap-3" style={{ minWidth: 0 }}>
+                <div className="d-flex align-items-center gap-3 min-w-0">
                     <QuickHeroBrand />
-                    <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                    <div className="d-flex flex-column min-w-0">
                         <span className="text-default fw-semibold">{title}</span>
                         {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
                     </div>

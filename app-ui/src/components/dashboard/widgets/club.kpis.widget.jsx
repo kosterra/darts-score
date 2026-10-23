@@ -8,10 +8,11 @@ import { GiDart, GiDiceTarget } from 'react-icons/gi';
 
 import { KpiRing, KpiHero, KpiChip } from '../../stats/players/kpi';
 import { locale, t } from '../../../utils/i18n';
+import { ACCENT, GAME_COLORS } from '../../../utils/palette';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
-const GREEN = '#7ecca5';
-const TYPE_COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6', rules: '#e69ac0' };
+const GREEN = ACCENT.green;
+const TYPE_COLORS = GAME_COLORS;
 
 /**
  * The club in numbers: rates as rings, the average and this month's games as

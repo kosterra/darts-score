@@ -6,13 +6,14 @@ import { gamesPerMonth } from '../../../utils/club.charts';
 import useHiddenSeries from '../../stats/charts/use.hidden.series';
 import { AXIS, BAR_OPACITY, GRID, TOOLTIP, LEGEND } from '../../stats/charts/chart.theme';
 import { t } from '../../../utils/i18n';
+import { GAME_COLORS } from '../../../utils/palette';
 
 const TYPES = [
-    { key: 'x01', name: 'X01', color: '#7ecca5' },
-    { key: 'cricket', name: 'Cricket', color: '#d4c783' },
-    { key: 'elimination', name: 'Elimination', color: '#c3a9e6' },
-    { key: 'clock', name: 'Around the Clock', color: '#86bfe6' },
-    { key: 'rules', name: t('More games'), color: '#e69ac0' },
+    { key: 'x01', name: 'X01', color: GAME_COLORS.x01 },
+    { key: 'cricket', name: 'Cricket', color: GAME_COLORS.cricket },
+    { key: 'elimination', name: 'Elimination', color: GAME_COLORS.elimination },
+    { key: 'clock', name: 'Around the Clock', color: GAME_COLORS.clock },
+    { key: 'rules', name: t('More games'), color: GAME_COLORS.rules },
 ];
 
 /**

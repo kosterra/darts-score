@@ -101,7 +101,7 @@ const ProfilePage = () => {
             <Panel header={t('User profile')}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     {t('Your account: the name your clubs see, the email you log in with, what opens after logging in, your password and how you like to play.')}
-                    {isGlobalAdmin && <> <Tag value={ROLE_LABELS[user.role]} severity="warning" className="ms-1" /></>}
+                    {isGlobalAdmin && <> <Tag value={ROLE_LABELS[user.role]} severity="secondary" className="ms-1" /></>}
                 </p>
                 {/* laid out as the player profile and the game setup: a section title, then a box per setting */}
                 <div className="row g-4">

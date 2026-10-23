@@ -1,23 +1,23 @@
 .recharts-wrapper {
     .recharts-text {
-        font-size: 0.8rem;
+        font-size: $text-sm;
     }
 }
 // Tooltips of the charts: a raised card, one row per value with its colour
 .chart-tooltip {
     min-width: 11rem;
     padding: 0.55rem 0.75rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $shade800;
     box-shadow: 0 0.75rem 1.5rem -0.5rem rgba(0, 0, 0, 0.8);
-    font-size: 0.8rem;
+    font-size: $text-sm;
 }
 
 .chart-tooltip-label {
     margin-bottom: 0.35rem;
     color: $textFaintColor;
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
 }
 
 .chart-tooltip-row {
@@ -31,7 +31,7 @@
     flex-shrink: 0;
     width: 0.55rem;
     height: 0.55rem;
-    border-radius: 50%;
+    border-radius: $radius-round;
 }
 
 .chart-tooltip-name {
@@ -41,7 +41,7 @@
 
 .chart-tooltip-value {
     color: $textDefaultColor;
-    font-weight: 700;
+    font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
 }
 
@@ -51,11 +51,11 @@
     align-items: center;
     gap: 0.3rem;
     padding: 0.1rem 0.45rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: color-mix(in srgb, var(--level-color) 14%, transparent);
     color: var(--level-color);
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
     white-space: nowrap;
 
     svg { font-size: 0.65rem; }
@@ -64,7 +64,7 @@
 .chart-tooltip-detail {
     margin-top: 0.2rem;
     color: $textFaintColor;
-    font-size: 0.72rem;
+    font-size: $text-xs;
 }
 
 // the boards: the card follows the pointer, a little to the side of it
@@ -90,7 +90,7 @@
     max-width: 18rem;
     padding: 0.4rem 0.65rem;
     color: $textDefaultColor;
-    font-size: 0.78rem;
+    font-size: $text-sm;
     line-height: 1.35;
     pointer-events: none;
     animation: app-tooltip-in 0.12s ease-out;

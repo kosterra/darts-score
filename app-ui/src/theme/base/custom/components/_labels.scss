@@ -3,19 +3,19 @@
 // in that colour and small corners, so they never pass for the pill buttons.
 
 $labelGreen: #7cc6a0;
-$labelGold: #e9ac2f;
+$labelGold: $accentAmber;
 $labelBlue: $statusFinishedColor;
 $labelOrange: $statusRunningColor;
-$labelRed: #ec8b80;
+$labelRed: $accentRed;
 
 @mixin label-shape {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0.2rem 0.55rem;
-    border-radius: $borderRadius;
-    font-size: 0.8rem;
-    font-weight: 600;
+    border-radius: $radius-md;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
     line-height: 1.3;
     letter-spacing: normal;
     text-transform: none;
@@ -76,8 +76,8 @@ $labelRed: #ec8b80;
 // size and weight of an input's text, a little tighter than the theme's
 :where(.p-dropdown-panel .p-dropdown-item, .p-multiselect-panel .p-multiselect-item, .p-autocomplete-panel .p-autocomplete-item) {
   padding: 0.6rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: $text-md;
+  font-weight: $weight-semibold;
 }
 
 // the flag of a country next to a name: centred on the line of text, a little
@@ -91,7 +91,7 @@ $labelRed: #ec8b80;
     // middle centres on the small letters; the capitals of a name sit a bit higher
     position: relative;
     top: -0.11em;
-    border-radius: 2px;
+    border-radius: $radius-sm;
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
     margin-left: 0.15em;
 }

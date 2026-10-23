@@ -8,9 +8,9 @@ import { FaTrophy } from 'react-icons/fa6';
 import GameTypeIcon from './game.type.icon';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { PODIUM } from '../../utils/palette';
 
 const SHOWN = 10;
-const PODIUM = ['#ffc94d', '#c9d1d9', '#d29a6a'];
 
 /**
  * Players ranked by a number, as the badges, trainings and games pages show
@@ -56,7 +56,7 @@ const PlayerRanking = ({ entries, barClass = 'is-green' }) => {
                                         shape="circle"
                                         className="avatar-md bg-surface-high flex-shrink-0"
                                     />
-                                    <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                                    <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                                         <span className="d-flex align-items-baseline justify-content-between gap-2">
                                             <span className="text-default fw-semibold text-truncate">{entry.player?.nickname ?? t('Unknown player')}</span>
                                             <span className="text-subtle fs-8 text-nowrap">{entry.label}</span>

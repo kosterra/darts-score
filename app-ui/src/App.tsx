@@ -136,7 +136,7 @@ function AppContent() {
     }
 
     return (
-        <div className="d-flex mb-5 mb-md-0">
+        <div className="d-flex pb-5 pb-md-0 app-shell">
             <AppNavigation />
             {/* warns before the session ends, and goes back to the login once it has */}
             <SessionWatch />

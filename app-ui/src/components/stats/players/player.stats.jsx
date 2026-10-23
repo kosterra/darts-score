@@ -28,6 +28,7 @@ import { gameOf } from '../../../rules/games';
 import { rulesIcon } from '../../rules/rules.icons';
 import TrainingsPanel from './trainings.panel';
 import { formatDate } from '../../../utils/dates';
+import { GAME_COLORS } from '../../../utils/palette';
 
 const LATEST_BADGES = 5;
 
@@ -82,7 +83,7 @@ const StreakFlames = ({ weeks: count }) => (
 );
 
 // the colours of the game type tags
-const COLORS = { x01: '#7ecca5', cricket: '#d4c783', elimination: '#c3a9e6', clock: '#86bfe6', rules: '#e69ac0' };
+const COLORS = GAME_COLORS;
 
 // a part further down the profile page: the badge collection or the Hall of Shame
 const scrollTo = (id) => (event) => {
@@ -204,7 +205,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         {facts.map(([label, value]) => (
                             <div key={label}>
                                 <dt className="text-faint fs-8 fw-normal">{label}</dt>
-                                <dd className="text-default fw-semibold m-0" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</dd>
+                                <dd className="text-default fw-semibold m-0 tabular-nums">{value}</dd>
                             </div>
                         ))}
                     </dl>

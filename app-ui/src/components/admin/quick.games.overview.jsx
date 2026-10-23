@@ -9,8 +9,9 @@ import { quickGamesOverview } from '../../utils/admin.overviews';
 import { gameTitle } from './kind.titles';
 import { t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { ACCENT } from '../../utils/palette';
 
-const GREEN = '#7ecca5';
+const GREEN = ACCENT.green;
 
 /**
  * The quick games kept now at a glance, above their list: how many, lately,
@@ -55,7 +56,7 @@ const QuickGamesOverview = ({ data, days }) => {
                                 {overview.formats.slice(0, 8).map(entry => (
                                     <li key={`${entry.kind}-${entry.format}`}>
                                         <GameTypeIcon type={entry.kind} />
-                                        <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                                        <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                                             <span className="d-flex align-items-baseline justify-content-between gap-2">
                                                 <span className="text-default fs-7 fw-semibold text-truncate">{gameTitle(entry.kind)} · {entry.format}</span>
                                                 <strong className="text-default fs-8">{formatNumber(entry.count)}</strong>

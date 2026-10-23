@@ -53,7 +53,7 @@ const ClubAdminsEditor = ({ club, onHide, onChange }) => {
                 <div className="d-flex flex-column gap-3 pt-2">
                     {club.admins.map(admin => (
                         <div key={admin.id} className="d-flex justify-content-between align-items-center gap-3 border-bottom border-default pb-2">
-                            <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                            <div className="d-flex flex-column min-w-0">
                                 <span className="text-default fw-semibold text-break">
                                     {admin.firstname} {admin.lastname}{admin.id === user.id && <span className="text-faint fw-normal">{' '}{t('(you)')}</span>}
                                 </span>

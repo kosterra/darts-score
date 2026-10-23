@@ -12,7 +12,7 @@
     flex-direction: column;
     gap: 0.5rem;
     padding: 1rem 1.1rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
     color: $textDefaultColor;
     text-decoration: none;
@@ -32,8 +32,8 @@
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        font-weight: 600;
-        font-size: 1.05rem;
+        font-weight: $weight-semibold;
+        font-size: $text-base;
     }
 
     .rules-card-icon {
@@ -43,15 +43,15 @@
         width: 2.2rem;
         height: 2.2rem;
         flex-shrink: 0;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: color-mix(in srgb, $primaryColor 16%, transparent);
         color: $primaryColor;
-        font-size: 1.2rem;
+        font-size: $text-xl;
     }
 
     .rules-card-text {
         color: $textSubtleColor;
-        font-size: 0.875rem;
+        font-size: $text-md;
         line-height: 1.4;
         margin: 0;
     }
@@ -59,7 +59,7 @@
     .rules-card-foot {
         margin-top: auto;
         color: $textFaintColor;
-        font-size: 0.8rem;
+        font-size: $text-sm;
     }
 }
 
@@ -67,7 +67,7 @@
     margin: 0;
     padding-left: 1.1rem;
     color: $textSubtleColor;
-    font-size: 0.875rem;
+    font-size: $text-md;
     line-height: 1.5;
 
     li + li {
@@ -88,20 +88,20 @@
 
     .rules-target-main {
         color: $textDefaultColor;
-        font-weight: 600;
-        font-size: 1.05rem;
+        font-weight: $weight-semibold;
+        font-size: $text-base;
     }
 
     .rules-target-sub {
         color: $textFaintColor;
-        font-size: 0.8rem;
+        font-size: $text-sm;
     }
 }
 
 .rules-scoreboard {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: $text-md;
 
     th,
     td {
@@ -112,8 +112,8 @@
 
     th {
         color: $textFaintColor;
-        font-weight: 600;
-        font-size: 0.75rem;
+        font-weight: $weight-semibold;
+        font-size: $text-xs;
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
@@ -135,7 +135,7 @@
 
     .is-current td {
         background: color-mix(in srgb, $primaryColor 12%, transparent);
-        font-weight: 600;
+        font-weight: $weight-semibold;
     }
 
     .is-out td {
@@ -154,19 +154,19 @@
         flex-direction: column;
         align-items: center;
         padding: 0.5rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: $surfaceRaisedColor;
     }
 
     .rules-status-label {
         color: $textFaintColor;
-        font-size: 0.75rem;
+        font-size: $text-xs;
     }
 
     .rules-status-value {
         color: $textDefaultColor;
-        font-weight: 700;
-        font-size: 1.25rem;
+        font-weight: $weight-bold;
+        font-size: $text-xl;
     }
 }
 
@@ -180,7 +180,7 @@
         justify-content: center;
         gap: 0.5rem;
         min-height: 5.5rem;
-        font-size: 1.35rem;
+        font-size: $text-2xl;
     }
 
     // the icon right next to its word
@@ -202,10 +202,10 @@
     span {
         min-width: 2.6rem;
         padding: 0.15rem 0.4rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: $surfaceHighColor;
         color: $textDefaultColor;
-        font-size: 0.85rem;
+        font-size: $text-sm;
         text-align: center;
     }
 
@@ -221,11 +221,11 @@
     gap: 0.4rem;
     padding: 0.3rem 0.75rem;
     border: 1px solid $surfaceHighColor;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: transparent;
     color: $textSubtleColor;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 
@@ -242,7 +242,7 @@
 .game-rules {
     margin-top: 0.75rem;
     padding: 0.75rem 1rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceTranslucentColor;
     max-width: 48rem;
 
@@ -256,10 +256,10 @@
 .entering-help {
     margin-bottom: 1rem;
     padding: 0.75rem 1rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
     color: $textSubtleColor;
-    font-size: 0.8rem;
+    font-size: $text-sm;
 
     ul {
         padding-left: 1.1rem;
@@ -270,7 +270,7 @@
         padding: 0;
         background: none;
         color: $primaryColor;
-        font-weight: 600;
+        font-weight: $weight-semibold;
         cursor: pointer;
     }
 }
@@ -283,7 +283,7 @@
 .level-details {
     margin-top: 0.5rem;
     padding: 1rem 1.25rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceRaisedColor;
     max-width: 44rem;
 }

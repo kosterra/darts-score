@@ -4,6 +4,7 @@ import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { t } from '../../../utils/i18n';
+import { ACCENT } from '../../../utils/palette';
 
 /**
  * A value of every player over the rounds of a game, one line per player.
@@ -20,7 +21,7 @@ const RoundsLineChart = ({ title, description, data, players, max, target, unit,
                     <CartesianGrid {...GRID} />
                     <XAxis dataKey="round" {...AXIS} allowDecimals={false} label={{ value: step, position: 'insideBottomRight', offset: -2, fill: '#7a7a7a', fontSize: 11 }} />
                     <YAxis {...AXIS} domain={[0, max ?? target ?? 'auto']} allowDecimals={false} />
-                    {target && <ReferenceLine y={target} stroke="#ffc94d" strokeDasharray="4 4" label={{ value: `Target ${target}`, position: 'insideTopLeft', fill: '#ffc94d', fontSize: 11 }} />}
+                    {target && <ReferenceLine y={target} stroke="#ffc94d" strokeDasharray="4 4" label={{ value: `Target ${target}`, position: 'insideTopLeft', fill: ACCENT.gold, fontSize: 11 }} />}
                     <Tooltip {...TOOLTIP} labelFormatter={(round) => round === 0 ? t('Start') : `${step} ${round}`} formatter={(value) => unit ? `${value} ${unit}` : value} />
                     {players.map((player, index) => (
                         <Line legendType="plainline" key={player.id} type="linear" dataKey={player.id} name={player.nickname} stroke={PLAYER_COLORS[index]} strokeWidth={2.5} dot={{ r: 2.5, fill: PLAYER_COLORS[index], strokeWidth: 0 }} connectNulls={false} isAnimationActive={false} hide={series.isHidden(player.id)} />

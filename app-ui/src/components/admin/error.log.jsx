@@ -88,7 +88,7 @@ const ErrorLog = () => {
     const messageBody = (entry) => {
         const request = entry.context?.request;
         return (
-            <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+            <div className="d-flex flex-column gap-1 min-w-0">
                 <span className="text-default fs-7 text-break">{entry.message || entry.error?.message}</span>
                 {entry.error && entry.error.message !== entry.message &&
                     <span className="text-subtle fs-8 text-break">{entry.error.type}: {entry.error.message}</span>}

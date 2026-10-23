@@ -61,7 +61,7 @@ const MeWidget = ({ widget }) => {
                         shape="circle"
                         className="avatar-md bg-surface-high flex-shrink-0"
                     />
-                    <div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                    <div className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                         <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
                         {level && <LevelBadge level={level.level} />}
                         {level?.next &&

@@ -41,12 +41,12 @@ $navRailWidth: 4.75rem;
         height: 2.75rem;
         padding: 0 1.25rem;
         border: 0;
-        border-radius: 999px;
+        border-radius: $radius-pill;
         background: transparent;
         color: $textSubtleColor;
         font-family: $fontFamily;
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: $text-md;
+        font-weight: $weight-semibold;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
         transition: background-color 0.15s, color 0.15s;
@@ -95,7 +95,7 @@ $navRailWidth: 4.75rem;
         gap: 0.75rem;
         min-width: 0;
         color: $textDefaultColor;
-        font-size: 1.05rem;
+        font-size: $text-base;
         white-space: nowrap;
     }
 
@@ -107,7 +107,7 @@ $navRailWidth: 4.75rem;
         width: 2.25rem;
         height: 2.25rem;
         border: 0;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: transparent;
         color: $textSubtleColor;
         cursor: pointer;
@@ -134,7 +134,7 @@ $navRailWidth: 4.75rem;
 
         &::-webkit-scrollbar-thumb {
             background: $shade600;
-            border-radius: 3px;
+            border-radius: $radius-sm;
         }
     }
 
@@ -149,8 +149,8 @@ $navRailWidth: 4.75rem;
         gap: 0.6rem;
         padding: 0.75rem 0.75rem 0.35rem;
         color: $shade000;
-        font-size: 0.72rem;
-        font-weight: 700;
+        font-size: $text-xs;
+        font-weight: $weight-bold;
         letter-spacing: 0.1em;
         text-transform: uppercase;
         white-space: nowrap;
@@ -179,7 +179,7 @@ $navRailWidth: 4.75rem;
         width: 100%;
         padding: 0.4rem;
         border: 0;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: transparent;
         text-align: left;
         cursor: pointer;
@@ -215,7 +215,7 @@ $navRailWidth: 4.75rem;
         justify-content: center;
         width: 1.1rem;
         height: 1.1rem;
-        border-radius: 50%;
+        border-radius: $radius-round;
         background: $surfaceHighColor;
         box-shadow: 0 0 0 2px $sidebarContainerBg;
         color: $textDefaultColor;
@@ -233,11 +233,11 @@ $navRailWidth: 4.75rem;
         width: 100%;
         padding: 0.6rem 0.75rem;
         border: 0;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: transparent;
         color: $textSubtleColor;
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: $text-md;
+        font-weight: $weight-semibold;
         text-align: left;
         white-space: nowrap;
         cursor: pointer;
@@ -268,17 +268,17 @@ $navRailWidth: 4.75rem;
         padding: 0 0.4rem;
         // like the labels: a soft tint with the number in its colour, opaque so it
         // stays readable over the icon in the folded menu; gold, red when critical
-        border-radius: $borderRadius;
-        background: color-mix(in srgb, #e9ac2f 22%, $surfaceColor);
-        color: #e9ac2f;
-        font-size: 0.7rem;
-        font-weight: 700;
+        border-radius: $radius-md;
+        background: color-mix(in srgb, $accentAmber 22%, $surfaceColor);
+        color: $accentAmber;
+        font-size: $text-xs;
+        font-weight: $weight-bold;
         line-height: 1.35rem;
         text-align: center;
 
         &.critical {
-            background: color-mix(in srgb, #ec8b80 24%, $surfaceColor);
-            color: #ec8b80;
+            background: color-mix(in srgb, $accentRed 24%, $surfaceColor);
+            color: $accentRed;
         }
     }
 
@@ -290,7 +290,7 @@ $navRailWidth: 4.75rem;
 
     .nav-chevron {
         margin-left: auto;
-        font-size: 0.7rem;
+        font-size: $text-xs;
         transition: transform $transitionDuration;
 
         &.open {
@@ -308,7 +308,7 @@ $navRailWidth: 4.75rem;
 
         .nav-link-item {
             padding: 0.45rem 0.75rem;
-            font-size: 0.85rem;
+            font-size: $text-sm;
         }
     }
 
@@ -325,7 +325,7 @@ $navRailWidth: 4.75rem;
         align-items: center;
         gap: 0.75rem;
         padding: 0.4rem 0.5rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         text-decoration: none;
         opacity: 0.85;
         transition: background-color $transitionDuration, opacity $transitionDuration;
@@ -362,7 +362,7 @@ $navRailWidth: 4.75rem;
         min-width: 0;
         padding: 0.5rem;
         border: 0;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: transparent;
         color: $textSubtleColor;
         text-align: left;
@@ -399,7 +399,7 @@ $navRailWidth: 4.75rem;
             height: 1.1rem;
             margin: 0;
             padding: 0 0.25rem;
-            font-size: 0.6rem;
+            font-size: $text-xs;
             line-height: 1.1rem;
         }
     }
@@ -440,7 +440,7 @@ $navRailWidth: 4.75rem;
             min-width: 1.1rem;
             height: 1.1rem;
             padding: 0 0.25rem;
-            font-size: 0.6rem;
+            font-size: $text-xs;
             line-height: 1.1rem;
         }
 
@@ -494,7 +494,7 @@ $navRailWidth: 4.75rem;
     min-width: 15rem;
 
     .club-switcher-current .p-menuitem-text {
-        font-weight: 700;
+        font-weight: $weight-bold;
     }
 }
 
@@ -505,10 +505,10 @@ $navRailWidth: 4.75rem;
     justify-content: center;
     flex-shrink: 0;
     overflow: hidden;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $primaryColor;
     color: $primaryTextColor;
-    font-weight: 700;
+    font-weight: $weight-bold;
     box-shadow: 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
 
     // a logo picture keeps its own shape: transparent parts stay transparent,
@@ -549,11 +549,11 @@ $navRailWidth: 4.75rem;
     height: 1.6rem;
     padding: 0;
     border: 0;
-    border-radius: 50%;
+    border-radius: $radius-round;
     // a lighter fill sets it off from the menu and the page, like the other tools
     background: $surfaceHighColor;
     color: $textSubtleColor;
-    font-size: 0.65rem;
+    font-size: $text-xs;
     cursor: pointer;
     box-shadow: 0 0.25rem 0.6rem -0.2rem rgba(0, 0, 0, 0.8);
     transition: background-color $transitionDuration, color $transitionDuration, border-color $transitionDuration;
@@ -583,8 +583,8 @@ $navRailWidth: 4.75rem;
     justify-content: center;
     gap: 0.5rem;
     padding: 0.45rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: $text-sm;
+    font-weight: $weight-bold;
     text-align: center;
     line-height: 1.3;
 }

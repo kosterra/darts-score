@@ -411,7 +411,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Oche') : undefined} onClick={onNavigate}>
                     <img alt="" src="/logo.svg" width="24" height="24" />
                     {!collapsed &&
-                        <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+                        <span className="d-flex flex-column min-w-0">
                             <span className="text-subtle fw-semibold fs-7">{t('Oche')}</span>
                             <span className="text-faint fs-9">{t('About ·')}{' '}{import.meta.env.VITE_APP_VERSION}</span>
                         </span>

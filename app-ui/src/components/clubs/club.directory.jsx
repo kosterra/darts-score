@@ -160,7 +160,7 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                             <div className="my-club-title">
                                 <div className="d-flex flex-wrap align-items-center gap-2">
                                     <span className="text-default fw-semibold fs-6 text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
-                                    <Tag value={JOIN_POLICY_LABELS[club.joinPolicy]} severity={club.joinPolicy === 'open' ? 'success' : 'info'} />
+                                    <Tag value={JOIN_POLICY_LABELS[club.joinPolicy]} severity="secondary" />
                                 </div>
                                 <span className="text-faint fs-8">{club.playerCount} {club.playerCount === 1 ? t('player') : t('players')}</span>
                                 {club.description && <span className="text-subtle fs-8 text-break">{club.description}</span>}

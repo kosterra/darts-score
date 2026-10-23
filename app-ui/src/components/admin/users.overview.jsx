@@ -8,8 +8,9 @@ import { KpiHero } from '../stats/players/kpi';
 import { INACTIVE_DAYS, usersOverview } from '../../utils/admin.overviews';
 import { LANGUAGES, t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { ACCENT } from '../../utils/palette';
 
-const GREEN = '#7ecca5';
+const GREEN = ACCENT.green;
 const initials = (user) => `${user.firstname?.[0] ?? ''}${user.lastname?.[0] ?? ''}`.toUpperCase() || '?';
 
 /**

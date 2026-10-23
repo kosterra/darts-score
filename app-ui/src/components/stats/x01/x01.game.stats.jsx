@@ -30,6 +30,7 @@ import GameBadges from '../../badges/game.badges';
 import UpLink from '../../elements/up.link';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 import { t } from '../../../utils/i18n';
+import { ACCENT } from '../../../utils/palette';
 
 // the key figures of every player in the header; for the best leg less wins
 const FIGURES = [
@@ -48,7 +49,7 @@ const SectionTitle = ({ children }) => <h2 className="stats-section-title">{chil
 
 
 // the colour of the game type, as on the dashboard and the profile
-const GAME_COLOR = '#7ecca5';
+const GAME_COLOR = ACCENT.green;
 /**
  * The statistics of one X01 game: the result with each player's key figures,
  * the moments of the match, every leg with its race to zero, the players side

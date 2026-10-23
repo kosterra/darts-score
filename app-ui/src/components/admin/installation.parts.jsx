@@ -8,9 +8,9 @@ import GameTypeIcon from '../elements/game.type.icon';
 import { formatNumber } from './installation.utils';
 import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { ACCENT, PODIUM } from '../../utils/palette';
 
 const SHOWN = 10;
-const PODIUM = ['#ffc94d', '#c9d1d9', '#d29a6a'];
 
 
 /**
@@ -54,7 +54,7 @@ export const ClubRanking = ({ entries, onPick, barClass = 'is-green', pickLabel 
                                         {podium ? <FaTrophy style={{ color: podium }} aria-hidden="true" /> : place}
                                     </span>
                                     <ClubLogo club={entry.club} size="sm" className="flex-shrink-0" />
-                                    <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                                    <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                                         <span className="d-flex align-items-baseline justify-content-between gap-2">
                                             <span className="text-default fw-semibold text-truncate">{entry.club?.name ?? t('Deleted club')}</span>
                                             <span className="text-subtle fs-8 text-nowrap">{entry.label}</span>
@@ -112,7 +112,7 @@ export const KindList = ({ entries, titleOf, iconOf = (kind) => kind }) => {
             {entries.map(entry => (
                 <li key={entry.kind}>
                     <GameTypeIcon type={iconOf(entry.kind)} />
-                    <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                    <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                         <span className="d-flex align-items-baseline justify-content-between gap-2">
                             <span className="text-default fs-7 fw-semibold text-truncate">{titleOf(entry.kind)}</span>
                             <span className="text-subtle fs-8 text-nowrap"><strong className="text-default">{formatNumber(entry.count)}</strong>{entry.last30Days ? ` · ${t('{{count}} lately', { count: entry.last30Days })}` : ''}</span>
@@ -135,8 +135,8 @@ export const SpreadList = ({ entries }) => {
         <ul className="training-popular list-unstyled m-0">
             {entries.map(entry => (
                 <li key={entry.key}>
-                    {entry.icon && <span className="players-level-mark" style={{ '--level-color': '#7ecca5' }} aria-hidden="true"><i className={entry.icon} /></span>}
-                    <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
+                    {entry.icon && <span className="players-level-mark" style={{ '--level-color': ACCENT.green }} aria-hidden="true"><i className={entry.icon} /></span>}
+                    <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                         <span className="d-flex align-items-baseline justify-content-between gap-2">
                             <span className="text-default fs-7 fw-semibold text-truncate">{entry.label}</span>
                             <strong className="text-default fs-8">{formatNumber(entry.count)}</strong>

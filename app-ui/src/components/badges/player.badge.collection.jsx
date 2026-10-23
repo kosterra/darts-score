@@ -41,7 +41,7 @@ const BadgeSeries = ({ badges }) => {
                             {!next.lower && next.target > 1 &&
                                 <div className="d-flex align-items-center gap-2">
                                     <ProgressBar value={Math.round(next.progress / next.target * 100)} showValue={false} className="flex-grow-1" style={{ height: '0.35rem', maxWidth: '16rem' }} />
-                                    <span className="text-faint fs-8" style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(next.progress)} / {formatNumber(next.target)}</span>
+                                    <span className="text-faint fs-8 tabular-nums">{formatNumber(next.progress)} / {formatNumber(next.target)}</span>
                                 </div>
                             }
                         </>
@@ -71,7 +71,7 @@ const lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
 const ShameCard = ({ badge }) => (
     <li className="shame-card">
         <ShameMedal badge={badge} />
-        <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+        <div className="d-flex flex-column gap-1 min-w-0">
             <span className="d-flex flex-wrap align-items-center gap-2">
                 <span className="text-default fw-semibold">{badge.title}</span>
                 <span className="shame-label">{t('Since')}{' '}{formatDate(badge.lastAt)}</span>
@@ -89,7 +89,7 @@ const ShameCard = ({ badge }) => (
 const ShameEntry = ({ badge }) => (
     <li className="shame-entry">
         <ShameMedal badge={badge} size="sm" washed />
-        <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
+        <div className="d-flex flex-column gap-1 min-w-0">
             <span className="d-flex flex-wrap align-items-center gap-2">
                 <span className={badge.count > 0 ? 'text-default fw-semibold' : 'text-subtle fw-semibold'}>{badge.title}</span>
                 {badge.count > 0

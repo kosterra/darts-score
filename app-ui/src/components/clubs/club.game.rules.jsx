@@ -66,7 +66,7 @@ const SettingRow = ({ game, setting, own, onChange }) => {
     return (
         <div className="club-rules-setting">
             <div className="club-rules-setting-head">
-                <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+                <span className="d-flex flex-column min-w-0">
                     <span className="text-default fw-semibold fs-7">{label}{setting.house && <span className="club-rules-house">{t('House rule')}</span>}</span>
                     {SETTING_HINTS[setting.key] && <span className="text-faint fs-8">{SETTING_HINTS[setting.key]}</span>}
                 </span>

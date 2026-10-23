@@ -10,10 +10,11 @@ import { rulesIcon } from '../../rules/rules.icons';
 import { formatTrainingTime } from '../../../utils/training.time';
 import { locale, t, tn } from '../../../utils/i18n';
 import { formatDate } from '../../../utils/dates';
+import { GAME_COLORS } from '../../../utils/palette';
 
 dayjs.extend(relativeTime);
 
-const COLORS = { atc: '#86bfe6', bot: '#7ecca5', rules: '#e69ac0' };
+const COLORS = GAME_COLORS;
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 // the recent results as a small line, the last one marked; lower: less is better (drawn the other way up)
@@ -44,13 +45,13 @@ const TrainingCard = ({ icon: Icon, title, value, detail, count, color, spark })
     <div className="training-card" style={{ '--kpi-color': color }}>
         <div className="training-card-head">
             <span className="kpi-chip-icon" aria-hidden="true"><Icon /></span>
-            <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+            <span className="d-flex flex-column min-w-0">
                 <span className="training-card-title">{title}</span>
                 <span className="training-card-count">{count}</span>
             </span>
         </div>
         <div className="training-card-body">
-            <span className="d-flex flex-column" style={{ minWidth: 0 }}>
+            <span className="d-flex flex-column min-w-0">
                 <span className="training-card-value">{value ?? '–'}</span>
                 {detail && <span className="training-card-detail">{detail}</span>}
             </span>

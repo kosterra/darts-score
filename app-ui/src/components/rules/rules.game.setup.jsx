@@ -97,7 +97,7 @@ const RulesGameSetup = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header={definition.title} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+            <Panel header={definition.title} className="page-narrow" icons={rulesButton}>
                 {rules}
                 {!club.enabled ? <NotPlayedHere title={definition.title} /> :
                 <div className="container">

@@ -11,7 +11,7 @@ const PublicGameCard = ({ game, live }) => {
     return (
         <div className="bg-surface-raised rounded-2 p-3 h-100 d-flex flex-column gap-3">
             <div className="d-flex justify-content-between align-items-start gap-2">
-                <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                <div className="d-flex flex-column min-w-0">
                     <span className="text-default fw-semibold text-break">{game.club}</span>
                     <span className="text-faint fs-8">{game.format}</span>
                 </div>
@@ -30,7 +30,7 @@ const PublicGameCard = ({ game, live }) => {
                             {player.name}
                             {player.isWinner && <FaTrophy className="ms-2 text-gold" aria-label={t('Winner')} />}
                         </span>
-                        <span className="d-flex align-items-baseline gap-3 flex-shrink-0" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        <span className="d-flex align-items-baseline gap-3 flex-shrink-0 tabular-nums">
                             {game.type === 'x01' &&
                                 <span className="text-faint fs-8">
                                     {player.sets} {player.sets === 1 ? t('set') : t('sets')} · {player.legs} {player.legs === 1 ? t('leg') : t('legs')}

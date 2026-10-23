@@ -151,7 +151,7 @@ const X01BotPage = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <Panel header={t('X01 against the bot')} className="w-100 w-md-75 w-xxl-50 mx-auto" icons={rulesButton}>
+            <Panel header={t('X01 against the bot')} className="page-narrow" icons={rulesButton}>
                 {rules}
                 <div className="container">
                     {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
@@ -225,7 +225,7 @@ const X01BotPage = () => {
             </Panel>
 
             {player && trainings?.length > 0 &&
-                <Panel header={t('Recent trainings')} className="w-100 w-md-75 w-xxl-50 mx-auto mt-4">
+                <Panel header={t('Recent trainings')} className="page-narrow mt-4">
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {trainings.slice(0, 10).map(training => {
                             const result = resultOf(training, player.id);
@@ -235,7 +235,7 @@ const X01BotPage = () => {
                                     <span className={`x01-bot-training-result ${finished ? (result.won ? 'is-won' : 'is-lost') : ''}`}>
                                         {finished ? (result.won ? t('Won') : t('Lost')) : t('Running')}
                                     </span>
-                                    <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                                    <div className="d-flex flex-column min-w-0">
                                         <span className="text-default fw-semibold">{training.startingScore} {training.legOutMode} · {result.legs}</span>
                                         <span className="text-faint fs-8">
                                             {formatDate(training.createdAt, { time: true })}

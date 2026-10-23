@@ -57,10 +57,11 @@ $custom-colors: (
 $theme-colors: map-merge($theme-colors, $custom-colors);
 
 // Font sizes
+// fs-7, fs-8 and fs-9 from the type scale (see _tokens.scss)
 $custom-font-sizes: (
-  7: 0.9rem,
-  8: 0.85rem,
-  9: 0.75rem
+  7: $text-md,
+  8: $text-sm,
+  9: $text-xs
 );
 
 $font-sizes: map-merge($font-sizes, $custom-font-sizes);

@@ -6,8 +6,9 @@ import { ClubRanking, TimeBars } from './installation.parts';
 import { formatNumber, scrollToList } from './installation.utils';
 import { KpiHero } from '../stats/players/kpi';
 import { t, tn } from '../../utils/i18n';
+import { ACCENT } from '../../utils/palette';
 
-const GREEN = '#7ecca5';
+const GREEN = ACCENT.green;
 
 /**
  * The players of every club at a glance, for the global admins, above their

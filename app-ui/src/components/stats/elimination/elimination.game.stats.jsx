@@ -20,6 +20,7 @@ import {
 import UpLink from '../../elements/up.link';
 import { eliminationRematch } from '../../../utils/elimination.rematch';
 import { t } from '../../../utils/i18n';
+import { GAME_COLORS } from '../../../utils/palette';
 
 // the key figures of every player in the header; for knock-outs suffered less is better
 const FIGURES = [
@@ -34,7 +35,7 @@ const FIGURES = [
 
 
 // the colour of the game type, as on the dashboard and the profile
-const GAME_COLOR = '#c3a9e6';
+const GAME_COLOR = GAME_COLORS.elimination;
 /**
  * The statistics of one Elimination game: the result with each player's key
  * figures, the moments of the game, the race to the target with every

@@ -49,7 +49,7 @@ $softGreenTextHover: #95d6b4;
 }
 
 // every pill in the same weight, also those with an icon of their own
-:where(.p-selectbutton .p-button) { font-weight: 700; }
+:where(.p-selectbutton .p-button) { font-weight: $weight-bold; }
 
 // a pill not chosen: a light tint on top, so it shows on a panel and in a box alike
 :where(.p-selectbutton .p-button:not(.p-highlight)) {
@@ -115,9 +115,16 @@ $softGreenTextHover: #95d6b4;
 // a link that looks like a button (e.g. to another site) reads like one: the
 // label of the buttons, not the font of the link
 a.p-button {
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: $text-sm;
+  font-weight: $weight-bold;
   text-decoration: none;
 
-  &.p-button-sm { font-size: 0.8rem; }
+  &.p-button-sm { font-size: $text-sm; }
+}
+
+// The focus ring shows for the keyboard only: a click leaves no ring behind
+// (text fields keep it while typing, as they always match :focus-visible)
+:where(.p-component, button, a, [role="button"], [tabindex]):focus:not(:focus-visible) {
+    box-shadow: none;
+    outline: none;
 }

@@ -158,7 +158,7 @@ const PlayersTable = ({ scope = 'club' }) => {
 
     const kindBody = (player) => player.guest
         ? <Tag value="Guest" severity="secondary" />
-        : <Tag value="Member" severity="success" />;
+        : <Tag value="Member" severity="secondary" />;
 
     const loginBody = (player) => player.user
         ? <span className="text-default fs-7"><i className="pi pi-key text-primary me-2" aria-hidden="true" />{t('Has a login')}</span>

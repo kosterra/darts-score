@@ -103,7 +103,7 @@
         justify-content: center;
         width: 2.25rem;
         height: 2.25rem;
-        border-radius: $borderRadius;
+        border-radius: $radius-md;
         background: rgba(255, 255, 255, 0.07);
         color: $textSubtleColor;
         text-decoration: none;
@@ -122,7 +122,7 @@
     display: inline-block;
     color: inherit;
     text-decoration: none;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
 
     &:hover .text-default,
     &:focus-visible .text-default {
@@ -137,7 +137,7 @@
     height: 2rem;
     padding: 0;
     border: 2px solid transparent;
-    border-radius: 50%;
+    border-radius: $radius-round;
     cursor: pointer;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
 
@@ -168,10 +168,10 @@
     max-height: 22rem;
     overflow: auto;
     padding: 0.75rem 1rem;
-    border-radius: $borderRadius;
+    border-radius: $radius-md;
     background: $surfaceColor;
     color: $textSubtleColor;
-    font-size: 0.75rem;
+    font-size: $text-xs;
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
@@ -189,9 +189,9 @@
 // Fair play: a card per game or training, the level as a label, the findings
 // below, the actions at the end
 // the levels of fair play: cannot be real, wrong data, worth a look
-$fair-play-impossible: #ec8b80;
+$fair-play-impossible: $accentRed;
 $fair-play-error: #8fb4f0;
-$fair-play-suspicious: #e9ac2f;
+$fair-play-suspicious: $accentAmber;
 
 .fair-play-list {
   display: flex;
@@ -204,7 +204,7 @@ $fair-play-suspicious: #e9ac2f;
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.85rem 1rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 
   &.is-impossible { box-shadow: inset 3px 0 0 $fair-play-impossible; }
@@ -221,7 +221,7 @@ $fair-play-suspicious: #e9ac2f;
 
 .fair-play-level {
   @include label-shape;
-  font-size: 0.7rem;
+  font-size: $text-xs;
 
   &.is-impossible { @include label-tone($fair-play-impossible); }
   &.is-error { @include label-tone($fair-play-error); }
@@ -238,7 +238,7 @@ $fair-play-suspicious: #e9ac2f;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  font-size: 0.85rem;
+  font-size: $text-sm;
 
   li { padding-left: 0.9rem; position: relative; }
 
@@ -249,7 +249,7 @@ $fair-play-suspicious: #e9ac2f;
     top: 0.5rem;
     width: 0.4rem;
     height: 0.4rem;
-    border-radius: 50%;
+    border-radius: $radius-round;
   }
 
   li.is-impossible::before { background: $fair-play-impossible; }
@@ -263,7 +263,7 @@ $fair-play-suspicious: #e9ac2f;
   flex-direction: column;
   gap: 0.75rem;
   padding: 0.75rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface);
 }
 
@@ -274,8 +274,8 @@ $fair-play-suspicious: #e9ac2f;
 }
 
 .fair-play-leg-title {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-faint);
@@ -290,11 +290,11 @@ $fair-play-suspicious: #e9ac2f;
   // the numbers stay near the darts on a wide screen
   max-width: 40rem;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: $text-sm;
   font-variant-numeric: tabular-nums;
 
   th {
-    font-weight: 600;
+    font-weight: $weight-semibold;
     color: var(--text-faint);
     padding: 0.2rem 0.5rem;
     text-align: left;
@@ -340,18 +340,18 @@ $fair-play-suspicious: #e9ac2f;
 .fair-play-should,
 .fair-play-repaired {
   display: block;
-  font-size: 0.72rem;
+  font-size: $text-xs;
 }
 
 .fair-play-should { color: var(--text-faint); }
-.fair-play-repaired { color: $fair-play-error; font-weight: 600; }
+.fair-play-repaired { color: $fair-play-error; font-weight: $weight-semibold; }
 
 .fair-play-more {
   align-self: flex-start;
   background: none;
   border: 0;
   padding: 0;
-  font-size: 0.8rem;
+  font-size: $text-sm;
   color: var(--text-subtle);
   text-decoration: underline;
   cursor: pointer;
@@ -362,10 +362,10 @@ $fair-play-suspicious: #e9ac2f;
   grid-template-columns: max-content 1fr;
   gap: 0.25rem 1rem;
   margin: 0;
-  font-size: 0.85rem;
+  font-size: $text-sm;
 
   > div { display: contents; }
-  dt { color: var(--text-faint); font-weight: 600; }
+  dt { color: var(--text-faint); font-weight: $weight-semibold; }
   dd { margin: 0; color: var(--text-default); overflow-wrap: anywhere; }
 }
 
@@ -410,12 +410,12 @@ $fair-play-suspicious: #e9ac2f;
   align-items: flex-start;
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 
   &.is-unread {
     background: var(--surface-high);
-    box-shadow: inset 3px 0 0 #e9ac2f;
+    box-shadow: inset 3px 0 0 $accentAmber;
   }
 }
 
@@ -426,7 +426,7 @@ $fair-play-suspicious: #e9ac2f;
   flex-shrink: 0;
   width: 2rem;
   height: 2rem;
-  border-radius: 50%;
+  border-radius: $radius-round;
   background: var(--surface);
   color: var(--text-subtle);
 }
@@ -464,9 +464,9 @@ $fair-play-suspicious: #e9ac2f;
 // the time left before the session ends, large and calm
 .session-countdown {
   font-size: 2.5rem;
-  font-weight: 700;
+  font-weight: $weight-bold;
   font-variant-numeric: tabular-nums;
-  color: #e9ac2f;
+  color: $accentAmber;
   line-height: 1.1;
 }
 
@@ -501,7 +501,7 @@ $fair-play-suspicious: #e9ac2f;
 .my-club {
   display: flex;
   flex-direction: column;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
 
   // the club the app works in now
@@ -587,10 +587,10 @@ $fair-play-suspicious: #e9ac2f;
   grid-template-columns: max-content 1fr;
   gap: 0.35rem 1rem;
   margin: 0.4rem 0 0;
-  font-size: 0.85rem;
+  font-size: $text-sm;
 
   > div { display: contents; }
-  dt { color: var(--text-faint); font-weight: 600; }
+  dt { color: var(--text-faint); font-weight: $weight-semibold; }
   dd { margin: 0; color: var(--text-default); overflow-wrap: anywhere; }
 }
 
@@ -625,7 +625,7 @@ $fair-play-suspicious: #e9ac2f;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.75rem;
+  font-size: $text-xs;
   color: var(--text-faint);
   white-space: nowrap;
 
@@ -678,7 +678,7 @@ $fair-play-suspicious: #e9ac2f;
   display: inline-block;
   width: 0.7rem;
   height: 0.7rem;
-  border-radius: 2px;
+  border-radius: $radius-sm;
   vertical-align: middle;
 }
 
@@ -688,11 +688,11 @@ $fair-play-suspicious: #e9ac2f;
 .mail-placeholder {
   padding: 0.15rem 0.5rem;
   border: 1px solid var(--border-default);
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-subtle);
   font-family: monospace;
-  font-size: 0.8rem;
+  font-size: $text-sm;
   cursor: pointer;
 
   &:hover { color: var(--text-default); background: rgba(255, 255, 255, 0.09); }
@@ -700,17 +700,17 @@ $fair-play-suspicious: #e9ac2f;
 
 .mail-preview-subject {
   padding: 0.5rem 0.75rem;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: var(--surface-raised);
   color: var(--text-default);
-  font-size: 0.85rem;
+  font-size: $text-sm;
 }
 
 .mail-preview {
   width: 100%;
   height: 34rem;
   border: 0;
-  border-radius: $borderRadius;
+  border-radius: $radius-md;
   background: #f2f3f1;
 }
 
@@ -737,8 +737,8 @@ $fair-play-suspicious: #e9ac2f;
 
     // the font of the other filter fields (e.g. the players): faint while it is every type
     .p-multiselect-label {
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: $text-md;
+        font-weight: $weight-semibold;
         color: $textFaintColor;
     }
 
@@ -766,8 +766,8 @@ $fair-play-suspicious: #e9ac2f;
         border: 0;
         background: transparent;
         color: $textFaintColor;
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: $text-xs;
+        font-weight: $weight-bold;
         letter-spacing: 0.05em;
         text-transform: uppercase;
         cursor: pointer;
@@ -779,7 +779,7 @@ $fair-play-suspicious: #e9ac2f;
 
     .type-filter-group-all {
         color: $primaryColor;
-        font-size: 0.7rem;
+        font-size: $text-xs;
         letter-spacing: 0;
         text-transform: none;
     }
@@ -787,7 +787,7 @@ $fair-play-suspicious: #e9ac2f;
     .type-filter-icon {
         display: inline-flex;
         color: $textSubtleColor;
-        font-size: 1rem;
+        font-size: $text-base;
     }
 }
 
@@ -825,5 +825,5 @@ $fair-play-suspicious: #e9ac2f;
 
 // the icon in a filter pill
 .filter-pills .filter-pill-icon {
-    font-size: 0.85rem;
+    font-size: $text-sm;
 }

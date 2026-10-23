@@ -99,7 +99,7 @@ const QuickGamesList = () => {
     const playersBody = (game) => (
         <div className="d-flex flex-column gap-2">
             {game.names.map(name => (
-                <div key={name} className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
+                <div key={name} className="d-flex align-items-center gap-2 min-w-0">
                     <Avatar label={initials(name)} shape="circle" className="avatar-sm bg-surface-high flex-shrink-0" />
                     <span className="text-default fw-semibold text-truncate">
                         {name}
