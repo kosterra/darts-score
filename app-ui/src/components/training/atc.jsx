@@ -300,7 +300,7 @@ const ATC = () => {
                             }
                             {!inProgress && <NewBadges groups={earned} className="mt-3" />}
                             {!playing && <>
-                            {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
+                            {remembered && <GameSetupMemory training onReset={startFresh} />}
                             <p className="game-setup-section-title">{t('Player')}</p>
                             {/* a fieldset locks every card while a training runs */}
                             <fieldset disabled={inProgress} className="atc-setup-lock">

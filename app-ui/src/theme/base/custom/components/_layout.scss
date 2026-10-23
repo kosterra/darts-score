@@ -21,11 +21,9 @@
 .page-narrow { max-width: $page-narrow; }
 .page-reading { max-width: $page-reading; }
 
-// behind the app's pages the dartboard stays a calm backdrop: darker than on
-// the start page and the login, so the panels and the faint text stand out
+// the app's pages: at least the height of the window, the dartboard behind them as it is
 .app-shell {
     min-height: 100vh;
-    background: rgba($shade900, 0.55);
 }
 
 // utilities Bootstrap lacks: a flex child that may shrink below its content, figures that line up

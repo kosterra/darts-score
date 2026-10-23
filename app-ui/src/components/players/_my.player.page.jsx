@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Panel } from 'primereact/panel';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Calendar } from 'primereact/calendar';
-import { Toast } from 'primereact/toast';
 
 import AuthService, { announceMyPlayersChange } from '../../services/auth.service';
 import PlayerService from '../../services/player.service';
@@ -30,11 +28,13 @@ const fromDate = (date) => date instanceof Date && !Number.isNaN(date.getTime())
     : '';
 
 /**
- * One player the user plays as: nickname and picture to edit, the name from
- * the account and the date of birth from the club admins, whether the
- * nickname shows on the public page and what the X01 tips aim at.
+ * One player the user plays as. part 'player': nickname and picture to edit,
+ * the name from the account and the date of birth from the club admins,
+ * whether the nickname shows on the public page and the trainings to the
+ * club, and the flights and barrels. part 'playing': what the X01 tips aim
+ * at, the handicap and the dart animation.
  */
-const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
+const MyPlayer = ({ player, multiple = false, onSaved, onError, part = 'player' }) => {
     const navigate = useNavigate();
     const { activeClub, selectClub } = useAuth();
     const [nickname, setNickname] = useState(player.nickname);
@@ -63,9 +63,9 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
             if (image.action === 'cleared') formData.append('clearProfileImg', 'true');
             await PlayerService.updatePlayer({ id: player.id, formData, clubId });
             setImage(value => ({ ...value, action: 'unchanged', file: null }));
-            onSaved(t('Player profile'), t('Your player profile is saved.'));
+            onSaved(t('Profile'), t('Your profile is saved.'));
         } catch (error) {
-            onError(t('Player profile'), error);
+            onError(t('Profile'), error);
         } finally {
             setSaving(false);
         }
@@ -92,6 +92,21 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
         if (clubId !== activeClub?.id) selectClub(clubId);
         navigate(`/players/${player.id}`);
     };
+
+    if (part === 'playing') {
+        return (
+            <section className="my-player">
+                <p className="game-setup-section-title">{multiple ? player.nickname : t('Your player in games')}</p>
+                <p className="setting-title">{t('Doubles, treble and handicap')}</p>
+                <div className="row mx-0 mt-0 setting-body">
+                    <div className="col">
+                        <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Ways out'), error)} />
+                    </div>
+                </div>
+                <PlayerDartPreferences part="animation" player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Darts on the board'), error)} />
+            </section>
+        );
+    }
 
     return (
         <section className="my-player row g-4">
@@ -129,7 +144,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                             <dl className="my-player-facts">
                                 <div>
                                     <dt>{t('Name')}</dt>
-                                    <dd>{player.firstname} {player.lastname} <span className="text-faint">{t('· from your')}{' '}<Link to="/profile">{t('user profile')}</Link></span></dd>
+                                    <dd>{player.firstname} {player.lastname} <span className="text-faint">{t('· from your')}{' '}<Link to="/profile">{t('account')}</Link></span></dd>
                                 </div>
                                 {!player.birthEditable &&
                                     <div>
@@ -198,60 +213,45 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
             </div>
 
             <div className="col-12 col-xl-6">
-                <p className="game-setup-section-title">{t('In games')}</p>
-                <p className="setting-title">{t('Ways out in X01')}</p>
-                <div className="row mx-0 mt-0 setting-body">
-                    <div className="col">
-                        <PlayerCheckoutPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Ways out'), error)} />
-                    </div>
-                </div>
-                <PlayerDartPreferences player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Darts on the board'), error)} />
+                <p className="game-setup-section-title">{t('Your darts')}</p>
+                <PlayerDartPreferences part="flights" player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Darts on the board'), error)} />
             </div>
         </section>
     );
 };
 
 /**
- * The player profile: the players the user plays as (usually one, also when
- * it plays in several clubs), kept up to date by the user themselves.
+ * The players the user plays as (usually one, also when it plays in several
+ * clubs), kept up to date by the user themselves, for a tab of the profile:
+ * part 'player' or 'playing' (see MyPlayer). onSaved(summary, detail), onError(summary, error)
  */
-const MyPlayerPage = () => {
-    const toast = useRef(null);
+export const MyPlayers = ({ part, onSaved, onError }) => {
     const [players, setPlayers] = useState(null);
     const [failed, setFailed] = useState(false);
 
     const load = useCallback(() => AuthService.getMyPlayers().then(setPlayers).catch(() => setFailed(true)), []);
     useEffect(() => { load(); }, [load]);
 
-    const onSaved = (summary, detail) => {
-        toast.current.show({ severity: 'success', summary, detail, life: 3000 });
+    const saved = (summary, detail) => {
+        onSaved(summary, detail);
         announceMyPlayersChange();
         load();
     };
-    const onError = (summary, error) => toast.current.show({ severity: 'error', summary, detail: error.message, life: 4000 });
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">{t('Your player profile could not be loaded. Please reload the page.')}</div>;
+    if (failed) return <p className="text-subtle fs-7 m-0">{t('Your profile could not be loaded. Please reload the page.')}</p>;
     if (!players) return <PageLoader />;
-
+    if (players.length === 0) {
+        return <p className="text-subtle fs-7 m-0">{t('You do not play in a club yet. A club admin can give your player a login, or add yourself as a player of a club you run under')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>.</p>;
+    }
     return (
-        <div className="container-fluid p-4 border-0">
-            <Toast ref={toast} position="bottom-right" />
-            <Panel header={t('Player profile')}>
-                <p className="text-subtle fs-7 mt-0 mb-3">
-                    {t('How you appear in your clubs: your nickname and picture are yours to keep up to date, and your name comes from your user profile. Your club admins set the date of birth; as an adult you can correct it afterwards.')}
-                    {players.length > 1 && t(' You play as more than one player; your picture is the same for all of them.')}
-                </p>
-                {players.length === 0
-                    ? <p className="text-subtle fs-7 m-0">{t('You do not play in a club yet. A club admin can give your player a login, or add yourself as a player of a club you run under')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>.</p>
-                    : (
-                        <div className="d-flex flex-column gap-4">
-                            {players.map(player => <MyPlayer key={`${player.id}-${player.profileImg}-${player.nickname}-${player.dateOfBirth}`} player={player} multiple={players.length > 1} onSaved={onSaved} onError={onError} />)}
-                        </div>
-                    )
-                }
-            </Panel>
+        <div className="d-flex flex-column gap-4">
+            {part === 'player' && players.length > 1 && <p className="text-subtle fs-7 m-0">{t('You play as more than one player; your picture is the same for all of them.')}</p>}
+            {players.map(player => <MyPlayer key={`${part}-${player.id}-${player.profileImg}-${player.nickname}-${player.dateOfBirth}`} part={part} player={player} multiple={players.length > 1} onSaved={saved} onError={onError} />)}
         </div>
     );
 };
+
+// the player profile is a tab of the profile now
+const MyPlayerPage = () => <Navigate replace to="/profile#player" />;
 
 export default MyPlayerPage;

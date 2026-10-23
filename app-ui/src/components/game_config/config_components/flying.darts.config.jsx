@@ -4,7 +4,7 @@ import { FLYING_DARTS_OPTIONS } from '../../../utils/flights';
 import { t } from '../../../utils/i18n';
 
 const HINTS = {
-    players: t('A dart flies to the field you tap. Each player switches it on or off on their player profile (off unless they switched it on).'),
+    players: t('A dart flies to the field you tap. Each player switches it on or off on their profile (off unless they switched it on).'),
     on: t('A dart flies to the field you tap, for everyone in this game.'),
     off: t('The field you tap just lights up, for everyone in this game.'),
 };

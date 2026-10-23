@@ -197,7 +197,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                             severity={player.publicProfile ? undefined : 'secondary'}
                             aria-label={player.publicProfile ? t('Hide the nickname of {{nickname}} on the public page', { nickname: player.nickname }) : t('Show the nickname of {{nickname}} on the public page', { nickname: player.nickname })}
                             tooltip={decidesThemselves(player)
-                                ? t('{{nickname}} has a login and decides this on their player profile', { nickname: player.nickname })
+                                ? t('{{nickname}} has a login and decides this on their profile', { nickname: player.nickname })
                                 : player.publicProfile ? t('Nickname is public') : t('Nickname is hidden publicly')}
                             tooltipOptions={{ position: 'top', showOnDisabled: true }}
                             disabled={decidesThemselves(player)}

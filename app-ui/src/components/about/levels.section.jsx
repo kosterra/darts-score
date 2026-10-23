@@ -126,7 +126,7 @@ const LevelsSection = ({ levels, rules, flights }) => {
             <section className="d-flex flex-column gap-3">
                 <h2 className="game-setup-section-title m-0">{t('Flight points')}</h2>
                 <p className="text-subtle fs-7 m-0">
-                    {t('Every player collects flight points by playing and training, and spends them on the flight shapes, designs and barrels they like, on their player profile. Besides the starters, a flight costs from 60 to 650 points; many also need a player level or an average level, shown above with the level they belong to. The points are worked out from the games and trainings, so a deleted game takes its points along.')}
+                    {t('Every player collects flight points by playing and training, and spends them on the flight shapes, designs and barrels they like, on their profile. Besides the starters, a flight costs from 60 to 650 points; many also need a player level or an average level, shown above with the level they belong to. The points are worked out from the games and trainings, so a deleted game takes its points along.')}
                 </p>
                 <div className="about-xp">
                     <h3 className="fs-7 fw-semibold text-default mb-2">{t('How flight points are earned')}</h3>

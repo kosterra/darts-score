@@ -73,7 +73,7 @@ const ClubsPage = () => {
             <Panel header={t('My clubs')}>
                 <div className="my-clubs-top">
                     <p className="text-subtle fs-7 m-0">
-                        {t('The clubs you run or play in. Switch between them here or at the top of the menu; Edit club holds everything about a club you run. How you appear as a player, your nickname, picture and the X01 tips, is on your')}{' '}<Link to="/player-profile">{t('player profile')}</Link>.
+                        {t('The clubs you run or play in. Switch between them here or at the top of the menu; Edit club holds everything about a club you run. How you appear as a player, your nickname, picture and the X01 tips, is on your')}{' '}<Link to="/profile#player">{t('profile')}</Link>.
                     </p>
                     <form onSubmit={onCreate} className="my-clubs-create">
                         <InputText

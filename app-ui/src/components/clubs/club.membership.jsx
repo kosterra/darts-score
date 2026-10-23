@@ -71,7 +71,7 @@ const ClubMembership = ({ club, onSuccess, onError }) => {
                 {t('You play as')}{' '}
                 <a href={`/players/${player.id}`} className="fw-semibold" onClick={showProfile} title={t('Your statistics and badges in this club')}>{player.nickname}</a>
             </span>
-            <Button type="button" label={t('Player profile')} icon="pi pi-user-edit" size="small" severity="secondary" className="ms-auto" onClick={() => navigate('/player-profile')} />
+            <Button type="button" label={t('Profile')} icon="pi pi-user-edit" size="small" severity="secondary" className="ms-auto" onClick={() => navigate('/profile#player')} />
         </div>
     );
 };

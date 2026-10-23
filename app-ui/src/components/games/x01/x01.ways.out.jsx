@@ -25,14 +25,14 @@ const Plan = ({ darts, leaves, note, preferred }) => (
 const ProfileNote = ({ profile, about }) => {
     if (!profile) return null;
     if (about === 'double') {
-        if (profile.doubleSource === 'set') return <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the player profile).')}</span>;
+        if (profile.doubleSource === 'set') return <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</span>;
         if (profile.doubleSource === 'history') {
             const best = profile.doubles[0];
             return <span className="x01-ways-note">{t('Your best doubles first: {{double}} hit {{rate}} % of {{total}} darts in your games.', { double: best.double, rate: best.rate, total: best.total })}</span>;
         }
         return null;
     }
-    if (profile.trebleSource === 'set') return <span className="x01-ways-note">{t('Your main treble:')}{' '}{profile.mainTreble}{' '}{t('(set in the player profile).')}</span>;
+    if (profile.trebleSource === 'set') return <span className="x01-ways-note">{t('Your main treble:')}{' '}{profile.mainTreble}{' '}{t('(set in the profile).')}</span>;
     if (profile.trebleSource === 'history') return <span className="x01-ways-note">{t('Your main treble from your games:')}{' '}{profile.mainTreble}.</span>;
     return null;
 };

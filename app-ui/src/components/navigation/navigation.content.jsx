@@ -448,15 +448,12 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 </button>
                 {profileOpen && !collapsed &&
                     <div className="nav-group">
+                        {/* the account, the player and playing: one page in three parts */}
                         <NavLink to="/profile" end className={linkClass} onClick={onNavigate}>
-                            <span className="nav-label">{t('User profile')}</span>
+                            <span className="nav-label">{t('Profile')}</span>
                             <Ripple />
                         </NavLink>
                         {!isGlobalAdmin && <>
-                            <NavLink to="/player-profile" end className={linkClass} onClick={onNavigate}>
-                                <span className="nav-label">{t('Player profile')}</span>
-                                <Ripple />
-                            </NavLink>
                             <NavLink to="/my-clubs" end className={linkClass} onClick={onNavigate}>
                                 <span className="nav-label">{t('My clubs')}</span>
                                 <Ripple />

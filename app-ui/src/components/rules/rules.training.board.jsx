@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
+import { Avatar } from 'primereact/avatar';
+import { FaMedal } from 'react-icons/fa6';
 
 import RulesService from '../../services/rules.service';
 import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+
+const MEDALS = ['gold', 'silver', 'bronze'];
 
 const VIEWS = [
     { label: t('Best'), value: 'best' },
@@ -49,17 +54,35 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                 ? <span className="text-faint fs-8">{t('Loading…')}</span>
                 : rows.length === 0
                     ? <span className="text-faint fs-8">{t('Nobody has played this training yet.')}</span>
-                    : <table className="rules-scoreboard">
-                        <tbody>
-                            {rows.map((entry, index) => (
-                                <tr key={entry.id} className={entry.id === highlight ? 'is-current' : ''}>
-                                    <td>{view === 'best' ? `${index + 1}. ` : ''}{entry.player?.nickname ?? t('Unknown player')}</td>
-                                    <td>{definition.format(entry.score)}</td>
-                                    <td className="text-faint fs-8">{formatDate(entry.createdAt, { year: 'short' })}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>}
+                    // as the scoreboard of Around the Clock: the podium as medals, the player with the date, the result
+                    : <ol className="atc-rows">
+                        {rows.map((entry, index) => {
+                            const player = entry.player ?? {};
+                            const rank = index + 1;
+                            const podium = view === 'best' && rank <= 3;
+                            return (
+                                <li key={entry.id} className={`atc-row ${entry.id === highlight ? 'is-latest' : ''}`}>
+                                    {podium
+                                        ? <span className={`badge-medal badge-medal-sm badge-${MEDALS[rank - 1]} atc-medal`} role="img" aria-label={t('Place {{place}}', { place: rank })}><FaMedal aria-hidden="true" /></span>
+                                        : <span className="atc-rank">{view === 'best' ? rank : ''}</span>}
+                                    <Avatar
+                                        image={resolvePlayerImg(player.profileImg)}
+                                        label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname ?? player.nickname ?? '?', player.lastname ?? '')}
+                                        shape="circle"
+                                        className="avatar-sm flex-shrink-0"
+                                    />
+                                    <span className="atc-row-player">
+                                        <span className="atc-row-name">
+                                            {player.nickname ?? t('Unknown player')}
+                                            {entry.id === highlight && <span className="atc-row-new">{t('New')}</span>}
+                                        </span>
+                                        <span className="atc-row-detail">{formatDate(entry.createdAt)}</span>
+                                    </span>
+                                    <span className="atc-row-time">{definition.format(entry.score)}</span>
+                                </li>
+                            );
+                        })}
+                    </ol>}
         </Panel>
     );
 };

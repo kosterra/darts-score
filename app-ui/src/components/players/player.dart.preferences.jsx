@@ -24,8 +24,9 @@ const DEFAULTS = { flyingDarts: false, flightColor: 'auto', flightPattern: 'plai
  *
  * player: { id, preferences }
  * clubId: the club the player is edited in
+ * part: 'all', 'animation' (the dart animation only) or 'flights' (the flights and barrels only)
  */
-const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
+const PlayerDartPreferences = ({ player, clubId, onSaved, onError, part = 'all' }) => {
     const [preferences, setPreferences] = useState({ ...DEFAULTS, ...player.preferences });
     // the flight points and what is owned, to unlock or locked
     const [standing, setStanding] = useState(null);
@@ -33,12 +34,14 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
     const [showRules, setShowRules] = useState(false);
 
     useEffect(() => {
+        // the animation alone needs no flights
+        if (part === 'animation') return undefined;
         let current = true;
         PlayerService.loadFlights(player.id, clubId)
             .then(loaded => { if (current) setStanding(loaded); })
             .catch(() => { if (current) setStandingFailed(true); });
         return () => { current = false; };
-    }, [player.id, clubId]);
+    }, [player.id, clubId, part]);
 
     const save = async (change) => {
         const before = preferences;
@@ -77,8 +80,7 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
     const design = standing?.designs.find(item => item.id === flight.design);
     const owned = (items) => items.filter(item => item.state === 'owned').length;
 
-    return (
-        <>
+    const animation = (
             <SettingSwitch
                 id={`player-dart-animation-${player.id}`}
                 title={t('Dart animation')}
@@ -88,6 +90,12 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError }) => {
                 checked={preferences.flyingDarts === true}
                 onChange={(value) => save({ flyingDarts: value })}
             />
+    );
+    if (part === 'animation') return animation;
+
+    return (
+        <>
+            {part === 'all' && animation}
 
             <div>
                 <p className="setting-title">{t('Flights and barrels')}</p>

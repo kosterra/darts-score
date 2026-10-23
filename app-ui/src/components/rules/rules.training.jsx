@@ -7,6 +7,7 @@ import { Toast } from 'primereact/toast';
 
 import PlayerPicker from '../game_config/config_components/player.picker';
 import GameSetupStart from '../game_config/config_components/game.setup.start';
+import GameSetupMemory from '../game_config/config_components/game.setup.memory';
 import DartBoard from '../games/common/dartboard';
 import DartKeypad from '../games/common/dart.keypad';
 import useInputMode, { INPUTS } from '../games/common/use.input.mode';
@@ -22,6 +23,7 @@ import { parseDart } from '../../rules/darts';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
 import useGameRules from '../games/common/game.rules';
+import GameResultHeader from '../stats/common/game.result.header';
 
 // a training under way survives a reload of the page
 const runningKey = (kind) => `oche.rulesTraining.${kind}`;
@@ -53,6 +55,59 @@ const Status = ({ items }) => (
     </div>
 );
 
+// a figure equal to the result itself (e.g. Points next to "697 points") is the result's label, not a second figure
+const sameAsScore = (definition, score, value) => String(value) === String(score) || String(value) === definition.format(score);
+// short figures as big numbers; a long one (e.g. the hardest doubles) gets a line of its own
+const SHORT = 9;
+
+/**
+ * The result of a training in the header of a finished game: what was
+ * trained, the player with the result as the score (a new personal best
+ * glows gold, as a winner), the other figures beside it, and the next
+ * attempt or the setup as the game's actions. The long figures (e.g. the
+ * hardest doubles) and how it stands against the best are lines below.
+ */
+const TrainingResult = ({ definition, finished, actions }) => {
+    const { score } = finished.result;
+    const player = finished.saved?.player?.firstname ? finished.saved.player : finished.player ?? finished.saved?.player ?? {};
+    const figures = definition.figures(finished.result);
+    const own = figures.find(([, value]) => sameAsScore(definition, score, value));
+    const others = figures.filter(entry => entry !== own);
+    const short = others.filter(([, value]) => String(value).length <= SHORT);
+    const long = others.filter(([, value]) => String(value).length > SHORT);
+    const saved = finished.saved;
+    const best = finished.saving ? t('Saving…')
+        : finished.error ? t('The training could not be saved.')
+            : saved?.isRecord ? t('A new personal best!')
+                : saved?.previousBest != null ? t('Your best: {{best}}', { best: definition.format(saved.previousBest) })
+                    : t('Your first {{title}}: this is your best now.', { title: definition.title });
+    const options = (definition.options ?? []).map(option => option.values.find(value => value.value === finished.settings?.[option.key])?.label).filter(Boolean);
+    const id = player.id ?? 'player';
+
+    return (
+        <>
+            <GameResultHeader
+                celebrate={Boolean(saved?.isRecord)}
+                // a new personal best is the "winner": the gold of a won game
+                game={{ playerModels: { [id]: { hasWonGame: Boolean(saved?.isRecord) } } }}
+                players={[{ ...player, id }]}
+                title={[definition.title, ...options].join(' · ')}
+                subtitle={best}
+                // the number alone, as a game's score; the unit is in the label below
+                scoreOf={() => own?.[1] ?? definition.format(score)}
+                scoreDetailOf={() => own?.[0] ?? t('Result')}
+                rows={short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true }))}
+                figures={{ [id]: Object.fromEntries(short.map(([, value], index) => [`figure-${index}`, value])) }}
+                actions={actions}
+            />
+            {long.map(([label, value]) => (
+                <p key={label} className="text-center text-subtle fs-7 mt-0 mb-3"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
+            ))}
+            {saved?.newBadges?.length > 0 && <div className="mb-4"><NewBadges groups={[{ player: saved.player, badges: saved.newBadges }]} /></div>}
+        </>
+    );
+};
+
 /**
  * A training of the rules engine: set up (the player and the options), then
  * every dart (hit or miss, or the field on the board), and once it is over the
@@ -62,7 +117,7 @@ const RulesTraining = () => {
     const { kind } = useParams();
     const definition = trainingOf(kind);
     const memoryKey = `rules.${kind}`;
-    const [remembered] = useState(() => loadSetup(memoryKey));
+    const [remembered, setRemembered] = useState(() => loadSetup(memoryKey));
     // { player, settings, darts } while training
     const [running, setRunning] = useState(() => readRunning(kind));
     const [players, setPlayers] = useState([]);
@@ -82,7 +137,7 @@ const RulesTraining = () => {
     const replay = useMemo(() => running && definition ? replayTraining(definition, running) : null, [running, definition]);
 
     const saveResult = useCallback(async (done, attempt) => {
-        setFinished({ saving: true, result: done.result });
+        setFinished({ saving: true, result: done.result, player: attempt.player, settings: attempt.settings });
         try {
             const saved = await RulesService.createTraining({
                 kind,
@@ -92,7 +147,7 @@ const RulesTraining = () => {
                 settings: attempt.settings,
                 darts: attempt.darts.map(String),
             });
-            setFinished({ saved, result: done.result });
+            setFinished({ saved, result: done.result, player: attempt.player, settings: attempt.settings });
             setBoardVersion(version => version + 1);
             const badgeGroups = saved.newBadges?.length ? [{ player: attempt.player, badges: saved.newBadges }] : [];
             if (saved.isRecord || badgeGroups.length) {
@@ -104,7 +159,7 @@ const RulesTraining = () => {
                 });
             }
         } catch {
-            setFinished({ error: true, result: done.result });
+            setFinished({ error: true, result: done.result, player: attempt.player, settings: attempt.settings });
         }
     }, [kind, definition]);
 
@@ -207,25 +262,19 @@ const RulesTraining = () => {
             {header}
             <div className="row g-4 justify-content-center">
                 {finished &&
-                    <div className="col-12 col-xl-10">
-                        <Panel header={t('Result · {{title}}', { title: definition.title })}>
-                            <div className="d-flex flex-column align-items-center gap-3">
-                                <span className="display-6 fw-semibold text-default">{definition.format(finished.result.score)}</span>
-                                <Status items={definition.figures(finished.result)} />
-                                {finished.saved?.newBadges?.length > 0 && <NewBadges groups={[{ player: finished.saved.player, badges: finished.saved.newBadges }]} />}
-                                <span className="text-faint fs-8">
-                                    {finished.saving ? t('Saving…')
-                                        : finished.error ? t('The training could not be saved.')
-                                            : finished.saved?.isRecord ? t('A new personal best!')
-                                                : finished.saved?.previousBest != null ? t('Your best: {{best}}', { best: definition.format(finished.saved.previousBest) })
-                                                    : t('Your first {{title}}: this is your best now.', { title: definition.title })}
-                                </span>
-                                <div className="d-flex gap-2">
-                                    <Button label={t('Again')} icon="pi pi-replay" onClick={() => start(finished.saved?.player ?? players[0])} disabled={!players[0] && !finished.saved} />
-                                    <Button label={t('Change the setup')} icon="pi pi-sliders-h" severity="secondary" outlined onClick={() => setFinished(null)} />
+                    <div className="col-12">
+                        <TrainingResult
+                            definition={definition}
+                            finished={finished}
+                            // as after a game: again on the left, the setup behind the divider
+                            actions={<>
+                                <div className="result-hero-again">
+                                    <Button label={t('Again')} icon="pi pi-replay" size="small" onClick={() => start(finished.saved?.player ?? players[0])} disabled={!players[0] && !finished.saved} />
                                 </div>
-                            </div>
-                        </Panel>
+                                <span className="result-hero-actions-divider" aria-hidden="true" />
+                                <Button label={t('Change the setup')} icon="pi pi-sliders-h" size="small" severity="secondary" text onClick={() => setFinished(null)} />
+                            </>}
+                        />
                     </div>
                 }
                 <div className="col-12 col-xl-6">
@@ -233,8 +282,12 @@ const RulesTraining = () => {
                         {rules}
                         {/* the open rules start with the description already */}
                         {!rules && <p className="text-subtle fs-7 mt-0">{definition.description}</p>}
+                        {/* as the game setups: the last setup, with a way to start fresh */}
+                        {remembered && <GameSetupMemory training onReset={() => { clearSetup(memoryKey); setRemembered(null); setSettings(settingsOf(definition, {})); setPlayers([]); }} />}
                         <p className="game-setup-section-title">{t('Player')}</p>
-                        <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} single minPlayers={1} />
+                        <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} single minPlayers={1} key={remembered ? 'remembered' : 'fresh'} />
+                        {/* as the other setups: the options under a section of their own */}
+                        {(definition.options ?? []).length > 0 && <p className="game-setup-section-title mt-4">{t('Training')}</p>}
                         {(definition.options ?? []).map(option => (
                             <div className="setting-box" key={option.key}>
                                 <p className="setting-title">{option.label}</p>
@@ -255,7 +308,6 @@ const RulesTraining = () => {
                             onStart={() => start()}
                             label={t('Start training')}
                         />
-                        {remembered && <Button link className="p-0 fs-8 mt-2" label={t('Forget this setup')} onClick={() => { clearSetup(memoryKey); setSettings(settingsOf(definition, {})); }} />}
                     </Panel>
                 </div>
                 <div className="col-12 col-xl-4">

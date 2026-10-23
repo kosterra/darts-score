@@ -31,10 +31,11 @@ const PlayingPreferences = ({ onSaved }) => {
 
     return (
         <>
-            <p className="game-setup-section-title">{t('Playing')}</p>
+            <p className="game-setup-section-title">{t('On every device')}</p>
             <p className="text-faint fs-8 mt-0">{t('With your account, on every device you log in on. Saved right away.')}</p>
-            <p className="setting-title">{t('Ways out in X01')}</p>
-            <div className="d-flex flex-column gap-2 mb-3">
+            <p className="setting-title">{t('Show the ways out in X01')}</p>
+            <div className="row mx-0 mt-0 setting-body">
+                <div className="col d-flex flex-column gap-2">
                 <SelectButton
                     value={preferences.waysOut}
                     options={WAYS_OUT}
@@ -43,9 +44,11 @@ const PlayingPreferences = ({ onSaved }) => {
                     aria-label={t('Ways out in X01')}
                 />
                 <span className="text-faint fs-8">{WAYS_OUT_HINTS[preferences.waysOut]}{' '}{t('A club may play without them.')}</span>
+                </div>
             </div>
             <p className="setting-title">{t('Entering the darts')}</p>
-            <div className="d-flex flex-column gap-2 mb-3">
+            <div className="row mx-0 mt-0 setting-body">
+                <div className="col d-flex flex-column gap-2">
                 <SelectButton
                     value={preferences.inputMode}
                     options={INPUTS}
@@ -54,6 +57,7 @@ const PlayingPreferences = ({ onSaved }) => {
                     aria-label={t('Entering the darts')}
                 />
                 <span className="text-faint fs-8">{t('What a device starts with until you choose there: the board, or the keypad (on a phone).')}</span>
+                </div>
             </div>
             <SettingSwitch
                 id="pref-auto-send"
@@ -76,7 +80,7 @@ const PlayingPreferences = ({ onSaved }) => {
                 checked={preferences.celebrations === 'quiet'}
                 onChange={(value) => change({ celebrations: value ? 'quiet' : 'full' }, t('Celebrations'))}
             />
-            <p className="text-faint fs-8 mt-2 mb-0">{t('Your favourite formats come first in the setups: pin one with its star. The setups and trainings start as you left them, on every device.')}</p>
+            <p className="text-faint fs-8 mt-3 mb-0">{t('Your favourite formats come first in the setups: pin one with its star. The setups and trainings start as you left them, on every device.')}</p>
         </>
     );
 };

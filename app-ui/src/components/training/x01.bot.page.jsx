@@ -154,7 +154,7 @@ const X01BotPage = () => {
             <Panel header={t('X01 against the bot')} className="page-narrow" icons={rulesButton}>
                 {rules}
                 <div className="container">
-                    {remembered && <GameSetupMemory what="training" onReset={startFresh} />}
+                    {remembered && <GameSetupMemory training onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Player')}</p>
                     {/* the player of the last training, else the own one (restarted once it is known) */}
                     <PlayerPicker

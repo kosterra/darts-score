@@ -32,7 +32,7 @@ const RULES = [
                     <li><strong>{t('S25')}</strong>{' '}{t('is the outer bull (25),')}{' '}<strong>{t('D25')}</strong>{' '}{t('the bullseye (50).')}</li>
                     <li><strong>0</strong>{' '}{t('for a dart that missed the board or bounced out.')}</li>
                     <li>{t('On the board: a finger held on it shows the field under it in a magnifier, and the dart counts where the finger is lifted (off the board: nothing).')}</li>
-                    <li>{t('With the dart animation on, a dart flies to the field you tapped and sticks there with your flights and barrel; off, the field just lights up. It is off to begin with: each player switches it on on their player profile; the setup of a game can switch it on or off for everyone.')}</li>
+                    <li>{t('With the dart animation on, a dart flies to the field you tapped and sticks there with your flights and barrel; off, the field just lights up. It is off to begin with: each player switches it on on their profile; the setup of a game can switch it on or off for everyone.')}</li>
                 </ul>
                 <p className="m-0">{t('A mistake? Undo takes the last visit back, also over several players. The game is saved after every visit, so it can be continued later.')}</p>
             </>

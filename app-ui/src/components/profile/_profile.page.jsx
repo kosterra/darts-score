@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
@@ -14,14 +15,33 @@ import { useAuth } from '../../utils/auth.context';
 import { LANGUAGES, currentLanguage, setLanguage, t } from '../../utils/i18n';
 import PlayingPreferences from './playing.preferences';
 import DateFormatSetting from './date.format.setting';
+import { MyPlayers } from '../players/_my.player.page';
 
 const MIN_PASSWORD_LENGTH = 8;
 // "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
 const LAST_CLUB = 'last';
 
+// the parts of the profile, each with its own address (/profile#player)
+const SECTIONS = [
+    { value: 'account', label: t('Account'), icon: 'pi pi-user', intro: t('Your account: the name your clubs see, the email you log in with, the language and date format, what opens after logging in and your password.') },
+    { value: 'player', label: t('Player'), icon: 'pi pi-id-card', intro: t('How you appear in your clubs: your nickname, picture and country, what the others see of you, and your darts. Your name comes from your account; your club admins set the date of birth, and as an adult you can correct it.') },
+    { value: 'playing', label: t('Playing'), icon: 'pi pi-bullseye', intro: t('Everything in a game: the ways out, how you enter the darts, the doubles the tips aim at, the handicap, the dart animation and the celebrations.') },
+];
+
+/**
+ * The profile, in three parts: the account (who you are and how you log in),
+ * the player (how the clubs see you) and playing (everything in a game).
+ * The account's settings follow the login to every device; the player's are
+ * the club's too, and its admins set them for players without a login.
+ */
 const ProfilePage = () => {
     const toast = useRef(null);
     const { user, setUser, clubs, isGlobalAdmin, logout } = useAuth();
+    const { hash } = useLocation();
+    const navigate = useNavigate();
+    // global admins belong to no club: they have no player
+    const sections = isGlobalAdmin ? SECTIONS.slice(0, 1) : SECTIONS;
+    const section = sections.find(entry => `#${entry.value}` === hash) ?? sections[0];
 
     const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email, startPage: user.startPage ?? 'dashboard', defaultClub: user.defaultClub ? String(user.defaultClub) : null });
     // the club the start page is about: the default one, or the one used last
@@ -98,12 +118,24 @@ const ProfilePage = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <Toast ref={toast} position="bottom-right" />
-            <Panel header={t('User profile')}>
+            <Panel header={t('Profile')}>
+                {sections.length > 1 &&
+                    <SelectButton
+                        value={section.value}
+                        options={sections}
+                        optionLabel="label"
+                        optionValue="value"
+                        itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-2"><i className={option.icon} aria-hidden="true" /><span className="p-button-label">{option.label}</span></span>}
+                        onChange={(event) => event.value && navigate({ hash: event.value === 'account' ? '' : event.value }, { replace: true })}
+                        className="p-selectbutton-pills pills-inline flex-wrap mb-3"
+                        aria-label={t('Part of the profile')}
+                    />}
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    {t('Your account: the name your clubs see, the email you log in with, what opens after logging in, your password and how you like to play.')}
+                    {section.intro}
                     {isGlobalAdmin && <> <Tag value={ROLE_LABELS[user.role]} severity="secondary" className="ms-1" /></>}
                 </p>
-                {/* laid out as the player profile and the game setup: a section title, then a box per setting */}
+                {/* laid out as the game setup: a section title, then a box per setting */}
+                {section.value === 'account' &&
                 <div className="row g-4">
                     <form onSubmit={onSaveProfile} className="col-12 col-xl-6">
                         <p className="game-setup-section-title">{t('Your account')}</p>
@@ -112,7 +144,7 @@ const ProfilePage = () => {
                             <div className="col d-flex flex-wrap gap-3 pt-1 profile-name">
                                 {field('profile-firstname', t('First name'), <InputText id="profile-firstname" value={profile.firstname} onChange={(e) => setProfile({ ...profile, firstname: e.target.value })} required />)}
                                 {field('profile-lastname', t('Last name'), <InputText id="profile-lastname" value={profile.lastname} onChange={(e) => setProfile({ ...profile, lastname: e.target.value })} required />)}
-                                <span className="text-faint fs-8 w-100">{t('Your players in the clubs carry this name; their nickname you set on the player profile.')}</span>
+                                <span className="text-faint fs-8 w-100">{t('Your players in the clubs carry this name; their nickname you set on the profile.')}</span>
                             </div>
                         </div>
                         <p className="setting-title">{t('Email')}</p>
@@ -194,12 +226,22 @@ const ProfilePage = () => {
                             </div>
                         </div>
                     </form>
-                    {/* how you like to play, on every device */}
-                    <div className="mt-4">
-                        <PlayingPreferences onSaved={(detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 })} />
                     </div>
-                    </div>
-                </div>
+                </div>}
+
+                {section.value === 'player' && <MyPlayers part="player" onSaved={showSuccess} onError={showError} />}
+
+                {section.value === 'playing' &&
+                    <div className="row g-4">
+                        {/* how you like to play, with your account on every device */}
+                        <div className="col-12 col-xl-6">
+                            <PlayingPreferences onSaved={(detail) => showSuccess(t('Saved'), detail)} />
+                        </div>
+                        {/* your player's own: the club sees them too */}
+                        <div className="col-12 col-xl-6">
+                            <MyPlayers part="playing" onSaved={showSuccess} onError={showError} />
+                        </div>
+                    </div>}
             </Panel>
         </div>
     );

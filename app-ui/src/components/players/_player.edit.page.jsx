@@ -149,7 +149,7 @@ const PlayerEditPage = () => {
                                 <Message
                                     severity="info"
                                     className="w-100 justify-content-start mb-3"
-                                    text={t('{{nickname}} has a login and keeps the name, nickname and picture up to date on their player profile. The date of birth is up to the club admins (adults may correct it, but never to a child\'s).', { nickname: player.nickname })}
+                                    text={t('{{nickname}} has a login and keeps the name, nickname and picture up to date on their profile. The date of birth is up to the club admins (adults may correct it, but never to a child\'s).', { nickname: player.nickname })}
                                 />
                             }
                             <p className="setting-title">{t('Picture and nickname')}</p>
@@ -178,7 +178,7 @@ const PlayerEditPage = () => {
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col d-flex flex-column gap-1 pt-1">
                                     <CountryPicker value={fields.country} onChange={(country) => setFields(current => ({ ...current, country }))} disabled={maintainedByPlayer} />
-                                    <span className="text-faint fs-8">{maintainedByPlayer ? t('{{nickname}} has a login and chooses the country on their player profile.', { nickname: player.nickname }) : t('Where the player comes from: the flag is shown next to the nickname.')}</span>
+                                    <span className="text-faint fs-8">{maintainedByPlayer ? t('{{nickname}} has a login and chooses the country on their profile.', { nickname: player.nickname }) : t('Where the player comes from: the flag is shown next to the nickname.')}</span>
                                 </div>
                             </div>
                             <p className="setting-title">{t('Date of birth')}</p>
@@ -215,7 +215,7 @@ const PlayerEditPage = () => {
                                 <SettingSwitch
                                     id={`player-public-${player.id}`}
                                     title={t('Nickname on the public page')}
-                                    hint={`${player.publicProfile ? t('The nickname appears with the live games and results of the club, if the club is public.') : t('The player is shown without a name on the public page.')}${maintainedByPlayer ? t(' {{nickname}} has a login and decides this on their player profile.', { nickname: player.nickname }) : ''}`}
+                                    hint={`${player.publicProfile ? t('The nickname appears with the live games and results of the club, if the club is public.') : t('The player is shown without a name on the public page.')}${maintainedByPlayer ? t(' {{nickname}} has a login and decides this on their profile.', { nickname: player.nickname }) : ''}`}
                                     checked={Boolean(player.publicProfile)}
                                     disabled={maintainedByPlayer}
                                     onChange={togglePublic}
