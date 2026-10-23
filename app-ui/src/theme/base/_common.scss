@@ -26,6 +26,8 @@ body {
     background-color: $rootBgColor;
     min-height: 100vh;
     height: 100%;
+    // the margins of the pages stay inside, under the dark filter
+    display: flow-root;
 }
 
 a {
