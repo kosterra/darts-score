@@ -139,7 +139,7 @@ describe('replayBadges', () => {
     it('awards the Around the Clock badge for a win and counts its darts', () => {
         const clock = { type: 'clock', id: 'c1', at: at(), data: { players: [P, O], playerModels: { [P]: { hasWonGame: true, darts: 30 } } } };
         const result = replayBadges([clock], P);
-        expect(result.metrics).toMatchObject({ winsClock: 1, wins: 1, darts: 30, gameTypesWon: 0 });
+        expect(result.metrics).toMatchObject({ winsClock: 1, wins: 1, darts: 30, gameTypesWon: 1 });
         expect(result.earned.map(e => e.badge)).toContain('clockWins-1');
     });
 
@@ -342,5 +342,99 @@ describe('Hall of Shame', () => {
     it('only washes off what is still on the player', () => {
         const ton = () => x01(true, { scoreRanges: { game: { '100-119': 1 } } });
         expect(replayBadges([ton()], P).washes).toEqual([]);
+    });
+});
+
+describe('the newer games and trainings', () => {
+    const T = 'player-3';
+    // a game of the rules engine as stored: its visits, and who won
+    const rules = (kind, visits, { players = [P, O], winner = null, settings = {}, friendly = false } = {}) => ({
+        type: kind, id: `r${clock}`, at: at(),
+        data: { kind, players, settings, visits, friendly, playerModels: Object.fromEntries(players.map(id => [id, { hasWonGame: id === winner }])) },
+    });
+    const training = (kind, score, result = {}, settings = {}) => ({ type: 'rulesTraining', id: `t${clock}`, at: at(), data: { kind, score, result, settings } });
+    const shameOf = (events, options) => replayBadges(events, P, options).shame.map(e => e.badge);
+    const miss = ['0', '0', '0'];
+
+    it('has a win series for each newer game, and the all-rounder over all nine', () => {
+        for (const group of ['shanghaiWins', 'killerWins', 'halveItWins', 'golfWins', 'tacticsWins']) expect(BADGE_GROUPS.some(entry => entry.group === group), group).toBe(true);
+        expect(BADGE_GROUPS.some(entry => entry.group === 'rulesWins')).toBe(false);
+        expect(BADGES.filter(badge => badge.group === 'allRounder').map(badge => badge.target)).toEqual([3, 6, 9]);
+    });
+
+    it('Killer: untouchable, a triple kill, and friendly fire washed off with three lives taken', () => {
+        const settings = { lives: 3, numbers: { [P]: 1, [O]: 2 } };
+        // P becomes a killer and takes all three lives of O in one visit
+        const sweep = rules('killer', [{ player: P, darts: ['D1', 'D2', 'D2'] }, { player: O, darts: miss }, { player: P, darts: ['D2', '0', '0'] }], { winner: P, settings });
+        expect(ids([sweep])).toEqual(expect.arrayContaining(['killerWins-1', 'untouchable-1']));
+        // the own goal first, then the triple kill that washes it off
+        const ownGoal = rules('killer', [{ player: P, darts: ['D1', 'D1', '0'] }, { player: O, darts: miss }, { player: P, darts: ['D2', 'D2', 'D2'] }], { winner: P, settings });
+        const triple = rules('killer', [{ player: P, darts: ['D1', '0', '0'] }, { player: O, darts: miss }, { player: P, darts: ['D2', 'D2', 'D2'] }], { winner: P, settings });
+        expect(ids([triple])).toContain('tripleKill-1');
+        const { shame, washes } = replayBadges([ownGoal, triple], P);
+        expect(shame.map(e => e.badge)).toContain('friendlyFire');
+        expect(washes.map(e => e.badge)).toContain('friendlyFire');
+    });
+
+    it('Killer: out first of three is first blood', () => {
+        const settings = { lives: 1, numbers: { [P]: 1, [O]: 2, [T]: 3 } };
+        const game = rules('killer', [
+            { player: P, darts: miss }, { player: O, darts: ['D2', 'D1', '0'] }, { player: T, darts: ['D3', '0', '0'] },
+            { player: O, darts: ['D3', '0', '0'] },
+        ], { players: [P, O, T], winner: O, settings });
+        expect(shameOf([game])).toContain('firstBlood');
+    });
+
+    it('Shanghai: an instant Shanghai, and the one who lost to it is shanghaied', () => {
+        const game = rules('shanghai', [{ player: O, darts: ['S1', 'D1', 'T1'] }], { winner: O, settings: { rounds: 7 } });
+        expect(shameOf([game])).toContain('shanghaied');
+        expect(replayBadges([game], O).earned.map(e => e.badge)).toContain('instantShanghai-1');
+    });
+
+    it('Halve-It: never halved, or halved three times', () => {
+        const hits = ['20', '16', 'D1', '17', 'T1', '18', null, '19', 'S25'];
+        const visit = (target) => target === null ? ['S20', 'S20', 'S1'] : [/^[SDT]/.test(target) ? target : `S${target}`, '0', '0'];
+        const clean = rules('halveit', hits.map(target => ({ player: P, darts: visit(target) })), { players: [P], winner: P });
+        expect(ids([clean])).toContain('neverHalved-1');
+        const poor = rules('halveit', [miss, miss, miss, ...hits.slice(3).map(visit)].map(darts => ({ player: P, darts })), { players: [P], winner: P });
+        expect(shameOf([poor])).toContain('halfWit');
+    });
+
+    it('Golf: a hole in one, and three missed holes are in the rough', () => {
+        const holes = Array.from({ length: 9 }, (_, index) => index + 1);
+        const aces = rules('golf', holes.map(hole => ({ player: P, darts: [`D${hole}`] })), { players: [P], winner: P, settings: { holes: 9 } });
+        expect(ids([aces])).toContain('holeInOne-1');
+        const rough = rules('golf', holes.map(hole => ({ player: P, darts: hole <= 3 ? miss : [`S${hole}`] })), { players: [P], winner: P, settings: { holes: 9 } });
+        expect(shameOf([rough])).toContain('inTheRough');
+    });
+
+    it('Tactics: a clean sheet, and losing without a number closed is locked out', () => {
+        const numbers = [20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10];
+        const visits = numbers.flatMap(number => [{ player: O, darts: [`T${number}`] }, { player: P, darts: miss }]);
+        const game = rules('tactics', [...visits, { player: O, darts: ['D25', 'S25'] }], { winner: O });
+        expect(shameOf([game])).toContain('lockedOut');
+        expect(replayBadges([game], O).earned.map(e => e.badge)).toContain('cleanSheet-1');
+    });
+
+    it('a friendly game brings no shame', () => {
+        const game = rules('shanghai', [{ player: O, darts: ['S1', 'D1', 'T1'] }], { winner: O, friendly: true });
+        expect(shameOf([game])).not.toContain('shanghaied');
+    });
+
+    it('the trainings: random checkouts over ten attempts, scoring, doubles around the board and every kind', () => {
+        expect(ids([training('randomcheckouts', 50, { attempts: 10 })])).toEqual(expect.arrayContaining(['randomCheckouts-30', 'randomCheckouts-50']));
+        expect(ids([training('randomcheckouts', 80, { attempts: 5 })])).not.toContain('randomCheckouts-30');
+        expect(ids([training('scoring', 81.5)])).toEqual(expect.arrayContaining(['scoringTraining-60', 'scoringTraining-80']));
+        expect(ids([training('doublesaround', 38)])).toEqual(expect.arrayContaining(['doublesAround-60', 'doublesAround-40']));
+        const kinds = ['bobs27', 'checkout121', 'randomcheckouts', 'scoring', 'doublesaround', 'catch40'].map(kind => training(kind, 1));
+        expect(ids(kinds)).not.toContain('everyTraining-7');
+        expect(ids([...kinds, { type: 'atc', id: 'a1', at: at(), data: { mode: 'Single', scoring: 'Time', timeMs: 60000 } }])).toContain('everyTraining-7');
+    });
+
+    it('Bob\'s Bust only while the trainings are shown, washed off by all 21 doubles', () => {
+        const bust = training('bobs27', 0, { failed: true, reached: 4 });
+        expect(shameOf([bust])).toContain('bobsBust');
+        expect(shameOf([bust], { privateTrainings: true })).not.toContain('bobsBust');
+        expect(replayBadges([bust, training('bobs27', 120, { failed: false, reached: 21 })], P).washes.map(e => e.badge)).toContain('bobsBust');
     });
 });

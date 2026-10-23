@@ -47,7 +47,7 @@ export const loadPlayerEvents = async (player) => {
  * Resolves to the newly earned badges and the player's current metrics.
  */
 export const syncPlayerBadges = async (player) => {
-    const { earned, metrics, shame, washes } = replayBadges(await loadPlayerEvents(player), String(player._id));
+    const { earned, metrics, shame, washes } = replayBadges(await loadPlayerEvents(player), String(player._id), { privateTrainings: Boolean(player.privateTrainings) });
     const known = new Set((player.badges ?? []).map(entry => entry.badge));
     const fresh = earned.filter(entry => !known.has(entry.badge));
     const activity = { lastWeek: metrics.lastWeek, weekStreak: metrics.weekStreak, bestWeekStreak: metrics.bestWeekStreak };

@@ -2,6 +2,8 @@ import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
 import { isRulesGame } from './rules.kinds.js';
 import { withView } from './game.view.js';
+import { gameOf } from '../rules/games.js';
+import { replayGame } from '../rules/engine.js';
 
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
@@ -43,6 +45,19 @@ const LOSING_STREAK = 5;
 const WINS_TO_WARM_UP = 2;
 const BIG_CHECKOUT = 60;
 const MIN_PLAYERS_FOR_LAST = 3;
+// the newer games: what a game shows that a badge or the Hall of Shame counts
+const KILLS_IN_A_VISIT = 3;
+const KILLS_TO_WASH = 3;
+const HALVED_IN_A_GAME = 3;
+const GOLF_MISS = 5;
+const MISSED_HOLES = 3;
+const TACTICS_TARGETS = 12;
+// the trainings: a checkout rate counts from so many attempts, Bob's 27 has 21 doubles
+const MIN_CHECKOUT_ATTEMPTS = 10;
+const BOBS_27_DOUBLES = 21;
+// every kind of training: Around the Clock and those of the rules engine
+const TRAINING_KINDS_ALL = 7;
+const GAME_WIN_METRICS = { x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock', shanghai: 'winsShanghai', killer: 'winsKiller', halveit: 'winsHalveIt', golf: 'winsGolf', tactics: 'winsTactics' };
 const formatCount = (n) => new Intl.NumberFormat('en').format(n);
 
 // Series are shown in these categories, in this order
@@ -137,13 +152,63 @@ export const BADGE_GROUPS = [
     },
     {
         group: 'allRounder', category: 'winning', title: 'All-rounder', metric: 'gameTypesWon',
-        describe: () => 'Win at least one game in every game type: X01, Cricket and Elimination',
-        tiers: [[3, 'All-Rounder']],
+        describe: (n) => `Win games of ${n} different game types`,
+        tiers: [[3, 'All-Rounder'], [6, 'Jack of All Games'], [9, 'Complete Player']],
     },
     {
-        group: 'rulesWins', category: 'winning', title: 'More games', metric: 'winsRules',
-        describe: (n) => n === 1 ? 'Win a game of Shanghai, Killer, Halve-It, Golf or Tactics' : `Win ${n} games of Shanghai, Killer, Halve-It, Golf or Tactics`,
-        tiers: [[1, 'Game Changer'], [10, 'Party Animal'], [50, 'Master of Games']],
+        group: 'shanghaiWins', category: 'winning', title: 'Shanghai', metric: 'winsShanghai',
+        describe: (n) => n === 1 ? 'Win a Shanghai game' : `Win ${n} Shanghai games`,
+        tiers: [[1, 'Shanghai Rookie'], [10, 'Shanghai Regular'], [50, 'Shanghai Master']],
+    },
+    {
+        group: 'killerWins', category: 'winning', title: 'Killer', metric: 'winsKiller',
+        describe: (n) => n === 1 ? 'Win a Killer game' : `Win ${n} Killer games`,
+        tiers: [[1, 'Hired Gun'], [10, 'Assassin'], [50, 'Serial Killer']],
+    },
+    {
+        group: 'halveItWins', category: 'winning', title: 'Halve-It', metric: 'winsHalveIt',
+        describe: (n) => n === 1 ? 'Win a Halve-It game' : `Win ${n} Halve-It games`,
+        tiers: [[1, 'Half Measures'], [10, 'Halfback'], [50, 'Never Half']],
+    },
+    {
+        group: 'golfWins', category: 'winning', title: 'Golf', metric: 'winsGolf',
+        describe: (n) => n === 1 ? 'Win a Golf game' : `Win ${n} Golf games`,
+        tiers: [[1, 'Caddie'], [10, 'Club Pro'], [50, 'Tour Pro']],
+    },
+    {
+        group: 'tacticsWins', category: 'winning', title: 'Tactics', metric: 'winsTactics',
+        describe: (n) => n === 1 ? 'Win a Tactics game' : `Win ${n} Tactics games`,
+        tiers: [[1, 'Tactician'], [10, 'Strategist'], [50, 'Grandmaster']],
+    },
+    {
+        group: 'untouchable', category: 'winning', title: 'Untouchable', metric: 'untouchables',
+        describe: () => 'Win a Killer game without losing a life',
+        tiers: [[1, 'Untouchable']],
+    },
+    {
+        group: 'instantShanghai', category: 'scoring', title: 'Instant Shanghai', metric: 'instantShanghais',
+        describe: () => 'Hit the single, double and treble of the number in one visit of Shanghai',
+        tiers: [[1, 'Instant Shanghai']],
+    },
+    {
+        group: 'tripleKill', category: 'scoring', title: 'Triple kill', metric: 'tripleKills',
+        describe: () => `Take ${KILLS_IN_A_VISIT} lives in one visit of Killer`,
+        tiers: [[1, 'Triple Kill']],
+    },
+    {
+        group: 'neverHalved', category: 'scoring', title: 'Never halved', metric: 'neverHalveds',
+        describe: () => 'Play a whole game of Halve-It without being halved',
+        tiers: [[1, 'Never Halved']],
+    },
+    {
+        group: 'holeInOne', category: 'scoring', title: 'Hole in one', metric: 'holesInOne',
+        describe: (n) => n === 1 ? 'Play a hole of Golf in one stroke (a double)' : `Play ${n} holes of Golf in one stroke`,
+        tiers: [[1, 'Hole in One'], [10, 'Ace Collector'], [50, 'Ace Machine']],
+    },
+    {
+        group: 'cleanSheet', category: 'scoring', title: 'Clean sheet', metric: 'cleanSheets',
+        describe: () => `Close all ${TACTICS_TARGETS} numbers in a game of Tactics`,
+        tiers: [[1, 'Clean Sheet']],
     },
     {
         group: 'weekStreak', category: 'milestones', title: 'Weekly streak', metric: 'bestWeekStreak',
@@ -261,6 +326,27 @@ export const BADGE_GROUPS = [
         describe: (n) => `Score ${n} points or more in Catch 40`,
         tiers: [[40, 'Catcher'], [70, 'Safe Hands'], [100, 'Catch Master']],
     },
+    {
+        group: 'randomCheckouts', category: 'training', title: 'Random checkouts', metric: 'randomCheckoutsBest',
+        describe: (n) => `Check out ${n} % or more in Random checkouts, over ${MIN_CHECKOUT_ATTEMPTS} attempts or more`,
+        label: (n) => `${n} %`,
+        tiers: [[30, 'Cool Head'], [50, 'Checkout Artist'], [70, 'Ice Cold']],
+    },
+    {
+        group: 'scoringTraining', category: 'training', title: 'Scoring', metric: 'scoringBest',
+        describe: (n) => `A three-dart average of ${n} or more in the Scoring training`,
+        tiers: [[60, 'Practice Sixty'], [80, 'Practice Eighty'], [100, 'Practice Ton']],
+    },
+    {
+        group: 'doublesAround', category: 'training', title: 'Doubles around the board', metric: 'doublesAroundBest', lower: true,
+        describe: (n) => `Hit every double and the bull with ${n} darts or fewer`,
+        tiers: [[60, 'Doubles Tour'], [40, 'Doubles Expert'], [30, 'Doubles Ace']],
+    },
+    {
+        group: 'everyTraining', category: 'training', title: 'Every training', metric: 'trainingKinds',
+        describe: () => 'Finish every kind of training at least once: Around the Clock and the six others',
+        tiers: [[TRAINING_KINDS_ALL, 'All the Drills']],
+    },
 ];
 
 /**
@@ -315,6 +401,41 @@ export const SHAME_BADGES = [
         description: `Lose ${LOSING_STREAK} games in a row`,
         wash: `Win ${WINS_TO_WARM_UP} games in a row`,
     },
+    {
+        id: 'friendlyFire', title: 'Friendly Fire', metric: 'friendlyFires', washMetric: 'bigKillGames',
+        description: 'Lose a life of Killer on your own double',
+        wash: `Take ${KILLS_TO_WASH} lives in a game of Killer`,
+    },
+    {
+        id: 'firstBlood', title: 'First Blood', metric: 'firstBloods', washMetric: 'winsKiller',
+        description: `Be out first in a game of Killer of ${MIN_PLAYERS_FOR_LAST} or more players`,
+        wash: 'Win a game of Killer',
+    },
+    {
+        id: 'shanghaied', title: 'Shanghaied', metric: 'shanghaieds', washMetric: 'instantShanghais',
+        description: 'Lose a game of Shanghai to an instant Shanghai',
+        wash: 'Throw an instant Shanghai yourself',
+    },
+    {
+        id: 'halfWit', title: 'Half-Wit', metric: 'halfWits', washMetric: 'neverHalveds',
+        description: `Be halved ${HALVED_IN_A_GAME} times or more in one game of Halve-It`,
+        wash: 'Play a whole game of Halve-It without being halved',
+    },
+    {
+        id: 'inTheRough', title: 'In the Rough', metric: 'inTheRoughs', washMetric: 'holesInOne',
+        description: `Miss ${MISSED_HOLES} holes or more in one game of Golf (${GOLF_MISS} strokes each)`,
+        wash: 'Play a hole of Golf in one stroke',
+    },
+    {
+        id: 'lockedOut', title: 'Locked Out', metric: 'lockedOuts', washMetric: 'cleanSheets',
+        description: 'Lose a game of Tactics without closing a single number',
+        wash: `Close all ${TACTICS_TARGETS} numbers in a game of Tactics`,
+    },
+    {
+        id: 'bobsBust', title: 'Bob\'s Bust', metric: 'bobsBusts', washMetric: 'bobs27Finished', training: true,
+        description: 'Go below zero in Bob\'s 27 before the bull (only when your trainings are shown to the club)',
+        wash: `Play all ${BOBS_27_DOUBLES} doubles of Bob's 27`,
+    },
 ];
 
 export const getShameBadge = (id) => SHAME_BADGES.find(badge => badge.id === id);
@@ -365,6 +486,10 @@ const newMetrics = () => ({
     whiteHorses: 0, bullHatTricks: 0, bestMarksPerRound: 0,
     // the games and trainings of the rules engine
     winsRules: 0, bobs27Best: 0, checkout121Best: 0, catch40Best: 0,
+    winsShanghai: 0, winsKiller: 0, winsHalveIt: 0, winsGolf: 0, winsTactics: 0, gameTypesWonSet: new Set(),
+    untouchables: 0, instantShanghais: 0, tripleKills: 0, neverHalveds: 0, holesInOne: 0, cleanSheets: 0,
+    randomCheckoutsBest: 0, scoringBest: 0, doublesAroundBest: 0, trainingKinds: 0, trainingKindsDone: new Set(), bobs27Finished: 0,
+    friendlyFires: 0, firstBloods: 0, shanghaieds: 0, halfWits: 0, inTheRoughs: 0, lockedOuts: 0, bobsBusts: 0, bigKillGames: 0,
     trainingDays: 0, lastTrainingDay: null, trainingWeekStreak: 0, bestTrainingWeekStreak: 0, lastTrainingWeek: null,
     trainingModes: 0, trainingModesDone: new Set(), bestSinglesDarts: 0,
     // the Hall of Shame and the good deeds that wash it off
@@ -629,8 +754,10 @@ const applyGame = (metrics, type, game, playerId) => {
             if (metrics.streak === WINS_TO_WARM_UP) metrics.warmUps += 1;
             if (opponents.length >= MIN_PLAYERS_FOR_LAST - 1) metrics.bigGameWins += 1;
             metrics.bestStreak = Math.max(metrics.bestStreak, metrics.streak);
-            metrics[isRulesGame(type) ? 'winsRules' : { x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock' }[type]] += 1;
-            metrics.gameTypesWon = ['winsX01', 'winsCricket', 'winsElimination'].filter(key => metrics[key] > 0).length;
+            if (isRulesGame(type)) metrics.winsRules += 1;
+            if (GAME_WIN_METRICS[type]) metrics[GAME_WIN_METRICS[type]] += 1;
+            metrics.gameTypesWonSet.add(type);
+            metrics.gameTypesWon = metrics.gameTypesWonSet.size;
         } else {
             metrics.streak = 0;
             metrics.lossStreak += 1;
@@ -639,6 +766,7 @@ const applyGame = (metrics, type, game, playerId) => {
         }
     }
 
+    if (isRulesGame(type)) applyRulesGame(metrics, type, game, playerId, competitive && won, competitive && !won);
     if (type === 'cricket') applyCricket(metrics, game, model, playerId);
     if (type === 'elimination') {
         for (const visit of withView('elimination', game).allThrows ?? []) if (visit?.playerId === playerId) applyAnyVisit(metrics, visit);
@@ -675,6 +803,55 @@ const applyGame = (metrics, type, game, playerId) => {
 };
 
 /**
+ * A game of Shanghai, Killer, Halve-It, Golf or Tactics, worked out from its
+ * visits by the app's rules: what it shows for the badges and the Hall of Shame.
+ * Only a game played to its end counts (Golf may stop any time).
+ */
+export const applyRulesGame = (metrics, type, game, playerId, won, lost) => {
+    const definition = gameOf(type);
+    if (!definition || !(game.visits ?? []).length) return;
+    let replayed;
+    try {
+        replayed = replayGame(definition, game);
+    } catch {
+        return;
+    }
+    const player = replayed.state.players?.[playerId];
+    if (!player || !replayed.over) return;
+    const others = Object.entries(replayed.state.players).filter(([id]) => id !== playerId).map(([, other]) => other);
+
+    if (type === 'shanghai') {
+        if (player.shanghai) metrics.instantShanghais += 1;
+        if (lost && others.some(other => other.shanghaiWin)) metrics.shanghaieds += 1;
+    }
+    if (type === 'killer') {
+        if (won && player.lives === replayed.settings.lives) metrics.untouchables += 1;
+        if ((player.bestVisit ?? 0) >= KILLS_IN_A_VISIT) metrics.tripleKills += 1;
+        if ((player.ownLost ?? 0) > 0) metrics.friendlyFires += 1;
+        if ((player.kills ?? 0) >= KILLS_TO_WASH) metrics.bigKillGames += 1;
+        // out first, alone, of three or more
+        const outs = Object.values(replayed.state.players).map(entry => entry.outAt).filter(at => at !== null);
+        const first = Math.min(...outs);
+        if (others.length >= MIN_PLAYERS_FOR_LAST - 1 && player.outAt !== null && player.outAt === first && outs.filter(at => at === first).length === 1) {
+            metrics.firstBloods += 1;
+        }
+    }
+    if (type === 'halveit') {
+        if (player.halved === 0) metrics.neverHalveds += 1;
+        if (player.halved >= HALVED_IN_A_GAME) metrics.halfWits += 1;
+    }
+    if (type === 'golf') {
+        metrics.holesInOne += player.holes.filter(strokes => strokes === 1).length;
+        if (player.holes.filter(strokes => strokes === GOLF_MISS).length >= MISSED_HOLES) metrics.inTheRoughs += 1;
+    }
+    if (type === 'tactics') {
+        const closed = Object.values(player.marks ?? {}).filter(marks => marks >= 3).length;
+        if (closed === TACTICS_TARGETS) metrics.cleanSheets += 1;
+        if (lost && closed === 0) metrics.lockedOuts += 1;
+    }
+};
+
+/**
  * The days and weeks with a training: one evening with ten trainings is one
  * training day.
  */
@@ -694,6 +871,8 @@ const applyTrainingDay = (metrics, date) => {
 const applyTraining = (metrics, entry, date) => {
     metrics.trainings += 1;
     applyTrainingDay(metrics, date);
+    metrics.trainingKindsDone.add('atc');
+    metrics.trainingKinds = metrics.trainingKindsDone.size;
     if (TRAINING_MODES.includes(entry.mode)) {
         metrics.trainingModesDone.add(entry.mode);
         metrics.trainingModes = metrics.trainingModesDone.size;
@@ -717,7 +896,20 @@ const applyRulesTraining = (metrics, entry, date) => {
     metrics.trainings += 1;
     applyTrainingDay(metrics, date);
     const best = RULES_TRAINING_BESTS[entry.kind];
-    if (best) metrics[best] = Math.max(metrics[best], Number(entry.score) || 0);
+    const score = Number(entry.score) || 0;
+    if (best) metrics[best] = Math.max(metrics[best], score);
+    metrics.trainingKindsDone.add(entry.kind);
+    metrics.trainingKinds = metrics.trainingKindsDone.size;
+    if (entry.kind === 'randomcheckouts' && (Number(entry.result?.attempts ?? entry.settings?.attempts) || 0) >= MIN_CHECKOUT_ATTEMPTS) {
+        metrics.randomCheckoutsBest = Math.max(metrics.randomCheckoutsBest, score);
+    }
+    if (entry.kind === 'scoring') metrics.scoringBest = Math.max(metrics.scoringBest, score);
+    // fewer darts are better: 0 means none yet
+    if (entry.kind === 'doublesaround' && score > 0 && (!metrics.doublesAroundBest || score < metrics.doublesAroundBest)) metrics.doublesAroundBest = score;
+    if (entry.kind === 'bobs27') {
+        if (entry.result?.failed) metrics.bobsBusts += 1;
+        else if (Number(entry.result?.reached) >= BOBS_27_DOUBLES) metrics.bobs27Finished += 1;
+    }
 };
 
 /**
@@ -725,8 +917,9 @@ const applyRulesTraining = (metrics, entry, date) => {
  * the final metrics (for progress towards the next tiers).
  *
  * events: [{ type: 'x01' | 'cricket' | 'elimination' | 'clock' | 'atc', id, at: Date, data }]
+ * privateTrainings: the player hides their trainings from the club (no shame from them)
  */
-export const replayBadges = (events, playerId) => {
+export const replayBadges = (events, playerId, { privateTrainings = false } = {}) => {
     const metrics = newMetrics();
     const earned = [];
     const earnedIds = new Set();
@@ -754,6 +947,8 @@ export const replayBadges = (events, playerId) => {
             }
         }
         for (const badge of friendly ? [] : SHAME_BADGES) {
+            // a training's shame only while the club sees the player's trainings
+            if (badge.training && privateTrainings) continue;
             const count = metrics[badge.metric] - before[badge.metric];
             if (count > 0) {
                 shame.push({ badge: badge.id, count, club: event.data?.club ? String(event.data.club) : null, ...source });

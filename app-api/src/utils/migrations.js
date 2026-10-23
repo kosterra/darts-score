@@ -207,6 +207,18 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-badges-newer-games',
+        description: 'Award the badges of Shanghai, Killer, Halve-It, Golf, Tactics and the newer trainings from past games and trainings, and add their Hall of Shame badges, so the club holders are right from the start',
+        run: async () => {
+            const { syncPlayerBadges } = await import('./badge.service.js');
+            const players = await db.player.find({ guest: { $ne: true }, 'clubs.0': { $exists: true } });
+            let awarded = 0;
+            for (const player of players) awarded += (await syncPlayerBadges(player)).newBadges.length;
+            logger.info(`Checked the badges and the Hall of Shame of ${players.length} players: ${awarded} new badges`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {
