@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import dayjs from 'dayjs';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
@@ -20,6 +19,7 @@ import { AdminToolbar } from './admin.common';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const roleOptions = Object.values(ROLES).map(role => ({ label: ROLE_LABELS[role], value: role }));
 
@@ -126,7 +126,7 @@ const UsersList = () => {
         )
         : <span className="text-faint fs-7">{t('No club')}</span>;
 
-    const formatDate = (value) => value ? dayjs(value).format('DD.MM.YYYY') : t('Never');
+    const dateOrNever = (value) => value ? formatDate(value) : t('Never');
 
     const actionBody = (user) => isSelf(user) ? null : (
         <div className="row-actions">
@@ -197,8 +197,8 @@ const UsersList = () => {
                 <Column field="email" header={t('Email')} sortable body={(user) => <span className="text-default fs-7">{user.email}</span>} />
                 <Column header={t('Role')} body={roleBody} />
                 <Column header={t('Clubs')} body={clubsBody} />
-                <Column field="createdAt" header={t('Registered')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{formatDate(user.createdAt)}</span>} />
-                <Column field="lastLoginAt" header={t('Last login')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{formatDate(user.lastLoginAt)}</span>} />
+                <Column field="createdAt" header={t('Registered')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{dateOrNever(user.createdAt)}</span>} />
+                <Column field="lastLoginAt" header={t('Last login')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{dateOrNever(user.lastLoginAt)}</span>} />
                 <Column body={actionBody} />
             </DataTable>
             <Toast ref={toast} position="bottom-right" />

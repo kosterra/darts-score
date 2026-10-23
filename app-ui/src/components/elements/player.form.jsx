@@ -11,6 +11,7 @@ import ImageUploader from './image.uploader';
 import PlayerService from '../../services/player.service';
 import PlayerModel from '../../models/player.model';
 import { t } from '../../utils/i18n';
+import { calendarFormat } from '../../utils/dates';
 
 /**
  * Adds a player: a button, and the form opening in place where the page puts
@@ -245,7 +246,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                                 value={toDate(field.value)}
                                                 onChange={(e) => field.onChange(fromDate(e.value))}
                                                 onBlur={field.onBlur}
-                                                dateFormat="dd.mm.yy"
+                                                dateFormat={calendarFormat()}
                                                 mask="99.99.9999"
                                                 maxDate={new Date()}
                                                 viewDate={field.value ? undefined : tenYearsAgo()}

@@ -275,6 +275,8 @@ export const normalizeGamePreferences = (raw = {}) => {
         leftHanded: raw?.leftHanded === true,
         celebrations: raw?.celebrations === 'quiet' ? 'quiet' : 'full',
         inputMode: ['board', 'keypad'].includes(raw?.inputMode) ? raw.inputMode : null,
+        // how dates are shown; null: the usual format of the language
+        dateFormat: ['DD.MM.YYYY', 'DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'].includes(raw?.dateFormat) ? raw.dateFormat : null,
         favourites,
         setups,
         training: {

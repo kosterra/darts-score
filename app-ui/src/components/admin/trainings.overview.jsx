@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Panel } from 'primereact/panel';
-import dayjs from 'dayjs';
 
 import GameTypeIcon from '../elements/game.type.icon';
 import PlayerRanking from '../elements/player.ranking';
@@ -13,6 +12,7 @@ import { trainingOverview } from '../../utils/training.overview';
 import { formatTrainingTime } from '../../utils/training.time';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const GREEN = '#7ecca5';
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -116,7 +116,7 @@ const TrainingsOverview = ({ rows, playerOf }) => {
                                     <Link to={`/players/${player?.id}`} className="d-flex align-items-center gap-2 text-subtle fs-8">
                                         <PlayerAvatar player={player} className="avatar-xs" />
                                         <span className="text-default fw-semibold">{player?.nickname}</span>
-                                        <span className="text-faint">{dayjs(record.row.createdAt).format('DD.MM.YYYY')}</span>
+                                        <span className="text-faint">{formatDate(record.row.createdAt)}</span>
                                     </Link>
                                 </div>
                             );

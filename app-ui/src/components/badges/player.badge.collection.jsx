@@ -4,7 +4,6 @@ import { Button } from 'primereact/button';
 import { ProgressBar } from 'primereact/progressbar';
 
 import StatsService from '../../services/stats.service';
-import dayjs from 'dayjs';
 
 import BadgeMedal from './badge.medal';
 import ShameMedal from './shame.medal';
@@ -12,6 +11,7 @@ import { BadgesSkeleton } from '../elements/skeletons';
 import FlightCollection from '../flights/flight.collection';
 import { FaSoap } from 'react-icons/fa6';
 import { locale, t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value);
 
@@ -63,7 +63,6 @@ const BadgeSeries = ({ badges }) => {
 
 const lowerFirst = (text) => text.charAt(0).toLowerCase() + text.slice(1);
 
-const formatDate = (date) => dayjs(date).format('DD.MM.YYYY');
 
 /**
  * A shame badge the player has right now: a card that stands out, with since

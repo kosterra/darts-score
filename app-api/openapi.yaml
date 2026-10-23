@@ -220,7 +220,8 @@ paths:
       summary: Save how the player likes to play, on every device
       description: >-
         Merged into what the account had: waysOut (all, turn, off), autoSend (the visit is sent after the third dart),
-        leftHanded (the keypad for the left hand), celebrations (full or quiet), inputMode (board or keypad), favourites
+        leftHanded (the keypad for the left hand), celebrations (full or quiet), inputMode (board or keypad), dateFormat
+        (DD.MM.YYYY, DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, or null for the language's usual one), favourites
         (per game up to three formats pinned first), setups (per club and game the last setup { settings, friendly,
         playerIds, savedAt }, merged per club) and training ({ bot, atcMode, atcScoring }). Whatever does not fit is left out.
       requestBody:

@@ -11,6 +11,7 @@ import ATCConfigOptions from './atc.config.options';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { LISTS, PERIODS, formatScore, ordinal, scoreboardRows } from '../../utils/atc.scoreboard';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 // rows shown before "Show all"
 const SHOWN_ROWS = 10;
@@ -73,7 +74,7 @@ const ScoreboardRow = ({ row, rowRef, latest, phase, podium, showDate }) => {
                     {player.nickname || t('Unknown player')}
                     {(latest || phase) && <span className="atc-row-new">{t('New')}</span>}
                 </span>
-                <span className="atc-row-detail">{showDate ? dayjs(entry.createdAt).format('DD.MM.YYYY HH:mm') : dayjs(entry.createdAt).format('HH:mm')}</span>
+                <span className="atc-row-detail">{showDate ? formatDate(entry.createdAt, { time: true }) : dayjs(entry.createdAt).format('HH:mm')}</span>
             </span>
             <span className="atc-row-time">{formatScore(entry)}</span>
         </li>

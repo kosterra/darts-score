@@ -91,7 +91,7 @@ function AppContent() {
         window.scrollTo(0, 0);
     }, [pathname, navigationType]);
 
-    if (loading) return <PageLoader />;
+    if (loading) return <PageLoader full />;
 
     // Links from reset and invitation mails work whoever is logged in on this device
     if (pathname === '/reset-password') {

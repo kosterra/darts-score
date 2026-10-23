@@ -5,6 +5,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
 import FilterPills from '../../elements/filter.pills';
 import { t } from '../../../utils/i18n';
+import { calendarFormat } from '../../../utils/dates';
 
 const GAME_TYPES = [
     { label: t('X01'), value: 'x01' },
@@ -100,7 +101,7 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
                             onChange={(e) => set({ range: e.value })}
                             selectionMode="range"
                             readOnlyInput
-                            dateFormat="dd.mm.yy"
+                            dateFormat={calendarFormat()}
                             placeholder={t('Choose dates')}
                             maxDate={new Date()}
                             showButtonBar

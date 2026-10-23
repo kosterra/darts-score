@@ -21,6 +21,7 @@ import PlayerClubs from './player.clubs';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { calendarFormat } from '../../utils/dates';
 
 // "1987-02-04" and back for the calendar, in local time so the day stays the day
 const toDate = (value) => {
@@ -187,7 +188,7 @@ const PlayerEditPage = () => {
                                         <Calendar
                                             value={toDate(fields.dateOfBirth)}
                                             onChange={(event) => setFields(current => ({ ...current, dateOfBirth: fromDate(event.value) }))}
-                                            dateFormat="dd.mm.yy"
+                                            dateFormat={calendarFormat()}
                                             mask="99.99.9999"
                                             maxDate={new Date()}
                                             viewDate={fields.dateOfBirth ? undefined : tenYearsAgo()}

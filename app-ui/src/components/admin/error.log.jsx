@@ -15,6 +15,7 @@ import StatTile from '../stats/players/stat.tile';
 import { AdminToolbar } from './admin.common';
 import { t, tn } from '../../utils/i18n';
 import FilterPills from '../elements/filter.pills';
+import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
 
@@ -79,7 +80,7 @@ const ErrorLog = () => {
 
     const timeBody = (entry) => (
         <div className="d-flex flex-column">
-            <span className="text-default fs-7 text-nowrap">{dayjs(entry.time).format('DD.MM.YYYY HH:mm:ss')}</span>
+            <span className="text-default fs-7 text-nowrap">{formatDate(entry.time, { time: true, seconds: true })}</span>
             <span className="text-faint fs-8 text-nowrap">{dayjs(entry.time).fromNow()}</span>
         </div>
     );

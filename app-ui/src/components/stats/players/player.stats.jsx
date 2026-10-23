@@ -27,6 +27,7 @@ import CountryFlag from '../../elements/country.flag';
 import { gameOf } from '../../../rules/games';
 import { rulesIcon } from '../../rules/rules.icons';
 import TrainingsPanel from './trainings.panel';
+import { formatDate } from '../../../utils/dates';
 
 const LATEST_BADGES = 5;
 
@@ -154,7 +155,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
         .slice(0, LATEST_BADGES);
 
     const facts = [
-        [t('Member since'), dayjs(player.createdAt).format('DD.MM.YYYY')],
+        [t('Member since'), formatDate(player.createdAt)],
         [t('Games played'), formatNumber(games)],
         [t('Wins'), games ? `${formatNumber(wins)} (${percent(wins, games)})` : '–'],
         [t('Weekly streak'), (

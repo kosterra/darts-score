@@ -11,6 +11,7 @@ import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import CountryFlag from '../elements/country.flag';
+import { formatDate } from '../../utils/dates';
 
 // after a declined request, asking the same club again waits this long (as the API)
 const ASK_AGAIN_AFTER_DAYS = 7;
@@ -95,13 +96,13 @@ const ClubDirectory = ({ onSuccess, onError }) => {
         if (club.isMember) return <Tag value={t('Your club')} severity="success" />;
         if (club.request?.status === 'open') {
             return <>
-                <span className="text-faint fs-8">{t('Asked')}{' '}{dayjs(club.request.at).format('DD.MM.YYYY')}{t(', waiting for the admins')}</span>
+                <span className="text-faint fs-8">{t('Asked')}{' '}{formatDate(club.request.at)}{t(', waiting for the admins')}</span>
                 <Button label={t('Take back')} size="small" severity="secondary" text onClick={() => withdraw(club.id, club.name)} />
             </>;
         }
         const again = askAgainOn(club.request);
         if (club.joinPolicy === 'approval' && again && again.isAfter(dayjs())) {
-            return <span className="text-faint fs-8">{t('Declined. You can ask again from')}{' '}{again.format('DD.MM.YYYY')}.</span>;
+            return <span className="text-faint fs-8">{t('Declined. You can ask again from')}{' '}{formatDate(again)}.</span>;
         }
         return club.joinPolicy === 'open'
             ? <Button label={t('Join')} icon="pi pi-sign-in" size="small" onClick={() => setJoining({ club, nickname: '', message: '' })} />
@@ -134,7 +135,7 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                                 <ClubLogo club={{ name: request.clubName, logo: request.clubLogo }} size="md" />
                                 <div className="my-club-title">
                                     <span className="text-default fw-semibold fs-6 text-break">{request.clubName}</span>
-                                    <span className="text-faint fs-8">{t('Asked')}{' '}{dayjs(request.at).format('DD.MM.YYYY')}{' '}{t('as')}{' '}{request.nickname}{t(', waiting for the admins')}</span>
+                                    <span className="text-faint fs-8">{t('Asked')}{' '}{formatDate(request.at)}{' '}{t('as')}{' '}{request.nickname}{t(', waiting for the admins')}</span>
                                 </div>
                                 <div className="my-club-actions">
                                     <Button label={t('Take back')} size="small" severity="secondary" text onClick={() => withdraw(request.club, request.clubName)} />

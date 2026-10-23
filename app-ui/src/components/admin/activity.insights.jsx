@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Panel } from 'primereact/panel';
-import dayjs from 'dayjs';
 
 import AdminService from '../../services/admin.service';
 import { ClubRanking, KindList, TimeBars } from './installation.parts';
@@ -8,6 +7,7 @@ import { formatNumber, scrollToList } from './installation.utils';
 import { KpiHero } from '../stats/players/kpi';
 import { gameTitle, trainingIcon, trainingTitle } from './kind.titles';
 import { t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const GREEN = '#7ecca5';
 
@@ -96,7 +96,7 @@ const ActivityInsights = ({ what, onPickClub }) => {
                                 line: <>
                                     {t('{{count}} in all', { count: formatNumber(club.total) })}
                                     {club.players > 0 && <> · {tn(club.players, '{{count}} player lately', '{{count}} players lately')}</>}
-                                    {club.lastAt && <> · {t('last {{date}}', { date: dayjs(club.lastAt).format('DD.MM.YYYY') })}</>}
+                                    {club.lastAt && <> · {t('last {{date}}', { date: formatDate(club.lastAt) })}</>}
                                     {club.stuck > 0 && <span className="text-warning"> · {tn(club.stuck, '{{count}} left running', '{{count}} left running')}</span>}
                                 </>,
                             }))}

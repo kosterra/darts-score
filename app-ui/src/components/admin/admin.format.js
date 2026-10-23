@@ -1,3 +1,2 @@
-import dayjs from 'dayjs';
-
-export const formatDateTime = (value) => value ? dayjs(value).format('DD.MM.YYYY HH:mm') : '–';
+// the date and time of a record in the admin lists, in the format in use (see utils/dates.js)
+export { formatDateTime } from '../../utils/dates';

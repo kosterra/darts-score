@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Panel } from 'primereact/panel';
-import dayjs from 'dayjs';
 
 import LevelBadge from '../players/level.badge';
 import PlayerRanking from '../elements/player.ranking';
@@ -11,6 +10,7 @@ import { LEVEL_STYLES } from '../../utils/levels';
 import { playersOverview } from '../../utils/players.overview';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const GREEN = '#7ecca5';
 const CHIPS = 12;
@@ -123,7 +123,7 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                                         <PlayerAvatar player={player} className="avatar-md" />
                                         <span className="d-flex flex-column" style={{ minWidth: 0 }}>
                                             <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
-                                            <span className="text-faint fs-8 text-nowrap">{t('added {{date}}', { date: dayjs(player.createdAt).format('DD.MM.YYYY') })}</span>
+                                            <span className="text-faint fs-8 text-nowrap">{t('added {{date}}', { date: formatDate(player.createdAt) })}</span>
                                         </span>
                                         <span className="ms-auto"><LevelBadge level={levels?.[player.id]} /></span>
                                     </Link>

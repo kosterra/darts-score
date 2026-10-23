@@ -12,7 +12,7 @@ describe('groupByPeriod', () => {
         const { step, rows } = groupByPeriod(games(30, '2026-01-01', 1), ['player1', 'player2']);
         expect(step).toBe('game');
         expect(rows).toHaveLength(30);
-        expect(rows[0]).toMatchObject({ label: '01.01.26', games: 1, player1: 40 });
+        expect(rows[0]).toMatchObject({ label: '01/01/26', games: 1, player1: 40 });
     });
 
     it('groups more games by month, averaging each player', () => {

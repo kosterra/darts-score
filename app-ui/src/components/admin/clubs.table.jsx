@@ -14,14 +14,14 @@ import DeletePopup from '../elements/delete.popup';
 import ClubAdminsEditor from '../clubs/club.admins.editor';
 import { AdminToolbar } from './admin.common';
 import ClubsOverview from './clubs.overview';
-import { formatDateTime } from './admin.format';
+import { formatDate } from '../../utils/dates';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import CountryFlag from '../elements/country.flag';
 import FilterPills from '../elements/filter.pills';
 
-const formatDate = (value) => value ? formatDateTime(value).slice(0, 10) : '–';
+const clubDate = (value) => formatDate(value);
 
 const STATE_OPTIONS = [
     { label: t('All'), value: 'all' },
@@ -85,7 +85,7 @@ const ClubsTable = () => {
             <ClubLogo club={club} />
             <div className="d-flex flex-column" style={{ minWidth: 0 }}>
                 <span className="text-default fw-semibold text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
-                <span className="text-faint fs-8">{t('since')}{' '}{formatDate(club.createdAt)}</span>
+                <span className="text-faint fs-8">{t('since')}{' '}{clubDate(club.createdAt)}</span>
             </div>
         </div>
     );
@@ -146,7 +146,7 @@ const ClubsTable = () => {
                 <Column header={t('Admins')} body={adminsBody} />
                 <Column field="playerCount" header={t('Players')} sortable />
                 <Column field="gameCount" header={t('Games')} sortable />
-                <Column field="lastActivityAt" header={t('Last activity')} sortable body={(club) => <span className="text-subtle fs-7 text-nowrap">{formatDate(club.lastActivityAt)}</span>} />
+                <Column field="lastActivityAt" header={t('Last activity')} sortable body={(club) => <span className="text-subtle fs-7 text-nowrap">{clubDate(club.lastActivityAt)}</span>} />
                 <Column body={actionsBody} />
             </DataTable>
 

@@ -3,7 +3,6 @@ import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
-import dayjs from 'dayjs';
 
 import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
@@ -26,8 +25,8 @@ import TimelineWidget from './widgets/timeline.widget';
 import HallOfShameWidget from './widgets/hall.of.shame.widget';
 import MeWidget from './widgets/me.widget';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
-const formatDate = (date) => date ? dayjs(date).format('DD.MM.YYYY') : '–';
 
 // what a club admin arranges: their own dashboard or the club's
 const TARGETS = [{ label: t('My dashboard'), value: 'mine' }, { label: t('The club\'s dashboard'), value: 'club' }];

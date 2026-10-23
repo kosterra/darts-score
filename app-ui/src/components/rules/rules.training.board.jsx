@@ -3,8 +3,8 @@ import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 
 import RulesService from '../../services/rules.service';
-import dayjs from 'dayjs';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const VIEWS = [
     { label: t('Best'), value: 'best' },
@@ -55,7 +55,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                                 <tr key={entry.id} className={entry.id === highlight ? 'is-current' : ''}>
                                     <td>{view === 'best' ? `${index + 1}. ` : ''}{entry.player?.nickname ?? t('Unknown player')}</td>
                                     <td>{definition.format(entry.score)}</td>
-                                    <td className="text-faint fs-8">{dayjs(entry.createdAt).format('DD.MM.YY')}</td>
+                                    <td className="text-faint fs-8">{formatDate(entry.createdAt, { year: 'short' })}</td>
                                 </tr>
                             ))}
                         </tbody>

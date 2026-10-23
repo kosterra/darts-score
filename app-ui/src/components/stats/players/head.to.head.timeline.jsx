@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { Avatar } from 'primereact/avatar';
 import { FaTrophy } from 'react-icons/fa6';
-import dayjs from 'dayjs';
 
 import ChartConfigOptions from '../common/chart.config.options';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { t, tn } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 const MAX_GAMES = 12;
 // the card is this wide at most; near the edges it stays inside the timeline
@@ -55,7 +55,7 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
                     const result = game.players
                         .map(id => (isX01 ? game.playerModels?.[id]?.setsWon : game.playerModels?.[id]?.score) ?? 0)
                         .join(' : ');
-                    const summary = `${dayjs(game.updatedAt).format('DD.MM.YYYY')}${isX01 ? ` · ${game.startingScore}` : ''} · ${winner ? t('{{nickname}} won', { nickname: winner.nickname }) : t('Winner not in this comparison')} (${isX01 ? t('sets') : t('points')} ${result})`;
+                    const summary = `${formatDate(game.updatedAt)}${isX01 ? ` · ${game.startingScore}` : ''} · ${winner ? t('{{nickname}} won', { nickname: winner.nickname }) : t('Winner not in this comparison')} (${isX01 ? t('sets') : t('points')} ${result})`;
                     const isLatest = index === recent.length - 1;
 
                     return (
@@ -78,7 +78,7 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
                                 className="h2h-winner bg-surface-high"
                             />
                             <span className="h2h-dot" aria-hidden="true" />
-                            <span className="h2h-date text-faint">{dayjs(game.updatedAt).format('DD.MM.')}</span>
+                            <span className="h2h-date text-faint">{formatDate(game.updatedAt, { year: 'none' })}</span>
                         </div>
                     );
                 })}
@@ -91,7 +91,7 @@ const HeadToHeadTimeline = ({ games = [], players = [] }) => {
                     role="tooltip"
                 >
                     <div className="chart-tooltip-label">
-                        {dayjs(hoveredGame.updatedAt).format('DD.MM.YYYY')}
+                        {formatDate(hoveredGame.updatedAt)}
                         {isX01Game(hoveredGame) && ` · ${hoveredGame.startingScore}`}
                     </div>
                     {hoveredGame.players.map(id => {

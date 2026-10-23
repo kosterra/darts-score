@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { Panel } from 'primereact/panel';
-import dayjs from 'dayjs';
 
 import ClubLogo from '../elements/club.logo';
 import { ClubRanking } from './installation.parts';
@@ -8,6 +7,7 @@ import { formatNumber, scrollToList } from './installation.utils';
 import { KpiHero } from '../stats/players/kpi';
 import { QUIET_DAYS, clubsOverview } from '../../utils/admin.overviews';
 import { t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const GREEN = '#7ecca5';
 const SHOWN = 6;
@@ -44,7 +44,7 @@ const ClubsOverview = ({ clubs, onPick }) => {
     if (!overview.total) return null;
     const pick = (club) => { onPick(club); scrollToList(); };
     const pickEntry = (entry) => pick(entry.club);
-    const date = (value) => dayjs(value).format('DD.MM.YYYY');
+    const date = (value) => formatDate(value);
 
     return (
         <div className="d-flex flex-column gap-4 mb-4">

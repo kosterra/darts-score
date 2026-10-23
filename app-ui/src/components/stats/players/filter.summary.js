@@ -1,5 +1,5 @@
-import dayjs from 'dayjs';
 import { t } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 const GAME_TYPE_LABELS = { x01: 'X01', cricket: 'Cricket', elimination: 'Elimination', clock: 'Around the Clock' };
 const PERIOD_LABELS = { '1 D': t('Today'), '1 W': t('Last week'), '1 M': t('Last month'), '1 Y': t('Last year'), 'All': t('All time') };
@@ -14,7 +14,7 @@ export const describeFilters = (filters, defaults, { formats = [], withType = tr
     if (withType) parts.push(GAME_TYPE_LABELS[filters.type]);
     if (filters.period === 'Custom') {
         const [from, to] = filters.range ?? [];
-        const day = (date) => dayjs(date).format('DD.MM.YY');
+        const day = (date) => formatDate(date, { year: 'short' });
         parts.push(from ? (to ? `${day(from)} – ${day(to)}` : day(from)) : t('Choose dates'));
     } else {
         parts.push(PERIOD_LABELS[filters.period] ?? filters.period);

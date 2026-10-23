@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { FaChartColumn } from 'react-icons/fa6';
 import { GiDart } from 'react-icons/gi';
-import dayjs from 'dayjs';
 
 import StatsService from '../../../services/stats.service';
 import GamePlayers from '../../dashboard/widgets/game.players';
 import GameTypeTag from '../../elements/game.type.tag';
 import GameStatusTag from '../../elements/game.status.tag';
 import { t } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 /**
  * A player's latest games as a small timeline, with a way to all their games.
@@ -43,7 +43,7 @@ const PlayerLatestGames = ({ player }) => {
                                 const result = resultOf(game);
                                 return (
                                     <li key={`${game.type}-${game.id}`} className={`timeline-entry ${game.running ? 'timeline-running' : ''}`}>
-                                        <span className="timeline-time text-faint fs-8 text-nowrap">{dayjs(game.playedAt).format('DD.MM.')}</span>
+                                        <span className="timeline-time text-faint fs-8 text-nowrap">{formatDate(game.playedAt, { year: 'none' })}</span>
                                         <div className="timeline-body">
                                             <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                 <GameTypeTag type={game.type} />

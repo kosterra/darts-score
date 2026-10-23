@@ -5,7 +5,6 @@ import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Calendar } from 'primereact/calendar';
 import { Toast } from 'primereact/toast';
-import dayjs from 'dayjs';
 
 import AuthService, { announceMyPlayersChange } from '../../services/auth.service';
 import PlayerService from '../../services/player.service';
@@ -19,6 +18,7 @@ import PlayerDartPreferences from './player.dart.preferences';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { calendarFormat, formatDate } from '../../utils/dates';
 
 // "1987-02-04" and back for the calendar, in local time so the day stays the day
 const toDate = (value) => {
@@ -135,7 +135,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                                     <div>
                                         <dt>{t('Date of birth')}</dt>
                                         <dd>
-                                            {player.dateOfBirth ? dayjs(player.dateOfBirth).format('DD.MM.YYYY') : <span className="text-faint">{t('not set yet')}</span>}
+                                            {player.dateOfBirth ? formatDate(player.dateOfBirth) : <span className="text-faint">{t('not set yet')}</span>}
                                             <span className="text-faint">{' '}{t('· set by your club admins')}</span>
                                         </dd>
                                     </div>
@@ -158,7 +158,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError }) => {
                                     <Calendar
                                         value={toDate(birth)}
                                         onChange={(event) => setBirth(fromDate(event.value))}
-                                        dateFormat="dd.mm.yy"
+                                        dateFormat={calendarFormat()}
                                         mask="99.99.9999"
                                         maxDate={new Date()}
                                         showIcon

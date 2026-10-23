@@ -6,7 +6,6 @@ import { SelectButton } from 'primereact/selectbutton';
 import { Skeleton } from 'primereact/skeleton';
 import { Toast } from 'primereact/toast';
 import { FaRobot } from 'react-icons/fa6';
-import dayjs from 'dayjs';
 
 import X01Models from '../../models/x01.models';
 import X01TrainingService from '../../services/x01.training.service';
@@ -26,6 +25,7 @@ import { BOT_ID, BOT_LEVELS, BOT_PRESETS, LIKE_ME, botStrength, knowsPlayer } fr
 import { ageOn, strengthOf } from '../../utils/handicap';
 import { t } from '../../utils/i18n';
 import useGameRules from '../games/common/game.rules';
+import { formatDate } from '../../utils/dates';
 
 // the starting scores of a training (a choice of the club may follow)
 const TRAINING_SCORES = [101, 170, 301, 501, 701].map(value => ({ value }));
@@ -238,7 +238,7 @@ const X01BotPage = () => {
                                     <div className="d-flex flex-column" style={{ minWidth: 0 }}>
                                         <span className="text-default fw-semibold">{training.startingScore} {training.legOutMode} · {result.legs}</span>
                                         <span className="text-faint fs-8">
-                                            {dayjs(training.createdAt).format('DD.MM.YYYY HH:mm')}
+                                            {formatDate(training.createdAt, { time: true })}
                                             {result.average != null && t(' · {{nickname}} {{toFixed}}, bot {{value}}', { nickname: player.nickname, toFixed: result.average.toFixed(1), value: result.botAverage?.toFixed(1) ?? '–' })}
                                         </span>
                                     </div>

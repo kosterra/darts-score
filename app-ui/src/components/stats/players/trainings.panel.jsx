@@ -9,6 +9,7 @@ import { trainingOf } from '../../../rules/trainings';
 import { rulesIcon } from '../../rules/rules.icons';
 import { formatTrainingTime } from '../../../utils/training.time';
 import { locale, t, tn } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 dayjs.extend(relativeTime);
 
@@ -74,7 +75,7 @@ const TrainingsPanel = ({ summary }) => {
             <div className="kpi-headline mb-4">
                 <KpiHero label={t('Trainings')} value={formatNumber(summary.total)} color={COLORS.bot} />
                 <KpiHero label={t('In the last 30 days')} value={formatNumber(summary.last30Days)} color={COLORS.bot} />
-                <KpiHero label={t('Last training')} value={summary.lastAt ? dayjs(summary.lastAt).format('DD.MM.') : '–'} detail={summary.lastAt ? dayjs(summary.lastAt).fromNow() : null} color={COLORS.bot} />
+                <KpiHero label={t('Last training')} value={summary.lastAt ? formatDate(summary.lastAt, { year: 'none' }) : '–'} detail={summary.lastAt ? dayjs(summary.lastAt).fromNow() : null} color={COLORS.bot} />
             </div>
             <div className="training-cards">
                 {atc.count > 0 &&

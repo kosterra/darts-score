@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import dayjs from 'dayjs';
 import { Navigate } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
@@ -13,8 +12,8 @@ import MailTemplates from './mail.templates';
 import StatTile from '../stats/players/stat.tile';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
-const formatDate = (value) => value ? dayjs(value).format('DD.MM.YYYY') : '–';
 
 const formatBytes = (bytes) => {
     if (bytes == null) return 'unknown';

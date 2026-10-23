@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { Avatar } from 'primereact/avatar';
 import { Panel } from 'primereact/panel';
-import dayjs from 'dayjs';
 
 import { ChipGroup, SpreadList, TimeBars } from './installation.parts';
 import { formatNumber, scrollToList } from './installation.utils';
 import { KpiHero } from '../stats/players/kpi';
 import { INACTIVE_DAYS, usersOverview } from '../../utils/admin.overviews';
 import { LANGUAGES, t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const GREEN = '#7ecca5';
 const initials = (user) => `${user.firstname?.[0] ?? ''}${user.lastname?.[0] ?? ''}`.toUpperCase() || '?';
@@ -85,7 +85,7 @@ const UsersOverview = ({ users, onPick }) => {
                         />
                         <ChipGroup
                             title={tn(overview.inactive.length, '{{count}} account unused for half a year', '{{count}} accounts unused for half a year')}
-                            hint={t('The last login more than {{days}} days ago, e.g. {{date}}.', { days: INACTIVE_DAYS, date: dayjs(overview.inactive[0]?.lastLoginAt).format('DD.MM.YYYY') })}
+                            hint={t('The last login more than {{days}} days ago, e.g. {{date}}.', { days: INACTIVE_DAYS, date: formatDate(overview.inactive[0]?.lastLoginAt) })}
                             items={overview.inactive.map(chip)}
                             onPick={pick}
                         />

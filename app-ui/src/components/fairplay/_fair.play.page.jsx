@@ -7,7 +7,6 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { SelectButton } from 'primereact/selectbutton';
 import { Avatar } from 'primereact/avatar';
 import { Toast } from 'primereact/toast';
-import dayjs from 'dayjs';
 
 import IntegrityService, { announceFairPlayChange } from '../../services/integrity.service';
 import ClubLogo from '../elements/club.logo';
@@ -19,6 +18,7 @@ import { LEVEL_LABELS, listOf } from './fair.play.lists';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 /**
  * Asks why an entry is marked: as fine (a false alarm; needed for what the
@@ -264,7 +264,7 @@ const FairPlayPage = ({ all = false }) => {
                                         <div className="fair-play-head">
                                             <span className={`fair-play-level is-${entry.level}`}>{LEVEL_LABELS[entry.level]}</span>
                                             <span className="text-default fw-semibold">{entry.summary}</span>
-                                            <span className="text-faint fs-8">{dayjs(entry.at).format('DD.MM.YYYY HH:mm')}</span>
+                                            <span className="text-faint fs-8">{formatDate(entry.at, { time: true })}</span>
                                         </div>
                                         <div className="fair-play-players">
                                             {entry.players.map(player => (
@@ -291,7 +291,7 @@ const FairPlayPage = ({ all = false }) => {
                                         {expanded && <FairPlayDetails entry={entry} />}
                                         {entry.review &&
                                             <span className="text-faint fs-8">
-                                                {entry.review.status === 'ok' ? t('Marked as fine') : t('Kept on the watch list')}{' '}{t('by')}{' '}{entry.review.byName}, {dayjs(entry.review.at).format('DD.MM.YYYY')}
+                                                {entry.review.status === 'ok' ? t('Marked as fine') : t('Kept on the watch list')}{' '}{t('by')}{' '}{entry.review.byName}, {formatDate(entry.review.at)}
                                                 {entry.review.reason && <>: <span className="text-subtle">{entry.review.reason}</span></>}
                                             </span>
                                         }

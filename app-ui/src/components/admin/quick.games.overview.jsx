@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { Panel } from 'primereact/panel';
-import dayjs from 'dayjs';
 
 import GameTypeIcon from '../elements/game.type.icon';
 import { SpreadList } from './installation.parts';
@@ -9,6 +8,7 @@ import { KpiHero } from '../stats/players/kpi';
 import { quickGamesOverview } from '../../utils/admin.overviews';
 import { gameTitle } from './kind.titles';
 import { t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const GREEN = '#7ecca5';
 
@@ -36,7 +36,7 @@ const QuickGamesOverview = ({ data, days }) => {
 
                 <div className="quick-games-days mt-4" aria-label={t('Quick games started per day, the last 30 days')}>
                     {days.map(day => (
-                        <span key={day.day} className="quick-games-day" title={t('{{format}}: {{games}} started, {{finished}} finished', { format: dayjs(day.day).format('DD.MM.YYYY'), games: day.games, finished: day.finished })}>
+                        <span key={day.day} className="quick-games-day" title={t('{{format}}: {{games}} started, {{finished}} finished', { format: formatDate(day.day), games: day.games, finished: day.finished })}>
                             <span className="is-started" style={{ height: `${(day.games / most) * 100}%` }} />
                             <span className="is-finished" style={{ height: `${(day.finished / most) * 100}%` }} />
                         </span>

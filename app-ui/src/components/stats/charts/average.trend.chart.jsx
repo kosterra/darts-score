@@ -1,5 +1,4 @@
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
@@ -8,6 +7,7 @@ import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { groupByPeriod } from '../../../utils/trend.grouping';
 import { averageLevelOf, levelChanges, nextAverageLevel } from '../../../utils/average.levels';
 import { t, tn } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 const MOVING_WINDOW = 5;
 // grouped by month or quarter, the trend follows fewer points
@@ -63,7 +63,7 @@ const AverageTrendChart = ({ data = [], players = [], overall, title = t('Averag
     const base = grouped ? grouped.rows : data.map(entry => ({
         ...entry,
         // entries either carry their own label (e.g. the leg) or a date
-        label: entry.label ?? dayjs(entry.date).format('DD.MM.YY'),
+        label: entry.label ?? formatDate(entry.date, { year: 'short' }),
     }));
     const rows = single
         ? base.map((entry, index) => ({ ...entry, moving: movingAverage(base.map(d => d.average), index, byPeriod ? MOVING_PERIODS : MOVING_WINDOW) }))

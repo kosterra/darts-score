@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { formatDate } from './dates';
 
 // up to this many games every game is a point of its own
 export const MAX_SINGLE_GAMES = 30;
@@ -18,7 +19,7 @@ const round1 = (value) => Math.round(value * 10) / 10;
  */
 export const groupByPeriod = (rows, keys, { combine = 'average' } = {}) => {
     if (rows.length <= MAX_SINGLE_GAMES) {
-        return { step: 'game', rows: rows.map(row => ({ ...row, label: dayjs(row.date).format('DD.MM.YY'), games: 1 })) };
+        return { step: 'game', rows: rows.map(row => ({ ...row, label: formatDate(row.date, { year: 'short' }), games: 1 })) };
     }
     const first = dayjs(rows[0].date);
     const last = dayjs(rows[rows.length - 1].date);

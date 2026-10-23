@@ -231,7 +231,8 @@ const RulesTraining = () => {
                 <div className="col-12 col-xl-6">
                     <Panel header={definition.title} icons={rulesButton}>
                         {rules}
-                        <p className="text-subtle fs-7 mt-0">{definition.description}</p>
+                        {/* the open rules start with the description already */}
+                        {!rules && <p className="text-subtle fs-7 mt-0">{definition.description}</p>}
                         <p className="game-setup-section-title">{t('Player')}</p>
                         <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} single minPlayers={1} />
                         {(definition.options ?? []).map(option => (

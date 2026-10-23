@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { FaTrophy } from 'react-icons/fa6';
-import dayjs from 'dayjs';
 
 import ClubLogo from '../elements/club.logo';
 import GameTypeIcon from '../elements/game.type.icon';
 import { formatNumber } from './installation.utils';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 const SHOWN = 10;
 const PODIUM = ['#ffc94d', '#c9d1d9', '#d29a6a'];
@@ -84,14 +84,14 @@ export const TimeBars = ({ bars, label, finishedLabel, countLabel }) => {
         <>
             <div className="quick-games-days" style={{ gridTemplateColumns: `repeat(${bars.length}, 1fr)` }} aria-label={label}>
                 {bars.map(bar => (
-                    <span key={bar.start} className="quick-games-day" title={`${dayjs(bar.start).format('DD.MM.YYYY')}: ${countLabel(bar)}`}>
+                    <span key={bar.start} className="quick-games-day" title={`${formatDate(bar.start)}: ${countLabel(bar)}`}>
                         <span className={withFinished ? 'is-started' : 'is-finished'} style={{ height: `${(bar.count / most) * 100}%` }} />
                         {withFinished && <span className="is-finished" style={{ height: `${((bar.finished ?? 0) / most) * 100}%` }} />}
                     </span>
                 ))}
             </div>
             <div className="d-flex justify-content-between gap-2 text-faint fs-8 mt-1">
-                <span>{dayjs(bars[0]?.start).format('DD.MM.')}</span>
+                <span>{formatDate(bars[0]?.start, { year: 'none' })}</span>
                 {withFinished &&
                     <span>{t('started')}{' '}<span className="quick-games-key is-started" />{' '}{finishedLabel}{' '}<span className="quick-games-key is-finished" /></span>}
                 <span>{t('now')}</span>

@@ -21,7 +21,7 @@ import JSONViewer from '../elements/json.viewer';
 import { useAuth } from '../../utils/auth.context';
 import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
-import { formatDateTime } from './admin.format';
+import { formatDate } from '../../utils/dates';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import useClubSelection from './use.club.selection';
 import { t } from '../../utils/i18n';
@@ -296,7 +296,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                         <Column header={t('Type')} body={kindBody} />
                         {canManage && <Column header={t('Login')} body={loginBody} />}
                         {canManage && <Column header={t('Public page')} body={publicBody} />}
-                        <Column field="createdAt" header={t('Added')} sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(player.createdAt).slice(0, 10)}</span>} />
+                        <Column field="createdAt" header={t('Added')} sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDate(player.createdAt)}</span>} />
                         {canManage && <Column body={actionsBody} />}
                     </DataTable>
                 )

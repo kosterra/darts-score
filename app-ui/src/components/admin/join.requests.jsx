@@ -3,11 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
-import dayjs from 'dayjs';
 
 import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 /**
  * For the club admins, above the players: who asks to join the club, with
@@ -77,7 +77,7 @@ const JoinRequests = ({ onDecided }) => {
                                         <span className="text-default fw-semibold">{request.name}</span>
                                         <span className="text-subtle fs-7">{t('as')}{' '}{request.nickname}</span>
                                     </div>
-                                    <span className="text-faint fs-8">{request.email && `${request.email} · `}{t('asked')}{' '}{dayjs(request.at).format('DD.MM.YYYY HH:mm')}</span>
+                                    <span className="text-faint fs-8">{request.email && `${request.email} · `}{t('asked')}{' '}{formatDate(request.at, { time: true })}</span>
                                     {request.message && <span className="text-subtle fs-7 text-break">“{request.message}”</span>}
                                 </div>
                                 <div className="my-club-actions">

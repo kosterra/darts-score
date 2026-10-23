@@ -13,6 +13,7 @@ import { ROLE_LABELS } from '../../services/user.service';
 import { useAuth } from '../../utils/auth.context';
 import { LANGUAGES, currentLanguage, setLanguage, t } from '../../utils/i18n';
 import PlayingPreferences from './playing.preferences';
+import DateFormatSetting from './date.format.setting';
 
 const MIN_PASSWORD_LENGTH = 8;
 // "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
@@ -135,6 +136,7 @@ const ProfilePage = () => {
                                 <span className="text-faint fs-8">{t('The app and the mails you get come in this language. Saved right away.')}</span>
                             </div>
                         </div>
+                        <DateFormatSetting onSaved={(detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 })} />
 
                         {/* no clubs and no statistics of their own for global admins */}
                         {!isGlobalAdmin && (

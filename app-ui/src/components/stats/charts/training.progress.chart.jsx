@@ -1,11 +1,11 @@
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import dayjs from 'dayjs';
 
 import ChartCard from './chart.card';
 import useHiddenSeries from './use.hidden.series';
 import { AXIS, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { formatTrainingTime } from '../../../utils/training.time';
 import { t } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 const MODES = ['Single', 'Double', 'Triple', 'All'];
 
@@ -29,7 +29,7 @@ const TrainingProgressChart = ({
     const current = {};
     const rows = events.map(event => {
         current[event.mode] = event.best;
-        return { label: dayjs(event.date).format('DD.MM.YY'), ...current };
+        return { label: formatDate(event.date, { year: 'short' }), ...current };
     });
 
     return (

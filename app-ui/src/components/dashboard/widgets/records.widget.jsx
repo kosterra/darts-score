@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { Avatar } from 'primereact/avatar';
 import { FaStopwatch, FaCrosshairs, FaFire, FaChartLine } from 'react-icons/fa6';
-import dayjs from 'dayjs';
 
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { t } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 const RECORDS = [
     { key: 'bestLeg', label: t('Best 501 leg'), icon: FaStopwatch, format: (value) => t('{{value}} darts', { value: value }) },
@@ -38,7 +38,7 @@ const RecordsWidget = ({ widget, records, players }) => (
                                         className="avatar-xs bg-surface-high flex-shrink-0"
                                     />
                                     <Link to={`/players/${record.player}`} className="text-default fs-8 fw-semibold text-truncate">{player?.nickname ?? t('Unknown')}</Link>
-                                    <Link to={`/stats/games/x01/${record.gameId}`} className="text-faint fs-9 text-nowrap">{dayjs(record.date).format('DD.MM.YYYY')}</Link>
+                                    <Link to={`/stats/games/x01/${record.gameId}`} className="text-faint fs-9 text-nowrap">{formatDate(record.date)}</Link>
                                 </span>
                             }
                         </div>

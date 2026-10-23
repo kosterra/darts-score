@@ -2,13 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 import { GiDart } from "react-icons/gi";
-import dayjs from 'dayjs';
 
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
 import GameTypeIcon from '../../elements/game.type.icon';
 import { playPath } from '../../../utils/game.paths';
 import { t } from '../../../utils/i18n';
+import { formatDate } from '../../../utils/dates';
 
 /**
  * Games in progress, each with a button to continue playing.
@@ -28,7 +28,7 @@ const RunningGamesWidget = ({ widget, games: running, total, players }) => {
                                 <div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
                                     <div className="d-flex flex-wrap align-items-center gap-2">
                                         <GameTypeTag type={game.type} />
-                                        <span className="text-faint fs-8">{dayjs(game.playedAt).format('DD.MM.YYYY HH:mm')}</span>
+                                        <span className="text-faint fs-8">{formatDate(game.playedAt, { time: true })}</span>
                                     </div>
                                     <GamePlayers game={game} players={players} />
                                 </div>

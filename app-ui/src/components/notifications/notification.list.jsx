@@ -8,6 +8,7 @@ import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft, FaFlag, FaTrashCan, Fa
 import NotificationService, { announceNotificationsChange } from '../../services/notification.service';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
 
@@ -90,7 +91,7 @@ const NotificationList = ({ limit }) => {
                                         {/* like the other lists: the title with when and who beside it, the message below */}
                                         <div className="notification-head">
                                             <span className="text-default fw-semibold">{notice.title}</span>
-                                            <span className="notification-meta" title={dayjs(notice.at).format('DD.MM.YYYY HH:mm')}>
+                                            <span className="notification-meta" title={formatDate(notice.at, { time: true })}>
                                                 <i className="pi pi-clock" aria-hidden="true" />
                                                 {dayjs(notice.at).fromNow()}{notice.byName && ` · ${notice.byName}`}
                                             </span>
