@@ -7,7 +7,7 @@
     bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: $space-3;
     width: min(24rem, calc(100vw - 2rem));
     padding: 0.85rem 2.25rem 0.85rem 0.85rem;
     background: $shade800;

@@ -4,13 +4,13 @@
 .rules-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-    gap: 1rem;
+    gap: $space-4;
 }
 
 .rules-card {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
     padding: 1rem 1.1rem;
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
@@ -71,7 +71,7 @@
     line-height: 1.5;
 
     li + li {
-        margin-top: 0.25rem;
+        margin-top: $space-1;
     }
 }
 
@@ -81,7 +81,7 @@
     flex-direction: column;
     align-items: center;
     gap: 0.1rem;
-    padding: 0.5rem 1.5rem;
+    padding: $space-2 $space-5;
     border-radius: 0 0 1rem 1rem;
     background: $surfaceTranslucentColor;
     text-align: center;
@@ -147,13 +147,13 @@
 .rules-status {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
-    gap: 0.75rem;
+    gap: $space-3;
 
     .rules-status-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 0.5rem;
+        padding: $space-2;
         border-radius: $radius-md;
         background: $surfaceRaisedColor;
     }
@@ -174,11 +174,11 @@
 .rules-hitmiss {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: $space-4;
 
     .p-button {
         justify-content: center;
-        gap: 0.5rem;
+        gap: $space-2;
         min-height: 5.5rem;
         font-size: $text-2xl;
     }
@@ -240,8 +240,8 @@
 }
 
 .game-rules {
-    margin-top: 0.75rem;
-    padding: 0.75rem 1rem;
+    margin-top: $space-3;
+    padding: $space-3 $space-4;
     border-radius: $radius-md;
     background: $surfaceTranslucentColor;
     max-width: 48rem;
@@ -254,8 +254,8 @@
 
 // help that opens in place (how to enter darts, the rules of a training)
 .entering-help {
-    margin-bottom: 1rem;
-    padding: 0.75rem 1rem;
+    margin-bottom: $space-4;
+    padding: $space-3 $space-4;
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
     color: $textSubtleColor;
@@ -281,7 +281,7 @@
 
 // how levels work, below the level of a player
 .level-details {
-    margin-top: 0.5rem;
+    margin-top: $space-2;
     padding: 1rem 1.25rem;
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
@@ -290,5 +290,5 @@
 
 // the rules at the top of a setup: room before the setup
 .p-panel-content > .game-rules {
-    margin: 0 auto 1.5rem;
+    margin: 0 auto $space-5;
 }

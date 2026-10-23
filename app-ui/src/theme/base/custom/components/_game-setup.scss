@@ -84,7 +84,7 @@
 }
 
 .player-order {
-  padding: 0.75rem;
+  padding: $space-3;
   border-radius: $radius-md;
   background: var(--surface-raised);
 }
@@ -92,7 +92,7 @@
 .player-order-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: $space-2;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -101,7 +101,7 @@
 .player-order-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-2;
   padding: 0.3rem 0.3rem 0.3rem 0.5rem;
   border-radius: $radius-pill;
   background: rgba(255, 255, 255, 0.08);
@@ -155,7 +155,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.4rem;
-  margin-top: 1.5rem;
+  margin-top: $space-5;
 }
 
 .game-setup-summary {
@@ -174,8 +174,8 @@
 .setting-switch {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: $space-3;
+  margin-bottom: $space-4;
   padding: 0.85rem 1rem;
   border-radius: $radius-md;
   background: var(--surface-raised);
@@ -188,7 +188,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 1rem;
+  gap: $space-2 $space-4;
   padding: 0.6rem 0;
   border-top: 1px solid var(--border-default);
 }
@@ -225,7 +225,7 @@
 .quick-formats {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .quick-format {
@@ -254,8 +254,8 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem 0.75rem;
-  margin-bottom: 1rem;
+  gap: $space-1 $space-3;
+  margin-bottom: $space-4;
   color: var(--text-faint);
   font-size: $text-sm;
 }
@@ -264,7 +264,7 @@
 .player-checkout-preferences {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 1rem;
+  gap: $space-3 $space-4;
 
   // shrinks with a narrow card: the choice shortens instead of running out of it
   > label { flex: 1 1 15rem; max-width: 24rem; min-width: 0; }
@@ -279,13 +279,13 @@
 // left. Either one element (.setting-box) or a title followed by its row
 // (.setting-title + .setting-body), which together make one box.
 .setting-box {
-  margin-bottom: 1rem;
+  margin-bottom: $space-4;
   padding: 0.7rem 0.9rem 0.9rem;
   border-radius: $radius-md;
   background: var(--surface-raised);
 
   > .setting-title {
-    margin: 0 0 0.5rem;
+    margin: 0 0 $space-2;
     padding: 0;
     background: none;
   }
@@ -303,7 +303,7 @@
 }
 
 .setting-body {
-  margin-bottom: 1rem;
+  margin-bottom: $space-4;
   padding: 0.1rem 0.4rem 0.9rem;
   border-radius: 0 0 $borderRadius $borderRadius;
   background: var(--surface-raised);
@@ -323,7 +323,7 @@
 .player-flight-preview {
   display: flex;
   justify-content: center;
-  padding: 0.75rem 1rem;
+  padding: $space-3 $space-4;
   border-radius: $radius-md;
   background: rgba(0, 0, 0, 0.22);
 
@@ -391,8 +391,8 @@
 .flight-points-rules {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 0.25rem 1rem;
-  margin: 0.25rem 0 0;
+  gap: $space-1 $space-4;
+  margin: $space-1 0 0;
   font-size: $text-sm;
 
   > div { display: contents; }
@@ -515,7 +515,7 @@
 .flight-album {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .flight-album-item {
@@ -555,7 +555,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  margin: 0 0 0.75rem;
+  margin: 0 0 $space-3;
   color: var(--text-subtle);
   font-size: $text-sm;
   font-weight: $weight-semibold;
@@ -570,7 +570,7 @@
 .player-pick-card.is-editing {
   cursor: default;
   padding: 0.6rem;
-  gap: 0.5rem;
+  gap: $space-2;
   // a little wider than a card, so the name fits
   grid-column: span 2;
 
@@ -582,7 +582,7 @@
 
 // joining a club: the form under the club in the list
 .my-club-join {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
+  margin-top: $space-3;
+  padding-top: $space-3;
   border-top: 1px solid var(--surface-high);
 }

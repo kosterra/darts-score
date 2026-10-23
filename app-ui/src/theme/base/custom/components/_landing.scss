@@ -32,8 +32,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.75rem 1.5rem;
+    gap: $space-4;
+    padding: $space-3 $space-5;
     background: rgba($shade900, 0.72);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -109,7 +109,7 @@
 
 .landing-points {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 
 // the screenshot of a window with a phone laid over its corner
@@ -195,7 +195,7 @@
 .landing-numbers {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: $space-4;
     padding: 1.75rem 1rem;
     text-align: center;
     border-radius: $radius-lg;
@@ -220,14 +220,14 @@
 .landing-section-head {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
     max-width: 44rem;
 }
 
 .landing-feature {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
     height: 100%;
     padding: 1.25rem;
     border-radius: $radius-lg;
@@ -250,7 +250,7 @@
 
 .landing-step {
     display: flex;
-    gap: 1rem;
+    gap: $space-4;
     height: 100%;
     padding: 1.25rem;
     border-radius: $radius-lg;
@@ -274,7 +274,7 @@
 .public-club {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: $space-4;
     height: 100%;
     padding: 1.25rem;
     border-radius: $radius-lg;
@@ -292,10 +292,10 @@
 .public-club-figures {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem 1rem;
+    gap: $space-3 $space-4;
     margin: 0;
     margin-top: auto;
-    padding-top: 1rem;
+    padding-top: $space-4;
     border-top: 1px solid var(--border-default);
 
     dt {
@@ -318,7 +318,7 @@
 .public-club-join {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     color: $primaryColor;
     font-size: $text-sm;
     font-weight: $weight-semibold;
@@ -330,7 +330,7 @@
 .landing-faq {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
     max-width: 52rem;
 
     details {
@@ -345,7 +345,7 @@
     summary {
         display: flex;
         justify-content: space-between;
-        gap: 1rem;
+        gap: $space-4;
         cursor: pointer;
         list-style: none;
         color: var(--text-default);
@@ -367,7 +367,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: $space-4;
     padding: 3.5rem 1.5rem;
     text-align: center;
     border-radius: $radius-lg;
@@ -380,8 +380,8 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 0.75rem;
-    padding: 1.5rem;
+    gap: $space-3;
+    padding: $space-5;
     border-top: 1px solid var(--border-default);
     color: var(--text-faint);
     font-size: $text-sm;
@@ -443,7 +443,7 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem 2rem;
+    gap: $space-4 $space-6;
     padding: 1.25rem 1.5rem;
     border-radius: $radius-lg;
     background:
@@ -461,7 +461,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1.25rem 2rem;
-    padding: 2rem;
+    padding: $space-6;
     border-radius: $radius-lg;
     background:
         radial-gradient(ellipse at right, rgba($primaryColor, 0.28), transparent 65%),
@@ -496,7 +496,7 @@
 @media (max-width: 575.98px) {
     // a phone has room for the brand, the language and the two buttons only when they keep tight
     .landing-bar {
-        gap: 0.5rem;
+        gap: $space-2;
 
         .p-button.p-button-sm { padding-left: 0.6rem; padding-right: 0.6rem; }
     }
@@ -525,7 +525,7 @@
 
 // a quick game being played: no bar on top, the board gets the room
 .quick-page.is-playing .quick-page-content {
-    padding-top: 0.75rem;
+    padding-top: $space-3;
 
     @media (min-width: 576px) { padding-top: 1rem; }
 }

@@ -3,7 +3,7 @@
 .kpi-headline {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-    gap: 1rem;
+    gap: $space-4;
     // the numbers on one line, also when one has a line under it
     align-items: start;
     justify-items: center;
@@ -89,13 +89,13 @@
     @media (max-width: 575px) {
         grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
     }
-    gap: 0.75rem;
+    gap: $space-3;
 }
 
 .kpi-chip {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
     padding: 0.7rem 0.85rem;
     min-width: 0;
     border-radius: $radius-md;
@@ -249,7 +249,7 @@
 .level-ladder-row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
     padding: 0.45rem 0.65rem;
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
@@ -284,7 +284,7 @@
 .training-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: 0.75rem;
+    gap: $space-3;
 }
 
 .training-card {
@@ -318,7 +318,7 @@
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
-        gap: 0.75rem;
+        gap: $space-3;
     }
 
     .training-card-value {

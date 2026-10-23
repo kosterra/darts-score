@@ -29,7 +29,7 @@
 
 // a friendly format among the quick formats
 .quick-format-tag {
-    margin-left: 0.5rem;
+    margin-left: $space-2;
     padding: 0.05rem 0.45rem;
     border-radius: $radius-pill;
     background: rgba(255, 255, 255, 0.12);
@@ -55,10 +55,10 @@
 .club-rules-game-title {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
     flex-grow: 1;
     min-width: 0;
-    padding: 0.25rem 0.5rem;
+    padding: $space-1 $space-2;
     border: 0;
     border-radius: $radius-md;
     background: transparent;
@@ -74,14 +74,14 @@
 .club-rules-game-body {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 0.25rem 1rem 1rem;
+    gap: $space-4;
+    padding: $space-1 $space-4 $space-4;
 }
 
 .club-rules-setting {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
     padding-top: 0.9rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -90,13 +90,13 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: $space-3;
 }
 
 .club-rules-setting-body {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
     flex-wrap: wrap;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .club-rules-house {
-    margin-left: 0.5rem;
+    margin-left: $space-2;
     padding: 0.05rem 0.45rem;
     border-radius: $radius-pill;
     background: $surfaceHighColor;
@@ -131,7 +131,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 
 .club-rules-target {
@@ -171,7 +171,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    padding-top: 0.5rem;
+    padding-top: $space-2;
 }
 
 @media (max-width: 575.98px) {
@@ -184,9 +184,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: $space-3;
     width: 100%;
-    margin-bottom: 0.5rem;
+    margin-bottom: $space-2;
     padding: 0.4rem 0.5rem;
     border: 0;
     border-radius: $radius-md;
@@ -258,7 +258,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: $space-3;
     min-height: 12rem;
     padding: 3rem 1rem;
 }

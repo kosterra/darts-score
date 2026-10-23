@@ -9,7 +9,7 @@
   // the players' layout follows the width of the header, not of the screen
   container-type: inline-size;
   gap: 0.85rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: $space-5;
   padding: 1.1rem 1.5rem;
   border-radius: $radius-md;
 }
@@ -26,7 +26,7 @@
 .x01-hero-player {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: $space-4;
   min-width: 0;
 
   // the others step back a little, the player at the oche is bright
@@ -39,7 +39,7 @@
   position: relative;
   flex-shrink: 0;
   // the halo reaches about 1rem beyond the photo: the text keeps clear of it
-  margin-right: 0.75rem;
+  margin-right: $space-3;
 
   .is-mirrored & { margin-right: 0; margin-left: 0.75rem; }
 
@@ -123,7 +123,7 @@
   justify-content: inherit;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.25rem;
+  gap: $space-1;
 }
 
 .x01-shame {
@@ -203,7 +203,7 @@
 
 .x01-won-circles {
   display: inline-flex;
-  gap: 0.25rem;
+  gap: $space-1;
   font-size: $text-base;
 }
 
@@ -241,7 +241,7 @@
 .x01-darts {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .x01-dart-field {
@@ -292,7 +292,7 @@
 .x01-visit-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 // the darts of the visit belong to the floating bar of a phone only
@@ -340,7 +340,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .x01-ways-group {
@@ -361,7 +361,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .x01-ways-list {
@@ -409,7 +409,7 @@
 
 .x01-visit-darts {
   display: inline-flex;
-  gap: 0.25rem;
+  gap: $space-1;
   color: var(--text-subtle);
 
   span {
@@ -436,7 +436,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem 0.75rem;
-  margin-top: 0.25rem;
+  margin-top: $space-1;
   color: var(--text-subtle);
   font-size: $text-xs;
   font-variant-numeric: tabular-nums;
@@ -476,7 +476,7 @@
 .x01-hero-players.count-3,
 .x01-hero-players.count-4 {
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: 1rem 1.5rem;
+  gap: $space-4 $space-5;
 
   @include hero-players-in-columns;
 }
@@ -487,9 +487,9 @@
   .x01-game-page { padding: 0.75rem 0.5rem 5rem; }
 
   .x01-live-hero {
-    gap: 0.75rem;
+    gap: $space-3;
     padding: 0.85rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: $space-3;
 
     .x01-hero-portrait, .x01-live-leg { display: none; }
   }
@@ -497,7 +497,7 @@
   // on a phone each player is a column: name, score, way out, legs
   .x01-hero-players {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: $space-3;
   }
 
   .x01-hero-player, .x01-hero-player.is-mirrored {
@@ -592,7 +592,7 @@
 .x01-keypad {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $space-2;
   width: 100%;
   max-width: 36rem;
   margin: 0 auto;
@@ -601,7 +601,7 @@
 .x01-keypad-rings {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .x01-keypad-numbers {
@@ -764,7 +764,7 @@
 .elimination-knock {
   @include label-shape;
   @include label-tone($accentAmber);
-  margin-right: 0.5rem;
+  margin-right: $space-2;
   font-size: $text-xs;
 }
 
@@ -947,7 +947,7 @@
 .x01-bot-turn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-2;
   padding: 0.55rem 0.85rem;
   border-radius: $radius-md;
   background: rgba($primaryColor, 0.18);
@@ -961,7 +961,7 @@
 // the finish of a training, in gold, while its statistics are on their way
 .x01-bot-turn.x01-training-won {
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: $space-4;
   background: rgba(233, 172, 47, 0.16);
   font-size: $text-base;
 

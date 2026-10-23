@@ -13,7 +13,7 @@ $momentGold: $accentAmber;
     z-index: 1200;
     display: flex;
     justify-content: flex-end;
-    padding: 0 1.5rem;
+    padding: 0 $space-5;
     pointer-events: none;
 }
 
@@ -159,7 +159,7 @@ $momentGold: $accentAmber;
 .x01-handicap-rules {
   @include label-shape;
   @include label-neutral;
-  margin-top: 0.25rem;
+  margin-top: $space-1;
   font-size: $text-xs;
   font-variant-numeric: tabular-nums;
 }

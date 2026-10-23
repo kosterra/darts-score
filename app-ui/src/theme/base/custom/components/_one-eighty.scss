@@ -255,7 +255,7 @@ $oneEightyGold: $accentGold;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: $space-1;
     width: max-content;
     max-width: 92vw;
     text-align: center;
