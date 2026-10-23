@@ -6,6 +6,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import ShameMedal from './shame.medal';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { Lines } from '../elements/skeletons';
 import { isRulesKind } from '../../utils/game.paths';
 
 dayjs.extend(relativeTime);
@@ -15,7 +16,7 @@ dayjs.extend(relativeTime);
  * someone else takes it over or they wash it off.
  */
 const HallOfShame = ({ shame }) => {
-    if (!shame) return <span className="text-faint">{t('Loading…')}</span>;
+    if (!shame) return <Lines count={4} />;
 
     return (
         <ul className="hall-of-shame list-unstyled m-0">

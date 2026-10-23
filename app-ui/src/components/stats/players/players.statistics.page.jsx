@@ -10,7 +10,6 @@ import PlayerService from '../../../services/player.service';
 import StatsService from '../../../services/stats.service';
 import LevelBadge from '../../players/level.badge';
 import FormBadge from './form.badge';
-import PageLoader from '../../elements/page.loader';
 import PlayerVSStats from './player.vs.stats';
 import OtherHeadToHead from './other.head.to.head';
 import ComparisonFilters, { FilterPanel } from './comparison.filters';
@@ -20,6 +19,7 @@ import ChartConfigOptions from '../common/chart.config.options';
 import { useAuth } from '../../../utils/auth.context';
 import { useUrlFilters, useUrlState } from '../../../utils/use.url.state';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { CardSkeleton } from '../../elements/skeletons';
 import { t, tn } from '../../../utils/i18n';
 
 const DEFAULT_FILTERS = {
@@ -123,7 +123,17 @@ const PlayersStatisticsPage = () => {
         [selectedIds, players]
     );
 
-    if (!players) return <PageLoader />;
+    // the picker and the comparison in their places while the players load
+    if (!players) {
+        return (
+            <div className="container-fluid p-4 border-0">
+                <div className="row g-4">
+                    <div className="col-12 col-lg-4 col-xxl-3"><CardSkeleton title={t('Players')} /></div>
+                    <div className="col-12 col-lg-8 col-xxl-9"><CardSkeleton chart /></div>
+                </div>
+            </div>
+        );
+    }
 
     const toggle = (player) => setSelectedIds(ids => ids.includes(player.id)
         ? ids.filter(id => id !== player.id)

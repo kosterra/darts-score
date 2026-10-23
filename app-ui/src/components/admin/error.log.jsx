@@ -15,6 +15,7 @@ import StatTile from '../stats/players/stat.tile';
 import { AdminToolbar } from './admin.common';
 import { t, tn } from '../../utils/i18n';
 import FilterPills from '../elements/filter.pills';
+import { TableLoading } from '../elements/skeletons';
 import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
@@ -134,14 +135,15 @@ const ErrorLog = () => {
                     value={log?.entries ?? []}
                     dataKey="id"
                     className="admin-table"
-                    loading={!log || log.loading}
                     expandedRows={expanded}
                     onRowToggle={(e) => setExpanded(e.data)}
                     rowExpansionTemplate={detailsTemplate}
                     paginator
                     rows={25}
                     rowsPerPageOptions={[25, 50, 100]}
-                    emptyMessage={t('No warnings or errors. All good.')}
+                    // a new search keeps the rows under a spinner; the first load shows the shape of the rows
+                    loading={Boolean(log?.loading)}
+                    emptyMessage={!log || log.loading ? <TableLoading /> : t('No warnings or errors. All good.')}
                     responsiveLayout="scroll"
                 >
                     <Column expander={hasDetails} style={{ width: '3rem' }} />

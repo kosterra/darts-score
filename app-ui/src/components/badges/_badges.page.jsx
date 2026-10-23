@@ -9,7 +9,6 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import StatsService from '../../services/stats.service';
-import PageLoader from '../elements/page.loader';
 import BadgeMedal from './badge.medal';
 import { ClubBadgeList, ClubGoalList } from './club.badges';
 import HallOfShame from './hall.of.shame';
@@ -17,6 +16,7 @@ import { useClubShame } from './hall.of.shame.data';
 import { KpiHero } from '../stats/players/kpi';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT, PODIUM } from '../../utils/palette';
 
 dayjs.extend(relativeTime);
@@ -116,7 +116,7 @@ const BadgesOverview = () => {
         if (club && window.location.hash === '#club') document.getElementById('club')?.scrollIntoView({ block: 'start' });
     }, [club]);
 
-    if (!overview) return <PageLoader />;
+    if (!overview) return <OverviewSkeleton title={t('Badges')} />;
     const unclaimed = overview.unclaimed ?? [];
     // the first ones, all of them, or those matching the search (with their place in the club)
     const term = search.trim().toLowerCase();

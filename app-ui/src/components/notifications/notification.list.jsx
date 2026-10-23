@@ -8,6 +8,7 @@ import { FaBell, FaScaleBalanced, FaWrench, FaRotateLeft, FaFlag, FaTrashCan, Fa
 import NotificationService, { announceNotificationsChange } from '../../services/notification.service';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import { Lines } from '../elements/skeletons';
 import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
@@ -30,7 +31,7 @@ const NotificationList = ({ limit }) => {
     }, []);
 
     if (failed) return <p className="text-faint fs-7 m-0">{t('The notifications could not be loaded.')}</p>;
-    if (!data) return <p className="text-faint fs-7 m-0">{t('Loading…')}</p>;
+    if (!data) return <Lines count={3} />;
 
     const update = (changes) => {
         setData(current => changes(current));

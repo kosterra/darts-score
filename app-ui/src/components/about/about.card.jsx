@@ -11,6 +11,7 @@ import ReleaseNotes from './release.notes';
 import BadgeMedal from '../badges/badge.medal';
 import ShameMedal from '../badges/shame.medal';
 import { requestJSON } from '../../utils/service.utils';
+import { Lines } from '../elements/skeletons';
 import { locale, t } from '../../utils/i18n';
 
 const REPOSITORY = 'https://github.com/kosterra/darts-score';
@@ -131,7 +132,7 @@ const AboutCard = () => {
                     <p className="text-subtle fs-7 m-0">
                         {t('Badges are earned automatically in games and trainings, and each one adds XP to the player level. Your own collection is on your profile and under')}{' '}<Link to="/badges">{t('Club → Badges')}</Link>{t(', next to the flights and barrels you collected with your flight points (see')}{' '}<Link to="#levels">{t('Levels')}</Link>).
                     </p>
-                    {!catalogue && <span className="text-faint fs-7">{t('Loading badges…')}</span>}
+                    {!catalogue && <Lines count={6} />}
                     {categories.map(category => (
                         <section key={category.category} className="d-flex flex-column gap-3">
                             <h2 className="game-setup-section-title m-0">{category.title}</h2>

@@ -11,6 +11,7 @@ import StatsService from '../../services/stats.service';
 import { ClubGoalList, ClubMedalRow } from '../badges/club.badges';
 import { calendarFormat } from '../../utils/dates';
 import { useAuth } from '../../utils/auth.context';
+import { Lines } from '../elements/skeletons';
 import { t } from '../../utils/i18n';
 
 const MAX_GOALS = 3;
@@ -76,7 +77,7 @@ const ClubGoalsEditor = ({ club, onError }) => {
                     <p className="game-setup-section-title">{t('Club badges')}</p>
                     <p className="text-faint fs-8 mt-0">{t('Earned together: every game and training of the members adds to them. The members hear about each new one.')}</p>
                     {!overview
-                        ? <span className="text-faint fs-7">{t('Loading badges…')}</span>
+                        ? <Lines count={2} />
                         : earned.length
                             ? <div className="d-flex flex-column gap-2">
                                 <ClubMedalRow badges={earned.slice(0, 8)} count={earned.length} size="sm" />

@@ -29,7 +29,7 @@ export const Lines = ({ count = 3 }) => (
 );
 
 // a card with a title and a chart or a list
-const CardSkeleton = ({ title, chart = false, className = '' }) => (
+export const CardSkeleton = ({ title, chart = false, className = '' }) => (
     <Panel header={title ?? <Skeleton width="8rem" height="1rem" />} className={`h-100 ${className}`}>
         {chart ? <Skeleton height="11rem" /> : <Lines count={4} />}
     </Panel>
@@ -133,6 +133,67 @@ export const DashboardSkeleton = ({ club, widgets }) => (
                 </div>
             ))}
         </div>
+    </div>
+);
+
+// a big figure with its label, as the key figures over a list
+const HeroFact = () => (
+    <div className="d-flex flex-column gap-2">
+        <Skeleton width="4rem" height="2rem" />
+        <Skeleton width="6rem" height="0.75rem" />
+    </div>
+);
+
+/**
+ * The rows of a table while it loads, in place of its empty message: the
+ * table stands with its columns, and no "nothing here" before the data is in.
+ */
+export const TableLoading = ({ rows = 6 }) => (
+    <div className="py-2" aria-busy="true">
+        <Loading what={t('the list')} />
+        <Lines count={rows} />
+    </div>
+);
+
+/**
+ * The overview over a list (games, players, trainings, clubs, users, quick
+ * games): its key figures, then a ranking and a card beside it. The title is
+ * known already.
+ */
+export const OverviewSkeleton = ({ title, figures = 4 }) => (
+    <div className="d-flex flex-column gap-4 mb-4" aria-busy="true">
+        <Loading what={title} />
+        <Panel header={title}>
+            <div className="kpi-headline">
+                {Array.from({ length: figures }, (_, index) => <HeroFact key={index} />)}
+            </div>
+        </Panel>
+        <div className="row g-4">
+            <div className="col-12 col-xl-7"><CardSkeleton /></div>
+            <div className="col-12 col-xl-5"><CardSkeleton /></div>
+        </div>
+    </div>
+);
+
+/**
+ * Settings in their boxes, as on the profile or a player's page: a section
+ * title and a few boxes, each with a title and a line or two.
+ */
+export const SettingsSkeleton = ({ boxes = 3 }) => (
+    <div className="d-flex flex-column" aria-busy="true">
+        <Loading what={t('the settings')} />
+        <Skeleton width="9rem" height="0.9rem" className="mb-3" />
+        {Array.from({ length: boxes }, (_, index) => (
+            <div key={index} className="mb-4">
+                <p className="setting-title"><Skeleton width={index % 2 ? '7rem' : '10rem'} height="0.8rem" /></p>
+                <div className="row mx-0 mt-0 setting-body">
+                    <div className="col d-flex flex-column gap-2 py-1">
+                        <Skeleton height="2.4rem" />
+                        <Skeleton width="60%" height="0.7rem" />
+                    </div>
+                </div>
+            </div>
+        ))}
     </div>
 );
 

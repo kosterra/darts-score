@@ -11,7 +11,6 @@ import { Toast } from 'primereact/toast';
 import PlayerService from '../../services/player.service';
 import CountryPicker from '../elements/country.picker';
 import ImageUploader from '../elements/image.uploader';
-import PageLoader from '../elements/page.loader';
 import PlayerLogin from '../elements/player.login';
 import SettingSwitch from '../elements/setting.switch';
 import UpLink from '../elements/up.link';
@@ -21,6 +20,7 @@ import PlayerClubs from './player.clubs';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { SettingsSkeleton } from '../elements/skeletons';
 import { calendarFormat } from '../../utils/dates';
 
 // "1987-02-04" and back for the calendar, in local time so the day stays the day
@@ -83,7 +83,7 @@ const PlayerEditPage = () => {
 
     if (!isClubAdmin) return <div className="container-fluid p-4 text-subtle">{t('Only the admins of the club edit its players.')}</div>;
     if (failed) return <div className="container-fluid p-4 text-subtle">{t('The player could not be loaded.')}{' '}<Link to="/players">{t('Back to the players')}</Link></div>;
-    if (!player || !fields) return <PageLoader />;
+    if (!player || !fields) return <div className="container-fluid p-4 border-0"><SettingsSkeleton boxes={4} /></div>;
 
     // a player with a login keeps their name, nickname and picture up to date themselves
     const maintainedByPlayer = Boolean(player.user && player.user !== user?.id);

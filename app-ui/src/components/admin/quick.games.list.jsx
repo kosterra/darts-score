@@ -18,6 +18,7 @@ import QuickGamesOverview from './quick.games.overview';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { formatDateTime } from './admin.format';
 import { t } from '../../utils/i18n';
+import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
 const TYPE_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }];
@@ -148,12 +149,11 @@ const QuickGamesList = () => {
                         value={games}
                         dataKey="id"
                         className="admin-table"
-                        loading={data === null}
                         selectionMode="checkbox"
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
-                        emptyMessage={data?.games?.length ? t('No quick games match these filters.') : t('No quick games yet.')}
+                        emptyMessage={data === null ? <TableLoading /> : data?.games?.length ? t('No quick games match these filters.') : t('No quick games yet.')}
                         responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />

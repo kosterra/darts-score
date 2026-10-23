@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 
 import IntegrityService from '../../services/integrity.service';
 import { LEVELS } from './fair.play.lists';
+import { Lines } from '../elements/skeletons';
 import { t } from '../../utils/i18n';
 
 // the worst finding at each place: 'set|leg|visit' (X01) or 'visit' → level
@@ -107,7 +108,7 @@ const FairPlayDetails = ({ entry }) => {
     }, [entry.type, entry.id]);
 
     if (failed) return <div className="fair-play-details text-faint fs-8">{t('The details could not be loaded.')}</div>;
-    if (!details) return <div className="fair-play-details text-faint fs-8">{t('Loading…')}</div>;
+    if (!details) return <div className="fair-play-details"><Lines count={3} /></div>;
 
     const nameOf = (id) => entry.players.find(player => player.id === id)?.nickname ?? t('Unknown player');
     const flags = flagsOf(details.findings ?? []);

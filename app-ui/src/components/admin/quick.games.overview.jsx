@@ -9,6 +9,7 @@ import { quickGamesOverview } from '../../utils/admin.overviews';
 import { gameTitle } from './kind.titles';
 import { t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT } from '../../utils/palette';
 
 const GREEN = ACCENT.green;
@@ -24,7 +25,7 @@ const QuickGamesOverview = ({ data, days }) => {
     const most = Math.max(1, ...days.map(day => day.games));
     const mostFormat = overview.formats[0]?.count || 1;
 
-    if (!data) return null;
+    if (!data) return <OverviewSkeleton title={t('Quick games at a glance')} />;
     return (
         <div className="d-flex flex-column gap-4 mb-4">
             <Panel header={t('Quick games at a glance')}>

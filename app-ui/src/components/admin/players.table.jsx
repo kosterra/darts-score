@@ -25,6 +25,7 @@ import { formatDate } from '../../utils/dates';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import useClubSelection from './use.club.selection';
 import { t } from '../../utils/i18n';
+import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
 const KIND_OPTIONS = [
@@ -266,9 +267,8 @@ const PlayersTable = ({ scope = 'club' }) => {
                             />
                         )}
                         className="admin-table"
-                        loading={players === null}
                         {...tableState(view, setView, { sortField: 'nickname', sortOrder: 1 })}
-                        emptyMessage={players?.length ? t('No players match these filters.') : t('No players yet.')}
+                        emptyMessage={players === null ? <TableLoading /> : players?.length ? t('No players match these filters.') : t('No players yet.')}
                         responsiveLayout="scroll"
                     >
                         <Column

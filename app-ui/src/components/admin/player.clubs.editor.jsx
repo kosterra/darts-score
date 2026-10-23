@@ -5,6 +5,7 @@ import { Dropdown } from 'primereact/dropdown';
 import ClubLogo from '../elements/club.logo';
 import { PlayerCell } from './admin.common';
 import { t } from '../../utils/i18n';
+import { Lines } from '../elements/skeletons';
 import RowEditor from './row.editor';
 
 /**
@@ -48,7 +49,7 @@ const PlayerClubsEditor = ({ player, memberships, targets, currentClubId, onAdd,
 
                 <div className="d-flex flex-column gap-2">
                     <span className="text-subtle fs-7">{t('Member of')}</span>
-                    {memberships === null && <span className="text-faint fs-7">{t('Loading…')}</span>}
+                    {memberships === null && <Lines count={2} />}
                     {(memberships ?? []).map(club => (
                         <div key={club.id} className="d-flex align-items-center gap-3 bg-surface-raised rounded-2 px-3 py-2">
                             <ClubLogo club={club} />

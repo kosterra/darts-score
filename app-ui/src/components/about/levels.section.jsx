@@ -4,6 +4,7 @@ import LevelBadge from '../players/level.badge';
 import { FlightPicture } from '../flights/flight.art';
 import { BarrelPicture } from '../flights/barrel.art';
 import { AVERAGE_LEVELS } from '../../utils/average.levels';
+import { Lines } from '../elements/skeletons';
 import { locale, t } from '../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -48,7 +49,7 @@ const LevelsSection = ({ levels, rules, flights }) => {
             <p className="text-subtle fs-7 m-0">
                 {t('Every player collects XP for playing, winning, badges and skill. From League Player on a level also needs a minimum X01 average, so it stands for how someone plays and not only for how much. The level follows the current statistics, so it shows today\'s form and can go down again. Each profile shows the level, the way to the next one and what its XP are made of.')}
             </p>
-            {!levels && <span className="text-faint fs-7">{t('Loading levels…')}</span>}
+            {!levels && <Lines count={4} />}
             {levels &&
                 <ol className="list-unstyled m-0 about-levels">
                     {levels.map((level, index) => (

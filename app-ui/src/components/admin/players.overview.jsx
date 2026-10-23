@@ -11,6 +11,7 @@ import { playersOverview } from '../../utils/players.overview';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT } from '../../utils/palette';
 
 const GREEN = ACCENT.green;
@@ -62,6 +63,7 @@ const ToComplete = ({ title, hint, players, hash = '' }) => players.length > 0 &
 const PlayersOverview = ({ players, levels, canManage }) => {
     const overview = useMemo(() => playersOverview(players ?? [], levels), [players, levels]);
 
+    if (!players) return <OverviewSkeleton title={t('Players of the club')} />;
     if (!overview.members) return null;
     const most = Math.max(...overview.levels.map(level => level.count), 1);
 

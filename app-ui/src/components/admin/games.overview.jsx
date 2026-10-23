@@ -10,6 +10,7 @@ import StatsService from '../../services/stats.service';
 import { gameTitle as titleOf } from './kind.titles';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT } from '../../utils/palette';
 
 const GREEN = ACCENT.green;
@@ -28,7 +29,8 @@ const GamesOverview = () => {
         StatsService.loadGamesOverview().then(setOverview).catch(error => console.error('Failed to load the games overview', error));
     }, []);
 
-    if (!overview?.total) return null;
+    if (!overview) return <OverviewSkeleton title={t('Games of the club')} />;
+    if (!overview.total) return null;
     const playerOf = (id) => overview.playersById?.[id];
     const top = overview.popular[0];
     const most = top?.count || 1;
