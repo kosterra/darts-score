@@ -6,6 +6,7 @@ import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import useGameRules from './game.rules';
 import PlayerFlight from '../../flights/player.flight';
+import QuickHeroBrand from '../../quick/quick.hero.brand';
 import { t } from '../../../utils/i18n';
 
 /**
@@ -26,9 +27,12 @@ const LiveHero = ({ title, subtitle, rows, rulesId }) => {
     return (
         <header className="hero-header result-hero x01-live-hero">
             <div className="result-hero-top">
-                <div className="d-flex flex-column">
-                    <span className="text-default fw-semibold">{title}</span>
-                    {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
+                <div className="d-flex align-items-center gap-3" style={{ minWidth: 0 }}>
+                    <QuickHeroBrand />
+                    <div className="d-flex flex-column" style={{ minWidth: 0 }}>
+                        <span className="text-default fw-semibold">{title}</span>
+                        {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
+                    </div>
                 </div>
                 {rulesButton}
             </div>

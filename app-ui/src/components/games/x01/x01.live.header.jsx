@@ -13,6 +13,7 @@ import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
 import useGameRules from '../common/game.rules';
+import QuickHeroBrand from '../../quick/quick.hero.brand';
 import { t } from '../../../utils/i18n';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
@@ -70,6 +71,8 @@ const X01LiveHeader = () => {
     return (
         <header className="hero-header result-hero x01-live-hero">
             <div className="result-hero-top">
+                <div className="d-flex align-items-center gap-3" style={{ minWidth: 0 }}>
+                <QuickHeroBrand />
                 <div className="d-flex flex-column">
                     <span className="text-default fw-semibold">
                         {handicap ? t('Handicap') : game.startingScore} · {game.setMode} {plural(game.numberOfSets, 'set')} · {game.legMode} {plural(game.numberOfLegs, 'leg')}
@@ -78,6 +81,7 @@ const X01LiveHeader = () => {
                         {handicap ? t('Own starting score and in/out per player') : `${game.legInMode} / ${game.legOutMode}`}
                         {t(' · {{value}}Leg {{currentSetLeg}}', { value: game.numberOfSets > 1 ? `Set ${game.currentSet} · ` : '', currentSetLeg: game.currentSetLeg })}
                     </span>
+                </div>
                 </div>
                 {rulesButton}
             </div>
