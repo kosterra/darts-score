@@ -21,6 +21,7 @@ const Part = ({ title, children }) => (
  */
 const RULES = [
     {
+        id: 'entering',
         title: t('Entering darts'),
         icon: FaKeyboard,
         body: (
@@ -38,6 +39,7 @@ const RULES = [
         ),
     },
     {
+        id: 'x01',
         title: t('X01'),
         icon: FaBullseye,
         body: (
@@ -77,6 +79,7 @@ const RULES = [
         ),
     },
     {
+        id: 'cricket',
         title: t('Cricket'),
         icon: MdSportsCricket,
         body: (
@@ -103,6 +106,7 @@ const RULES = [
         ),
     },
     {
+        id: 'elimination',
         title: t('Elimination'),
         icon: BiTargetLock,
         body: (
@@ -127,6 +131,7 @@ const RULES = [
         ),
     },
     {
+        id: 'clock',
         title: t('Around the Clock'),
         icon: PiClockCountdownBold,
         body: (
@@ -157,6 +162,7 @@ const RULES = [
     },
     // the games and trainings of the rules engine, from their definitions
     ...[...GAMES, ...TRAININGS].map(definition => ({
+        id: definition.id,
         title: definition.title,
         icon: rulesIcon(definition.id),
         body: (

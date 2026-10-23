@@ -12,6 +12,7 @@ import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../..
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
+import useGameRules from '../common/game.rules';
 import { t } from '../../../utils/i18n';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
@@ -49,6 +50,7 @@ const X01LiveHeader = () => {
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const handicap = hasHandicap(game);
+    const [rulesButton, rules] = useGameRules('x01');
 
     // a visit of 100 or more: a short "TON!" next to the score of the player who threw it
     const [ton, setTon] = useState(null);
@@ -77,7 +79,9 @@ const X01LiveHeader = () => {
                         {t(' · {{value}}Leg {{currentSetLeg}}', { value: game.numberOfSets > 1 ? `Set ${game.currentSet} · ` : '', currentSetLeg: game.currentSetLeg })}
                     </span>
                 </div>
+                {rulesButton}
             </div>
+            {rules}
 
             <div className={`x01-hero-players count-${ordered.length}`}>
                 {ordered.map((player, index) => {

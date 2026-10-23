@@ -4,6 +4,7 @@ import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
+import useGameRules from './game.rules';
 import PlayerFlight from '../../flights/player.flight';
 import { t } from '../../../utils/i18n';
 
@@ -15,10 +16,12 @@ import { t } from '../../../utils/i18n';
  *
  * rows: [{ player, isTurn, line, tags, score, scoreClass, scoreKey, below }];
  * a new scoreKey plays the score's animation again (e.g. taking the lead).
+ * rulesId: the game's rules (see about/rules), opened from the header.
  */
-const LiveHero = ({ title, subtitle, rows }) => {
+const LiveHero = ({ title, subtitle, rows, rulesId }) => {
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
+    const [rulesButton, rules] = useGameRules(rulesId);
 
     return (
         <header className="hero-header result-hero x01-live-hero">
@@ -27,7 +30,9 @@ const LiveHero = ({ title, subtitle, rows }) => {
                     <span className="text-default fw-semibold">{title}</span>
                     {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
                 </div>
+                {rulesButton}
             </div>
+            {rules}
 
             <div className={`x01-hero-players count-${rows.length}`}>
                 {rows.map(({ player, isTurn, line, tags, score, scoreClass = '', scoreKey, below }, index) => (

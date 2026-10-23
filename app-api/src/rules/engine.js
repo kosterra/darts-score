@@ -23,6 +23,10 @@
  *   playerOf(state, id) → a player's part of the state (default state.players[id])
  *   stopAnyTime: a visit may end before the third dart (Golf); otherwise darts not thrown are misses
  *   progress: { label, value(playerState) } for the chart of the statistics, after every visit
+ *   hero(playerState, state, ctx) → the player in the header of the game: { score (the big
+ *     number), note (the line under it), line (about their play), tags: [text] }
+ *   moment(before, after, id) → a big moment of the visit for the celebration, or null:
+ *     { words, number, sign } (before and after: the player's state around the visit)
  */
 import { parseDart } from './darts.js';
 

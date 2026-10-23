@@ -29,8 +29,9 @@ const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
  * onCancel: without it the round cannot be cancelled here
  * bests: { [playerId]: fewest darts so far in this mode }, to show whether the
  * record is still in reach
+ * withPlayers: the row of the players (a game shows them in its header)
  */
-const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel, rings = false, notice, bests = {} }) => {
+const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel, rings = false, notice, bests = {}, withPlayers = true }) => {
     const [confirmCancel, setConfirmCancel] = useState(false);
     const playerOf = (id) => players.find(player => player.id === id) ?? { nickname: t('Unknown player') };
     const currentId = round.order[round.current];
@@ -69,7 +70,7 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
 
     return (
         <div className="atc-round">
-            {!solo &&
+            {!solo && withPlayers &&
                 <ol className="atc-round-players" aria-label={t('Players')}>
                     {round.order.map((id, index) => {
                         const state = round.players[id];

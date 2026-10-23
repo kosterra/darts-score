@@ -14,6 +14,7 @@ import Celebration from '../badges/celebration';
 import UpLink from '../elements/up.link';
 import RulesList from './rules.list';
 import RulesTrainingBoard from './rules.training.board';
+import LiveHero from '../games/common/live.hero';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
 import { replayTraining, settingsOf } from '../../rules/engine';
@@ -141,13 +142,19 @@ const RulesTraining = () => {
         const ctx = { settings: replay.settings };
         const lastDarts = running.darts.slice(-3);
         return (
-            <div className="container-fluid p-4 pt-0 bg-transparent border-0">
-                <div className="d-flex justify-content-center mb-4">
-                    <div className="rules-target">
-                        <span className="rules-target-sub">{definition.title}{' · '}{running.player.nickname}</span>
-                        <span className="rules-target-main">{definition.target(replay.state, ctx)}</span>
-                    </div>
-                </div>
+            <div className="container-fluid bg-transparent border-0 x01-game-page">
+                <LiveHero
+                    rulesId={kind}
+                    title={[definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean)].join(' · ')}
+                    subtitle={definition.target(replay.state, ctx)}
+                    rows={[{
+                        player: running.player,
+                        isTurn: true,
+                        line: definition.status(replay.state, ctx).map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
+                        score: definition.hero ? definition.hero(replay.state, ctx) : definition.target(replay.state, ctx),
+                        below: <span className="x01-live-route">{definition.target(replay.state, ctx)}</span>,
+                    }]}
+                />
                 <div className="row g-4 justify-content-center">
                     <div className="col-12 col-lg-7">
                         {definition.input === 'hitmiss'
@@ -181,9 +188,6 @@ const RulesTraining = () => {
                                 <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!running.darts.length} onClick={undoDart} />
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />
                             </div>
-                        </Panel>
-                        <Panel header={t('Rules')} toggleable collapsed>
-                            <RulesList rules={definition.rules} />
                         </Panel>
                     </div>
                 </div>

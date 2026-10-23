@@ -211,3 +211,39 @@
         color: $textFaintColor;
     }
 }
+
+// the rules of a game in its header: a quiet button, the rules opening below it
+.game-rules-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid $surfaceHighColor;
+    border-radius: 999px;
+    background: transparent;
+    color: $textSubtleColor;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+
+    &:hover,
+    &:focus-visible,
+    &.is-open {
+        border-color: $primaryColor;
+        color: $textDefaultColor;
+    }
+}
+
+.game-rules {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: $borderRadius;
+    background: $surfaceTranslucentColor;
+    max-width: 48rem;
+
+    > :last-child,
+    ul:last-child {
+        margin-bottom: 0;
+    }
+}

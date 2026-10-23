@@ -50,6 +50,8 @@ export const BOBS_27 = {
     },
     done: (state) => state.failed || state.index >= DOUBLE_TARGETS.length,
     target: (state) => doubleName(DOUBLE_TARGETS[state.index]),
+    // the big number of the header
+    hero: (state) => state.score,
     status: (state) => [[t('Points'), state.score], [t('Dart'), `${state.inVisit + 1} / 3`]],
     result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, darts: state.darts, failed: state.failed }),
     higherIsBetter: true,
@@ -105,6 +107,7 @@ export const CHECKOUT_121 = {
     },
     done: (state, { settings }) => state.attempt >= settings.attempts,
     target: (state) => t('Check out {{left}}', { left: state.left }),
+    hero: (state) => state.left,
     status: (state, { settings }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
@@ -164,6 +167,7 @@ export const RANDOM_CHECKOUTS = {
     },
     done: (state, { settings }) => state.index >= settings.attempts,
     target: (state) => t('Check out {{left}}', { left: state.left }),
+    hero: (state) => state.left,
     status: (state, { settings }) => [[t('Checked out'), state.done], [t('Attempt'), `${state.index + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     result: (state, { settings }) => ({ score: Math.round(state.done / settings.attempts * 100), done: state.done, attempts: settings.attempts, best: state.best, darts: state.darts }),
     higherIsBetter: true,
@@ -204,6 +208,7 @@ export const SCORING = {
     },
     done: (state, { settings }) => state.darts >= settings.darts,
     target: () => t('Score as much as you can'),
+    hero: (state) => (state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'),
     status: (state, { settings }) => [[t('Points'), state.points], [t('Average'), state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     result: (state) => ({ score: Math.round(state.points / state.darts * 3 * 10) / 10, points: state.points, darts: state.darts, tons: state.tons, best: state.best }),
     higherIsBetter: true,
@@ -240,6 +245,7 @@ export const DOUBLES_AROUND = {
     },
     done: (state) => state.index >= DOUBLE_TARGETS.length,
     target: (state) => doubleName(DOUBLE_TARGETS[state.index]),
+    hero: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     status: (state) => [[t('Darts'), state.darts], [t('Doubles hit'), `${state.index} / 21`]],
     result: (state) => {
         const hardest = state.perDouble.map((darts, index) => ({ darts, name: doubleName(DOUBLE_TARGETS[index]) })).sort((a, b) => b.darts - a.darts).slice(0, 3);
@@ -291,6 +297,7 @@ export const CATCH_40 = {
     },
     done: (state) => state.target > 100,
     target: (state) => t('Check out {{left}}', { left: state.left }),
+    hero: (state) => state.left,
     status: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt} / 6`]],
     result: (state) => ({ score: state.points, done: state.done, darts: state.darts }),
     higherIsBetter: true,

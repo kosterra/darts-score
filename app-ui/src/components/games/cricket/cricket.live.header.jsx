@@ -69,6 +69,7 @@ const CricketLiveHeader = () => {
 
     return (
         <LiveHero
+            rulesId="cricket"
             title={t('Cricket{{value}}', { value: variant === 'Standard' ? '' : ` · ${variant}` })}
             subtitle={t('{{value}} · Round {{round}}', { value: RULES[variant] ?? RULES.Standard, round: round })}
             rows={rows}

@@ -28,11 +28,12 @@ export const SHANGHAI = {
     minPlayers: 1,
     maxPlayers: 8,
     options: [{ key: 'rounds', label: t('Rounds'), values: [{ value: 7, label: t('7 rounds (1 to 7)') }, { value: 20, label: t('20 rounds (1 to 20)') }], default: 7 }],
-    init: (settings, ids) => ({ players: playersOf(ids, () => ({ points: 0, shanghai: false, hits: 0, darts: 0 })), shanghaiBy: null }),
+    init: (settings, ids) => ({ players: playersOf(ids, () => ({ points: 0, shanghai: false, hits: 0, darts: 0, last: null })), shanghaiBy: null }),
     visit: (state, id, darts, { round }) => {
         const player = state.players[id];
         const onTarget = darts.filter(dart => dart.number === round);
         player.points += sum(onTarget.map(dart => dart.points));
+        player.last = sum(onTarget.map(dart => dart.points));
         player.hits += onTarget.length;
         player.darts += darts.length;
         const rings = new Set(onTarget.map(dart => dart.ring));
@@ -46,6 +47,12 @@ export const SHANGHAI = {
     // a Shanghai beats any score
     score: (player) => (player.shanghai ? 100000 : 0) + player.points,
     progress: { label: t('Points'), value: (player) => player.points },
+    hero: (player) => ({
+        score: player.points,
+        note: player.shanghai ? t('Shanghai!') : tn(player.hits, '{{count}} hit', '{{count}} hits'),
+        line: [[t('Last visit'), player.last ?? '–'], [t('Hit rate'), player.darts ? `${Math.round(player.hits / player.darts * 100)} %` : '–']],
+    }),
+    moment: (before, after) => (after.shanghai && !before.shanghai ? { words: t('Shanghai!'), number: 'S·D·T', sign: t('Shanghai') } : null),
     target: (state, id, { round, settings }) => t('Aim at the {{number}} · {{left}}', { number: round, left: tn(roundsLeft(round, settings.rounds), '{{count}} round left', '{{count}} rounds left') }),
     columns: [
         { key: 'points', label: t('Points'), value: (player) => player.points },
@@ -118,6 +125,14 @@ export const KILLER = {
     // the last one standing first, then the one out last
     score: (player) => player.lives > 0 ? 100000 + player.lives : player.outAt ?? 0,
     progress: { label: t('Lives'), value: (player) => Math.max(0, player.lives) },
+    hero: (player) => ({
+        score: player.lives > 0 ? '♥'.repeat(player.lives) : t('Out'),
+        note: t('Number {{number}}', { number: player.number }),
+        line: [[t('Lives taken'), player.kills], [t('Darts'), player.darts]],
+        tags: [player.killer && player.lives > 0 ? t('Killer') : null].filter(Boolean),
+    }),
+    moment: (before, after) => (after.killer && !before.killer ? { words: t('Killer!'), number: String(after.number), sign: t('Killer') }
+        : after.kills - before.kills >= 2 ? { words: t('{{count}} lives taken!', { count: after.kills - before.kills }), number: String(after.kills - before.kills), sign: t('Killer') } : null),
     target: (state, id) => state.players[id].killer
         ? t('Killer: hit the doubles of the others')
         : t('Hit double {{number}} to become a killer', { number: state.players[id].number }),
@@ -191,6 +206,15 @@ export const HALVE_IT = {
     over: (state, { round, roundComplete }) => roundComplete && round > HALVE_IT_TARGETS.length,
     score: (player) => player.points,
     progress: { label: t('Points'), value: (player) => player.points },
+    hero: (player) => ({
+        score: player.points,
+        note: player.halved ? tn(player.halved, 'Halved {{count}} time', 'Halved {{count}} times') : t('Never halved'),
+        line: [[t('Last round'), player.rounds.length ? (player.rounds.at(-1) || t('halved')) : '–'], [t('Best round'), player.best || '–']],
+    }),
+    moment: (before, after) => {
+        const last = after.rounds.at(-1);
+        return last >= 100 ? { words: t('{{points}} in one round!', { points: last }), number: String(last), sign: t('Halve-It') } : null;
+    },
     target: (state, id, { round }) => t('Round {{round}} of {{rounds}}: {{target}}', { round, rounds: HALVE_IT_TARGETS.length, target: HALVE_IT_TARGETS[round - 1]?.label ?? '' }),
     columns: [
         { key: 'points', label: t('Points'), value: (player) => player.points },
@@ -236,6 +260,15 @@ export const GOLF = {
     higherIsBetter: false,
     stopAnyTime: true,
     progress: { label: t('Strokes'), value: (player) => player.strokes },
+    hero: (player) => {
+        const toPar = player.strokes - 3 * player.holes.length;
+        return {
+            score: player.strokes,
+            note: player.holes.length ? t('{{toPar}} to par', { toPar: toPar > 0 ? `+${toPar}` : toPar === 0 ? '±0' : toPar }) : t('Par 3 a hole'),
+            line: [[t('Last hole'), player.holes.at(-1) ?? '–'], [t('Holes in one stroke'), player.holes.filter(strokes => strokes === 1).length]],
+        };
+    },
+    moment: (before, after) => (after.holes.length > before.holes.length && after.holes.at(-1) === 1 ? { words: t('Hole in one!'), number: '1', sign: t('Golf') } : null),
     init: (settings, ids) => ({ players: playersOf(ids, () => ({ strokes: 0, holes: [], darts: 0 })) }),
     visit: (state, id, darts, { round }) => {
         const player = state.players[id];
@@ -305,6 +338,12 @@ export const TACTICS = {
     },
     // closing everything first ranks the winner
     progress: { label: t('Points'), value: (player) => player.points },
+    hero: (player) => ({
+        score: player.points,
+        note: t('Closed {{closed}} / 12', { closed: TACTICS_NUMBERS.filter(number => player.marks[number] >= 3).length }),
+        line: [[t('Marks per round'), player.darts ? (player.totalMarks / player.darts * 3).toFixed(1) : '–'], [t('Darts'), player.darts]],
+    }),
+    moment: (before, after) => (after.totalMarks - before.totalMarks >= 9 ? { words: t('Nine marks!'), number: '9', sign: t('9 marks') } : null),
     score: (player) => (TACTICS_NUMBERS.every(number => player.marks[number] >= 3) ? 100000 : 0) + player.points,
     target: (state, id) => {
         const open = TACTICS_NUMBERS.filter(number => state.players[id].marks[number] < 3);

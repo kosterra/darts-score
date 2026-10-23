@@ -76,6 +76,7 @@ const EliminationLiveHeader = () => {
 
     return (
         <LiveHero
+            rulesId="elimination"
             title={t('Elimination · {{targetScore}}', { targetScore: game.targetScore })}
             subtitle={t('{{modes}} · land on an opponent\'s score to send them back to 0 · Round {{round}}', { modes: modes, round: round })}
             rows={rows}
