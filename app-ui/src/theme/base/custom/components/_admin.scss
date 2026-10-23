@@ -729,3 +729,90 @@ $fair-play-suspicious: #e9ac2f;
         gap: 1rem;
     }
 }
+
+// the filter by type of the lists: one field, grouped choices with icons
+.type-filter {
+    min-width: 14rem;
+    max-width: 22rem;
+
+    // narrowed down: the field says so in the colour of a chosen filter
+    &.is-narrowed {
+        border-color: $primaryColor;
+    }
+}
+
+.type-filter-panel {
+    // no header: a click outside or Escape closes it
+    .p-multiselect-header {
+        display: none;
+    }
+
+    .p-multiselect-item-group {
+        padding: 0;
+    }
+
+    .type-filter-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0.6rem 1rem 0.4rem;
+        border: 0;
+        background: transparent;
+        color: $textFaintColor;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+
+        &:hover {
+            color: $textDefaultColor;
+        }
+    }
+
+    .type-filter-group-all {
+        color: $primaryColor;
+        font-size: 0.7rem;
+        letter-spacing: 0;
+        text-transform: none;
+    }
+
+    .type-filter-icon {
+        display: inline-flex;
+        color: $textSubtleColor;
+        font-size: 1rem;
+    }
+}
+
+.type-filter-panel .p-multiselect-item {
+    padding: 0.45rem 1rem;
+}
+
+// the short filters of the lists: one line each, scrolling sideways on a narrow screen
+.admin-toolbar .p-selectbutton {
+    display: flex;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    .p-button {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .admin-toolbar {
+        .p-selectbutton .p-button {
+            padding: 0.5rem 0.7rem;
+        }
+
+        .type-filter,
+        .p-dropdown {
+            width: 100%;
+            max-width: none;
+        }
+    }
+}

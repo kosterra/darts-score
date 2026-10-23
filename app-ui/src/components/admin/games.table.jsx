@@ -19,7 +19,7 @@ import CricketService from '../../services/cricket.service';
 import EliminationService from '../../services/elimination.service';
 import ClockService from '../../services/clock.service';
 import RulesService from '../../services/rules.service';
-import { GAMES as RULES_GAMES, gameOf } from '../../rules/games';
+import { GAMES as RULES_GAMES } from '../../rules/games';
 import { playPath } from '../../utils/game.paths';
 import { replayGame } from '../../rules/engine';
 import DeletionRequestService from '../../services/deletion.request.service';
@@ -27,6 +27,8 @@ import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
 import GameStatusTag from '../elements/game.status.tag';
 import GameTypeTag from '../elements/game.type.tag';
+import TypeFilter from '../elements/type.filter';
+import { GAME_TYPE_GROUPS, typesFrom, typesText } from '../elements/type.groups';
 import { useAuth } from '../../utils/auth.context';
 import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
@@ -94,14 +96,6 @@ const replayOf = (definition, game) => {
     return replays.get(game);
 };
 
-const TYPE_OPTIONS = [
-    { label: t('All'), value: 'all' },
-    { label: t('X01'), value: 'x01' },
-    { label: t('Cricket'), value: 'cricket' },
-    { label: t('Elimination'), value: 'elimination' },
-    { label: t('Around the Clock'), value: 'clock' },
-    { label: t('More games'), value: 'rules' },
-];
 
 const STATUS_OPTIONS = [
     { label: t('All'), value: 'all' },
@@ -137,9 +131,11 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const [players, setPlayers] = useState([]);
     // the filters, page and order live in the address: back from a game, the list is as it was left
     const [view, setView] = useUrlState({ type: initialType, status: 'all', player: initialPlayerId ?? '', ...TABLE_DEFAULTS });
-    const { type, status } = view;
+    const { status } = view;
+    // the game types chosen, none for all
+    const types = useMemo(() => typesFrom(view.type, GAME_TYPE_GROUPS), [view.type]);
     const playerId = view.player || null;
-    const setType = (value) => setView({ type: value, page: 1 });
+    const setTypes = (values) => setView({ type: typesText(values), page: 1 });
     const setStatus = (value) => setView({ status: value, page: 1 });
     const setPlayerId = (value) => setView({ player: value ?? '', page: 1 });
     const [selection, setSelection] = useState([]);
@@ -217,10 +213,10 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     // each row carries its open request, so the table redraws it when one comes or goes
     const visibleGames = useMemo(() => (games ?? [])
         .map(game => requests.has(game.id) || game.deletion ? { ...game, deletion: requests.get(game.id) ?? null } : game)
-        .filter(game => type === 'all' || game.type === type || (type === 'rules' && Boolean(gameOf(game.type))))
+        .filter(game => !types.length || types.includes(game.type))
         .filter(game => status === 'all' || (status === 'requested' ? Boolean(game.deletion) : (status === 'running') === !!game.gameIsRunning))
         .filter(game => !playerId || game.players.includes(playerId)),
-    [games, type, status, playerId, requests]);
+    [games, types, status, playerId, requests]);
 
     // a selection only ever holds games that are still shown
     useEffect(() => {
@@ -339,7 +335,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         <Panel header={acrossClubs ? t('Games of all clubs') : t('Games')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
-                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label={t('Game type')} />
+                <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
                 <SelectButton value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={(e) => e.value && setStatus(e.value)} aria-label={t('Status')} />
                 <Dropdown
                     value={playerId}

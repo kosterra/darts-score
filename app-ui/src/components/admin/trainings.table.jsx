@@ -14,6 +14,8 @@ import ATCService from '../../services/atc.service';
 import X01TrainingService from '../../services/x01.training.service';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
+import TypeFilter from '../elements/type.filter';
+import { TRAINING_TYPE_GROUPS, typesFrom, typesText } from '../elements/type.groups';
 import PlayerService from '../../services/player.service';
 import DeletePopup from '../elements/delete.popup';
 import JSONViewer from '../elements/json.viewer';
@@ -27,12 +29,6 @@ import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.sta
 import { BOT_ID } from '../../utils/x01.bot';
 import { t } from '../../utils/i18n';
 
-const TYPE_OPTIONS = [
-    { label: t('All'), value: 'all' },
-    { label: t('Around the Clock'), value: 'atc' },
-    { label: t('X01 against the bot'), value: 'x01' },
-    { label: t('More trainings'), value: 'rules' },
-];
 const WHOSE_OPTIONS = [
     { label: t('Everyone'), value: 'all' },
     { label: t('Mine'), value: 'mine' },
@@ -93,9 +89,12 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const [players, setPlayers] = useState([]);
     // the filters, page and order live in the address: back from a training, the list is as it was left
     const [view, setView] = useUrlState({ type: 'all', mode: 'any', player: '', whose: 'all', ...TABLE_DEFAULTS });
-    const { type, mode, whose } = view;
+    const { mode, whose } = view;
+    // the kinds of training chosen, none for all
+    const types = useMemo(() => typesFrom(view.type, TRAINING_TYPE_GROUPS), [view.type]);
+    const withAtc = !types.length || types.includes('atc');
     const playerId = view.player || null;
-    const setType = (value) => setView({ type: value, page: 1 });
+    const setTypes = (values) => setView({ type: typesText(values), page: 1 });
     const setMode = (value) => setView({ mode: value, page: 1 });
     const setPlayerId = (value) => setView({ player: value ?? '', page: 1 });
     const setWhose = (value) => setView({ whose: value, page: 1 });
@@ -151,11 +150,11 @@ const TrainingsTable = ({ scope = 'club' }) => {
 
     const visibleRows = useMemo(() => (rows ?? [])
         .filter(row => whose === 'all' || isMine(row))
-        .filter(row => type === 'all' || row.kind === type || (type === 'rules' && Boolean(row.rules)))
+        .filter(row => !types.length || types.includes(row.kind))
         .filter(row => row.kind !== 'atc' || mode === 'any' || row.mode === mode)
         .filter(row => !playerId || row.player?.id === playerId),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rows, type, mode, playerId, whose, playersById, user]);
+    [rows, types, mode, playerId, whose, playersById, user]);
 
     // admins delete every training, the players their own
     const mayDelete = (row) => canManage || isMine(row);
@@ -221,8 +220,8 @@ const TrainingsTable = ({ scope = 'club' }) => {
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 {hasOwn && <SelectButton value={whose} options={WHOSE_OPTIONS} onChange={(e) => e.value && setWhose(e.value)} aria-label={t('Whose trainings')} />}
-                <SelectButton value={type} options={TYPE_OPTIONS} onChange={(e) => e.value && setType(e.value)} aria-label={t('Training')} />
-                {(type === 'all' || type === 'atc') && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label={t('Mode of Around the Clock')} />}
+                <TypeFilter groups={TRAINING_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All trainings')} ariaLabel={t('Training')} />
+                {withAtc && <SelectButton value={mode} options={MODE_OPTIONS} onChange={(e) => e.value && setMode(e.value)} aria-label={t('Mode of Around the Clock')} />}
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
