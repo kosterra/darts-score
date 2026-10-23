@@ -77,6 +77,12 @@ const loadClubBadges = () => requestJSON(API_URL + 'stats/badges');
  * The Hall of Shame of the club: who holds each shame badge right now,
  * { enabled, badges: [{ id, title, description, wash, holder, since, sourceType, sourceId }] }.
  */
+/**
+ * The games of the club at a glance, over all of them: { total, last30Days,
+ * running, players, popular, ranking, winRates, playersById }.
+ */
+const loadGamesOverview = () => requestJSON(API_URL + 'stats/games');
+
 const loadClubShame = () => requestJSON(API_URL + 'stats/shame');
 
 /**
@@ -111,6 +117,7 @@ const loadGameBadges = (gameType, gameId) => requestJSON(`${API_URL}stats/badges
 const StatsService = {
     loadClubBadges,
     loadClubShame,
+    loadGamesOverview,
     loadPlayerBadges,
     loadGameBadges,
     loadClubStats,

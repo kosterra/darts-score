@@ -8,6 +8,7 @@ import { countBadges } from '../utils/badges.js';
 import { recentForm } from '../utils/chart.data.js';
 import { formFigures } from '../utils/form.figures.js';
 import { isShameChild, shameCountIn, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
+import { gamesOverview } from '../utils/games.overview.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -186,6 +187,29 @@ export const getClubStats = async (req, res) => {
         records: clubRecords(finishedByType.find(entry => entry.type === 'x01').games),
         gameLog: gameLog(allGames),
     });
+};
+
+/**
+ * The games of the club at a glance, over all of them (the lists show only
+ * the latest): see utils/games.overview.js, with the players to show.
+ */
+export const getGamesOverview = async (req, res) => {
+    logger.debug('games overview called');
+    try {
+        const filter = { club: req.club._id };
+        const [players, gamesByType] = await Promise.all([
+            db.player.find(knownInClub(req.club._id), 'firstname lastname nickname profileImg guest').lean(),
+            Promise.all(GAME_TYPES.map(async ({ type, model }) => ({ type, games: await model().find(filter, 'players playerModels hasWinner gameIsRunning kind createdAt updatedAt').lean() }))),
+        ]);
+        const members = players.filter(player => !player.guest);
+        res.json({
+            ...gamesOverview(gamesByType, new Set(members.map(player => String(player._id)))),
+            playersById: Object.fromEntries(members.map(({ _id, firstname, lastname, nickname, profileImg }) => [String(_id), { id: String(_id), firstname, lastname, nickname, profileImg }])),
+        });
+    } catch (err) {
+        logger.error(err, 'Failed to load the games overview');
+        res.status(500).json({ message: 'The games could not be loaded.' });
+    }
 };
 
 const PLAYER_GAMES = 5;

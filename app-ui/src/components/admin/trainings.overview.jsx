@@ -1,13 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
-import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { FaTrophy } from 'react-icons/fa6';
 import dayjs from 'dayjs';
 
 import GameTypeIcon from '../elements/game.type.icon';
+import PlayerRanking from '../elements/player.ranking';
 import { KpiHero } from '../stats/players/kpi';
 import { trainingOf } from '../../rules/trainings';
 import { trainingOverview } from '../../utils/training.overview';
@@ -16,8 +14,6 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils
 import { locale, t, tn } from '../../utils/i18n';
 
 const GREEN = '#7ecca5';
-const RANKING_SHOWN = 10;
-const PODIUM = ['#ffc94d', '#c9d1d9', '#d29a6a'];
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 // a kind of training: its name and the icon of its badge (see game.type.icon)
@@ -54,17 +50,10 @@ const recordDetail = (record) => {
  */
 const TrainingsOverview = ({ rows, playerOf }) => {
     const overview = useMemo(() => trainingOverview(rows), [rows]);
-    const [search, setSearch] = useState('');
-    const [showAll, setShowAll] = useState(false);
 
     if (!overview.total) return null;
     const top = overview.popular[0];
-    const term = search.trim().toLowerCase();
     const playerFor = (entry) => playerOf({ player: entry.player }) ?? entry.player;
-    const shown = term
-        ? overview.ranking.filter(entry => [playerFor(entry)?.nickname, playerFor(entry)?.firstname, playerFor(entry)?.lastname].some(text => text?.toLowerCase().includes(term)))
-        : showAll ? overview.ranking : overview.ranking.slice(0, RANKING_SHOWN);
-    const placeOf = (entry) => overview.ranking.findIndex(other => other.count === entry.count) + 1;
     const most = overview.popular[0]?.count ?? 1;
 
     return (
@@ -81,50 +70,14 @@ const TrainingsOverview = ({ rows, playerOf }) => {
             <div className="row g-4">
                 <div className="col-12 col-xl-7">
                     <Panel header={t('Training most')} className="h-100">
-                        {overview.ranking.length > RANKING_SHOWN &&
-                            <span className="p-input-icon-left w-100 mb-3">
-                                <i className="pi pi-search" />
-                                <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search players')} aria-label={t('Search players')} className="w-100" />
-                            </span>}
-                        {shown.length === 0
-                            ? <span className="text-faint fs-7">{t('No player matches “')}{search}”.</span>
-                            : <ol className="badge-ranking list-unstyled m-0">
-                                {shown.map(entry => {
-                                    const place = placeOf(entry);
-                                    const podium = place <= 3 ? PODIUM[place - 1] : null;
-                                    const player = playerFor(entry);
-                                    return (
-                                        <li key={entry.playerId}>
-                                            <Link to={`/players/${entry.playerId}`} className="badge-ranking-row" style={{ '--podium': podium ?? 'transparent' }}>
-                                                <span className="badge-ranking-place" aria-label={t('Place {{place}}', { place })}>
-                                                    {podium ? <FaTrophy style={{ color: podium }} aria-hidden="true" /> : place}
-                                                </span>
-                                                <PlayerAvatar player={player} className="avatar-md" />
-                                                <span className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: 0 }}>
-                                                    <span className="d-flex align-items-baseline justify-content-between gap-2">
-                                                        <span className="text-default fw-semibold text-truncate">{player?.nickname}</span>
-                                                        <span className="text-subtle fs-8 text-nowrap"><strong className="text-default">{entry.count}</strong>{' '}{entry.count === 1 ? t('training') : t('trainings')}</span>
-                                                    </span>
-                                                    <span className="badge-ranking-bar is-green" aria-hidden="true"><span style={{ width: `${entry.count / overview.ranking[0].count * 100}%` }} /></span>
-                                                    <span className="text-faint fs-8">
-                                                        {tn(entry.last30Days, '{{count}} in the last 30 days', '{{count}} in the last 30 days')}
-                                                        {entry.favourite && <> · {t('mostly {{training}}', { training: titleOf(entry.favourite) })}</>}
-                                                    </span>
-                                                </span>
-                                                {entry.favourite && <span className="d-none d-sm-inline-flex"><GameTypeIcon type={iconOf(entry.favourite)} /></span>}
-                                            </Link>
-                                        </li>
-                                    );
-                                })}
-                            </ol>}
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
-                            {!term && !showAll && overview.ranking.length > RANKING_SHOWN
-                                ? <Button type="button" label={t('Show all {{length}} players', { length: overview.ranking.length })} icon="pi pi-chevron-down" size="small" text onClick={() => setShowAll(true)} />
-                                : <span />}
-                            <Link to={term ? `/players?search=${encodeURIComponent(search.trim())}` : '/players'} className="text-subtle fs-8">
-                                {t('All players of the club')}{' '}<i className="pi pi-arrow-right fs-9" aria-hidden="true" />
-                            </Link>
-                        </div>
+                        <PlayerRanking entries={overview.ranking.map(entry => ({
+                            id: entry.playerId,
+                            player: playerFor(entry),
+                            value: entry.count,
+                            label: <><strong className="text-default">{entry.count}</strong>{' '}{entry.count === 1 ? t('training') : t('trainings')}</>,
+                            line: <>{tn(entry.last30Days, '{{count}} in the last 30 days', '{{count}} in the last 30 days')}{entry.favourite && <> · {t('mostly {{training}}', { training: titleOf(entry.favourite) })}</>}</>,
+                            icon: entry.favourite && iconOf(entry.favourite),
+                        }))} />
                     </Panel>
                 </div>
                 <div className="col-12 col-xl-5">

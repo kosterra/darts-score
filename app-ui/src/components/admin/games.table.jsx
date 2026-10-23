@@ -27,6 +27,7 @@ import JSONViewer from '../elements/json.viewer';
 import GameStatusTag from '../elements/game.status.tag';
 import GameTypeTag from '../elements/game.type.tag';
 import GameTypeIcon from '../elements/game.type.icon';
+import GamesOverview from './games.overview';
 import TypeFilter from '../elements/type.filter';
 import { GAME_TYPE_GROUPS, typesFrom, typesText } from '../elements/type.groups';
 import { useAuth } from '../../utils/auth.context';
@@ -337,6 +338,9 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     };
 
     return (
+        <>
+        {/* the club's games at a glance, above the list */}
+        {!acrossClubs && <GamesOverview />}
         <Panel header={acrossClubs ? t('Games of all clubs') : t('Games')}>
             <AdminToolbar>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
@@ -406,6 +410,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
             <ConfirmDialog />
             <Toast ref={toast} position="bottom-right" />
         </Panel>
+        </>
     );
 };
 

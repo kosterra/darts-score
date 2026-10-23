@@ -2799,6 +2799,22 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: getStatsLevels
+  /api/stats/games:
+    get:
+      tags:
+        - Statistics
+      summary: The games of the club at a glance, over all of them
+      description: How many games (in all, in the last 30 days, running), how many members play, the game types by how often they are played (the newer games by their kind), the members ranked by their games with wins, games lately and the type they play most, and the best win rates (from 5 finished games).
+      responses:
+        '200':
+          description: '{ total, last30Days, running, players, popular, ranking, winRates, playersById }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsGames
   /api/stats/badges:
     get:
       tags:
