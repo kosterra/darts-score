@@ -2,8 +2,11 @@ openapi: 3.1.0
 info:
   title: Oche API
   description: >-
-    REST API for Oche, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock), trainings (Around
-    the Clock, X01 against the bot), statistics, badges and levels, flights to collect, fair play, deletion requests and notifications.
+    REST API for Oche, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock, and Shanghai,
+    Killer, Halve-It, Golf and Tactics on the rules engine), trainings (Around the Clock, X01 against the bot, Bob's 27, 121 Checkout,
+    Random checkouts, Scoring, Doubles around the board and Catch 40), statistics and the overviews of the club's games, trainings and
+    badges, badges and levels, flights to collect, fair play, deletion requests, notifications, quick games without an account, and the
+    administration of the whole installation.
 
 
     **Authentication:** log in with `POST /api/auth/login`; the response sets a signed, HTTP-only session cookie that authenticates all
@@ -2946,8 +2949,9 @@ paths:
         - Statistics
       summary: Get overall statistics for a player
       description: >-
-        Key figures, levels, charts and badges of a player, in the club or all clubs, filtered like the profile. Trainings a player keeps to
-        themselves are left out for the other players.
+        Key figures, levels, charts and badges of a player, in the club or all clubs, filtered like the profile. trainingSummary puts all
+        their trainings in one: how many, in the last 30 days and when last, and the bests of each kind (Around the Clock, X01 against the
+        bot, Bob's 27 and the other trainings of the rules engine). Trainings a player keeps to themselves are left out for the other players.
       parameters:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'

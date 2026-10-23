@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { GiDart } from "react-icons/gi";
 import { MdQueryStats } from "react-icons/md";
-import { FaPeopleGroup, FaRegClock, FaBullseye, FaUserGroup, FaMobileScreen, FaRobot } from "react-icons/fa6";
+import { FaPeopleGroup, FaRegClock, FaBullseye, FaUserGroup, FaMobileScreen, FaRobot, FaBookOpen, FaLanguage, FaWandMagicSparkles, FaScaleBalanced } from "react-icons/fa6";
 
 import PublicService from '../../services/public.service';
 import PublicGameCard from './public.game.card';
@@ -20,7 +20,7 @@ const SHOWCASE = [
         eyebrow: t('Scoring'),
         title: t('Every dart counted, every way out shown'),
         text: t('Tap the darts on the board or the keypad, or type the score of a visit. Oche keeps the score of every player, shows the ways out from 170 down, and celebrates the 180s and the big finishes.'),
-        points: [t('X01 from 101 to 1001, sets and legs, double in and out'), t('Cricket, Elimination and Around the Clock'), t('Undo, handicaps and a guest for a single game')],
+        points: [t('X01 from 101 to 1001, sets and legs, double in and out'), t('Cricket, Elimination, Around the Clock, Shanghai, Killer, Halve-It, Golf and Tactics'), t('Undo, handicaps and a guest for a single game'), t('The rules of every game one tap away')],
         shot: 'cricket-game',
         alt: t('A Cricket game in Oche: the marks of every player and the board to tap the darts on'),
     },
@@ -35,8 +35,8 @@ const SHOWCASE = [
     {
         eyebrow: t('Your club'),
         title: t('The whole club at a glance'),
-        text: t('Leaderboards, records, head-to-head, when the club plays and how its form develops. Club admins arrange the dashboard, every member can make their own.'),
-        points: [t('Leaderboards and club records'), t('Running games of the club, live'), t('Widgets to drag into place')],
+        text: t('Leaderboards, records, head-to-head, when the club plays and how its form develops. Club admins arrange the dashboard, every member can make their own. The pages of the games, trainings, players and badges show who plays, trains and collects most.'),
+        points: [t('Leaderboards and club records'), t('Running games of the club, live'), t('Widgets to drag into place'), t('Who plays most, the club records of every training, the Hall of Shame')],
         shot: 'dashboard',
         alt: t('The club dashboard with leaderboards, records and the games per month'),
     },
@@ -51,13 +51,17 @@ const SHOWCASE = [
 ];
 
 const FEATURES = [
-    { icon: <FaBullseye />, title: t('Four classic games'), text: t('X01, Cricket, Elimination and Around the Clock for one to four players.') },
+    { icon: <FaBullseye />, title: t('Nine games'), text: t('X01, Cricket, Elimination and Around the Clock, plus Shanghai, Killer, Halve-It, Golf and Tactics, for one to four players.') },
     { icon: <MdQueryStats />, title: t('Statistics that mean something'), text: t('Averages, checkout rates and head-to-head for every player and game.') },
-    { icon: <FaRegClock />, title: t('Training'), text: t('Around the Clock against the stopwatch, and X01 against a bot as strong as you.') },
+    { icon: <FaRegClock />, title: t('Training'), text: t('Around the Clock against the stopwatch, X01 against a bot as strong as you, and six more trainings from Bob\'s 27 to Catch 40.') },
     { icon: <FaRobot />, title: t('A bot to practise with'), text: t('Easy, normal, hard or pro, or one that plays at your own level.') },
     { icon: <FaPeopleGroup />, title: t('Made for clubs'), text: t('Several admins, a login for every player, and new members who join on their own if you let them.') },
     { icon: <FaUserGroup />, title: t('Friends and family too'), text: t('A second club for the people at home, and a guest for a single game in seconds.') },
-    { icon: <FaMobileScreen />, title: t('On any screen'), text: t('Phone, tablet or the PC next to the board: nothing to install.') },
+    { icon: <FaMobileScreen />, title: t('On any screen'), text: t('Phone, tablet or the PC next to the board: nothing to install, or add Oche to the home screen as an app.') },
+    { icon: <FaBookOpen />, title: t('Rules at hand'), text: t('Every game and training explains its rules, in its setup and while it is played.') },
+    { icon: <FaWandMagicSparkles />, title: t('The big moments celebrated'), text: t('180s, big finishes, a Shanghai or a hole in one, and the winner in gold, without holding up the next game.') },
+    { icon: <FaLanguage />, title: t('In five languages'), text: t('English, German, French, Italian and Spanish; the darts terms stay English.') },
+    { icon: <FaScaleBalanced />, title: t('Fair play'), text: t('Oche checks every game for scores that cannot be thrown; a game entered by mistake goes when its players agree, or a club admin decides.') },
     { icon: <GiDart />, title: t('You decide what is public'), text: t('Clubs are private unless their admins open them up, and every player chooses whether their name is shown.') },
 ];
 
@@ -70,6 +74,8 @@ const STEPS = [
 const FAQ = [
     { q: t('What does Oche cost?'), a: t('Nothing. Oche is free for clubs and players, without ads.') },
     { q: t('Can I try it without an account?'), a: t('Yes: a quick game of X01 or Cricket needs only the names of the players, and ends with its statistics. It stays on your device for 30 days; an account keeps every game.') },
+    { q: t('Do we need to know the rules?'), a: t('No. Every game and training has its rules one tap away, when setting it up and while playing, and Oche counts by them.') },
+    { q: t('Which languages does Oche speak?'), a: t('English, German, French, Italian and Spanish. It starts in the language of your browser, and your account remembers your choice. The darts terms stay English: leg, set, bust, checkout.') },
     { q: t('Who sees our games?'), a: t('Only the members of your club. A club appears on this page only when its admins make it public, and even then a player is only named when they chose to show their nickname.') },
     { q: t('Do I need a dartboard with electronics?'), a: t('No. Oche is for steel and soft tip on any board: you enter the darts on the phone, tablet or PC next to it.') },
     { q: t('Can a player be in more than one club?'), a: t('Yes. One account plays in several clubs, with one player whose statistics, badges and darts go along.') },

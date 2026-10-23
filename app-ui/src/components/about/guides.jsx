@@ -21,6 +21,7 @@ export const PLAYER_GUIDE = [
                     <li>{t('Or you join a club yourself: under')}{' '}<strong>{t('Join a club')}</strong>{' '}{t('on')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>{' '}{t('are the clubs that take new members. An')}{' '}<em>{t('open')}</em>{' '}{t('club you join at once; where the')}{' '}<em>{t('admins accept')}</em>{' '}{t('you ask (with a few words if you like) and are told their answer through the notifications. You can take a request back while it waits; after a declined one you can ask again a week later. You play there with the player you already have elsewhere, with your statistics, badges and flights; without one you choose a nickname.')}</li>
                     <li>{t('Without an account, a')}{' '}<strong>{t('quick game')}</strong>{' '}{t('on the public start page tries Oche out: X01 (301 or 501, Double or Straight Out, 1, 3 or 5 legs) or Cricket (Standard or Cut-throat) for one to four players who only need a name, with the statistics of the game at the end. It stays on that device for 30 days and counts for no club.')}</li>
                     <li>{t('Anyone can create a club of their own under')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>{' '}{t('and becomes its admin. Global admins, who look after the whole app, belong to no club.')}</li>
+                    <li>{t('Oche also runs as an app: install it from the start page (on an iPhone or iPad: Share, then Add to Home Screen) and it opens full screen with its own icon.')}</li>
                     <li>{t('A login lasts five hours (the installation can set another length). Ten minutes before the end a countdown asks whether to stay logged in; after logging in again you are back on the page you were on, e.g. the game being played.')}</li>
                 </ul>
             </>
@@ -31,12 +32,13 @@ export const PLAYER_GUIDE = [
         icon: FaBullseye,
         body: (
             <>
-                <p>{t('Choose X01, Cricket, Elimination or Around the Clock under')}{' '}<strong>{t('Let\'s play darts')}</strong>.</p>
+                <p>{t('Choose X01, Cricket, Elimination or Around the Clock under')}{' '}<strong>{t('Let\'s play darts')}</strong>{t(', or under More games Shanghai, Killer, Halve-It, Golf and Tactics. The rules of each are under')}{' '}<Link to="#rules">{t('How to play')}</Link>.</p>
                 <ul>
                     <li>{t('Tap the players: those who played lately come first, and a guest who is not in the club is one tap away. Drag them into the throwing order, shuffle it or let the winner of the bull-off start.')}</li>
                     <li>{t('Pick the settings; the start button says what will be played. In X01 a handicap gives players of different strength their own starting score and in/out mode, with a suggestion from their recent average, level and age.')}</li>
+                    <li><strong>{t('Rules')}</strong>{' '}{t('in the title of the setup and in the header of the game opens the rules of the game right there.')}</li>
                     <li>{t('During the game enter the darts on the board or the keypad and send the visit. Undo takes the last visit back. The tips above the board show the way out or what to aim at. On the board of X01, Cricket and Elimination a dart flies to the field you tap, if you left the dart animation on in your profile; the setup can switch it on or off for everyone.')}</li>
-                    <li>{t('When the game is won its statistics open: the result, the moments of the game and charts. Every game is saved after each visit, so a game left running can be continued from')}{' '}<strong>{t('Games')}</strong>{' '}{t('or the dashboard.')}</li>
+                    <li>{t('When the game is won its statistics open: the result, the moments of the game and charts. The confetti and the gold of the winner go by themselves, the badges just earned are marked as new, and Play again starts the next game. Every game is saved after each visit, so a game left running can be continued from')}{' '}<strong>{t('Games')}</strong>{' '}{t('or the dashboard.')}</li>
                     <li>{t('A game that should not count, e.g. one entered by mistake: ask to delete it with the flag in its row under')}{' '}<strong>{t('Games')}</strong>{t('. The other players are asked to agree; when every player has a login and all agree, it is deleted, otherwise a club admin decides. You are told how it ended.')}</li>
                 </ul>
             </>
@@ -47,7 +49,7 @@ export const PLAYER_GUIDE = [
         icon: PiClockCountdownBold,
         body: (
             <>
-                <p>{t('Under')}{' '}<strong>{t('Training')}</strong>{' '}{t('there are Around the Clock and X01 against the bot.')}</p>
+                <p>{t('Under')}{' '}<strong>{t('Training')}</strong>{' '}{t('there are Around the Clock, X01 against the bot and, under More trainings, Bob\'s 27, 121 Checkout, Random checkouts, Scoring, Doubles around the board and Catch 40.')}</p>
                 <p><strong>{t('X01 against the bot')}</strong>{' '}{t('plays like a game against a bot: a fixed one (Easy, Normal, Hard or Pro), or one as strong as you, worked out from your statistics (your recent form or your X01 average and your checkout rate), also a bit easier or harder than you. Choose the player, the format and who starts as in X01. The bot throws its darts by itself; trainings count for no game statistics, badges or levels, but earn flight points.')}</p>
                 <p><strong>{t('Around the Clock')}</strong>{t(': choose the players, the training (against the clock or with the fewest darts) and the mode, then start.')}</p>
                 <ul>
@@ -55,7 +57,8 @@ export const PLAYER_GUIDE = [
                     <li>{t('With the fewest darts tap Hit or Miss for every dart; several players take turns.')}</li>
                     <li>{t('After saving you stay in the training for the next attempt; the scoreboard shows where the attempt landed. Settings goes back to the setup.')}</li>
                 </ul>
-                <p className="m-0"><strong>{t('Club → Trainings')}</strong>{' '}{t('lists the trainings of both kinds, with the result;')}{' '}<strong>{t('Mine')}</strong>{' '}{t('shows only yours, and your own you can delete there. Under Player profile,')}{' '}<em>{t('Show my trainings to the club')}</em>{' '}{t('decides whether the other players see them (in the list and on the scoreboard); the club admins always do.')}</p>
+                <p><strong>{t('More trainings')}</strong>{t(': every attempt is saved when it is over, with the scoreboard of the club (everyone\'s best and the latest), and a new personal best is celebrated. Bob\'s 27, 121 Checkout and Catch 40 have badges of their own; the rules of each are under')}{' '}<Link to="#rules">{t('How to play')}</Link>.</p>
+                <p className="m-0"><strong>{t('Club → Trainings')}</strong>{' '}{t('lists the trainings of every kind, with the result;')}{' '}<strong>{t('Mine')}</strong>{' '}{t('shows only yours, and your own you can delete there. Under Player profile,')}{' '}<em>{t('Show my trainings to the club')}</em>{' '}{t('decides whether the other players see them (in the list and on the scoreboard); the club admins always do.')}</p>
             </>
         ),
     },
@@ -66,7 +69,8 @@ export const PLAYER_GUIDE = [
             <>
                 <ul>
                     <li><strong>{t('My statistics')}</strong>{t(', right below Dashboard, opens your own statistics in the club with one click; the')}{' '}<strong>{t('You')}</strong>{' '}{t('widget on the dashboard shows your level, average and form. On your user profile you choose what opens after logging in: the club (your default club, or the one you used last) and its dashboard or your statistics.')}</li>
-                    <li><strong>{t('Players')}</strong>{' '}{t('opens each player\'s profile: key figures, level, their set of darts, latest games, charts, badges and the flights and barrels they collected, with filters for the club, the period, the last games and the X01 format.')}</li>
+                    <li><strong>{t('Players')}</strong>{' '}{t('opens each player\'s profile: key figures, level, their set of darts, latest games, their trainings with the bests of each kind, charts, badges and the flights and barrels they collected, with filters for the club, the game type, the period and the last games.')}</li>
+                    <li><strong>{t('Club → Games, Trainings, Players and Badges')}</strong>{' '}{t('start with an overview of the club: how many lately, who plays, trains or collects most (with a search in a big club), the popular games and trainings, the best win rates, the club records of every training, the highest levels, the birthdays coming up and the Hall of Shame with who holds each badge. Every player leads to their statistics; the list stays below and filters by type with one field (a whole group, e.g. More games, with a click on its title).')}</li>
                     <li><strong>{t('Player comparison')}</strong>{' '}{t('puts two or more players side by side, with their games together and head to head.')}</li>
                     <li>{t('The')}{' '}<strong>{t('dashboard')}</strong>{' '}{t('shows the club at a glance: leaderboards, the latest games, records and the Hall of Shame, in widgets the club arranges.')}{' '}<strong>{t('Edit dashboard')}</strong>{' '}{t('arranges your own: drag the widgets by their bar (or move them with the arrow keys), choose their width, remove them, or add others below; only you see it, and "Use the club\'s" brings the club\'s back.')}</li>
                 </ul>
@@ -91,6 +95,7 @@ export const PLAYER_GUIDE = [
                 <ul>
                     <li><strong>{t('User profile:')}</strong>{' '}{t('your account: name, email, password and the language of the app and of your mails (your name is also the name of your player), and what opens after logging in: your default club, and its dashboard or your statistics.')}</li>
                     <li><strong>{t('Player profile:')}</strong>{' '}{t('how you appear in your clubs. Your nickname and picture are yours to keep up to date (the picture also shows on your avatar), the date of birth is set by your club admins, and as an adult you can correct it (never to a date under 18, or the Hall of Shame age of your clubs). Here too: whether your nickname appears on the public start page, whether the other players see your trainings, the favourite double and main treble the X01 tips aim at (automatic from your games, or set by you), and your darts (see Your darts).')}</li>
+                    <li>{t('Your country, with its flag next to your nickname in the lists and on your statistics, is chosen on your player profile too, for all your clubs.')}</li>
                     <li><strong>{t('My clubs:')}</strong>{' '}{t('the clubs you play in or run, to switch between them; your name there opens your statistics and badges.')}</li>
                     <li><strong>{t('Notifications:')}</strong>{' '}{t('you are told when a player asks to delete a game you played (open it to agree or decline) and how the request ended, and when an admin deletes or repairs one of your games or trainings for fair play, with the reason. Open leads to the game or the request; mark them as read or remove them.')}</li>
                 </ul>
@@ -124,7 +129,7 @@ export const ADMIN_GUIDE = [
             <>
                 <p>{t('Create a club under')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>. <strong>{t('Edit club')}</strong>{' '}{t('there opens the page of a club you run, laid out as the player profile:')}</p>
                 <ul>
-                    <li><strong>{t('The club:')}</strong>{' '}{t('the logo, the name and a description, saved with Save.')}</li>
+                    <li><strong>{t('The club:')}</strong>{' '}{t('the logo, the name, a description and the country (its flag shows next to the club\'s name), saved with Save.')}</li>
                     <li><strong>{t('Admins:')}</strong>{' '}{t('share the club with other admins by their email. Every admin can do everything in the club; a club always keeps one.')}</li>
                     <li><strong>{t('Public page:')}</strong>{' '}{t('whether the club appears on the public start page, with its running games and its results.')}</li>
                     <li><strong>{t('New members:')}</strong>{' '}{t('whether people with an account join at once, ask and wait for an admin, or are only added by the admins (see below).')}</li>
@@ -145,7 +150,8 @@ export const ADMIN_GUIDE = [
                     <li>{t('A player with a login keeps their name (from their account), nickname and picture up to date themselves; you still set the date of birth, which adults may correct (never to a child\'s). Removing the login hands everything back to you.')}</li>
                     <li>{t('You can add yourself as a player of a club you manage, under My clubs, to be picked for games like anyone else.')}</li>
                     <li>{t('A nickname only appears on the public start page when it is set to public. A player with a login decides this themselves, on their player profile; for the players without one you decide, on their page.')}</li>
-                    <li>{t('For a player without a login you also choose their darts on their page, and unlock flights and barrels with their flight points.')}</li>
+                    <li>{t('For a player without a login you also choose their country and their darts on their page, and unlock flights and barrels with their flight points.')}</li>
+                    <li><strong>{t('To complete')}</strong>{' '}{t('above the list of the players names the members still without a date of birth or a login; each name opens their page at the right place.')}</li>
                 </ul>
             </>
         ),
@@ -209,6 +215,7 @@ export const ADMIN_GUIDE = [
                     <li><strong>{t('Clubs, users and players:')}</strong>{' '}{t('every club, every account (to block it, correct an email, set a password or create a link to choose one) and every player, filtered by club.')}</li>
                     <li><strong>{t('Games and trainings')}</strong>{' '}{t('of the clubs chosen, and')}{' '}<strong>{t('Fair play')}</strong>{' '}{t('across all clubs, each entry with its club.')}</li>
                     <li><strong>{t('Quick games:')}</strong>{' '}{t('the games played on the public start page without an account (X01 or Cricket, the players only names), with how many were started and finished per day. They count for no club and are deleted after 30 days; delete them earlier, one or many, e.g. when someone fills the list with nonsense.')}</li>
+                    <li><strong>{t('At a glance:')}</strong>{' '}{t('above the lists of games, quick games, trainings, users, players and clubs, the whole installation: the last 30 days and 12 weeks, the clubs playing most or the largest (a click shows the club in the list), games left running for over a week, the formats of the quick games, the roles and languages of the users with the accounts never used, unused for half a year or without a club, and the quiet and newest clubs.')}</li>
                     <li><strong>{t('Alerts and error log:')}</strong>{' '}{t('unusual activity, e.g. many accounts or games created at once, and errors of the app.')}</li>
                     <li><strong>{t('System settings:')}</strong>{' '}{t('how long a login lasts (1 to 24 hours, five by default), the banner shown to everyone, whether the start page shows the numbers of the installation (clubs, players, games), hidden until they speak for it, and the')}{' '}<strong>{t('mail templates')}</strong>{t(': the subject, text and button of every mail the app sends (password reset, admin added or invited, player login added or invited), with placeholders such as')}{' '}{t('{{firstname}}')}{' '}{t('or')}{' '}{t('{{club}}')}{t(', a preview, a test mail to yourself and the way back to the default.')}</li>
                 </ul>
