@@ -87,6 +87,8 @@ const TrainingResult = ({ definition, finished, actions }) => {
     return (
         <>
             <GameResultHeader
+                // in a row with the panels: the row's gap is the space, as between the panels
+                className="m-0"
                 celebrate={Boolean(saved?.isRecord)}
                 // a new personal best is the "winner": the gold of a won game
                 game={{ playerModels: { [id]: { hasWonGame: Boolean(saved?.isRecord) } } }}
@@ -101,9 +103,9 @@ const TrainingResult = ({ definition, finished, actions }) => {
                 actions={actions}
             />
             {long.map(([label, value]) => (
-                <p key={label} className="text-center text-subtle fs-7 mt-0 mb-3"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
+                <p key={label} className="text-center text-subtle fs-7 mt-3 mb-0"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
             ))}
-            {saved?.newBadges?.length > 0 && <div className="mb-4"><NewBadges groups={[{ player: saved.player, badges: saved.newBadges }]} /></div>}
+            {saved?.newBadges?.length > 0 && <div className="mt-3"><NewBadges groups={[{ player: saved.player, badges: saved.newBadges }]} /></div>}
         </>
     );
 };
@@ -262,7 +264,8 @@ const RulesTraining = () => {
             {header}
             <div className="row g-4 justify-content-center">
                 {finished &&
-                    <div className="col-12">
+                    // as wide as the setup and the scoreboard below together
+                    <div className="col-12 col-xl-10">
                         <TrainingResult
                             definition={definition}
                             finished={finished}

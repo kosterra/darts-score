@@ -738,3 +738,48 @@
         color: $accentGold;
     }
 }
+
+// a player alone (a training, a solo game): the player and the score, the figures right beside them
+.result-hero-body.is-solo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: $space-5 $space-6;
+}
+
+.result-hero-solo-figures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, auto));
+    gap: $space-3 $space-6;
+    margin: 0;
+
+    > div {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: $space-1;
+    }
+
+    dt {
+        color: var(--text-faint);
+        font-size: $text-sm;
+        font-weight: $weight-regular;
+    }
+
+    dd {
+        margin: 0;
+        color: var(--text-default);
+        font-size: $text-2xl;
+        font-weight: $weight-bold;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+// on a phone the figures go under the score, side by side and centred
+@media (max-width: 575.98px) {
+    .result-hero-solo-figures {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        text-align: center;
+    }
+}

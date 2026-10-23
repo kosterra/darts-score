@@ -10,10 +10,11 @@ import { t } from '../../../utils/i18n';
  * players with their score and a line under it, their key figures side by
  * side ("rows" of figures, { [playerId]: { [key]: value } }) with the best
  * ones marked, and what to do next ("actions"). "celebrate": right after the
- * game was won, the winner glows gold.
+ * game was won, the winner glows gold. A player alone has the figures beside
+ * them instead of a table.
  * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral? }]
  */
-const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, celebrate = false }) => {
+const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, celebrate = false, className = 'mb-4' }) => {
     const winner = players.find(player => game.playerModels?.[player.id]?.hasWonGame);
     const compare = players.length > 1;
 
@@ -26,7 +27,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
     };
 
     return (
-        <header className="hero-header result-hero rounded-2 p-4 mb-4">
+        <header className={`hero-header result-hero rounded-2 p-4 ${className}`}>
             <div className="result-hero-top">
                 <div className="d-flex flex-column">
                     <span className="text-default fw-semibold">{title}</span>
@@ -35,6 +36,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                 <div className="result-hero-actions">{actions}</div>
             </div>
 
+            <div className={`result-hero-body ${compare ? '' : 'is-solo'}`}>
             <div className={`result-hero-players count-${players.length}`}>
                 {players.map((player, index) => (
                         <div key={player.id} className={`result-hero-player ${player === winner ? 'is-winner' : ''} ${player === winner && celebrate ? 'is-celebrated' : ''}`}>
@@ -62,6 +64,26 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                 ))}
             </div>
 
+            {/* one player alone: the figures right beside them, no table to compare */}
+            {!compare &&
+                <dl className="result-hero-solo-figures">
+                    {rows.map(figure => {
+                        const playerFigures = figures[players[0]?.id] ?? {};
+                        const value = playerFigures[figure.key];
+                        return (
+                            <div key={figure.key}>
+                                <dt>{figure.label}</dt>
+                                <dd>
+                                    {value == null ? '–' : figure.format ? figure.format(value, playerFigures) : value}
+                                    {value != null && figure.detail?.(playerFigures) && <span className="text-faint fs-8 ms-1">({figure.detail(playerFigures)})</span>}
+                                </dd>
+                            </div>
+                        );
+                    })}
+                </dl>}
+            </div>
+
+            {compare &&
             <div className="result-hero-figures-wrap">
                 <table className="result-hero-figures">
                     {compare &&
@@ -99,7 +121,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                         })}
                     </tbody>
                 </table>
-            </div>
+            </div>}
         </header>
     );
 };
