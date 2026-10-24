@@ -127,7 +127,7 @@ const LandingPage = () => {
                 <section className="container landing-hero-content">
                     <div className="row align-items-center gy-5">
                         <div className="col-12 col-lg-5 d-flex flex-column gap-3">
-                            <span className="landing-eyebrow">{t('Free darts scoring for clubs, friends and flatshares')}</span>
+                            <span className="landing-eyebrow">{t('Free darts scoring for everyone – clubs, friends, flatshares')}</span>
                             <h1 className="landing-title m-0">{t('Game on. We keep the score.')}</h1>
                             <p className="fs-5 text-default m-0">
                                 {t('Oche is the scoreboard for your club, your pub team, your flatshare or your living room: it counts every dart, keeps the statistics and shows who is on the oche right now.')}
