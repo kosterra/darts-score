@@ -684,6 +684,9 @@
     flex-wrap: wrap;
     gap: 0.4rem;
     min-width: 0;
+
+    // a long chip wraps on a narrow screen instead of running under the button beside it
+    .filter-chip { white-space: normal; text-align: left; }
 }
 
 // a label for each filter in use

@@ -25,6 +25,7 @@ const CHANGELOG = [
             t('The lines of the overviews that lead to a player light up on hover.'),
             t('Fix: a filter of a list (a search, the status or the type) no longer scrolls the page back to the top.'),
             t('Fix: the Add button of a widget to add on the dashboard shows its whole label next to a long description.'),
+            t('Fix: the card to install Oche as an app shows again after logging in, on the dashboard and on your statistics; Profile → Account → Oche as an app installs it at any time, or says how on your device.'),
         ],
     },
     {

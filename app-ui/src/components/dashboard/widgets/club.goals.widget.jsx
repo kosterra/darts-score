@@ -36,8 +36,8 @@ const ClubGoalsWidget = ({ widget }) => {
             {!data
                 ? <Lines count={3} />
                 : <div className="d-flex flex-column gap-4">
-                    {data.goals.length > 0
-                        ? <ClubGoalList goals={data.goals} />
+                    {(data.goals ?? []).length > 0
+                        ? <ClubGoalList goals={data.goals ?? []} />
                         : <ul className="list-unstyled m-0 d-flex flex-column gap-3">
                             {next.map(badge => (
                                 <li key={badge.id} className="d-flex align-items-center gap-3">

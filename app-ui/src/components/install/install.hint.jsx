@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 
 import { canInstall, install, isInstalled, isIosSafari, onInstallChange } from '../../utils/install';
+import { useMyPlayers } from '../../utils/use.my.players';
 import { t } from '../../utils/i18n';
 
 const DISMISSED_KEY = 'darts-score.installHint.dismissed';
@@ -20,15 +21,21 @@ const dismissed = () => {
  * an iPhone or iPad it says how (Share → Add to Home Screen). Gone once the
  * app is installed or the card is closed.
  */
-const InstallHint = () => {
+// where the card shows: the start page, the dashboard and the profile; with a
+// login also the user's own statistics (where My statistics and the start page lead)
+const PAGES = ['/', '/dashboard', '/me', '/profile'];
+
+const InstallHint = ({ loggedIn = false }) => {
     const { pathname } = useLocation();
+    const myPlayers = useMyPlayers(loggedIn);
+    const ownStatistics = (myPlayers ?? []).some(player => pathname === `/players/${player.id}`);
     const [, refresh] = useState(0);
     const [closed, setClosed] = useState(dismissed);
 
     useEffect(() => onInstallChange(() => refresh(count => count + 1)), []);
 
     const ios = isIosSafari();
-    if (closed || pathname !== '/' || isInstalled() || (!canInstall() && !ios)) return null;
+    if (closed || !(PAGES.includes(pathname) || ownStatistics) || isInstalled() || (!canInstall() && !ios)) return null;
 
     const close = () => {
         try {

@@ -148,7 +148,7 @@ function AppContent() {
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
                 <AppBanner />
-                <InstallHint />
+                <InstallHint loggedIn />
                 {/* Keyed by club so every page reloads its data after switching clubs */}
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
                 <Routes>
