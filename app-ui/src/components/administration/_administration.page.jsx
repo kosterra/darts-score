@@ -9,6 +9,7 @@ import BannerSettings from './banner.settings';
 import SessionSettings from './session.settings';
 import MfaSettings from './mfa.settings';
 import LegalSettings from './legal.settings';
+import SupportSettings from './support.settings';
 import StartPageSettings from './start.page.settings';
 import MailTemplates from './mail.templates';
 import MailServer from './mail.server';
@@ -85,6 +86,8 @@ const AdministrationPage = () => {
             <MfaSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Two-step login'), detail, life: 3000 })} />
 
             <LegalSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Saved'), detail, life: 3000 })} />
+
+            <SupportSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Saved'), detail, life: 3000 })} />
 
             {system &&
                 <Panel header={t('System')}>

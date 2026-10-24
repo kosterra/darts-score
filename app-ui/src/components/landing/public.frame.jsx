@@ -52,6 +52,7 @@ export const PublicFooter = () => (
                     <Link to="/register">{t('Register')}</Link>
                 </span>
                 <span className="landing-footer-group">
+                    <Link to="/support">{t('Support Oche')}</Link>
                     <Link to="/privacy">{t('Privacy')}</Link>
                     <Link to="/privacy#imprint">{t('Imprint')}</Link>
                     <a href={REPOSITORY} target="_blank" rel="noopener noreferrer">{t('Source code')}</a>

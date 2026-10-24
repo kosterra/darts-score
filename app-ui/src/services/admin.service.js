@@ -63,6 +63,10 @@ const loadUsage = (weeks = 12) => requestJSON(`${API_URL}/usage?weeks=${weeks}`)
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
 const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
 
+// the ways to support this installation with a gift: { url, twint, project }
+const loadSupportSettings = () => requestJSON(`${API_URL}/support`);
+const saveSupportSettings = (settings) => requestJSON(`${API_URL}/support`, { method: 'PUT', body: settings });
+
 // who runs the installation, for the privacy policy and the imprint
 const loadLegalSettings = () => requestJSON(`${API_URL}/legal`);
 const saveLegalSettings = (settings) => requestJSON(`${API_URL}/legal`, { method: 'PUT', body: settings });
@@ -128,6 +132,8 @@ const AdminService = {
     saveSessionSettings,
     loadMfaSettings,
     loadLegalSettings,
+    loadSupportSettings,
+    saveSupportSettings,
     saveLegalSettings,
     saveMfaSettings,
     loadOverview,

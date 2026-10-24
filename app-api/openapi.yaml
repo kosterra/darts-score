@@ -196,6 +196,15 @@ paths:
         '409':
           description: The account already plays as someone else in a club of the player
       operationId: postClaimBytoken
+  /api/public/support:
+    get:
+      tags:
+        - Public
+      summary: The ways to support Oche with a gift, for the page /support
+      responses:
+        '200':
+          description: '{ url: a donation page of this installation, twint: its TWINT link, project: the sponsoring page of the project (empty when url is the same) }'
+      operationId: getPublicSupport
   /api/public/legal:
     get:
       tags:
@@ -2024,6 +2033,46 @@ paths:
           description: Invalid text or colour
       description: Global admins only.
       operationId: putAdminBanner
+  /api/admin/support:
+    get:
+      tags:
+        - Administration
+      summary: The ways to support this installation with a gift
+      responses:
+        '200':
+          description: '{ url, twint, project }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminSupport
+    put:
+      tags:
+        - Administration
+      summary: Save the TWINT link and the link to another donation page (https addresses, empty for none)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: A donation page, e.g. Ko-fi, PayPal or GitHub Sponsors
+                twint:
+                  type: string
+                  description: A TWINT payment or donation link
+      responses:
+        '200':
+          description: '{ url, twint, project }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putAdminSupport
   /api/admin/legal:
     get:
       tags:

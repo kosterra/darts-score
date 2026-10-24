@@ -81,7 +81,7 @@ const AboutCard = () => {
                 <div className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                     <h1 className="fs-2 fw-semibold text-default m-0">{t('Oche')}</h1>
                     <span className="text-subtle">{t('The scoreboard for your club, your pub team or your living room.')}</span>
-                    <span className="text-faint fs-7">{t('Version')}{' '}{import.meta.env.VITE_APP_VERSION}{' '}{t('· open source under the GPLv3')}{' · '}<Link to="/privacy">{t('Privacy')}</Link>{' · '}<Link to="/privacy#imprint">{t('Imprint')}</Link></span>
+                    <span className="text-faint fs-7">{t('Version')}{' '}{import.meta.env.VITE_APP_VERSION}{' '}{t('· open source under the GPLv3')}{' · '}<Link to="/privacy">{t('Privacy')}</Link>{' · '}<Link to="/privacy#imprint">{t('Imprint')}</Link>{' · '}<Link to="/support"><i className="pi pi-heart me-1" aria-hidden="true" />{t('Support Oche')}</Link></span>
                 </div>
                 <div className="d-flex flex-wrap gap-2">
                     <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm p-button-outlined">

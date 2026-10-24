@@ -62,6 +62,7 @@ const TournamentsPage = lazy(() => import('./components/tournaments/_tournaments
 const TournamentPage = lazy(() => import('./components/tournaments/_tournament.page'));
 const TournamentEditor = lazy(() => import('./components/tournaments/tournament.editor'));
 const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
+const SupportPage = lazy(() => import('./components/legal/_support.page'));
 const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
 const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
 
@@ -133,6 +134,10 @@ function AppContent() {
     // the privacy policy and imprint, for everyone
     if (pathname === '/privacy') {
         return <Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>;
+    }
+    // and the ways to support Oche
+    if (pathname === '/support') {
+        return <Suspense fallback={<PageLoader />}><SupportPage /></Suspense>;
     }
 
     if (!user) {

@@ -604,3 +604,34 @@
 }
 
 .legal-address, .legal-notes { white-space: pre-line; }
+
+// the ways to support Oche: side by side, one under the other on a phone
+.support-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1rem;
+}
+
+.support-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem;
+    border-radius: $radius-md;
+    background: ink(0.04);
+
+    .p-button { margin-top: auto; }
+}
+
+.support-option-title {
+    color: var(--text-default);
+    font-weight: $weight-semibold;
+}
+
+// the code to scan from a computer, on white so every phone reads it
+.support-qr {
+    align-self: center;
+    padding: 0.4rem;
+    border-radius: $radius-md;
+    background: #fff;
+}

@@ -302,6 +302,7 @@ const LandingPage = () => {
                         <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
                         <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
                         <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
+                        <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Oche')}</Link></span>
                     </div>
                 </section>
             </main>

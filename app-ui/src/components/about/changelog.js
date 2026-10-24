@@ -13,6 +13,7 @@ const CHANGELOG = [
             t('Every member is invited in the app and by mail, and enters or declines with one tap, also from the mail without logging in; a reminder comes a day before the registration ends. A banner on top of the dashboard shows the tournament from the registration to a week after the final.'),
             t('The draw places the players seeded by the club rating or at random, with byes for the first seeds; the bracket shows every round with live matches, and each match is started from it as a game of X01 with the rules of its round. The winner goes on by itself; admins decide walkovers.'),
             t('Badges for tournament wins and finals.'),
+            t('Support Oche: a page linked in the footer and on About, with the sponsoring of the project on GitHub and, as the global admins set them, TWINT (also as a QR code) and another donation page.'),
         ],
     },
     {

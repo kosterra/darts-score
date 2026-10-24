@@ -80,6 +80,7 @@ const PrivacyPage = () => {
                                     {legal.mailEnabled && <li>{t('The mail server of this installation, for the mails you get (password reset, invitations, the notifications you chose).')}</li>}
                                     <li>{t('The provider that hosts this installation and carries its traffic.')}</li>
                                     <li>{t('Nothing is sold or used for advertising. The font, the icons and the pictures come from Oche itself, not from other companies.')}</li>
+                                    <li>{t('The donation pages linked on Support Oche (e.g. TWINT, GitHub) belong to their providers and only learn about you when you open them.')}</li>
                                 </ul>
                                 {legal.notes && <p className="legal-notes">{legal.notes}</p>}
 

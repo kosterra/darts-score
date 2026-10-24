@@ -206,6 +206,7 @@
  "Email is too long.",
  "Email or password is wrong.",
  "Email sending is not set up. Ask an admin to reset your password.",
+ "Enter a full address starting with https://.",
  "Enter a valid email address.",
  "Enter an initial password for the new account.",
  "Enter or decline on the tournament page before the registration ends.",
