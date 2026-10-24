@@ -54,6 +54,8 @@ export default (app) => {
     router.post('/mfa/disable', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), codeRule('code'), validate, MfaController.disable);
     router.post('/mfa/recovery-codes', requireAuth, credentialLimiter, codeRule('code'), validate, MfaController.recoveryCodes);
     router.post('/mfa/forget-devices', requireAuth, MfaController.forgetDevices);
+    // deleting the own account: the players stay, anonymised
+    router.post('/delete-account', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), body('code').optional().isString().isLength({ max: 20 }), validate, AuthController.deleteMe);
 
     router.get('/config', AuthController.config);
     router.post('/forgot-password', credentialLimiter, emailValidator, validate, AuthController.forgotPassword);

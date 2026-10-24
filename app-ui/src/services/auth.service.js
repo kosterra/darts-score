@@ -63,6 +63,9 @@ const mfaDisable = (password, code) => requestJSON(API_URL + 'mfa/disable', { me
 const mfaRecoveryCodes = (code) => requestJSON(API_URL + 'mfa/recovery-codes', { method: 'POST', body: { code } });
 const mfaForgetDevices = () => requestJSON(API_URL + 'mfa/forget-devices', { method: 'POST' });
 
+// deletes the own account (the players stay, anonymised): { password, code }
+const deleteAccount = (password, code) => requestJSON(API_URL + 'delete-account', { method: 'POST', body: { password, ...(code && { code }) } });
+
 // when the session ends: { expiresAt (ms), timeoutHours }
 const getSession = () => requestJSON(API_URL + 'session');
 
@@ -99,6 +102,7 @@ const AuthService = {
     mfaDisable,
     mfaRecoveryCodes,
     mfaForgetDevices,
+    deleteAccount,
 };
 
 export default AuthService;

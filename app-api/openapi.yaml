@@ -194,6 +194,30 @@ paths:
         '409':
           description: The account already plays as someone else in a club of the player
       operationId: postClaimBytoken
+  /api/public/legal:
+    get:
+      tags:
+        - Public
+      summary: What the privacy policy and imprint show
+      description: Who runs the installation (as its global admins entered it), whether it sends mails, and how long what is kept on it.
+      security: []
+      responses:
+        '200':
+          description: The details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/LegalSettings'
+                  - type: object
+                    properties:
+                      mailEnabled:
+                        type: boolean
+                      keep:
+                        type: object
+                        additionalProperties:
+                          type: integer
+      operationId: getPublicLegal
   /api/auth/register:
     post:
       tags:
@@ -417,6 +441,35 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       operationId: postAuthMfaForgetDevices
+  /api/auth/delete-account:
+    post:
+      tags:
+        - Auth
+      summary: Delete the own account
+      description: With the password, and a code of the authenticator app when two-step login is on. The account goes with its settings, notifications and login; its players stay in their clubs, anonymised (an anonymous nickname, no name, picture, date of birth or country, as guests), so the games and statistics of the others stay whole. Refused for the only admin of a club and the only global admin. A last mail confirms it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: Deleted; the session ends
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Wrong password or code
+        '409':
+          description: The only admin of a club, or the only global admin
+      operationId: postAuthDeleteAccount
   /api/auth/logout:
     post:
       tags:
@@ -1895,6 +1948,47 @@ paths:
           description: Invalid text or colour
       description: Global admins only.
       operationId: putAdminBanner
+  /api/admin/legal:
+    get:
+      tags:
+        - Admin
+      summary: Who runs the installation, for the privacy policy and imprint (global admins only)
+      responses:
+        '200':
+          description: The details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getAdminLegal
+    put:
+      tags:
+        - Admin
+      summary: Save who runs the installation (global admins only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalSettings'
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Too long, or not an email address
+      operationId: putAdminLegal
   /api/admin/mfa:
     get:
       tags:
@@ -5432,6 +5526,23 @@ components:
         claimToken:
           type: string
           description: The token of a claim link; the new account takes over its player
+    LegalSettings:
+      type: object
+      properties:
+        operator:
+          type: string
+          maxLength: 200
+          description: The person or organisation running the installation
+        address:
+          type: string
+          maxLength: 500
+        email:
+          type: string
+          maxLength: 254
+        notes:
+          type: string
+          maxLength: 2000
+          description: More for the privacy page, e.g. the hosting provider or a tunnel service
     MfaState:
       type: object
       properties:

@@ -35,6 +35,7 @@ export const PublicFooter = () => (
             <Link to="/">{t('Start page')}</Link>
             <Link to="/login">{t('Log in')}</Link>
             <Link to="/register">{t('Register')}</Link>
+            <Link to="/privacy">{t('Privacy')}</Link>
         </span>
     </footer>
 );

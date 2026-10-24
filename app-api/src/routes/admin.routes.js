@@ -10,6 +10,7 @@ import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
 import { GRACE_DAYS, MFA_POLICIES, getMfaSettings, isMfaEnabled, saveMfaSettings } from '../utils/mfa.js';
+import { LEGAL_LIMITS, getLegalSettings, saveLegalSettings } from '../utils/legal.settings.js';
 import { getStartPageSettings, saveStartPageSettings } from '../utils/start.page.settings.js';
 import { MAIL_LANGUAGES } from '../utils/mail.templates.js';
 import { installationNumbers } from '../controllers/public.controller.js';
@@ -82,6 +83,19 @@ export default (app) => {
             const settings = await saveMfaSettings({ policy: req.body.policy, graceDays: req.body.graceDays });
             logger.info(`Two-step login set to "${settings.policy}" (${settings.graceDays} days) by ${req.user.email}`);
             res.json({ ...settings, policies: MFA_POLICIES, graceLimits: GRACE_DAYS, ownEnabled: true });
+        },
+    );
+
+    // who runs the installation, for the privacy policy and the imprint
+    router.get('/legal', async (req, res) => res.json({ ...await getLegalSettings(), limits: LEGAL_LIMITS }));
+    router.put('/legal',
+        ...Object.entries(LEGAL_LIMITS).map(([field, max]) => body(field).optional().isString().isLength({ max }).withMessage(`The ${field} can have at most ${max} characters.`)),
+        body('email').optional({ values: 'falsy' }).isEmail().withMessage('A valid email address is required.'),
+        validate,
+        async (req, res) => {
+            const settings = await saveLegalSettings(req.body);
+            logger.info(`Privacy and imprint details saved by ${req.user.email}`);
+            res.json({ ...settings, limits: LEGAL_LIMITS });
         },
     );
 

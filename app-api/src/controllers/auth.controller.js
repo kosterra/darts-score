@@ -14,7 +14,11 @@ import { getClubRole } from '../middleware/auth.middleware.js';
 import { notifySecurity } from '../utils/notify.js';
 import { claimOnRegister } from './player.contact.controller.js';
 import { finishLogin } from './mfa.controller.js';
-import { mfaStateOf } from '../utils/mfa.js';
+import { deleteAccount, deletionBlock } from '../utils/account.deletion.js';
+import { checkCode, decrypt, isMfaEnabled, mfaStateOf } from '../utils/mfa.js';
+import { translate } from '../utils/translate.js';
+import { dateTimeIn } from '../utils/notify.js';
+import { getAppUrl } from '../utils/mail.utils.js';
 
 export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
@@ -242,4 +246,32 @@ export const resetPassword = async (req, res) => {
 
     // a new password does not skip the code of two-step login
     await finishLogin(req, res, user);
+};
+
+/**
+ * Deletes the logged-in account, after its password (and a code of two-step
+ * login when it is on): the account goes, its players stay anonymised for the
+ * games of the others (see utils/account.deletion.js). A last mail confirms it.
+ */
+export const deleteMe = async (req, res) => {
+    const user = req.user;
+    if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: 'The current password is wrong.' });
+    if (isMfaEnabled(user) && checkCode(decrypt(user.mfa.secret), req.body.code, user.mfa.lastStep) === null) {
+        return res.status(403).json({ message: 'This code is not right. Check the time of your phone and try the newest code.' });
+    }
+    const block = await deletionBlock(user);
+    if (block) return res.status(409).json(block);
+    const { email, firstname } = user;
+    const language = user.language ?? 'en';
+    await deleteAccount(user);
+    clearSessionCookie(req, res);
+    clearPendingCookie(req, res);
+    sendTemplateMail('securityNotice', email, {
+        firstname,
+        title: translate(language, 'Your Oche account was deleted'),
+        details: translate(language, 'Your login, settings and notifications are gone. Your players stay in their clubs under an anonymous name, so the games of the others stay whole; your name, picture and date of birth were removed.'),
+        date: dateTimeIn(language),
+        link: getAppUrl(),
+    }, language).catch(err => logger.error(err, 'Failed to send the mail about the deleted account'));
+    res.json({ message: 'Your account was deleted.' });
 };

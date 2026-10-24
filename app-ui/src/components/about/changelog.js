@@ -17,6 +17,8 @@ const CHANGELOG = [
             t('Themes under Profile → Account → Display: dark, light, like the device, pure black (for OLED screens) or high contrast, with your account on every device; the charts and the dartboard follow.'),
             t('Accent colours: Oche green, dartboard red, blue, gold or purple; good figures stay green whatever the colour. The club admins choose the club\'s colour under Edit club, for the members who did not choose their own.'),
             t('The background behind the pages: the dartboard photo, blurred, or plain (calmer, and lighter on older phones).'),
+            t('Delete your account under Profile → Account: your players stay in their clubs under an anonymous name, so the games and statistics of the others stay whole; your name, picture and date of birth are removed.'),
+            t('A privacy page with the imprint, linked in the footer of the public pages and on About; the global admins enter who runs the installation under System settings.'),
             t('A new font, Exo 2, delivered by Oche itself instead of by Google: scores keep their place while they count down (every figure equally wide) and small text reads more easily.'),
             t('Two-step login: after the password, a code of an authenticator app on your phone (or one of ten recovery codes), turned on under Profile → Account; a device of your own can skip it for 30 days.'),
             t('Global admins choose under System settings whether two-step login is off, optional, or required for the admins or for everyone, with days to set it up; for a lost phone they reset it under Users.'),

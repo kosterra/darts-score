@@ -57,6 +57,7 @@ const ForgotPasswordPage = lazy(() => import('./components/auth/forgot.password.
 const ResetPasswordPage = lazy(() => import('./components/auth/reset.password.page'));
 const ClaimPage = lazy(() => import('./components/auth/claim.page'));
 const UnsubscribePage = lazy(() => import('./components/auth/unsubscribe.page'));
+const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
 const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
 const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
 
@@ -120,6 +121,10 @@ function AppContent() {
     }
     if (pathname === '/unsubscribe') {
         return <Suspense fallback={<PageLoader />}><UnsubscribePage /></Suspense>;
+    }
+    // the privacy policy and imprint, for everyone
+    if (pathname === '/privacy') {
+        return <Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>;
     }
 
     if (!user) {

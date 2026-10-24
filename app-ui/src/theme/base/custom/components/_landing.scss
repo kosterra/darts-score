@@ -539,3 +539,26 @@
 
     &:hover, &:focus-visible { transform: scale(1.08); outline: none; }
 }
+
+// the privacy policy and imprint: a page to read, between the bar and the footer of the start page
+.legal-page {
+    max-width: $page-reading;
+    margin: 0 auto;
+}
+
+.legal-text {
+    line-height: 1.6;
+
+    h2 {
+        margin: $space-5 0 $space-2;
+        font-size: $text-lg;
+        font-weight: $weight-semibold;
+        color: var(--text-default);
+    }
+
+    ul { padding-left: 1.2rem; }
+    li + li { margin-top: $space-2; }
+    code { color: var(--text-default); font-size: $text-md; }
+}
+
+.legal-address, .legal-notes { white-space: pre-line; }

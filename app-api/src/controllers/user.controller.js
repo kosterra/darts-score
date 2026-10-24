@@ -5,6 +5,7 @@ import { clubsOfAccount } from '../utils/global.admins.js';
 import { hashPassword } from '../utils/auth.utils.js';
 import { issuePasswordLink } from '../utils/auth.tokens.js';
 import { notifySecurity } from '../utils/notify.js';
+import { deleteAccount } from '../utils/account.deletion.js';
 
 // how long a password link created by a global admin works
 export const ADMIN_LINK_HOURS = 24;
@@ -73,14 +74,10 @@ export const remove = async (req, res) => {
     if (await Club.exists({ admins: { $eq: [new db.mongoose.Types.ObjectId(id)] } })) {
         return res.status(409).json({ message: 'This user is the only admin of a club. Add another admin or delete the club first.' });
     }
-    const user = await User.findByIdAndDelete(id);
+    const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
-
-    await Club.updateMany({ admins: id }, { $pull: { admins: id } });
-    // Players the user played as stay in their clubs, just no longer linked
-    await db.player.updateMany({ user: id }, { $set: { user: null } });
-    // what they asked to join is no longer for anyone to decide
-    await db.joinRequest.updateMany({ user: id, status: 'open' }, { $set: { status: 'withdrawn', decidedAt: new Date() } });
+    // as when people delete their own: the players stay, anonymised, for the games of the others
+    await deleteAccount(user, { by: req.user.email });
     await db.notification.deleteMany({ kind: 'joinRequested', by: id });
     logger.info(`User ${user.email} deleted by ${req.user.email}`);
     res.json({ message: 'User deleted.' });

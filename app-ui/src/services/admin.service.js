@@ -51,6 +51,10 @@ const testMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
 const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
 
+// who runs the installation, for the privacy policy and the imprint
+const loadLegalSettings = () => requestJSON(`${API_URL}/legal`);
+const saveLegalSettings = (settings) => requestJSON(`${API_URL}/legal`, { method: 'PUT', body: settings });
+
 const loadSessionSettings = () => requestJSON(`${API_URL}/session`);
 const saveSessionSettings = (timeoutHours) => requestJSON(`${API_URL}/session`, { method: 'PUT', body: { timeoutHours } });
 
@@ -104,6 +108,8 @@ const AdminService = {
     saveStartPageSettings,
     saveSessionSettings,
     loadMfaSettings,
+    loadLegalSettings,
+    saveLegalSettings,
     saveMfaSettings,
     loadOverview,
     loadPlayersInsights,

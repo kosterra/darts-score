@@ -5,6 +5,7 @@ import { validate } from '../utils/validation.js';
 import * as PublicController from '../controllers/public.controller.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
 import { getBanner } from '../controllers/banner.controller.js';
+import { legalPage } from '../utils/legal.settings.js';
 
 export default (app) => {
     const router = Router();
@@ -13,6 +14,8 @@ export default (app) => {
     router.get('/overview', PublicController.overview);
     // the banner on top of every page, e.g. for a test environment
     router.get('/banner', getBanner);
+    // the privacy policy and imprint: who runs this installation, how long what is kept
+    router.get('/legal', async (req, res) => res.json(await legalPage()));
 
     // quick games without an account: a few new ones per hour from one network,
     // and the visits of the games going on
