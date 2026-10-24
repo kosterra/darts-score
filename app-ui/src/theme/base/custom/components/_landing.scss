@@ -632,26 +632,79 @@
 
 .legal-address, .legal-notes { white-space: pre-line; }
 
-// the ways to support Oche: side by side, one under the other on a phone
+// Support Oche: the look of the start page, the footer at the bottom of the window
+.support-page {
+    display: flex;
+    flex-direction: column;
+
+    .support-main { flex: 1 0 auto; }
+}
+
+.support-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    max-width: 62rem;
+    padding: 3.5rem 1rem 4rem;
+
+    @media (max-width: 575.98px) { padding-top: 2rem; gap: 2rem; }
+}
+
+.support-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    max-width: 44rem;
+    text-align: center;
+}
+
+.support-heart {
+    display: inline-grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: with-alpha($accentPink, 0.16);
+    color: $accentPink;
+    font-size: 1.5rem;
+}
+
+.support-lead {
+    color: var(--text-subtle);
+    font-size: $text-lg;
+    line-height: 1.55;
+}
+
+.support-points { justify-content: center; }
+
+// the ways to give, side by side, one under the other on a phone; one alone stays narrow
 .support-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     gap: 1rem;
+    width: 100%;
+
+    &:has(> .support-option:only-child) { max-width: 26rem; }
 }
 
 .support-option {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    padding: 1rem;
-    border-radius: $radius-md;
-    background: ink(0.04);
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-radius: $radius-lg;
+    background: $surfaceTranslucentColor;
 
     .p-button { margin-top: auto; }
+
+    &.is-primary { box-shadow: inset 0 0 0 1px with-alpha($primaryColor, 0.45); }
 }
 
 .support-option-title {
     color: var(--text-default);
+    font-size: $text-lg;
     font-weight: $weight-semibold;
 }
 
@@ -661,4 +714,12 @@
     padding: 0.4rem;
     border-radius: $radius-md;
     background: #fff;
+}
+
+.support-note {
+    max-width: 44rem;
+    margin: 0;
+    color: var(--text-faint);
+    font-size: $text-sm;
+    text-align: center;
 }

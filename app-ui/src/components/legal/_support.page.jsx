@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Panel } from 'primereact/panel';
 import QRCode from 'qrcode';
 
 import PublicService from '../../services/public.service';
@@ -19,11 +18,22 @@ const hostOf = (url) => {
 
 const external = { target: '_blank', rel: 'noopener noreferrer' };
 
+// one way to give: its icon, what it is, and the button
+const Option = ({ icon, title, text, children, primary = false }) => (
+    <div className={`support-option ${primary ? 'is-primary' : ''}`}>
+        <span className="landing-feature-icon" aria-hidden="true"><i className={`pi ${icon}`} /></span>
+        <h2 className="support-option-title m-0">{title}</h2>
+        <p className="text-subtle m-0">{text}</p>
+        {children}
+    </div>
+);
+
 /**
- * Supporting Oche with a gift, for everyone: TWINT (with a QR code to scan
- * from a computer) and another donation page of this installation, as its
- * global admins set them, and the sponsoring page of the project. Plain
- * links only: nothing of another company is loaded before one is opened.
+ * Supporting Oche with a gift, for everyone, in the look of the start page:
+ * why it helps, then TWINT (with a QR code to scan from a computer) and
+ * another donation page of this installation, as its global admins set
+ * them, and the sponsoring of the project on GitHub. Plain links only:
+ * nothing of another company is loaded before one is opened.
  */
 const SupportPage = () => {
     const { user } = useAuth();
@@ -37,42 +47,40 @@ const SupportPage = () => {
         if (support?.twint) QRCode.toDataURL(support.twint, { margin: 1, width: 280 }).then(setQr).catch(() => setQr(''));
     }, [support?.twint]);
 
-    const own = support && (support.twint || support.url);
     return (
-        <div className="auth-page">
+        <div className="landing support-page">
             <PageHeader user={user} />
-            <main className="container-fluid p-4">
-                <div className="legal-page d-flex flex-column gap-4">
-                    <Panel header={t('Support Oche')}>
-                        <div className="d-flex flex-column gap-3 legal-text">
-                            <p className="m-0">{t('Oche is free for everyone and without ads, and it stays that way. It costs time to make and money to run. If you enjoy it, you can give something back: entirely voluntary, any amount.')}</p>
-                            {!support && <Lines count={3} />}
-                            {own &&
-                                <div className="support-options">
-                                    {support.twint &&
-                                        <div className="support-option">
-                                            <span className="support-option-title">TWINT</span>
-                                            <span className="text-subtle fs-7">{t('On your phone: tap the button. On a computer: scan the code with the TWINT app.')}</span>
-                                            {qr && <img src={qr} alt={t('QR code for TWINT')} className="support-qr d-none d-md-block" width="160" height="160" />}
-                                            <a href={support.twint} {...external} className="p-button p-button-sm text-decoration-none justify-content-center support-twint"><i className="pi pi-mobile me-2" />{t('Give with TWINT')}</a>
-                                        </div>}
-                                    {support.url &&
-                                        <div className="support-option">
-                                            <span className="support-option-title">{t('Donate')}</span>
-                                            <span className="text-subtle fs-7">{t('With a card or another way, on {{site}}.', { site: hostOf(support.url) })}</span>
-                                            <a href={support.url} {...external} className="p-button p-button-sm p-button-secondary text-decoration-none justify-content-center"><i className="pi pi-heart me-2" />{t('Donate on {{site}}', { site: hostOf(support.url) })}</a>
-                                        </div>}
-                                </div>}
-                            {support?.project &&
-                                <div className="support-option">
-                                    <span className="support-option-title">{t('The development of Oche')}</span>
-                                    <span className="text-subtle fs-7">{t('Oche is open source. Sponsoring on GitHub helps the app itself, on every installation: new games, features and fixes.')}</span>
-                                    <a href={support.project} {...external} className="p-button p-button-sm p-button-secondary text-decoration-none justify-content-center"><i className="pi pi-github me-2" />{t('Sponsor on GitHub')}</a>
-                                </div>}
-                            {support && <p className="text-faint fs-8 m-0">{t('The donation pages belong to their providers (e.g. TWINT or GitHub); Oche does not learn what you give. A gift is not tax-deductible, and it gives no claim to anything: Oche stays the same for everyone.')}</p>}
-                        </div>
-                    </Panel>
-                </div>
+            <main className="container support-main">
+                <section className="support-hero">
+                    <span className="support-heart" aria-hidden="true"><i className="pi pi-heart-fill" /></span>
+                    <span className="landing-eyebrow">{t('Support Oche')}</span>
+                    <h1 className="landing-title m-0">{t('Keep Oche free – for everyone')}</h1>
+                    <p className="support-lead m-0">{t('Oche is free for everyone and without ads, and it stays that way. It costs time to make and money to run. If you enjoy it, you can give something back: entirely voluntary, any amount.')}</p>
+                    <ul className="landing-points support-points">
+                        <li><i className="pi pi-server" aria-hidden="true" />{t('The server and the domain')}</li>
+                        <li><i className="pi pi-envelope" aria-hidden="true" />{t('The mails to every club')}</li>
+                        <li><i className="pi pi-sparkles" aria-hidden="true" />{t('Time for new games and fixes')}</li>
+                    </ul>
+                </section>
+
+                {!support && <Lines count={3} />}
+                {support &&
+                    <div className="support-options">
+                        {support.twint &&
+                            <Option icon="pi-mobile" title="TWINT" text={t('On your phone: tap the button. On a computer: scan the code with the TWINT app.')}>
+                                {qr && <img src={qr} alt={t('QR code for TWINT')} className="support-qr d-none d-md-block" width="150" height="150" />}
+                                <a href={support.twint} {...external} className="p-button text-decoration-none justify-content-center"><i className="pi pi-mobile me-2" />{t('Give with TWINT')}</a>
+                            </Option>}
+                        {support.url &&
+                            <Option icon="pi-heart" title={t('Donate')} text={t('With a card or another way, on {{site}}.', { site: hostOf(support.url) })}>
+                                <a href={support.url} {...external} className="p-button p-button-secondary text-decoration-none justify-content-center"><i className="pi pi-heart me-2" />{t('Donate on {{site}}', { site: hostOf(support.url) })}</a>
+                            </Option>}
+                        {support.project &&
+                            <Option icon="pi-github" title={t('The development of Oche')} text={t('Oche is open source. Sponsoring on GitHub helps the app itself, on every installation: new games, features and fixes.')} primary={!support.twint && !support.url}>
+                                <a href={support.project} {...external} className={`p-button ${support.twint || support.url ? 'p-button-secondary' : ''} text-decoration-none justify-content-center`}><i className="pi pi-github me-2" />{t('Sponsor on GitHub')}</a>
+                            </Option>}
+                    </div>}
+                {support && <p className="support-note">{t('The donation pages belong to their providers (e.g. TWINT or GitHub); Oche does not learn what you give. A gift is not tax-deductible, and it gives no claim to anything: Oche stays the same for everyone.')}</p>}
             </main>
             <PublicFooter />
         </div>
