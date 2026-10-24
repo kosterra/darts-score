@@ -1285,7 +1285,8 @@
     align-items: center;
     gap: $space-1;
     min-width: 0;
-    width: 10rem;
+    // wide enough for the form with its curve on one line
+    width: 13rem;
 
     .compare-avatar { margin-bottom: $space-2; }
 }
