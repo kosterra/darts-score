@@ -5597,6 +5597,10 @@ paths:
                 closesAt:
                   type: string
                   format: date-time
+                invite:
+                  type: string
+                  enum: [mail, notification, banner]
+                  description: 'How the members hear of the registration: in the app and by mail as each chose (mail), only in the app (notification), or only from the banner on the dashboard (banner)'
                 preset:
                   type: string
                   description: clubNight, clubClassic, miniWorld, playersChampionship, europeanTour, worldMatchplay or worldChampionship
@@ -5680,6 +5684,10 @@ paths:
                 closesAt:
                   type: string
                   format: date-time
+                invite:
+                  type: string
+                  enum: [mail, notification, banner]
+                  description: 'How the members hear of the registration: in the app and by mail as each chose (mail), only in the app (notification), or only from the banner on the dashboard (banner)'
                 preset:
                   type: string
                   description: clubNight, clubClassic, miniWorld, playersChampionship, europeanTour, worldMatchplay or worldChampionship

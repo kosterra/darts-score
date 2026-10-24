@@ -13,6 +13,9 @@ export const MIN_PLAYERS = 4;
 // the largest brackets offered
 export const MAX_PLAYERS_CHOICES = [8, 16, 32, 64];
 export const SEEDINGS = ['seeded', 'random'];
+// how the members hear of the registration (the invitation and the reminder): in the app and by
+// mail as each chose, only in the app, or only from the banner on the club's dashboard
+export const INVITE_CHANNELS = ['mail', 'notification', 'banner'];
 export const STATUSES = ['draft', 'registration', 'closed', 'drawn', 'running', 'finished', 'cancelled'];
 // a tournament the club sees on its dashboard: from the registration until a week after the final
 export const SHOWN_DAYS_AFTER = 7;

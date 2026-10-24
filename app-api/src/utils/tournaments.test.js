@@ -81,8 +81,10 @@ describe('setting up a tournament', () => {
         expect(service.checkSetup({ name: 'Cup', closesAt: later(3), maxPlayers: 8, rounds: rounds.slice(1) }).error).toMatch(/Every round/);
         const even = rounds.map(round => (round.size === 2 ? { ...round, rules: { ...round.rules, numberOfLegs: 6 } } : round));
         expect(service.checkSetup({ name: 'Cup', closesAt: later(3), maxPlayers: 8, rounds: even }).error).toMatch(/even number/);
+        expect(service.checkSetup({ name: 'Cup', closesAt: later(3), maxPlayers: 8, rounds, invite: 'pigeon' }).error).toMatch(/invited/);
         const { setup } = service.checkSetup({ name: ' Cup ', closesAt: later(3), maxPlayers: 8, rounds, preset: 'clubNight' });
-        expect(setup).toMatchObject({ name: 'Cup', maxPlayers: 8, preset: 'clubNight' });
+        expect(setup).toMatchObject({ name: 'Cup', maxPlayers: 8, preset: 'clubNight', invite: 'mail' });
+        expect(service.checkSetup({ name: 'Cup', closesAt: later(3), maxPlayers: 8, rounds, invite: 'banner' }).setup.invite).toBe('banner');
         expect(setup.rounds.map(round => round.size)).toEqual([8, 4, 2]);
     });
 
@@ -108,6 +110,23 @@ describe('the registration', () => {
         expect(mails[0].vars.declineLink).toMatch(/answer=out$/);
         expect(mails[0].vars.schedule.split('\n')).toHaveLength(4);
         expect(notices.filter(notice => notice.kind === 'tournamentInvite')).toHaveLength(3);
+    });
+
+    it('invites only in the app, or not at all (the banner), as the admins chose', async () => {
+        const inApp = tournamentDoc({ invite: 'notification' });
+        await service.openRegistration(inApp);
+        expect(mails).toEqual([]);
+        expect(notices.filter(notice => notice.kind === 'tournamentInvite')).toHaveLength(3);
+        notices.length = 0;
+        const banner = tournamentDoc({ invite: 'banner' });
+        await service.openRegistration(banner);
+        expect(banner.status).toBe('registration');
+        expect(banner.entries).toHaveLength(5);
+        expect(mails).toEqual([]);
+        expect(notices).toEqual([]);
+        // the reminder follows the same choice
+        await service.invite(banner, banner.entries, 'reminder');
+        expect(mails).toEqual([]);
     });
 
     it('takes the answers until it is full, and only while it is open', async () => {

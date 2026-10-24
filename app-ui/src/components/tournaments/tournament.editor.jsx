@@ -15,8 +15,8 @@ import TournamentService from '../../services/tournament.service';
 import { useAuth } from '../../utils/auth.context';
 import { calendarFormat } from '../../utils/dates';
 import { t } from '../../utils/i18n';
-import { MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
-import { PRESET_WORDS, roundName, rulesText } from './tournament.words';
+import { INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
+import { INVITE_WORDS, PRESET_WORDS, roundName, rulesText } from './tournament.words';
 import { Lines } from '../elements/skeletons';
 
 const MODES = ['Best of', 'First to'];
@@ -105,7 +105,7 @@ const TournamentEditor = () => {
 
     useEffect(() => {
         if (!id) {
-            setForm({ name: '', description: '', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), rounds: roundsFor(16, 'clubClassic') });
+            setForm({ name: '', description: '', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), invite: 'mail', rounds: roundsFor(16, 'clubClassic') });
             return;
         }
         TournamentService.loadTournament(id).then(loaded => {
@@ -113,6 +113,7 @@ const TournamentEditor = () => {
             setForm({
                 name: loaded.name, description: loaded.description ?? '', maxPlayers: loaded.maxPlayers, preset: loaded.preset ?? null,
                 closesAt: new Date(loaded.closesAt),
+                invite: loaded.invite ?? 'mail',
                 rounds: loaded.rounds.map(round => ({ ...round, date: round.date ? new Date(round.date) : null })),
             });
         }).catch(err => setError(err.message));
@@ -147,7 +148,7 @@ const TournamentEditor = () => {
     const save = async (open) => {
         setError('');
         setBusy(open ? 'open' : 'save');
-        const setup = { name: form.name, description: form.description, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, rounds: form.rounds };
+        const setup = { name: form.name, description: form.description, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, invite: form.invite, rounds: form.rounds };
         try {
             let saved;
             if (!stored) saved = await TournamentService.createTournament({ ...setup, open });
@@ -204,6 +205,19 @@ const TournamentEditor = () => {
                         <span className="text-faint fs-8">{t('Until then the members enter or decline; after it the registration closes by itself and the draw can be held.')}</span>
                     </div>
 
+                    <div className="d-flex flex-column gap-1">
+                        <span className="fs-7 text-default fw-semibold">{t('Invite the members')}</span>
+                        <SelectButton
+                            value={form.invite}
+                            options={INVITE_CHANNELS.map(channel => ({ label: INVITE_WORDS[channel].label, value: channel }))}
+                            onChange={(event) => event.value && set({ invite: event.value })}
+                            className="p-selectbutton-pills flex-wrap"
+                            disabled={!early}
+                            aria-label={t('Invite the members')}
+                        />
+                        <span className="text-faint fs-8">{INVITE_WORDS[form.invite].hint}</span>
+                    </div>
+
                     <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
                         <span className="fs-7 text-default fw-semibold">{t('Rounds')}</span>
                         <Button label={t('One round a week')} icon="pi pi-calendar-plus" size="small" text onClick={weekly} />
@@ -238,7 +252,7 @@ const TournamentEditor = () => {
                             ? <Button label={t('Open the registration')} icon="pi pi-send" size="small" loading={busy === 'open'} disabled={!form.name.trim() || problems.length > 0 || Boolean(busy)} onClick={() => save(true)} />
                             : <Button label={t('Save')} icon="pi pi-save" size="small" loading={busy === 'save'} disabled={!form.name.trim() || problems.length > 0 || Boolean(busy)} onClick={() => save(false)} />}
                     </div>
-                    {(!stored || stored.status === 'draft') && <span className="text-faint fs-8 text-end">{t('Opening the registration invites every member of the club, in the app and by mail.')}</span>}
+                    {(!stored || stored.status === 'draft') && <span className="text-faint fs-8 text-end">{INVITE_WORDS[form.invite].opening}</span>}
                 </div>
             </Panel>
         </div>

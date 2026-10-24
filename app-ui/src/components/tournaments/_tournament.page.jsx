@@ -18,7 +18,7 @@ import { calendarFormat, formatDate, formatDateTime } from '../../utils/dates';
 import { t, tn } from '../../utils/i18n';
 import { MIN_PLAYERS, isDecided, nextOf } from '../../rules/tournaments';
 import TournamentBracket from './tournament.bracket';
-import { STATUS_WORDS, nameOf, roundName, rulesText } from './tournament.words';
+import { INVITE_WORDS, STATUS_WORDS, nameOf, roundName, rulesText } from './tournament.words';
 import { Lines } from '../elements/skeletons';
 
 /**
@@ -184,6 +184,7 @@ const TournamentPage = () => {
                         <div><dt className="text-faint fs-8 fw-normal">{t('Registration until')}</dt><dd className="text-default fw-semibold m-0">{formatDateTime(tournament.closesAt)}</dd></div>
                         <div><dt className="text-faint fs-8 fw-normal">{t('Players')}</dt><dd className="text-default fw-semibold m-0">{tournament.counts.in} / {tournament.maxPlayers}</dd></div>
                         {playing[0]?.date && <div><dt className="text-faint fs-8 fw-normal">{t('First round')}</dt><dd className="text-default fw-semibold m-0">{formatDate(playing[0].date)}</dd></div>}
+                        {isClubAdmin && !drawn && <div><dt className="text-faint fs-8 fw-normal">{t('Invited')}</dt><dd className="text-default fw-semibold m-0">{INVITE_WORDS[tournament.invite ?? 'mail'].label}</dd></div>}
                         {tournament.status === 'finished' && <div><dt className="text-faint fs-8 fw-normal">{t('Winner')}</dt><dd className="text-default fw-semibold m-0">🏆 {nameOf(tournament, tournament.winner)}</dd></div>}
                     </dl>
 
@@ -207,7 +208,7 @@ const TournamentPage = () => {
                         <div className="d-flex flex-wrap gap-2 justify-content-end">
                             <Link to={`/tournaments/${tournament.id}/edit`} className="p-button p-button-sm p-button-text text-decoration-none"><i className="pi pi-pencil me-2" />{t('Change')}</Link>
                             {tournament.status === 'draft' &&
-                                <Button label={t('Open the registration')} icon="pi pi-send" size="small" loading={busy === 'open'} onClick={() => confirm(t('Open the registration'), t('Every member of the club is invited, in the app and by mail.'), () => run('open', () => TournamentService.openRegistration(tournament.id), t('The members are invited.')))} />}
+                                <Button label={t('Open the registration')} icon="pi pi-send" size="small" loading={busy === 'open'} onClick={() => confirm(t('Open the registration'), INVITE_WORDS[tournament.invite ?? 'mail'].opening, () => run('open', () => TournamentService.openRegistration(tournament.id), t('The members are invited.')))} />}
                             {registration &&
                                 <Button label={t('Close the registration now')} icon="pi pi-lock" size="small" severity="secondary" loading={busy === 'close'} onClick={() => confirm(t('Close the registration now'), t('Nobody can enter after this; then you hold the draw.'), () => run('close', () => TournamentService.closeRegistration(tournament.id)))} />}
                             <Button label={t('Cancel the tournament')} icon="pi pi-ban" size="small" severity="danger" text loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the tournament'), t('Everyone invited or entered hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => TournamentService.cancelTournament(tournament.id)), true)} />

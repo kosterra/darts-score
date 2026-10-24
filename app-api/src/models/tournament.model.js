@@ -1,4 +1,4 @@
-import { MAX_PLAYERS_CHOICES, SEEDINGS, STATUSES } from '../rules/tournaments.js';
+import { INVITE_CHANNELS, MAX_PLAYERS_CHOICES, SEEDINGS, STATUSES } from '../rules/tournaments.js';
 
 // A knockout tournament of a club (see rules/tournaments.js and
 // utils/tournaments.js): set up by its admins, the members invited to enter,
@@ -20,8 +20,9 @@ export default (mongoose) => {
       format:      { type: String, enum: ['knockout'], default: 'knockout' },
       preset:      { type: String, default: null },
       maxPlayers:  { type: Number, enum: MAX_PLAYERS_CHOICES, default: 16 },
-      // the registration: until when the members can answer
+      // the registration: until when the members can answer, and how they hear of it
       closesAt:    { type: Date, required: true },
+      invite:      { type: String, enum: INVITE_CHANNELS, default: 'mail' },
       // each round by how many players are left in it (16, 8, 4, 2): its day and rules;
       // a round the field is too small for is left out at the draw
       rounds: {

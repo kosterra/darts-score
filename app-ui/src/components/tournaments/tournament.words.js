@@ -25,6 +25,25 @@ export const PRESET_WORDS = {
     worldChampionship: { label: t('World Championship'), hint: t('PDC, in sets of best of 5 legs: first to 3 sets up to first to 7 in the final.') },
 };
 
+// how the members hear of the registration: the choice, what it does, and what opening it says
+export const INVITE_WORDS = {
+    mail: {
+        label: t('By mail'),
+        hint: t('Every member gets a notification in the app and a mail with the links to enter or decline (as each chose under Notifications); players without a login too, when the club keeps their address. A reminder comes a day before the end.'),
+        opening: t('Every member of the club is invited, in the app and by mail.'),
+    },
+    notification: {
+        label: t('Notification only'),
+        hint: t('Every member gets a notification in the app, no mail. Players without a login only hear of it from you.'),
+        opening: t('Every member of the club is invited with a notification in the app.'),
+    },
+    banner: {
+        label: t('Banner only'),
+        hint: t('Nobody is told: the members see the tournament on top of the club\'s dashboard and enter there.'),
+        opening: t('The tournament shows on top of the club\'s dashboard; nobody is told otherwise.'),
+    },
+};
+
 // what a tournament is doing, as a label with its colour
 export const STATUS_WORDS = {
     draft: { label: t('Draft'), severity: 'secondary' },

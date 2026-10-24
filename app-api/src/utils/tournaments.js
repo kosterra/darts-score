@@ -3,7 +3,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { preferenceOf } from '../rules/notifications.js';
 import {
-    MIN_PLAYERS, MAX_PLAYERS_CHOICES, SEEDINGS, advance, bracketMatches, cleanRules, drawBracket, isDecided,
+    INVITE_CHANNELS, MIN_PLAYERS, MAX_PLAYERS_CHOICES, SEEDINGS, advance, bracketMatches, cleanRules, drawBracket, isDecided,
     presetById, retract, roundSizes, rulesError,
 } from '../rules/tournaments.js';
 import { getSessionSecret } from './auth.utils.js';
@@ -136,7 +136,9 @@ export const checkSetup = (body, stored = null) => {
         rounds.push({ size, date, rules: cleanRules(given.rules), skipped: before?.skipped ?? false });
     }
     const preset = body.preset === undefined ? stored?.preset ?? null : presetById(body.preset)?.id ?? null;
-    return { setup: { name, description, maxPlayers, closesAt, rounds, preset } };
+    const invite = body.invite === undefined || !early ? stored?.invite ?? 'mail' : body.invite;
+    if (!INVITE_CHANNELS.includes(invite)) return { error: 'Choose how the members are invited.' };
+    return { setup: { name, description, maxPlayers, closesAt, rounds, preset, invite } };
 };
 
 /**
@@ -184,13 +186,17 @@ const tellAdmins = async (tournament, notice) => {
 };
 
 /**
- * Invites (or reminds) entries: an account in the app and by the mail with
- * the links to enter or decline, as it chose; a player without a login by
- * that mail when their club keeps an address for it with this topic.
+ * Invites (or reminds) entries, as the admins chose for the tournament:
+ * 'mail' an account in the app and by the mail with the links to enter or
+ * decline, as it chose, and a player without a login by that mail when their
+ * club keeps an address for it with this topic; 'notification' only in the
+ * app; 'banner' nobody (the dashboard shows it).
  * kind: 'invite' or 'reminder'. Resolves to how many were told.
  */
 export const invite = async (tournament, entries, kind = 'invite') => {
-    if (!entries.length) return 0;
+    const channel = tournament.invite ?? 'mail';
+    if (!entries.length || channel === 'banner') return 0;
+    const mailing = channel === 'mail' && isMailConfigured();
     const club = await db.club.findById(tournament.club, 'name').lean();
     const players = await db.player.find({ _id: { $in: entries.map(entry => entry.player) } }, 'nickname firstname user').lean();
     const users = new Map((await db.user.find({ _id: { $in: players.map(player => player.user).filter(Boolean) }, blockedAt: null }, 'email firstname language notifications').lean())
@@ -212,12 +218,12 @@ export const invite = async (tournament, entries, kind = 'invite') => {
             if (user) {
                 const preference = preferenceOf(user.notifications, 'tournamentInvites');
                 if (preference.inApp) await db.notification.create({ user: user._id, club: tournament.club, link: `/tournaments/${tournament._id}`, ...notice, inApp: true, mail: 'off' });
-                if (preference.mail !== 'off' && isMailConfigured()) {
+                if (preference.mail !== 'off' && mailing) {
                     const language = languageOf(user);
                     await sendTemplateMail(template, user.email, { firstname: user.firstname, ...vars(language), manageUrl: `${getAppUrl()}/profile#notifications` }, language);
                 }
-                told += 1;
-            } else if (contacts.has(String(player._id)) && isMailConfigured()) {
+                if (preference.inApp || (preference.mail !== 'off' && mailing)) told += 1;
+            } else if (contacts.has(String(player._id)) && mailing) {
                 const contact = contacts.get(String(player._id));
                 const language = contact.language ?? 'en';
                 const token = unsubscribeToken('contact', contact._id, 'tournamentInvites');
