@@ -87,6 +87,18 @@ const duelShame = async (club, playerIds, gameIds) => {
 };
 
 /**
+ * The badges each player earned in the games of the duel, and their whole
+ * collection: { [playerId]: { earned, total } }.
+ */
+const duelBadges = async (playerIds, gameIds) => {
+    const players = await db.player.find({ _id: { $in: playerIds } }, 'badges').lean();
+    return Object.fromEntries(players.map(player => [String(player._id), {
+        earned: countBadges((player.badges ?? []).filter(entry => gameIds.has(String(entry.sourceId)))),
+        total: countBadges(player.badges),
+    }]));
+};
+
+/**
  * Head to head of two or more players in one game type (the nine games):
  * everything the comparison shows in one answer — the record (wins, legs and
  * sets, streak, the last results, who beats whom), each player's figures, the
@@ -119,6 +131,7 @@ export const getDuel = async (req, res) => {
         const games = x01 ? found.map(game => viewOf('x01', game)) : found;
         const record = duelRecord(games, playerIds, { type });
         const wins = record.wins;
+        const gameIds = new Set(games.map(game => String(game._id)));
 
         res.json({
             type,
@@ -127,7 +140,9 @@ export const getDuel = async (req, res) => {
             players: playerIds.map(playerId => ({ id: playerId, wins: wins[playerId] ?? 0, ...figuresOf(type, games, playerId) })),
             games: games.map(summaryOf),
             highlights: x01 ? x01Highlights(games, playerIds) : null,
-            shame: await duelShame(req.club, playerIds, new Set(games.map(game => String(game._id)))),
+            shame: await duelShame(req.club, playerIds, gameIds),
+            // the badges each earned in these games, and their whole collection
+            badges: await duelBadges(playerIds, gameIds),
             ratings: Object.fromEntries(playerIds.map(id => [id, ratingOf(ratings, id)])),
             chances: winChances(ratings, playerIds),
             filterOptions: {

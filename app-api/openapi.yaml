@@ -3289,7 +3289,7 @@ paths:
         clock, shanghai, killer, halveit, golf, tactics), in one answer: playedGames; record (wins, for X01 legs, sets and the matches
         won in the deciding leg, the current streak, the last ten results, and pairs - who beats whom); each player's figures of the
         game (for the newer games worked out from their visits); games for the timeline; highlights of X01 (best game average, highest
-        checkout with their game, 180s); shame (the Hall of Shame badges got in these games, where the club has one); ratings (the
+        checkout with their game, 180s); shame (the Hall of Shame badges got in these games, where the club has one); badges (per player the badges earned in these games and their whole collection, { earned, total }); ratings (the
         club's Elo rating of each, provisional below 5 rated games) and chances (in percent for the next game); filterOptions (the X01
         formats played together and the club's formats of the game); and for X01 the chart data (x01).
       parameters:

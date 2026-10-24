@@ -177,15 +177,20 @@ const DuelHighlights = ({ data, players, colours }) => {
         groups[key] = group;
         return groups;
     }, {})).sort((a, b) => new Date(b.at) - new Date(a.at));
-    if (!highlights && !shame.length) return null;
+    const badges = data.badges ?? {};
+    const hasBadges = Object.values(badges).some(entry => entry.earned > 0);
+    // the tiles: the X01 moments, and in every game the badges earned
+    const tiles = Boolean(highlights) || hasBadges;
+    if (!tiles && !shame.length) return null;
     const gameLink = (gameId) => `/stats/games/x01/${gameId}`;
 
-    const Moment = ({ value, label, entry }) => (
+    const Moment = ({ value, label, entry, detail }) => (
         <div className="duel-moment">
             <span className="duel-moment-value tabular-nums">{value}</span>
             <span className="duel-moment-label">
                 {label}
                 {entry && <Link to={gameLink(entry.gameId)} className="duel-moment-date">{formatDate(entry.at)}<i className="pi pi-arrow-right" aria-hidden="true" /></Link>}
+                {detail && <span className="duel-moment-detail">{detail}</span>}
             </span>
         </div>
     );
@@ -193,11 +198,13 @@ const DuelHighlights = ({ data, players, colours }) => {
     return (
         <Panel header={t('Highlights of their games')}>
             <div className="row g-4">
-                {highlights &&
+                {tiles &&
                     <div className={shame.length ? 'col-12 col-xl-7' : 'col-12'}>
+                        {/* a title as the Hall of Shame beside it has, so both start at the same height */}
+                        <span className="d-block text-faint fs-8 mb-2">{t('Their best moments')}</span>
                         <div className="duel-moments">
                             {players.map((player, index) => {
-                                const entry = highlights[player.id] ?? {};
+                                const entry = highlights?.[player.id] ?? {};
                                 return (
                                     <section key={player.id} className="duel-moments-player" style={{ '--duel-colour': colours[index] }}>
                                         <header className="d-flex align-items-center gap-2">
@@ -209,16 +216,19 @@ const DuelHighlights = ({ data, players, colours }) => {
                                             />
                                             <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
                                         </header>
-                                        <Moment value={entry.bestAverage ? entry.bestAverage.value.toFixed(1) : '–'} label={t('Best game average')} entry={entry.bestAverage} />
-                                        <Moment value={entry.highestCheckout?.value ?? '–'} label={t('Highest checkout')} entry={entry.highestCheckout} />
-                                        <Moment value={entry.num180s ?? 0} label={t('180s thrown')} />
+                                        {highlights && <>
+                                            <Moment value={entry.bestAverage ? entry.bestAverage.value.toFixed(1) : '–'} label={t('Best game average')} entry={entry.bestAverage} />
+                                            <Moment value={entry.highestCheckout?.value ?? '–'} label={t('Highest checkout')} entry={entry.highestCheckout} />
+                                            <Moment value={entry.num180s ?? 0} label={t('180s thrown')} />
+                                        </>}
+                                        <Moment value={badges[player.id]?.earned ?? 0} label={t('Badges earned in these games')} detail={t('{{count}} in all', { count: badges[player.id]?.total ?? 0 })} />
                                     </section>
                                 );
                             })}
                         </div>
                     </div>}
                 {shame.length > 0 &&
-                    <div className={highlights ? 'col-12 col-xl-5' : 'col-12'}>
+                    <div className={tiles ? 'col-12 col-xl-5' : 'col-12'}>
                         <span className="d-block text-faint fs-8 mb-2">{t('Hall of Shame in these games')}</span>
                         <ul className="duel-shame list-unstyled m-0">
                             {shame.map(entry => (
