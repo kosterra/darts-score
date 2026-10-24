@@ -116,16 +116,42 @@ const DuelSummary = ({ data, players, colours, type }) => {
     );
 };
 
+// an icon for what a difference is about
+const INSIGHT_ICONS = {
+    average: 'pi pi-chart-line', firstNine: 'pi pi-chart-line', checkout: 'pi pi-flag', checkoutRate: 'pi pi-flag',
+    won: 'pi pi-trophy', wins: 'pi pi-trophy', winRate: 'pi pi-trophy', rating: 'pi pi-star',
+    dartsPerLeg: 'pi pi-bolt', 180: 'pi pi-bolt', num180s: 'pi pi-bolt', highest: 'pi pi-flag-fill', highestCheckout: 'pi pi-flag-fill',
+};
+
+const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// the sentence with every player's name in their colour
+const Highlighted = ({ text, players, colours }) => {
+    const names = players.map((player, index) => ({ name: player.nickname, colour: colours[index] })).filter(entry => entry.name).sort((a, b) => b.name.length - a.name.length);
+    if (!names.length) return text;
+    const parts = text.split(new RegExp(`(${names.map(entry => escape(entry.name)).join('|')})`, 'g'));
+    return parts.map((part, index) => {
+        const entry = names.find(candidate => candidate.name === part);
+        return entry ? <strong key={index} className="compare-insight-name" style={{ color: entry.colour }}>{part}</strong> : part;
+    });
+};
+
 /**
- * The comparison in words: the differences that stand out.
+ * The comparison in words: the differences that stand out, each as a line in
+ * the colour of the player ahead, with the names in the players' colours.
  */
-export const CompareInsights = ({ rows, players }) => {
+export const CompareInsights = ({ rows, players, colours = [] }) => {
     const insights = insightsOf(rows, players);
     if (!insights.length) return null;
     return (
         <Panel header={t('In a few words')}>
-            <ul className="compare-insights m-0">
-                {insights.map(insight => <li key={insight.key}>{insight.text}</li>)}
+            <ul className="compare-insights list-unstyled m-0">
+                {insights.map(insight => (
+                    <li key={insight.key} className="compare-insight" style={{ '--insight-colour': colours[insight.playerIndex] ?? 'var(--primary-color)' }}>
+                        <span className="compare-insight-icon" aria-hidden="true"><i className={INSIGHT_ICONS[insight.key] ?? 'pi pi-arrow-up-right'} /></span>
+                        <span><Highlighted text={insight.text} players={players} colours={colours} /></span>
+                    </li>
+                ))}
             </ul>
         </Panel>
     );
@@ -274,11 +300,14 @@ const CompareDuel = ({ type, players, request, colours, onData, onSideBySide }) 
 
     return (
         <div className="d-flex flex-column gap-4">
+            {/* the duel and the words on the left, the figures beside them: both end about the same height */}
             <div className="row g-4">
-                <div className="col-12 col-xl-7"><DuelSummary data={data} players={players} colours={colours} type={type} /></div>
-                <div className="col-12 col-xl-5 d-flex flex-column gap-4">
-                    <CompareInsights rows={rows} players={players} />
-                    <Panel header={t('{{game}}: figures', { game: typeTitle(type) })} className="flex-grow-1">
+                <div className="col-12 col-xl-7 d-flex flex-column gap-4">
+                    <DuelSummary data={data} players={players} colours={colours} type={type} />
+                    <CompareInsights rows={rows} players={players} colours={colours} />
+                </div>
+                <div className="col-12 col-xl-5">
+                    <Panel header={t('{{game}}: figures', { game: typeTitle(type) })} className="h-100">
                         <p className="text-faint fs-8 mt-0">{tn(data.playedGames, 'In their {{count}} game together.', 'In their {{count}} games together.')}</p>
                         <SideBySide rows={rows} players={players} />
                     </Panel>

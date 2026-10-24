@@ -958,11 +958,12 @@
     i { color: $primaryColor; }
 }
 
-// the player comparison's picker: quick picks as small buttons, and on a phone
-// the chosen players as chips with the list only when asked for
+// the player comparison's picker: quick picks as small buttons, the chosen
+// players in a line when it is closed
 .compare-quick {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: $space-2;
 }
 
@@ -977,14 +978,15 @@
     display: inline-flex;
     align-items: center;
     gap: $space-2;
-    padding: $space-1 $space-1 $space-1 $space-3;
+    padding: $space-1 $space-1 $space-1 $space-1;
     border-radius: $radius-pill;
     background: $surfaceHighColor;
     color: $textDefaultColor;
     font-size: $text-sm;
     font-weight: $weight-semibold;
 
-    .players-picker-colour { position: static; }
+    // the picture with a ring in the player's colour in the charts
+    .compare-chip-avatar { box-shadow: 0 0 0 2px var(--compare-colour); }
 }
 
 .compare-chip-remove {
@@ -1004,24 +1006,9 @@
     &:focus-visible { @include focus-ring; }
 }
 
-.compare-picker-list {
-    display: flex;
-    flex-direction: column;
-    gap: $space-3;
-}
-
-@media (max-width: 991.98px) {
-    .compare-picker-list:not(.is-open) { display: none; }
-}
-
-// the way into the player comparison
-.compare-link {
-    display: inline-flex;
-    align-items: center;
-    gap: $space-2;
-    font-size: $text-sm;
-
-    i { font-size: $text-xs; }
+// a chosen card: the corner mark in the player's colour in the charts
+.player-pick-card .compare-pick-colour {
+    background: var(--compare-colour);
 }
 
 // ── The player comparison ──────────────────────────────────────────────
@@ -1165,14 +1152,38 @@
     }
 }
 
-// the comparison in words
+// the comparison in words: a line per difference, edged in the colour of the player ahead
 .compare-insights {
     display: flex;
     flex-direction: column;
     gap: $space-2;
-    padding-left: $space-4;
-    color: $textDefaultColor;
+}
+
+.compare-insight {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-3;
+    padding: $space-3;
+    border-left: 3px solid var(--insight-colour);
+    border-radius: $radius-sm $radius-md $radius-md $radius-sm;
+    background: color-mix(in srgb, var(--insight-colour) 7%, $surfaceRaisedColor);
+    color: $textSubtleColor;
     font-size: $text-md;
+    line-height: 1.45;
+
+    .compare-insight-name { font-weight: $weight-bold; }
+}
+
+.compare-insight-icon {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: $radius-round;
+    background: color-mix(in srgb, var(--insight-colour) 18%, transparent);
+    color: var(--insight-colour);
+    font-size: $text-sm;
 }
 
 // the best moments of each player in the duel

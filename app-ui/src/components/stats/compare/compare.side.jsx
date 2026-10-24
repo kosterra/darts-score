@@ -16,7 +16,7 @@ const hasFigures = (group) => group.rows.some(row => !row.neutral && row.values.
  * (also when they never met), in groups by game, with the trainings, and the
  * comparison in words. request: { scope, dateFilter, from, to, lastGames }
  */
-const CompareSide = ({ players, request }) => {
+const CompareSide = ({ players, request, colours = [] }) => {
     const [data, setData] = useState(null);
     const [failed, setFailed] = useState(false);
     const key = JSON.stringify({ ids: players.map(player => player.id), request });
@@ -49,7 +49,7 @@ const CompareSide = ({ players, request }) => {
 
     return (
         <div className="d-flex flex-column gap-4">
-            <CompareInsights rows={[...overall.rows, ...x01.rows]} players={players} />
+            <CompareInsights rows={[...overall.rows, ...x01.rows]} players={players} colours={colours} />
             <div className="row g-4">
                 {groups.map(group => (
                     <div key={group.key} className="col-12 col-xl-6">

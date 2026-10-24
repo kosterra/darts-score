@@ -2646,6 +2646,7 @@
  "Up to four players, in the order they throw.": "Bis zu vier Spieler, in der Reihenfolge, in der sie werfen.",
  "Up to three goals for the whole club, e.g. 100 × 180 until the end of the season. They show on the badges page and the dashboard; the members hear when one is reached.": "Bis zu drei Ziele für den ganzen Club, z. B. 100 × 180 bis zum Saisonende. Sie erscheinen auf der Badges-Seite und im Dashboard; die Mitglieder erfahren, wenn eines erreicht ist.",
  "Up to {{MAX_PLAYERS}} players": "Bis zu {{MAX_PLAYERS}} Spieler",
+ "Up to {{max}} players": "Bis zu {{max}} Spieler",
  "Upload": "Hochladen",
  "Use the club's": "Das des Clubs verwenden",
  "User": "Benutzer",

@@ -146,9 +146,9 @@ const PlayersStatisticsPage = () => {
     if (!players) {
         return (
             <div className="container-fluid p-4 border-0">
-                <div className="row g-4">
-                    <div className="col-12 col-lg-4 col-xxl-3"><CardSkeleton title={t('Players')} /></div>
-                    <div className="col-12 col-lg-8 col-xxl-9"><CardSkeleton chart /></div>
+                <div className="d-flex flex-column gap-4">
+                    <CardSkeleton title={t('Players')} />
+                    <CardSkeleton chart />
                 </div>
             </div>
         );
@@ -171,9 +171,8 @@ const PlayersStatisticsPage = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <div className="row g-4">
-                <div className="col-12 col-lg-4 col-xxl-3">
-                    <ComparePicker
+            {/* who is compared, at the top; the comparison below uses the whole width */}
+            <ComparePicker
                         players={players}
                         selectedIds={selectedIds}
                         onChange={setSelectedIds}
@@ -182,9 +181,8 @@ const PlayersStatisticsPage = () => {
                         maxPlayers={MAX_PLAYERS}
                         colours={colours}
                     />
-                </div>
 
-                <div className="col-12 col-lg-8 col-xxl-9 min-w-0">
+                <div className="min-w-0">
                     {selected.length < 2 &&
                         <header className="hero-header rounded-2 p-4 mb-4 d-flex flex-column gap-2">
                             <h1 className="fs-2 fw-semibold text-default m-0">{t('Player comparison')}</h1>
@@ -259,11 +257,10 @@ const PlayersStatisticsPage = () => {
                                     onData={(answer) => setOptions(answer.filterOptions ?? { formats: [], clubFormats: [] })}
                                     onSideBySide={() => setChosen({ mode: 'side' })}
                                 />
-                                : <CompareSide players={selected} request={sideRequestOf(filters)} />}
+                                : <CompareSide players={selected} request={sideRequestOf(filters)} colours={colours} />}
                         </>
                     }
                 </div>
-            </div>
         </div>
     );
 };

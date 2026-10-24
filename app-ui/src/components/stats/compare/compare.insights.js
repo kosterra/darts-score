@@ -48,13 +48,10 @@ export const insightsOf = (rows, players, { max = 3 } = {}) => {
         .filter(Boolean)
         .sort((a, b) => b.score - a.score);
 
-    // the strongest difference, then one where someone else leads, then the next strongest
-    const chosen = [];
-    for (const candidate of candidates) {
-        if (chosen.length >= max) break;
-        if (chosen.length === 1 && candidates.some(other => other.best.index !== chosen[0].best.index) && candidate.best.index === chosen[0].best.index) continue;
-        chosen.push(candidate);
-    }
+    // the strongest difference, then the strongest where someone else leads, then the next strongest
+    const chosen = candidates.slice(0, 1);
+    const contrast = candidates.find(candidate => chosen[0] && candidate.best.index !== chosen[0].best.index);
+    if (contrast && max > 1) chosen.push(contrast);
     for (const candidate of candidates) {
         if (chosen.length >= max) break;
         if (!chosen.includes(candidate)) chosen.push(candidate);
