@@ -93,7 +93,7 @@ export const explainMailError = (err) => {
     const code = err?.code ?? '';
     const said = `${err?.message ?? ''} ${err?.response ?? ''}`;
     const reason = (() => {
-        if (code === 'ELIMIT') return 'The daily mail limit of this installation is reached. Mails are sent again tomorrow, or raise the limit under System settings → Mail server.';
+        if (code === 'ELIMIT') return 'The daily mail limit of this installation is reached: no more mails are sent today. Raise the limit under System settings → Mail server if your mail server allows more.';
         if (code === 'EAUTH') return 'The mail server refused the login. Check SMTP_USER and SMTP_PASSWORD.';
         if (code === 'EDNS' || /ENOTFOUND|EAI_AGAIN/.test(said)) return 'The name of the mail server was not found. Check SMTP_HOST.';
         if (/certificate|self[- ]signed|CERT_/i.test(said)) return 'The certificate of the mail server is not trusted. Check SMTP_HOST: use the name the certificate is for.';

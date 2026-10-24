@@ -105,7 +105,7 @@ const MailServer = ({ onSaved }) => {
 
                 <span className="text-default fw-semibold fs-7 mt-2">{t('Daily limit')}</span>
                 <span className="text-subtle fs-8">
-                    {t('Many mail providers send only so many mails a day (e.g. 300). Close to the limit the global admins hear it; once it is reached, the mails of the rest of the day are held back. A mail server that refuses mails for its own limit counts as reached too.')}
+                    {t('Many mail providers send only so many mails a day (e.g. 300). Close to the limit the global admins hear it; once it is reached, no more mails are sent that day (not later either). A mail server that refuses mails for its own limit counts as reached too.')}
                 </span>
                 <div className="d-flex flex-wrap align-items-center gap-3">
                     <InputNumber
@@ -128,7 +128,7 @@ const MailServer = ({ onSaved }) => {
                     </span>
                     <div className="mail-days" aria-label={t('Mails of the last 7 days')}>
                         {[...days].reverse().map(entry => (
-                            <span key={entry.day} className={`mail-day ${entry.reached ? 'is-reached' : ''}`} title={`${formatDate(entry.day)}: ${tn(entry.mails, '{{count}} mail', '{{count}} mails')}${entry.heldBack ? ` · ${t('{{count}} held back', { count: entry.heldBack })}` : ''}`}>
+                            <span key={entry.day} className={`mail-day ${entry.reached ? 'is-reached' : ''}`} title={`${formatDate(entry.day)}: ${tn(entry.mails, '{{count}} mail', '{{count}} mails')}${entry.heldBack ? ` · ${t('{{count}} not sent', { count: entry.heldBack })}` : ''}`}>
                                 <span className="mail-day-bar"><span style={{ height: `${(entry.mails / most) * 100}%` }} /></span>
                                 <span className="mail-day-count">{entry.mails}</span>
                                 <span className="mail-day-label">{formatDate(entry.day, { year: 'none' })}</span>
@@ -137,7 +137,7 @@ const MailServer = ({ onSaved }) => {
                     </div>
                     <span className="text-faint fs-8">
                         {reachedDays
-                            ? t('The limit was reached on {{count}} of the last 7 days; {{held}} mails were held back.', { count: reachedDays, held: days.reduce((sum, entry) => sum + entry.heldBack, 0) })
+                            ? t('The limit was reached on {{count}} of the last 7 days; {{held}} mails were not sent.', { count: reachedDays, held: days.reduce((sum, entry) => sum + entry.heldBack, 0) })
                             : t('The limit was not reached in the last 7 days.')}
                     </span>
                 </div>

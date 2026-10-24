@@ -94,7 +94,7 @@ export const setup = async (req, res) => res.json({ ...mailSetup(), limit: await
 
 /**
  * The daily limit of the mail server ({ perDay }, null for none): close to it
- * the global admins hear it, at it the rest of the day's mails wait.
+ * the global admins hear it, at it no more mails are sent that day.
  */
 export const saveLimit = async (req, res) => {
     const perDay = await saveMailLimit(req.body.perDay ?? null);

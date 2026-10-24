@@ -59,7 +59,7 @@ const UsagePage = () => {
                     <Message
                         severity="warn"
                         className="w-100 justify-content-start mt-3"
-                        text={t('The daily mail limit was reached on {{count}} of 7 days; {{held}} mails were held back. See System settings → Mail server.', { count: last.mailLimitDays, held: last.mailsHeldBack })}
+                        text={t('The daily mail limit was reached on {{count}} of 7 days; {{held}} mails were not sent. See System settings → Mail server.', { count: last.mailLimitDays, held: last.mailsHeldBack })}
                     />}
                 <p className="text-faint fs-8 mt-3 mb-0">
                     {data.since

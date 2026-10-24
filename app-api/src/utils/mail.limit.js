@@ -7,7 +7,7 @@ import { dayKey } from './sessions.js';
  * The daily limit of the mail server (e.g. 300 mails a day with many
  * providers): every mail sent is counted per day. Close to the limit the
  * global admins hear it while a mail still goes out; once it is reached they
- * hear it in the app, and the mails of the rest of the day are held back (the
+ * hear it in the app, and no more mails are sent that day, not later either (the
  * mail server would refuse them, and some providers block an account that
  * keeps trying). A mail server that refuses mails for a limit of its own
  * counts as reached too. The global admins set the limit under System
@@ -22,7 +22,7 @@ export const LIMIT_RANGE = { min: 1, max: 1000000 };
 // a mail not sent because the limit of the day is reached
 export class MailLimitError extends Error {
     constructor() {
-        super('The daily mail limit is reached; the mail is held back until tomorrow.');
+        super('The daily mail limit is reached; no more mails are sent today.');
         this.code = 'ELIMIT';
     }
 }
@@ -92,11 +92,11 @@ export const countMail = async (now = new Date()) => {
     if (day.mails >= limit) {
         if (await markReached(now, limit)) {
             logger.warn(`The daily mail limit of ${limit} is reached`);
-            await tell('mailLimitReached', `Mail limit reached: ${limit} mails today`, 'Further mails are held back until tomorrow. Raise the limit under System settings → Mail server if your mail server allows more.');
+            await tell('mailLimitReached', `Mail limit reached: ${limit} mails today`, 'No more mails are sent today; they are not sent later either. Raise the limit under System settings → Mail server if your mail server allows more.');
         }
     } else if (day.mails >= Math.ceil(limit * NEAR_SHARE) && !day.mailLimitNearAt) {
         const { modifiedCount } = await db.usageDay.updateOne({ day: dayKey(now), mailLimitNearAt: null }, { $set: { mailLimitNearAt: now } });
-        if (modifiedCount) await tell('mailLimitNear', `Mail limit almost reached: ${day.mails} of ${limit} mails today`, 'Once it is reached, further mails are held back until tomorrow.');
+        if (modifiedCount) await tell('mailLimitNear', `Mail limit almost reached: ${day.mails} of ${limit} mails today`, 'Once it is reached, no more mails are sent that day.');
     }
 };
 
@@ -106,13 +106,13 @@ export const isLimitRefusal = (err) => [421, 450, 451, 452, 454, 550, 554].inclu
 
 /**
  * A mail the mail server refused for its own limit: the limit of the day
- * counts as reached, so the rest of the day's mails wait.
+ * counts as reached, so no more mails are sent that day.
  */
 export const noteLimitRefusal = async (err, now = new Date()) => {
     if (!isLimitRefusal(err)) return false;
     if (await markReached(now, await getMailLimit())) {
         logger.warn(`The mail server refused a mail for its daily limit: ${err.response ?? err.message}`);
-        await tell('mailLimitReached', 'The mail server refused mails: its daily limit is reached', 'Further mails are held back until tomorrow. Check the limit of your mail provider and set it under System settings → Mail server.');
+        await tell('mailLimitReached', 'The mail server refused mails: its daily limit is reached', 'No more mails are sent today; they are not sent later either. Check the limit of your mail provider and set it under System settings → Mail server.');
     }
     return true;
 };

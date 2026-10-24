@@ -109,7 +109,7 @@ export const usageLines = (week, before, language = 'en') => {
     if (week.num180s) lines.push(line('180s: {{count}}', week.num180s, before?.num180s));
     if (week.mails || before?.mails) lines.push(line('Mails sent: {{count}}', week.mails, before?.mails));
     if (week.mailLimitDays) {
-        lines.push(`• ${tr(language, 'Daily mail limit reached on {{count}} of 7 days, {{held}} mails held back', { count: week.mailLimitDays, held: week.mailsHeldBack })}`);
+        lines.push(`• ${tr(language, 'Daily mail limit reached on {{count}} of 7 days, {{held}} mails not sent', { count: week.mailLimitDays, held: week.mailsHeldBack })}`);
     }
     return lines;
 };
