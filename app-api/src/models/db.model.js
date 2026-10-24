@@ -26,6 +26,7 @@ import playerClaimModel from './player.claim.model.js';
 import noticeSentModel from './notice.sent.model.js';
 import sessionModel from './session.model.js';
 import usageDayModel from './usage.day.model.js';
+import tournamentModel from './tournament.model.js';
 
 const db = {
   mongoose,
@@ -57,6 +58,7 @@ const db = {
   noticeSent: noticeSentModel(mongoose),
   session: sessionModel(mongoose),
   usageDay: usageDayModel(mongoose),
+  tournament: tournamentModel(mongoose),
 };
 
 export default db;

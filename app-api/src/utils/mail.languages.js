@@ -46,6 +46,16 @@ export const TEMPLATE_TEXTS = {
             body: "Hallo {{firstname}}\n\nDas war deine Woche am Oche:\n\n{{summary}}",
             button: "Deine Statistik",
         },
+        tournamentInvite: {
+            subject: "Du bist eingeladen: {{tournament}} von {{club}}",
+            body: "Hallo {{firstname}}\n\n{{club}} veranstaltet ein Turnier, {{tournament}}, und du bist eingeladen mitzuspielen.\n\n{{schedule}}\n\nSpielst du mit? Melde dich bis {{closes}} mit dem Knopf unten an. Diesmal nicht? {{declineLink}}",
+            button: "Ich bin dabei",
+        },
+        tournamentReminder: {
+            subject: "Letzte Chance: Anmeldung für {{tournament}}",
+            body: "Hallo {{firstname}}\n\ndie Anmeldung für {{tournament}} von {{club}} endet am {{closes}}, und du hast noch nicht geantwortet.\n\n{{schedule}}\n\nMelde dich mit dem Knopf unten an. Diesmal nicht? {{declineLink}}",
+            button: "Ich bin dabei",
+        },
         usageReport: {
             subject: "Oche: die Woche vom {{week}}",
             body: "Hallo {{firstname}}\n\nSo wurde Oche in der Woche vom {{week}} genutzt, verglichen mit der Woche davor:\n\n{{summary}}",
@@ -122,6 +132,16 @@ export const TEMPLATE_TEXTS = {
             subject: "Ta semaine à l'oche",
             body: "Bonjour {{firstname}},\n\nVoici ta semaine à l'oche :\n\n{{summary}}",
             button: "Tes statistiques",
+        },
+        tournamentInvite: {
+            subject: "Tu es invité : {{tournament}} de {{club}}",
+            body: "Salut {{firstname}},\n\n{{club}} organise un tournoi, {{tournament}}, et tu es invité à jouer.\n\n{{schedule}}\n\nTu joues ? Inscris-toi avec le bouton ci-dessous jusqu'au {{closes}}. Pas cette fois ? {{declineLink}}",
+            button: "J'en suis",
+        },
+        tournamentReminder: {
+            subject: "Dernière chance pour t'inscrire à {{tournament}}",
+            body: "Salut {{firstname}},\n\nles inscriptions pour {{tournament}} de {{club}} se terminent le {{closes}}, et tu n'as pas encore répondu.\n\n{{schedule}}\n\nInscris-toi avec le bouton ci-dessous. Pas cette fois ? {{declineLink}}",
+            button: "J'en suis",
         },
         usageReport: {
             subject: "Oche : la semaine du {{week}}",
@@ -200,6 +220,16 @@ export const TEMPLATE_TEXTS = {
             body: "Ciao {{firstname}},\n\nEcco la tua settimana all'oche:\n\n{{summary}}",
             button: "Le tue statistiche",
         },
+        tournamentInvite: {
+            subject: "Sei invitato: {{tournament}} di {{club}}",
+            body: "Ciao {{firstname}},\n\n{{club}} organizza un torneo, {{tournament}}, e sei invitato a giocare.\n\n{{schedule}}\n\nGiochi? Iscriviti con il pulsante qui sotto entro il {{closes}}. Non questa volta? {{declineLink}}",
+            button: "Ci sono",
+        },
+        tournamentReminder: {
+            subject: "Ultima occasione per iscriverti a {{tournament}}",
+            body: "Ciao {{firstname}},\n\nle iscrizioni a {{tournament}} di {{club}} chiudono il {{closes}} e non hai ancora risposto.\n\n{{schedule}}\n\nIscriviti con il pulsante qui sotto. Non questa volta? {{declineLink}}",
+            button: "Ci sono",
+        },
         usageReport: {
             subject: "Oche: la settimana del {{week}}",
             body: "Ciao {{firstname}},\n\nEcco come è stato usato Oche nella settimana del {{week}}, rispetto alla settimana prima:\n\n{{summary}}",
@@ -276,6 +306,16 @@ export const TEMPLATE_TEXTS = {
             subject: "Tu semana en el oche",
             body: "Hola, {{firstname}}:\n\nAsí fue tu semana en el oche:\n\n{{summary}}",
             button: "Tus estadísticas",
+        },
+        tournamentInvite: {
+            subject: "Estás invitado: {{tournament}} de {{club}}",
+            body: "Hola, {{firstname}}:\n\n{{club}} organiza un torneo, {{tournament}}, y estás invitado a jugar.\n\n{{schedule}}\n\n¿Juegas? Apúntate con el botón de abajo hasta el {{closes}}. ¿Esta vez no? {{declineLink}}",
+            button: "Me apunto",
+        },
+        tournamentReminder: {
+            subject: "Última oportunidad para apuntarte a {{tournament}}",
+            body: "Hola, {{firstname}}:\n\nla inscripción para {{tournament}} de {{club}} termina el {{closes}} y aún no has respondido.\n\n{{schedule}}\n\nApúntate con el botón de abajo. ¿Esta vez no? {{declineLink}}",
+            button: "Me apunto",
         },
         usageReport: {
             subject: "Oche: la semana del {{week}}",

@@ -22,6 +22,13 @@ const CLUB = [
 const VALIDITY = { key: 'validity', description: 'How long the link works, e.g. "7 days"', sample: '7 days' };
 const NICKNAME = { key: 'nickname', description: 'Nickname of the player', sample: 'Sammy' };
 const DATE = { key: 'date', description: 'When it happened', sample: '24.10.2026 20:15' };
+const TOURNAMENT = [
+    { key: 'club', description: 'Name of the club', sample: 'Red Lion Darts Club' },
+    { key: 'tournament', description: 'Name of the tournament', sample: 'Autumn Cup' },
+    { key: 'closes', description: 'Until when the registration is open', sample: '7.11.2026 20:00' },
+    { key: 'schedule', description: 'The rounds with their days and rules, one line each', sample: '• Quarter-finals: 14.11.2026, best of 5 legs\n• Semi-finals: 21.11.2026, best of 7 legs\n• Final: 28.11.2026, best of 9 legs' },
+    { key: 'declineLink', description: 'The link to decline', sample: 'https://oche.example.com/tournament-reply?token=…&answer=out' },
+];
 
 export const MAIL_TEMPLATES = [
     {
@@ -95,6 +102,24 @@ export const MAIL_TEMPLATES = [
         subject: 'Your week on the oche',
         body: 'Hello {{firstname}},\n\nThis was your week on the oche:\n\n{{summary}}',
         button: 'Your statistics',
+    },
+    {
+        id: 'tournamentInvite',
+        title: 'Tournament invitation',
+        description: 'A club admin opened the registration of a tournament: every member is asked to enter, with a link to enter and one to decline.',
+        placeholders: [...COMMON, ...TOURNAMENT],
+        subject: 'You are invited: {{tournament}} of {{club}}',
+        body: 'Hello {{firstname}},\n\n{{club}} holds a tournament, {{tournament}}, and you are invited to play.\n\n{{schedule}}\n\nWill you play? Enter with the button below until {{closes}}. Not this time? {{declineLink}}',
+        button: 'I\'m in',
+    },
+    {
+        id: 'tournamentReminder',
+        title: 'Tournament reminder',
+        description: 'A day before the registration of a tournament ends, for the members who have not answered yet.',
+        placeholders: [...COMMON, ...TOURNAMENT],
+        subject: 'Last chance to enter {{tournament}}',
+        body: 'Hello {{firstname}},\n\nthe registration for {{tournament}} of {{club}} ends on {{closes}}, and you have not answered yet.\n\n{{schedule}}\n\nEnter with the button below. Not this time? {{declineLink}}',
+        button: 'I\'m in',
     },
     {
         id: 'usageReport',

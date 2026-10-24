@@ -11,11 +11,13 @@ import { getAppUrl, isMailConfigured } from './mail.utils.js';
 import { sendTemplateMail } from './mail.service.js';
 import { tr, translate } from './translate.js';
 import { lastWeeks, usageLines } from './usage.stats.js';
+import { runTournamentJobs } from './tournaments.js';
 
 /**
  * What the app does once an hour for the notifications: the mails of the
- * day and the week, the weekly summaries, and the reminders (a game left
- * running, an invitation not used, a goal about to end, many errors).
+ * day and the week, the weekly summaries, the reminders (a game left
+ * running, an invitation not used, a goal about to end, many errors), and
+ * the tournaments (registrations that end, reminders, rounds behind).
  * Each reminder goes out once (see noticeSent).
  */
 
@@ -364,7 +366,7 @@ export const sendUsageReports = async (now = new Date()) => {
 export const runNotificationJobs = async (now = new Date()) => {
     for (const [name, job] of Object.entries({
         remindRunningGames, remindUnusedInvites, remindEndingGoals, remindErrorSpike,
-        sendDigests, sendWeeklySummaries,
+        sendDigests, sendWeeklySummaries, runTournamentJobs,
     })) {
         try {
             await job(now);

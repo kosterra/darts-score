@@ -17,6 +17,7 @@ const TOPIC_LABELS = {
     level: t('A new level'),
     records: t('New personal bests and club records'),
     weeklySummary: t('Their week, on Mondays'),
+    tournamentInvites: t('Invitations to the club\'s tournaments'),
 };
 
 /**

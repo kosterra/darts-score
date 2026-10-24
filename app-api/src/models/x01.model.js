@@ -41,6 +41,8 @@ export default (mongoose, name = 'x01') => {
       legStarter:        { type: String, enum: ['rotate', 'loser'], default: 'rotate' },
       roundLimit:        { type: Number, min: 0, default: 0 },
       bull:              { type: String, enum: ['split', 'fifty'], default: 'split' },
+      // a match of a tournament: set by the server when the match is started, never by the app
+      tournament:        { id: { type: mongoose.Schema.Types.ObjectId, ref: 'tournament' }, match: String },
     },
     { timestamps: true }
   );

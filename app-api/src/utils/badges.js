@@ -226,6 +226,16 @@ export const BADGE_GROUPS = [
         tiers: [[5, 'Sociable'], [15, 'Club Favourite'], [30, 'Everyone\'s Rival']],
     },
     {
+        group: 'tournamentWins', category: 'winning', title: 'Tournament wins', metric: 'tournamentWins',
+        describe: (n) => (n === 1 ? 'Win a tournament of your club' : `Win ${n} tournaments of your club`),
+        tiers: [[1, 'Champion'], [3, 'Serial Winner'], [10, 'Dynasty']],
+    },
+    {
+        group: 'tournamentFinals', category: 'milestones', title: 'Tournament finals', metric: 'tournamentFinals',
+        describe: (n) => (n === 1 ? 'Reach the final of a tournament of your club' : `Reach ${n} tournament finals`),
+        tiers: [[1, 'Finalist'], [5, 'Big Stage Regular'], [15, 'Final Specialist']],
+    },
+    {
         group: 'anniversary', category: 'milestones', title: 'Anniversary', metric: 'daysSinceFirst',
         describe: (n) => `Still play or train ${n / 365 === 1 ? 'a year' : `${n / 365} years`} after your first game`,
         label: (n) => n / 365 === 1 ? '1 year' : `${n / 365} years`,
@@ -495,6 +505,8 @@ const newMetrics = () => ({
     // the Hall of Shame and the good deeds that wash it off
     nothingDoings: 0, bustMasters: 0, stuckOnDoubles: 0, whitewashedLosses: 0, bottledIts: 0, woodenSpoons: 0, coldSpells: 0,
     lossStreak: 0, bigCheckouts: 0, firstDartCheckouts: 0, bigGameWins: 0, warmUps: 0,
+    // tournaments: finals reached and won
+    tournamentFinals: 0, tournamentWins: 0,
 });
 
 const number = (key) => Number(String(key).replace(/\D/g, '')) || 0;
@@ -942,7 +954,10 @@ export const replayBadges = (events, playerId, { privateTrainings = false } = {}
 
     for (const event of [...events].sort((a, b) => a.at - b.at)) {
         const before = Object.fromEntries(SHAME_BADGES.flatMap(badge => [[badge.metric, metrics[badge.metric]], [badge.washMetric, metrics[badge.washMetric]]]));
-        if (event.type === 'atc') applyTraining(metrics, event.data, event.at);
+        if (event.type === 'tournament') {
+            metrics.tournamentFinals += 1;
+            if (event.data.won) metrics.tournamentWins += 1;
+        } else if (event.type === 'atc') applyTraining(metrics, event.data, event.at);
         else if (event.type === 'rulesTraining') applyRulesTraining(metrics, event.data, event.at);
         else applyGame(metrics, event.type, event.data, playerId);
         applyWeek(metrics, event.at);

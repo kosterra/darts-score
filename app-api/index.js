@@ -35,6 +35,7 @@ import badgeRoutes     from './src/routes/badge.routes.js';
 import integrityRoutes from './src/routes/integrity.routes.js';
 import notificationRoutes, { unsubscribeRoutes } from './src/routes/notification.routes.js';
 import deletionRequestRoutes from './src/routes/deletion.request.routes.js';
+import tournamentRoutes, { tournamentReplyRoutes } from './src/routes/tournament.routes.js';
 import { isAllowedOrigin } from './src/utils/origin.utils.js';
 import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
@@ -151,6 +152,7 @@ authRoutes(app);
 publicRoutes(app);
 unsubscribeRoutes(app);
 claimInfoRoutes(app);
+tournamentReplyRoutes(app);
 clubLogoRoutes(app);
 
 // Everything else under /api needs a logged-in user ...
@@ -164,10 +166,11 @@ notificationRoutes(app);
 claimRoutes(app);
 
 // ... and players, games, training and statistics also need a selected club
-app.use(['/api/players', '/api/games', '/api/training', '/api/stats'], requireClub);
+app.use(['/api/players', '/api/games', '/api/training', '/api/stats', '/api/tournaments'], requireClub);
 playerRoutes(app);
 statsRoutes(app);
 deletionRequestRoutes(app);
+tournamentRoutes(app);
 x01Routes(app);
 cricketRoutes(app);
 elimRoutes(app);
