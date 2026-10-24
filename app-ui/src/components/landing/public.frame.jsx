@@ -67,16 +67,16 @@ export const PublicFooter = () => (
             </div>
             <nav className="landing-footer-links" aria-label={t('Footer')}>
                 <span className="landing-footer-group">
-                    <Link to="/quick">{t('Quick game')}</Link>
-                    <Link to="/login">{t('Log in')}</Link>
-                    <Link to="/register">{t('Register')}</Link>
+                    <Link to="/quick" className="landing-footer-icon-link"><i className="pi pi-bolt" aria-hidden="true" />{t('Quick game')}</Link>
+                    <Link to="/login" className="landing-footer-icon-link"><i className="pi pi-sign-in" aria-hidden="true" />{t('Log in')}</Link>
+                    <Link to="/register" className="landing-footer-icon-link"><i className="pi pi-user-plus" aria-hidden="true" />{t('Register')}</Link>
                 </span>
                 <span className="landing-footer-divider" aria-hidden="true">|</span>
                 <span className="landing-footer-group">
-                    <Link to="/support">{t('Support Oche')}</Link>
-                    <Link to="/privacy">{t('Privacy')}</Link>
-                    <Link to="/privacy#imprint">{t('Imprint')}</Link>
-                    <a href={REPOSITORY} target="_blank" rel="noopener noreferrer">{t('Source code')}</a>
+                    <Link to="/support" className="landing-footer-icon-link"><i className="pi pi-heart-fill is-heart" aria-hidden="true" />{t('Support Oche')}</Link>
+                    <Link to="/privacy" className="landing-footer-icon-link"><i className="pi pi-shield" aria-hidden="true" />{t('Privacy')}</Link>
+                    <Link to="/privacy#imprint" className="landing-footer-icon-link"><i className="pi pi-id-card" aria-hidden="true" />{t('Imprint')}</Link>
+                    <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="landing-footer-icon-link"><i className="pi pi-github" aria-hidden="true" />{t('Source code')}</a>
                 </span>
             </nav>
         </div>

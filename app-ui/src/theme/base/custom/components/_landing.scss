@@ -393,7 +393,8 @@
     align-items: center;
     justify-content: space-between;
     gap: $space-4 $space-6;
-    max-width: 75rem;
+    // the brand and the links side by side on a wide screen, also with their icons
+    max-width: 82rem;
     margin: 0 auto;
     padding: $space-5;
 }
@@ -416,6 +417,16 @@
     flex-wrap: wrap;
     align-items: center;
     gap: $space-2 $space-4;
+}
+
+// every link with its icon; the heart of Support Oche in its colour
+.landing-footer-icon-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    .pi { font-size: 0.85em; }
+    .is-heart { color: $accentPink; }
 }
 
 // between the ways to play and the rest, while they stand side by side
@@ -444,7 +455,7 @@
 .landing-footer-group {
     display: flex;
     flex-wrap: wrap;
-    gap: $space-2 $space-4;
+    gap: $space-2 $space-3;
 }
 
 // jumping to a section leaves room for the bar at the top
