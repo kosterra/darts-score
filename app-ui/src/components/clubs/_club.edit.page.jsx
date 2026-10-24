@@ -21,6 +21,7 @@ import ClubGoalsEditor from './club.goals.editor';
 import { useAuth } from '../../utils/auth.context';
 import { resolveClubLogo } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { ACCENT_OPTIONS } from '../../utils/accents';
 
 const DESCRIPTION_MAX = 500;
 const EMPTY_ADMIN = { email: '', firstname: '', lastname: '', password: '' };
@@ -49,6 +50,7 @@ const ClubEditPage = () => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [country, setCountry] = useState('');
+    const [accent, setAccent] = useState('green');
     const [logoPreview, setLogoPreview] = useState('');
     // 'unchanged' | File (a new logo) | null (the logo removed)
     const [logo, setLogo] = useState('unchanged');
@@ -67,6 +69,7 @@ const ClubEditPage = () => {
         setName(club.name);
         setDescription(club.description ?? '');
         setCountry(club.country ?? '');
+        setAccent(club.accent ?? 'green');
         setLogoPreview(resolveClubLogo(club.logo));
         setLogo('unchanged');
         setShameMinAge(club.shameMinAge ?? 16);
@@ -78,13 +81,13 @@ const ClubEditPage = () => {
     const showError = (summary, error) => toast.current?.show({ severity: 'error', summary, detail: error.message, life: 4000 });
     const showSaved = (detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 });
 
-    const changed = name.trim() !== club.name || description !== (club.description ?? '') || country !== (club.country ?? '') || logo !== 'unchanged';
+    const changed = name.trim() !== club.name || description !== (club.description ?? '') || country !== (club.country ?? '') || accent !== (club.accent ?? 'green') || logo !== 'unchanged';
 
     const saveClub = async (event) => {
         event.preventDefault();
         setSaving(true);
         try {
-            await ClubService.updateClub(club.id, { name: name.trim(), description, country });
+            await ClubService.updateClub(club.id, { name: name.trim(), description, country, accent: accent === 'green' ? null : accent });
             if (logo instanceof File) await ClubService.uploadLogo(club.id, logo);
             else if (logo === null && club.logo) await ClubService.removeLogo(club.id);
             await refreshClubs();
@@ -196,6 +199,28 @@ const ClubEditPage = () => {
                                 <div className="col d-flex flex-column gap-1 pt-1">
                                     <CountryPicker value={country} onChange={setCountry} />
                                     <span className="text-faint fs-8">{t('Where the club plays: its flag is shown next to its name in the lists of clubs.')}</span>
+                                </div>
+                            </div>
+                            <p className="setting-title">{t('Club colour')}</p>
+                            <div className="row mx-0 mt-0 setting-body">
+                                <div className="col d-flex flex-column gap-2 pt-1">
+                                    <div className="accent-choices" role="radiogroup" aria-label={t('Club colour')}>
+                                        {ACCENT_OPTIONS.map(option => (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={accent === option.value}
+                                                className={`accent-choice ${accent === option.value ? 'is-chosen' : ''}`}
+                                                onClick={() => setAccent(option.value)}
+                                                title={option.label}
+                                            >
+                                                <span className="accent-swatch" style={{ '--swatch': option.color }} aria-hidden="true" />
+                                                <span className="accent-choice-label">{option.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <span className="text-faint fs-8">{t('The accent colour of the app for the members who did not choose their own (Profile → Playing → Look): buttons, highlights and the club\'s tablet.')}</span>
                                 </div>
                             </div>
                             <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">

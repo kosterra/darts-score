@@ -8,6 +8,7 @@ import { SESSION_ENDED, getActiveClubId, setActiveClubId } from './service.utils
 import { currentLanguage, setLanguage, takeLanguageChosenBeforeLogin } from './i18n';
 import { connectGamePreferences } from './game.preferences';
 import { accountSaver } from './use.game.preferences';
+import { setAppearance, setClubAccent } from './appearance';
 
 // whether this tab already has its club: then a reload keeps it
 const CLUB_CHOSEN_KEY = 'darts-score.clubChosen';
@@ -166,6 +167,15 @@ const AuthState = ({ children }) => {
     }, [user]);
 
     const activeClub = clubs.find(club => club.id === activeClubId) ?? null;
+
+    // the look the account chose (kept on the device too), and the club's accent colour
+    const ownAppearance = user?.gamePreferences?.appearance;
+    useEffect(() => {
+        if (ownAppearance) setAppearance(ownAppearance);
+    }, [ownAppearance]);
+    useEffect(() => {
+        setClubAccent(activeClub?.accent ?? null);
+    }, [activeClub?.accent]);
 
     const value = useMemo(() => ({
         user,

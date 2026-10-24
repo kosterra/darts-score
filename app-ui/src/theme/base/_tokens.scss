@@ -39,7 +39,7 @@ $radius-pill: 999px;
 $radius-round: 50%;
 
 // Accent colours (the theme's primary and status colours are in the theme variables)
-$accentGreen: $primaryLighterColor;   // positive figures, bars, KPI numbers (#7ecca5)
+$accentGreen: var(--c-positive);      // positive figures, bars, KPI numbers: green whatever the accent colour (#7ecca5)
 $accentGold: var(--c-accent-gold);                 // winners, records, big moments
 $accentAmber: var(--c-accent-amber);                // flight points, what can be bought
 $accentPink: var(--c-accent-pink);                 // the newer games

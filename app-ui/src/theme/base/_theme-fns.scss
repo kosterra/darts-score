@@ -35,3 +35,14 @@
 @function ink($amount) {
     @return rgb(var(--ink) / #{$amount});
 }
+
+// the colour of a shadow: black, weaker on the light theme (--shadow-strength)
+@function shadow($amount) {
+    @return rgb(0 0 0 / calc(#{$amount} * var(--shadow-strength, 1)));
+}
+
+// a soft tint of a colour behind light text (the pills, the soft buttons, the
+// switches): stronger on the light theme (--soft-strength), so the text still reads
+@function soft($color, $amount) {
+    @return color-mix(in srgb, #{$color} min(100%, calc(#{math.percentage($amount)} * var(--soft-strength, 1))), transparent);
+}

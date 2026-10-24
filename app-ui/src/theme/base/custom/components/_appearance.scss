@@ -1,0 +1,132 @@
+// The look on the profile: the themes as cards with a little preview of their
+// colours, the accent colours as swatches
+.theme-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: $space-3;
+}
+
+.theme-choice {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-2;
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  color: var(--text-default);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color $transitionDuration, background-color $transitionDuration;
+
+  &:hover { background: var(--surface-high); }
+  &.is-chosen { border-color: $primaryColor; }
+  &:focus-visible { @include focus-ring; }
+}
+
+.theme-choice-label {
+  margin-top: $space-1;
+  font-weight: $weight-semibold;
+  font-size: $text-md;
+}
+
+.theme-choice-hint {
+  color: var(--text-faint);
+  font-size: $text-xs;
+  line-height: 1.35;
+}
+
+// a page with a panel, in the theme's own colours (whatever theme is on now)
+.theme-preview {
+  display: flex;
+  align-self: stretch;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  height: 4.5rem;
+  border-radius: $radius-sm;
+  background: var(--p-page);
+  overflow: hidden;
+
+  // like the device: dark on one half, light on the other
+  &.is-split { background: linear-gradient(135deg, #1f1f1f 50%, #e9e7e1 50%); }
+}
+
+.theme-preview-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 70%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--p-panel);
+  box-shadow: 0 1px 3px shadow(0.25);
+}
+
+.theme-preview-title {
+  width: 45%;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--p-text);
+}
+
+.theme-preview-line {
+  width: 85%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--p-line);
+
+  &.is-short { width: 60%; }
+}
+
+.theme-preview-button {
+  align-self: flex-end;
+  width: 30%;
+  height: 7px;
+  border-radius: 3px;
+  background: $primaryColor;
+}
+
+.accent-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+}
+
+.accent-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-1;
+  min-width: 4.5rem;
+  padding: $space-1;
+  border: 0;
+  background: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+
+  &:focus-visible { @include focus-ring; border-radius: $radius-md; }
+
+  &.is-chosen {
+    color: var(--text-default);
+
+    .accent-swatch { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text-default); }
+  }
+}
+
+.accent-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: $radius-round;
+  background: var(--swatch);
+  color: #fff;
+  font-size: $text-md;
+}
+
+.accent-choice-label {
+  font-size: $text-xs;
+  text-align: center;
+}

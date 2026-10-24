@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom';
 import { noteLocation } from './utils/navigation.trail';
 import { PrimeReactProvider } from 'primereact/api';
@@ -13,6 +13,7 @@ import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
 import { peekPendingClaim } from './utils/pending.claim';
 import MfaDueNotice from './components/mfa/mfa.due.notice';
+import { APPEARANCE_CHANGED } from './utils/appearance';
 
 const Dashboard = lazy(() => import('./components/dashboard/_dashboard.page'));
 const X01ConfigPage = lazy(() => import('./components/game_config/x01/_x01.config.page'));
@@ -72,6 +73,13 @@ function GameListRedirect() {
 const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
 
 function AppContent() {
+    // a new theme or accent colour: drawn again, for the colours set from scripts (charts, levels)
+    const [, setLook] = useState(0);
+    useEffect(() => {
+        const redraw = () => setLook(count => count + 1);
+        window.addEventListener(APPEARANCE_CHANGED, redraw);
+        return () => window.removeEventListener(APPEARANCE_CHANGED, redraw);
+    }, []);
     const { user, activeClub, isGlobalAdmin, loading, returnTo, loggedOut } = useAuth();
     // whether the start page of this login was already opened: set once a
     // page shows, so it is only the first page after logging in

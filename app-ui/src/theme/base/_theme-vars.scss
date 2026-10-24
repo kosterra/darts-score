@@ -16,6 +16,9 @@
 $theme-dark: (
     scheme: dark,
     ink: (255, 255, 255),
+    shadow-strength: 1,
+    soft-strength: 1,
+    pastel-text: 100%,
     shade-000: #fff,
     shade-50: #e4e4e4,
     shade-100: #d4d4d4,
@@ -29,6 +32,10 @@ $theme-dark: (
     shade-800: #292929,
     shade-900: #222121,
     text-faint: #9a9a9a,
+    // good figures: green, whatever the accent colour
+    positive: #7ecca5,
+    soft-green-text: #7cc6a0,
+    soft-green-text-hover: #95d6b4,
     root-bg: rgba(38, 38, 38, 0.85),
     accent-gold: #ffc94d,
     accent-amber: #e9ac2f,
@@ -79,6 +86,9 @@ $theme-contrast: map.merge($theme-dark, (
 $theme-light: (
     scheme: light,
     ink: (0, 0, 0),
+    shadow-strength: 0.35,
+    soft-strength: 2.1,
+    pastel-text: 50%,
     shade-000: #111,
     shade-50: #1f1f1f,
     shade-100: #262626,
@@ -92,6 +102,9 @@ $theme-light: (
     shade-800: #f7f6f3,
     shade-900: #fff,
     text-faint: #5f5f5f,
+    positive: #366650,
+    soft-green-text: #366650,
+    soft-green-text-hover: #2c5541,
     root-bg: rgba(244, 243, 239, 0.9),
     accent-gold: #9a6c00,
     accent-amber: #8f5e00,
@@ -134,8 +147,11 @@ $accents: (
 @mixin theme-vars($theme) {
     $ink: map.get($theme, ink);
     --ink: #{nth($ink, 1)} #{nth($ink, 2)} #{nth($ink, 3)};
+    --c-ink-color: rgb(#{nth($ink, 1)} #{nth($ink, 2)} #{nth($ink, 3)});
     @each $key, $value in $theme {
-        @if $key != scheme and $key != ink and str-index($key, "bs-") != 1 {
+        @if $key == shadow-strength or $key == soft-strength or $key == pastel-text {
+            --#{$key}: #{$value};
+        } @else if $key != scheme and $key != ink and str-index($key, "bs-") != 1 {
             --c-#{$key}: #{$value};
         }
     }

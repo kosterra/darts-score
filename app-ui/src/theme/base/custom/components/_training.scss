@@ -40,7 +40,7 @@
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0.5rem 1rem rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 0.5rem 1rem shadow(0.45));
 }
 
 // the glow of the pace against the best time
@@ -188,7 +188,7 @@
   // on its way up: floating above the rows it passes
   &.is-arriving {
     z-index: 1;
-    box-shadow: inset 3px 0 0 $accentAmber, 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
+    box-shadow: inset 3px 0 0 $accentAmber, 0 0.6rem 1.6rem shadow(0.5);
   }
 
   &.is-entering { animation: atc-row-enter 0.45s ease-out both; }
@@ -289,7 +289,7 @@
   .p-avatar { grid-area: avatar; }
   // whose turn it is: lighter border and background, no colour
   &.is-current {
-    background: color-mix(in srgb, #fff 10%, var(--surface-raised));
+    background: color-mix(in srgb, var(--c-ink-color) 10%, var(--surface-raised));
   }
   &.is-finished { opacity: 0.6; }
 }
@@ -383,7 +383,7 @@
   width: clamp(5.5rem, 22vw, 7.5rem);
   height: auto;
   flex-shrink: 0;
-  filter: drop-shadow(0 0.3rem 0.6rem rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 0.3rem 0.6rem shadow(0.45));
 
   .is-dark { fill: #2a2826; }
   .is-light { fill: #4a4640; }
@@ -699,7 +699,7 @@
 
 // the filter of the scoreboard: a grey tool, a little lighter while open
 .atc-filter-toggle .p-button.is-open {
-  background: rgba(255, 255, 255, 0.18);
+  background: ink(0.18);
 }
 
 // the label of the training just saved

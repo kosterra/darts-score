@@ -5799,6 +5799,10 @@ components:
           type: string
           pattern: '^([A-Za-z]{2}(-[A-Za-z]{3})?)?$'
           description: Where the club plays, as an ISO 3166 country code (CH, DE, …) or a nation of the United Kingdom (GB-ENG, GB-SCT, GB-WLS, GB-NIR); empty for none
+        accent:
+          type: [string, 'null']
+          enum: [green, red, blue, gold, purple, null]
+          description: "The club's accent colour in the app, for the members who did not choose their own (null or unknown: Oche green)"
         isPublic:
           type: boolean
           description: List the club on the public start page
@@ -5895,6 +5899,9 @@ components:
               country:
                 type: string
                 description: ISO 3166 country code, empty when not set
+              accent:
+                type: [string, 'null']
+                description: "The club's accent colour (null: Oche green)"
               logo:
                 type: string
               joinPolicy:

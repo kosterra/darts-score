@@ -7,7 +7,7 @@
 const cache = new Map();
 
 // the value of one of the theme's CSS variables, read once per theme
-const themed = (name, fallback) => {
+export const themed = (name, fallback) => {
     if (typeof document === 'undefined' || typeof getComputedStyle !== 'function') return fallback;
     if (!cache.has(name)) cache.set(name, getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback);
     return cache.get(name);
@@ -16,8 +16,22 @@ const themed = (name, fallback) => {
 // the theme or the accent colour changed (see utils/appearance.js)
 export const forgetThemeColors = () => cache.clear();
 
+const onLight = () => typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light';
+
+/**
+ * A colour made for the dark themes (a pastel), as it reads on the light
+ * one: darkened towards black until text in it stands out on light surfaces.
+ * The same colour on the dark themes.
+ */
+export const readable = (hex) => {
+    if (!onLight() || !/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+    const darken = (channel) => Math.round(parseInt(channel, 16) * 0.55).toString(16).padStart(2, '0');
+    return `#${darken(hex.slice(1, 3))}${darken(hex.slice(3, 5))}${darken(hex.slice(5, 7))}`;
+};
+
 export const ACCENT = {
-    get green() { return themed('--c-primary-lighter', '#7ecca5'); },
+    // good figures: green, whatever the accent colour
+    get green() { return themed('--c-positive', '#7ecca5'); },
     get gold() { return themed('--c-accent-gold', '#ffc94d'); },
     get amber() { return themed('--c-accent-amber', '#e9ac2f'); },
     get pink() { return themed('--c-accent-pink', '#e69ac0'); },

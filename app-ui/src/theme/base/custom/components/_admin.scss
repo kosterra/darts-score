@@ -68,14 +68,14 @@
         padding: 0;
         border: 0;
         // a soft tint at rest, a little stronger on hover: the button is always seen as one
-        background: rgba(255, 255, 255, 0.07);
+        background: ink(0.07);
         color: $textSubtleColor;
         box-shadow: none;
         transition: background-color 0.2s ease, color 0.2s ease;
 
         &:enabled:hover,
         &:focus-visible {
-            background: rgba(255, 255, 255, 0.14);
+            background: ink(0.14);
             color: $textDefaultColor;
         }
 
@@ -104,14 +104,14 @@
         width: 2.25rem;
         height: 2.25rem;
         border-radius: $radius-md;
-        background: rgba(255, 255, 255, 0.07);
+        background: ink(0.07);
         color: $textSubtleColor;
         text-decoration: none;
         transition: background-color 0.2s ease, color 0.2s ease;
 
         &:hover,
         &:focus-visible {
-            background: rgba(255, 255, 255, 0.14);
+            background: ink(0.14);
             color: $textDefaultColor;
         }
     }
@@ -139,7 +139,7 @@
     border: 2px solid transparent;
     border-radius: $radius-round;
     cursor: pointer;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 0 1px shadow(0.4);
 
     &.is-selected {
         border-color: $shade000;
@@ -689,13 +689,13 @@ $fair-play-suspicious: $accentAmber;
   padding: 0.15rem 0.5rem;
   border: 1px solid var(--border-default);
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.04);
+  background: ink(0.04);
   color: var(--text-subtle);
   font-family: monospace;
   font-size: $text-sm;
   cursor: pointer;
 
-  &:hover { color: var(--text-default); background: rgba(255, 255, 255, 0.09); }
+  &:hover { color: var(--text-default); background: ink(0.09); }
 }
 
 .mail-preview-subject {

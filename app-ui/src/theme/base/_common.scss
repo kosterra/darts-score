@@ -22,6 +22,15 @@ body {
     }
 }
 
+// the background chosen on the profile: the photo (default), blurred, or none
+:root[data-background="blurred"] body {
+    background-image: url("/background-blurred.webp");
+}
+
+:root[data-background="plain"] body {
+    background: $shade900;
+}
+
 #root {
     background-color: $rootBgColor;
     min-height: 100vh;

@@ -13,8 +13,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="Oche" />
     <title>Oche</title>
-    <!-- dark from the first moment, before the styles arrive: no white flash -->
-    <style>html, body { background-color: #222121; color: #f2f2f2; margin: 0; }</style>
+    <!-- the look from the first moment, before the styles arrive: no flash (see src/utils/appearance.js) -->
+    <script>
+      try {
+        var look = JSON.parse(localStorage.getItem('darts-score.appearance') || 'null') || {};
+        var theme = look.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : look.theme;
+        if (theme && theme !== 'dark') document.documentElement.dataset.theme = theme;
+      } catch (e) { /* the default look */ }
+    </script>
+    <style>
+      html, body { background-color: var(--c-page-bg, #222121); color: var(--c-page-text, #f2f2f2); margin: 0; }
+      :root[data-theme="light"] { --c-page-bg: #f4f3ef; --c-page-text: #262626; }
+      :root[data-theme="black"] { --c-page-bg: #000; }
+    </style>
   </head>
   <body>
     <div id="modal-hook"></div>

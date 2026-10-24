@@ -21,7 +21,7 @@
 .club-rule-value {
     padding: 0.45rem 0.9rem;
     border-radius: $radius-pill;
-    background: with-alpha($primaryColor, 0.42);
+    background: soft($primaryColor, 0.42);
     color: $buttonTextColor;
     font-size: $text-sm;
     font-weight: $weight-bold;
@@ -32,7 +32,7 @@
     margin-left: $space-2;
     padding: 0.05rem 0.45rem;
     border-radius: $radius-pill;
-    background: rgba(255, 255, 255, 0.12);
+    background: ink(0.12);
     font-size: $text-xs;
     font-weight: $weight-semibold;
 }
@@ -83,7 +83,7 @@
     flex-direction: column;
     gap: $space-2;
     padding-top: 0.9rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid ink(0.05);
 }
 
 .club-rules-setting-head {
@@ -148,7 +148,7 @@
     cursor: pointer;
 
     .pi { font-size: 0.6rem; opacity: 0.6; }
-    &:hover, &:focus-visible { outline: none; background: color-mix(in srgb, $surfaceHighColor 70%, #fff 8%); }
+    &:hover, &:focus-visible { outline: none; background: color-mix(in srgb, $surfaceHighColor 70%, var(--c-ink-color) 8%); }
 }
 
 // a format of the club
@@ -272,7 +272,7 @@
   gap: $space-2 $space-3;
   margin-top: $space-1;
   padding-top: $space-3;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid ink(0.05);
 }
 
 // a goal of the club: what it counts, the number, the end and remove, in a row (wrapping on a phone)

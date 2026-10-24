@@ -12,21 +12,21 @@
 
 // the text of soft green buttons and of the chosen pill: a saturated green that
 // stands out from its background (about 4.8 : 1), not a pale one
-$softGreenText: #7cc6a0;
-$softGreenTextHover: #95d6b4;
+$softGreenText: var(--c-soft-green-text);
+$softGreenTextHover: var(--c-soft-green-text-hover);
 
 @mixin soft-button($color, $text: lighter($color, 22%), $textHover: lighter($color, 28%), $tint: 0.2) {
   border-color: transparent;
-  background: with-alpha($color, $tint);
+  background: soft($color, $tint);
   color: $text;
 
   &:enabled:hover {
     border-color: transparent;
-    background: with-alpha($color, $tint + 0.1);
+    background: soft($color, $tint + 0.1);
     color: $textHover;
   }
 
-  &:enabled:active { background: with-alpha($color, $tint + 0.18); }
+  &:enabled:active { background: soft($color, $tint + 0.18); }
 }
 
 :where(.p-button.p-button-outlined:not(.p-button-danger):not(.p-button-secondary):not(.p-button-text):not(.p-button-link)) {
@@ -40,7 +40,7 @@ $softGreenTextHover: #95d6b4;
 :where(.p-button.p-button-secondary:not(.p-button-text):not(.p-button-link)),
 :where(.p-inputnumber .p-inputnumber-button),
 :where(.p-calendar .p-datepicker-trigger) {
-  @include soft-button(#ffffff, $textDefaultColor, $shade000, 0.1);
+  @include soft-button(var(--c-ink-color), $textDefaultColor, $shade000, 0.1);
 }
 
 :where(.p-button.p-button-danger:not(.p-button-text):not(.p-button-link)) {
@@ -54,25 +54,25 @@ $softGreenTextHover: #95d6b4;
 // a pill not chosen: a light tint on top, so it shows on a panel and in a box alike
 :where(.p-selectbutton .p-button:not(.p-highlight)) {
   border-color: transparent;
-  background: rgba(255, 255, 255, 0.07);
+  background: ink(0.07);
 
-  &:hover { background: rgba(255, 255, 255, 0.12); }
+  &:hover { background: ink(0.12); }
 }
 
 // the chosen pill: a choice, not an action, so soft rather than filled, with
 // the light text of the buttons
 :where(.p-selectbutton .p-button.p-highlight) {
   border-color: transparent;
-  background: with-alpha($primaryColor, 0.42);
+  background: soft($primaryColor, 0.42);
   color: $buttonTextColor;
 
-  &:hover { background: with-alpha($primaryColor, 0.5); }
+  &:hover { background: soft($primaryColor, 0.5); }
 }
 
 // the current page of a list is a choice like a pill
 :where(.p-paginator .p-paginator-page.p-highlight) {
   border-color: transparent;
-  background: with-alpha($primaryColor, 0.42);
+  background: soft($primaryColor, 0.42);
   color: $buttonTextColor;
 }
 
@@ -98,13 +98,13 @@ $softGreenTextHover: #95d6b4;
 // a switch that is on (PrimeReact marks it p-highlight): the soft green track of
 // the buttons with a knob in the light colour of the button labels; off stays grey
 :where(.p-inputswitch.p-highlight .p-inputswitch-slider) {
-  background: with-alpha($primaryColor, 0.5);
+  background: soft($primaryColor, 0.5);
 
   &::before { background: $buttonTextColor; }
 }
 
 :where(.p-inputswitch.p-highlight:not(.p-disabled):hover .p-inputswitch-slider) {
-  background: with-alpha($primaryColor, 0.6);
+  background: soft($primaryColor, 0.6);
 }
 
 // the focus ring only for the keyboard, as with the buttons

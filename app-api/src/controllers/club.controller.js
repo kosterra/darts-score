@@ -9,7 +9,7 @@ import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
-import { normalizeClubRules } from '../rules/club.rules.js';
+import { ACCENTS, normalizeClubRules } from '../rules/club.rules.js';
 import { GOAL_METRICS, topClubBadges } from '../utils/club.badges.js';
 import { syncClubBadges } from '../utils/club.badge.service.js';
 
@@ -98,6 +98,7 @@ export const update = async (req, res) => {
     club.name = req.body.name;
     if (typeof req.body.description === 'string') club.description = req.body.description;
     if (typeof req.body.country === 'string') club.country = req.body.country.toUpperCase();
+    if (req.body.accent !== undefined) club.accent = ACCENTS.includes(req.body.accent) ? req.body.accent : null;
     // Visibility settings are optional, so a plain rename leaves them alone
     for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];

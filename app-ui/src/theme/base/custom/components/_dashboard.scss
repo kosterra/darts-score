@@ -208,7 +208,7 @@
 
 // In a comparison every player's picture has a ring in their chart colour
 .compare-avatar.p-avatar.p-avatar-circle {
-    box-shadow: 0 0 0 3px var(--compare-colour), 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+    box-shadow: 0 0 0 3px var(--compare-colour), 0 0.4rem 1rem -0.35rem shadow(0.85);
 }
 
 // Latest games of a comparison: a horizontal line of winners
@@ -245,7 +245,7 @@
         width: 2.4rem;
         height: 2.4rem;
         font-size: $text-sm;
-        box-shadow: 0 0 0 2px var(--winner-colour), 0 0.35rem 0.8rem -0.3rem rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 0 2px var(--winner-colour), 0 0.35rem 0.8rem -0.3rem shadow(0.8);
         transition: transform $transitionDuration;
     }
 
@@ -350,14 +350,14 @@
     border: 1px solid $borderDefaultColor;
     border-radius: $radius-md;
     background: var(--surface-raised);
-    box-shadow: 0 0.75rem 1.5rem -0.75rem rgba(0, 0, 0, 0.9);
+    box-shadow: 0 0.75rem 1.5rem -0.75rem shadow(0.9);
 }
 
 .dashboard-tile {
     height: 100%;
     display: flex;
     flex-direction: column;
-    border: 1px dashed rgba(255, 255, 255, 0.22);
+    border: 1px dashed ink(0.22);
     border-radius: $radius-md;
     transition: box-shadow $transitionDuration, opacity $transitionDuration;
 
@@ -404,7 +404,7 @@
     i { color: $primaryColor; }
 
     &:hover,
-    &:focus-visible { background: rgba(255, 255, 255, 0.06); }
+    &:focus-visible { background: ink(0.06); }
 
     .is-dragged & { cursor: grabbing; }
 }
@@ -608,7 +608,7 @@
         radial-gradient(ellipse 30rem 16rem at 5.5rem 50%, with-alpha($primaryColor, 0.28), transparent 70%),
         $surfaceColor;
     border-top: 2px solid with-alpha($primaryColor, 0.7);
-    box-shadow: 0 0.75rem 1.75rem -0.75rem rgba(0, 0, 0, 0.75);
+    box-shadow: 0 0.75rem 1.75rem -0.75rem shadow(0.75);
 
     // centred headers glow from the top middle
     &.hero-header-centered {
@@ -947,13 +947,13 @@
     gap: $space-2;
     min-height: 2.75rem;
     padding: 0 $space-3;
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid ink(0.55);
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
     color: $textDefaultColor;
     font-size: $text-sm;
     font-weight: $weight-semibold;
-    box-shadow: 0 1rem 2rem -0.5rem rgba(0, 0, 0, 0.9);
+    box-shadow: 0 1rem 2rem -0.5rem shadow(0.9);
     pointer-events: none;
     cursor: grabbing;
     will-change: transform;
@@ -1005,7 +1005,7 @@
     font-size: $text-xs;
     cursor: pointer;
 
-    &:hover { background: rgba(255, 255, 255, 0.08); color: $textDefaultColor; }
+    &:hover { background: ink(0.08); color: $textDefaultColor; }
     &:focus-visible { @include focus-ring; }
 }
 

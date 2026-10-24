@@ -153,8 +153,8 @@ $inputListHeaderBorder: 1px solid $shade600 !default;
 $inputOverlayBg: $inputListBg !default;
 $inputOverlayHeaderBg: $inputListHeaderBg !default;
 $inputOverlayBorder: 0 !default;
-$inputOverlayShadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2),
-	0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12) !default;
+$inputOverlayShadow: 0 2px 4px -1px shadow(0.2),
+	0 4px 5px 0 shadow(0.14), 0 1px 10px 0 shadow(0.12) !default;
 
 //password
 $passwordMeterBg: $shade600 !default;
@@ -178,8 +178,8 @@ $buttonHoverBorderColor: $primaryColor !default;
 $buttonActiveBg: $primaryLightColor !default;
 $buttonTextActiveColor: $primaryTextColor !default;
 $buttonActiveBorderColor: $primaryLightColor !default;
-$raisedButtonShadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
-	0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !default;
+$raisedButtonShadow: 0px 3px 1px -2px shadow(0.2),
+	0px 2px 2px 0px shadow(0.14), 0px 1px 5px 0px shadow(0.12) !default;
 $roundedButtonBorderRadius: 2rem !default;
 
 $textButtonHoverBgOpacity: 0.08 !default;
@@ -745,8 +745,8 @@ $submenuHeaderBorderRadius: 0 !default;
 $submenuHeaderFontWeight: 700 !default;
 $overlayMenuBg: $menuBg !default;
 $overlayMenuBorder: 0 none !default;
-$overlayMenuShadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2),
-	0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12) !default;
+$overlayMenuShadow: 0 2px 4px -1px shadow(0.2),
+	0 4px 5px 0 shadow(0.14), 0 1px 10px 0 shadow(0.12) !default;
 $overlayMenuFontSize: 0.9rem !default;
 $overlayMenuFontWeight: 600 !default;
 $verticalMenuPadding: 0.25rem 0 !default;

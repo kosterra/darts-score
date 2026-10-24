@@ -10,7 +10,7 @@ $navRailWidth: 4.75rem;
     height: 100vh;
     width: $navWidth;
     background: $sidebarContainerBg;
-    box-shadow: 0.5rem 0 1.5rem -1rem rgba(0, 0, 0, 0.8);
+    box-shadow: 0.5rem 0 1.5rem -1rem shadow(0.8);
     transition: width $transitionDuration;
     z-index: 10;
 
@@ -29,7 +29,7 @@ $navRailWidth: 4.75rem;
     justify-content: center;
     padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
     background: $sidebarContainerBg;
-    box-shadow: 0 -0.5rem 1.5rem -1rem rgba(0, 0, 0, 0.8);
+    box-shadow: 0 -0.5rem 1.5rem -1rem shadow(0.8);
 
     // the way to the menu on a phone: quiet like the other icon buttons, big enough for a thumb
     .nav-bar-button {
@@ -509,7 +509,7 @@ $navRailWidth: 4.75rem;
     background: $primaryColor;
     color: $primaryTextColor;
     font-weight: $weight-bold;
-    box-shadow: 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+    box-shadow: 0 0.4rem 1rem -0.35rem shadow(0.85);
 
     // a logo picture keeps its own shape: transparent parts stay transparent,
     // and the shadow follows the outline instead of drawing a square
@@ -519,7 +519,7 @@ $navRailWidth: 4.75rem;
         overflow: visible;
 
         img {
-            filter: drop-shadow(0 0.3rem 0.5rem rgba(0, 0, 0, 0.6));
+            filter: drop-shadow(0 0.3rem 0.5rem shadow(0.6));
         }
     }
 
@@ -555,7 +555,7 @@ $navRailWidth: 4.75rem;
     color: $textSubtleColor;
     font-size: $text-xs;
     cursor: pointer;
-    box-shadow: 0 0.25rem 0.6rem -0.2rem rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0.25rem 0.6rem -0.2rem shadow(0.8);
     transition: background-color $transitionDuration, color $transitionDuration, border-color $transitionDuration;
 
     &:hover,

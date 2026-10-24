@@ -129,7 +129,7 @@ $badgeMetals: (
         text-align: center;
         border-radius: $radius-md;
         background: $surfaceRaisedColor;
-        box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.6);
+        box-shadow: 0 1.5rem 4rem shadow(0.6);
         animation: celebration-card 0.3s ease-out both;
     }
 
@@ -419,7 +419,7 @@ $tar: #17110c;
     inset: 0 0 auto;
     height: 2.5rem;
     background: linear-gradient(to bottom, $tar 70%, darker($tar, 2%));
-    box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0.3rem 0.6rem shadow(0.5);
     pointer-events: none;
     transform-origin: top;
     animation: tarred-pour 0.5s ease-out both;
@@ -461,7 +461,7 @@ $tar: #17110c;
     top: -3rem;
     color: $accentCream;
     opacity: 0.9;
-    filter: drop-shadow(0 0.2rem 0.3rem rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0.2rem 0.3rem shadow(0.5));
     animation: tarred-fall linear infinite both;
 }
 
@@ -478,7 +478,7 @@ $tar: #17110c;
     text-align: center;
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
-    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.7);
+    box-shadow: 0 1.5rem 4rem shadow(0.7);
     animation: celebration-card 0.3s 0.35s ease-out both;
 }
 
@@ -519,7 +519,7 @@ $tar: #17110c;
     z-index: 1;
     color: $accentCream;
     font-size: $text-2xl;
-    filter: drop-shadow(0 0.1rem 0.2rem rgba(0, 0, 0, 0.6));
+    filter: drop-shadow(0 0.1rem 0.2rem shadow(0.6));
 }
 
 .tarred-badge {
@@ -659,7 +659,7 @@ $tar: #17110c;
   text-align: left;
   cursor: pointer;
 
-  &:hover { background: rgba(255, 255, 255, 0.04); }
+  &:hover { background: ink(0.04); }
   &:focus-visible { @include focus-ring(-2px); }
 }
 
@@ -875,7 +875,7 @@ $tar: #17110c;
         cursor: pointer;
 
         &:hover, &:focus-visible {
-            background: color-mix(in srgb, $surfaceHighColor 70%, #fff 8%);
+            background: color-mix(in srgb, $surfaceHighColor 70%, var(--c-ink-color) 8%);
         }
     }
 }
@@ -978,7 +978,7 @@ $tar: #17110c;
 .about-badge-kind {
     margin: 0;
     padding-top: $space-4;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid ink(0.08);
     color: $textDefaultColor;
     font-size: $text-lg;
     font-weight: $weight-semibold;
