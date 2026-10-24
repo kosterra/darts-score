@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 
@@ -166,12 +166,18 @@ const X01GameStats = ({ training = false, quick = false }) => {
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: t('Set {{value}}', { value: i + 1 }), value: `set-${i + 1}` })),
     ];
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
+    // a tournament match: on to its bracket, no rematch
+    const tournamentId = game.tournament?.id;
+    const actions = tournamentId
+        ? <div className="d-flex justify-content-center"><Link to={`/tournaments/${tournamentId}`} className="p-button p-button-sm text-decoration-none"><i className="pi pi-sitemap me-2" />{t('To the bracket')}</Link></div>
+        : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
-                {!quick && <UpLink to={training ? '/trainings' : '/games'} label={training ? t('Trainings') : t('Games')} />}
+                {!quick && (tournamentId
+                    ? <UpLink to={`/tournaments/${tournamentId}`} label={t('Tournament')} />
+                    : <UpLink to={training ? '/trainings' : '/games'} label={training ? t('Trainings') : t('Games')} />)}
                 <GameResultHeader
                     celebrate={justFinished && game.hasWinner}
                     game={game}
