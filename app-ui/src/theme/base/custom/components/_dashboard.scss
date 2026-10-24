@@ -456,6 +456,12 @@
     padding: 0.65rem 0.75rem;
     border-radius: $radius-md;
     background: var(--surface-raised);
+
+    // a long description wraps; the button keeps its whole label
+    > .p-button {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
 }
 
 // Activity calendar: one square per day, greener the more games
