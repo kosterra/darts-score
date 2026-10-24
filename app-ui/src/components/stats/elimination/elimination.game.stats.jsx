@@ -20,6 +20,7 @@ import {
 import UpLink from '../../elements/up.link';
 import { eliminationRematch } from '../../../utils/elimination.rematch';
 import { t } from '../../../utils/i18n';
+import CompareLink from '../compare/compare.link';
 import { GAME_COLORS } from '../../../utils/palette';
 
 // the key figures of every player in the header; for knock-outs suffered less is better
@@ -112,6 +113,8 @@ const EliminationGameStats = () => {
                     celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
+                    // the way to the comparison of these players, in this game
+                    footer={players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type={'elimination'} /></div> : null}
                     title={t('Elimination · first to {{target}}', { target: target })}
                     subtitle={`${game.gameInMode ?? 'Straight In'} / ${game.gameOutMode ?? 'Straight Out'} · ${whenPlayed(game)}`}
                     scoreOf={(player) => figures[player.id]?.score ?? 0}

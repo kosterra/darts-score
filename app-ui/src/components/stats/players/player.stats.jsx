@@ -28,6 +28,7 @@ import { gameOf } from '../../../rules/games';
 import { rulesIcon } from '../../rules/rules.icons';
 import TrainingsPanel from './trainings.panel';
 import { formatDate } from '../../../utils/dates';
+import CompareLink from '../compare/compare.link';
 import { GAME_COLORS } from '../../../utils/palette';
 
 const LATEST_BADGES = 5;
@@ -201,6 +202,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         <span className="text-subtle">{player.firstname} {player.lastname}</span>
                     </div>
                     <PlayerLevel level={stats.level} />
+                    {!isOwn && <CompareLink vs={player.id} label={t('Compare with you')} className="align-self-start fs-8" />}
                     <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         {facts.map(([label, value]) => (
                             <div key={label}>

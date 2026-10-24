@@ -4,14 +4,12 @@ import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
 import FilterPills from '../../elements/filter.pills';
+import TypeFilter from '../../elements/type.filter';
+import { GAME_TYPE_GROUPS } from '../../elements/type.groups';
 import { t } from '../../../utils/i18n';
 import { calendarFormat } from '../../../utils/dates';
 
-const GAME_TYPES = [
-    { label: t('X01'), value: 'x01' },
-    { label: t('Cricket'), value: 'cricket' },
-    { label: t('Elimination'), value: 'elimination' },
-];
+
 const PERIODS = ['1 D', '1 W', '1 M', '1 Y', 'All', 'Custom'].map(value => ({ label: value === 'Custom' ? t('Dates') : value === 'All' ? t('All') : value, value }));
 const LAST_GAMES = [5, 10, 20, 'All'].map(value => ({ label: value === 'All' ? t('All') : String(value), value }));
 const STARTING_SCORES = [
@@ -73,10 +71,10 @@ const SCOPES = [
  * withOthers false) and adds the clubs (withScope); "scopeHint" disables the
  * clubs and says why, e.g. for a player of only one club.
  */
-const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOthers = true, withScope = false, scopeHint = null, lastGamesLabel = t('Last games together') }) => {
+const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOthers = true, withScope = false, scopeHint = null, lastGamesLabel = t('Last games together'), withX01 = true, withFriendly = false, clubFormats = [] }) => {
     const set = (changes) => onChange({ ...filters, ...changes });
     // without a game type every type is shown, X01 included
-    const isX01 = !withType || filters.type === 'x01';
+    const isX01 = withX01 && (!withType || filters.type === 'x01');
 
     return (
         <div className="comparison-filters">
@@ -89,7 +87,7 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
             }
             {withType &&
                 <Filter label={t('Game type')}>
-                    <FilterPills value={filters.type} options={GAME_TYPES} onChange={(value) => set({ type: value })} ariaLabel={t('Game type')} />
+                    <TypeFilter single groups={GAME_TYPE_GROUPS} value={filters.type} onChange={(type) => set({ type, clubFormat: 'all' })} ariaLabel={t('Game type')} />
                 </Filter>
             }
             <Filter label={t('Period')}>
@@ -129,6 +127,23 @@ const ComparisonFilters = ({ filters, onChange, formats, withType = true, withOt
                     />
                 </Filter>
             </>}
+            {clubFormats.length > 0 &&
+                <Filter label={t('Club format')}>
+                    <Dropdown
+                        value={filters.clubFormat ?? 'all'}
+                        options={[{ label: t('Any game'), value: 'all' }, ...clubFormats.map(format => ({ label: format.name, value: format.id }))]}
+                        onChange={(e) => set({ clubFormat: e.value })}
+                        aria-label={t('Club format')}
+                        style={{ minWidth: '12rem' }}
+                    />
+                </Filter>
+            }
+            {withFriendly &&
+                <label htmlFor="compare-no-friendly" className="comparison-include-others d-flex align-items-center gap-2 text-subtle fs-7">
+                    <InputSwitch inputId="compare-no-friendly" checked={filters.friendly === 'exclude'} onChange={(e) => set({ friendly: e.value ? 'exclude' : 'include' })} />
+                    {t('Leave out friendly games')}
+                </label>
+            }
             {withOthers &&
                 <label htmlFor="compare-include-others" className="comparison-include-others d-flex align-items-center gap-2 text-subtle fs-7">
                     <InputSwitch inputId="compare-include-others" checked={filters.includeOthers} onChange={(e) => set({ includeOthers: e.value })} />

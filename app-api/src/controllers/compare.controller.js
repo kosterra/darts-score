@@ -54,7 +54,7 @@ const summaryOf = (game) => ({
     createdAt: game.createdAt,
     updatedAt: game.updatedAt,
     players: (game.players ?? []).map(String),
-    playerModels: Object.fromEntries(Object.entries(game.playerModels ?? {}).map(([id, model]) => [id, { hasWonGame: Boolean(model?.hasWonGame), score: model?.score ?? null }])),
+    playerModels: Object.fromEntries(Object.entries(game.playerModels ?? {}).map(([id, model]) => [id, { hasWonGame: Boolean(model?.hasWonGame), score: model?.score ?? null, ...(model?.legsWon && { legsWon: { game: Number(model.legsWon.game ?? 0) || 0 } }) }])),
 });
 
 // a player's figures of one game type in the duel
@@ -172,7 +172,7 @@ export const getSideBySide = async (req, res) => {
             const games = stats.playedGames?.total ?? 0;
             return {
                 id: playerId,
-                level: stats.level,
+                level: stats.level ? { xp: stats.level.xp, name: stats.level.level?.name ?? null, index: stats.level.level?.index ?? null } : null,
                 rating: ratingOf(ratings, playerId),
                 badges: countBadges(stored?.badges),
                 games,

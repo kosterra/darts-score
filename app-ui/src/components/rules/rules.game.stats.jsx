@@ -14,6 +14,7 @@ import UpLink from '../elements/up.link';
 import RulesList from './rules.list';
 import { gameOf } from '../../rules/games';
 import { progressOf, replayGame, withGameState } from '../../rules/engine';
+import CompareLink from '../stats/compare/compare.link';
 import { t } from '../../utils/i18n';
 
 const shuffled = (list) => {
@@ -102,6 +103,8 @@ const RulesGameStats = () => {
                     celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
+                    // the way to the comparison of these players, in this game
+                    footer={players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type={game.kind} /></div> : null}
                     title={[definition.title, ...options].join(' · ')}
                     subtitle={`${game.hasWinner ? '' : `${t('Not finished')} · `}${whenPlayed(game)}`}
                     scoreOf={(player) => main.value(replay.state.players[player.id], replay.state, { settings: replay.settings, round: replay.round })}

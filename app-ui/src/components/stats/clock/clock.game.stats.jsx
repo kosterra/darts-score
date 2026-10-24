@@ -15,6 +15,7 @@ import { TargetBars } from '../../training/atc.darts.result';
 import { TARGETS, hardestTargets, targetLabel } from '../../../utils/atc.darts';
 import UpLink from '../../elements/up.link';
 import { clockProgress, clockRematch, clockResults, replayClock, skipsAhead } from '../../../utils/clock.game';
+import CompareLink from '../compare/compare.link';
 import { t } from '../../../utils/i18n';
 
 // the key figures of every player in the header
@@ -92,6 +93,8 @@ const ClockGameStats = () => {
                     celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
+                    // the way to the comparison of these players, in this game
+                    footer={players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type={'clock'} /></div> : null}
                     title={t('Around the Clock · {{mode}}', { mode: t(game.mode) })}
                     subtitle={`${skipsAhead(game) ? t('Doubles and trebles move on · ') : ''}${whenPlayed(game)}`}
                     scoreOf={(player) => resultOf(player.id).finished ? resultOf(player.id).darts : targetLabel(resultOf(player.id).target, game.mode)}
