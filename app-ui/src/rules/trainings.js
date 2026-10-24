@@ -3,8 +3,8 @@
  * engine.js): Bob's 27, 121 Checkout, Random checkouts, Scoring, Doubles
  * around the board and Catch 40.
  */
-import { afterDart, isCheckout } from './darts';
-import { t, tn } from '../utils/i18n';
+import { afterDart, isCheckout } from './darts.js';
+import { t, tn } from '../utils/i18n.js';
 
 const DOUBLE_TARGETS = [...Array.from({ length: 20 }, (_, index) => index + 1), 25];
 const doubleName = (number) => (number === 25 ? t('Bull') : `D${number}`);

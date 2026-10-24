@@ -13,6 +13,8 @@ export default (mongoose) => {
       score:    { type: Number, required: true },
       // what the app worked out, e.g. { score, done, attempts }
       result:   { type: mongoose.Schema.Types.Mixed, default: {} },
+      // when it started, as the app says, for fair play (darts faster than they can be thrown)
+      startedAt: { type: Date, default: null },
       // { id, nickname }: the nickname for when the player is deleted later
       player:   mongoose.Schema.Types.Mixed,
     },

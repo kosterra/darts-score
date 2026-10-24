@@ -6,6 +6,20 @@ import { noteCreated, checkLater } from '../utils/spam.guard.js';
 import { knownInClub } from '../models/player.model.js';
 import { answerOf, hasRules, storedOf } from '../utils/game.view.js';
 import { GAME_SETTINGS, RULES_KINDS, ruleViolations } from '../rules/club.rules.js';
+import { gameOf } from '../rules/games.js';
+import { withGameState } from '../rules/engine.js';
+
+/**
+ * A game of the rules engine with its results worked out here from its visits,
+ * by the app's rules: who is at the oche, whether it is over and per player
+ * { score, rank, hasWonGame, darts }; what the app sent is not taken on trust.
+ */
+const withRulesResult = (changes) => {
+    const definition = gameOf(changes.kind);
+    if (!definition) return changes;
+    const worked = withGameState(definition, changes);
+    return { ...changes, currentPlayerTurn: worked.currentPlayerTurn, gameIsRunning: worked.gameIsRunning, hasWinner: worked.hasWinner, playerModels: worked.playerModels };
+};
 
 const DEFAULT_LIMIT = 100;
 
@@ -64,7 +78,7 @@ export const createGameController = (Model, gameName, type = null) => {
             // the club's own rules: its games, its locked settings, its handicap policy
             const problems = ruleViolations(type ?? req.body.kind, req.club.gameRules, req.body);
             if (problems.length) return res.status(422).json({ errors: problems });
-            const doc = new Model({ ...toStore(req.body), club: req.club._id });
+            const doc = new Model(withRulesResult({ ...toStore(req.body), club: req.club._id }));
             const data = await doc.save();
             checkLater(() => noteCreated(req, 'game', { id: data._id, name: label, names: [] }));
             res.status(201).json(answer(data));
@@ -124,7 +138,7 @@ export const createGameController = (Model, gameName, type = null) => {
             const stored = validId(req) ? await Model.findOne(inClub(req)) : null;
             if (!stored) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // a game keeps what it was set up with, also when the club's rules change meanwhile
-            const changes = keepSetUp(type ?? stored.kind, stored, { ...toStore(req.body), club: req.club._id });
+            const changes = withRulesResult(keepSetUp(type ?? stored.kind, stored, { ...toStore(req.body), club: req.club._id }));
             const data = await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true });
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges

@@ -212,6 +212,7 @@ const RulesTraining = () => {
                 result: done.result,
                 settings: attempt.settings,
                 darts: attempt.darts.map(String),
+                startedAt: attempt.startedAt,
             });
             setFinished({ saved, result: done.result, player: attempt.player, settings: attempt.settings });
             setBoardVersion(version => version + 1);
@@ -245,7 +246,8 @@ const RulesTraining = () => {
         saveSetup(memoryKey, { settings: options, players: [player] });
         const prepared = definition.prepare ? definition.prepare(options) : options;
         setFinished(null);
-        setRunning({ player, settings: prepared, darts: [] });
+        // when it started, for fair play (darts faster than they can be thrown)
+        setRunning({ player, settings: prepared, darts: [], startedAt: new Date().toISOString() });
     };
 
     const throwDart = (value) => {
