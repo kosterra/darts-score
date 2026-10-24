@@ -57,7 +57,12 @@ const ForgotPasswordPage = lazy(() => import('./components/auth/forgot.password.
 const ResetPasswordPage = lazy(() => import('./components/auth/reset.password.page'));
 const ClaimPage = lazy(() => import('./components/auth/claim.page'));
 const UnsubscribePage = lazy(() => import('./components/auth/unsubscribe.page'));
+const TournamentReplyPage = lazy(() => import('./components/auth/tournament.reply.page'));
+const TournamentsPage = lazy(() => import('./components/tournaments/_tournaments.page'));
+const TournamentPage = lazy(() => import('./components/tournaments/_tournament.page'));
+const TournamentEditor = lazy(() => import('./components/tournaments/tournament.editor'));
 const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
+const SupportPage = lazy(() => import('./components/legal/_support.page'));
 const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
 const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
 
@@ -122,9 +127,17 @@ function AppContent() {
     if (pathname === '/unsubscribe') {
         return <Suspense fallback={<PageLoader />}><UnsubscribePage /></Suspense>;
     }
+    // and the answers to a tournament invitation
+    if (pathname === '/tournament-reply') {
+        return <Suspense fallback={<PageLoader />}><TournamentReplyPage /></Suspense>;
+    }
     // the privacy policy and imprint, for everyone
     if (pathname === '/privacy') {
         return <Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>;
+    }
+    // and the ways to support Oche
+    if (pathname === '/support') {
+        return <Suspense fallback={<PageLoader />}><SupportPage /></Suspense>;
     }
 
     if (!user) {
@@ -219,6 +232,10 @@ function AppContent() {
                     <Route path="/stats/training/x01/:id" element={<X01GameStats training />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/badges" element={<BadgesPage />} />
+                    <Route path="/tournaments" element={<TournamentsPage />} />
+                    <Route path="/tournaments/new" element={<TournamentEditor />} />
+                    <Route path="/tournaments/:id" element={<TournamentPage />} />
+                    <Route path="/tournaments/:id/edit" element={<TournamentEditor />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />
                     <Route path="/my-clubs" element={<ClubsPage />} />
                     <Route path="/my-clubs/:id" element={<ClubEditPage />} />

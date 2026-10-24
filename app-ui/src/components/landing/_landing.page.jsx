@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { GiDart } from "react-icons/gi";
 import { MdQueryStats } from "react-icons/md";
@@ -91,6 +91,22 @@ const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 
  */
 const LandingPage = () => {
     const [overview, setOverview] = useState(null);
+    // a section asked for from another page (/#faq): there, and kept there while the
+    // clubs, results and pictures above it come in and push it down, until the
+    // visitor scrolls on their own
+    const { hash } = useLocation();
+    useEffect(() => {
+        if (!hash) return undefined;
+        const target = () => document.getElementById(hash.slice(1));
+        const go = () => target()?.scrollIntoView({ block: 'start' });
+        const observer = new ResizeObserver(go);
+        observer.observe(document.body);
+        const stop = () => { observer.disconnect(); clearTimeout(timer); ['wheel', 'touchstart', 'keydown'].forEach(name => window.removeEventListener(name, stop)); };
+        ['wheel', 'touchstart', 'keydown'].forEach(name => window.addEventListener(name, stop, { passive: true }));
+        const timer = setTimeout(stop, 2500);
+        go();
+        return stop;
+    }, [hash]);
 
     useEffect(() => {
         let cancelled = false;
@@ -302,6 +318,7 @@ const LandingPage = () => {
                         <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
                         <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
                         <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
+                        <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Oche')}</Link></span>
                     </div>
                 </section>
             </main>

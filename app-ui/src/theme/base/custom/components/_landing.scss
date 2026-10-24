@@ -393,7 +393,8 @@
     align-items: center;
     justify-content: space-between;
     gap: $space-4 $space-6;
-    max-width: 75rem;
+    // the brand and the links side by side on a wide screen, also with their icons
+    max-width: 82rem;
     margin: 0 auto;
     padding: $space-5;
 }
@@ -414,13 +415,54 @@
 .landing-footer-links {
     display: flex;
     flex-wrap: wrap;
-    gap: $space-2 $space-6;
+    align-items: center;
+    gap: $space-2 $space-4;
+}
+
+// every link with its icon, and the soft hover of the heart in the bar on top;
+// the room for it does not move the links (the gaps take it back)
+.landing-footer-icon-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: -0.3rem -0.45rem;
+    padding: 0.3rem 0.45rem;
+    border-radius: $radius-md;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover, &:focus-visible { background: ink(0.06); outline: none; }
+
+    .pi { font-size: 0.85em; }
+    .is-heart { color: $accentPink; }
+}
+
+// between the ways to play and the rest, while they stand side by side
+.landing-footer-divider {
+    display: none;
+    color: var(--text-faint);
+
+    @media (min-width: 768px) { display: inline; }
+}
+
+// the heart in the bar on top: to the page Support Oche
+.landing-support-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: $radius-md;
+    color: var(--text-subtle);
+    font-size: $text-sm;
+    text-decoration: none;
+
+    .pi { color: $accentPink; }
+    &:hover, &:focus-visible { color: var(--text-default); background: ink(0.06); }
 }
 
 .landing-footer-group {
     display: flex;
     flex-wrap: wrap;
-    gap: $space-2 $space-4;
+    gap: $space-2 $space-3;
 }
 
 // jumping to a section leaves room for the bar at the top
@@ -548,6 +590,9 @@
     display: flex;
     flex-direction: column;
 
+    // the footer at the bottom of the window, also under a short page (privacy, support)
+    > main { flex: 1 0 auto; }
+
     .auth-page-content {
         flex: 1 0 auto;
         display: flex;
@@ -604,3 +649,95 @@
 }
 
 .legal-address, .legal-notes { white-space: pre-line; }
+
+// Support Oche: the look of the start page, the footer at the bottom of the window
+.support-page {
+    display: flex;
+    flex-direction: column;
+
+    .support-main { flex: 1 0 auto; }
+}
+
+.support-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    max-width: 62rem;
+    padding: 3.5rem 1rem 4rem;
+
+    @media (max-width: 575.98px) { padding-top: 2rem; gap: 2rem; }
+}
+
+.support-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    max-width: 44rem;
+    text-align: center;
+}
+
+.support-heart {
+    display: inline-grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: with-alpha($accentPink, 0.16);
+    color: $accentPink;
+    font-size: 1.5rem;
+}
+
+.support-lead {
+    color: var(--text-subtle);
+    font-size: $text-lg;
+    line-height: 1.55;
+}
+
+.support-points { justify-content: center; }
+
+// the ways to give, side by side, one under the other on a phone; one alone stays narrow
+.support-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+    width: 100%;
+
+    &:has(> .support-option:only-child) { max-width: 26rem; }
+}
+
+.support-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-radius: $radius-lg;
+    background: $surfaceTranslucentColor;
+
+    .p-button { margin-top: auto; }
+
+    &.is-primary { box-shadow: inset 0 0 0 1px with-alpha($primaryColor, 0.45); }
+}
+
+.support-option-title {
+    color: var(--text-default);
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+}
+
+// the code to scan from a computer, on white so every phone reads it
+.support-qr {
+    align-self: center;
+    padding: 0.4rem;
+    border-radius: $radius-md;
+    background: #fff;
+}
+
+.support-note {
+    max-width: 44rem;
+    margin: 0;
+    color: var(--text-faint);
+    font-size: $text-sm;
+    text-align: center;
+}

@@ -25,6 +25,7 @@ import TimelineWidget from './widgets/timeline.widget';
 import HallOfShameWidget from './widgets/hall.of.shame.widget';
 import ClubGoalsWidget from './widgets/club.goals.widget';
 import MeWidget from './widgets/me.widget';
+import TournamentBanner from '../tournaments/tournament.banner';
 import { t } from '../../utils/i18n';
 import { Link } from 'react-router-dom';
 import ClubMedal from '../badges/club.medal';
@@ -179,6 +180,9 @@ const Dashboard = () => {
                     </div>
                 )}
             </header>
+
+            {/* the club's tournaments, from the registration to a week after the final */}
+            {!editing && <TournamentBanner />}
 
             {editing && (
                 <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging the dashboard')}>

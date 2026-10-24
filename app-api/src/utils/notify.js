@@ -61,6 +61,7 @@ const manageUrl = () => `${getAppUrl()}/profile#notifications`;
 const LOCALES = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', it: 'it-CH', es: 'es-ES' };
 export const languageOf = (user) => (user?.language && LOCALES[user.language] ? user.language : 'en');
 export const dateTimeIn = (language, date = new Date()) => new Intl.DateTimeFormat(LOCALES[language] ?? 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date));
+export const dateIn = (language, date = new Date()) => new Intl.DateTimeFormat(LOCALES[language] ?? 'en-GB', { dateStyle: 'medium' }).format(new Date(date));
 const linkOf = (path) => `${getAppUrl()}${path ?? '/notifications'}`;
 // a notice as a line of a list in the mail
 const lineOf = (notice, language) => `• ${translate(language, notice.title)}`;

@@ -23,6 +23,7 @@ import atcRoutes from './atc.routes.js';
 import x01TrainingRoutes from './x01.training.routes.js';
 import rulesRoutes from './rules.routes.js';
 import { playerImageRoutes, clubLogoRoutes } from './player.img.routes.js';
+import tournamentRoutes, { tournamentReplyRoutes } from './tournament.routes.js';
 
 /**
  * The routes of the API as "GET /api/players/{id}": each module registers
@@ -45,7 +46,7 @@ const apiRoutes = () => {
     };
     [authRoutes, publicRoutes, clubRoutes, userRoutes, adminRoutes, badgeRoutes, integrityRoutes, notificationRoutes, playerRoutes, statsRoutes,
         deletionRequestRoutes, x01Routes, cricketRoutes, eliminationRoutes, clockRoutes, atcRoutes, x01TrainingRoutes, rulesRoutes, playerImageRoutes, clubLogoRoutes,
-        unsubscribeRoutes, claimInfoRoutes, claimRoutes]
+        unsubscribeRoutes, claimInfoRoutes, claimRoutes, tournamentRoutes, tournamentReplyRoutes]
         .forEach(register => register(app));
     return found;
 };

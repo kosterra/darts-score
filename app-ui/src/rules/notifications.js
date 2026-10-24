@@ -39,11 +39,14 @@ export const NOTIFICATION_TOPICS = [
     { id: 'clubBadges', group: 'club', kinds: ['clubBadge'], inApp: true, mail: 'off' },
     { id: 'clubGoals', group: 'club', kinds: ['clubGoal'], inApp: true, mail: 'off' },
     { id: 'joining', group: 'club', kinds: ['joinAccepted', 'joinDeclined'], inApp: true, mail: 'instant' },
+    { id: 'tournamentInvites', group: 'club', kinds: ['tournamentInvite', 'tournamentReminder', 'tournamentCancelled'], mails: ['off', 'instant'], inApp: true, mail: 'instant' },
+    { id: 'tournaments', group: 'club', kinds: ['tournamentDrawn', 'tournamentMatch', 'tournamentWon'], inApp: true, mail: 'off' },
 
     { id: 'joinRequests', group: 'admin', kinds: ['joinRequested', 'clubJoined'], inApp: true, mail: 'instant' },
     { id: 'fairPlayFound', group: 'admin', kinds: ['fairPlayFound'], inApp: true, mail: 'daily' },
     { id: 'goalEnding', group: 'admin', kinds: ['goalEnding'], inApp: true, mail: 'off' },
     { id: 'inviteUnused', group: 'admin', kinds: ['inviteUnused'], inApp: true, mail: 'off' },
+    { id: 'tournamentAdmin', group: 'admin', kinds: ['tournamentClosed', 'tournamentOverdue'], inApp: true, mail: 'instant' },
     { id: 'clubSummary', group: 'admin', kinds: [], mailOnly: true, mails: ['off', 'weekly'], inApp: false, mail: 'off' },
 
     { id: 'alertsCritical', group: 'global', kinds: ['alertCritical'], inApp: true, mail: 'instant' },
@@ -107,4 +110,5 @@ export const CONTACT_TOPICS = [
     { id: 'level', mail: 'daily' },
     { id: 'records', mail: 'daily' },
     { id: 'weeklySummary', mail: 'weekly' },
+    { id: 'tournamentInvites', mail: 'instant' },
 ];

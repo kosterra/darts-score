@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -122,6 +122,7 @@ const useSections = () => {
                 { label: t('Games'), icon: FaTrophy, to: '/games' },
                 { label: t('Trainings'), icon: BsPersonFillCheck, to: '/trainings' },
                 { label: t('Badges'), icon: FaMedal, to: '/badges' },
+                { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments', tag: t('Beta') },
                 // for the club's admins: games and trainings that cannot be real or are worth a look
                 ...(isClubAdmin ? [{
                     label: t('Fair play'),
@@ -370,6 +371,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
+                    {item.tag && <span className="nav-tag">{item.tag}</span>}
                     {item.badge &&
                         <span className={`nav-badge ${item.badgeCritical ? 'critical' : ''}`} aria-label={t('{{badge}} open', { badge: item.badge })}>
                             {countText(item.badge)}

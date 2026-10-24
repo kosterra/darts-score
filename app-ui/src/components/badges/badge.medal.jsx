@@ -1,4 +1,4 @@
-import { FaTrophy, FaFire, FaBolt, FaFlagCheckered, FaBullseye, FaFish, FaBroom, FaChartLine, FaBaseballBatBall, FaSkull, FaStar, FaRoute, FaClock, FaStopwatch, FaLock, FaDragon, FaGem, FaHouseCrack, FaBed, FaArrowTrendUp, FaCalendarCheck, FaBoltLightning, FaArrowsSpin, FaDumbbell, FaCalendarWeek, FaLayerGroup, FaCrosshairs, FaArrowUpRightDots, FaRocket, FaCubesStacked, FaBagShopping, FaForwardFast, FaCircleDot, FaHandFist, FaHorse, FaHatCowboy, FaChartColumn, FaUserGroup, FaCakeCandles, FaShieldHalved, FaDice, FaSkullCrossbones, FaScaleBalanced, FaGolfBallTee, FaClipboardCheck, FaListCheck } from "react-icons/fa6";
+import { FaTrophy, FaFire, FaBolt, FaFlagCheckered, FaBullseye, FaFish, FaBroom, FaChartLine, FaBaseballBatBall, FaSkull, FaStar, FaRoute, FaClock, FaStopwatch, FaLock, FaDragon, FaGem, FaHouseCrack, FaBed, FaArrowTrendUp, FaCalendarCheck, FaBoltLightning, FaArrowsSpin, FaDumbbell, FaCalendarWeek, FaLayerGroup, FaCrosshairs, FaArrowUpRightDots, FaRocket, FaCubesStacked, FaBagShopping, FaForwardFast, FaCircleDot, FaHandFist, FaHorse, FaHatCowboy, FaChartColumn, FaUserGroup, FaCakeCandles, FaShieldHalved, FaDice, FaSkullCrossbones, FaScaleBalanced, FaGolfBallTee, FaClipboardCheck, FaListCheck, FaCrown, FaMedal } from "react-icons/fa6";
 import { GiDart } from "react-icons/gi";
 import { RULES_ICONS } from '../rules/rules.icons';
 import { t } from '../../utils/i18n';
@@ -43,6 +43,8 @@ const GROUP_ICONS = {
     marksPerRound: FaChartColumn,
     rivals: FaUserGroup,
     anniversary: FaCakeCandles,
+    tournamentWins: FaCrown,
+    tournamentFinals: FaMedal,
     // the newer games and trainings: the sign of the game, as in the menu
     shanghaiWins: RULES_ICONS.shanghai,
     killerWins: RULES_ICONS.killer,

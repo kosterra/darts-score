@@ -25,13 +25,15 @@ export const gameModelOf = (type) => GAME_MODELS[type] ?? (isRulesGame(type) ? G
  */
 export const loadPlayerEvents = async (player) => {
     const playerId = String(player._id);
-    const [gamesByType, trainings, rulesTrainings] = await Promise.all([
+    const [gamesByType, trainings, rulesTrainings, finals] = await Promise.all([
         Promise.all(Object.entries(GAME_MODELS).map(async ([type, model]) => ({
             type,
             games: await model().find({ players: playerId, hasWinner: true }).lean(),
         }))),
         db.atc.find({ 'player.id': playerId }).lean(),
         db.rulesTraining.find({ 'player.id': playerId }).lean(),
+        // the finals of tournaments the player reached
+        db.tournament.find({ status: 'finished', matches: { $elemMatch: { size: 2, players: playerId } } }, 'winner finishedAt').lean(),
     ]);
 
     return [
@@ -40,6 +42,7 @@ export const loadPlayerEvents = async (player) => {
             games.map(game => ({ type: type === 'rules' ? game.kind : type, id: String(game._id), at: game.updatedAt, data: viewOf(type, game) }))),
         ...trainings.map(entry => ({ type: 'atc', id: String(entry._id), at: entry.createdAt, data: entry })),
         ...rulesTrainings.map(entry => ({ type: 'rulesTraining', id: String(entry._id), at: entry.createdAt, data: entry })),
+        ...finals.map(entry => ({ type: 'tournament', id: String(entry._id), at: entry.finishedAt, data: { won: entry.winner === playerId } })),
     ];
 };
 

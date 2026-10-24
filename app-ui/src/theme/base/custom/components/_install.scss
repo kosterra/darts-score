@@ -4,7 +4,7 @@
     position: fixed;
     z-index: 950;
     right: 1rem;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(1rem + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)));
     display: flex;
     align-items: flex-start;
     gap: $space-3;
@@ -23,7 +23,7 @@
         left: 1rem;
         width: auto;
         // above the menu bar at the bottom
-        bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+        bottom: calc(4.5rem + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)));
     }
 }
 

@@ -12,6 +12,7 @@ import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
 import { GRACE_DAYS, MFA_POLICIES, getMfaSettings, isMfaEnabled, saveMfaSettings } from '../utils/mfa.js';
 import { LEGAL_LIMITS, getLegalSettings, saveLegalSettings } from '../utils/legal.settings.js';
+import { PROJECT_SPONSORS, SUPPORT_FIELDS, getSupportSettings, saveSupportSettings } from '../utils/support.settings.js';
 import { getStartPageSettings, saveStartPageSettings } from '../utils/start.page.settings.js';
 import { MAIL_LANGUAGES } from '../utils/mail.templates.js';
 import { installationNumbers } from '../controllers/public.controller.js';
@@ -84,6 +85,18 @@ export default (app) => {
             const settings = await saveMfaSettings({ policy: req.body.policy, graceDays: req.body.graceDays });
             logger.info(`Two-step login set to "${settings.policy}" (${settings.graceDays} days) by ${req.user.email}`);
             res.json({ ...settings, policies: MFA_POLICIES, graceLimits: GRACE_DAYS, ownEnabled: true });
+        },
+    );
+
+    // the ways to support this installation with a gift: a TWINT link and any other donation page
+    router.get('/support', async (req, res) => res.json({ ...await getSupportSettings(), project: PROJECT_SPONSORS }));
+    router.put('/support',
+        ...SUPPORT_FIELDS.map(field => body(field).optional({ values: 'falsy' }).isURL({ protocols: ['https'], require_protocol: true }).withMessage('Enter a full address starting with https://.')),
+        validate,
+        async (req, res) => {
+            const settings = await saveSupportSettings(req.body);
+            logger.info(`Support links saved by ${req.user.email}`);
+            res.json({ ...settings, project: PROJECT_SPONSORS });
         },
     );
 

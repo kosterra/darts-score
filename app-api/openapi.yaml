@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.14
+  version: 2026.10.15
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
@@ -43,6 +43,8 @@ tags:
     description: Accounts (global admins only)
   - name: Quick games
     description: Games on the public start page without an account, kept for 30 days
+  - name: Tournaments
+    description: The knockout tournaments of a club, from the registration to the final
   - name: Administration
     description: 'The installation: all clubs, players, games, trainings, banner, login length, error log, alerts and blocks (global admins only)'
   - name: Players
@@ -194,6 +196,15 @@ paths:
         '409':
           description: The account already plays as someone else in a club of the player
       operationId: postClaimBytoken
+  /api/public/support:
+    get:
+      tags:
+        - Public
+      summary: The ways to support Oche with a gift, for the page /support
+      responses:
+        '200':
+          description: '{ url: a donation page of this installation, twint: its TWINT link, project: the sponsoring page of the project (empty when url is the same) }'
+      operationId: getPublicSupport
   /api/public/legal:
     get:
       tags:
@@ -2022,6 +2033,46 @@ paths:
           description: Invalid text or colour
       description: Global admins only.
       operationId: putAdminBanner
+  /api/admin/support:
+    get:
+      tags:
+        - Administration
+      summary: The ways to support this installation with a gift
+      responses:
+        '200':
+          description: '{ url, twint, project }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminSupport
+    put:
+      tags:
+        - Administration
+      summary: Save the TWINT link and the link to another donation page (https addresses, empty for none)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: A donation page, e.g. Ko-fi, PayPal or GitHub Sponsors
+                twint:
+                  type: string
+                  description: A TWINT payment or donation link
+      responses:
+        '200':
+          description: '{ url, twint, project }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putAdminSupport
   /api/admin/legal:
     get:
       tags:
@@ -5553,6 +5604,558 @@ paths:
         '404':
           description: Not found
       operationId: getImagesClubsByfilename
+  /api/tournaments:
+    get:
+      tags:
+        - Tournaments
+      summary: The club's tournaments, the newest first, and whether a new one can be set up (enough members); ?active=1 only those the dashboard shows
+      responses:
+        '200':
+          description: '{ min, eligible, canCreate, tournaments: [the tournament as GET /api/tournaments/{id}] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getTournaments
+    post:
+      tags:
+        - Tournaments
+      summary: Set up a tournament, as a draft or with its registration open at once (club admins; the club needs at least 4 members)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - closesAt
+                - rounds
+              properties:
+                name:
+                  type: string
+                  maxLength: 80
+                description:
+                  type: string
+                  maxLength: 1000
+                maxPlayers:
+                  type: integer
+                  enum: [8, 16, 32, 64]
+                closesAt:
+                  type: string
+                  format: date-time
+                invite:
+                  type: string
+                  enum: [mail, notification, banner]
+                  description: 'How the members hear of the registration: in the app and by mail as each chose (mail), only in the app (notification), or only from the banner on the dashboard (banner)'
+                preset:
+                  type: string
+                  description: clubNight, clubClassic, miniWorld, playersChampionship, europeanTour, worldMatchplay or worldChampionship
+                rounds:
+                  type: array
+                  description: Each round by how many players are left in it (size 64 … 2), with its day and its X01 rules
+                  items:
+                    type: object
+                    properties:
+                      size:
+                        type: integer
+                      date:
+                        type: string
+                        format: date-time
+                      rules:
+                        type: object
+                        description: startingScore, legInMode, legOutMode, setMode, numberOfSets, legMode, numberOfLegs
+                open:
+                  type: boolean
+                  description: Open the registration at once (new tournaments only)
+      responses:
+        '201':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postTournaments
+  /api/tournaments/{id}:
+    get:
+      tags:
+        - Tournaments
+      summary: One tournament
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: getTournamentsByid
+    put:
+      tags:
+        - Tournaments
+      summary: Change a tournament (club admins); the rules and days of rounds already played stay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - closesAt
+                - rounds
+              properties:
+                name:
+                  type: string
+                  maxLength: 80
+                description:
+                  type: string
+                  maxLength: 1000
+                maxPlayers:
+                  type: integer
+                  enum: [8, 16, 32, 64]
+                closesAt:
+                  type: string
+                  format: date-time
+                invite:
+                  type: string
+                  enum: [mail, notification, banner]
+                  description: 'How the members hear of the registration: in the app and by mail as each chose (mail), only in the app (notification), or only from the banner on the dashboard (banner)'
+                preset:
+                  type: string
+                  description: clubNight, clubClassic, miniWorld, playersChampionship, europeanTour, worldMatchplay or worldChampionship
+                rounds:
+                  type: array
+                  description: Each round by how many players are left in it (size 64 … 2), with its day and its X01 rules
+                  items:
+                    type: object
+                    properties:
+                      size:
+                        type: integer
+                      date:
+                        type: string
+                        format: date-time
+                      rules:
+                        type: object
+                        description: startingScore, legInMode, legOutMode, setMode, numberOfSets, legMode, numberOfLegs
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: putTournamentsByid
+    delete:
+      tags:
+        - Tournaments
+      summary: Delete a draft or a cancelled tournament (club admins)
+      responses:
+        '200':
+          description: '{ message }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: deleteTournamentsByid
+  /api/tournaments/{id}/open:
+    post:
+      tags:
+        - Tournaments
+      summary: 'Open the registration: every member is invited in the app and by mail (club admins)'
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postTournamentsByidOpen
+  /api/tournaments/{id}/close:
+    post:
+      tags:
+        - Tournaments
+      summary: Close the registration now, before its end (club admins)
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postTournamentsByidClose
+  /api/tournaments/{id}/reopen:
+    post:
+      tags:
+        - Tournaments
+      summary: Open a closed registration again until a new end (club admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - closesAt
+              properties:
+                closesAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postTournamentsByidReopen
+  /api/tournaments/{id}/cancel:
+    post:
+      tags:
+        - Tournaments
+      summary: Cancel a tournament; whoever was invited or entered hears it (club admins)
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postTournamentsByidCancel
+  /api/tournaments/{id}/entry:
+    put:
+      tags:
+        - Tournaments
+      summary: Enter or decline as the player of the member asking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [in, out]
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: putTournamentsByidEntry
+  /api/tournaments/{id}/entries/{playerId}:
+    put:
+      tags:
+        - Tournaments
+      summary: Enter or take out a member (club admins), also one not invited yet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [in, out]
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: putTournamentsByidEntriesByplayerId
+  /api/tournaments/{id}/draw:
+    post:
+      tags:
+        - Tournaments
+      summary: 'Hold the draw: seeded by the club rating (the best quarter apart, byes to the first seeds) or at random (club admins)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seeding:
+                  type: string
+                  enum: [seeded, random]
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postTournamentsByidDraw
+  /api/tournaments/{id}/matches/{match}/start:
+    post:
+      tags:
+        - Tournaments
+      summary: Start a match as an X01 game with the rules of its round (its players or a club admin); a running match answers with its game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first:
+                  type: [string, 'null']
+                  description: The player who throws first
+      responses:
+        '201':
+          description: '{ game: the id of the X01 game }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: match
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+-\d+$'
+      operationId: postTournamentsByidMatchesBymatchStart
+  /api/tournaments/{id}/matches/{match}/result:
+    put:
+      tags:
+        - Tournaments
+      summary: 'Decide a match without a game: a walkover or a result agreed elsewhere (club admins)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - winner
+              properties:
+                winner:
+                  type: string
+      responses:
+        '200':
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament (drafts only for the admins)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: match
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d+-\d+$'
+      operationId: putTournamentsByidMatchesBymatchResult
+  /api/tournament-reply:
+    get:
+      tags:
+        - Tournaments
+      summary: What the link of a tournament invitation is about, without logging in
+      responses:
+        '200':
+          description: '{ tournament: { id, name, status, closesAt, maxPlayers, entered }, club, nickname, answer, open }'
+        '404':
+          description: The link is not valid (any more)
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      operationId: getTournamentReply
+    post:
+      tags:
+        - Tournaments
+      summary: Enter or decline with the link of a tournament invitation, without logging in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - answer
+              properties:
+                token:
+                  type: string
+                answer:
+                  type: string
+                  enum: [in, out]
+      responses:
+        '200':
+          description: '{ tournament: { id, name, status, closesAt, maxPlayers, entered }, club, nickname, answer, open }'
+        '404':
+          description: The link is not valid (any more)
+        '409':
+          description: Not possible in the state the tournament is in
+        '422':
+          description: What was sent cannot be taken
+      operationId: postTournamentReply
 components:
   securitySchemes:
     sessionCookie:

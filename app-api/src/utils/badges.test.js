@@ -438,3 +438,13 @@ describe('the newer games and trainings', () => {
         expect(replayBadges([bust, training('bobs27', 120, { failed: false, reached: 21 })], P).washes.map(e => e.badge)).toContain('bobsBust');
     });
 });
+
+describe('tournament badges', () => {
+    it('come with the finals reached and won', () => {
+        const final = (n, won) => ({ type: 'tournament', id: `t${n}`, at: new Date(2026, 9, n), data: { won } });
+        expect(ids([final(1, false)])).toEqual(['tournamentFinals-1']);
+        const three = ids([final(1, true), final(2, false), final(3, true), final(4, true)]);
+        expect(three).toEqual(expect.arrayContaining(['tournamentFinals-1', 'tournamentWins-1', 'tournamentWins-3']));
+        expect(three).not.toContain('tournamentFinals-5');
+    });
+});

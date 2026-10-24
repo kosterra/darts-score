@@ -27,7 +27,9 @@ $navRailWidth: 4.75rem;
     z-index: 900;
     display: flex;
     justify-content: center;
-    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    // the safe area below at its largest (Chrome), so the bar keeps its height while the
+    // browser's toolbar comes and goes when scrolling; the current one elsewhere
+    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)));
     background: $sidebarContainerBg;
     box-shadow: 0 -0.5rem 1.5rem -1rem shadow(0.8);
 
@@ -261,6 +263,18 @@ $navRailWidth: 4.75rem;
     }
 
     // a count next to an entry, e.g. open alerts
+    // a word after an entry, e.g. "Beta": a small blue label
+    .nav-tag {
+        margin-left: auto;
+        padding: 0 0.35rem;
+        border-radius: $radius-sm;
+        background: with-alpha($accentBlue, 0.18);
+        color: color-mix(in srgb, #{$accentBlue} var(--pastel-text, 100%), black);
+        font-size: $text-xs;
+        font-weight: $weight-semibold;
+        line-height: 1.3rem;
+    }
+
     .nav-badge {
         margin-left: auto;
         min-width: 1.35rem;
@@ -416,6 +430,7 @@ $navRailWidth: 4.75rem;
         }
 
         .nav-label,
+        .nav-tag,
         .nav-chevron,
         .nav-section-title {
             display: none !important;

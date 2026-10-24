@@ -8,6 +8,7 @@ import { answerOf, hasRules, storedOf } from '../utils/game.view.js';
 import { GAME_SETTINGS, RULES_KINDS, ruleViolations } from '../rules/club.rules.js';
 import { gameOf } from '../rules/games.js';
 import { withGameState } from '../rules/engine.js';
+import { tournamentGameDeleted, tournamentGameFinished } from '../utils/tournaments.js';
 
 /**
  * A game of the rules engine with its results worked out here from its visits,
@@ -23,8 +24,9 @@ const withRulesResult = (changes) => {
 
 const DEFAULT_LIMIT = 100;
 
-// what a game was set up with, and stays with: its settings, the handicap and whether it is friendly
-const SET_UP = ['handicap', 'friendly', 'format'];
+// what a game was set up with, and stays with: its settings, the handicap, whether it is
+// friendly, and the tournament match it decides
+const SET_UP = ['handicap', 'friendly', 'format', 'tournament'];
 const keepSetUp = (game, stored, changes) => {
     const keys = RULES_KINDS.includes(game) ? ['settings', 'kind', ...SET_UP] : [...(GAME_SETTINGS[game] ?? []).map(setting => setting.key), ...SET_UP];
     const plain = typeof stored.toObject === 'function' ? stored.toObject() : stored;
@@ -78,7 +80,10 @@ export const createGameController = (Model, gameName, type = null) => {
             // the club's own rules: its games, its locked settings, its handicap policy
             const problems = ruleViolations(type ?? req.body.kind, req.club.gameRules, req.body);
             if (problems.length) return res.status(422).json({ errors: problems });
-            const doc = new Model(withRulesResult({ ...toStore(req.body), club: req.club._id }));
+            // a tournament match is only ever started by the tournament (see utils/tournaments.js)
+            // eslint-disable-next-line no-unused-vars
+            const { tournament, ...sent } = req.body;
+            const doc = new Model(withRulesResult({ ...toStore(sent), club: req.club._id }));
             const data = await doc.save();
             checkLater(() => noteCreated(req, 'game', { id: data._id, name: label, names: [] }));
             res.status(201).json(answer(data));
@@ -145,6 +150,8 @@ export const createGameController = (Model, gameName, type = null) => {
             if (data.hasWinner) {
                 await syncGameBadges(req.club._id, data, type ?? data.kind);
                 checkLater(() => noteFairPlay(req.club._id, type ?? 'rules', data));
+                // the winner of a tournament match goes on
+                if (data.tournament?.id) await tournamentGameFinished(data, answer(data));
             }
             res.json(answer(data));
         } catch (err) {
@@ -161,6 +168,7 @@ export const createGameController = (Model, gameName, type = null) => {
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // the badges earned in it go along
             await removeWithBadges(Model.modelName, data);
+            if (data.tournament?.id) await tournamentGameDeleted(data);
             checkLater(() => noteDeleted(req, 'game'));
             await db.deletionRequest.updateMany({ game: id, status: 'open' }, { status: 'deleted', decidedBy: req.user._id, decidedByName: `${req.user.firstname} ${req.user.lastname}`, decidedAt: new Date() });
             res.json({ message: `${label} game deleted successfully.` });
