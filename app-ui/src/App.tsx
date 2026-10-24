@@ -16,6 +16,7 @@ import MfaDueNotice from './components/mfa/mfa.due.notice';
 import { APPEARANCE_CHANGED } from './utils/appearance';
 
 const Dashboard = lazy(() => import('./components/dashboard/_dashboard.page'));
+const ClubPage = lazy(() => import('./components/dashboard/_club.page'));
 const X01ConfigPage = lazy(() => import('./components/game_config/x01/_x01.config.page'));
 const X01GamePage = lazy(() => import('./components/games/x01/_x01.game.page'));
 const X01GameStats = lazy(() => import('./components/stats/x01/x01.game.stats'));
@@ -197,6 +198,7 @@ function AppContent() {
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
+                    <Route path="/club" element={<ClubPage />} />
                     <Route path="/x01" element={<X01ConfigPage />} />
                     <Route path="/x01/:id" element={<X01GamePage />} />
                     <Route path="/cricket" element={<CricketConfigPage />} />

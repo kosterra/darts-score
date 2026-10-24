@@ -1350,3 +1350,38 @@
         i { font-size: 0.65rem; }
     }
 }
+
+// one's own Dashboard: what waits (Up next) and the favourites, a row each with its actions
+.up-next-list,
+.favourite-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.up-next,
+.favourite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.85rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: $radius-md;
+    background: ink(0.04);
+
+    // the text keeps its room; on a narrow screen the buttons go under it
+    > .flex-grow-1 { flex: 1 1 12rem; }
+
+    &.is-quiet { background: transparent; box-shadow: inset 0 0 0 1px ink(0.08); }
+}
+
+.up-next-icon {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: with-alpha($primaryColor, 0.16);
+    color: $primaryColor;
+}

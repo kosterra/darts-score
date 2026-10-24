@@ -74,8 +74,9 @@ export const PLAYER_GUIDE = [
                     <li><strong>{t('Players')}</strong>{' '}{t('opens each player\'s profile: key figures, level, their set of darts, latest games, their trainings with the bests of each kind, charts, badges and the flights and barrels they collected, with filters for the club, the game type, the period and the last games.')}</li>
                     <li><strong>{t('Club → Games, Trainings, Players and Badges')}</strong>{' '}{t('start with an overview of the club: how many lately, who plays, trains or collects most (with a search in a big club), the popular games and trainings, the best win rates, the club records of every training, the highest levels, the birthdays coming up, the club\'s own badges with its goals, and the Hall of Shame with who holds each badge. Every player leads to their statistics; the list stays below and filters by type with one field (a whole group, e.g. More games, with a click on its title).')}</li>
                     <li><strong>{t('Player comparison')}</strong>{' '}{t('puts two to four players against each other. Head to head shows their games together in any of the nine games: the score of wins, legs and sets, who is on a streak, the last results, who beats whom, the differences in a few words, the highlights of their duels and, for X01, the charts in tabs. Side by side compares each player\'s own figures from all their games, also when they never met. The club rating (worked out from every game in the club except friendly ones) gives the chances for the next game. Quick picks, "Compare with you" on a player\'s statistics and "Compare these players" under a game lead there, and Copy link shares the comparison.')}</li>
-                    <li><strong>{t('Tournaments')}</strong>{' '}{t('of the club, under Club → Tournaments and on top of the dashboard: enter or decline (also with the links of the invitation mail, without logging in), see the bracket after the draw, and start your match from it; the winner goes on by itself.')}</li>
-                    <li>{t('The')}{' '}<strong>{t('dashboard')}</strong>{' '}{t('shows the club at a glance: leaderboards, the latest games, records, the Hall of Shame and the club\'s goals, in widgets the club arranges.')}{' '}<strong>{t('Edit dashboard')}</strong>{' '}{t('arranges your own: drag the widgets by their bar (or move them with the arrow keys), choose their width, remove them, or add others below; only you see it, and "Use the club\'s" brings the club\'s back.')}</li>
+                    <li><strong>{t('Tournaments')}</strong>{' '}{t('of the club, under Play → Tournaments, on your dashboard and on My club: enter or decline (also with the links of the invitation mail, without logging in), see the bracket after the draw, and start your match from it; the winner goes on by itself.')}</li>
+                    <li>{t('Your')}{' '}<strong>{t('Dashboard')}</strong>{' '}{t('shows what waits for you (a tournament to enter, your match, games left running, requests to answer), your favourites – the games you play most, the same game against the same players, started again with one tap or changed in their setup – and yourself.')}{' '}<strong>{t('Arrange')}</strong>{' '}{t('makes it your own: drag the widgets by their bar (or move them with the arrow keys), choose their width, remove them, or add any widget of the club below; it comes with your account on every device.')}</li>
+                    <li><strong>{t('My club')}</strong>{' '}{t('shows the club at a glance: its tournaments, leaderboards, the latest games, records, the Hall of Shame and the club\'s goals, in widgets the club\'s admins arrange for everyone.')}</li>
                 </ul>
             </>
         ),
@@ -197,14 +198,14 @@ export const ADMIN_GUIDE = [
         ),
     },
     {
-        title: t('Games, trainings and the dashboard'),
+        title: t('Games, trainings and My club'),
         icon: FaTableCellsLarge,
         body: (
             <ul className="m-0">
                 <li><strong>{t('Club → Games')}</strong>{' '}{t('and')}{' '}<strong>{t('Trainings')}</strong>{' '}{t('list everything played, with filters (Around the Clock and X01 against the bot together); admins delete single games or several at once, together with the badges earned in them, and see the trainings players keep to themselves. Players delete their own trainings.')}</li>
                 <li>{t('A player can ask to delete a game they played (the flag in its row). The other players are asked to agree; when every player has a login and all agree, it goes by itself, otherwise you decide: open the request from the notification or the flag, then delete the game or keep it, with a note for the players.')}{' '}<strong>{t('Deletion asked')}</strong>{' '}{t('shows the games waiting.')}</li>
                 <li>{t('The admins are told through the notifications when a player asks to delete a game, and when another admin deletes or repairs a game for fair play.')}</li>
-                <li><strong>{t('Edit dashboard')}</strong>{' '}{t('arranges the club\'s dashboard right on the page (switch to "The club\'s dashboard"): widgets dragged into place, a third to the full width, removed or added. Everyone sees it, unless they arranged their own; "Default widgets" starts over.')}</li>
+                <li><strong>{t('Arrange')}</strong>{' '}{t('on My club arranges it for everyone right on the page: widgets dragged into place, a third to the full width, removed or added; "Default widgets" starts over. Each member arranges their own Dashboard.')}</li>
             </ul>
         ),
     },

@@ -109,20 +109,64 @@ const useSections = () => {
     // the user's own statistics in this club, one click away
     const myPlayer = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
 
+    const games = [
+        { game: 'x01', label: t('X01'), icon: FaBullseye, to: '/x01', end: true },
+        { game: 'cricket', label: t('Cricket'), icon: MdSportsCricket, to: '/cricket', end: true },
+        { game: 'elimination', label: t('Elimination'), icon: BiTargetLock, to: '/elimination', end: true },
+        { game: 'clock', label: t('Around the Clock'), icon: PiClockClockwiseBold, to: '/clock', end: true },
+    ].filter(item => isEnabled(item.game, activeClub?.gameRules));
     const sections = [
+        // one's own: the dashboard and the statistics
         {
-            title: t('Club'),
+            id: 'me',
             visible: hasClub,
             items: [
                 { label: t('Dashboard'), icon: MdDashboard, to: '/', end: true },
                 { label: t('My statistics'), icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
-                // on the own player the entry above is the one that is marked
-                { label: t('Players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
-                { label: t('Player comparison'), icon: FaChartLine, to: '/stats/players' },
-                { label: t('Games'), icon: FaTrophy, to: '/games' },
-                { label: t('Trainings'), icon: BsPersonFillCheck, to: '/trainings' },
-                { label: t('Badges'), icon: FaMedal, to: '/badges' },
+            ],
+        },
+        // playing: the games the club plays and the trainings in groups, and the tournaments
+        {
+            id: 'play',
+            title: t('Play'),
+            visible: hasClub,
+            items: [
+                {
+                    label: t('Play a game'), icon: GiDart,
+                    children: [
+                        ...games,
+                        ...(RULES_KINDS.some(kind => isEnabled(kind, activeClub?.gameRules)) ? [{ label: t('More games'), icon: GiDiceTarget, to: '/play' }] : []),
+                    ],
+                },
+                {
+                    label: t('Training'), icon: FaRobot,
+                    children: [
+                        { label: t('X01 against the bot'), icon: FaRobot, to: '/training/x01' },
+                        { label: t('Around the Clock'), icon: PiClockCountdownBold, to: '/training/atc' },
+                        { label: t('More trainings'), icon: GiStairsGoal, to: '/training/more' },
+                    ],
+                },
                 { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments', tag: t('Beta') },
+            ],
+        },
+        // the club
+        {
+            id: 'club',
+            title: t('My club'),
+            visible: hasClub,
+            items: [
+                { label: t('My club'), icon: FaPeopleGroup, to: '/club' },
+                // on the own player "My statistics" is the one that is marked
+                { label: t('Players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
+                {
+                    label: t('Games and trainings'), icon: FaTrophy,
+                    children: [
+                        { label: t('Games'), icon: FaTrophy, to: '/games' },
+                        { label: t('Trainings'), icon: BsPersonFillCheck, to: '/trainings' },
+                    ],
+                },
+                { label: t('Badges'), icon: FaMedal, to: '/badges' },
+                { label: t('Player comparison'), icon: FaChartLine, to: '/stats/players' },
                 // for the club's admins: games and trainings that cannot be real or are worth a look
                 ...(isClubAdmin ? [{
                     label: t('Fair play'),
@@ -134,54 +178,23 @@ const useSections = () => {
                 }] : []),
             ],
         },
+        // for global admins, across all clubs: who uses the app, what was played, what needs watching,
+        // and the installation; one section, folded until opened
         {
-            title: t('Let\'s play darts'),
-            visible: hasClub,
-            items: [
-                // only the games the club plays
-                ...[
-                    { game: 'x01', label: t('X01'), icon: FaBullseye, to: '/x01', end: true },
-                    { game: 'cricket', label: t('Cricket'), icon: MdSportsCricket, to: '/cricket', end: true },
-                    { game: 'elimination', label: t('Elimination'), icon: BiTargetLock, to: '/elimination', end: true },
-                    { game: 'clock', label: t('Around the Clock'), icon: PiClockClockwiseBold, to: '/clock', end: true },
-                ].filter(item => isEnabled(item.game, activeClub?.gameRules)),
-                ...(RULES_KINDS.some(kind => isEnabled(kind, activeClub?.gameRules)) ? [{ label: t('More games'), icon: GiDiceTarget, to: '/play' }] : []),
-            ],
-        },
-        {
-            title: t('Training'),
-            visible: hasClub,
-            items: [
-                // in the order of the games above
-                { label: t('X01 against the bot'), icon: FaRobot, to: '/training/x01' },
-                { label: t('Around the Clock'), icon: PiClockCountdownBold, to: '/training/atc' },
-                { label: t('More trainings'), icon: GiStairsGoal, to: '/training/more' },
-            ],
-        },
-        // for global admins, across all clubs: who uses the app, what was played, what needs watching, and the installation
-        {
-            title: t('Admin · Accounts'),
+            id: 'admin',
+            title: t('Administration'),
             visible: isGlobalAdmin,
             items: [
+
                 { label: t('Clubs'), icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: t('Users'), icon: FaUserGear, to: '/admin/users' },
                 { label: t('Logged in'), icon: FaUserClock, to: '/admin/sessions' },
                 { label: t('Players'), icon: FaUserPen, to: '/admin/players' },
-            ],
-        },
-        {
-            title: t('Admin · Played'),
-            visible: isGlobalAdmin,
-            items: [
+
                 { label: t('Games'), icon: GiDart, to: '/admin/games' },
                 { label: t('Trainings'), icon: BsPersonFillCheck, to: '/admin/trainings' },
                 { label: t('Quick games'), icon: FaBolt, to: '/admin/quick-games' },
-            ],
-        },
-        {
-            title: t('Admin · Monitoring'),
-            visible: isGlobalAdmin,
-            items: [
+
                 {
                     label: t('Fair play'),
                     icon: FaScaleBalanced,
@@ -198,12 +211,7 @@ const useSections = () => {
                 },
                 { label: t('Error log'), icon: FaBug, to: '/admin/logs' },
                 { label: t('Usage'), icon: FaChartColumn, to: '/admin/usage' },
-            ],
-        },
-        {
-            title: t('Admin · System'),
-            visible: isGlobalAdmin,
-            items: [
+
                 { label: t('System settings'), icon: FaShieldHalved, to: '/system-settings' },
             ],
         },
@@ -213,8 +221,8 @@ const useSections = () => {
         .filter(section => section.visible !== false)
         .map(section => ({
             ...section,
-            // groups are told apart by section, since "Games" exists under Club and Admin
-            items: section.items.filter(item => item.visible !== false).map(item => ({ ...item, key: `${section.title ?? ''}/${item.label}` })),
+            // entries are told apart by section, since "Games" exists under My club and Administration
+            items: section.items.filter(item => item.visible !== false).map(item => ({ ...item, key: `${section.id}/${item.label}` })),
         }));
 };
 
@@ -276,6 +284,25 @@ const PROFILE_PATHS = ['/profile', '/player-profile', '/my-clubs', '/notificatio
 const isInside = (item, pathname) =>
     item.children?.some(child => child.to && (pathname === child.to || pathname.startsWith(child.to + '/')));
 
+// what the menu has open or folded, remembered on this device: a list of keys
+const remembered = (key, fallback) => {
+    try {
+        const stored = JSON.parse(localStorage.getItem(key));
+        return new Set(Array.isArray(stored) ? stored : fallback);
+    } catch {
+        return new Set(fallback);
+    }
+};
+const remember = (key, set) => {
+    try {
+        localStorage.setItem(key, JSON.stringify([...set]));
+    } catch {
+        // without storage it lasts until the app is closed
+    }
+};
+const GROUPS_KEY = 'darts-score.navGroups';
+const FOLDED_KEY = 'darts-score.navFolded';
+
 /**
  * The navigation itself: logo, menu and the profile of the logged-in user.
  * "collapsed" shows icons only (desktop rail); "onNavigate" closes the drawer on phones.
@@ -290,7 +317,22 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
     const picture = (myPlayers ?? []).find(player => player.profileImg)?.profileImg ?? '';
 
     // groups start open when they contain the current page
-    const [openGroups, setOpenGroups] = useState(() => new Set());
+    // the groups open (and the one of the page shown opens by itself), the sections folded
+    // (the administration until opened), both remembered on this device
+    const [openGroups, setOpenGroups] = useState(() => remembered(GROUPS_KEY, []));
+    const [folded, setFolded] = useState(() => remembered(FOLDED_KEY, ['admin']));
+    useEffect(() => {
+        const group = sections.flatMap(section => section.items).find(item => isInside(item, pathname));
+        if (group && !openGroups.has(group.key)) setOpenGroups(open => { const next = new Set([...open, group.key]); remember(GROUPS_KEY, next); return next; });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
+    const toggleSection = (id) => setFolded(current => {
+        const next = new Set(current);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        remember(FOLDED_KEY, next);
+        return next;
+    });
     useEffect(() => {
         const current = sections.flatMap(section => section.items).filter(item => isInside(item, pathname)).map(item => item.key);
         if (current.length) setOpenGroups(open => new Set([...open, ...current]));
@@ -324,6 +366,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             const next = new Set(open);
             if (next.has(key)) next.delete(key);
             else next.add(key);
+            remember(GROUPS_KEY, next);
             return next;
         });
     };
@@ -333,6 +376,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
     const renderChild = (child) => child.to
         ? (
             <NavLink key={child.label} to={child.to} end className={linkClass} onClick={onNavigate}>
+                {child.icon && <child.icon className="nav-icon nav-child-icon" aria-hidden="true" />}
                 <span className="nav-label">{child.label}</span>
                 <Ripple />
             </NavLink>
@@ -402,12 +446,23 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             </div>
 
             <nav className="nav-sections" aria-label={t('Main')}>
-                {sections.map((section, index) => (
-                    <div key={section.title ?? index} className="nav-section">
-                        {section.title && <div className="nav-section-title">{section.title}</div>}
-                        <ul className="list-unstyled m-0">{section.items.map(renderItem)}</ul>
-                    </div>
-                ))}
+                {sections.map(section => {
+                    // a folded section hides its entries (not in the icon rail), with their counts on its title
+                    const isFolded = section.title && folded.has(section.id) && !collapsed;
+                    const waiting = section.items.reduce((sum, item) => sum + (item.badge || 0), 0);
+                    const critical = section.items.some(item => item.badge && item.badgeCritical);
+                    return (
+                        <div key={section.id} className={`nav-section ${isFolded ? 'is-folded' : ''}`}>
+                            {section.title &&
+                                <button type="button" className="nav-section-title nav-section-toggle" aria-expanded={!isFolded} onClick={() => toggleSection(section.id)}>
+                                    <span>{section.title}</span>
+                                    {isFolded && waiting > 0 && <span className={`nav-badge ${critical ? 'critical' : ''}`}>{countText(waiting)}</span>}
+                                    <FaChevronDown className={`nav-section-chevron ${isFolded ? '' : 'open'}`} aria-hidden="true" />
+                                </button>}
+                            {!isFolded && <ul className="list-unstyled m-0">{section.items.map(renderItem)}</ul>}
+                        </div>
+                    );
+                })}
             </nav>
 
             {/* the app: its name and version, opening the About page */}

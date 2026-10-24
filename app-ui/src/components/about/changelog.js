@@ -7,6 +7,14 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.16',
+        changes: [
+            t('A Dashboard of your own: what waits for you (a tournament to enter, your match, games left running, requests to answer; for admins requests to join and fair play), your favourites – the games you play most lately, started again with one tap – and yourself. Arrange it as you like; it comes with your account on every device.'),
+            t('The club at a glance moves to My club, arranged by the club\'s admins for everyone.'),
+            t('A shorter menu: Play (games and trainings in groups that fold, tournaments), My club (with games and trainings in one group) and, for global admins, Administration in one section; sections fold with their title, and the menu remembers what you opened.'),
+        ],
+    },
+    {
         version: '2026.10.15',
         changes: [
             t('Tournaments (beta): club admins set up knockout tournaments for 8 to 64 players, with a format to start from (club night, club classic, mini World Championship, or the PDC\'s Players Championship, European Tour, World Matchplay and World Championship), a day and rules for every round and an end of the registration.'),

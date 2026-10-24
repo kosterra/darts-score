@@ -3812,6 +3812,45 @@ paths:
             type: string
       description: Club admins only.
       operationId: deletePlayersByidClubsByclubId
+  /api/stats/favourites:
+    get:
+      tags:
+        - Statistics
+      summary: The games the user's player played most in the last 90 days (same game, settings and opponents), the most played first, at most three
+      responses:
+        '200':
+          description: '[{ id, type, kind, settings, players, opponents, count, lastAt, lastSettings }]'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsFavourites
+  /api/stats/favourites/{id}/start:
+    post:
+      tags:
+        - Statistics
+      summary: Start a favourite again with the same settings and opponents; the player who threw first last time throws last
+      responses:
+        '201':
+          description: '{ type, kind, id, path: where the app plays it }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: The favourite is no longer there
+        '409':
+          description: The club's rules no longer allow it
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postStatsFavouritesByidStart
   /api/stats/club:
     get:
       tags:

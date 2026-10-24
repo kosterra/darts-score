@@ -303,7 +303,7 @@ export const sendWeeklySummaries = async (now = new Date()) => {
                     if (!(await once(`clubSummary:${user._id}:${club._id}:${week}`))) continue;
                     const lines = await clubWeek(club, language, now);
                     if (!lines.length) continue;
-                    await sendTemplateMail('clubSummary', user.email, { firstname: user.firstname, club: club.name, summary: lines.join('\n'), link: `${getAppUrl()}/dashboard`, manageUrl: manageUrl() }, language, { headers: headersOf(token) });
+                    await sendTemplateMail('clubSummary', user.email, { firstname: user.firstname, club: club.name, summary: lines.join('\n'), link: `${getAppUrl()}/club`, manageUrl: manageUrl() }, language, { headers: headersOf(token) });
                     sent += 1;
                 }
             }

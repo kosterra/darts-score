@@ -279,6 +279,10 @@ export const normalizeGamePreferences = (raw = {}) => {
         }
     }
     const training = plain(raw?.training) ? raw.training : {};
+    // the personal dashboard as arranged: [{ id, size }], null for the usual one
+    const dashboard = Array.isArray(raw?.dashboard)
+        ? raw.dashboard.filter(item => plain(item) && isId(item.id) && ['S', 'M', 'L', 'F'].includes(item.size)).slice(0, 40).map(({ id, size }) => ({ id, size }))
+        : null;
     return {
         waysOut: WAYS_OUT.includes(raw?.waysOut) ? raw.waysOut : 'all',
         autoSend: raw?.autoSend === true,
@@ -291,6 +295,7 @@ export const normalizeGamePreferences = (raw = {}) => {
         appearance: appearanceOf(raw?.appearance),
         favourites,
         setups,
+        dashboard: dashboard?.length ? dashboard : null,
         training: {
             bot: typeof training.bot === 'string' && training.bot.length <= 40 ? training.bot : null,
             atcMode: ['Single', 'Double', 'Triple', 'All'].includes(training.atcMode) ? training.atcMode : null,

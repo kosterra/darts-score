@@ -10,6 +10,8 @@ import { getClubStats, getGamesOverview, getPlayerGames, getPlayerLevels, getPla
 import { getClubBadges, getClubOwnBadges, getClubShame, getPlayerBadges, getGameBadges } from '../controllers/badge.controller.js';
 import { playersKnownInClub } from '../controllers/game.controller.js';
 import db from '../models/db.model.js';
+import * as FavouritesController from '../controllers/favourites.controller.js';
+import { param } from 'express-validator';
 
 // Statistics are only given for players and games of the request's club,
 // also for former members, whose games stay in the club
@@ -39,6 +41,9 @@ export default (app) => {
 
     // Club dashboard: club facts, leaderboards and recent games
     router.get('/club', getClubStats);
+    // the games the user plays most lately, to start again with one tap
+    router.get('/favourites', FavouritesController.list);
+    router.post('/favourites/:id/start', param('id').matches(/^[A-Za-z0-9_-]{8,32}$/).withMessage('Invalid favourite.'), validate, FavouritesController.start);
     router.get('/games', getGamesOverview);
     router.get('/levels', getPlayerLevels);
     // Badges of a player, and the badges earned in one game

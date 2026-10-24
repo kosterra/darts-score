@@ -2,7 +2,7 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 
-import { DASHBOARD_WIDGETS, WIDGET_SIZES, resolveLayout } from './dashboard.widgets';
+import { CLUB_WIDGETS, DEFAULT_LAYOUT, WIDGET_SIZES, resolveLayout } from './dashboard.widgets';
 import { t } from '../../utils/i18n';
 
 // a widget lies across (nearly) the whole row: it is moved before or after it by height, not by side
@@ -76,14 +76,15 @@ const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.
  * (mouse, pen or finger; or the arrow keys on the handle), its width (S, M,
  * L, Full) and a button to remove it; below, the widgets not shown yet, to
  * add. layout: [{ id, size }], onChange(layout). renderWidget(widget) draws a
- * widget as on the dashboard; it does not react while being arranged.
+ * widget as on the dashboard; it does not react while being arranged. pool:
+ * the widgets that can be added; fallback: the layout of an empty one.
  *
  * While dragging, a copy of the widget's bar follows the pointer and the
  * widget itself shows where it will land; the others glide out of the way.
  * The places are worked out at most once a frame, from where the widgets
  * stand (not where they are gliding), so they never jump back and forth.
  */
-const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true }) => {
+const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, pool = CLUB_WIDGETS, fallback = DEFAULT_LAYOUT }) => {
     const gridRef = useRef(null);
     const ghostRef = useRef(null);
     const tileRefs = useRef(new Map());
@@ -97,10 +98,10 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
     // places, not on every move (that would lay the dashboard out again each frame)
     const stands = useRef(null);
 
-    const widgets = resolveLayout(layout, { shameBadges });
+    const widgets = resolveLayout(layout, { shameBadges, fallback });
     const ids = widgets.map(widget => widget.id);
     const shown = new Set(ids);
-    const available = DASHBOARD_WIDGETS.filter(widget => !shown.has(widget.id) && (shameBadges || widget.kind !== 'hallOfShame'));
+    const available = pool.filter(widget => !shown.has(widget.id) && (shameBadges || widget.kind !== 'hallOfShame'));
 
     // the place of each widget in the grid, without the gliding (offsets ignore transforms)
     const positions = () => new Map([...tileRefs.current].map(([id, element]) => [id, { left: element.offsetLeft, top: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }]));

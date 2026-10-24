@@ -162,7 +162,41 @@ $navRailWidth: 4.75rem;
             flex-grow: 1;
             height: 1px;
             background: $shade700;
+            order: 1;
         }
+    }
+
+    // a section title folds its section: the whole line is the button, the chevron (and the
+    // counts of a folded section) after the line
+    .nav-section-toggle {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        font-family: inherit;
+        text-align: left;
+        cursor: pointer;
+
+        .nav-badge, .nav-section-chevron { order: 2; flex-shrink: 0; }
+        .nav-badge { margin-left: 0; }
+        &:hover, &:focus-visible { outline: none; color: $textDefaultColor; }
+        &:hover::after { background: $shade600; }
+    }
+
+    .nav-section-chevron {
+        width: 0.65rem;
+        height: 0.65rem;
+        color: $textFaintColor;
+        transform: rotate(-90deg);
+        transition: transform $transitionDuration;
+
+        &.open { transform: none; }
+    }
+
+    // the entries of a group: a smaller icon, indented under the group's
+    .nav-child-icon {
+        width: 0.9rem;
+        height: 0.9rem;
+        opacity: 0.8;
     }
 
     // the club switcher heads the menu, next to the collapse button
