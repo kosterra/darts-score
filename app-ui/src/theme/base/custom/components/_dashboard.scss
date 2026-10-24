@@ -1161,7 +1161,8 @@
 
 .compare-insight {
     display: flex;
-    align-items: flex-start;
+    // the sentence centred on its icon, also when it wraps
+    align-items: center;
     gap: $space-3;
     padding: $space-3;
     border-left: 3px solid var(--insight-colour);
