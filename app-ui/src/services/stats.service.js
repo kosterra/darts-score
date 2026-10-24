@@ -26,23 +26,6 @@ const loadPlayerStats = async (playerId, filters = {}) => {
     }
 }
 
-const loadX01PlayersStats = async (body) => {
-    try {
-        const response = await fetch(API_URL + 'stats/players/x01', {
-            method: 'POST',
-            headers: getHeaders(true),
-            body: JSON.stringify(body)
-        });
-
-        if (!response.ok) {
-            throw Error(response.statusText);
-        };
-
-        return translateAnswer(await response.json());
-    } catch (error) {
-        throw Error(error.message);
-    }
-}
 
 
 const loadX01GameStats = async (gameId) => {
@@ -72,6 +55,9 @@ const loadClubStats = () => requestJSON(API_URL + 'stats/club');
  * Badge overview of the club: every player with their number of badges.
  */
 const loadClubBadges = () => requestJSON(API_URL + 'stats/badges');
+
+// the badges the club earned together, the progress to the others, and its goals
+const loadClubOwnBadges = (clubId) => requestJSON(API_URL + 'stats/club-badges', { clubId });
 
 /**
  * The Hall of Shame of the club: who holds each shame badge right now,
@@ -105,7 +91,13 @@ const loadPlayersForm = (playerIds) => requestJSON(`${API_URL}stats/players/form
  * Head to head in Cricket or Elimination with the comparison filters
  * ({ type, playerIds, includeOthers, dateFilter, from, to, lastGames }).
  */
-const loadHeadToHead = (body) => requestJSON(`${API_URL}stats/players/headtohead`, { method: 'POST', body });
+
+// the player comparison: the duel in one game type, each player side by side, and who a player meets most
+const loadDuel = (body) => requestJSON(`${API_URL}stats/compare/duel`, { method: 'POST', body });
+const loadSideBySide = (body) => requestJSON(`${API_URL}stats/compare/side`, { method: 'POST', body });
+const loadOpponents = (playerId) => requestJSON(`${API_URL}stats/compare/opponents/${playerId}`);
+// a player's head to head with the others: played most and least, the best record and the toughest
+const loadRivals = (playerId) => requestJSON(`${API_URL}stats/compare/rivals/${playerId}`);
 
 const loadPlayerGames = (playerId, limit = 5) => requestJSON(`${API_URL}stats/player/${playerId}/games?limit=${limit}`);
 
@@ -116,6 +108,7 @@ const loadGameBadges = (gameType, gameId) => requestJSON(`${API_URL}stats/badges
 
 const StatsService = {
     loadClubBadges,
+    loadClubOwnBadges,
     loadClubShame,
     loadGamesOverview,
     loadPlayerBadges,
@@ -123,11 +116,13 @@ const StatsService = {
     loadClubStats,
     loadPlayerStats,
     loadPlayerGames,
-    loadHeadToHead,
+    loadDuel,
+    loadSideBySide,
+    loadOpponents,
+    loadRivals,
     loadPlayerLevels,
     loadPlayersForm,
-    loadX01GameStats,
-    loadX01PlayersStats
+    loadX01GameStats
 }
 
 export default StatsService;

@@ -9,6 +9,7 @@ import { recentForm } from '../utils/chart.data.js';
 import { formFigures } from '../utils/form.figures.js';
 import { isShameChild, shameCountIn, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
 import { gamesOverview } from '../utils/games.overview.js';
+import { CLUB_BADGES, latestClubBadges } from '../utils/club.badges.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -160,6 +161,10 @@ export const getClubStats = async (req, res) => {
             isPublic: Boolean(club.isPublic),
             playerCount: members.length,
             adminCount: club.admins.length,
+            // the club's own badges for its header: the latest, and how many of all
+            latestBadges: latestClubBadges(club.badges),
+            badgeCount: (club.badges ?? []).filter(entry => CLUB_BADGES.some(badge => badge.id === entry.badge)).length,
+            badgeTotal: CLUB_BADGES.length,
         },
         totals: {
             gamesPlayed: finishedByType.reduce((sum, { games }) => sum + games.length, 0),

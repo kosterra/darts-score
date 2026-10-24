@@ -14,6 +14,7 @@ import { useAuth } from '../../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../../utils/use.my.players';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
+import { Lines } from '../../elements/skeletons';
 import { locale, t, tn } from '../../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -74,7 +75,7 @@ const MeWidget = ({ widget }) => {
                 </div>
 
                 {!stats
-                    ? <span className="text-faint fs-8">{t('Loading…')}</span>
+                    ? <Lines count={2} />
                     : <>
                         {/* the three figures that matter most, side by side */}
                         <div className="me-widget-tiles">

@@ -1,7 +1,7 @@
 import { loadFlightStanding } from '../utils/flight.service.js';
 import { mayUse, unlockCheck } from '../utils/flights.js';
 import logger from '../models/logger.model.js';
-import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { noteCreated, noteDeleted, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { removeProfileImageFile } from './file.controller.js';
 import { CLUB_ROLES } from '../models/user.model.js';
@@ -264,6 +264,7 @@ export const remove = async (req, res) => {
     }
 
     await player.deleteOne();
+    checkLater(() => noteDeleted(req, 'player'));
     await removeProfileImageIfUnused(player.profileImg);
     res.send({ message: 'Player was deleted successfully!', removed: 'player' });
 };

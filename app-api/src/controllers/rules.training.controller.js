@@ -1,10 +1,21 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { syncPlayerBadges } from '../utils/badge.service.js';
-import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { clubBadgeView, syncClubAfterTraining } from '../utils/club.badge.service.js';
+import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 import { RULES_TRAININGS } from '../utils/rules.kinds.js';
 import { withPlayers } from './atc.controller.js';
+import { trainingOf } from '../rules/trainings.js';
+import { replayTraining } from '../rules/engine.js';
+
+// a start time the app sent: in the past and at most a day ago, or none
+const startedAtOf = (value) => {
+    const date = value ? new Date(value) : null;
+    if (!date || Number.isNaN(date.getTime())) return null;
+    const age = Date.now() - date.getTime();
+    return age >= 0 && age <= 24 * 60 * 60 * 1000 ? date : null;
+};
 
 const Training = db.rulesTraining;
 
@@ -23,17 +34,25 @@ export const create = async (req, res) => {
 
         const { kind } = req.body;
         const higher = RULES_TRAININGS[kind].higherIsBetter;
+        // the result follows from the darts, by the app's rules: what the app sent is not taken on trust
+        const replayed = replayTraining(trainingOf(kind), { settings: req.body.settings ?? {}, darts: req.body.darts ?? [] });
+        if (!replayed.done) return res.status(422).json({ errors: ['The training is not finished: its darts do not end it.'] });
+        if (Number(req.body.score) !== replayed.result.score) {
+            logger.warn(`Training ${kind} of player ${playerId}: the app sent the score ${req.body.score}, the darts give ${replayed.result.score}`);
+        }
         const previousBest = await Training.findOne({ club: req.club._id, kind, 'player.id': playerId }).sort({ score: higher ? -1 : 1 }).lean();
         const data = await new Training({
             club: req.club._id,
             kind,
             settings: req.body.settings ?? {},
-            darts: req.body.darts ?? [],
-            score: req.body.score,
-            result: req.body.result ?? {},
+            darts: (req.body.darts ?? []).slice(0, replayed.thrown),
+            score: replayed.result.score,
+            result: replayed.result,
+            startedAt: startedAtOf(req.body.startedAt),
             player: { id: String(player._id), nickname: player.nickname },
         }).save();
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: RULES_TRAININGS[kind].title, names: [] }));
+        checkLater(() => noteFairPlay(req.club._id, 'rulesTraining', data));
 
         let newBadges = [];
         if (!player.guest) {
@@ -48,6 +67,8 @@ export const create = async (req, res) => {
             isRecord: Boolean(better),
             previousBest: previousBest?.score ?? null,
             newBadges,
+            // the club's badges this training tipped
+            clubBadges: (await syncClubAfterTraining(req.club._id)).map(clubBadgeView).filter(Boolean),
         });
     } catch (err) {
         logger.error(err, 'Failed to create a training');
@@ -80,6 +101,7 @@ export const del = async (req, res) => {
         if (!entry) return res.status(404).json({ message: 'Training not found.' });
         if (!(await mayDeleteTrainingOf(req, entry.player?.id))) return res.status(403).json({ message: 'Only the player or a club admin can delete a training.' });
         await entry.deleteOne();
+        checkLater(() => noteDeleted(req, 'training'));
         const player = db.mongoose.isValidObjectId(entry.player?.id) ? await db.player.findById(entry.player.id) : null;
         if (player) {
             player.badges = player.badges.filter(badge => badge.sourceId !== String(entry._id));

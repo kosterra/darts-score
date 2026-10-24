@@ -17,6 +17,7 @@ import useClubGameRules from '../club_rules/use.club.game.rules';
 import QuickFormats from '../config_components/quick.formats';
 import { FriendlyGame, HouseRules, NotPlayedHere, SettingTitle } from '../club_rules/club.rules.setup';
 import { t } from '../../../utils/i18n';
+import useLinkedPlayers from '../../../utils/use.linked.players';
 import useGameRules from '../../games/common/game.rules';
 
 const CricketConfig = () => {
@@ -26,6 +27,8 @@ const CricketConfig = () => {
     const club = useClubGameRules('cricket');
     const [players, setPlayers] = useState([]);
     const [remembered, setRemembered] = useState(() => loadSetup('cricket'));
+    // players chosen by a link, e.g. from the player comparison
+    const linkedPlayers = useLinkedPlayers();
     // the variant and the house rules, within the club's rules
     const [settings, setSettings] = useState(() => club.start(remembered?.settings));
     const { variant } = settings;
@@ -89,7 +92,7 @@ const CricketConfig = () => {
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
-                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
+                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     {formats.length > 0 && <QuickFormats game="cricket" formats={formats} settings={settings} playerCount={players.length} onApply={applyFormat} />}

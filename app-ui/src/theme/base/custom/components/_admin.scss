@@ -747,6 +747,42 @@ $fair-play-suspicious: $accentAmber;
     }
 }
 
+// open or focused, the field keeps its usual dark border (no light frame); the
+// keyboard's focus ring is a shadow of its own
+.type-filter.p-focus {
+    border-color: $shade900;
+}
+
+// the wrapper only tells how the filter was opened; it takes no room of its own
+.type-filter-wrap { display: contents; }
+.type-filter-wrap.is-pointer .type-filter.p-focus { box-shadow: none; }
+
+.type-filter .p-multiselect-label,
+.type-filter .p-dropdown-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-1;
+}
+
+// a chosen type: its icon and name on a pill in its colour
+.type-pill {
+    // the shape of the other tags (e.g. "All time" beside it), the icon centred on the text
+    @include label-shape;
+    gap: 0.35rem;
+    background: color-mix(in srgb, var(--game-type-color) 18%, transparent);
+    color: var(--game-type-color);
+    // the newer games and trainings, unless named below
+    --game-type-color: #{$accentPink};
+
+    svg { display: block; flex-shrink: 0; width: 1em; height: 1em; }
+
+    &.game-type-x01 { --game-type-color: #{$accentGreen}; }
+    &.game-type-cricket { --game-type-color: #{$gameColorCricket}; }
+    &.game-type-elimination { --game-type-color: #{$gameColorElimination}; }
+    &.game-type-clock, &.game-type-atc { --game-type-color: #{$gameColorClock}; }
+}
+
 .type-filter-panel {
     // no header: a click outside or Escape closes it
     .p-multiselect-header {
@@ -775,6 +811,12 @@ $fair-play-suspicious: $accentAmber;
         &:hover {
             color: $textDefaultColor;
         }
+    }
+
+    // the group's title in a single choice: a label, not a button
+    .type-filter-group.is-label {
+        display: block;
+        cursor: default;
     }
 
     .type-filter-group-all {

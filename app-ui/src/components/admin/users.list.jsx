@@ -19,6 +19,7 @@ import { AdminToolbar } from './admin.common';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import { TableLoading } from '../elements/skeletons';
 import { formatDate } from '../../utils/dates';
 
 const roleOptions = Object.values(ROLES).map(role => ({ label: ROLE_LABELS[role], value: role }));
@@ -27,6 +28,8 @@ const UsersList = () => {
     const toast = useRef(null);
     const { user: currentUser } = useAuth();
     const [users, setUsers] = useState([]);
+    // the overview shows its shape until the users are there
+    const [loaded, setLoaded] = useState(false);
     // the search, the clubs, page and order live in the address
     const [view, setView] = useUrlState({ search: '', clubs: '', ...TABLE_DEFAULTS });
     const { search } = view;
@@ -57,6 +60,8 @@ const UsersList = () => {
             setUsers(await UserService.loadUsers());
         } catch (error) {
             showError(t('Load users'), error);
+        } finally {
+            setLoaded(true);
         }
     };
 
@@ -160,7 +165,7 @@ const UsersList = () => {
     return (
         <>
         {/* the users at a glance; an account picked there shows in the list */}
-        <UsersOverview users={users} onPick={(user) => setView({ search: user.email, clubs: '', page: 1 })} />
+        <UsersOverview users={users} loading={!loaded} onPick={(user) => setView({ search: user.email, clubs: '', page: 1 })} />
         <Panel id="admin-list" header={t('Users')}>
             <AdminToolbar>
                 <ClubFilter clubs={clubs} selectedIds={clubIds} onChange={setClubIds} optional />
@@ -190,7 +195,7 @@ const UsersList = () => {
                 )}
                 className="admin-table"
                 {...tableState(view, setView, { sortField: 'lastname', sortOrder: 1 })}
-                emptyMessage={users.length ? t('No users match these filters.') : t('No users found.')}
+                emptyMessage={!loaded ? <TableLoading /> : users.length ? t('No users match these filters.') : t('No users found.')}
                 responsiveLayout="scroll"
             >
                 <Column field="lastname" header={t('Name')} sortable body={nameBody} />

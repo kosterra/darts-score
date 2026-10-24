@@ -8,6 +8,7 @@ import { KpiHero } from '../stats/players/kpi';
 import { QUIET_DAYS, clubsOverview } from '../../utils/admin.overviews';
 import { t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT } from '../../utils/palette';
 
 const GREEN = ACCENT.green;
@@ -42,6 +43,7 @@ const ClubList = ({ clubs, lineOf, onPick, empty }) => clubs.length === 0
 const ClubsOverview = ({ clubs, onPick }) => {
     const overview = useMemo(() => clubsOverview(clubs ?? []), [clubs]);
 
+    if (!clubs) return <OverviewSkeleton title={t('Clubs at a glance')} />;
     if (!overview.total) return null;
     const pick = (club) => { onPick(club); scrollToList(); };
     const pickEntry = (entry) => pick(entry.club);

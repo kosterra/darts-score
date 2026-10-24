@@ -8,7 +8,7 @@ import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { sendTemplateMail, validityOf } from '../utils/mail.service.js';
-import { checkRegistration, noteRegistration, checkLater } from '../utils/spam.guard.js';
+import { checkRegistration, noteRegistration, noteLoginFailure, noteResetRequest, checkLater } from '../utils/spam.guard.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { getClubRole } from '../middleware/auth.middleware.js';
 
@@ -49,6 +49,7 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     // Same answer for an unknown email and a wrong password
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
+        checkLater(() => noteLoginFailure(req, typeof email === 'string' ? email : '', user));
         return res.status(401).json({ message: 'Email or password is wrong.' });
     }
     if (user.blockedAt) return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
@@ -196,6 +197,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     const user = await User.findOne({ email: req.body.email });
+    checkLater(() => noteResetRequest(req, typeof req.body.email === 'string' ? req.body.email : '', user));
     if (user) {
         const link = issuePasswordLink(user, RESET_TOKEN_HOURS);
         await user.save();

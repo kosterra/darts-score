@@ -18,6 +18,11 @@ import { LEVEL_LABELS, listOf } from './fair.play.lists';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t, tn } from '../../utils/i18n';
+
+// where a game is shown: the newer games by their kind, X01 against the bot as a training
+const viewPathOf = (entry) => entry.type === 'rules' ? `/stats/games/${entry.kind}/${entry.id}`
+    : entry.type === 'x01training' ? `/stats/training/x01/${entry.id}`
+        : `/stats/games/${entry.type}/${entry.id}`;
 import { formatDate } from '../../utils/dates';
 
 /**
@@ -250,7 +255,7 @@ const FairPlayPage = ({ all = false }) => {
                     : (
                         <ul className="fair-play-list list-unstyled m-0">
                             {entries.map(entry => {
-                                const viewable = !['training', 'birth'].includes(entry.type) && (!all || entry.club.id === activeClub?.id);
+                                const viewable = !['training', 'rulesTraining', 'birth'].includes(entry.type) && (!all || entry.club.id === activeClub?.id);
                                 const expanded = open.has(entry.id);
                                 return (
                                     <li key={`${entry.type}-${entry.id}`} className={`fair-play-entry is-${entry.level}`}>
@@ -297,7 +302,7 @@ const FairPlayPage = ({ all = false }) => {
                                         }
                                         <div className="fair-play-actions">
                                             <Button type="button" label={expanded ? t('Hide details') : t('Details')} icon={`pi ${expanded ? 'pi-chevron-up' : 'pi-search'}`} size="small" severity="secondary" onClick={() => toggle(entry)} aria-expanded={expanded} />
-                                            {viewable && <Button type="button" label={t('View')} icon="pi pi-chart-bar" size="small" severity="secondary" onClick={() => navigate(`/stats/games/${entry.type}/${entry.id}`)} />}
+                                            {viewable && <Button type="button" label={t('View')} icon="pi pi-chart-bar" size="small" severity="secondary" onClick={() => navigate(viewPathOf(entry))} />}
                                             {entry.repairable && entry.review?.status !== 'ok' &&
                                                 <Button type="button" label={t('Repair')} icon="pi pi-wrench" size="small" disabled={busy === entry.id} onClick={() => setRepairing(entry)} />}
                                             {entry.review?.status !== 'ok' &&
@@ -309,7 +314,7 @@ const FairPlayPage = ({ all = false }) => {
                                             {entry.type !== 'birth' && <DeletePopup
                                                 data={entry}
                                                 header={t('Delete for fair play')}
-                                                message={(entry.type === 'training' ? t('this training ({{summary}}) and the badges earned in it', { summary: entry.summary }) : t('this game ({{summary}}) and the badges earned in it', { summary: entry.summary }))}
+                                                message={(entry.type === 'training' || entry.type === 'rulesTraining' ? t('this training ({{summary}}) and the badges earned in it', { summary: entry.summary }) : t('this game ({{summary}}) and the badges earned in it', { summary: entry.summary }))}
                                                 handleDelete={() => remove(entry)}
                                                 label={t('Delete')}
                                                 size="small"

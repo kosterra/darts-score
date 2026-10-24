@@ -97,11 +97,13 @@ const SideBySide = ({ rows, players }) => {
         );
     }
 
+    // three or four: each figure a box of its own, the name, line, lead and value of every
+    // player in shared columns on one line each, so the lines are evenly spaced
     return (
-        <div className="tape">
+        <div className="tape tape-multi">
             {shown.map(row => (
-                <div key={row.key} className="tape-row">
-                    <span className="tape-label d-block mb-1">{row.label}</span>
+                <div key={row.key} className="tape-figure">
+                    <span className="tape-label tape-figure-label">{row.label}</span>
                     {players.map((player, index) => (
                         <div key={player.id} className="tape-line">
                             <span className="tape-line-name text-truncate" title={player.nickname}>{player.nickname}</span>
@@ -111,8 +113,8 @@ const SideBySide = ({ rows, players }) => {
                                     style={{ width: `${share(row, index) * 100}%`, background: PLAYER_COLORS[index] }}
                                 />
                             </span>
+                            <span className="tape-line-lead"><Lead row={row} index={index} /></span>
                             <span className={`tape-value ${isBest(row, index) ? 'is-best' : ''}`}>
-                                <Lead row={row} index={index} />
                                 {textOf(row, index)}
                                 {row.details?.[index] && <span className="tape-detail">{row.details[index]}</span>}
                             </span>

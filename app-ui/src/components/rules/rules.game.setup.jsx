@@ -18,6 +18,7 @@ import useClubGameRules from '../game_config/club_rules/use.club.game.rules';
 import { FriendlyGame, HouseRules, NotPlayedHere, SettingTitle } from '../game_config/club_rules/club.rules.setup';
 import { HALVE_IT_CLASSIC, HALVE_IT_SHORT } from '../../rules/club.rules';
 import { t } from '../../utils/i18n';
+import useLinkedPlayers from '../../utils/use.linked.players';
 import useGameRules from '../games/common/game.rules';
 
 const defaultsOf = (definition) => settingsOf(definition, {});
@@ -32,6 +33,8 @@ const RulesGameSetup = () => {
     const memoryKey = `rules.${kind}`;
     const club = useClubGameRules(kind);
     const [remembered, setRemembered] = useState(() => loadSetup(memoryKey));
+    // players chosen by a link, e.g. from the player comparison
+    const linkedPlayers = useLinkedPlayers();
     // the options and house rules, within the club's rules
     const [settings, setSettings] = useState(() => club.start(definition ? defaultsOf(definition) : {}, remembered?.settings ?? {}));
     const change = (key, value) => setSettings(current => club.withLocks({ ...current, [key]: value }));
@@ -103,7 +106,7 @@ const RulesGameSetup = () => {
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
-                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} minPlayers={min} key={remembered ? 'remembered' : 'fresh'} />
+                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={linkedPlayers ?? remembered?.playerIds} minPlayers={min} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     {formats.length > 0 && <QuickFormats game={kind} formats={formats} settings={settings} playerCount={players.length} onApply={applyFormat} />}

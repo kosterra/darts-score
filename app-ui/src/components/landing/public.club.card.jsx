@@ -4,6 +4,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 
 import ClubLogo from '../elements/club.logo';
 import { locale, t } from '../../utils/i18n';
+import { ClubMedalRow } from '../badges/club.badges';
 import CountryFlag from '../elements/country.flag';
 
 dayjs.extend(relativeTime);
@@ -32,6 +33,7 @@ const PublicClubCard = ({ club }) => {
                 <ClubLogo club={club} size="md" />
                 <div className="d-flex flex-column min-w-0">
                     <h3 className="fs-5 fw-semibold text-default m-0 text-break">{club.name}{' '}<CountryFlag code={club.country} /></h3>
+                    {club.badges?.length > 0 && <span className="mt-1"><ClubMedalRow badges={club.badges} count={club.badgeCount} size="sm" /></span>}
                     <span className="text-faint fs-8">
                         {club.busiestDay ? t(`Plays mostly on ${club.busiestDay}s`) : t('With Oche since {{format}}', { format: dayjs(club.createdAt).format('MMMM YYYY') })}
                     </span>

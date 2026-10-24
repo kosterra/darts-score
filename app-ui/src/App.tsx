@@ -86,7 +86,12 @@ function AppContent() {
         noteLocation(location, navigationType);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.key]);
+    // only when the page itself changes: a filter of a list changes the address too
+    // (its query), and that must not jump to the top
+    const lastPathname = useRef(pathname);
     useEffect(() => {
+        if (lastPathname.current === pathname) return;
+        lastPathname.current = pathname;
         if (navigationType === 'POP' || window.location.hash) return;
         window.scrollTo(0, 0);
     }, [pathname, navigationType]);
@@ -143,7 +148,7 @@ function AppContent() {
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
                 <AppBanner />
-                <InstallHint />
+                <InstallHint loggedIn />
                 {/* Keyed by club so every page reloads its data after switching clubs */}
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
                 <Routes>

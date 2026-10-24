@@ -30,6 +30,7 @@ import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { BOT_ID } from '../../utils/x01.bot';
 import { t } from '../../utils/i18n';
+import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
 const WHOSE_OPTIONS = [
@@ -226,7 +227,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
     return (
         <>
         {/* the club's trainings at a glance, above the list */}
-        {!acrossClubs && rows && <TrainingsOverview rows={rows} playerOf={playerOf} />}
+        {!acrossClubs && <TrainingsOverview rows={rows} playerOf={playerOf} />}
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <ActivityInsights what="trainings" onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
@@ -257,9 +258,8 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         value={visibleRows}
                         dataKey="id"
                         className="admin-table"
-                        loading={rows === null}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
-                        emptyMessage={t('No trainings match these filters.')}
+                        emptyMessage={rows === null ? <TableLoading /> : t('No trainings match these filters.')}
                         responsiveLayout="scroll"
                     >
                         <Column field="createdAt" header={t('Date')} sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />

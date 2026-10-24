@@ -19,6 +19,7 @@ import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.sta
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import CountryFlag from '../elements/country.flag';
+import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
 const clubDate = (value) => formatDate(value);
@@ -136,9 +137,8 @@ const ClubsTable = () => {
                 expandedRows={adminsOfClubId ? { [adminsOfClubId]: true } : null}
                 rowExpansionTemplate={(club) => <ClubAdminsEditor club={club} onHide={() => setAdminsOfClubId(null)} onChange={onAdminsChange} />}
                 className="admin-table"
-                loading={clubs === null}
                 {...tableState(view, setView, { sortField: 'name', sortOrder: 1 })}
-                emptyMessage={clubs?.length ? t('No clubs match these filters.') : t('No clubs yet.')}
+                emptyMessage={clubs === null ? <TableLoading /> : clubs?.length ? t('No clubs match these filters.') : t('No clubs yet.')}
                 responsiveLayout="scroll"
             >
                 <Column field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />

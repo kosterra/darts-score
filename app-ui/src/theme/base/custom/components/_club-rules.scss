@@ -274,3 +274,15 @@
   padding-top: $space-3;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+// a goal of the club: what it counts, the number, the end and remove, in a row (wrapping on a phone)
+.club-goal-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+
+  .club-goal-metric { flex: 1 1 12rem; }
+  .club-goal-target { width: 8rem; }
+  .club-goal-until { flex: 1 1 10rem; }
+}

@@ -66,6 +66,10 @@ export const createGameFilterQuery = (filters) => {
     if (sets) query.numberOfSets = sets;
     if (legs) query.numberOfLegs = legs;
 
+    // friendly games left out, and a club's own format (its id, as the game keeps it)
+    if (filters.friendly === 'exclude') query.friendly = { $ne: true };
+    if (typeof filters.clubFormat === 'string' && /^[\w-]{1,64}$/.test(filters.clubFormat)) query.format = filters.clubFormat;
+
     logger.debug(query);
     return query;
 };

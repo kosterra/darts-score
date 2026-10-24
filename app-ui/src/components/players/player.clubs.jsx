@@ -5,6 +5,7 @@ import { Dropdown } from 'primereact/dropdown';
 import PlayerService from '../../services/player.service';
 import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
+import { Lines } from '../elements/skeletons';
 import { t } from '../../utils/i18n';
 
 /**
@@ -58,7 +59,7 @@ const PlayerClubs = ({ player, onSaved, onError, onLeft }) => {
             <p className="setting-title">{t('Member of')}</p>
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col d-flex flex-column gap-2 pt-1">
-                    {memberships === null && <span className="text-faint fs-7">{t('Loading…')}</span>}
+                    {memberships === null && <Lines count={2} />}
                     {(memberships ?? []).map(club => (
                         <div key={club.id} className="d-flex align-items-center gap-3">
                             <ClubLogo club={club} />

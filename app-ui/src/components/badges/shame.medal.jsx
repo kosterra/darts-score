@@ -1,4 +1,4 @@
-import { FaBed, FaHouseCrack, FaCircleXmark, FaBomb, FaAnchor, FaFlag, FaWineBottle, FaSpoon, FaSnowflake, FaSkull } from 'react-icons/fa6';
+import { FaBed, FaHouseCrack, FaCircleXmark, FaBomb, FaAnchor, FaFlag, FaWineBottle, FaSpoon, FaSnowflake, FaSkull, FaPersonFallingBurst, FaDroplet, FaHandcuffs, FaScissors, FaTree, FaDoorClosed, FaArrowTrendDown } from 'react-icons/fa6';
 
 const SHAME_ICONS = {
     bedAndBreakfast: FaBed,
@@ -10,6 +10,13 @@ const SHAME_ICONS = {
     bottledIt: FaWineBottle,
     woodenSpoon: FaSpoon,
     coldSpell: FaSnowflake,
+    friendlyFire: FaPersonFallingBurst,
+    firstBlood: FaDroplet,
+    shanghaied: FaHandcuffs,
+    halfWit: FaScissors,
+    inTheRough: FaTree,
+    lockedOut: FaDoorClosed,
+    bobsBust: FaArrowTrendDown,
 };
 
 /**

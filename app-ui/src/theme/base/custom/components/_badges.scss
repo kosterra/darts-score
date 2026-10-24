@@ -917,3 +917,86 @@ $tar: #17110c;
         background: $surfaceRaisedColor;
     }
 }
+
+// a badge of the club: a shield, so it is never taken for a player's medal
+.badge-medal.badge-club {
+    border-radius: 22% 22% 50% 50% / 16% 16% 64% 64%;
+}
+
+// the club's best medals on its card: a few shields and how many more
+.club-medal-row {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-1;
+}
+
+// the club's badges on the badges page: a grid of shields with their name and how far
+.club-badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: $space-3;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.club-badge-card {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    min-width: 0;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+
+    &.is-locked {
+        opacity: 0.75;
+    }
+}
+
+// how far the club is towards a badge or a goal
+.club-progress {
+    display: block;
+    height: 0.375rem;
+    border-radius: $radius-pill;
+    background: $surfaceHighColor;
+    overflow: hidden;
+
+    > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: $accentGold;
+    }
+
+    &.is-done > span {
+        background: $accentGreen;
+    }
+}
+
+// on the About page: the three kinds of badges (player, Hall of Shame, club), each set apart by a line
+.about-badge-kind {
+    margin: 0;
+    padding-top: $space-4;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: $textDefaultColor;
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+}
+
+// a line of a list that leads somewhere (e.g. to a player): the light background
+// of the rankings shows on hover, the text stays where it is
+.link-row {
+    margin: (-$space-2) (-$space-2);
+    padding: $space-2;
+    border-radius: $radius-md;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color $transitionDuration;
+
+    &:hover,
+    &:focus-visible {
+        background: $surfaceRaisedColor;
+        color: inherit;
+    }
+}

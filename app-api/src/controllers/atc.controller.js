@@ -1,7 +1,8 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { syncPlayerBadges } from '../utils/badge.service.js';
-import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { clubBadgeView, syncClubAfterTraining } from '../utils/club.badge.service.js';
+import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 
 const ATC = db.atc;
@@ -57,6 +58,7 @@ export const create = async (req, res) => {
         });
         const data = await atc.save();
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: 'Around the Clock', names: [] }));
+        checkLater(() => noteFairPlay(req.club._id, 'training', data));
 
         let newBadges = [];
         if (!player.guest) {
@@ -71,6 +73,8 @@ export const create = async (req, res) => {
             isRecord: Boolean(previousBest) && data[field] < previousBest[field],
             previousBest: previousBest?.[field] ?? null,
             newBadges,
+            // the club's badges this training tipped
+            clubBadges: (await syncClubAfterTraining(req.club._id)).map(clubBadgeView).filter(Boolean),
         });
     } catch (err) {
         logger.error(err, 'Failed to create ATC entry');
@@ -106,6 +110,7 @@ export const del = async (req, res) => {
         // the player's own trainings, or as an admin of the club
         if (!(await mayDeleteTrainingOf(req, entry.player?.id))) return res.status(403).json({ message: 'Only the player or a club admin can delete a training.' });
         await entry.deleteOne();
+        checkLater(() => noteDeleted(req, 'training'));
         // the badges earned in it go, unless they were earned again elsewhere
         const player = db.mongoose.isValidObjectId(entry.player?.id) ? await db.player.findById(entry.player.id) : null;
         if (player) {

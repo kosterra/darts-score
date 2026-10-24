@@ -7,6 +7,7 @@ import { FaMedal } from 'react-icons/fa6';
 import RulesService from '../../services/rules.service';
 import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { Lines } from '../elements/skeletons';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 
 const MEDALS = ['gold', 'silver', 'bronze'];
@@ -51,7 +52,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                 <SelectButton value={view} options={VIEWS} onChange={(e) => e.value && setView(e.value)} className="p-selectbutton-pills" aria-label={t('Scoreboard')} />
             </div>
             {entries === null
-                ? <span className="text-faint fs-8">{t('Loading…')}</span>
+                ? <Lines count={4} />
                 : rows.length === 0
                     ? <span className="text-faint fs-8">{t('Nobody has played this training yet.')}</span>
                     // as the scoreboard of Around the Clock: the podium as medals, the player with the date, the result

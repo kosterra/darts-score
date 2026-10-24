@@ -17,6 +17,7 @@ import QuickFormats from '../config_components/quick.formats';
 import useClubGameRules from '../club_rules/use.club.game.rules';
 import { ClubRuleMark, FriendlyGame, NotPlayedHere, SettingTitle } from '../club_rules/club.rules.setup';
 import { t } from '../../../utils/i18n';
+import useLinkedPlayers from '../../../utils/use.linked.players';
 import useGameRules from '../../games/common/game.rules';
 
 const MODES = ATCConfigOptions.modeOptions.values;
@@ -31,6 +32,8 @@ const ClockConfig = () => {
     // the page starts set up like the last game
     const club = useClubGameRules('clock');
     const [remembered, setRemembered] = useState(() => loadSetup('clock'));
+    // players chosen by a link, e.g. from the player comparison
+    const linkedPlayers = useLinkedPlayers();
     // the ring that counts and whether doubles and trebles move on, within the club's rules
     const [settings, setSettings] = useState(() => club.start(remembered?.settings));
     const { mode, skipAhead } = settings;
@@ -85,7 +88,7 @@ const ClockConfig = () => {
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
-                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
+                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     {formats.length > 0 && <QuickFormats game="clock" formats={formats} settings={settings} playerCount={players.length} onApply={applyFormat} />}

@@ -18,6 +18,7 @@ import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { announceAlertsChange } from './alert.events';
 import { t } from '../../utils/i18n';
+import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
 dayjs.extend(relativeTime);
@@ -201,9 +202,8 @@ const AlertsPage = () => {
                     value={alerts ?? []}
                     dataKey="id"
                     className="admin-table"
-                    loading={alerts === null}
                     {...tableState(view, setView)}
-                    emptyMessage={status === 'open' ? t('No open alerts. Nothing suspicious happened.') : t('No alerts.')}
+                    emptyMessage={alerts === null ? <TableLoading /> : status === 'open' ? t('No open alerts. Nothing suspicious happened.') : t('No alerts.')}
                     responsiveLayout="scroll"
                 >
                     <Column header={t('When')} body={whenBody} />

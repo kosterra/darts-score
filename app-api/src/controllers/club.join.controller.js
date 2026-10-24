@@ -2,7 +2,9 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { addToClub } from './player.controller.js';
 import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
+import { topClubBadges } from '../utils/club.badges.js';
 import { joinBlock, joinNotices } from '../utils/club.joining.js';
+import { checkLater, noteJoinRequest } from '../utils/spam.guard.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -61,6 +63,8 @@ const clubCard = (club, { members, counts, requests }) => ({
     playerCount: counts.get(String(club._id)) ?? 0,
     isMember: members.has(String(club._id)),
     request: requests.get(String(club._id)) ?? null,
+    badges: topClubBadges(club.badges),
+    badgeCount: club.badges?.length ?? 0,
 });
 
 const requestView = (request, club) => ({
@@ -84,7 +88,7 @@ const requestView = (request, club) => ({
 export const directory = async (req, res) => {
     const q = String(req.query.q ?? '').trim().slice(0, 50);
     const filter = { ...TAKES_MEMBERS, ...(q && { name: { $regex: escapeRegex(q), $options: 'i' } }) };
-    const clubs = await Club.find(filter, 'name description country logo joinPolicy').sort({ name: 1 }).limit(100);
+    const clubs = await Club.find(filter, 'name description country logo joinPolicy badges').sort({ name: 1 }).limit(100);
     const ids = clubs.map(club => club._id);
     const [members, countList, requestList, player] = await Promise.all([
         memberClubIds(req.user),
@@ -141,6 +145,7 @@ export const join = async (req, res) => {
             message: String(req.body.message ?? '').trim(),
         };
 
+        checkLater(() => noteJoinRequest(req, club, request.message));
         if (club.joinPolicy === 'open') {
             const member = await makeMember(req.user, club, nickname);
             await notify('joined', request, club, req.user);

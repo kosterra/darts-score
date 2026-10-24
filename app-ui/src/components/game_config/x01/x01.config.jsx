@@ -22,6 +22,7 @@ import useClubGameRules from '../club_rules/use.club.game.rules';
 import { FriendlyGame, HouseRules, NotPlayedHere } from '../club_rules/club.rules.setup';
 import { missingPlayers, playersSummary, setsLegsSummary } from '../config_components/game.setup.summary';
 import { t } from '../../../utils/i18n';
+import useLinkedPlayers from '../../../utils/use.linked.players';
 import useGameRules from '../../games/common/game.rules';
 
 const SETTINGS = ['startingScore', 'legInMode', 'legOutMode', 'setMode', 'numberOfSets', 'legMode', 'numberOfLegs', 'legStarter', 'roundLimit', 'bull', 'flyingDarts'];
@@ -41,6 +42,8 @@ const X01Config = () => {
     const club = useClubGameRules('x01');
     // the page starts set up like the last game, within the club's rules
     const [remembered, setRemembered] = useState(() => loadSetup('x01'));
+    // players chosen by a link, e.g. from the player comparison
+    const linkedPlayers = useLinkedPlayers();
     const [game, setGame] = useState(() => ({ ...X01Models.X01GameModel, ...club.start(remembered?.settings) }));
     // a friendly game: left out of the club's leaderboards, records and Hall of Shame
     const [friendlyChosen, setFriendlyChosen] = useState(Boolean(remembered?.friendly) && club.friendlyChoice);
@@ -142,7 +145,7 @@ const X01Config = () => {
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
-                    <PlayerPicker selected={players} onChange={onPlayersChange} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
+                    <PlayerPicker selected={players} onChange={onPlayersChange} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     {formats.length > 0 && <QuickFormats game="x01" formats={formats} settings={game} playerCount={players.length} onApply={applyFormat} />}

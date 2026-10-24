@@ -8,6 +8,7 @@ import PlayerLatestGames from '../stats/players/player.latest.games';
 import PlayerBadgeCollection from '../badges/player.badge.collection';
 import UpLink from '../elements/up.link';
 import { useAuth } from '../../utils/auth.context';
+import HeadToHeadPanel from '../stats/compare/head.to.head.panel';
 import { t } from '../../utils/i18n';
 
 /**
@@ -64,7 +65,13 @@ const PlayerProfilePage = () => {
             <PlayerStats
                 player={player}
                 isOwn={player.user === user.id}
-                afterFigures={<PlayerLatestGames player={player} />}
+                afterFigures={player.user === user.id
+                    // your own: the latest games and your head to head with the others side by side
+                    ? <div className="row g-4">
+                        <div className="col-12 col-xl-7"><PlayerLatestGames player={player} /></div>
+                        <div className="col-12 col-xl-5"><HeadToHeadPanel player={player} /></div>
+                    </div>
+                    : <PlayerLatestGames player={player} />}
             />
             <section id="badges" className="mt-5" style={{ scrollMarginTop: '1rem' }}>
                 <PlayerBadgeCollection playerId={player.id} onLoaded={onBadgesLoaded} />

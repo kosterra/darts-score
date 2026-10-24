@@ -20,7 +20,7 @@ export const getPlayersX01Stats = async (req, res, next) => {
     }
 };
 
-async function calculateX01PlayersStats(body) {
+export async function calculateX01PlayersStats(body) {
     logger.debug('calculate x01 players stats called')
     const playersX01Stats = JSON.parse(JSON.stringify(playersX01StatsModel))
 

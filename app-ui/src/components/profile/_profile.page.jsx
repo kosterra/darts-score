@@ -15,6 +15,7 @@ import { useAuth } from '../../utils/auth.context';
 import { LANGUAGES, currentLanguage, setLanguage, t } from '../../utils/i18n';
 import PlayingPreferences from './playing.preferences';
 import DateFormatSetting from './date.format.setting';
+import AppInstallSetting from '../install/app.install.setting';
 import { MyPlayers } from '../players/_my.player.page';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -226,6 +227,8 @@ const ProfilePage = () => {
                             </div>
                         </div>
                     </form>
+                    {/* Oche on the home screen of this device */}
+                    <div className="mt-4"><AppInstallSetting /></div>
                     </div>
                 </div>}
 

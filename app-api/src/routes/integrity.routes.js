@@ -4,7 +4,7 @@ import { validate } from '../utils/validation.js';
 import { requireClub, requireClubAdmin, requireGlobalAdmin } from '../middleware/auth.middleware.js';
 import * as IntegrityController from '../controllers/integrity.controller.js';
 
-const TYPES = ['x01', 'cricket', 'elimination', 'clock', 'training', 'birth'];
+const TYPES = ['x01', 'cricket', 'elimination', 'clock', 'training', 'rules', 'rulesTraining', 'x01training', 'birth'];
 
 export default (app) => {
     const router = Router();

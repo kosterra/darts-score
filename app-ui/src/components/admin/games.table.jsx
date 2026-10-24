@@ -39,6 +39,7 @@ import ActivityInsights from './activity.insights';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dialogs';
 import { t } from '../../utils/i18n';
+import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
@@ -385,12 +386,11 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         value={visibleGames}
                         dataKey="key"
                         className="admin-table"
-                        loading={games === null}
                         selectionMode={canManage ? 'checkbox' : null}
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
-                        emptyMessage={t('No games match these filters.')}
+                        emptyMessage={games === null ? <TableLoading /> : t('No games match these filters.')}
                         responsiveLayout="scroll"
                     >
                         {canManage && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}

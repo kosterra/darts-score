@@ -1,6 +1,9 @@
 import { thrownDarts } from './badges.js';
 import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
+import { gameOf } from '../rules/games.js';
+import { trainingOf } from '../rules/trainings.js';
+import { replayGame, replayTraining, withGameState } from '../rules/engine.js';
 import { withView } from './game.view.js';
 
 /**
@@ -43,6 +46,34 @@ export const THRESHOLDS = {
     eliminationHighVisit: 100,
     // a player's own date of birth moved later by more than this many days
     birthLaterDays: 31,
+    // the newer games: what a professional does
+    shanghaiHitRate: 0.8,
+    golfStrokesPerHole: 1.3,
+    tacticsHighMarks: 5,
+    halveItHighPoints: 400,
+    // the newer trainings: far out of reach for a club player
+    bobs27High: 1000,
+    randomCheckoutsPerfect: 100,
+    randomCheckoutsAttempts: 10,
+    scoringHighAverage: 100,
+    doublesAroundFewDarts: 25,
+    catch40High: 110,
+    checkout121High: 160,
+    // a training's darts entered faster than they can be thrown (seconds per dart)
+    trainingImpossibleSecondsPerDart: 0.5,
+    trainingFastSecondsPerDart: 1.3,
+    trainingFastDarts: 30,
+    // the same win again and again within a day against someone who hardly plays otherwise
+    farmingWins: 5,
+    farmingHours: 24,
+    farmingRarelyFactor: 2,
+    // many tiny games within an hour (darts of all players together)
+    tinyGameDarts: 30,
+    tinyGames: 10,
+    tinyMinutes: 60,
+    // a player asking to delete games, mostly ones they lost
+    deletionRequests: 3,
+    deletionLostShare: 0.8,
 };
 
 const DART = /^(?:[SDT](?:[1-9]|1\d|20)|[SD]25|0)$/;
@@ -447,4 +478,239 @@ export const checkBirthChange = (change, { minAge = 16, gameDates = [] } = {}) =
         ? `${moved} ${moved === 1 ? 'game' : 'games'} now count as played under ${minAge}`
         : `no games played under ${minAge} because of it so far`;
     return [finding('suspicious', 'birthLater', 'Made themselves younger', `date of birth moved from ${dateText(from)} to ${dateText(to)} (${years} ${years === 1 ? 'year' : 'years'} younger) by the player: ${effect}`)];
+};
+
+// a training's dart: a field of the board, or H and M for a hit or a miss
+const TRAINING_DART = /^(?:[SDT](?:[1-9]|1\d|20)|[SD]25|0|H|M)$/;
+
+/**
+ * A game of Shanghai, Killer, Halve-It, Golf or Tactics: darts that cannot be
+ * thrown, a stored result that is not what its darts give (impossible), and
+ * far out of the ordinary (suspicious): played very fast, an opponent who
+ * only missed, or the play of a professional.
+ */
+export const checkRulesGame = (stored) => {
+    const found = [];
+    const definition = gameOf(stored.kind);
+    if (!definition) return found;
+    const visits = stored.visits ?? [];
+    visits.forEach((visit, index) => {
+        const darts = (visit.darts ?? []).filter(dart => dart !== '' && dart != null);
+        if (darts.length > 3) found.push(finding('impossible', 'tooManyDarts', 'More than three darts in a visit', `${darts.length} darts in visit ${index + 1}`, visit.player, { visit: index + 1 }));
+        const wrong = darts.filter(dart => !isDart(dart));
+        if (wrong.length) found.push(finding('impossible', 'invalidDart', 'A dart that is not on the board', `${wrong.join(', ')} in visit ${index + 1}`, visit.player, { visit: index + 1 }));
+    });
+    if (found.length) return found;
+
+    let replayed;
+    let worked;
+    try {
+        replayed = replayGame(definition, stored);
+        worked = withGameState(definition, stored);
+    } catch {
+        return [finding('error', 'unreadable', 'The darts cannot be played through', 'The game\'s darts do not fit its rules')];
+    }
+    // the stored result against what the darts give
+    for (const id of stored.players ?? []) {
+        const saved = stored.playerModels?.[id] ?? {};
+        const real = worked.playerModels?.[id] ?? {};
+        if (Boolean(saved.hasWonGame) !== Boolean(real.hasWonGame) || (saved.score != null && Number(saved.score) !== Number(real.score))) {
+            found.push(finding('impossible', 'resultMismatch', 'The result is not what the darts give', `Stored ${saved.hasWonGame ? 'a win' : 'no win'} with ${saved.score ?? '–'}, the darts give ${real.hasWonGame ? 'a win' : 'no win'} with ${real.score ?? '–'}`, id));
+        }
+    }
+
+    found.push(...tooFast(stored, visits.length));
+    // an opponent whose visits (nearly) all missed
+    const winner = winnerOf(stored);
+    if ((stored.players ?? []).length > 1 && winner) {
+        found.push(...padding(stored, (id) => visits.filter(visit => visit.player === id), (visit) => (visit.darts ?? []).some(dart => String(dart).trim() !== '0' && String(dart).trim() !== ''), winner));
+    }
+
+    // the play of a professional
+    for (const id of stored.players ?? []) {
+        const player = replayed.state.players?.[id];
+        if (!player || !replayed.over) continue;
+        if (stored.kind === 'shanghai' && player.darts >= 15 && player.hits / player.darts > THRESHOLDS.shanghaiHitRate) {
+            found.push(finding('suspicious', 'proPlay', 'The play of a professional', `${Math.round(player.hits / player.darts * 100)} % of the darts on the number of the round`, id));
+        }
+        if (stored.kind === 'golf' && player.holes.length >= 9 && player.strokes / player.holes.length <= THRESHOLDS.golfStrokesPerHole) {
+            found.push(finding('suspicious', 'proPlay', 'The play of a professional', `${(player.strokes / player.holes.length).toFixed(2)} strokes per hole over ${player.holes.length} holes`, id));
+        }
+        if (stored.kind === 'tactics' && player.darts >= 15 && player.totalMarks / player.darts * 3 >= THRESHOLDS.tacticsHighMarks) {
+            found.push(finding('suspicious', 'proPlay', 'The play of a professional', `${(player.totalMarks / player.darts * 3).toFixed(1)} marks per round`, id));
+        }
+        if (stored.kind === 'halveit' && player.halved === 0 && player.points >= THRESHOLDS.halveItHighPoints) {
+            found.push(finding('suspicious', 'proPlay', 'The play of a professional', `${player.points} points without being halved once`, id));
+        }
+        if (stored.kind === 'killer' && id === winner) {
+            // the fewest darts a win can take: one to become a killer, one per life of every opponent
+            const fewest = 1 + (replayed.settings.lives ?? 3) * ((stored.players ?? []).length - 1);
+            if (player.darts <= Math.ceil(fewest / 3) * 3) {
+                found.push(finding('suspicious', 'proPlay', 'A perfect game', `Won with ${player.darts} darts; it cannot take fewer than ${fewest}`, id));
+            }
+        }
+    }
+    return found;
+};
+
+/**
+ * A training of the rules engine (Bob's 27, 121 Checkout, …): darts that
+ * cannot be thrown or a score that is not what its darts give (impossible),
+ * darts entered faster than they can be thrown, a score far out of reach for
+ * a club player or a sudden jump over the player's best (suspicious).
+ * history: the player's earlier trainings of the same kind.
+ */
+export const checkRulesTraining = (entry, history = []) => {
+    const found = [];
+    const playerId = entry.player?.id ?? null;
+    const definition = trainingOf(entry.kind);
+    if (!definition) return found;
+    const darts = (entry.darts ?? []).map(String);
+    const wrong = darts.filter(dart => !TRAINING_DART.test(dart.trim().toUpperCase()));
+    if (wrong.length) return [finding('impossible', 'invalidDart', 'A dart that is not on the board', wrong.slice(0, 5).join(', '), playerId)];
+
+    const replayed = replayTraining(definition, { settings: entry.settings ?? {}, darts });
+    if (!replayed.done || Number(replayed.result?.score) !== Number(entry.score)) {
+        found.push(finding('impossible', 'scoreMismatch', 'The score is not what the darts give', `Stored ${entry.score}, the darts give ${replayed.done ? replayed.result.score : 'an unfinished training'}`, playerId));
+    }
+
+    // the darts entered faster than they can be thrown
+    const seconds = entry.startedAt ? (new Date(entry.createdAt) - new Date(entry.startedAt)) / 1000 : NaN;
+    if (Number.isFinite(seconds) && darts.length >= THRESHOLDS.trainingFastDarts) {
+        const perDart = seconds / darts.length;
+        if (perDart < THRESHOLDS.trainingImpossibleSecondsPerDart) {
+            found.push(finding('impossible', 'tooFast', 'Faster than darts can be thrown', `${darts.length} darts in ${Math.round(seconds)} s`, playerId));
+        } else if (perDart < THRESHOLDS.trainingFastSecondsPerDart) {
+            found.push(finding('suspicious', 'tooFast', 'Played very fast', `${darts.length} darts in ${Math.round(seconds)} s: typed in afterwards?`, playerId));
+        }
+    }
+
+    // far out of reach for a club player
+    const score = Number(entry.score);
+    const out = {
+        bobs27: score > THRESHOLDS.bobs27High && `${score} points in Bob's 27`,
+        randomcheckouts: score >= THRESHOLDS.randomCheckoutsPerfect && (Number(entry.result?.attempts ?? entry.settings?.attempts) || 0) >= THRESHOLDS.randomCheckoutsAttempts && `Every one of ${entry.result?.attempts ?? entry.settings?.attempts} random finishes checked out`,
+        scoring: score > THRESHOLDS.scoringHighAverage && `A training average of ${score}`,
+        doublesaround: score > 0 && score < THRESHOLDS.doublesAroundFewDarts && `Every double and the bull with ${score} darts`,
+        catch40: score > THRESHOLDS.catch40High && `${score} of 120 points in Catch 40`,
+        checkout121: score >= THRESHOLDS.checkout121High && `Checked out up to ${score} in 121 Checkout`,
+    }[entry.kind];
+    if (out) found.push(finding('suspicious', 'proPlay', 'The play of a professional', out, playerId));
+
+    // a personal best far better than the one before
+    const higher = definition.higherIsBetter !== false;
+    const earlier = history.map(item => Number(item.score)).filter(value => Number.isFinite(value) && value > 0);
+    if (Number.isFinite(score) && score > 0 && earlier.length >= THRESHOLDS.personalBestHistory) {
+        const best = higher ? Math.max(...earlier) : Math.min(...earlier);
+        const jump = higher ? score > best * (1 + THRESHOLDS.personalBestJump) : score < best * (1 - THRESHOLDS.personalBestJump);
+        if (jump) found.push(finding('suspicious', 'bestJump', 'A sudden jump', `${score} against a best of ${best} in ${earlier.length} trainings before`, playerId));
+    }
+    return found;
+};
+
+/**
+ * What only shows over many games of a club, as findings per game:
+ * { key: 'type|id' → findings }. The games: [{ type, id, at, players, winners,
+ * friendly, darts }] (darts of all players, or null); owners: playerId → the
+ * account that plays them; guests: the ids of guests; requests: the deletion
+ * requests [{ gameId, gameType, playerId, lost, at }].
+ * - own players: two players of the same account in one game
+ * - rating farming: the same win within a day again and again against someone
+ *   who hardly plays otherwise (or a guest)
+ * - tiny games: many very short games within an hour
+ * - deleting losses: a player asking to delete games, mostly ones they lost
+ */
+export const patternFindings = ({ games = [], owners = new Map(), guests = new Set(), requests = [] }) => {
+    const out = new Map();
+    const add = (game, item) => {
+        const key = `${game.type}|${game.id}`;
+        out.set(key, [...(out.get(key) ?? []), item]);
+    };
+    const ordered = [...games].sort((a, b) => new Date(a.at) - new Date(b.at));
+
+    for (const game of ordered) {
+        const byAccount = new Map();
+        for (const id of game.players) {
+            const owner = owners.get(id);
+            if (owner) byAccount.set(owner, [...(byAccount.get(owner) ?? []), id]);
+        }
+        for (const ids of byAccount.values()) {
+            if (ids.length > 1) add(game, finding('suspicious', 'ownPlayers', 'Players of the same account against each other', `${ids.length} players of one login in this game: wins, badges and the rating padded?`, ids[0]));
+        }
+    }
+
+    // rating farming: per winner and loser of two-player games
+    const gamesOf = new Map();
+    for (const game of ordered) for (const id of game.players) gamesOf.set(id, (gamesOf.get(id) ?? 0) + 1);
+    const pairs = new Map();
+    for (const game of ordered) {
+        if (game.friendly || game.players.length !== 2 || game.winners.length !== 1) continue;
+        const winner = game.winners[0];
+        const loser = game.players.find(id => id !== winner);
+        const key = `${winner}|${loser}`;
+        pairs.set(key, [...(pairs.get(key) ?? []), game]);
+    }
+    const day = THRESHOLDS.farmingHours * 60 * 60 * 1000;
+    for (const [key, list] of pairs) {
+        const [winner, loser] = key.split('|');
+        let start = 0;
+        let flagged = null;
+        for (let end = 0; end < list.length; end += 1) {
+            while (new Date(list[end].at) - new Date(list[start].at) > day) start += 1;
+            const count = end - start + 1;
+            const rarely = guests.has(loser) || (gamesOf.get(loser) ?? 0) <= count * THRESHOLDS.farmingRarelyFactor;
+            if (count >= THRESHOLDS.farmingWins && rarely) flagged = { game: list[end], count };
+        }
+        if (flagged) add(flagged.game, finding('suspicious', 'ratingFarming', 'The same win again and again', `${flagged.count} wins within ${THRESHOLDS.farmingHours} hours against ${guests.has(loser) ? 'a guest' : 'a player who hardly plays otherwise'}: the rating and badges padded?`, winner));
+    }
+
+    // many tiny games within an hour
+    const tiny = ordered.filter(game => game.darts != null && game.darts <= THRESHOLDS.tinyGameDarts);
+    const window = THRESHOLDS.tinyMinutes * 60 * 1000;
+    let begin = 0;
+    let lastFlagged = -1;
+    for (let end = 0; end < tiny.length; end += 1) {
+        while (new Date(tiny[end].at) - new Date(tiny[begin].at) > window) begin += 1;
+        const count = end - begin + 1;
+        if (count >= THRESHOLDS.tinyGames && begin > lastFlagged) {
+            add(tiny[end], finding('suspicious', 'tinyBurst', 'Many tiny games in a short time', `${count} games of at most ${THRESHOLDS.tinyGameDarts} darts within ${THRESHOLDS.tinyMinutes} minutes: club badges and goals padded?`, tiny[end].players[0]));
+            lastFlagged = end;
+        }
+    }
+
+    // deleting losses
+    const byPlayer = new Map();
+    for (const request of requests) byPlayer.set(request.playerId, [...(byPlayer.get(request.playerId) ?? []), request]);
+    for (const [playerId, list] of byPlayer) {
+        if (list.length < THRESHOLDS.deletionRequests) continue;
+        const lost = list.filter(request => request.lost).length;
+        if (lost / list.length < THRESHOLDS.deletionLostShare) continue;
+        const latest = [...list].sort((a, b) => new Date(b.at) - new Date(a.at))[0];
+        const game = games.find(entry => entry.id === latest.gameId);
+        if (game) add(game, finding('suspicious', 'deletesLosses', 'Asks to delete the games they lose', `${lost} of ${list.length} deletion requests for games the player lost`, playerId));
+    }
+    return out;
+};
+
+/**
+ * The check of each kind of game and training, by its type on the fair play page.
+ */
+export const INTEGRITY_CHECKS = {
+    x01: (doc) => checkX01(doc),
+    cricket: checkCricket,
+    elimination: checkElimination,
+    clock: checkClock,
+    rules: checkRulesGame,
+    training: (doc) => checkTraining({ ...doc, scoring: doc.scoring ?? 'Time' }),
+    rulesTraining: (doc) => checkRulesTraining(doc),
+    x01training: (doc) => checkX01(doc),
+};
+
+// true when a game or training has data that cannot be real
+export const isImpossible = (type, doc) => {
+    try {
+        return (INTEGRITY_CHECKS[type]?.(doc) ?? []).some(item => item.level === 'impossible');
+    } catch {
+        return false;
+    }
 };

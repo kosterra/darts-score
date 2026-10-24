@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf, seesTrainingsOf } from '../utils/training.privacy.js';
 import { answerOf, storedOf } from '../utils/game.view.js';
@@ -90,6 +91,7 @@ export const update = async (req, res) => {
     const { players: same, ...changes } = storedOf('x01training', { ...sent, players: training.players });
     try {
         const saved = await Training.findOneAndUpdate({ _id: training._id }, { $set: changes }, { returnDocument: 'after' });
+        if (saved?.hasWinner) checkLater(() => noteFairPlay(req.club._id, 'x01training', saved));
         res.json(answerOf('x01training', saved));
     } catch (err) {
         logger.error(err, `Failed to save the X01 training ${req.params.id}`);
@@ -123,5 +125,6 @@ export const remove = async (req, res) => {
         return res.status(403).json({ message: 'Only the player or a club admin can delete a training.' });
     }
     await training.deleteOne();
+    checkLater(() => noteDeleted(req, 'training'));
     res.json({ message: 'Deleted.' });
 };

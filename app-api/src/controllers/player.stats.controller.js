@@ -70,7 +70,7 @@ const formatsOf = (games) => {
     return [...unique.values()];
 };
 
-async function calculatePlayerStats(playerId, filters = profileFiltersOf(), clubId = null, { hideTrainings = false } = {}) {
+export async function calculatePlayerStats(playerId, filters = profileFiltersOf(), clubId = null, { hideTrainings = false } = {}) {
     logger.debug('calculate player stats called');
     const playerStats = JSON.parse(JSON.stringify(playerStatsModel));
     playerStats.playerId = playerId;

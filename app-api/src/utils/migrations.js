@@ -207,6 +207,47 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-badges-newer-games',
+        description: 'Award the badges of Shanghai, Killer, Halve-It, Golf, Tactics and the newer trainings from past games and trainings, and add their Hall of Shame badges, so the club holders are right from the start',
+        run: async () => {
+            const { syncPlayerBadges } = await import('./badge.service.js');
+            const players = await db.player.find({ guest: { $ne: true }, 'clubs.0': { $exists: true } });
+            let awarded = 0;
+            for (const player of players) awarded += (await syncPlayerBadges(player)).newBadges.length;
+            logger.info(`Checked the badges and the Hall of Shame of ${players.length} players: ${awarded} new badges`);
+            return true;
+        },
+    },
+    {
+        id: '2026-10-club-badges',
+        description: 'Work out what every finished game added to its club, and the badges each club earned together so far (without telling the members about the old ones)',
+        run: async () => {
+            const { buildClubTallies, syncClubBadges } = await import('./club.badge.service.js');
+            const clubs = await db.club.find({});
+            let games = 0;
+            let badges = 0;
+            for (const club of clubs) {
+                games += await buildClubTallies(club._id);
+                badges += (await syncClubBadges(club, { notify: false })).fresh.length;
+            }
+            logger.info(`Club badges: ${games} games counted in ${clubs.length} clubs, ${badges} badges earned`);
+            return true;
+        },
+    },
+    {
+        id: '2026-10-club-tallies-winners',
+        description: 'Add who won, whether it was friendly and each player\'s 180s to what every finished game added to its club, for the club\'s rating and the player comparison',
+        run: async () => {
+            const { buildClubTallies } = await import('./club.badge.service.js');
+            const clubs = await db.club.find({}, '_id');
+            let games = 0;
+            // only the tallies of an older version are worked out again
+            for (const club of clubs) games += await buildClubTallies(club._id);
+            logger.info(`Club tallies checked for ${games} games in ${clubs.length} clubs`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

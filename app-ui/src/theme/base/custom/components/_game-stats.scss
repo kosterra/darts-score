@@ -597,17 +597,42 @@
     &.is-best { opacity: 1; }
 }
 
-// three or four players: a line per player
-.tape-line {
+// three or four players: each figure a light box, a line per player; the lines
+// share the box's columns (name, line, lead, value), nothing wraps
+.tape-multi {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.tape-figure {
     display: grid;
-    grid-template-columns: 7rem 1fr 5.5rem;
+    grid-template-columns: 7rem minmax(3rem, 1fr) max-content max-content;
     align-items: center;
-    gap: $space-3;
+    column-gap: $space-3;
+    row-gap: $space-1;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+
+    .tape-figure-label { grid-column: 1 / -1; margin-bottom: $space-1; }
+}
+
+.tape-line {
+    display: contents;
 
     .tape-value {
         text-align: right;
         font-size: $text-base;
+        white-space: nowrap;
     }
+}
+
+.tape-line-lead {
+    text-align: right;
+    white-space: nowrap;
+
+    .tape-lead { margin: 0; }
 }
 
 .tape-line-name {
@@ -624,9 +649,9 @@
 }
 
 @media (max-width: 575px) {
-    .tape-line {
-        grid-template-columns: 5rem 1fr 4.5rem;
-        gap: $space-2;
+    .tape-figure {
+        grid-template-columns: 4.5rem minmax(2rem, 1fr) max-content max-content;
+        column-gap: $space-2;
     }
 }
 

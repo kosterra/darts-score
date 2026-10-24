@@ -9,13 +9,14 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import StatsService from '../../services/stats.service';
-import PageLoader from '../elements/page.loader';
 import BadgeMedal from './badge.medal';
+import { ClubBadgeList, ClubGoalList } from './club.badges';
 import HallOfShame from './hall.of.shame';
 import { useClubShame } from './hall.of.shame.data';
 import { KpiHero } from '../stats/players/kpi';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT, PODIUM } from '../../utils/palette';
 
 dayjs.extend(relativeTime);
@@ -100,15 +101,22 @@ const Ranking = ({ players, all, total }) => (
  */
 const BadgesOverview = () => {
     const [overview, setOverview] = useState(null);
+    const [club, setClub] = useState(null);
     const shame = useClubShame();
     const [search, setSearch] = useState('');
     const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
         StatsService.loadClubBadges().then(setOverview).catch(error => console.error('Failed to load badges', error));
+        StatsService.loadClubOwnBadges().then(setClub).catch(error => console.error('Failed to load the club badges', error));
     }, []);
 
-    if (!overview) return <PageLoader />;
+    // from a notification: straight to the club's badges once they are there
+    useEffect(() => {
+        if (club && window.location.hash === '#club') document.getElementById('club')?.scrollIntoView({ block: 'start' });
+    }, [club]);
+
+    if (!overview) return <OverviewSkeleton title={t('Badges')} />;
     const unclaimed = overview.unclaimed ?? [];
     // the first ones, all of them, or those matching the search (with their place in the club)
     const term = search.trim().toLowerCase();
@@ -122,13 +130,16 @@ const BadgesOverview = () => {
                         ? <span className="text-faint fs-7">{t('No badges earned yet.')}</span>
                         : <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                             {overview.recent.map((entry, index) => (
-                                <li key={`${entry.player.id}-${entry.badge.id}-${index}`} className="badge-feed-row">
-                                    <BadgeMedal badge={entry.badge} size="sm" />
-                                    <span className="d-flex flex-column flex-grow-1 min-w-0">
-                                        <span className="text-default fs-7 fw-semibold text-truncate" title={entry.badge.description}>{entry.badge.title}</span>
-                                        <Link to={toPlayer(entry.player)} className="text-subtle fs-8 text-truncate">{entry.player.nickname}</Link>
-                                    </span>
-                                    <span className="text-faint fs-8 text-nowrap">{dayjs(entry.earnedAt).fromNow()}</span>
+                                <li key={`${entry.player.id}-${entry.badge.id}-${index}`}>
+                                    {/* the whole line leads to the player's badges */}
+                                    <Link to={toPlayer(entry.player)} className="link-row badge-feed-row">
+                                        <BadgeMedal badge={entry.badge} size="sm" />
+                                        <span className="d-flex flex-column flex-grow-1 min-w-0">
+                                            <span className="text-default fs-7 fw-semibold text-truncate" title={entry.badge.description}>{entry.badge.title}</span>
+                                            <span className="text-subtle fs-8 text-truncate">{entry.player.nickname}</span>
+                                        </span>
+                                        <span className="text-faint fs-8 text-nowrap">{dayjs(entry.earnedAt).fromNow()}</span>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>}
@@ -148,6 +159,26 @@ const BadgesOverview = () => {
                     <KpiHero label={t('Nobody has yet')} value={`${formatNumber(unclaimed.length)} / ${formatNumber(overview.total)}`} color={GOLD} />
                 </div>
             </Panel>
+
+            {/* what the club earned together; beside it the goals of its admins */}
+            {club?.badges &&
+                <div className="row g-4" id="club">
+                    <div className={(club.goals ?? []).length ? 'col-12 col-xl-8' : 'col-12'}>
+                        <Panel header={t('Club badges')}>
+                            <p className="text-subtle fs-7 mt-0 mb-4">
+                                {t('Badges the club earns together: every game and training of its members adds to them. {{earned}} of {{total}} so far.', { earned: club.earnedCount, total: club.total })}
+                            </p>
+                            <ClubBadgeList badges={club.badges} />
+                        </Panel>
+                    </div>
+                    {(club.goals ?? []).length > 0 &&
+                        <div className="col-12 col-xl-4">
+                            <Panel header={t('Club goals')} className="h-100">
+                                <p className="text-faint fs-8 mt-0">{t('Set by the club admins: what the club plays until the end date counts.')}</p>
+                                <ClubGoalList goals={club.goals ?? []} />
+                            </Panel>
+                        </div>}
+                </div>}
 
             {/* the ranking with what was earned lately; next to it the Hall of Shame (or, without it, what was earned lately) */}
             <div className="row g-4">

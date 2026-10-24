@@ -23,8 +23,11 @@ import ClubFormWidget from './widgets/club.form.widget';
 import RunningGamesWidget from './widgets/running.games.widget';
 import TimelineWidget from './widgets/timeline.widget';
 import HallOfShameWidget from './widgets/hall.of.shame.widget';
+import ClubGoalsWidget from './widgets/club.goals.widget';
 import MeWidget from './widgets/me.widget';
 import { t } from '../../utils/i18n';
+import { Link } from 'react-router-dom';
+import ClubMedal from '../badges/club.medal';
 import { formatDate } from '../../utils/dates';
 
 
@@ -78,6 +81,8 @@ const Dashboard = () => {
         [t('Admins'), club.adminCount],
         [t('Games played'), totals.gamesPlayed],
         [t('Last game'), formatDate(totals.lastGameAt)],
+        // as the badges in a player's header: how many of all, to the club's badges
+        ...(club.badgeTotal ? [[t('Club badges'), <Link key="badges" to="/badges#club">{t('{{count}} of {{total}}', { count: club.badgeCount, total: club.badgeTotal })}</Link>]] : []),
     ];
 
     // the arrangement to start from: one's own (or the club's, to start one's own from), or the club's
@@ -127,6 +132,7 @@ const Dashboard = () => {
             case 'clubForm': return <ClubFormWidget widget={widget} gameLog={stats.gameLog} />;
             case 'runningGames': return <RunningGamesWidget widget={widget} games={stats.runningGames} total={totals.running} players={players} />;
             case 'hallOfShame': return <HallOfShameWidget widget={widget} />;
+            case 'clubGoals': return <ClubGoalsWidget widget={widget} />;
             case 'me': return <MeWidget widget={widget} />;
             case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
             case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;
@@ -155,10 +161,21 @@ const Dashboard = () => {
                     </dl>
                 </div>
                 </div>
+                {/* the club's latest badges, as in a player's header */}
+                {club.latestBadges?.length > 0 &&
+                    <div className="d-flex flex-column gap-2 ms-md-auto">
+                        <span className="text-faint fs-8">{t('Latest club badges')}</span>
+                        <Link to="/badges#club" className="d-flex gap-2" aria-label={t('All club badges')}>
+                            {club.latestBadges.map(badge => <ClubMedal key={badge.id} badge={badge} size="sm" />)}
+                        </Link>
+                    </div>}
+                {/* as the filters under a player's header: whose arrangement it is, and the button to change it */}
                 {!editing && (
-                    <div className="d-flex flex-column align-items-end gap-1">
+                    <div className="w-100 filter-panel-bar">
+                        <span className="filter-panel-summary">
+                            <span className="filter-chip">{current.own ? t('Your own arrangement') : t('The club\'s arrangement')}</span>
+                        </span>
                         <Button label={t('Edit dashboard')} icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />
-                        {current.own && <span className="text-faint fs-8">{t('Your own arrangement')}</span>}
                     </div>
                 )}
             </header>

@@ -19,6 +19,7 @@ import QuickFormats from '../config_components/quick.formats';
 import useClubGameRules from '../club_rules/use.club.game.rules';
 import { FriendlyGame, NotPlayedHere } from '../club_rules/club.rules.setup';
 import { t } from '../../../utils/i18n';
+import useLinkedPlayers from '../../../utils/use.linked.players';
 import useGameRules from '../../games/common/game.rules';
 
 const EliminationConfig = () => {
@@ -27,6 +28,8 @@ const EliminationConfig = () => {
     // the page starts set up like the last game
     const club = useClubGameRules('elimination');
     const [remembered, setRemembered] = useState(() => loadSetup('elimination'));
+    // players chosen by a link, e.g. from the player comparison
+    const linkedPlayers = useLinkedPlayers();
     const [game, setGame] = useState(() => ({ ...EliminationModels.EliminationModel, ...club.start(remembered?.settings) }));
     const [players, setPlayers] = useState([]);
     const [friendlyChosen, setFriendlyChosen] = useState(Boolean(remembered?.friendly) && club.friendlyChoice);
@@ -99,7 +102,7 @@ const EliminationConfig = () => {
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
-                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} key={remembered ? 'remembered' : 'fresh'} />
+                    <PlayerPicker selected={players} onChange={setPlayers} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
                     {formats.length > 0 && <QuickFormats game="elimination" formats={formats} settings={game} playerCount={players.length} onApply={applyFormat} />}

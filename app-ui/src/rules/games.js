@@ -2,9 +2,9 @@
  * The newer games, each as one definition of the rules engine (see engine.js):
  * Shanghai, Killer, Halve-It, Golf and Tactics.
  */
-import { isBull, isDouble, isTreble } from './darts';
-import { t, tn } from '../utils/i18n';
-import { HALVE_IT_CLASSIC, HALVE_IT_SHORT } from './club.rules';
+import { isBull, isDouble, isTreble } from './darts.js';
+import { t, tn } from '../utils/i18n.js';
+import { HALVE_IT_CLASSIC, HALVE_IT_SHORT } from './club.rules.js';
 
 const sum = (values) => values.reduce((total, value) => total + value, 0);
 const playersOf = (ids, make) => Object.fromEntries(ids.map(id => [id, make(id)]));
@@ -100,7 +100,7 @@ export const KILLER = {
         return { ...settings, numbers: Object.fromEntries(ids.map((id, index) => [id, numbers[index]])) };
     },
     init: (settings, ids) => ({
-        players: playersOf(ids, id => ({ number: settings.numbers?.[id] ?? ids.indexOf(id) + 1, lives: settings.lives, killer: false, kills: 0, outAt: null, darts: 0 })),
+        players: playersOf(ids, id => ({ number: settings.numbers?.[id] ?? ids.indexOf(id) + 1, lives: settings.lives, killer: false, kills: 0, outAt: null, darts: 0, ownLost: 0, bestVisit: 0 })),
         visits: 0,
     }),
     visit: (state, id, darts, { settings } = {}) => {
@@ -110,6 +110,8 @@ export const KILLER = {
         // house rules: any hit on the number may make a killer, and a killer's own double may be safe
         const anyHit = settings?.become === 'any';
         const ownSafe = settings?.ownDouble === 'safe';
+        // for the badges: the lives taken in this visit, and those lost on the own double
+        const killsBefore = player.kills;
         for (const dart of darts) {
             if (player.lives <= 0) continue;
             if (!player.killer && anyHit && dart.number === player.number) {
@@ -118,8 +120,11 @@ export const KILLER = {
             }
             if (!isDouble(dart)) continue;
             if (dart.number === player.number) {
-                if (player.killer) { if (!ownSafe) player.lives -= 1; }
-                else player.killer = true;
+                if (!player.killer) player.killer = true;
+                else if (!ownSafe) {
+                    player.lives -= 1;
+                    player.ownLost = (player.ownLost ?? 0) + 1;
+                }
                 continue;
             }
             if (!player.killer) continue;
@@ -129,6 +134,7 @@ export const KILLER = {
                 player.kills += 1;
             }
         }
+        player.bestVisit = Math.max(player.bestVisit ?? 0, player.kills - killsBefore);
         Object.values(state.players).forEach(other => {
             if (other.lives <= 0 && other.outAt === null) other.outAt = state.visits;
         });

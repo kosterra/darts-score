@@ -8,7 +8,6 @@ import AuthService, { announceMyPlayersChange } from '../../services/auth.servic
 import PlayerService from '../../services/player.service';
 import CountryPicker from '../elements/country.picker';
 import ImageUploader from '../elements/image.uploader';
-import PageLoader from '../elements/page.loader';
 import ClubLogo from '../elements/club.logo';
 import SettingSwitch from '../elements/setting.switch';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
@@ -16,6 +15,7 @@ import PlayerDartPreferences from './player.dart.preferences';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import { SettingsSkeleton } from '../elements/skeletons';
 import { calendarFormat, formatDate } from '../../utils/dates';
 
 // "1987-02-04" and back for the calendar, in local time so the day stays the day
@@ -239,7 +239,7 @@ export const MyPlayers = ({ part, onSaved, onError }) => {
     };
 
     if (failed) return <p className="text-subtle fs-7 m-0">{t('Your profile could not be loaded. Please reload the page.')}</p>;
-    if (!players) return <PageLoader />;
+    if (!players) return <SettingsSkeleton boxes={part === 'player' ? 3 : 2} />;
     if (players.length === 0) {
         return <p className="text-subtle fs-7 m-0">{t('You do not play in a club yet. A club admin can give your player a login, or add yourself as a player of a club you run under')}{' '}<Link to="/my-clubs">{t('My clubs')}</Link>.</p>;
     }

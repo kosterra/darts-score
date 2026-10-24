@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.12
+  version: 2026.10.13
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
@@ -612,6 +612,58 @@ paths:
         '422':
           description: Validation error
       operationId: putClubsByidGameRules
+  /api/clubs/{id}/goals:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    put:
+      tags:
+        - Clubs
+      summary: Save the club's goals (club admins)
+      description: >-
+        Up to three goals, each a metric (games, num180s, darts, tonPlus, highFinishes, trainings), a target and an optional end
+        date. A goal sent back with its id and the same metric and target keeps when it started and whether it was reached; a new or
+        changed one starts now. What counts is what the club played between the start and the end. When a goal is reached its
+        members get a notification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - goals
+              properties:
+                goals:
+                  type: array
+                  maxItems: 3
+                  items:
+                    type: object
+                    required:
+                      - metric
+                      - target
+                    properties:
+                      id:
+                        type: string
+                      metric:
+                        type: string
+                        enum: [games, num180s, darts, tonPlus, highFinishes, trainings]
+                      target:
+                        type: integer
+                        minimum: 1
+                        maximum: 10000000
+                      until:
+                        type: [string, 'null']
+                        format: date-time
+      responses:
+        '200':
+          description: The goals, each with its title, description, from, until, reachedAt and progress
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Validation error
+      operationId: putClubsByidGoals
   /api/clubs/{id}/logo:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -1898,8 +1950,8 @@ paths:
         - Badges
       summary: 'The catalogue: badges, levels and flights'
       description: >-
-        Every badge and the Hall of Shame, the player levels with their XP rules, and the flights and barrels to collect with what they cost
-        and need. The same for every club; shown on the About page.
+        Every badge and the Hall of Shame, the badges a club earns together, the player levels with their XP rules, and the flights and
+        barrels to collect with what they cost and need. The same for every club; shown on the About page.
       responses:
         '200':
           description: The catalogue
@@ -2894,7 +2946,7 @@ paths:
     get:
       tags:
         - Statistics
-      summary: Club dashboard data - facts about the club, leaderboards over all finished games, recent and running games
+      summary: Club dashboard data - facts about the club (with its latest club badges and how many of all it has), leaderboards over all finished games, recent and running games
       responses:
         '200':
           description: OK
@@ -2972,6 +3024,26 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ClubId'
       operationId: getStatsShame
+  /api/stats/club-badges:
+    get:
+      tags:
+        - Statistics
+      summary: The badges the club earned together, and its goals
+      description: >-
+        Every club badge (club games, darts, 180s together, club night, every week, members, anniversary, every game, every
+        training, and the club's firsts: 180, big fish, nine-darter, Shanghai finish), earned ones with the date, the game or
+        training that tipped it and the player's nickname, the others with the progress towards them; and the club's goals with
+        how far each is. Club badges add no XP.
+      responses:
+        '200':
+          description: The club badges ({ earnedCount, total, badges, goals })
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsClubBadges
   /api/stats/badges/player/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -3207,6 +3279,163 @@ paths:
         '422':
           description: Unknown game type
       operationId: postStatsPlayersHeadtohead
+  /api/stats/compare/duel:
+    post:
+      tags:
+        - Statistics
+      summary: The player comparison, head to head in one game type
+      description: >-
+        Two to eight players in their games together (or with others too) in one of the nine games (type x01, cricket, elimination,
+        clock, shanghai, killer, halveit, golf, tactics), in one answer: playedGames; record (wins, for X01 legs, sets and the matches
+        won in the deciding leg, the current streak, the last ten results, and pairs - who beats whom); each player's figures of the
+        game (for the newer games worked out from their visits); games for the timeline; highlights of X01 (best game average, highest
+        checkout with their game, 180s, and total180s - the player's 180s in all the club's games); shame (the Hall of Shame badges got in these games, where the club has one); badges (per player the badges earned in these games and their whole collection, { earned, total }); ratings (the
+        club's Elo rating of each, provisional below 5 rated games) and chances (in percent for the next game); filterOptions (the X01
+        formats played together and the club's formats of the game); and for X01 the chart data (x01).
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - playerIds
+              properties:
+                playerIds:
+                  type: array
+                  maxItems: 8
+                  items:
+                    type: string
+                type:
+                  type: string
+                  enum: [x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics]
+                includeOthers:
+                  type: boolean
+                dateFilter:
+                  type: string
+                from:
+                  type: string
+                to:
+                  type: string
+                lastGames:
+                  type: integer
+                startingScore:
+                  type: integer
+                format:
+                  type: object
+                friendly:
+                  type: string
+                  enum: [include, exclude]
+                clubFormat:
+                  type: string
+                  description: The id of one of the club's formats
+      responses:
+        '200':
+          description: The duel
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A player is not known in the club
+        '422':
+          description: Unknown game type or more than 8 players
+      operationId: postStatsCompareDuel
+  /api/stats/compare/side:
+    post:
+      tags:
+        - Statistics
+      summary: The player comparison, each player on their own side by side
+      description: >-
+        Two to eight players with their figures from all their games, also when they never played each other: level, rating, badges,
+        games, wins and win rate, per game type the games and wins, X01 (average, first 9, checkout rate, highest checkout, 180s,
+        ton-plus, darts per leg, best leg), Cricket, Elimination and Around the Clock figures, the newer games, the bests of the
+        trainings (left out for players who keep their trainings to themselves), and the chances for the next game. scope "club" (the
+        default) or "all" clubs; dateFilter, from, to and lastGames as on a player's statistics.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - playerIds
+              properties:
+                playerIds:
+                  type: array
+                  maxItems: 8
+                  items:
+                    type: string
+                scope:
+                  type: string
+                  enum: [club, all]
+                dateFilter:
+                  type: string
+                from:
+                  type: string
+                to:
+                  type: string
+                lastGames:
+                  type: integer
+      responses:
+        '200':
+          description: The players side by side ({ players, chances })
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A player is not known in the club
+        '422':
+          description: More than 8 players
+      operationId: postStatsCompareSide
+  /api/stats/compare/opponents/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Statistics
+      summary: Who a player played most often in the club
+      description: The five most frequent opponents, [{ playerId, games }], for the quick picks of the comparison.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: The opponents
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Player not found
+      operationId: getStatsCompareOpponentsByid
+  /api/stats/compare/rivals/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Statistics
+      summary: A player's head to head with the others of the club
+      description: >-
+        From the club's games: the opponent played most and least, the one with the best record and the toughest (both from minGames
+        games on), each { playerId, games, wins, losses, type (the game type they play most), player }; opponents is how many
+        different opponents there are.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: The head to head
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Player not found
+      operationId: getStatsCompareRivalsByid
   /api/stats/players/form:
     post:
       tags:
@@ -4146,7 +4375,7 @@ paths:
               $ref: '#/components/schemas/RulesTrainingInput'
       responses:
         '201':
-          description: The training, with isRecord, previousBest and newBadges
+          description: The training, with isRecord, previousBest, newBadges and clubBadges (the club badges it tipped)
           content:
             application/json:
               schema:
@@ -5988,6 +6217,18 @@ components:
           type: array
           items:
             type: object
+        club:
+          type: object
+          description: The badges a club earns together, with their categories (together, club life, club firsts)
+          properties:
+            categories:
+              type: array
+              items:
+                type: object
+            badges:
+              type: array
+              items:
+                type: object
         levels:
           type: array
           items:

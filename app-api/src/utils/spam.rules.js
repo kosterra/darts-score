@@ -11,6 +11,21 @@ export const CREATE_LIMITS = {
 
 // Registrations from one internet address
 export const SIGNUP_LIMIT = { limit: 3, windowMs: HOUR };
+// Quick games (no login) from one internet address
+export const QUICK_LIMIT = { limit: 20, windowMs: HOUR };
+// Requests to join clubs by one account
+export const JOIN_LIMIT = { limit: 10, windowMs: 24 * HOUR };
+// Games, trainings and players deleted by one account
+export const DELETE_LIMIT = { limit: 20, windowMs: 10 * MINUTE };
+// Failed logins for one account or from one address, and password resets asked for
+export const LOGIN_LIMIT = { limit: 10, windowMs: 15 * MINUTE };
+export const RESET_LIMIT = { limit: 5, windowMs: HOUR };
+// An admin who removes the others or deletes the club this soon after being made one
+export const TAKEOVER_WINDOW_MS = 24 * HOUR;
+// A young club earning this many club badges within a day
+export const CLUB_BADGE_BURST = { badges: 3, windowMs: 24 * HOUR, youngDays: 60 };
+// A club with this many impossible games or trainings within 30 days
+export const FAIR_PLAY_IMPOSSIBLE = { count: 5, windowMs: 30 * 24 * HOUR };
 // How long an address that broke a registration rule may not register
 export const IP_BLOCK_HOURS = 24;
 // A person needs longer than this to fill in the registration form
@@ -49,6 +64,51 @@ export const RULES = {
         title: 'Random-looking name',
         severity: 'warning',
         description: 'A name looks like random letters, e.g. "xkqzvbtw" or "HgTrKpLm", as names made up by bots do.',
+    },
+    quickBurst: {
+        title: 'Many quick games from one address',
+        severity: 'warning',
+        description: `More than ${QUICK_LIMIT.limit} quick games (no login needed) in an hour from the same internet address.`,
+    },
+    joinBurst: {
+        title: 'Many requests to join clubs',
+        severity: 'warning',
+        description: `One account asked to join more than ${JOIN_LIMIT.limit} clubs in a day.`,
+    },
+    linkInText: {
+        title: 'Web address in a text',
+        severity: 'warning',
+        description: 'A club description, a format of the club or the message of a request to join contains a web address, as advertising spam does.',
+    },
+    adminTakeover: {
+        title: 'A new admin removes the others',
+        severity: 'critical',
+        description: `An admin removed another admin or deleted the club within ${TAKEOVER_WINDOW_MS / HOUR} hours of being made one: a taken-over account?`,
+    },
+    deleteBurst: {
+        title: 'Much deleted in a short time',
+        severity: 'critical',
+        description: `One account deleted more than ${DELETE_LIMIT.limit} games, trainings or players in ${DELETE_LIMIT.windowMs / MINUTE} minutes: a hijacked account?`,
+    },
+    clubBadgeBurst: {
+        title: 'Club badges in a burst',
+        severity: 'warning',
+        description: `A club younger than ${CLUB_BADGE_BURST.youngDays} days earned ${CLUB_BADGE_BURST.badges} or more club badges within a day, usually from tiny games.`,
+    },
+    fairPlayImpossible: {
+        title: 'Impossible games in a club',
+        severity: 'critical',
+        description: `A club has ${FAIR_PLAY_IMPOSSIBLE.count} or more games or trainings within 30 days whose data cannot be real; its admins see them under Fair play.`,
+    },
+    loginBurst: {
+        title: 'Many failed logins',
+        severity: 'warning',
+        description: `More than ${LOGIN_LIMIT.limit} failed logins in ${LOGIN_LIMIT.windowMs / MINUTE} minutes for one account or from one address.`,
+    },
+    resetBurst: {
+        title: 'Many password resets',
+        severity: 'warning',
+        description: `More than ${RESET_LIMIT.limit} password resets asked for in an hour for one account or from one address.`,
     },
 };
 

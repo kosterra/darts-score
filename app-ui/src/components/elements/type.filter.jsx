@@ -1,5 +1,15 @@
+import { useState } from 'react';
+import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
+import TypePill from './type.pill';
 import { t } from '../../utils/i18n';
+
+const itemTemplate = (item) => (
+    <span className="d-inline-flex align-items-center gap-2">
+        {item.icon && <span className="type-filter-icon" aria-hidden="true"><item.icon /></span>}
+        {item.label}
+    </span>
+);
 
 /**
  * A filter by type (of game or training) for the lists: any number of types,
@@ -10,10 +20,49 @@ import { t } from '../../utils/i18n';
  * groups: [{ label, items: [{ value, label, icon }] }]
  * value: the chosen types ([] for all); onChange(values)
  * allLabel: what nothing chosen says, e.g. "All game types"
+ * single: exactly one type (e.g. the player comparison): value is that type,
+ * onChange(type); the same grouped list, without taking a whole group.
+ * The chosen types show as pills with their icon, in their colour.
  */
-const TypeFilter = ({ groups, value = [], onChange, allLabel, ariaLabel }) => {
+const TypeFilter = (props) => {
+    // opened with the mouse or a finger: no focus ring (its search field always counts as keyboard focus)
+    const [pointer, setPointer] = useState(false);
+    return (
+        <span className={`type-filter-wrap ${pointer ? 'is-pointer' : ''}`} onPointerDownCapture={() => setPointer(true)} onKeyDownCapture={(event) => event.key !== 'Escape' && setPointer(false)}>
+            <TypeFilterField {...props} />
+        </span>
+    );
+};
+
+const TypeFilterField = ({ groups, value = [], onChange, allLabel, ariaLabel, single = false }) => {
+    const items = groups.flatMap(group => group.items);
+
+    if (single) {
+        return (
+            <Dropdown
+                value={value}
+                options={groups}
+                optionGroupLabel="label"
+                optionGroupChildren="items"
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => e.value && onChange(e.value)}
+                optionGroupTemplate={(group) => <span className="type-filter-group is-label">{group.label}</span>}
+                itemTemplate={itemTemplate}
+                valueTemplate={() => {
+                    const item = items.find(entry => entry.value === value);
+                    return item ? <TypePill item={item} /> : <span>{allLabel}</span>;
+                }}
+                scrollHeight="34rem"
+                className="type-filter is-narrowed is-single"
+                panelClassName="type-filter-panel"
+                aria-label={ariaLabel ?? allLabel}
+            />
+        );
+    }
+
     const chosen = new Set(value);
-    const all = groups.flatMap(group => group.items.map(item => item.value));
+    const all = items.map(item => item.value);
 
     // what the closed filter says
     const summary = () => {
@@ -39,8 +88,15 @@ const TypeFilter = ({ groups, value = [], onChange, allLabel, ariaLabel }) => {
             optionLabel="label"
             optionValue="value"
             onChange={(e) => onChange(e.value ?? [])}
-            // one line for what is chosen, not every type
-            selectedItemTemplate={(type) => (type === undefined || type === value[0] ? <span>{summary()}</span> : null)}
+            // one or two types as pills; more, or whole groups, in words on one line
+            selectedItemTemplate={(type) => {
+                const whole = groups.some(group => group.items.length > 1 && group.items.every(item => chosen.has(item.value)));
+                if (value.length && value.length <= 2 && !whole) {
+                    const item = items.find(entry => entry.value === type);
+                    return item ? <TypePill item={item} /> : null;
+                }
+                return type === undefined || type === value[0] ? <span>{summary()}</span> : null;
+            }}
             optionGroupTemplate={(group) => {
                 const allIn = group.items.every(item => chosen.has(item.value));
                 return (
@@ -50,12 +106,7 @@ const TypeFilter = ({ groups, value = [], onChange, allLabel, ariaLabel }) => {
                     </button>
                 );
             }}
-            itemTemplate={(item) => (
-                <span className="d-inline-flex align-items-center gap-2">
-                    {item.icon && <span className="type-filter-icon" aria-hidden="true"><item.icon /></span>}
-                    {item.label}
-                </span>
-            )}
+            itemTemplate={itemTemplate}
             showSelectAll={false}
             // every type in view without scrolling
             scrollHeight="34rem"

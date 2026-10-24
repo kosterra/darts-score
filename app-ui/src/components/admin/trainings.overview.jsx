@@ -13,6 +13,7 @@ import { formatTrainingTime } from '../../utils/training.time';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT } from '../../utils/palette';
 
 const GREEN = ACCENT.green;
@@ -48,8 +49,9 @@ const recordDetail = (record) => {
  * rows: the rows of the trainings list; playerOf(row): the player as they are now
  */
 const TrainingsOverview = ({ rows, playerOf }) => {
-    const overview = useMemo(() => trainingOverview(rows), [rows]);
+    const overview = useMemo(() => trainingOverview(rows ?? []), [rows]);
 
+    if (!rows) return <OverviewSkeleton title={t('Trainings of the club')} />;
     if (!overview.total) return null;
     const top = overview.popular[0];
     const playerFor = (entry) => playerOf({ player: entry.player }) ?? entry.player;

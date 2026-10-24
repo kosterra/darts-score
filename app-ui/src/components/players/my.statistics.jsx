@@ -1,9 +1,9 @@
 import { Link, Navigate } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 
-import PageLoader from '../elements/page.loader';
 import { useAuth } from '../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
+import { PlayerStatsSkeleton } from '../elements/skeletons';
 import { t } from '../../utils/i18n';
 
 /**
@@ -14,7 +14,7 @@ const MyStatistics = () => {
     const { activeClub, isGlobalAdmin } = useAuth();
     const players = useMyPlayers(!isGlobalAdmin);
     if (isGlobalAdmin) return <Navigate replace to="/" />;
-    if (players === null) return <PageLoader />;
+    if (players === null) return <div className="container-fluid p-4 border-0"><PlayerStatsSkeleton /></div>;
     const player = playerInClub(players, activeClub?.id);
     if (player) return <Navigate replace to={`/players/${player.id}`} />;
     return (

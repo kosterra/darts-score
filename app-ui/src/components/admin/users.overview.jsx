@@ -8,6 +8,7 @@ import { KpiHero } from '../stats/players/kpi';
 import { INACTIVE_DAYS, usersOverview } from '../../utils/admin.overviews';
 import { LANGUAGES, t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { OverviewSkeleton } from '../elements/skeletons';
 import { ACCENT } from '../../utils/palette';
 
 const GREEN = ACCENT.green;
@@ -20,9 +21,10 @@ const initials = (user) => `${user.firstname?.[0] ?? ''}${user.lastname?.[0] ?? 
  * half a year, without a club), each picked into the search with a click.
  * onPick(user)
  */
-const UsersOverview = ({ users, onPick }) => {
+const UsersOverview = ({ users, onPick, loading = false }) => {
     const overview = useMemo(() => usersOverview(users), [users]);
 
+    if (loading) return <OverviewSkeleton title={t('Users at a glance')} />;
     if (!overview.total) return null;
     const languageOf = (code) => (code === 'browser' ? t('As the browser') : LANGUAGES.find(language => language.code === code)?.label ?? code);
     const chip = (user) => ({

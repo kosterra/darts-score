@@ -11,6 +11,7 @@ import ClubLogo from '../elements/club.logo';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import CountryFlag from '../elements/country.flag';
+import { ClubMedalRow } from '../badges/club.badges';
 import { formatDate } from '../../utils/dates';
 
 // after a declined request, asking the same club again waits this long (as the API)
@@ -163,6 +164,7 @@ const ClubDirectory = ({ onSuccess, onError }) => {
                                     <Tag value={JOIN_POLICY_LABELS[club.joinPolicy]} severity="secondary" />
                                 </div>
                                 <span className="text-faint fs-8">{club.playerCount} {club.playerCount === 1 ? t('player') : t('players')}</span>
+                                <ClubMedalRow badges={club.badges} count={club.badgeCount} />
                                 {club.description && <span className="text-subtle fs-8 text-break">{club.description}</span>}
                             </div>
                             <div className="my-club-actions">{joining?.club.id === club.id ? null : action(club)}</div>

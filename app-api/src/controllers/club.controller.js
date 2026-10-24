@@ -1,5 +1,5 @@
 import logger from '../models/logger.model.js';
-import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { noteCreated, noteClubTexts, checkTakeover, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount } from '../utils/accounts.js';
@@ -10,6 +10,8 @@ import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { normalizeClubRules } from '../rules/club.rules.js';
+import { GOAL_METRICS, topClubBadges } from '../utils/club.badges.js';
+import { syncClubBadges } from '../utils/club.badge.service.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -72,6 +74,9 @@ export const findAll = async (req, res) => {
                 return isAdmin ? { ...publicFields, email } : publicFields;
             }),
             playerCount: countByClub.get(String(club._id)) ?? 0,
+            // the club's best medals for its card, and how many it has
+            badges: topClubBadges(club.badges),
+            badgeCount: club.badges?.length ?? 0,
             ...(isAdmin && { openJoinRequests: requestsByClub.get(String(club._id)) ?? 0 }),
         };
     }));
@@ -106,7 +111,45 @@ export const update = async (req, res) => {
         club.dashboardWidgets = undefined;
     }
     await club.save();
+    if (typeof req.body.description === 'string') checkLater(() => noteClubTexts(req, club, { description: club.description }));
     res.json(await withAdmins(club));
+};
+
+/**
+ * The club's goals, as its admins set them: up to three, each a metric (see
+ * GOAL_METRICS), a target and maybe an end. A goal that stays the same keeps
+ * when it started and whether it was reached; a new or changed one starts now.
+ * Answers with the goals and how far each is.
+ */
+export const updateGoals = async (req, res) => {
+    logger.debug('clubs update goals called');
+    const club = await loadManagedClub(req, res);
+    if (!club) return;
+    const unknown = req.body.goals.find(goal => !GOAL_METRICS[goal.metric]);
+    if (unknown) return res.status(422).json({ errors: [`A club cannot set a goal on ${unknown.metric}.`] });
+    const before = new Map((club.goals ?? []).map(goal => [goal.id, goal]));
+    const now = new Date();
+    club.goals = req.body.goals.map(goal => {
+        const kept = goal.id ? before.get(goal.id) : null;
+        const same = kept && kept.metric === goal.metric && kept.target === Number(goal.target);
+        return {
+            id: kept?.id ?? new db.mongoose.Types.ObjectId().toString(),
+            metric: goal.metric,
+            target: Number(goal.target),
+            from: same ? kept.from : now,
+            until: goal.until ? new Date(goal.until) : null,
+            reachedAt: same ? kept.reachedAt ?? null : null,
+        };
+    });
+    await club.save();
+    const { progress } = await syncClubBadges(club, { notify: false });
+    const saved = await Club.findById(club._id, 'goals').lean();
+    res.json((saved?.goals ?? []).map(goal => ({
+        ...goal,
+        title: GOAL_METRICS[goal.metric].title,
+        description: GOAL_METRICS[goal.metric].describe(goal.target),
+        progress: Math.min(progress[goal.id] ?? 0, goal.target),
+    })));
 };
 
 /**
@@ -120,6 +163,7 @@ export const updateGameRules = async (req, res) => {
     club.gameRules = normalizeClubRules(req.body);
     club.markModified('gameRules');
     await club.save();
+    checkLater(() => noteClubTexts(req, club, { formatNames: (club.gameRules?.formats ?? []).map(format => format.name) }));
     res.json(await withAdmins(club));
 };
 
@@ -154,6 +198,7 @@ export const remove = async (req, res) => {
     removeClubLogoFile(club.logo);
     for (const player of players) await removeProfileImageIfUnused(player.profileImg);
     logger.info(`Club "${club.name}" deleted by ${req.user.email}`);
+    checkLater(() => checkTakeover(req, club, 'deleted the club'));
     res.json({ message: 'Club deleted.' });
 };
 
@@ -206,6 +251,7 @@ export const addAdmin = async (req, res) => {
     }
 
     club.admins.push(user._id);
+    club.adminSince = [...(club.adminSince ?? []).filter(entry => !entry.user?.equals(user._id)), { user: user._id, at: new Date() }];
     // a club still looked after by a global admin from before they had to stay
     // out of clubs (e.g. the default club of an upgrade) is handed over
     {
@@ -234,6 +280,8 @@ export const removeAdmin = async (req, res) => {
     }
 
     club.admins.pull(userId);
+    club.adminSince = (club.adminSince ?? []).filter(entry => String(entry.user) !== String(userId));
     await club.save();
+    if (String(userId) !== String(req.user._id)) checkLater(() => checkTakeover(req, club, 'removed another admin'));
     res.json(await withAdmins(club));
 };

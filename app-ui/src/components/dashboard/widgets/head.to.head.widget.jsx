@@ -56,7 +56,7 @@ const HeadToHeadWidget = ({ widget, headToHead, players }) => {
                                             const state = won + lost === 0 ? 'none' : won > lost ? 'lead' : won < lost ? 'behind' : 'even';
                                             return (
                                                 <td key={column} className={`is-${state}`} title={`${players.get(row)?.nickname} ${won} : ${lost} ${players.get(column)?.nickname}`}>
-                                                    {won + lost === 0 ? '·' : won}
+                                                    {won + lost === 0 ? '·' : <Link to={`/stats/players?players=${row},${column}`} className="text-reset text-decoration-none">{won}</Link>}
                                                 </td>
                                             );
                                         })}
