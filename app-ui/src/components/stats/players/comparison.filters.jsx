@@ -6,6 +6,7 @@ import { InputSwitch } from 'primereact/inputswitch';
 import FilterPills from '../../elements/filter.pills';
 import TypeFilter from '../../elements/type.filter';
 import { GAME_TYPE_GROUPS } from '../../elements/type.groups';
+import TypePill from '../../elements/type.pill';
 import { t } from '../../../utils/i18n';
 import { calendarFormat } from '../../../utils/dates';
 
@@ -34,7 +35,14 @@ export const FilterPanel = ({ summary, changed, children }) => {
         <div className="filter-panel">
             <div className="filter-panel-bar">
                 <span className="filter-panel-summary" aria-label={t('Filters in use')}>
-                    {summary.map(part => <span key={part} className="filter-chip">{part}</span>)}
+                    {summary.map(part => {
+                        // a game type: its pill in its colour with its icon
+                        if (part?.type) {
+                            const item = GAME_TYPE_GROUPS.flatMap(group => group.items).find(entry => entry.value === part.type);
+                            return item ? <TypePill key={part.type} item={item} className="filter-chip-type" /> : <span key={part.type} className="filter-chip">{part.label}</span>;
+                        }
+                        return <span key={part} className="filter-chip">{part}</span>;
+                    })}
                 </span>
                 <Button
                     type="button"

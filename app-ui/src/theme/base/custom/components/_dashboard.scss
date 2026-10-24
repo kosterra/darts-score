@@ -1026,13 +1026,23 @@
 
 // ── The player comparison ──────────────────────────────────────────────
 
-// the mode on the left, the link to share on the right
+// the mode on the left, small, and the link to share on the right, on one line
 .compare-toolbar {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: $space-2 $space-3;
+    gap: $space-3;
+
+    .p-selectbutton .p-button {
+        padding: $space-1 $space-3;
+        font-size: $text-sm;
+    }
+}
+
+// on a phone the link to share is its icon only
+@media (max-width: 575.98px) {
+    .compare-copy .p-button-label { display: none; }
+    .compare-copy.p-button { padding-inline: $space-2; }
 }
 
 // two players: the wins as a score, "Anna 12 : 8 Ben", the legs under it

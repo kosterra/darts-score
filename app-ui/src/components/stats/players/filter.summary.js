@@ -12,7 +12,8 @@ const PERIOD_LABELS = { '1 D': t('Today'), '1 W': t('Last week'), '1 M': t('Last
 export const describeFilters = (filters, defaults, { formats = [], withType = true, withScope = false, withOthers = true, withX01 = true, clubFormats = [] } = {}) => {
     const parts = [];
     if (withScope) parts.push(filters.scope === 'all' ? t('All clubs') : t('This club'));
-    if (withType) parts.push(GAME_TYPE_LABELS[filters.type]);
+    // the game type as a pill of its own (see FilterPanel)
+    if (withType) parts.push({ type: filters.type, label: GAME_TYPE_LABELS[filters.type] });
     if (filters.period === 'Custom') {
         const [from, to] = filters.range ?? [];
         const day = (date) => formatDate(date, { year: 'short' });

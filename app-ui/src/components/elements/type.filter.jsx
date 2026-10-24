@@ -1,15 +1,8 @@
 import { useState } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 import { MultiSelect } from 'primereact/multiselect';
+import TypePill from './type.pill';
 import { t } from '../../utils/i18n';
-
-// a chosen type: a pill with its icon and name, in the type's colour
-const TypePill = ({ item }) => (
-    <span className={`type-pill game-type-${item.value}`}>
-        {item.icon && <item.icon aria-hidden="true" />}
-        {item.label}
-    </span>
-);
 
 const itemTemplate = (item) => (
     <span className="d-inline-flex align-items-center gap-2">

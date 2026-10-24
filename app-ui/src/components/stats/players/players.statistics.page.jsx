@@ -213,7 +213,7 @@ const PlayersStatisticsPage = () => {
                                         className="p-selectbutton-pills pills-inline"
                                         aria-label={t('How to compare')}
                                     />
-                                    <Button type="button" label={copied ? t('Link copied') : t('Copy link')} icon={copied ? 'pi pi-check' : 'pi pi-link'} size="small" severity="secondary" text onClick={copyLink} />
+                                    <Button type="button" label={copied ? t('Link copied') : t('Copy link')} icon={copied ? 'pi pi-check' : 'pi pi-link'} size="small" severity="secondary" text onClick={copyLink} className="compare-copy" aria-label={copied ? t('Link copied') : t('Copy link')} />
                                 </div>
                                 {/* the two sides face each other around "vs.", which stays in the middle */}
                                 <div className="compare-faceoff">
