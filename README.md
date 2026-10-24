@@ -19,6 +19,7 @@ REST API **and** React UI for the [darts-score](https://github.com/kosterra/dart
 - [API Endpoints](#api-endpoints)
 - [Image Upload](#image-upload)
 - [Environment Variables](#environment-variables)
+- [Support Oche](#support-oche)
 
 ---
 
@@ -395,6 +396,23 @@ GET /api/images/players/<filename>
 ```
 
 Images are saved to the path configured in `IMG_DIR` (default: `data/img/players/`). Mount this directory as a Docker volume to persist images across container restarts.
+
+---
+
+## Support Oche
+
+Oche is free for everyone, without ads and without tracking — and it stays that way. It is built in spare time; sponsoring pays for the server, the domain and the mails, and for time to build what comes next (group stages and leagues, tournaments between clubs, more games and statistics).
+
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/kosterra)
+
+Every sponsor helps every installation of Oche. Each installation can also show its own ways to give (e.g. TWINT) on its page **Support Oche** (`/support`), set by its global admins under System settings.
+
+### Sponsors
+
+Clubs and people who keep Oche going (Bullseye tier and up):
+
+<!-- sponsors: add new names below, newest last -->
+*Be the first: [become a sponsor](https://github.com/sponsors/kosterra).*
 
 ---
 
