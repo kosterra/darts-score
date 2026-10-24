@@ -3279,6 +3279,140 @@ paths:
         '422':
           description: Unknown game type
       operationId: postStatsPlayersHeadtohead
+  /api/stats/compare/duel:
+    post:
+      tags:
+        - Statistics
+      summary: The player comparison, head to head in one game type
+      description: >-
+        Two to eight players in their games together (or with others too) in one of the nine games (type x01, cricket, elimination,
+        clock, shanghai, killer, halveit, golf, tactics), in one answer: playedGames; record (wins, for X01 legs, sets and the matches
+        won in the deciding leg, the current streak, the last ten results, and pairs - who beats whom); each player's figures of the
+        game (for the newer games worked out from their visits); games for the timeline; highlights of X01 (best game average, highest
+        checkout with their game, 180s); shame (the Hall of Shame badges got in these games, where the club has one); ratings (the
+        club's Elo rating of each, provisional below 5 rated games) and chances (in percent for the next game); filterOptions (the X01
+        formats played together and the club's formats of the game); and for X01 the chart data (x01).
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - playerIds
+              properties:
+                playerIds:
+                  type: array
+                  maxItems: 8
+                  items:
+                    type: string
+                type:
+                  type: string
+                  enum: [x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics]
+                includeOthers:
+                  type: boolean
+                dateFilter:
+                  type: string
+                from:
+                  type: string
+                to:
+                  type: string
+                lastGames:
+                  type: integer
+                startingScore:
+                  type: integer
+                format:
+                  type: object
+                friendly:
+                  type: string
+                  enum: [include, exclude]
+                clubFormat:
+                  type: string
+                  description: The id of one of the club's formats
+      responses:
+        '200':
+          description: The duel
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A player is not known in the club
+        '422':
+          description: Unknown game type or more than 8 players
+      operationId: postStatsCompareDuel
+  /api/stats/compare/side:
+    post:
+      tags:
+        - Statistics
+      summary: The player comparison, each player on their own side by side
+      description: >-
+        Two to eight players with their figures from all their games, also when they never played each other: level, rating, badges,
+        games, wins and win rate, per game type the games and wins, X01 (average, first 9, checkout rate, highest checkout, 180s,
+        ton-plus, darts per leg, best leg), Cricket, Elimination and Around the Clock figures, the newer games, the bests of the
+        trainings (left out for players who keep their trainings to themselves), and the chances for the next game. scope "club" (the
+        default) or "all" clubs; dateFilter, from, to and lastGames as on a player's statistics.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - playerIds
+              properties:
+                playerIds:
+                  type: array
+                  maxItems: 8
+                  items:
+                    type: string
+                scope:
+                  type: string
+                  enum: [club, all]
+                dateFilter:
+                  type: string
+                from:
+                  type: string
+                to:
+                  type: string
+                lastGames:
+                  type: integer
+      responses:
+        '200':
+          description: The players side by side ({ players, chances })
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: A player is not known in the club
+        '422':
+          description: More than 8 players
+      operationId: postStatsCompareSide
+  /api/stats/compare/opponents/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Statistics
+      summary: Who a player played most often in the club
+      description: The five most frequent opponents, [{ playerId, games }], for the quick picks of the comparison.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: The opponents
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Player not found
+      operationId: getStatsCompareOpponentsByid
   /api/stats/players/form:
     post:
       tags:

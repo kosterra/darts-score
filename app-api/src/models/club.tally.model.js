@@ -16,6 +16,10 @@ export default (mongoose) => {
       highFinishes: { type: Number, default: 0 },
       // who threw the first of something in it: { max180: [playerId], bigFish: [...], nineDarter: [...], shanghaiFinish: [...] }
       firsts:     { type: mongoose.Schema.Types.Mixed, default: {} },
+      // who won it and whether it was friendly, for the club's rating
+      winners:    { type: [String], default: [] },
+      friendly:   { type: Boolean, default: false },
+      version:    { type: Number, default: 1 },
     },
     { timestamps: false }
   );

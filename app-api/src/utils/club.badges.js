@@ -121,6 +121,9 @@ export const GOAL_METRICS = {
     trainings: { title: 'Trainings', describe: (n) => `${formatCount(n)} trainings` },
 };
 
+// a tally of an older version is worked out again
+export const TALLY_VERSION = 2;
+
 const FIRSTS = { max180: 'max180Firsts', bigFish: 'bigFishFirsts', nineDarter: 'nineDarterFirsts', shanghaiFinish: 'shanghaiFinishFirsts' };
 
 /**
@@ -129,7 +132,13 @@ const FIRSTS = { max180: 'max180Firsts', bigFish: 'bigFishFirsts', nineDarter: '
  * threw a 180, a big fish, a nine-darter or a Shanghai finish in it.
  */
 export const tallyOf = (type, game) => {
-    const tally = { players: (game.players ?? []).map(String), darts: 0, num180s: 0, tonPlus: 0, highFinishes: 0, firsts: {} };
+    const tally = {
+        players: (game.players ?? []).map(String), darts: 0, num180s: 0, tonPlus: 0, highFinishes: 0, firsts: {},
+        // for the club's rating: who won, and whether the game was friendly
+        winners: (game.players ?? []).map(String).filter(id => game.playerModels?.[id]?.hasWonGame === true),
+        friendly: game.friendly === true,
+        version: TALLY_VERSION,
+    };
     const add = (key, playerId) => { (tally.firsts[key] ??= []).push(playerId); };
     for (const playerId of tally.players) {
         const feats = gameFeats(type, game, playerId);

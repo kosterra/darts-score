@@ -235,6 +235,19 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-club-tallies-winners',
+        description: 'Add who won and whether it was friendly to what every finished game added to its club, for the club\'s rating in the player comparison',
+        run: async () => {
+            const { buildClubTallies } = await import('./club.badge.service.js');
+            const clubs = await db.club.find({}, '_id');
+            let games = 0;
+            // only the tallies of an older version are worked out again
+            for (const club of clubs) games += await buildClubTallies(club._id);
+            logger.info(`Club tallies checked for ${games} games in ${clubs.length} clubs`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

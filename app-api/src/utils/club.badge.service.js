@@ -2,7 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { isRulesGame } from './rules.kinds.js';
 import { viewOf } from './game.view.js';
-import { CLUB_BADGES, GOAL_METRICS, getClubBadge, goalProgress, publicClubBadge, replayClubBadges, tallyOf } from './club.badges.js';
+import { CLUB_BADGES, GOAL_METRICS, TALLY_VERSION, getClubBadge, goalProgress, publicClubBadge, replayClubBadges, tallyOf } from './club.badges.js';
 
 const GAME_COLLECTIONS = {
     x01: () => db.x01,
@@ -21,8 +21,8 @@ export const saveTally = async (clubId, type, game) => {
     if (!clubId || !game?.hasWinner) return;
     const sourceId = String(game._id ?? game.id);
     const at = game.updatedAt ?? new Date();
-    const known = await db.clubTally.findOne({ sourceId }, 'at').lean();
-    if (known && new Date(known.at).getTime() === new Date(at).getTime()) return;
+    const known = await db.clubTally.findOne({ sourceId }, 'at version').lean();
+    if (known && known.version === TALLY_VERSION && new Date(known.at).getTime() === new Date(at).getTime()) return;
     const data = viewOf(isRulesGame(type) ? 'rules' : type, game);
     const tally = tallyOf(type, data);
     await db.clubTally.updateOne(
