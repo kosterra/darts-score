@@ -14,6 +14,8 @@ const CHANGELOG = [
             t('For club admins: a game or training in the club that cannot be real, a goal ending within a week, a login not used after a week (with Send the invitation again on the player\'s page), and the week of the club by mail on Mondays.'),
             t('For global admins: the alerts at once (critical ones) or once a day, and many errors of the app within a day.'),
             t('A mail whenever your password or email address is changed (to the old address too) or your account is blocked, so you notice when someone else uses it.'),
+            t('Two-step login: after the password, a code of an authenticator app on your phone (or one of ten recovery codes), turned on under Profile → Account; a device of your own can skip it for 30 days.'),
+            t('Global admins choose under System settings whether two-step login is off, optional, or required for the admins or for everyone, with days to set it up; for a lost phone they reset it under Users.'),
             t('Players without a login: with their consent their club keeps an address for them, for their badges, level and records once a day and their week on Mondays; and a link with a QR code lets them take over their player with a login of their own, with all games, statistics and badges.'),
         ],
     },

@@ -17,6 +17,7 @@ import PlayingPreferences from './playing.preferences';
 import DateFormatSetting from './date.format.setting';
 import AppInstallSetting from '../install/app.install.setting';
 import NotificationSettings from './notification.settings';
+import TwoStepSetting from '../mfa/two.step.setting';
 import { MyPlayers } from '../players/_my.player.page';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -25,7 +26,7 @@ const LAST_CLUB = 'last';
 
 // the parts of the profile, each with its own address (/profile#player)
 const SECTIONS = [
-    { value: 'account', label: t('Account'), icon: 'pi pi-user', intro: t('Your account: the name your clubs see, the email you log in with, the language and date format, what opens after logging in and your password.') },
+    { value: 'account', label: t('Account'), icon: 'pi pi-user', intro: t('Your account: the name your clubs see, the email you log in with, the language and date format, what opens after logging in, your password and two-step login.') },
     { value: 'player', label: t('Player'), icon: 'pi pi-id-card', intro: t('How you appear in your clubs: your nickname, picture and country, what the others see of you, and your darts. Your name comes from your account; your club admins set the date of birth, and as an adult you can correct it.') },
     { value: 'playing', label: t('Playing'), icon: 'pi pi-bullseye', intro: t('Everything in a game: the ways out, how you enter the darts, the doubles the tips aim at, the handicap, the dart animation and the celebrations.') },
     { value: 'notifications', label: t('Notifications'), icon: 'pi pi-bell', intro: t('What you are told about, and how: in the app, by mail at once, or in one mail a day or a week.') },
@@ -229,6 +230,7 @@ const ProfilePage = () => {
                             </div>
                         </div>
                     </form>
+                    <TwoStepSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} onError={showError} />
                     {/* Oche on the home screen of this device */}
                     <div className="mt-4"><AppInstallSetting /></div>
                     </div>

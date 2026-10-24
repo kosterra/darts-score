@@ -219,6 +219,7 @@ paths:
       tags:
         - Auth
       summary: Log in
+      description: 'With two-step login on (or required and not set up after its days), the session does not start yet: the answer is { mfaRequired: true, step: "code" | "enroll" } with a signed cookie for the next step (see /api/auth/login/mfa and /api/auth/mfa/setup). Registering and choosing a new password with a link answer the same way.'
       security: []
       requestBody:
         required: true
@@ -232,6 +233,190 @@ paths:
         '401':
           description: Email or password is wrong
       operationId: postAuthLogin
+  /api/auth/login/mfa:
+    post:
+      tags:
+        - Auth
+      summary: The second step of logging in
+      description: After a login answered mfaRequired with the step "code" (a signed cookie for 5 minutes). A code of the authenticator app, or one of the recovery codes (each works once). trust skips the code on this device for 30 days. Five wrong codes make the account wait a few minutes.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+                recoveryCode:
+                  type: string
+                trust:
+                  type: boolean
+      responses:
+        '200':
+          description: Logged in; the account, with its two-step login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Wrong code, or the login took too long
+        '429':
+          description: Too many wrong codes
+      operationId: postAuthLoginMfa
+  /api/auth/mfa:
+    get:
+      tags:
+        - Auth
+      summary: The two-step login of the account
+      responses:
+        '200':
+          description: Its state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAuthMfa
+  /api/auth/mfa/setup:
+    post:
+      tags:
+        - Auth
+      summary: Start setting up two-step login
+      description: A new secret for the authenticator app, as its key and the otpauth address for a QR code. Logged in, or while logging in when it is required (the step "enroll").
+      security: []
+      responses:
+        '200':
+          description: The secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                  uri:
+                    type: string
+        '401':
+          description: Not logged in, and no login waiting to set it up
+        '409':
+          description: It is on already
+      operationId: postAuthMfaSetup
+  /api/auth/mfa/enable:
+    post:
+      tags:
+        - Auth
+      summary: Turn on two-step login with the first code of the app
+      description: Answers the ten recovery codes, shown only now. While logging in, the session starts too.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+                trust:
+                  type: boolean
+      responses:
+        '200':
+          description: On, with the recovery codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recoveryCodes:
+                    type: array
+                    items:
+                      type: string
+                  mfa:
+                    $ref: '#/components/schemas/MfaState'
+        '401':
+          description: Not logged in, and no login waiting to set it up
+        '409':
+          description: It is on already, or setting it up has to start again
+        '422':
+          description: Wrong code
+      operationId: postAuthMfaEnable
+  /api/auth/mfa/disable:
+    post:
+      tags:
+        - Auth
+      summary: Turn off two-step login
+      description: With the password and a current code; not while it is required for the account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Off
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Wrong password or code
+        '409':
+          description: Off already, or required
+      operationId: postAuthMfaDisable
+  /api/auth/mfa/recovery-codes:
+    post:
+      tags:
+        - Auth
+      summary: New recovery codes
+      description: With a current code; the old ones stop working.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+      responses:
+        '200':
+          description: The new codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recoveryCodes:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Wrong code
+      operationId: postAuthMfaRecoveryCodes
+  /api/auth/mfa/forget-devices:
+    post:
+      tags:
+        - Auth
+      summary: Every trusted device asks for the code again
+      responses:
+        '200':
+          description: Done
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: postAuthMfaForgetDevices
   /api/auth/logout:
     post:
       tags:
@@ -1159,6 +1344,26 @@ paths:
         - $ref: '#/components/parameters/Id'
       description: Global admins only.
       operationId: putUsersByidPassword
+  /api/users/{id}/mfa/reset:
+    post:
+      tags:
+        - Users
+      summary: Reset the two-step login of an account (global admins only)
+      description: For a lost phone. Turns it off and ends the account's sessions; with the policy it is set up again at the next login. Raises an alert and mails the owner.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Reset
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Unknown account
+        '409':
+          description: Two-step login is off for it, or it is your own account
+      operationId: postUsersByidMfaReset
   /api/users/{id}/password-link:
     post:
       tags:
@@ -1690,6 +1895,59 @@ paths:
           description: Invalid text or colour
       description: Global admins only.
       operationId: putAdminBanner
+  /api/admin/mfa:
+    get:
+      tags:
+        - Admin
+      summary: The policy of two-step login (global admins only)
+      responses:
+        '200':
+          description: The policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getAdminMfa
+    put:
+      tags:
+        - Admin
+      summary: Set the policy of two-step login (global admins only)
+      description: Requiring it needs it on for the own account first, so nobody locks out the installation. The days to set it up count from when it became required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - policy
+                - graceDays
+              properties:
+                policy:
+                  type: string
+                  enum: [off, optional, admins, everyone]
+                graceDays:
+                  type: integer
+                  minimum: 0
+                  maximum: 60
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Two-step login is off for the own account
+      operationId: putAdminMfa
   /api/admin/session:
     get:
       tags:
@@ -5174,6 +5432,50 @@ components:
         claimToken:
           type: string
           description: The token of a claim link; the new account takes over its player
+    MfaState:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        required:
+          type: boolean
+        setupDue:
+          type: [string, 'null']
+          format: date-time
+          description: Until when it may still be set up, while required and off
+        mustSetUp:
+          type: boolean
+        recoveryLeft:
+          type: integer
+        enabledAt:
+          type: [string, 'null']
+          format: date-time
+    MfaPolicy:
+      type: object
+      properties:
+        policy:
+          type: string
+          enum: [off, optional, admins, everyone]
+        graceDays:
+          type: integer
+        requiredSince:
+          type: [string, 'null']
+          format: date-time
+        policies:
+          type: array
+          items:
+            type: string
+        graceLimits:
+          type: object
+          properties:
+            default:
+              type: integer
+            min:
+              type: integer
+            max:
+              type: integer
+        ownEnabled:
+          type: boolean
     NotificationChoice:
       type: object
       properties:
@@ -6451,6 +6753,11 @@ components:
         id:
           type: string
           description: MongoDB ObjectId
+        mfaEnabled:
+          type: boolean
+          description: Whether two-step login is on
+        mfa:
+          $ref: '#/components/schemas/MfaState'
         email:
           type: string
         firstname:

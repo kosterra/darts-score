@@ -107,7 +107,8 @@ export const deliver = async (notices) => {
         const mail = user.blockedAt && notice.kind !== 'accountBlocked' ? 'off' : preference.mail;
         const doc = await db.notification.create({ ...notice, inApp: preference.inApp, mail });
         stored.push(doc);
-        if (mail === 'instant' && isMailConfigured() && notice.kind !== 'passwordChanged' && notice.kind !== 'emailChanged' && notice.kind !== 'accountBlocked') {
+        // the security mails have templates of their own (see notifySecurity)
+        if (mail === 'instant' && isMailConfigured() && topic?.id !== 'security') {
             try {
                 await mailNow(user, notice, topic?.id);
                 doc.mailedAt = new Date();
@@ -132,14 +133,16 @@ export const deliverQuietly = (notices) => deliver(notices).catch(err => {
  * kind: 'passwordChanged' | 'emailChanged' | 'accountBlocked'; to: another
  * address than the account's (the old one, for a changed address).
  */
-export const notifySecurity = async (user, kind, { title, body, vars = {}, to = null, link = '/profile' } = {}) => {
+export const notifySecurity = async (user, kind, { title, body, vars = {}, to = null, link = '/profile', template = kind } = {}) => {
     try {
         await deliver([{ user: user._id, kind, title, body, link }]);
         const language = languageOf(user);
-        await sendTemplateMail(kind, to ?? user.email, {
+        await sendTemplateMail(template, to ?? user.email, {
             firstname: user.firstname,
             date: dateTimeIn(language),
             link: kind === 'passwordChanged' ? `${getAppUrl()}/forgot-password` : `${getAppUrl()}/login`,
+            // the general one says what happened in its own words
+            ...(template === 'securityNotice' && { title: translate(language, title), details: translate(language, body) }),
             ...vars,
         }, language);
     } catch (err) {

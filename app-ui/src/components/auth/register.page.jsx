@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
@@ -14,6 +14,7 @@ const MIN_PASSWORD_LENGTH = 8;
 
 const RegisterPage = () => {
     const { register } = useAuth();
+    const navigate = useNavigate();
 
     const [account, setAccount] = useState({ firstname: '', lastname: '', email: '', password: '' });
     // against bots: a field people never see, and how long the form was open
@@ -40,7 +41,9 @@ const RegisterPage = () => {
         const claimToken = peekPendingClaim();
         clearPendingClaim();
         try {
-            await register({ ...account, website, formTimeMs: Date.now() - openedAt.current, ...(claimToken && { claimToken }) });
+            const next = await register({ ...account, website, formTimeMs: Date.now() - openedAt.current, ...(claimToken && { claimToken }) });
+            // required two-step login is set up first, on the login page
+            if (next?.mfaRequired) navigate('/login', { replace: true, state: { mfaStep: next.step } });
         } catch (err) {
             if (claimToken) setPendingClaim(claimToken);
             setError(err.message);

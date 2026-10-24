@@ -129,6 +129,25 @@ const UserEditor = ({ user, onHide, onSaved, onError }) => {
                     </div>
                 </section>
 
+                {user.mfaEnabled &&
+                    <section className="d-flex flex-column gap-2">
+                        <span className="text-subtle fs-7 fw-semibold">{t('Two-step login')}</span>
+                        <span className="text-faint fs-8">
+                            {t('For a lost phone without recovery codes: turns off two-step login and logs out all sessions of {{name}}. Do it only when they asked for it in person; they get a mail, and an alert notes it.', { name: user.firstname })}
+                        </span>
+                        <div className="d-flex justify-content-end">
+                            <Button
+                                label={t('Reset two-step login')}
+                                icon="pi pi-unlock"
+                                size="small"
+                                severity="danger"
+                                outlined
+                                disabled={busy}
+                                onClick={() => run(t('Two-step login reset'), () => UserService.resetMfa(user.id), t('{{email}} sets it up again at the next login, if it is required', { email: user.email }))}
+                            />
+                        </div>
+                    </section>}
+
                 <section className="d-flex flex-column gap-2">
                     <span className="text-subtle fs-7 fw-semibold">{t('Or a link to choose a password')}</span>
                     <span className="text-faint fs-8">

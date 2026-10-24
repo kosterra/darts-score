@@ -12,6 +12,7 @@ import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
 import { peekPendingClaim } from './utils/pending.claim';
+import MfaDueNotice from './components/mfa/mfa.due.notice';
 
 const Dashboard = lazy(() => import('./components/dashboard/_dashboard.page'));
 const X01ConfigPage = lazy(() => import('./components/game_config/x01/_x01.config.page'));
@@ -165,6 +166,7 @@ function AppContent() {
             <div className="app-content">
                 <AppBanner />
                 <InstallHint loggedIn />
+                <MfaDueNotice />
                 {/* Keyed by club so every page reloads its data after switching clubs */}
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
                 <Routes>

@@ -7,6 +7,7 @@ import { Toast } from 'primereact/toast';
 import AdminService from '../../services/admin.service';
 import BannerSettings from './banner.settings';
 import SessionSettings from './session.settings';
+import MfaSettings from './mfa.settings';
 import StartPageSettings from './start.page.settings';
 import MailTemplates from './mail.templates';
 import StatTile from '../stats/players/stat.tile';
@@ -76,6 +77,8 @@ const AdministrationPage = () => {
             <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
 
             <SessionSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Session saved'), detail, life: 3000 })} />
+
+            <MfaSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Two-step login'), detail, life: 3000 })} />
 
             {system &&
                 <Panel header={t('System')}>

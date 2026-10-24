@@ -9,6 +9,7 @@ import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/ba
 import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
+import { GRACE_DAYS, MFA_POLICIES, getMfaSettings, isMfaEnabled, saveMfaSettings } from '../utils/mfa.js';
 import { getStartPageSettings, saveStartPageSettings } from '../utils/start.page.settings.js';
 import { MAIL_LANGUAGES } from '../utils/mail.templates.js';
 import { installationNumbers } from '../controllers/public.controller.js';
@@ -64,6 +65,23 @@ export default (app) => {
             const settings = await saveSessionSettings({ timeoutHours: req.body.timeoutHours });
             logger.info(`Session timeout set to ${settings.timeoutHours} hours by ${req.user.email}`);
             res.json({ ...settings, limits: SESSION_HOURS });
+        },
+    );
+
+    // two-step login: off, optional, required for the admins or for everyone, with the days to set it up
+    router.get('/mfa', async (req, res) => res.json({ ...await getMfaSettings(), policies: MFA_POLICIES, graceLimits: GRACE_DAYS, ownEnabled: isMfaEnabled(req.user) }));
+    router.put('/mfa',
+        body('policy').isIn(MFA_POLICIES).withMessage(`policy must be one of: ${MFA_POLICIES.join(', ')}.`),
+        body('graceDays').isInt({ min: GRACE_DAYS.min, max: GRACE_DAYS.max }).withMessage(`The days to set it up are ${GRACE_DAYS.min} to ${GRACE_DAYS.max}.`).toInt(),
+        validate,
+        async (req, res) => {
+            // so nobody locks out the installation: required only by an admin who uses it
+            if ((req.body.policy === 'admins' || req.body.policy === 'everyone') && !isMfaEnabled(req.user)) {
+                return res.status(409).json({ message: 'Turn on two-step login for your own account first (Profile → Account).' });
+            }
+            const settings = await saveMfaSettings({ policy: req.body.policy, graceDays: req.body.graceDays });
+            logger.info(`Two-step login set to "${settings.policy}" (${settings.graceDays} days) by ${req.user.email}`);
+            res.json({ ...settings, policies: MFA_POLICIES, graceLimits: GRACE_DAYS, ownEnabled: true });
         },
     );
 

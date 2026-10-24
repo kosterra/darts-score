@@ -23,6 +23,18 @@ export const getClubRole = async (user, club) => {
 };
 
 /**
+ * The logged-in user as req.user when there is a session, else goes on
+ * without (e.g. setting up two-step login while logging in).
+ */
+export const optionalAuth = async (req, res, next) => {
+    const session = readSession(req);
+    if (!session || !db.mongoose.isValidObjectId(session.uid)) return next();
+    const user = await User.findById(session.uid);
+    if (user && user.sessionVersion === session.v && !user.blockedAt) req.user = user;
+    next();
+};
+
+/**
  * Requires a logged-in user and exposes it as req.user.
  */
 export const requireAuth = async (req, res, next) => {

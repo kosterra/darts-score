@@ -50,7 +50,7 @@ export const NOTIFICATION_TOPICS = [
     { id: 'alertsWarning', group: 'global', kinds: ['alertWarning'], inApp: true, mail: 'daily' },
     { id: 'errors', group: 'global', kinds: ['errorSpike'], inApp: true, mail: 'daily' },
 
-    { id: 'security', group: 'security', kinds: ['passwordChanged', 'emailChanged', 'accountBlocked'], inApp: true, mail: 'instant', locked: true },
+    { id: 'security', group: 'security', kinds: ['passwordChanged', 'emailChanged', 'accountBlocked', 'mfaEnabled', 'mfaDisabled', 'mfaRecoveryUsed', 'mfaReset'], inApp: true, mail: 'instant', locked: true },
 ];
 
 const BY_ID = new Map(NOTIFICATION_TOPICS.map(topic => [topic.id, topic]));

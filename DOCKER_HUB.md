@@ -167,6 +167,8 @@ LOG_LEVEL=info
 | `NODE_ENV` | no | `production` | `production` hides error details from the browser; anything else (e.g. `test`) shows them and appears as the environment on the administration page |
 | `UI_URL` | no | — | Allowed CORS origin (only needed when the UI is served separately) |
 | `SESSION_SECRET` | recommended | random per start | Signs the login cookie. Without it every restart logs all users out |
+| `MFA_KEY` | recommended | from `SESSION_SECRET` | Encrypts the secrets of two-step login. Without it they depend on `SESSION_SECRET`: changing that turns two-step login off for everyone |
+| `ADMIN_RESET_MFA` | no | — | Email of an account whose two-step login is turned off at the next start (a global admin who lost phone and recovery codes); remove it afterwards |
 | `ADMIN_EMAIL` | first start | — | Email of the first global admin, created on startup when no global admin exists |
 | `ADMIN_PASSWORD` | first start | — | Password of that account (at least 8 characters) |
 | `APP_URL` | for email | — | Public address of the app, used for links in mails |

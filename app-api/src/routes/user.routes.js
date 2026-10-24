@@ -4,6 +4,7 @@ import { validate } from '../utils/validation.js';
 import { ROLES } from '../models/user.model.js';
 import { requireGlobalAdmin } from '../middleware/auth.middleware.js';
 import * as UserController from '../controllers/user.controller.js';
+import { resetForUser } from '../controllers/mfa.controller.js';
 import { emailValidator, nameValidators, passwordValidator } from './auth.routes.js';
 
 const idValidator = param('id').isMongoId().withMessage('Invalid user id.');
@@ -27,6 +28,8 @@ export default (app) => {
     router.put('/:id', idValidator, emailValidator, nameValidators(), validate, UserController.update);
     router.put('/:id/password', idValidator, passwordValidator('password'), validate, UserController.setPassword);
     router.post('/:id/password-link', idValidator, validate, UserController.passwordLink);
+    // a lost phone: two-step login off, set up again at the next login
+    router.post('/:id/mfa/reset', idValidator, validate, resetForUser);
 
     app.use('/api/users', router);
 };

@@ -2,7 +2,7 @@ import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { LANGUAGES, ROLES } from '../models/user.model.js';
-import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
+import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie, clearPendingCookie } from '../utils/auth.utils.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
@@ -13,6 +13,8 @@ import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { getClubRole } from '../middleware/auth.middleware.js';
 import { notifySecurity } from '../utils/notify.js';
 import { claimOnRegister } from './player.contact.controller.js';
+import { finishLogin } from './mfa.controller.js';
+import { mfaStateOf } from '../utils/mfa.js';
 
 export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
@@ -44,8 +46,7 @@ export const register = async (req, res) => {
     // registered with a claim link: the account takes over the player
     const claimed = req.body.claimToken ? await claimOnRegister(req.body.claimToken, user) : false;
 
-    await setSessionCookie(req, res, user);
-    res.status(201).json({ ...user.toJSON(), claimed });
+    await finishLogin(req, res, user, { status: 201, extra: { claimed } });
 };
 
 export const login = async (req, res) => {
@@ -60,18 +61,18 @@ export const login = async (req, res) => {
     }
     if (user.blockedAt) return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
 
-    user.lastLoginAt = new Date();
-    await user.save({ timestamps: false });
-    await setSessionCookie(req, res, user);
-    res.json(user);
+    // the code of two-step login next, or the session
+    await finishLogin(req, res, user);
 };
 
 export const logout = (req, res) => {
     clearSessionCookie(req, res);
+    clearPendingCookie(req, res);
     res.json({ message: 'Logged out.' });
 };
 
-export const me = (req, res) => res.json(req.user);
+// the account, with its two-step login (e.g. until when it may still be set up)
+export const me = async (req, res) => res.json({ ...req.user.toJSON(), mfa: await mfaStateOf(req.user) });
 
 // when the session ends, so the app can warn in time: { expiresAt, timeoutHours }
 export const session = async (req, res) => {
@@ -239,6 +240,6 @@ export const resetPassword = async (req, res) => {
     // not for a new account choosing its first password
     if (user.lastLoginAt) notifySecurity(user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
 
-    await setSessionCookie(req, res, user);
-    res.json(user);
+    // a new password does not skip the code of two-step login
+    await finishLogin(req, res, user);
 };

@@ -133,6 +133,15 @@ export const MAIL_TEMPLATES = [
         button: 'Open Oche',
     },
     {
+        id: 'securityNotice',
+        title: 'Two-step login changed',
+        description: 'Two-step login of an account was turned on or off, reset by a global admin, or a recovery code was used. Always sent.',
+        placeholders: [...COMMON, { key: 'title', description: 'What happened, in one line', sample: 'Two-step login is on' }, { key: 'details', description: 'More about it', sample: 'From now on Oche asks for a code of your authenticator app after the password.' }, DATE],
+        subject: '{{title}}',
+        body: 'Hello {{firstname}},\n\n{{title}} ({{date}}).\n\n{{details}}',
+        button: 'Open Oche',
+    },
+    {
         id: 'contactNews',
         title: 'News for a player without a login',
         description: 'For a player without a login whose address the club keeps: their badges, level and records, or their week. The button leads to a login of their own.',

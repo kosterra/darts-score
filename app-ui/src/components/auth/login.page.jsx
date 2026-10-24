@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
@@ -8,6 +8,7 @@ import { Message } from 'primereact/message';
 import AuthLayout from './auth.layout';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import MfaLoginStep from '../mfa/mfa.login.step';
 
 const LoginPage = () => {
     const { login, mailEnabled, sessionEnded } = useAuth();
@@ -16,18 +17,33 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    // the second step of two-step login: 'code' or 'enroll' (also after registering or a new password)
+    const { state } = useLocation();
+    const [mfaStep, setMfaStep] = useState(state?.mfaStep ?? null);
 
     const onSubmit = async (event) => {
         event.preventDefault();
         setError('');
         setSubmitting(true);
         try {
-            await login(email, password);
+            const next = await login(email, password);
+            if (next?.mfaRequired) {
+                setMfaStep(next.step);
+                setSubmitting(false);
+            }
         } catch (err) {
             setError(err.message);
             setSubmitting(false);
         }
     };
+
+    if (mfaStep) {
+        return (
+            <AuthLayout hide="login" title={mfaStep === 'enroll' ? t('Set up two-step login') : t('Two-step login')}>
+                <MfaLoginStep step={mfaStep} onRestart={(message) => { setMfaStep(null); setPassword(''); setError(message ?? ''); }} />
+            </AuthLayout>
+        );
+    }
 
     return (
         <AuthLayout hide="login" title={t('Log in')}>

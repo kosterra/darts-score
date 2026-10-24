@@ -66,6 +66,11 @@ export const TEMPLATE_TEXTS = {
             body: "Hallo {{firstname}}\n\nDein Oche-Konto wurde gesperrt, du kannst dich nicht mehr anmelden. Der Grund: {{reason}}\n\nWenn du denkst, dass das ein Fehler ist, informiere die Admins deines Clubs.",
             button: "Oche öffnen",
         },
+        securityNotice: {
+            subject: "{{title}}",
+            body: "Hallo {{firstname}}\n\n{{title}} ({{date}}).\n\n{{details}}",
+            button: "Oche öffnen",
+        },
         contactNews: {
             subject: "{{title}}",
             body: "Hallo {{firstname}}\n\n{{details}}\n\nDu erhältst diese E-Mail, weil {{club}} deine Adresse für deinen Spieler {{nickname}} hinterlegt hat. Mit einem eigenen Login siehst du deine Statistik, Badges und dein Level jederzeit.",
@@ -131,6 +136,11 @@ export const TEMPLATE_TEXTS = {
         accountBlocked: {
             subject: "Ton compte Oche a été bloqué",
             body: "Bonjour {{firstname}},\n\nTon compte Oche a été bloqué, tu ne peux plus te connecter. La raison : {{reason}}\n\nSi tu penses que c'est une erreur, préviens les admins de ton club.",
+            button: "Ouvrir Oche",
+        },
+        securityNotice: {
+            subject: "{{title}}",
+            body: "Bonjour {{firstname}},\n\n{{title}} ({{date}}).\n\n{{details}}",
             button: "Ouvrir Oche",
         },
         contactNews: {
@@ -200,6 +210,11 @@ export const TEMPLATE_TEXTS = {
             body: "Ciao {{firstname}},\n\nIl tuo account Oche è stato bloccato, non puoi più accedere. Il motivo: {{reason}}\n\nSe pensi che sia un errore, avvisa gli admin del tuo club.",
             button: "Apri Oche",
         },
+        securityNotice: {
+            subject: "{{title}}",
+            body: "Ciao {{firstname}},\n\n{{title}} ({{date}}).\n\n{{details}}",
+            button: "Apri Oche",
+        },
         contactNews: {
             subject: "{{title}}",
             body: "Ciao {{firstname}},\n\n{{details}}\n\nRicevi questa email perché {{club}} conserva il tuo indirizzo per il tuo giocatore {{nickname}}. Con un accesso tuo vedi le tue statistiche, i badge e il livello in ogni momento.",
@@ -265,6 +280,11 @@ export const TEMPLATE_TEXTS = {
         accountBlocked: {
             subject: "Tu cuenta de Oche ha sido bloqueada",
             body: "Hola, {{firstname}}:\n\nTu cuenta de Oche ha sido bloqueada y ya no puedes iniciar sesión. El motivo: {{reason}}\n\nSi crees que es un error, avisa a los admins de tu club.",
+            button: "Abrir Oche",
+        },
+        securityNotice: {
+            subject: "{{title}}",
+            body: "Hola, {{firstname}}:\n\n{{title}} ({{date}}).\n\n{{details}}",
             button: "Abrir Oche",
         },
         contactNews: {

@@ -53,6 +53,16 @@ const requestPasswordReset = (email) =>
 const resetPassword = (token, password) =>
     requestJSON(API_URL + 'reset-password', { method: 'POST', body: { token, password } });
 
+// two-step login: the code after the password ({ code } or { recoveryCode }, and trust for this device)
+const loginMfa = (answer) => requestJSON(API_URL + 'login/mfa', { method: 'POST', body: answer });
+// its state, setting it up ({ secret, uri }), turning it on ({ recoveryCodes }) and off
+const mfaStatus = () => requestJSON(API_URL + 'mfa');
+const mfaSetup = () => requestJSON(API_URL + 'mfa/setup', { method: 'POST' });
+const mfaEnable = (code, trust = false) => requestJSON(API_URL + 'mfa/enable', { method: 'POST', body: { code, trust } });
+const mfaDisable = (password, code) => requestJSON(API_URL + 'mfa/disable', { method: 'POST', body: { password, code } });
+const mfaRecoveryCodes = (code) => requestJSON(API_URL + 'mfa/recovery-codes', { method: 'POST', body: { code } });
+const mfaForgetDevices = () => requestJSON(API_URL + 'mfa/forget-devices', { method: 'POST' });
+
 // when the session ends: { expiresAt (ms), timeoutHours }
 const getSession = () => requestJSON(API_URL + 'session');
 
@@ -82,6 +92,13 @@ const AuthService = {
     saveLanguage,
     changePassword,
     setGamePreferences,
+    loginMfa,
+    mfaStatus,
+    mfaSetup,
+    mfaEnable,
+    mfaDisable,
+    mfaRecoveryCodes,
+    mfaForgetDevices,
 };
 
 export default AuthService;

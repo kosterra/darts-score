@@ -54,6 +54,10 @@ const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`,
 const loadSessionSettings = () => requestJSON(`${API_URL}/session`);
 const saveSessionSettings = (timeoutHours) => requestJSON(`${API_URL}/session`, { method: 'PUT', body: { timeoutHours } });
 
+// two-step login: { policy, graceDays, requiredSince, policies, graceLimits, ownEnabled }
+const loadMfaSettings = () => requestJSON(`${API_URL}/mfa`);
+const saveMfaSettings = (settings) => requestJSON(`${API_URL}/mfa`, { method: 'PUT', body: settings });
+
 // warnings and errors of the API
 const loadLogs = ({ level = 'all', search = '' } = {}) =>
     requestJSON(`${API_URL}/logs?level=${encodeURIComponent(level)}&search=${encodeURIComponent(search)}`);
@@ -99,6 +103,8 @@ const AdminService = {
     testMailTemplate,
     saveStartPageSettings,
     saveSessionSettings,
+    loadMfaSettings,
+    saveMfaSettings,
     loadOverview,
     loadPlayersInsights,
     loadGamesInsights,

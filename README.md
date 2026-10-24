@@ -98,6 +98,8 @@ NODE_ENV=development          # development | production
 PORT=3001                     # Optional, defaults to 3001
 
 SESSION_SECRET=long-random-string   # Signs the login cookie; changing it logs everybody out
+MFA_KEY=another-long-random-string  # Encrypts the secrets of two-step login; changing it turns it off for everyone
+# ADMIN_RESET_MFA=admin@example.com # Turns off two-step login of that account at the next start; remove afterwards
 ADMIN_EMAIL=admin@example.com       # First global admin, created on startup if none exists
 ADMIN_PASSWORD=at-least-8-chars
 

@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { body, param } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 import { validate } from '../utils/validation.js';
-import { requireAuth } from '../middleware/auth.middleware.js';
+import { optionalAuth, requireAuth } from '../middleware/auth.middleware.js';
 import * as AuthController from '../controllers/auth.controller.js';
+import * as MfaController from '../controllers/mfa.controller.js';
 import { LANGUAGES } from '../models/user.model.js';
 
 const NAME_PATTERN = /^[\p{L}\s'-]+$/u;
@@ -43,6 +44,16 @@ export default (app) => {
     router.post('/register', credentialLimiter, emailValidator, nameValidators(), passwordValidator('password'), body('language').optional().isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.register);
     router.post('/login', credentialLimiter, emailValidator, body('password').isString().notEmpty().withMessage('Password is required.'), validate, AuthController.login);
     router.post('/logout', AuthController.logout);
+
+    // two-step login: the code after the password, and setting it up (also while logging in)
+    const codeRule = (field) => body(field).optional().isString().isLength({ max: 20 }).withMessage('Invalid code.');
+    router.post('/login/mfa', credentialLimiter, codeRule('code'), codeRule('recoveryCode'), body('trust').optional().isBoolean(), validate, MfaController.loginCode);
+    router.get('/mfa', requireAuth, MfaController.status);
+    router.post('/mfa/setup', credentialLimiter, optionalAuth, MfaController.setup);
+    router.post('/mfa/enable', credentialLimiter, optionalAuth, codeRule('code'), body('trust').optional().isBoolean(), validate, MfaController.enable);
+    router.post('/mfa/disable', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), codeRule('code'), validate, MfaController.disable);
+    router.post('/mfa/recovery-codes', requireAuth, credentialLimiter, codeRule('code'), validate, MfaController.recoveryCodes);
+    router.post('/mfa/forget-devices', requireAuth, MfaController.forgetDevices);
 
     router.get('/config', AuthController.config);
     router.post('/forgot-password', credentialLimiter, emailValidator, validate, AuthController.forgotPassword);

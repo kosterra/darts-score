@@ -65,6 +65,42 @@ export const clearSessionCookie = (req, res) => {
     res.clearCookie(SESSION_COOKIE, cookieOptions(req));
 };
 
+// ---------------------------------------------------------------------------
+// Two-step login: a login waiting for its code (or for setting it up), and
+// the devices where the code is not asked again
+// ---------------------------------------------------------------------------
+
+export const PENDING_COOKIE = 'ds_mfa';
+export const TRUST_COOKIE = 'ds_trust';
+
+/**
+ * A login whose password was right, waiting for the second step: 'code' (a
+ * code of the app or a recovery code) or 'enroll' (setting it up first).
+ */
+export const setPendingCookie = (req, res, user, step, minutes = 5) => {
+    const exp = Date.now() + minutes * 60 * 1000;
+    res.cookie(PENDING_COOKIE, { uid: String(user._id), v: user.sessionVersion, step, exp }, { ...cookieOptions(req), maxAge: minutes * 60 * 1000 });
+};
+
+export const readPending = (req) => {
+    const pending = req.signedCookies?.[PENDING_COOKIE];
+    if (!pending || typeof pending !== 'object' || typeof pending.uid !== 'string' || typeof pending.exp !== 'number') return null;
+    return pending.exp < Date.now() ? null : pending;
+};
+
+export const clearPendingCookie = (req, res) => res.clearCookie(PENDING_COOKIE, cookieOptions(req));
+
+export const setTrustCookie = (req, res, user, days) => {
+    const exp = Date.now() + days * 24 * 60 * 60 * 1000;
+    res.cookie(TRUST_COOKIE, { uid: String(user._id), t: user.mfa?.trustSalt ?? '', exp }, { ...cookieOptions(req), maxAge: days * 24 * 60 * 60 * 1000 });
+};
+
+// whether this device was trusted by the account, and still is
+export const isTrustedDevice = (req, user) => {
+    const trust = req.signedCookies?.[TRUST_COOKIE];
+    return Boolean(trust && typeof trust === 'object' && trust.uid === String(user._id) && user.mfa?.trustSalt && trust.t === user.mfa.trustSalt && trust.exp > Date.now());
+};
+
 /**
  * Returns the session payload of a request, or null when there is no valid,
  * unexpired session cookie.

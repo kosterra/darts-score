@@ -105,6 +105,11 @@ export const RULES = {
         severity: 'warning',
         description: `More than ${LOGIN_LIMIT.limit} failed logins in ${LOGIN_LIMIT.windowMs / MINUTE} minutes for one account or from one address.`,
     },
+    mfaReset: {
+        title: 'Two-step login reset',
+        severity: 'warning',
+        description: 'A global admin turned off the two-step login of an account, e.g. for a lost phone. Check that the owner asked for it.',
+    },
     resetBurst: {
         title: 'Many password resets',
         severity: 'warning',

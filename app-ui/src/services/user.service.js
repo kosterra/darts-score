@@ -15,6 +15,8 @@ const deleteUser = (userId) => requestJSON(`${API_URL}/${userId}`, { method: 'DE
 const updateUser = (userId, account) => requestJSON(`${API_URL}/${userId}`, { method: 'PUT', body: account });
 const setPassword = (userId, password) => requestJSON(`${API_URL}/${userId}/password`, { method: 'PUT', body: { password } });
 const createPasswordLink = (userId) => requestJSON(`${API_URL}/${userId}/password-link`, { method: 'POST' });
+// a lost phone: two-step login off, set up again at the next login
+const resetMfa = (userId) => requestJSON(`${API_URL}/${userId}/mfa/reset`, { method: 'POST' });
 
 export const ROLES = {
     GLOBAL_ADMIN: 'globalAdmin',
@@ -39,6 +41,7 @@ const UserService = {
     updateUser,
     setPassword,
     createPasswordLink,
+    resetMfa,
 };
 
 export default UserService;
