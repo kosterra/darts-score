@@ -419,11 +419,18 @@
     gap: $space-2 $space-4;
 }
 
-// every link with its icon; the heart of Support Oche in its colour
+// every link with its icon, and the soft hover of the heart in the bar on top;
+// the room for it does not move the links (the gaps take it back)
 .landing-footer-icon-link {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    margin: -0.3rem -0.45rem;
+    padding: 0.3rem 0.45rem;
+    border-radius: $radius-md;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover, &:focus-visible { background: ink(0.06); outline: none; }
 
     .pi { font-size: 0.85em; }
     .is-heart { color: $accentPink; }
