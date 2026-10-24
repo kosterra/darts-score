@@ -16,6 +16,10 @@ const CHANGELOG = [
             t('Club goals: the club admins set up to three goals for the whole club under Edit club, e.g. 100 × 180 until the end of the season, on games, 180s, darts, ton-plus visits, high finishes or trainings. They show with their progress on the badges page and in the new dashboard widget Club badges and goals; everyone hears when one is reached.'),
             t('Arranging the dashboard is smooth now: a copy of the widget follows your finger or mouse, its place shows where it will land, and the other widgets glide out of the way.'),
             t('Pages and lists show their shape while their data loads, instead of a spinner or an empty list: the overviews, the lists of games, players and trainings, the badges, the profile and the statistics.'),
+            t('A new player comparison: head to head in any of the nine games, with the score of wins (and legs and sets), the streak, the last results, who beats whom with three or four players, the differences in a few words, the highlights of their duels and the X01 charts in tabs; or side by side, each player\'s own figures from all their games, also when they never met. With no games together it offers side by side or a game between them, set up with these players.'),
+            t('A club rating from every game in the club (friendly ones left out) gives each player\'s chances for the next game in the comparison.'),
+            t('Into the comparison quicker: quick picks (you against someone, your usual opponents, the top four by level), "Compare with you" on a player\'s statistics, "Compare these players" under a game, a click in the dashboard\'s head to head, and Copy link to share it. On a phone the chosen players stand as chips at the top.'),
+            t('The game type filter shows the chosen types as pills with their icon in their colour, on the lists and in the comparison, and no longer gets a light frame after a click.'),
         ],
     },
     {

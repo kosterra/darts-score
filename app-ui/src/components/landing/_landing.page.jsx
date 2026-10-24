@@ -28,7 +28,7 @@ const SHOWCASE = [
         eyebrow: t('Statistics'),
         title: t('After the game, the story of the game'),
         text: t('Averages, checkout rates, score ranges and the darts per leg, compared side by side, with the moments that decided the match.'),
-        points: [t('Every leg with its visits'), t('Where the darts landed, as a heatmap'), t('Play again with one tap')],
+        points: [t('Every leg with its visits'), t('Where the darts landed, as a heatmap'), t('Head to head or side by side, in every game'), t('Play again with one tap')],
         shot: 'game-stats',
         alt: t('The statistics of an X01 game: the players, their figures side by side and the charts'),
     },
