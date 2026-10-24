@@ -414,7 +414,31 @@
 .landing-footer-links {
     display: flex;
     flex-wrap: wrap;
-    gap: $space-2 $space-6;
+    align-items: center;
+    gap: $space-2 $space-4;
+}
+
+// between the ways to play and the rest, while they stand side by side
+.landing-footer-divider {
+    display: none;
+    color: var(--text-faint);
+
+    @media (min-width: 768px) { display: inline; }
+}
+
+// the heart in the bar on top: to the page Support Oche
+.landing-support-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: $radius-md;
+    color: var(--text-subtle);
+    font-size: $text-sm;
+    text-decoration: none;
+
+    .pi { color: $accentPink; }
+    &:hover, &:focus-visible { color: var(--text-default); background: ink(0.06); }
 }
 
 .landing-footer-group {

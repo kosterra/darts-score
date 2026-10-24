@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 import QRCode from 'qrcode';
 
 import PublicService from '../../services/public.service';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
-import { PublicFooter, PublicHeader } from '../landing/public.frame';
+import { PageHeader, PublicFooter } from '../landing/public.frame';
 import { Lines } from '../elements/skeletons';
 
 // the name of the site a link goes to: "ko-fi.com"
@@ -41,7 +40,7 @@ const SupportPage = () => {
     const own = support && (support.twint || support.url);
     return (
         <div className="auth-page">
-            <PublicHeader hide={user ? 'both' : undefined} />
+            <PageHeader user={user} />
             <main className="container-fluid p-4">
                 <div className="legal-page d-flex flex-column gap-4">
                     <Panel header={t('Support Oche')}>
@@ -73,7 +72,6 @@ const SupportPage = () => {
                             {support && <p className="text-faint fs-8 m-0">{t('The donation pages belong to their providers (e.g. TWINT or GitHub); Oche does not learn what you give. A gift is not tax-deductible, and it gives no claim to anything: Oche stays the same for everyone.')}</p>}
                         </div>
                     </Panel>
-                    {user && <p className="m-0"><Link to="/">{t('Back to Oche')}</Link></p>}
                 </div>
             </main>
             <PublicFooter />

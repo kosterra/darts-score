@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 
 import PublicService from '../../services/public.service';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
-import { PublicFooter, PublicHeader } from '../landing/public.frame';
+import { PageHeader, PublicFooter } from '../landing/public.frame';
 import { Lines } from '../elements/skeletons';
 
 /**
@@ -42,7 +42,7 @@ const PrivacyPage = () => {
 
     return (
         <div className="auth-page">
-            <PublicHeader hide={user ? 'both' : undefined} />
+            <PageHeader user={user} />
             <main className="container-fluid p-4">
                 <div className="legal-page">
                     <Panel header={t('Privacy')}>
@@ -102,7 +102,6 @@ const PrivacyPage = () => {
                                 {operator}
                             </div>}
                     </Panel>
-                    {user && <p className="mt-3"><Link to="/">{t('Back to Oche')}</Link></p>}
                 </div>
             </main>
             <PublicFooter />
