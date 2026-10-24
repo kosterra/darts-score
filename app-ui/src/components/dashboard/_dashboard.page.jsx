@@ -169,10 +169,13 @@ const Dashboard = () => {
                             {club.latestBadges.map(badge => <ClubMedal key={badge.id} badge={badge} size="sm" />)}
                         </Link>
                     </div>}
+                {/* as the filters under a player's header: whose arrangement it is, and the button to change it */}
                 {!editing && (
-                    <div className="d-flex flex-column align-items-end gap-1">
+                    <div className="w-100 filter-panel-bar">
+                        <span className="filter-panel-summary">
+                            <span className="filter-chip">{current.own ? t('Your own arrangement') : t('The club\'s arrangement')}</span>
+                        </span>
                         <Button label={t('Edit dashboard')} icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />
-                        {current.own && <span className="text-faint fs-8">{t('Your own arrangement')}</span>}
                     </div>
                 )}
             </header>
