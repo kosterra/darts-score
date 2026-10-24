@@ -1187,17 +1187,69 @@
     font-size: $text-sm;
 }
 
-// the best moments of each player in the duel
-.duel-highlights {
+// the best moments of each player in the duel: a tile per player, edged in their colour
+.duel-moments {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    gap: $space-3;
+}
+
+.duel-moments-player {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    padding: $space-3 $space-4 $space-4;
+    border-top: 3px solid var(--duel-colour);
+    border-radius: $radius-sm $radius-sm $radius-md $radius-md;
+    background: $surfaceRaisedColor;
+
+    .duel-moments-avatar { box-shadow: 0 0 0 2px var(--duel-colour); }
+}
+
+// a figure of the tile: the value big, its label and the date of its game beside it
+.duel-moment {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    align-items: center;
+    column-gap: $space-3;
+
+    .duel-moment-value {
+        color: $textDefaultColor;
+        font-size: $text-xl;
+        font-weight: $weight-bold;
+        line-height: 1.1;
+    }
+
+    .duel-moment-label {
+        display: flex;
+        flex-direction: column;
+        color: $textSubtleColor;
+        font-size: $text-sm;
+        line-height: 1.3;
+    }
+
+    .duel-moment-date {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-1;
+        font-size: $text-xs;
+
+        i { font-size: 0.6rem; }
+    }
+}
+
+// the Hall of Shame of the duel, in columns
+.duel-shame {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
-    gap: $space-3;
+    gap: $space-2 $space-3;
 
     li {
         display: flex;
-        flex-direction: column;
-        gap: $space-1;
-        padding: $space-3;
+        align-items: center;
+        gap: $space-3;
+        min-width: 0;
+        padding: $space-2;
         border-radius: $radius-md;
         background: $surfaceRaisedColor;
     }

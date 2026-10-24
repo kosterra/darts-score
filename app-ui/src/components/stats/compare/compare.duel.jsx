@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'primereact/button';
+import { Avatar } from 'primereact/avatar';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 
@@ -17,6 +18,7 @@ import { x01DuelRows } from '../players/x01.duel.rows';
 import { duelRows, setupLinkOf, typeTitle } from './compare.figures';
 import { insightsOf } from './compare.insights';
 import { formatDate } from '../../../utils/dates';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { t, tn } from '../../../utils/i18n';
 
 const CHART_TABS = [
@@ -158,55 +160,76 @@ export const CompareInsights = ({ rows, players, colours = [] }) => {
 };
 
 /**
- * The best and the worst moments of the duel: each player's best game average
- * and highest checkout against the others (X01), the 180s, and the Hall of
- * Shame badges they got in these games.
+ * The best and the worst moments of the duel: per player a tile with their
+ * best game average and highest checkout against the others (with the date,
+ * to the game) and their 180s (X01); beside it the Hall of Shame badges they
+ * got in these games, the same badge of a player once, with how often.
  */
 const DuelHighlights = ({ data, players, colours }) => {
-    const ids = players.map(player => player.id);
     const highlights = data.highlights;
-    const shame = data.shame ?? [];
-    if (!highlights && !shame.length) return null;
     const nicknameOf = (id) => players.find(player => player.id === id)?.nickname ?? '';
+    // the same badge of the same player once: how often, and the last time
+    const shame = Object.values((data.shame ?? []).reduce((groups, entry) => {
+        const key = `${entry.playerId}-${entry.id}`;
+        const group = groups[key] ?? { ...entry, count: 0, at: entry.at };
+        group.count += entry.count ?? 1;
+        if (new Date(entry.at) > new Date(group.at)) group.at = entry.at;
+        groups[key] = group;
+        return groups;
+    }, {})).sort((a, b) => new Date(b.at) - new Date(a.at));
+    if (!highlights && !shame.length) return null;
     const gameLink = (gameId) => `/stats/games/x01/${gameId}`;
+
+    const Moment = ({ value, label, entry }) => (
+        <div className="duel-moment">
+            <span className="duel-moment-value tabular-nums">{value}</span>
+            <span className="duel-moment-label">
+                {label}
+                {entry && <Link to={gameLink(entry.gameId)} className="duel-moment-date">{formatDate(entry.at)}<i className="pi pi-arrow-right" aria-hidden="true" /></Link>}
+            </span>
+        </div>
+    );
 
     return (
         <Panel header={t('Highlights of their games')}>
-            <div className="d-flex flex-column gap-4">
+            <div className="row g-4">
                 {highlights &&
-                    <ul className="duel-highlights list-unstyled m-0">
-                        {ids.map((id, index) => {
-                            const entry = highlights[id] ?? {};
-                            return (
-                                <li key={id}>
-                                    <span className="d-flex align-items-center gap-2 text-default fw-semibold">
-                                        <span className="result-hero-dot" style={{ background: colours[index] }} aria-hidden="true" />{nicknameOf(id)}
-                                    </span>
-                                    <span className="text-subtle fs-7">
-                                        {entry.bestAverage
-                                            ? <Link to={gameLink(entry.bestAverage.gameId)}>{t('Best game: average {{value}}', { value: entry.bestAverage.value.toFixed(1) })}</Link>
-                                            : t('No game average yet')}
-                                    </span>
-                                    <span className="text-subtle fs-7">
-                                        {entry.highestCheckout
-                                            ? <Link to={gameLink(entry.highestCheckout.gameId)}>{t('Highest checkout: {{value}}', { value: entry.highestCheckout.value })}</Link>
-                                            : t('No checkout yet')}
-                                    </span>
-                                    <span className="text-subtle fs-7">{tn(entry.num180s ?? 0, '{{count}} × 180', '{{count}} × 180')}</span>
-                                </li>
-                            );
-                        })}
-                    </ul>}
+                    <div className={shame.length ? 'col-12 col-xl-7' : 'col-12'}>
+                        <div className="duel-moments">
+                            {players.map((player, index) => {
+                                const entry = highlights[player.id] ?? {};
+                                return (
+                                    <section key={player.id} className="duel-moments-player" style={{ '--duel-colour': colours[index] }}>
+                                        <header className="d-flex align-items-center gap-2">
+                                            <Avatar
+                                                label={resolvePlayerInitials(player.firstname, player.lastname)}
+                                                image={resolvePlayerImg(player.profileImg)}
+                                                shape="circle"
+                                                className="avatar-sm bg-surface-high duel-moments-avatar"
+                                            />
+                                            <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
+                                        </header>
+                                        <Moment value={entry.bestAverage ? entry.bestAverage.value.toFixed(1) : '–'} label={t('Best game average')} entry={entry.bestAverage} />
+                                        <Moment value={entry.highestCheckout?.value ?? '–'} label={t('Highest checkout')} entry={entry.highestCheckout} />
+                                        <Moment value={entry.num180s ?? 0} label={t('180s thrown')} />
+                                    </section>
+                                );
+                            })}
+                        </div>
+                    </div>}
                 {shame.length > 0 &&
-                    <div className="d-flex flex-column gap-2">
-                        <span className="text-faint fs-8">{t('Hall of Shame in these games')}</span>
-                        <ul className="list-unstyled m-0 d-flex flex-column gap-2">
-                            {shame.slice(0, 8).map(entry => (
-                                <li key={`${entry.playerId}-${entry.id}-${entry.gameId}`} className="d-flex align-items-center gap-3">
+                    <div className={highlights ? 'col-12 col-xl-5' : 'col-12'}>
+                        <span className="d-block text-faint fs-8 mb-2">{t('Hall of Shame in these games')}</span>
+                        <ul className="duel-shame list-unstyled m-0">
+                            {shame.map(entry => (
+                                <li key={`${entry.playerId}-${entry.id}`}>
                                     <ShameMedal badge={entry} size="sm" />
                                     <span className="d-flex flex-column min-w-0">
-                                        <span className="text-default fs-7 fw-semibold">{nicknameOf(entry.playerId)}{' · '}{entry.title}{entry.count > 1 ? ` × ${entry.count}` : ''}</span>
-                                        <span className="text-faint fs-8">{formatDate(entry.at)}</span>
+                                        <span className="text-default fs-7 fw-semibold text-truncate">
+                                            <span style={{ color: colours[players.findIndex(player => player.id === entry.playerId)] }}>{nicknameOf(entry.playerId)}</span>
+                                            {' · '}{entry.title}{entry.count > 1 ? ` × ${entry.count}` : ''}
+                                        </span>
+                                        <span className="text-faint fs-8">{entry.count > 1 ? t('Last {{date}}', { date: formatDate(entry.at) }) : formatDate(entry.at)}</span>
                                     </span>
                                 </li>
                             ))}
