@@ -1,4 +1,4 @@
-import { currentLanguage, translateAnswer } from './i18n';
+import { currentLanguage, t, translateAnswer } from './i18n';
 const { VITE_CF_CLIENT_ID, VITE_CF_CLIENT_SECRET } = import.meta.env;
 
 const ACTIVE_CLUB_KEY = 'darts-score.activeClub';
@@ -40,11 +40,20 @@ export const getHeaders = (addContentTypeJSON = false, clubId = getActiveClubId(
  * the parsed response and rejects with the API's own error message.
  */
 export const requestJSON = async (url, { method = 'GET', body, clubId } = {}) => {
-    const response = await fetch(url, {
-        method,
-        headers: getHeaders(body !== undefined, clubId),
-        ...(body !== undefined && { body: JSON.stringify(body) })
-    });
+    let response;
+    try {
+        response = await fetch(url, {
+            method,
+            headers: getHeaders(body !== undefined, clubId),
+            ...(body !== undefined && { body: JSON.stringify(body) })
+        });
+    } catch (err) {
+        // no answer at all (offline, the address not found, the server gone): said so, not "Failed to fetch"
+        const error = new Error(t('No connection to the server. Check your internet connection and try again.'));
+        error.offline = true;
+        error.cause = err;
+        throw error;
+    }
     const data = translateAnswer(await response.json().catch(() => ({})));
     if (!response.ok) {
         // the session ended (timeout, logged out elsewhere): the app goes back to the login

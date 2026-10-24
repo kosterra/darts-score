@@ -6,6 +6,8 @@
  * - icons, pictures and fonts of the app: kept, refreshed in the background
  * - /api: never touched, always the network
  * A new version of this file takes over at once; an old cache is removed.
+ * Without the network and without a kept copy the browser gets a network
+ * error, as without the service worker (never no answer at all).
  */
 const CACHE = 'oche-app-v1';
 const SHELL = ['/', '/manifest.json', '/logo.svg', '/icons/icon-192.png', '/icons/icon-512.png'];
@@ -48,14 +50,18 @@ self.addEventListener('fetch', (event) => {
 
     // built files never change under the same name
     if (url.pathname.startsWith('/assets/')) {
-        event.respondWith(caches.match(request).then(cached => cached ?? fetch(request).then(response => keep(request, response))));
+        event.respondWith(
+            caches.match(request)
+                .then(cached => cached ?? fetch(request).then(response => keep(request, response)))
+                .catch(() => Response.error())
+        );
         return;
     }
 
     // everything else of the app: what is kept at once, refreshed in the background
     event.respondWith(
         caches.match(request).then(cached => {
-            const refreshed = fetch(request).then(response => keep(request, response)).catch(() => cached);
+            const refreshed = fetch(request).then(response => keep(request, response)).catch(() => cached ?? Response.error());
             return cached ?? refreshed;
         })
     );
