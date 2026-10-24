@@ -558,7 +558,16 @@
 
     ul { padding-left: 1.2rem; }
     li + li { margin-top: $space-2; }
-    code { color: var(--text-default); font-size: $text-md; }
+    // the cookie names: in the font of the page, as small labels
+    code {
+        padding: 0.05rem 0.35rem;
+        border-radius: $radius-sm;
+        background: ink(0.08);
+        color: var(--text-default);
+        font-family: inherit;
+        font-size: $text-md;
+        font-weight: $weight-semibold;
+    }
 }
 
 .legal-address, .legal-notes { white-space: pre-line; }
