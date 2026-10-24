@@ -87,7 +87,8 @@ export const sideGroups = (sidePlayers) => {
             title: t('Overall'),
             rows: [
                 rowOf('rating', t('Club rating'), { weight: 2, format: (value) => (value == null ? '–' : String(value)) }, values(player => player.rating?.rating)),
-                { ...rowOf('xp', t('Level'), { formatLead: (difference) => `${Math.round(difference)} XP` }, values(player => player.level?.xp)), texts: sidePlayers.map(player => (player.level ? `${player.level.name ?? ''} · ${player.level.xp} XP` : '–')) },
+                // the line is the XP, the value the level's name, the lead the XP ahead
+                { ...rowOf('xp', t('Level'), { formatLead: (difference) => `${Math.round(difference)} XP` }, values(player => player.level?.xp)), texts: sidePlayers.map(player => player.level?.name ?? '–') },
                 rowOf('games', t('Games played'), { neutral: true }, values(player => player.games)),
                 rowOf('winRate', t('Win rate'), { format: percent, formatLead: percentLead, weight: 2.5 }, values(player => player.winRate)),
                 rowOf('badges', t('Badges'), {}, values(player => player.badges)),
