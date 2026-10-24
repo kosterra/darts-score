@@ -122,7 +122,7 @@ const useSections = () => {
                 { label: t('Games'), icon: FaTrophy, to: '/games' },
                 { label: t('Trainings'), icon: BsPersonFillCheck, to: '/trainings' },
                 { label: t('Badges'), icon: FaMedal, to: '/badges' },
-                { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments' },
+                { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments', tag: t('Beta') },
                 // for the club's admins: games and trainings that cannot be real or are worth a look
                 ...(isClubAdmin ? [{
                     label: t('Fair play'),
@@ -371,6 +371,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
+                    {item.tag && <span className="nav-tag">{item.tag}</span>}
                     {item.badge &&
                         <span className={`nav-badge ${item.badgeCritical ? 'critical' : ''}`} aria-label={t('{{badge}} open', { badge: item.badge })}>
                             {countText(item.badge)}

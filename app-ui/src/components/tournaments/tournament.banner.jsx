@@ -7,6 +7,7 @@ import { currentRound } from '../../rules/tournaments';
 import { formatDateTime } from '../../utils/dates';
 import { t } from '../../utils/i18n';
 import { nameOf, roundName } from './tournament.words';
+import BetaTag from './beta.tag';
 
 // what the banner says about a tournament, by how far it is
 const linesOf = (tournament) => {
@@ -74,7 +75,7 @@ const TournamentBanner = () => {
                     <section key={tournament.id} className={`tournament-banner is-${tournament.status}`} aria-label={tournament.name}>
                         <i className={`pi ${tournament.status === 'finished' ? 'pi-trophy' : 'pi-sitemap'} tournament-banner-icon`} aria-hidden="true" />
                         <div className="d-flex flex-column min-w-0 flex-grow-1">
-                            <span className="tournament-banner-title">{lines.title}</span>
+                            <span className="tournament-banner-title">{lines.title}<BetaTag className="ms-2 align-middle" /></span>
                             <span className="text-subtle fs-7">{lines.detail}</span>
                         </div>
                         <div className="d-flex flex-wrap align-items-center gap-2">

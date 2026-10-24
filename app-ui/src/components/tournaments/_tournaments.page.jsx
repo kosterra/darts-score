@@ -9,6 +9,7 @@ import { useAuth } from '../../utils/auth.context';
 import { formatDate } from '../../utils/dates';
 import { t } from '../../utils/i18n';
 import { STATUS_WORDS, nameOf } from './tournament.words';
+import BetaTag from './beta.tag';
 import { Lines } from '../elements/skeletons';
 
 const CURRENT = ['draft', 'registration', 'closed', 'drawn', 'running'];
@@ -65,7 +66,7 @@ const TournamentsPage = () => {
 
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
-            <Panel header={t('Tournaments')} icons={newButton}>
+            <Panel header={<span className="d-inline-flex align-items-center gap-2">{t('Tournaments')}<BetaTag /></span>} icons={newButton}>
                 <div className="d-flex flex-column gap-3">
                     <span className="text-subtle fs-7">{t('Knockout tournaments of the club: the members enter, the draw makes the bracket, and every match is a game of X01 with the rules of its round.')}</span>
                     {isClubAdmin && !data.canCreate &&

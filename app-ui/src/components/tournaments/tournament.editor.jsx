@@ -18,6 +18,7 @@ import { t } from '../../utils/i18n';
 import { INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
 import { INVITE_WORDS, PRESET_WORDS, roundName, rulesText } from './tournament.words';
 import { Lines } from '../elements/skeletons';
+import BetaTag from './beta.tag';
 
 const MODES = ['Best of', 'First to'];
 const IN_MODES = ['Straight In', 'Double In', 'Master In'];
@@ -165,7 +166,7 @@ const TournamentEditor = () => {
 
     return (
         <div className="container-fluid p-4">
-            <Panel header={stored ? t('Change the tournament') : t('New tournament')} className="page-narrow">
+            <Panel header={stored ? t('Change the tournament') : t('New tournament')} icons={<BetaTag />} className="page-narrow">
                 <div className="d-flex flex-column gap-3">
                     <label className="d-flex flex-column gap-1" htmlFor="tournament-name">
                         <span className="fs-7 text-default fw-semibold">{t('Name')}</span>

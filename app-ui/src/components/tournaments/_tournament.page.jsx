@@ -19,6 +19,7 @@ import { t, tn } from '../../utils/i18n';
 import { MIN_PLAYERS, isDecided, nextOf } from '../../rules/tournaments';
 import TournamentBracket from './tournament.bracket';
 import { INVITE_WORDS, STATUS_WORDS, nameOf, roundName, rulesText } from './tournament.words';
+import BetaTag from './beta.tag';
 import { Lines } from '../elements/skeletons';
 
 /**
@@ -177,7 +178,7 @@ const TournamentPage = () => {
 
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
-            <Panel header={tournament.name} icons={<Tag value={status.label} severity={status.severity} />}>
+            <Panel header={tournament.name} icons={<span className="d-inline-flex align-items-center gap-2"><BetaTag /><Tag value={status.label} severity={status.severity} /></span>}>
                 <div className="d-flex flex-column gap-3">
                     {tournament.description && <p className="text-subtle m-0 text-break" style={{ whiteSpace: 'pre-line', maxWidth: '70ch' }}>{tournament.description}</p>}
                     <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
