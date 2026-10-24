@@ -1,0 +1,37 @@
+// ------------------------------------------------------------------------
+// Colours that come from CSS variables (see _theme-vars.scss) cannot go
+// through SASS's colour functions: these do the same with color-mix(), and
+// fall back to SASS for plain colours.
+// ------------------------------------------------------------------------
+@use "sass:math";
+@use "sass:meta";
+
+// the colour with an opacity, as rgba($color, $amount)
+@function with-alpha($color, $amount) {
+    @if meta.type-of($color) == color {
+        @return rgba($color, $amount);
+    }
+    @return color-mix(in srgb, #{$color} #{math.percentage(math.div(math.round($amount * 1000), 1000))}, transparent);
+}
+
+// darker or lighter by an amount of lightness, as darken/lighten (in HSL, with
+// the relative colour syntax of CSS)
+@function darker($color, $amount) {
+    @if meta.type-of($color) == color {
+        @return darken($color, $amount);
+    }
+    @return #{"hsl(from #{$color} h s calc(l - #{math.div($amount, 1%)}))"};
+}
+
+@function lighter($color, $amount) {
+    @if meta.type-of($color) == color {
+        @return lighten($color, $amount);
+    }
+    @return #{"hsl(from #{$color} h s calc(l + #{math.div($amount, 1%)}))"};
+}
+
+// a veil of the theme's ink: white on the dark themes, black on the light one
+// (hover backgrounds, faint lines, skeletons)
+@function ink($amount) {
+    @return rgb(var(--ink) / #{$amount});
+}

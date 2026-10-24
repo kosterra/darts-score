@@ -187,31 +187,31 @@
     
     .p-button {
         &:focus {
-            @include focused-ring(rgba($buttonBg, .7));
+            @include focused-ring(with-alpha($buttonBg, .7));
         }
     
         &.p-button-secondary:enabled:focus {
-            @include focused-ring(rgba($secondaryButtonBg, .7));
+            @include focused-ring(with-alpha($secondaryButtonBg, .7));
         }
     
         &.p-button-success:enabled:focus {
-            @include focused-ring(rgba($successButtonBg, .7));
+            @include focused-ring(with-alpha($successButtonBg, .7));
         }
     
         &.p-button-info:enabled:focus {
-            @include focused-ring(rgba($infoButtonBg, .7));
+            @include focused-ring(with-alpha($infoButtonBg, .7));
         }
     
         &.p-button-warning:enabled:focus {
-            @include focused-ring(rgba($warningButtonBg, .7));
+            @include focused-ring(with-alpha($warningButtonBg, .7));
         }
     
         &.p-button-help:enabled:focus {
-            @include focused-ring(rgba($helpButtonBg, .7));
+            @include focused-ring(with-alpha($helpButtonBg, .7));
         }
     
         &.p-button-danger:enabled:focus {
-            @include focused-ring(rgba($dangerButtonBg, .7));
+            @include focused-ring(with-alpha($dangerButtonBg, .7));
         }
     }
     
@@ -231,7 +231,7 @@
 
     .p-speeddial-item {
         &.p-focus > .p-speeddial-action {
-            @include focused-ring(rgba($buttonBg, .7));
+            @include focused-ring(with-alpha($buttonBg, .7));
         }
     }
 

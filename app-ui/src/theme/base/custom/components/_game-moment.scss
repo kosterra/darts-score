@@ -150,9 +150,9 @@ $momentGold: $accentAmber;
     font-size: $text-xs;
     font-weight: $weight-bold;
 
-    &.is-up { background: rgba($accentGreen, 0.16); color: $accentGreen; }
+    &.is-up { background: with-alpha($accentGreen, 0.16); color: $accentGreen; }
     &.is-down { background: rgba(#e07a5f, 0.16); color: #e8957e; }
-    &.is-steady { background: rgba($shade000, 0.08); color: $textSubtleColor; }
+    &.is-steady { background: with-alpha($shade000, 0.08); color: $textSubtleColor; }
 }
 
 // a player's own starting score and in/out in a handicap game

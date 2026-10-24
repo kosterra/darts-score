@@ -13,17 +13,19 @@ $bronze: map.get($colors,"bronze");
 $yellow: map.get($colors,"yellow");
 $green: map.get($colors,"green");
 
-$primary:       $primaryColor;
-$secondary:     $shade900;
-$tertiary:      $shade800;
+// Bootstrap builds its classes from real colours: the default theme's; the
+// themes change them through its CSS variables (see _theme-vars.scss)
+$primary:       map.get(map.get($accents, green), primary);
+$secondary:     map.get($theme-dark, shade-900);
+$tertiary:      map.get($theme-dark, shade-800);
 $success:       $green;
 $info:          $blue;
 $warning:       $yellow;
 $danger:        $red;
 
-$border-color:  $borderDefaultColor;
+$border-color:  map.get($theme-dark, shade-600);
 $border-radius: $borderRadius;
-$body-color:    $textDefaultColor;
+$body-color:    map.get($theme-dark, shade-100);
 
 $font-family-sans-serif: $fontFamily;
 
@@ -42,15 +44,15 @@ $custom-colors: (
     "bronze": $bronze,
     "purple": $purple,
     "orange": $orange,
-    "shade100": $shade100,
-    "shade200": $shade200,
-    "shade300": $shade300,
-    "shade400": $shade400,
-    "shade500": $shade500,
-    "shade600": $shade600,
-    "shade700": $shade700,
-    "shade800": $shade800,
-    "shade900": $shade900,
+    "shade100": map.get($theme-dark, shade-100),
+    "shade200": map.get($theme-dark, shade-200),
+    "shade300": map.get($theme-dark, shade-300),
+    "shade400": map.get($theme-dark, shade-400),
+    "shade500": map.get($theme-dark, shade-500),
+    "shade600": map.get($theme-dark, shade-600),
+    "shade700": map.get($theme-dark, shade-700),
+    "shade800": map.get($theme-dark, shade-800),
+    "shade900": map.get($theme-dark, shade-900),
     "red": $red
 );
 

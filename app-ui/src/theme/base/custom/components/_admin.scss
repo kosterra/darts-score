@@ -35,7 +35,7 @@
 
         // a ticked row
         &.p-highlight > td {
-            background: rgba($primaryColor, 0.22);
+            background: with-alpha($primaryColor, 0.22);
         }
 
         // "no entries" is a message, not an entry
@@ -81,19 +81,19 @@
 
         // deleting: in red, at rest and stronger on hover
         &.p-button-danger {
-            background: rgba($dangerButtonBg, 0.14);
-            color: lighten($dangerButtonBg, 12%);
+            background: with-alpha($dangerButtonBg, 0.14);
+            color: lighter($dangerButtonBg, 12%);
 
-            &:enabled:hover { background: rgba($dangerButtonBg, 0.26); color: lighten($dangerButtonBg, 22%); }
+            &:enabled:hover { background: with-alpha($dangerButtonBg, 0.26); color: lighter($dangerButtonBg, 22%); }
         }
 
         // buttons without a severity mark the main action or a switched-on state,
         // e.g. a player with a login or a public nickname
         &:not(.p-button-secondary):not(.p-button-info):not(.p-button-danger) {
-            background: rgba($primaryColor, 0.14);
+            background: with-alpha($primaryColor, 0.14);
             color: $primaryColor;
 
-            &:enabled:hover { background: rgba($primaryColor, 0.26); color: $softGreenTextHover; }
+            &:enabled:hover { background: with-alpha($primaryColor, 0.26); color: $softGreenTextHover; }
         }
     }
 
@@ -312,7 +312,7 @@ $fair-play-suspicious: $accentAmber;
 
   // the visit at fault: tinted in the colour of its level, with an edge
   @each $level, $color in (impossible: $fair-play-impossible, error: $fair-play-error, suspicious: $fair-play-suspicious) {
-    tr.is-#{$level} td { background: rgba($color, 0.2); color: var(--text-default); }
+    tr.is-#{$level} td { background: with-alpha($color, 0.2); color: var(--text-default); }
     tr.is-#{$level} td:first-child { box-shadow: inset 3px 0 0 $color; }
   }
 }
@@ -669,7 +669,7 @@ $fair-play-suspicious: $accentAmber;
 }
 
 .quick-games-day .is-started,
-.quick-games-key.is-started { background: rgba($primaryColor, 0.35); }
+.quick-games-key.is-started { background: with-alpha($primaryColor, 0.35); }
 
 .quick-games-day .is-finished,
 .quick-games-key.is-finished { background: $primaryColor; }

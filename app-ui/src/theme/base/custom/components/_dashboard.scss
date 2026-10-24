@@ -363,8 +363,8 @@
 
     // where the dragged widget will land; the copy under the pointer carries it
     &.is-dragged {
-        border-color: rgba($primaryColor, 0.8);
-        background: rgba($primaryColor, 0.06);
+        border-color: with-alpha($primaryColor, 0.8);
+        background: with-alpha($primaryColor, 0.06);
         opacity: 0.45;
     }
 }
@@ -375,8 +375,8 @@
     align-items: center;
     gap: $space-2;
     padding: 0.35rem 0.35rem 0.35rem 0.5rem;
-    border-bottom: 1px dashed rgba($primaryColor, 0.35);
-    background: rgba($primaryColor, 0.08);
+    border-bottom: 1px dashed with-alpha($primaryColor, 0.35);
+    background: with-alpha($primaryColor, 0.08);
     border-radius: $borderRadius $borderRadius 0 0;
 }
 
@@ -491,9 +491,9 @@
     border-radius: $radius-sm;
     background: $surfaceRaisedColor;
 
-    &.level-1 { background: rgba($accentGreen, 0.25); }
-    &.level-2 { background: rgba($accentGreen, 0.45); }
-    &.level-3 { background: rgba($accentGreen, 0.7); }
+    &.level-1 { background: with-alpha($accentGreen, 0.25); }
+    &.level-2 { background: with-alpha($accentGreen, 0.45); }
+    &.level-3 { background: with-alpha($accentGreen, 0.7); }
     &.level-4 { background: $accentGreen; }
 }
 
@@ -524,9 +524,9 @@
         background: $surfaceRaisedColor;
         color: $textDefaultColor;
 
-        &.is-lead { background: rgba($accentGreen, 0.3); color: $shade000; }
+        &.is-lead { background: with-alpha($accentGreen, 0.3); color: $shade000; }
         &.is-behind { background: rgba(#e07a5f, 0.18); }
-        &.is-even { background: rgba($shade000, 0.08); }
+        &.is-even { background: with-alpha($shade000, 0.08); }
         &.is-none { color: $textFaintColor; }
         &.is-self { background: transparent; }
     }
@@ -557,7 +557,7 @@
     width: 2.4rem;
     height: 2.4rem;
     border-radius: $radius-round;
-    background: rgba($momentGoldColor, 0.16);
+    background: with-alpha($momentGoldColor, 0.16);
     color: $momentGoldColor;
 }
 
@@ -605,15 +605,15 @@
 // set apart by a soft green glow behind the picture and a thin green line on top
 .hero-header {
     background:
-        radial-gradient(ellipse 30rem 16rem at 5.5rem 50%, rgba($primaryColor, 0.28), transparent 70%),
+        radial-gradient(ellipse 30rem 16rem at 5.5rem 50%, with-alpha($primaryColor, 0.28), transparent 70%),
         $surfaceColor;
-    border-top: 2px solid rgba($primaryColor, 0.7);
+    border-top: 2px solid with-alpha($primaryColor, 0.7);
     box-shadow: 0 0.75rem 1.75rem -0.75rem rgba(0, 0, 0, 0.75);
 
     // centred headers glow from the top middle
     &.hero-header-centered {
         background:
-            radial-gradient(ellipse 36rem 12rem at 50% 0, rgba($primaryColor, 0.24), transparent 70%),
+            radial-gradient(ellipse 36rem 12rem at 50% 0, with-alpha($primaryColor, 0.24), transparent 70%),
             $surfaceColor;
     }
 }

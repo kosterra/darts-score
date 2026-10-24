@@ -11,7 +11,7 @@
     flex-direction: column;
     gap: $space-5;
     background:
-        radial-gradient(ellipse 40rem 14rem at 50% 30%, rgba($primaryColor, 0.22), transparent 70%),
+        radial-gradient(ellipse 40rem 14rem at 50% 30%, with-alpha($primaryColor, 0.22), transparent 70%),
         $surfaceColor;
 }
 
@@ -124,7 +124,7 @@
     position: absolute;
     inset: -0.9rem;
     border-radius: $radius-round;
-    background: radial-gradient(circle, rgba($accentGold, 0.45) 0%, rgba($accentGold, 0.12) 55%, transparent 72%);
+    background: radial-gradient(circle, with-alpha($accentGold, 0.45) 0%, with-alpha($accentGold, 0.12) 55%, transparent 72%);
     animation: result-hero-halo 2.8s ease-in-out infinite;
     pointer-events: none;
 }
@@ -143,7 +143,7 @@
     // a dark orange ring instead of a dark one, so the badge stays warm
     box-shadow:
         0 0 0 2px #b8650f,
-        0 0 1.2rem rgba($accentGold, 0.65),
+        0 0 1.2rem with-alpha($accentGold, 0.65),
         0 0.3rem 0.6rem rgba(0, 0, 0, 0.6);
     color: #5a3b00;
     font-size: $text-xl;
@@ -168,7 +168,7 @@
     padding: 0.2rem 0.55rem;
     line-height: 1.3;
     border-radius: $radius-md;
-    background: rgba($accentGold, 0.14);
+    background: with-alpha($accentGold, 0.14);
     color: $accentGold;
     font-size: $text-sm;
     font-weight: $weight-semibold;
@@ -180,7 +180,7 @@
 
 .is-winner .result-hero-score {
     color: $accentGold;
-    text-shadow: 0 0 1.2rem rgba($accentGold, 0.35);
+    text-shadow: 0 0 1.2rem with-alpha($accentGold, 0.35);
 }
 
 @keyframes result-hero-trophy-pop {
@@ -289,7 +289,7 @@
     }
 
     tbody tr + tr {
-        border-top: 1px solid rgba($surfaceHighColor, 0.6);
+        border-top: 1px solid with-alpha($surfaceHighColor, 0.6);
     }
 }
 
@@ -335,7 +335,7 @@
         }
 
         &.is-selected td {
-            background: rgba($primaryColor, 0.25);
+            background: with-alpha($primaryColor, 0.25);
         }
     }
 }
@@ -748,7 +748,7 @@
         width: 7rem;
         height: 0.45rem;
         border-radius: $radius-sm;
-        background: linear-gradient(90deg, rgba($shade000, 0.08), rgba($shade000, 0.85));
+        background: linear-gradient(90deg, with-alpha($shade000, 0.08), with-alpha($shade000, 0.85));
     }
 }
 

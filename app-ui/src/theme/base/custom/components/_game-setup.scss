@@ -244,7 +244,7 @@
   &:focus-visible { @include focus-ring(2px); }
 
   &.is-active {
-    background: rgba($primaryColor, 0.42);
+    background: with-alpha($primaryColor, 0.42);
     color: $buttonTextColor;
   }
 }
@@ -437,7 +437,7 @@
   &.is-selected {
     border-color: rgba(255, 255, 255, 0.55);
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
-    background: rgba($primaryColor, 0.14);
+    background: with-alpha($primaryColor, 0.14);
   }
 
   // only points missing: the design in full, the price in gold once it can be paid

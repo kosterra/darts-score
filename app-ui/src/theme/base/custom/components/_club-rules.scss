@@ -21,7 +21,7 @@
 .club-rule-value {
     padding: 0.45rem 0.9rem;
     border-radius: $radius-pill;
-    background: rgba($primaryColor, 0.42);
+    background: with-alpha($primaryColor, 0.42);
     color: $buttonTextColor;
     font-size: $text-sm;
     font-weight: $weight-bold;

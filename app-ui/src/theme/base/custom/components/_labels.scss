@@ -23,7 +23,7 @@ $labelRed: $accentRed;
 }
 
 @mixin label-tone($color) {
-    background: rgba($color, 0.14);
+    background: with-alpha($color, 0.14);
     color: $color;
 }
 
@@ -68,7 +68,7 @@ $labelRed: $accentRed;
 
 // a chosen entry in the list of a (multi) select: the soft green of a chosen pill
 :where(.p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight, .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight) {
-  background: rgba($primaryColor, 0.42);
+  background: with-alpha($primaryColor, 0.42);
   color: $buttonTextColor;
 }
 

@@ -106,7 +106,7 @@ $badgeMetals: (
     justify-content: center;
     padding: $space-4;
     overflow-y: auto;
-    background: rgba($surfaceColor, 0.88);
+    background: with-alpha($surfaceColor, 0.88);
 
     .celebration-confetti {
         position: absolute;
@@ -178,7 +178,7 @@ $badgeMetals: (
         margin: 0 auto;
         padding: 0.9rem 1.5rem;
         text-align: left;
-        border: 1px solid rgba($momentGoldColor, 0.6);
+        border: 1px solid with-alpha($momentGoldColor, 0.6);
     }
 
     .celebration-trophy {
@@ -192,10 +192,10 @@ $badgeMetals: (
 }
 
 .celebration.is-rare {
-    background: rgba($surfaceColor, 0.55);
+    background: with-alpha($surfaceColor, 0.55);
 
     .celebration-card {
-        border: 1px solid rgba($momentGoldColor, 0.6);
+        border: 1px solid with-alpha($momentGoldColor, 0.6);
     }
 }
 
@@ -336,7 +336,7 @@ $badgeMetals: (
     padding: $space-4;
     border-radius: $radius-md;
     border-left: 3px solid $shameColor;
-    background: rgba($shameColor, 0.08);
+    background: with-alpha($shameColor, 0.08);
 }
 
 // the status as a label, like every label in the app
@@ -418,7 +418,7 @@ $tar: #17110c;
     position: absolute;
     inset: 0 0 auto;
     height: 2.5rem;
-    background: linear-gradient(to bottom, $tar 70%, darken($tar, 2%));
+    background: linear-gradient(to bottom, $tar 70%, darker($tar, 2%));
     box-shadow: 0 0.3rem 0.6rem rgba(0, 0, 0, 0.5);
     pointer-events: none;
     transform-origin: top;
@@ -431,7 +431,7 @@ $tar: #17110c;
     height: var(--length);
     margin-top: -1px;
     border-radius: 0 0 999px 999px;
-    background: linear-gradient(to right, darken($tar, 3%), #2b2119 40%, $tar);
+    background: linear-gradient(to right, darker($tar, 3%), #2b2119 40%, $tar);
     transform-origin: top;
     animation: tarred-drip 2.4s cubic-bezier(0.3, 0.6, 0.4, 1) both;
 
@@ -498,7 +498,7 @@ $tar: #17110c;
         position: absolute;
         inset: 0;
         border-radius: $radius-round;
-        background: radial-gradient(ellipse 75% 32% at 50% 0%, rgba($tar, 0.97) 70%, transparent 72%);
+        background: radial-gradient(ellipse 75% 32% at 50% 0%, with-alpha($tar, 0.97) 70%, transparent 72%);
         pointer-events: none;
     }
 }
@@ -509,7 +509,7 @@ $tar: #17110c;
     z-index: 1;
     width: 0.45rem;
     border-radius: 0 0 999px 999px;
-    background: linear-gradient(to right, darken($tar, 3%), #2b2119 45%, $tar);
+    background: linear-gradient(to right, darker($tar, 3%), #2b2119 45%, $tar);
     transform-origin: top;
     animation: tarred-drip 1.8s 0.4s cubic-bezier(0.3, 0.6, 0.4, 1) both;
 }
@@ -529,7 +529,7 @@ $tar: #17110c;
     padding: 0.6rem 0.75rem;
     border-radius: $radius-md;
     border-left: 3px solid $shameColor;
-    background: rgba($shameColor, 0.08);
+    background: with-alpha($shameColor, 0.08);
 }
 
 .tarred-wash {
@@ -710,7 +710,7 @@ $tar: #17110c;
 .game-badge-new-tag {
     padding: 0.05rem 0.45rem;
     border-radius: $radius-pill;
-    background: rgba($momentGoldColor, 0.16);
+    background: with-alpha($momentGoldColor, 0.16);
     color: $momentGoldColor;
     font-size: $text-xs;
     font-weight: $weight-bold;
@@ -719,9 +719,9 @@ $tar: #17110c;
 }
 
 @keyframes game-badge-new {
-    0% { box-shadow: 0 0 0 0 rgba($momentGoldColor, 0); }
-    30% { box-shadow: 0 0 0 0.4rem rgba($momentGoldColor, 0.35); }
-    100% { box-shadow: 0 0 0 0.9rem rgba($momentGoldColor, 0); }
+    0% { box-shadow: 0 0 0 0 with-alpha($momentGoldColor, 0); }
+    30% { box-shadow: 0 0 0 0.4rem with-alpha($momentGoldColor, 0.35); }
+    100% { box-shadow: 0 0 0 0.9rem with-alpha($momentGoldColor, 0); }
 }
 
 // the winner right after the game: the portrait glows gold for a while
@@ -731,8 +731,8 @@ $tar: #17110c;
 }
 
 @keyframes winner-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba($momentGoldColor, 0); }
-    50% { box-shadow: 0 0 1.6rem 0.4rem rgba($momentGoldColor, 0.55); }
+    0%, 100% { box-shadow: 0 0 0 0 with-alpha($momentGoldColor, 0); }
+    50% { box-shadow: 0 0 1.6rem 0.4rem with-alpha($momentGoldColor, 0.55); }
 }
 
 @media (prefers-reduced-motion: reduce) {

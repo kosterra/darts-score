@@ -1,0 +1,201 @@
+// ------------------------------------------------------------------------
+// The themes and accent colours as CSS variables. The stylesheets take the
+// colours through the SASS variables (dark/_variables.scss, _tokens.scss),
+// the charts and inline colours through utils/palette.js. The default look
+// (dark, Oche green) is on :root; the others on <html data-theme="…"
+// data-accent="…"> (see utils/appearance.js). Bootstrap's colour classes
+// follow through its --bs-…-rgb variables.
+// Every theme keeps text at 4.5:1 or more on its surfaces (see the test of
+// utils/appearance.js).
+// ------------------------------------------------------------------------
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+
+// the grey scale runs from the strongest text (000) to the deepest background (900)
+$theme-dark: (
+    scheme: dark,
+    ink: (255, 255, 255),
+    shade-000: #fff,
+    shade-50: #e4e4e4,
+    shade-100: #d4d4d4,
+    shade-200: #c0bebe,
+    shade-300: #b6b6b6,
+    shade-400: #a3a3a3,
+    shade-500: #7a7a7a,
+    shade-600: #5c5c5c,
+    shade-650: #393939,
+    shade-700: #313131,
+    shade-800: #292929,
+    shade-900: #222121,
+    text-faint: #9a9a9a,
+    root-bg: rgba(38, 38, 38, 0.85),
+    accent-gold: #ffc94d,
+    accent-amber: #e9ac2f,
+    accent-pink: #e69ac0,
+    accent-blue: #4aa8ff,
+    accent-red: #ec8b80,
+    accent-cream: #efe6d0,
+    game-cricket: #d4c783,
+    game-elimination: #c3a9e6,
+    game-clock: #86bfe6,
+    status-running: #f2b07e,
+    status-finished: #8fc3df,
+    status-text: #1d1c1a,
+    bs-gold: #d4c783,
+    bs-orange: #f97316,
+    bs-blue: #418cad,
+    bs-yellow: #eab308,
+);
+
+// pure black: for OLED screens, the deepest surfaces black
+$theme-black: map.merge($theme-dark, (
+    shade-600: #4d4d4d,
+    shade-650: #1f1f1f,
+    shade-700: #161616,
+    shade-800: #0d0d0d,
+    shade-900: #000,
+    root-bg: #000,
+));
+
+// high contrast: brighter text and lines, darker surfaces
+$theme-contrast: map.merge($theme-dark, (
+    shade-50: #f7f7f7,
+    shade-100: #f2f2f2,
+    shade-200: #e8e8e8,
+    shade-300: #e2e2e2,
+    shade-400: #d2d2d2,
+    shade-500: #a8a8a8,
+    shade-600: #8c8c8c,
+    shade-650: #2b2b2b,
+    shade-700: #222,
+    shade-800: #1a1a1a,
+    shade-900: #111,
+    text-faint: #cbcbcb,
+    root-bg: rgba(17, 17, 17, 0.95),
+));
+
+// light: the scale turned round, the accents darker so they read on light surfaces
+$theme-light: (
+    scheme: light,
+    ink: (0, 0, 0),
+    shade-000: #111,
+    shade-50: #1f1f1f,
+    shade-100: #262626,
+    shade-200: #383838,
+    shade-300: #454545,
+    shade-400: #5a5a5a,
+    shade-500: #6f6f6f,
+    shade-600: #b5b3ad,
+    shade-650: #e2e0da,
+    shade-700: #ebe9e4,
+    shade-800: #f7f6f3,
+    shade-900: #fff,
+    text-faint: #5f5f5f,
+    root-bg: rgba(244, 243, 239, 0.9),
+    accent-gold: #9a6c00,
+    accent-amber: #8f5e00,
+    accent-pink: #a8326c,
+    accent-blue: #1b64b0,
+    accent-red: #b3372b,
+    accent-cream: #efe6d0,
+    game-cricket: #77691a,
+    game-elimination: #6a4ba3,
+    game-clock: #1f6f9e,
+    status-running: #f2b07e,
+    status-finished: #8fc3df,
+    status-text: #1d1c1a,
+    bs-gold: #77691a,
+    bs-orange: #c2410c,
+    bs-blue: #1b64b0,
+    bs-yellow: #8f5e00,
+);
+
+$themes: (
+    dark: $theme-dark,
+    black: $theme-black,
+    contrast: $theme-contrast,
+    light: $theme-light,
+);
+
+// the accent colours: dark (filled buttons, white text 4.5:1 or more) to lightest
+$accents: (
+    green: (primary: #528b6e, dark: #46785e, light: #60a382, lighter: #7ecca5, lightest: #a8dcc2),
+    red: (primary: #b4473e, dark: #a13e36, light: #c85a50, lighter: #f08f84, lightest: #f6bcb5),
+    blue: (primary: #3a76a8, dark: #2f6693, light: #4b8bc0, lighter: #7fb8ea, lightest: #b2d5f3),
+    gold: (primary: #a7802a, dark: #8a6820, light: #bf9638, lighter: #edc463, lightest: #f5dd9f),
+    purple: (primary: #7d5aa8, dark: #6a4b93, light: #9070bc, lighter: #bb9ee3, lightest: #d8c6f2),
+);
+
+@function rgb-of($color) {
+    @return #{math.round(color.channel($color, "red", $space: rgb))}, #{math.round(color.channel($color, "green", $space: rgb))}, #{math.round(color.channel($color, "blue", $space: rgb))};
+}
+
+@mixin theme-vars($theme) {
+    $ink: map.get($theme, ink);
+    --ink: #{nth($ink, 1)} #{nth($ink, 2)} #{nth($ink, 3)};
+    @each $key, $value in $theme {
+        @if $key != scheme and $key != ink and str-index($key, "bs-") != 1 {
+            --c-#{$key}: #{$value};
+        }
+    }
+    color-scheme: map.get($theme, scheme);
+    // Bootstrap's classes and body
+    --bs-body-color: #{map.get($theme, shade-100)};
+    --bs-body-color-rgb: #{rgb-of(map.get($theme, shade-100))};
+    --bs-border-color: #{map.get($theme, shade-600)};
+    --bs-secondary-rgb: #{rgb-of(map.get($theme, shade-900))};
+    --bs-tertiary-rgb: #{rgb-of(map.get($theme, shade-800))};
+    @each $shade in (100, 200, 300, 400, 500, 600, 700, 800, 900) {
+        --bs-shade#{$shade}-rgb: #{rgb-of(map.get($theme, shade-#{$shade}))};
+    }
+    --bs-gold-rgb: #{rgb-of(map.get($theme, bs-gold))};
+    --bs-orange-rgb: #{rgb-of(map.get($theme, bs-orange))};
+    --bs-blue-rgb: #{rgb-of(map.get($theme, bs-blue))};
+    --bs-warning-rgb: #{rgb-of(map.get($theme, bs-yellow))};
+}
+
+@mixin accent-vars($accent, $light: false) {
+    --c-primary: #{map.get($accent, primary)};
+    --c-primary-dark: #{map.get($accent, dark)};
+    --c-primary-light: #{map.get($accent, light)};
+    // on light surfaces the light shades would not read: the dark ones instead
+    --c-primary-lighter: #{if($light, map.get($accent, dark), map.get($accent, lighter))};
+    --c-primary-lightest: #{if($light, map.get($accent, primary), map.get($accent, lightest))};
+    --c-primary-text: #f7f2f2;
+    --bs-primary-rgb: #{rgb-of(map.get($accent, primary))};
+    --bs-success-rgb: #{rgb-of(map.get($accent, primary))};
+}
+
+// the default: dark, Oche green
+:root {
+    @include theme-vars($theme-dark);
+    @include accent-vars(map.get($accents, green));
+}
+
+@each $name, $theme in $themes {
+    @if $name != dark {
+        :root[data-theme="#{$name}"] {
+            @include theme-vars($theme);
+        }
+    }
+}
+
+// the accent colours, and on the light theme their versions for light surfaces
+@each $name, $accent in $accents {
+    @if $name != green {
+        :root[data-accent="#{$name}"] {
+            @include accent-vars($accent);
+        }
+    }
+}
+
+:root[data-theme="light"]:not([data-accent]) {
+    @include accent-vars(map.get($accents, green), true);
+}
+
+@each $name, $accent in $accents {
+    :root[data-theme="light"][data-accent="#{$name}"] {
+        @include accent-vars($accent, true);
+    }
+}

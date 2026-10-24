@@ -97,7 +97,7 @@
 		height: $inlineSpacing;
 
 		&.p-treenode-droppoint-active {
-			background: scale-color($highlightBg, $lightness: -20%);
+			background: darker($highlightBg, 20%);
 		}
 	}
 }

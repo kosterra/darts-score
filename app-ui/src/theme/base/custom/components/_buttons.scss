@@ -15,18 +15,18 @@
 $softGreenText: #7cc6a0;
 $softGreenTextHover: #95d6b4;
 
-@mixin soft-button($color, $text: lighten($color, 22%), $textHover: lighten($color, 28%), $tint: 0.2) {
+@mixin soft-button($color, $text: lighter($color, 22%), $textHover: lighter($color, 28%), $tint: 0.2) {
   border-color: transparent;
-  background: rgba($color, $tint);
+  background: with-alpha($color, $tint);
   color: $text;
 
   &:enabled:hover {
     border-color: transparent;
-    background: rgba($color, $tint + 0.1);
+    background: with-alpha($color, $tint + 0.1);
     color: $textHover;
   }
 
-  &:enabled:active { background: rgba($color, $tint + 0.18); }
+  &:enabled:active { background: with-alpha($color, $tint + 0.18); }
 }
 
 :where(.p-button.p-button-outlined:not(.p-button-danger):not(.p-button-secondary):not(.p-button-text):not(.p-button-link)) {
@@ -63,16 +63,16 @@ $softGreenTextHover: #95d6b4;
 // the light text of the buttons
 :where(.p-selectbutton .p-button.p-highlight) {
   border-color: transparent;
-  background: rgba($primaryColor, 0.42);
+  background: with-alpha($primaryColor, 0.42);
   color: $buttonTextColor;
 
-  &:hover { background: rgba($primaryColor, 0.5); }
+  &:hover { background: with-alpha($primaryColor, 0.5); }
 }
 
 // the current page of a list is a choice like a pill
 :where(.p-paginator .p-paginator-page.p-highlight) {
   border-color: transparent;
-  background: rgba($primaryColor, 0.42);
+  background: with-alpha($primaryColor, 0.42);
   color: $buttonTextColor;
 }
 
@@ -98,13 +98,13 @@ $softGreenTextHover: #95d6b4;
 // a switch that is on (PrimeReact marks it p-highlight): the soft green track of
 // the buttons with a knob in the light colour of the button labels; off stays grey
 :where(.p-inputswitch.p-highlight .p-inputswitch-slider) {
-  background: rgba($primaryColor, 0.5);
+  background: with-alpha($primaryColor, 0.5);
 
   &::before { background: $buttonTextColor; }
 }
 
 :where(.p-inputswitch.p-highlight:not(.p-disabled):hover .p-inputswitch-slider) {
-  background: rgba($primaryColor, 0.6);
+  background: with-alpha($primaryColor, 0.6);
 }
 
 // the focus ring only for the keyboard, as with the buttons
