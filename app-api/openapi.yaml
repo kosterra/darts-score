@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.13
+  version: 2026.10.14
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
