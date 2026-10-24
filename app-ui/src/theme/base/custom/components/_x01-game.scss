@@ -542,7 +542,7 @@
   .x01-visit-bar.is-floating {
     position: fixed;
     right: 0.5rem;
-    bottom: calc(46px + env(safe-area-inset-bottom, 0px) + 0.4rem);
+    bottom: calc(46px + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)) + 0.4rem);
     left: 0.5rem;
     z-index: 899;
     // the darts above the visit total on the left, the buttons on the right
