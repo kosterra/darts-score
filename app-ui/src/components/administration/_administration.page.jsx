@@ -76,7 +76,7 @@ const AdministrationPage = () => {
 
             <StartPageSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Start page'), detail, life: 3000 })} />
 
-            <MailServer />
+            <MailServer onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail server'), detail, life: 3000 })} />
 
             <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
 

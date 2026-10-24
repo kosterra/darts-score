@@ -19,7 +19,7 @@ dayjs.extend(relativeTime);
 const ICONS = { fairPlayDeleted: FaScaleBalanced, fairPlayRepaired: FaWrench, fairPlayRestored: FaRotateLeft, deletionRequested: FaFlag, deletionDone: FaTrashCan, deletionKept: FaCheck, joinRequested: FaUserPlus, clubJoined: FaUserPlus, joinAccepted: FaUserCheck, joinDeclined: FaUserXmark, clubBadge: FaShieldHalved, clubGoal: FaFlagCheckered,
     badgeEarned: FaMedal, levelUp: FaArrowTrendUp, recordBeaten: FaTrophy, personalBest: FaStar, shameGot: FaFaceGrimace, shameWashed: FaSoap,
     ratingPassed: FaRankingStar, ratingPassedBy: FaRankingStar, gameRunning: FaHourglassHalf, fairPlayFound: FaScaleBalanced, goalEnding: FaClock,
-    inviteUnused: FaEnvelope, alertCritical: FaTriangleExclamation, alertWarning: FaCircleExclamation, errorSpike: FaBug,
+    inviteUnused: FaEnvelope, alertCritical: FaTriangleExclamation, alertWarning: FaCircleExclamation, errorSpike: FaBug, mailLimitNear: FaEnvelope, mailLimitReached: FaEnvelope,
     passwordChanged: FaKey, emailChanged: FaAt, accountBlocked: FaLock };
 
 /**

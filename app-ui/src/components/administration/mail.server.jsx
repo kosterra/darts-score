@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 import { Panel } from 'primereact/panel';
@@ -8,14 +10,16 @@ import { Tag } from 'primereact/tag';
 
 import AdminService from '../../services/admin.service';
 import { useAuth } from '../../utils/auth.context';
-import { LANGUAGES, currentLanguage, t } from '../../utils/i18n';
+import { LANGUAGES, currentLanguage, t, tn } from '../../utils/i18n';
+import { formatDate } from '../../utils/dates';
 
 /**
  * The mail server, for the global admins: how the installation is set up to
- * send mails (from its environment, without the password) and a test mail to
- * any address, with what the server answered or what to check when it fails.
+ * send mails (from its environment, without the password), its daily limit
+ * with the mails of the last seven days, and a test mail to any address, with
+ * what the server answered or what to check when it fails.
  */
-const MailServer = () => {
+const MailServer = ({ onSaved }) => {
     const { user } = useAuth();
     const [setup, setSetup] = useState(null);
     const [error, setError] = useState('');
@@ -25,11 +29,40 @@ const MailServer = () => {
     // the last test: { ok, sentTo, response, ms } or { ok: false, message, code, detail }
     const [result, setResult] = useState(null);
 
+    const [perDay, setPerDay] = useState(null);
+    const [savingLimit, setSavingLimit] = useState(false);
+    const panel = useRef(null);
+    const { hash } = useLocation();
+
     useEffect(() => {
-        AdminService.loadMailServer().then(setSetup).catch(err => setError(err.message));
+        AdminService.loadMailServer()
+            .then(loaded => { setSetup(loaded); setPerDay(loaded.limit.limit); })
+            .catch(err => setError(err.message));
     }, []);
 
+    // the notifications about the limit link here (/system-settings#mail-server)
+    useEffect(() => {
+        if (setup && hash === '#mail-server') panel.current?.scrollIntoView({ block: 'start' });
+    }, [setup, hash]);
+
     if (!setup) return error ? <Message severity="error" text={error} /> : null;
+
+    const saveLimit = async () => {
+        setSavingLimit(true);
+        try {
+            const saved = await AdminService.saveMailLimit(perDay || null);
+            setSetup(saved);
+            setPerDay(saved.limit.limit);
+            onSaved?.(saved.limit.limit ? t('At most {{count}} mails a day.', { count: saved.limit.limit }) : t('No daily mail limit.'));
+        } catch (err) {
+            setError(err.message);
+        }
+        setSavingLimit(false);
+    };
+    const { days, limit } = setup.limit;
+    const today = days[0];
+    const reachedDays = days.filter(entry => entry.reached).length;
+    const most = Math.max(1, limit ?? 0, ...days.map(entry => entry.mails));
 
     const send = async () => {
         setSending(true);
@@ -51,6 +84,7 @@ const MailServer = () => {
     ];
 
     return (
+        <div ref={panel} id="mail-server" className="scroll-anchor">
         <Panel header={t('Mail server')}>
             <div className="d-flex flex-column gap-3">
                 <span className="text-subtle fs-7">
@@ -68,6 +102,45 @@ const MailServer = () => {
                         </div>
                     ))}
                 </dl>
+
+                <span className="text-default fw-semibold fs-7 mt-2">{t('Daily limit')}</span>
+                <span className="text-subtle fs-8">
+                    {t('Many mail providers send only so many mails a day (e.g. 300). Close to the limit the global admins hear it; once it is reached, the mails of the rest of the day are held back. A mail server that refuses mails for its own limit counts as reached too.')}
+                </span>
+                <div className="d-flex flex-wrap align-items-center gap-3">
+                    <InputNumber
+                        inputId="mail-limit"
+                        value={perDay}
+                        onValueChange={(event) => setPerDay(event.value)}
+                        min={1}
+                        max={1000000}
+                        placeholder={t('No limit')}
+                        suffix={` ${t('mails a day')}`}
+                        aria-label={t('Daily limit')}
+                        inputClassName="mail-limit-input"
+                    />
+                    <Button label={t('Save')} icon="pi pi-save" size="small" loading={savingLimit} disabled={(perDay || null) === (limit || null)} onClick={saveLimit} />
+                </div>
+                <div className="d-flex flex-column gap-2">
+                    <span className="text-default fs-7">
+                        {limit ? t('Today: {{count}} of {{limit}} mails', { count: today.mails, limit }) : tn(today.mails, 'Today: {{count}} mail', 'Today: {{count}} mails')}
+                        {today.reached && <Tag value={t('Limit reached')} severity="danger" className="ms-2" />}
+                    </span>
+                    <div className="mail-days" aria-label={t('Mails of the last 7 days')}>
+                        {[...days].reverse().map(entry => (
+                            <span key={entry.day} className={`mail-day ${entry.reached ? 'is-reached' : ''}`} title={`${formatDate(entry.day)}: ${tn(entry.mails, '{{count}} mail', '{{count}} mails')}${entry.heldBack ? ` · ${t('{{count}} held back', { count: entry.heldBack })}` : ''}`}>
+                                <span className="mail-day-bar"><span style={{ height: `${(entry.mails / most) * 100}%` }} /></span>
+                                <span className="mail-day-count">{entry.mails}</span>
+                                <span className="mail-day-label">{formatDate(entry.day, { year: 'none' })}</span>
+                            </span>
+                        ))}
+                    </div>
+                    <span className="text-faint fs-8">
+                        {reachedDays
+                            ? t('The limit was reached on {{count}} of the last 7 days; {{held}} mails were held back.', { count: reachedDays, held: days.reduce((sum, entry) => sum + entry.heldBack, 0) })
+                            : t('The limit was not reached in the last 7 days.')}
+                    </span>
+                </div>
 
                 <span className="text-default fw-semibold fs-7 mt-2">{t('Send a test mail')}</span>
                 <div className="d-flex flex-column gap-1">
@@ -114,6 +187,7 @@ const MailServer = () => {
                 </div>
             </div>
         </Panel>
+        </div>
     );
 };
 

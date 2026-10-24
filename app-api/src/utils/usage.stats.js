@@ -61,6 +61,9 @@ export const usageOfWeek = async (start, end = nextWeek(start)) => {
         num180s: tallies.reduce((sum, tally) => sum + (tally.num180s ?? 0), 0),
         trainings: atc + rules + bot,
         quickGames,
+        mails: days.reduce((sum, entry) => sum + (entry.mails ?? 0), 0),
+        mailsHeldBack: days.reduce((sum, entry) => sum + (entry.mailsHeldBack ?? 0), 0),
+        mailLimitDays: days.filter(entry => entry.mailLimitReachedAt).length,
     };
 };
 
@@ -104,6 +107,10 @@ export const usageLines = (week, before, language = 'en') => {
     lines.push(line('New clubs: {{count}}', week.newClubs, before?.newClubs));
     lines.push(line('New players: {{count}}', week.newPlayers, before?.newPlayers));
     if (week.num180s) lines.push(line('180s: {{count}}', week.num180s, before?.num180s));
+    if (week.mails || before?.mails) lines.push(line('Mails sent: {{count}}', week.mails, before?.mails));
+    if (week.mailLimitDays) {
+        lines.push(`• ${tr(language, 'Daily mail limit reached on {{count}} of 7 days, {{held}} mails held back', { count: week.mailLimitDays, held: week.mailsHeldBack })}`);
+    }
     return lines;
 };
 

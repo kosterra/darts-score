@@ -55,6 +55,12 @@ const UsagePage = () => {
                     <KpiHero label={t('Games started')} value={formatNumber(last.games.total)} detail={detail('games', (week) => week.games.total)} color={GREEN} />
                     <KpiHero label={t('New accounts')} value={formatNumber(last.newUsers)} detail={detail('newUsers')} color={GREEN} />
                 </div>
+                {last.mailLimitDays > 0 &&
+                    <Message
+                        severity="warn"
+                        className="w-100 justify-content-start mt-3"
+                        text={t('The daily mail limit was reached on {{count}} of 7 days; {{held}} mails were held back. See System settings → Mail server.', { count: last.mailLimitDays, held: last.mailsHeldBack })}
+                    />}
                 <p className="text-faint fs-8 mt-3 mb-0">
                     {data.since
                         ? t('Active users (accounts that used the app) and logins are counted since {{date}}; games, trainings, accounts and clubs from the start.', { date: formatDate(data.since) })
@@ -88,6 +94,8 @@ const UsagePage = () => {
                                 <th>{t('New accounts')}</th>
                                 <th>{t('New clubs')}</th>
                                 <th>{t('New players')}</th>
+                                <th>{t('Mails')}</th>
+                                <th>{t('Mail limit reached')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,6 +111,8 @@ const UsagePage = () => {
                                     <td>{formatNumber(week.newUsers)}</td>
                                     <td>{formatNumber(week.newClubs)}</td>
                                     <td>{formatNumber(week.newPlayers)}</td>
+                                    <td>{formatNumber(week.mails)}</td>
+                                    <td className={week.mailLimitDays ? 'text-danger' : ''}>{week.mailLimitDays ? tn(week.mailLimitDays, '{{count}} day', '{{count}} days') : '–'}</td>
                                 </tr>
                             ))}
                         </tbody>

@@ -50,6 +50,8 @@ const testMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}
 // the mail server: how it is set up, and a test mail to any address ({ sentTo, response, ms })
 const loadMailServer = () => requestJSON(`${API_URL}/mail-server`);
 const sendTestMail = (to, language = 'en') => requestJSON(`${API_URL}/mail-server/test`, { method: 'POST', body: { to, language } });
+// the daily limit of the mail server: { perDay } (null for none)
+const saveMailLimit = (perDay) => requestJSON(`${API_URL}/mail-server/limit`, { method: 'PUT', body: { perDay } });
 
 // who is logged in now, ending sessions, and the use of the app per week
 const loadSessions = () => requestJSON(`${API_URL}/sessions`);
@@ -121,6 +123,7 @@ const AdminService = {
     endSessionsOf,
     loadUsage,
     sendTestMail,
+    saveMailLimit,
     saveStartPageSettings,
     saveSessionSettings,
     loadMfaSettings,

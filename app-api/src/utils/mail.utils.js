@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import logger from '../models/logger.model.js';
+import { checkMailLimit, countMail, noteLimitRefusal } from './mail.limit.js';
 
 /**
  * Public address of the app, used for links in emails. It deliberately never
@@ -54,17 +55,32 @@ const getTransporter = () => {
     return transporter;
 };
 
-// resolves to what the mail server answered ({ response, messageId, accepted, rejected })
+// never let the counting of mails get in the way of a mail
+const quietly = (promise) => promise.catch(err => logger.warn(`Could not count a mail: ${err.message}`));
+
+/**
+ * Sends a mail, within the daily limit of the mail server (see mail.limit.js):
+ * throws a MailLimitError once it is reached. Resolves to what the mail
+ * server answered ({ response, messageId, accepted, rejected }).
+ */
 export const sendMail = async ({ to, subject, text, html, headers }) => {
-    const info = await getTransporter().sendMail({
-        from: process.env.SMTP_FROM || DEFAULT_FROM,
-        to,
-        subject,
-        text,
-        ...(html && { html }),
-        ...(headers && { headers }),
-    });
+    await checkMailLimit();
+    let info;
+    try {
+        info = await getTransporter().sendMail({
+            from: process.env.SMTP_FROM || DEFAULT_FROM,
+            to,
+            subject,
+            text,
+            ...(html && { html }),
+            ...(headers && { headers }),
+        });
+    } catch (err) {
+        await quietly(noteLimitRefusal(err));
+        throw err;
+    }
     logger.info(`Sent "${subject}" mail to ${to}`);
+    await quietly(countMail());
     return info;
 };
 
@@ -77,6 +93,7 @@ export const explainMailError = (err) => {
     const code = err?.code ?? '';
     const said = `${err?.message ?? ''} ${err?.response ?? ''}`;
     const reason = (() => {
+        if (code === 'ELIMIT') return 'The daily mail limit of this installation is reached. Mails are sent again tomorrow, or raise the limit under System settings → Mail server.';
         if (code === 'EAUTH') return 'The mail server refused the login. Check SMTP_USER and SMTP_PASSWORD.';
         if (code === 'EDNS' || /ENOTFOUND|EAI_AGAIN/.test(said)) return 'The name of the mail server was not found. Check SMTP_HOST.';
         if (/certificate|self[- ]signed|CERT_/i.test(said)) return 'The certificate of the mail server is not trusted. Check SMTP_HOST: use the name the certificate is for.';

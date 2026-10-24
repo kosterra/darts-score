@@ -126,6 +126,12 @@ export default (app) => {
 
     // the mail server: how it is set up, and a test mail to any address
     router.get('/mail-server', MailTemplateController.setup);
+    router.put(
+        '/mail-server/limit',
+        body('perDay').optional({ values: 'null' }).isInt({ min: 1, max: 1000000 }).withMessage('The limit is a number from 1 to 1000000, or empty for none.'),
+        validate,
+        MailTemplateController.saveLimit,
+    );
     router.post(
         '/mail-server/test',
         body('to').isEmail().withMessage('A valid email address is required.'),

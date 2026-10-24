@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import { LIMITS, MAIL_LANGUAGES, MAIL_TEMPLATES, defaultsOf, effectiveTemplate, overrideKey, renderMail, sampleVars, templateError } from '../utils/mail.templates.js';
 import { getTemplateOverrides, saveTemplateOverride } from '../utils/mail.service.js';
 import { explainMailError, getAppUrl, isMailConfigured, mailSetup, sendMail } from '../utils/mail.utils.js';
+import { mailDays, saveMailLimit } from '../utils/mail.limit.js';
 import { TEST_MAIL } from '../utils/mail.languages.js';
 import { dateTimeIn } from '../utils/notify.js';
 
@@ -89,7 +90,17 @@ export const test = async (req, res) => {
 /**
  * How mail is set up on this installation, without the password.
  */
-export const setup = (req, res) => res.json(mailSetup());
+export const setup = async (req, res) => res.json({ ...mailSetup(), limit: await mailDays(7) });
+
+/**
+ * The daily limit of the mail server ({ perDay }, null for none): close to it
+ * the global admins hear it, at it the rest of the day's mails wait.
+ */
+export const saveLimit = async (req, res) => {
+    const perDay = await saveMailLimit(req.body.perDay ?? null);
+    logger.info(`Daily mail limit set to ${perDay ?? 'none'} by ${req.user.email}`);
+    res.json({ ...mailSetup(), limit: await mailDays(7) });
+};
 
 /**
  * Sends a plain test mail to any address, in a language: whether mails get

@@ -1837,12 +1837,39 @@ paths:
       summary: How mail is set up on this installation (server, port, encryption, login, sender), without the password
       responses:
         '200':
-          description: '{ configured, host, port, encryption: tls | starttls, user, password: whether one is set, from, appUrl, missing }'
+          description: '{ configured, host, port, encryption: tls | starttls, user, password: whether one is set, from, appUrl, missing, limit: { limit: mails a day or null, days: [{ day, mails, heldBack, limit, reached }] (the last 7, today first) } }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           description: Global admin rights required
       operationId: getAdminMailServer
+  /api/admin/mail-server/limit:
+    put:
+      tags:
+        - Administration
+      summary: Set the daily limit of the mail server; close to it the global admins hear it, at it the rest of the day's mails are held back
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                perDay:
+                  type: [integer, 'null']
+                  minimum: 1
+                  maximum: 1000000
+                  description: Mails a day, null for no limit
+      responses:
+        '200':
+          description: The mail server as GET /api/admin/mail-server
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putAdminMailServerLimit
   /api/admin/mail-server/test:
     post:
       tags:
@@ -2214,7 +2241,7 @@ paths:
             default: 12
       responses:
         '200':
-          description: '{ since: from when active users and logins are counted, weeks: [{ start, end, current, tracked, activeUsers, logins, busiestDay, newUsers, newClubs, newPlayers, activeClubs, games: { total, x01, cricket, elimination, clock, more }, finishedGames, num180s, trainings, quickGames }] }'
+          description: '{ since: from when active users and logins are counted, weeks: [{ start, end, current, tracked, activeUsers, logins, busiestDay, newUsers, newClubs, newPlayers, activeClubs, games: { total, x01, cricket, elimination, clock, more }, finishedGames, num180s, trainings, quickGames, mails, mailsHeldBack, mailLimitDays }] }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
