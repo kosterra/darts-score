@@ -12,6 +12,7 @@ import PlayerService from '../../services/player.service';
 import CountryPicker from '../elements/country.picker';
 import ImageUploader from '../elements/image.uploader';
 import PlayerLogin from '../elements/player.login';
+import PlayerContact from '../elements/player.contact';
 import SettingSwitch from '../elements/setting.switch';
 import UpLink from '../elements/up.link';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
@@ -53,7 +54,7 @@ const PlayerEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const toast = useRef(null);
-    const { isClubAdmin, user, clubs } = useAuth();
+    const { isClubAdmin, user, clubs, activeClub } = useAuth();
     // an admin of several clubs adds players to the others, or moves them
     const managesSeveralClubs = clubs.filter(club => club.role === 'admin').length > 1;
     const [player, setPlayer] = useState(null);
@@ -226,6 +227,21 @@ const PlayerEditPage = () => {
                                         <PlayerLogin player={player} onChange={load} />
                                     </div>
                                 </div>
+                                {!player.user && (
+                                    <>
+                                        <p className="setting-title" id="mails">{t('Mails without a login')}</p>
+                                        <div className="row mx-0 mt-0 setting-body">
+                                            <div className="col pt-1">
+                                                <PlayerContact
+                                                    player={player}
+                                                    club={activeClub}
+                                                    onSaved={(summary) => toast.current?.show({ severity: 'success', summary, detail: player.nickname, life: 3000 })}
+                                                    onError={showError}
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                                 {managesSeveralClubs && <>
                                     <p className="game-setup-section-title mt-4">{t('Clubs')}</p>
                                     <PlayerClubs

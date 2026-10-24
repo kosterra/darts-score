@@ -16,7 +16,7 @@ const swaggerDocument = loadYaml(readFileSync(
     path.join(import.meta.dirname, 'openapi.yaml'), 'utf8'
 ));
 
-import playerRoutes    from './src/routes/player.routes.js';
+import playerRoutes, { claimInfoRoutes, claimRoutes } from './src/routes/player.routes.js';
 import statsRoutes     from './src/routes/stats.routes.js';
 import x01Routes       from './src/routes/x01.routes.js';
 import cricketRoutes   from './src/routes/cricket.routes.js';
@@ -33,7 +33,7 @@ import adminRoutes     from './src/routes/admin.routes.js';
 import publicRoutes    from './src/routes/public.routes.js';
 import badgeRoutes     from './src/routes/badge.routes.js';
 import integrityRoutes from './src/routes/integrity.routes.js';
-import notificationRoutes from './src/routes/notification.routes.js';
+import notificationRoutes, { unsubscribeRoutes } from './src/routes/notification.routes.js';
 import deletionRequestRoutes from './src/routes/deletion.request.routes.js';
 import { isAllowedOrigin } from './src/utils/origin.utils.js';
 import { checkImageFolder } from './src/controllers/file.controller.js';
@@ -41,6 +41,7 @@ import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
 import { startErrorLog } from './src/utils/error.log.js';
+import { startNotificationJobs } from './src/utils/notification.jobs.js';
 import { clientIp } from './src/utils/spam.guard.js';
 
 const { UI_URL } = process.env;
@@ -122,6 +123,7 @@ db.mongoose
     .connect(db.url)
     .then(() => {
         logger.info('Connected to MongoDB');
+        startNotificationJobs();
         return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
     })
     .catch(err => {
@@ -147,6 +149,8 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 authRoutes(app);
 publicRoutes(app);
+unsubscribeRoutes(app);
+claimInfoRoutes(app);
 clubLogoRoutes(app);
 
 // Everything else under /api needs a logged-in user ...
@@ -157,6 +161,7 @@ adminRoutes(app);
 badgeRoutes(app);
 integrityRoutes(app);
 notificationRoutes(app);
+claimRoutes(app);
 
 // ... and players, games, training and statistics also need a selected club
 app.use(['/api/players', '/api/games', '/api/training', '/api/stats'], requireClub);

@@ -7,8 +7,11 @@ import { Toast } from 'primereact/toast';
 import AdminService from '../../services/admin.service';
 import BannerSettings from './banner.settings';
 import SessionSettings from './session.settings';
+import MfaSettings from './mfa.settings';
+import LegalSettings from './legal.settings';
 import StartPageSettings from './start.page.settings';
 import MailTemplates from './mail.templates';
+import MailServer from './mail.server';
 import StatTile from '../stats/players/stat.tile';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
@@ -73,9 +76,15 @@ const AdministrationPage = () => {
 
             <StartPageSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Start page'), detail, life: 3000 })} />
 
+            <MailServer onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail server'), detail, life: 3000 })} />
+
             <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
 
             <SessionSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Session saved'), detail, life: 3000 })} />
+
+            <MfaSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Two-step login'), detail, life: 3000 })} />
+
+            <LegalSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Saved'), detail, life: 3000 })} />
 
             {system &&
                 <Panel header={t('System')}>

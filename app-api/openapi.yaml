@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.13
+  version: 2026.10.14
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.html
@@ -88,6 +88,136 @@ paths:
         '200':
           description: The server is running
       operationId: getHealth
+  /api/unsubscribe:
+    get:
+      tags:
+        - Notifications
+      summary: What an unsubscribe link of a mail is for
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: For an account or a player without a login, and the topic ('all' for every mail)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unsubscribed'
+        '404':
+          description: Not a valid link
+      operationId: getUnsubscribe
+    post:
+      tags:
+        - Notifications
+      summary: Get no more of the mails of an unsubscribe link
+      description: Also the one-click unsubscribing of mail programs (List-Unsubscribe-Post).
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Turned off
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unsubscribed'
+        '404':
+          description: Not a valid link
+      operationId: postUnsubscribe
+  /api/claim/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Players
+      summary: Who a claim link is for
+      description: A claim link lets a player without a login take over their player with an account of their own.
+      security: []
+      responses:
+        '200':
+          description: The player and the club
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nickname:
+                    type: string
+                  firstname:
+                    type: string
+                  club:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      logo:
+                        type: string
+        '404':
+          description: Unknown or expired, or the player has a login already
+      operationId: getClaimBytoken
+    post:
+      tags:
+        - Players
+      summary: Take over the player of a claim link with the logged-in account
+      responses:
+        '200':
+          description: The account plays as the player from now on
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  club:
+                    type: string
+                  player:
+                    type: string
+                  nickname:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Unknown or expired, or the player has a login already
+        '409':
+          description: The account already plays as someone else in a club of the player
+      operationId: postClaimBytoken
+  /api/public/legal:
+    get:
+      tags:
+        - Public
+      summary: What the privacy policy and imprint show
+      description: Who runs the installation (as its global admins entered it), whether it sends mails, and how long what is kept on it.
+      security: []
+      responses:
+        '200':
+          description: The details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/LegalSettings'
+                  - type: object
+                    properties:
+                      mailEnabled:
+                        type: boolean
+                      keep:
+                        type: object
+                        additionalProperties:
+                          type: integer
+      operationId: getPublicLegal
   /api/auth/register:
     post:
       tags:
@@ -113,6 +243,7 @@ paths:
       tags:
         - Auth
       summary: Log in
+      description: 'With two-step login on (or required and not set up after its days), the session does not start yet: the answer is { mfaRequired: true, step: "code" | "enroll" } with a signed cookie for the next step (see /api/auth/login/mfa and /api/auth/mfa/setup). Registering and choosing a new password with a link answer the same way.'
       security: []
       requestBody:
         required: true
@@ -126,6 +257,219 @@ paths:
         '401':
           description: Email or password is wrong
       operationId: postAuthLogin
+  /api/auth/login/mfa:
+    post:
+      tags:
+        - Auth
+      summary: The second step of logging in
+      description: After a login answered mfaRequired with the step "code" (a signed cookie for 5 minutes). A code of the authenticator app, or one of the recovery codes (each works once). trust skips the code on this device for 30 days. Five wrong codes make the account wait a few minutes.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+                recoveryCode:
+                  type: string
+                trust:
+                  type: boolean
+      responses:
+        '200':
+          description: Logged in; the account, with its two-step login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Wrong code, or the login took too long
+        '429':
+          description: Too many wrong codes
+      operationId: postAuthLoginMfa
+  /api/auth/mfa:
+    get:
+      tags:
+        - Auth
+      summary: The two-step login of the account
+      responses:
+        '200':
+          description: Its state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAuthMfa
+  /api/auth/mfa/setup:
+    post:
+      tags:
+        - Auth
+      summary: Start setting up two-step login
+      description: A new secret for the authenticator app, as its key and the otpauth address for a QR code. Logged in, or while logging in when it is required (the step "enroll").
+      security: []
+      responses:
+        '200':
+          description: The secret
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                  uri:
+                    type: string
+        '401':
+          description: Not logged in, and no login waiting to set it up
+        '409':
+          description: It is on already
+      operationId: postAuthMfaSetup
+  /api/auth/mfa/enable:
+    post:
+      tags:
+        - Auth
+      summary: Turn on two-step login with the first code of the app
+      description: Answers the ten recovery codes, shown only now. While logging in, the session starts too.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+                trust:
+                  type: boolean
+      responses:
+        '200':
+          description: On, with the recovery codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recoveryCodes:
+                    type: array
+                    items:
+                      type: string
+                  mfa:
+                    $ref: '#/components/schemas/MfaState'
+        '401':
+          description: Not logged in, and no login waiting to set it up
+        '409':
+          description: It is on already, or setting it up has to start again
+        '422':
+          description: Wrong code
+      operationId: postAuthMfaEnable
+  /api/auth/mfa/disable:
+    post:
+      tags:
+        - Auth
+      summary: Turn off two-step login
+      description: With the password and a current code; not while it is required for the account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Off
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Wrong password or code
+        '409':
+          description: Off already, or required
+      operationId: postAuthMfaDisable
+  /api/auth/mfa/recovery-codes:
+    post:
+      tags:
+        - Auth
+      summary: New recovery codes
+      description: With a current code; the old ones stop working.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Six digits of the authenticator app
+      responses:
+        '200':
+          description: The new codes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recoveryCodes:
+                    type: array
+                    items:
+                      type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Wrong code
+      operationId: postAuthMfaRecoveryCodes
+  /api/auth/mfa/forget-devices:
+    post:
+      tags:
+        - Auth
+      summary: Every trusted device asks for the code again
+      responses:
+        '200':
+          description: Done
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: postAuthMfaForgetDevices
+  /api/auth/delete-account:
+    post:
+      tags:
+        - Auth
+      summary: Delete the own account
+      description: With the password, and a code of the authenticator app when two-step login is on. The account goes with its settings, notifications and login; its players stay in their clubs, anonymised (an anonymous nickname, no name, picture, date of birth or country, as guests), so the games and statistics of the others stay whole. Refused for the only admin of a club and the only global admin. A last mail confirms it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: Deleted; the session ends
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Wrong password or code
+        '409':
+          description: The only admin of a club, or the only global admin
+      operationId: postAuthDeleteAccount
   /api/auth/logout:
     post:
       tags:
@@ -1053,6 +1397,26 @@ paths:
         - $ref: '#/components/parameters/Id'
       description: Global admins only.
       operationId: putUsersByidPassword
+  /api/users/{id}/mfa/reset:
+    post:
+      tags:
+        - Users
+      summary: Reset the two-step login of an account (global admins only)
+      description: For a lost phone. Turns it off and ends the account's sessions; with the policy it is set up again at the next login. Raises an alert and mails the owner.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Reset
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Unknown account
+        '409':
+          description: Two-step login is off for it, or it is your own account
+      operationId: postUsersByidMfaReset
   /api/users/{id}/password-link:
     post:
       tags:
@@ -1464,8 +1828,82 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
         '502':
-          description: The mail could not be sent
+          description: '{ message: what to check, code, detail: the answer of the mail server }'
       operationId: postAdminMailTemplatesByidTest
+  /api/admin/mail-server:
+    get:
+      tags:
+        - Administration
+      summary: How mail is set up on this installation (server, port, encryption, login, sender), without the password
+      responses:
+        '200':
+          description: '{ configured, host, port, encryption: tls | starttls, user, password: whether one is set, from, appUrl, missing, limit: { limit: mails a day or null, days: [{ day, mails, heldBack, limit, reached }] (the last 7, today first) } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminMailServer
+  /api/admin/mail-server/limit:
+    put:
+      tags:
+        - Administration
+      summary: Set the daily limit of the mail server; close to it the global admins hear it, at it the rest of the day's mails are held back
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                perDay:
+                  type: [integer, 'null']
+                  minimum: 1
+                  maximum: 1000000
+                  description: Mails a day, null for no limit
+      responses:
+        '200':
+          description: The mail server as GET /api/admin/mail-server
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putAdminMailServerLimit
+  /api/admin/mail-server/test:
+    post:
+      tags:
+        - Administration
+      summary: Send a plain test mail to any address, in one language
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to
+              properties:
+                to:
+                  type: string
+                  format: email
+                language:
+                  type: string
+                  enum: [en, de, fr, it, es]
+      responses:
+        '200':
+          description: '{ sentTo, response: what the mail server answered, messageId, rejected, ms }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '409':
+          description: Mail is not set up
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '502':
+          description: '{ message: what to check, code, detail: the answer of the mail server, ms }'
+      operationId: postAdminMailServerTest
   /api/admin/start-page:
     get:
       tags:
@@ -1584,6 +2022,100 @@ paths:
           description: Invalid text or colour
       description: Global admins only.
       operationId: putAdminBanner
+  /api/admin/legal:
+    get:
+      tags:
+        - Admin
+      summary: Who runs the installation, for the privacy policy and imprint (global admins only)
+      responses:
+        '200':
+          description: The details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getAdminLegal
+    put:
+      tags:
+        - Admin
+      summary: Save who runs the installation (global admins only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegalSettings'
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: Too long, or not an email address
+      operationId: putAdminLegal
+  /api/admin/mfa:
+    get:
+      tags:
+        - Admin
+      summary: The policy of two-step login (global admins only)
+      responses:
+        '200':
+          description: The policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getAdminMfa
+    put:
+      tags:
+        - Admin
+      summary: Set the policy of two-step login (global admins only)
+      description: Requiring it needs it on for the own account first, so nobody locks out the installation. The days to set it up count from when it became required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - policy
+                - graceDays
+              properties:
+                policy:
+                  type: string
+                  enum: [off, optional, admins, everyone]
+                graceDays:
+                  type: integer
+                  minimum: 0
+                  maximum: 60
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Two-step login is off for the own account
+      operationId: putAdminMfa
   /api/admin/session:
     get:
       tags:
@@ -1632,6 +2164,91 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: putAdminSession
+  /api/admin/sessions:
+    get:
+      tags:
+        - Administration
+      summary: Who is logged in now, with every session (device, start, last use, end); the admin's own marked as current
+      responses:
+        '200':
+          description: '{ activeMinutes, totals: { sessions, users, activeNow, usedToday }, users: [{ id, firstname, lastname, email, role, lastSeenAt, sessions: [{ id, device, startedAt, lastSeenAt, expiresAt, current }] }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminSessions
+  /api/admin/sessions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - Administration
+      summary: End one session; the device has to log in again
+      responses:
+        '200':
+          description: Who is logged in now, as GET /api/admin/sessions
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: The session has already ended
+        '409':
+          description: The admin's own session
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: deleteAdminSessionsByid
+  /api/admin/sessions/users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - Administration
+      summary: End every session of an account
+      responses:
+        '200':
+          description: Who is logged in now, as GET /api/admin/sessions
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '409':
+          description: The admin's own account
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: deleteAdminSessionsUsersByid
+  /api/admin/usage:
+    get:
+      tags:
+        - Administration
+      summary: The use of the app per week (Monday to Sunday), the current week so far first
+      parameters:
+        - name: weeks
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 26
+            default: 12
+      responses:
+        '200':
+          description: '{ since: from when active users and logins are counted, weeks: [{ start, end, current, tracked, activeUsers, logins, busiestDay, newUsers, newClubs, newPlayers, activeClubs, games: { total, x01, cricket, elimination, clock, more }, finishedGames, num180s, trainings, quickGames, mails, mailsHeldBack, mailLimitDays }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: getAdminUsage
   /api/admin/logs:
     get:
       tags:
@@ -2265,6 +2882,45 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       operationId: getNotificationsUnread
+  /api/notifications/settings:
+    get:
+      tags:
+        - Notifications
+      summary: Which notifications the user gets, and how
+      description: The topics of the groups the user sees (the admin ones only for admins), each with the notification center on or off and the mail at once, daily, weekly or off. Security mails cannot be turned off.
+      responses:
+        '200':
+          description: The settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getNotificationsSettings
+    put:
+      tags:
+        - Notifications
+      summary: Save the user's choices
+      description: 'An object of topics, e.g. { "badges": { "inApp": true, "mail": "daily" } }; unknown topics and choices are left out.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/NotificationChoice'
+      responses:
+        '200':
+          description: The settings as saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: putNotificationsSettings
   /api/notifications/read:
     put:
       tags:
@@ -2855,6 +3511,169 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ClubId'
       operationId: deletePlayersByidAccount
+  /api/players/{id}/account/invite:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+        - Players
+      summary: Send the invitation of a player's login again (club admins only)
+      description: With a new link to choose the password, while the login was never used.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: Sent
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: The player has no login
+        '409':
+          description: The login was used already
+        '503':
+          description: Email sending is not set up
+      operationId: postPlayersByidAccountInvite
+  /api/players/{id}/contact:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Players
+      summary: The address the club keeps for a player without a login (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: The address and the open claim links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerContact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getPlayersByidContact
+    put:
+      tags:
+        - Players
+      summary: Keep an address for a player without a login, with their consent (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - consent
+              properties:
+                email:
+                  type: string
+                  format: email
+                topics:
+                  type: array
+                  items:
+                    type: string
+                    enum: [badges, level, records, weeklySummary]
+                language:
+                  $ref: '#/components/schemas/Language'
+                consent:
+                  type: boolean
+                  description: The admin confirms the player agreed to get these mails
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerContact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The player has a login, or is a guest
+        '422':
+          description: No valid address, or no consent
+      operationId: putPlayersByidContact
+    delete:
+      tags:
+        - Players
+      summary: Forget the address of a player without a login (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: Forgotten
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerContact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: deletePlayersByidContact
+  /api/players/{id}/claim:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+        - Players
+      summary: A new claim link of a player without a login (club admins only)
+      description: Whoever opens it creates an account, or logs in, and takes over the player with all their games, statistics and badges. Valid for 30 days.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '201':
+          description: The link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  link:
+                    type: string
+                  days:
+                    type: integer
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  claims:
+                    $ref: '#/components/schemas/PlayerClaims'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The player has a login already
+      operationId: postPlayersByidClaim
+    delete:
+      tags:
+        - Players
+      summary: Make every open claim link of a player stop working (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: Done
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claims:
+                    $ref: '#/components/schemas/PlayerClaims'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: deletePlayersByidClaim
   /api/players/{id}/clubs:
     get:
       tags:
@@ -4863,6 +5682,154 @@ components:
           maxLength: 25
         language:
           $ref: '#/components/schemas/Language'
+        claimToken:
+          type: string
+          description: The token of a claim link; the new account takes over its player
+    LegalSettings:
+      type: object
+      properties:
+        operator:
+          type: string
+          maxLength: 200
+          description: The person or organisation running the installation
+        address:
+          type: string
+          maxLength: 500
+        email:
+          type: string
+          maxLength: 254
+        notes:
+          type: string
+          maxLength: 2000
+          description: More for the privacy page, e.g. the hosting provider or a tunnel service
+    MfaState:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        required:
+          type: boolean
+        setupDue:
+          type: [string, 'null']
+          format: date-time
+          description: Until when it may still be set up, while required and off
+        mustSetUp:
+          type: boolean
+        recoveryLeft:
+          type: integer
+        enabledAt:
+          type: [string, 'null']
+          format: date-time
+    MfaPolicy:
+      type: object
+      properties:
+        policy:
+          type: string
+          enum: [off, optional, admins, everyone]
+        graceDays:
+          type: integer
+        requiredSince:
+          type: [string, 'null']
+          format: date-time
+        policies:
+          type: array
+          items:
+            type: string
+        graceLimits:
+          type: object
+          properties:
+            default:
+              type: integer
+            min:
+              type: integer
+            max:
+              type: integer
+        ownEnabled:
+          type: boolean
+    NotificationChoice:
+      type: object
+      properties:
+        inApp:
+          type: boolean
+          description: In the notification center
+        mail:
+          type: string
+          enum: [off, instant, daily, weekly]
+    NotificationSettings:
+      type: object
+      properties:
+        mailEnabled:
+          type: boolean
+          description: Whether the installation sends mails
+        groups:
+          type: array
+          items:
+            type: string
+            enum: [games, club, admin, global, security]
+        topics:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              group:
+                type: string
+              locked:
+                type: boolean
+              mailOnly:
+                type: boolean
+              mails:
+                type: array
+                items:
+                  type: string
+              inApp:
+                type: boolean
+              mail:
+                type: string
+    Unsubscribed:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [user, contact]
+        topic:
+          type: string
+    PlayerClaims:
+      type: object
+      description: The open claim links of a player
+      properties:
+        count:
+          type: integer
+        until:
+          type: [string, 'null']
+          format: date-time
+    PlayerContact:
+      type: object
+      properties:
+        contact:
+          type: [object, 'null']
+          properties:
+            email:
+              type: string
+            language:
+              type: string
+            topics:
+              type: array
+              items:
+                type: string
+            consentAt:
+              type: string
+              format: date-time
+            consentByName:
+              type: string
+            unsubscribedAt:
+              type: [string, 'null']
+              format: date-time
+        claims:
+          $ref: '#/components/schemas/PlayerClaims'
+        mailEnabled:
+          type: boolean
     Language:
       type: string
       description: The language of the app, the mails and the messages of the API
@@ -5102,6 +6069,10 @@ components:
           type: string
           pattern: '^([A-Za-z]{2}(-[A-Za-z]{3})?)?$'
           description: Where the club plays, as an ISO 3166 country code (CH, DE, …) or a nation of the United Kingdom (GB-ENG, GB-SCT, GB-WLS, GB-NIR); empty for none
+        accent:
+          type: [string, 'null']
+          enum: [green, red, blue, gold, purple, null]
+          description: "The club's accent colour in the app, for the members who did not choose their own (null or unknown: Oche green)"
         isPublic:
           type: boolean
           description: List the club on the public start page
@@ -5198,6 +6169,9 @@ components:
               country:
                 type: string
                 description: ISO 3166 country code, empty when not set
+              accent:
+                type: [string, 'null']
+                description: "The club's accent colour (null: Oche green)"
               logo:
                 type: string
               joinPolicy:
@@ -6056,6 +7030,11 @@ components:
         id:
           type: string
           description: MongoDB ObjectId
+        mfaEnabled:
+          type: boolean
+          description: Whether two-step login is on
+        mfa:
+          $ref: '#/components/schemas/MfaState'
         email:
           type: string
         firstname:

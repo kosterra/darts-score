@@ -35,8 +35,9 @@ const ResetPasswordPage = () => {
         setError('');
         setSubmitting(true);
         try {
-            await resetPassword(token, password);
-            navigate('/', { replace: true });
+            const next = await resetPassword(token, password);
+            // two-step login first: on the login page
+            navigate(next?.mfaRequired ? '/login' : '/', { replace: true, state: next?.mfaRequired ? { mfaStep: next.step } : undefined });
         } catch (err) {
             setError(err.message);
             setSubmitting(false);

@@ -51,6 +51,7 @@ export const requestJSON = async (url, { method = 'GET', body, clubId } = {}) =>
         if (response.status === 401 && !url.startsWith('/api/auth/')) window.dispatchEvent(new Event(SESSION_ENDED));
         const error = new Error(data.errors?.join(' ') || data.message || response.statusText);
         error.status = response.status;
+        error.data = data;
         throw error;
     }
     return data;

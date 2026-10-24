@@ -1,5 +1,5 @@
 @mixin focused-ring($ring-color) {
-    box-shadow: 0 0 0 2px #1c2127, 0 0 0 4px $ring-color, 0 1px 2px 0 rgba(0, 0, 0, 0.0);
+    box-shadow: 0 0 0 2px #1c2127, 0 0 0 4px $ring-color, 0 1px 2px 0 shadow(0.0);
 }
 
 @layer primereact {
@@ -91,11 +91,11 @@
     // Depth: panels and pictures lift off the page a little, like the badge medals
     .p-panel {
         border-radius: $borderRadius;
-        box-shadow: 0 0.75rem 1.75rem -0.75rem rgba(0, 0, 0, 0.75);
+        box-shadow: 0 0.75rem 1.75rem -0.75rem shadow(0.75);
     }
 
     .p-avatar.p-avatar-circle {
-        box-shadow: 0 0 0 2px $surfaceColor, 0 0.4rem 1rem -0.35rem rgba(0, 0, 0, 0.85);
+        box-shadow: 0 0 0 2px $surfaceColor, 0 0.4rem 1rem -0.35rem shadow(0.85);
     }
 
     // Switches: this PrimeReact version marks the checked state with p-highlight
@@ -187,31 +187,31 @@
     
     .p-button {
         &:focus {
-            @include focused-ring(rgba($buttonBg, .7));
+            @include focused-ring(with-alpha($buttonBg, .7));
         }
     
         &.p-button-secondary:enabled:focus {
-            @include focused-ring(rgba($secondaryButtonBg, .7));
+            @include focused-ring(with-alpha($secondaryButtonBg, .7));
         }
     
         &.p-button-success:enabled:focus {
-            @include focused-ring(rgba($successButtonBg, .7));
+            @include focused-ring(with-alpha($successButtonBg, .7));
         }
     
         &.p-button-info:enabled:focus {
-            @include focused-ring(rgba($infoButtonBg, .7));
+            @include focused-ring(with-alpha($infoButtonBg, .7));
         }
     
         &.p-button-warning:enabled:focus {
-            @include focused-ring(rgba($warningButtonBg, .7));
+            @include focused-ring(with-alpha($warningButtonBg, .7));
         }
     
         &.p-button-help:enabled:focus {
-            @include focused-ring(rgba($helpButtonBg, .7));
+            @include focused-ring(with-alpha($helpButtonBg, .7));
         }
     
         &.p-button-danger:enabled:focus {
-            @include focused-ring(rgba($dangerButtonBg, .7));
+            @include focused-ring(with-alpha($dangerButtonBg, .7));
         }
     }
     
@@ -231,7 +231,7 @@
 
     .p-speeddial-item {
         &.p-focus > .p-speeddial-action {
-            @include focused-ring(rgba($buttonBg, .7));
+            @include focused-ring(with-alpha($buttonBg, .7));
         }
     }
 
@@ -242,7 +242,7 @@
     .p-message {
         .p-message-close {
             &:hover {
-                background: rgba(255,255,255,.1);
+                background: ink(.1);
             }        
         }
     }
@@ -251,7 +251,7 @@
         .p-toast-message {
             .p-toast-icon-close {
                 &:hover {
-                    background: rgba(255,255,255,.1);
+                    background: ink(.1);
                 }
             }
         }
@@ -286,6 +286,6 @@
     &:not(:disabled):hover,
     &:not(:disabled):active {
         color: var(--text-default);
-        background: rgba(255, 255, 255, 0.06);
+        background: ink(0.06);
     }
 }

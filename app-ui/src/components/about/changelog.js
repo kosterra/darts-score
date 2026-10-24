@@ -7,6 +7,28 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.14',
+        changes: [
+            t('Choose your notifications under Profile → Notifications: for each kind in the app or not, and by mail at once, once a day or once a week. Every mail has a link to get no more.'),
+            t('New notifications: your badges, a new level, your records (a personal best someone else entered for you, your club record beaten), the Hall of Shame, the club rating (off until you turn it on) and a game left running for three days; and your week by mail on Mondays.'),
+            t('For club admins: a game or training in the club that cannot be real, a goal ending within a week, a login not used after a week (with Send the invitation again on the player\'s page), and the week of the club by mail on Mondays.'),
+            t('For global admins: the alerts at once (critical ones) or once a day, and many errors of the app within a day.'),
+            t('A mail whenever your password or email address is changed (to the old address too) or your account is blocked, so you notice when someone else uses it.'),
+            t('Themes under Profile → Account → Display: dark, light, like the device, pure black (for OLED screens) or high contrast, with your account on every device; the charts and the dartboard follow.'),
+            t('Accent colours: Oche green, dartboard red, blue, gold or purple; good figures stay green whatever the colour. The club admins choose the club\'s colour under Edit club, for the members who did not choose their own.'),
+            t('The background behind the pages: the dartboard photo, blurred, or plain (calmer, and lighter on older phones).'),
+            t('Delete your account under Profile → Account: your players stay in their clubs under an anonymous name, so the games and statistics of the others stay whole; your name, picture and date of birth are removed.'),
+            t('A privacy page with the imprint, linked in the footer of the public pages and on About; the global admins enter who runs the installation under System settings.'),
+            t('For global admins: the daily limit of the mail server under System settings → Mail server, with the mails of the last seven days; close to it and when it is reached they hear it, no more mails are sent that day, and the weekly report says on how many days it was reached.'),
+            t('For global admins: Admin → Logged in shows who is logged in now, on which devices and when last used, and ends a session; Admin → Usage shows the use of the app per week, and a report comes by mail on Mondays.'),
+            t('For global admins: a test mail to any address under System settings → Mail server, with how mail is set up and, when it fails, what to check (login, server name, port, encryption or sender) and the answer of the mail server.'),
+            t('A new font, Exo 2, delivered by Oche itself instead of by Google: scores keep their place while they count down (every figure equally wide) and small text reads more easily.'),
+            t('Two-step login: after the password, a code of an authenticator app on your phone (or one of ten recovery codes), turned on under Profile → Account; a device of your own can skip it for 30 days.'),
+            t('Global admins choose under System settings whether two-step login is off, optional, or required for the admins or for everyone, with days to set it up; for a lost phone they reset it under Users.'),
+            t('Players without a login: with their consent their club keeps an address for them, for their badges, level and records once a day and their week on Mondays; and a link with a QR code lets them take over their player with a login of their own, with all games, statistics and badges.'),
+        ],
+    },
+    {
         version: '2026.10.13',
         changes: [
             t('Badges for the newer games: a win series for each of Shanghai, Killer, Halve-It, Golf and Tactics, and Untouchable (a Killer win without losing a life), Instant Shanghai, Triple Kill (three lives in one visit), Never Halved, Hole in One and Clean Sheet (all twelve numbers of Tactics). The All-rounder counts all nine games now: 3, 6 or 9 game types won. Games played before count too.'),

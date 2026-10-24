@@ -21,7 +21,7 @@
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
 
-  &:hover:not(:disabled) { background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
+  &:hover:not(:disabled) { background: color-mix(in srgb, var(--c-ink-color) 6%, var(--surface-raised)); }
   &:focus-visible { @include focus-ring(2px); }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -104,7 +104,7 @@
   gap: $space-2;
   padding: 0.3rem 0.3rem 0.3rem 0.5rem;
   border-radius: $radius-pill;
-  background: rgba(255, 255, 255, 0.08);
+  background: ink(0.08);
   cursor: grab;
 
   &.is-dragged { opacity: 0.4; }
@@ -139,7 +139,7 @@
   font-size: $text-xs;
   cursor: pointer;
 
-  &:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
+  &:hover:not(:disabled) { background: ink(0.08); color: var(--text-default); }
   &:disabled { opacity: 0.3; cursor: default; }
 }
 
@@ -233,18 +233,18 @@
   padding: 0.45rem 0.9rem;
   border: 0;
   border-radius: $radius-pill;
-  background: rgba(255, 255, 255, 0.07);
+  background: ink(0.07);
   color: var(--text-default);
   font-size: $text-sm;
   font-weight: $weight-bold;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
-  &:hover { background: rgba(255, 255, 255, 0.12); }
+  &:hover { background: ink(0.12); }
   &:focus-visible { @include focus-ring(2px); }
 
   &.is-active {
-    background: rgba($primaryColor, 0.42);
+    background: soft($primaryColor, 0.42);
     color: $buttonTextColor;
   }
 }
@@ -343,7 +343,7 @@
   border: 2px solid transparent;
   border-radius: $radius-round;
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 1px shadow(0.4);
 
   &:focus-visible { @include focus-ring(2px); }
 
@@ -408,7 +408,7 @@
 }
 
 .flight-tile {
-  --rarity: rgba(255, 255, 255, 0.14);
+  --rarity: #{ink(0.14)};
   position: relative;
   display: flex;
   flex-direction: column;
@@ -431,13 +431,13 @@
     box-shadow: inset 0 0 1.2rem rgba(233, 172, 47, 0.12);
   }
 
-  &:hover { background: rgba(255, 255, 255, 0.06); }
+  &:hover { background: ink(0.06); }
   &:focus-visible { @include focus-ring(2px); }
 
   &.is-selected {
-    border-color: rgba(255, 255, 255, 0.55);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
-    background: rgba($primaryColor, 0.14);
+    border-color: ink(0.55);
+    box-shadow: 0 0 0 2px ink(0.55);
+    background: with-alpha($primaryColor, 0.14);
   }
 
   // only points missing: the design in full, the price in gold once it can be paid
@@ -519,7 +519,7 @@
 }
 
 .flight-album-item {
-  --rarity: rgba(255, 255, 255, 0.14);
+  --rarity: #{ink(0.14)};
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -1,7 +1,8 @@
 @layer bootstrap, primereact;
 
-@import url('https://fonts.googleapis.com/css2?family=Exo:ital,wght@0,100..900;1,100..900&display=swap');
+@import '_fonts';
 
+@import '_theme-vars';
 @import '_mixins';
 @import '_colors';
 @import '_tokens';
@@ -18,6 +19,8 @@
 @import 'custom/components/_fileupload';
 @import 'custom/components/_landing';
 @import 'custom/components/_install';
+@import 'custom/components/_notifications';
+@import 'custom/components/_appearance';
 @import 'custom/components/_dashboard';
 @import 'custom/components/_admin';
 @import 'custom/components/_one-eighty';

@@ -22,46 +22,46 @@ $colors: (
 	"gold": $gold,
 	"silver": $silver,
 	"bronze": $bronze,
-	"primary": $primaryColor
+	"primary": $green
 );
 
 //shades
-$shade000: #fff !default;
-$shade50: #e4e4e4 !default;
-$shade100: #d4d4d4 !default;
-$shade200: #c0bebe !default;
-$shade300: #b6b6b6 !default;
-$shade400: #a3a3a3 !default;
-$shade500: #7a7a7a !default;
-$shade600: #5c5c5c !default;
-$shade650: #393939 !default;
-$shade700: #313131 !default;
-$shade700Translucent: #313131ad !default;
-$shade800: #292929 !default;
-$shade800Translucent: #292929ad !default;
-$shade900: #222121 !default;
-$shade900Translucent: #222121ad !default;
+$shade000: var(--c-shade-000) !default;
+$shade50: var(--c-shade-50) !default;
+$shade100: var(--c-shade-100) !default;
+$shade200: var(--c-shade-200) !default;
+$shade300: var(--c-shade-300) !default;
+$shade400: var(--c-shade-400) !default;
+$shade500: var(--c-shade-500) !default;
+$shade600: var(--c-shade-600) !default;
+$shade650: var(--c-shade-650) !default;
+$shade700: var(--c-shade-700) !default;
+$shade700Translucent: color-mix(in srgb, var(--c-shade-700) 68%, transparent) !default;
+$shade800: var(--c-shade-800) !default;
+$shade800Translucent: color-mix(in srgb, var(--c-shade-800) 68%, transparent) !default;
+$shade900: var(--c-shade-900) !default;
+$shade900Translucent: color-mix(in srgb, var(--c-shade-900) 68%, transparent) !default;
 
 // Semantic roles — components use these (via the text-*/bg-surface*/border-default
 // classes or the CSS variables) instead of picking raw shades.
 // Text roles keep at least 4.5:1 contrast on every surface role.
 $textDefaultColor: $shade100 !default;
 $textSubtleColor: $shade300 !default;
-$textFaintColor: #9a9a9a !default;
+$textFaintColor: var(--c-text-faint) !default;
 $surfaceColor: $shade800 !default;
 $surfaceRaisedColor: $shade700 !default;
 $surfaceHighColor: $shade650 !default;
 $surfaceTranslucentColor: $shade700Translucent !default;
 $borderDefaultColor: $shade600 !default;
 // game status, in tags and timeline dots: soft orange while running, soft blue when finished
-$statusRunningColor: #f2b07e !default;
-$statusFinishedColor: #8fc3df !default;
-$statusTextColor: #1d1c1a !default;
+$statusRunningColor: var(--c-status-running) !default;
+$statusFinishedColor: var(--c-status-finished) !default;
+$statusTextColor: var(--c-status-text) !default;
 
-$hoverBg: rgba(255, 255, 255, 0.03) !default;
+$hoverBg: ink(0.03) !default;
 
 //global
-$fontFamily: "Exo", sans-serif !default;
+$fontFamily: "Exo 2", sans-serif !default;
 $fontSize: 1rem !default;
 $fontWeight: normal !default;
 $textColor: $shade000 !default;
@@ -88,7 +88,7 @@ $scaleLG: 1.25 !default;
 
 //focus
 // the focus ring of the whole app: light grey, never green (as $focusRingColor in base/_tokens.scss)
-$focusOutlineColor: rgba(255, 255, 255, 0.6) !default;
+$focusOutlineColor: ink(0.6) !default;
 $focusOutline: 0 none !default;
 $focusOutlineOffset: 0 !default;
 $focusShadow: 0 0 0 2px $focusOutlineColor !default;
@@ -153,8 +153,8 @@ $inputListHeaderBorder: 1px solid $shade600 !default;
 $inputOverlayBg: $inputListBg !default;
 $inputOverlayHeaderBg: $inputListHeaderBg !default;
 $inputOverlayBorder: 0 !default;
-$inputOverlayShadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2),
-	0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12) !default;
+$inputOverlayShadow: 0 2px 4px -1px shadow(0.2),
+	0 4px 5px 0 shadow(0.14), 0 1px 10px 0 shadow(0.12) !default;
 
 //password
 $passwordMeterBg: $shade600 !default;
@@ -178,8 +178,8 @@ $buttonHoverBorderColor: $primaryColor !default;
 $buttonActiveBg: $primaryLightColor !default;
 $buttonTextActiveColor: $primaryTextColor !default;
 $buttonActiveBorderColor: $primaryLightColor !default;
-$raisedButtonShadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
-	0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12) !default;
+$raisedButtonShadow: 0px 3px 1px -2px shadow(0.2),
+	0px 2px 2px 0px shadow(0.14), 0px 1px 5px 0px shadow(0.12) !default;
 $roundedButtonBorderRadius: 2rem !default;
 
 $textButtonHoverBgOpacity: 0.08 !default;
@@ -187,7 +187,7 @@ $textButtonActiveBgOpacity: 0.16 !default;
 $outlinedButtonBorder: 1px solid !default;
 $plainButtonTextColor: $textSecondaryColor !default;
 $plainButtonHoverBgColor: $hoverBg !default;
-$plainButtonActiveBgColor: rgba(255, 255, 255, 0.16) !default;
+$plainButtonActiveBgColor: ink(0.16) !default;
 
 $secondaryButtonBg: $shade700 !default;
 $secondaryButtonTextColor: $shade000 !default;
@@ -570,7 +570,7 @@ $tableFooterCellFontWeight: 700 !default;
 $tableFooterCellBorder: 1px solid $shade600 !default;
 $tableFooterCellBorderWidth: 0 0 1px 0 !default;
 $tableResizerHelperBg: $primaryColor !default;
-$tableDragHelperBg: rgba($primaryColor, 0.16) !default;
+$tableDragHelperBg: with-alpha($primaryColor, 0.16) !default;
 
 $tableFooterBorder: 1px solid $shade600 !default;
 $tableFooterBorderWidth: 0 0 1px 0 !default;
@@ -745,8 +745,8 @@ $submenuHeaderBorderRadius: 0 !default;
 $submenuHeaderFontWeight: 700 !default;
 $overlayMenuBg: $menuBg !default;
 $overlayMenuBorder: 0 none !default;
-$overlayMenuShadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2),
-	0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12) !default;
+$overlayMenuShadow: 0 2px 4px -1px shadow(0.2),
+	0 4px 5px 0 shadow(0.14), 0 1px 10px 0 shadow(0.12) !default;
 $overlayMenuFontSize: 0.9rem !default;
 $overlayMenuFontWeight: 600 !default;
 $verticalMenuPadding: 0.25rem 0 !default;
@@ -861,7 +861,7 @@ $chipFocusTextColor: $textColor !default;
 
 //scrollTop
 $scrollTopBg: $highlightBg !default;
-$scrollTopHoverBg: color.scale($highlightBg, $alpha: 24%) !default;
+$scrollTopHoverBg: $highlightBg !default; // (an opaque colour: scaling its alpha changed nothing)
 $scrollTopWidth: 3rem !default;
 $scrollTopHeight: 3rem !default;
 $scrollTopBorderRadius: 50% !default;
@@ -869,11 +869,11 @@ $scrollTopFontSize: 1.5rem !default;
 $scrollTopTextColor: $highlightTextColor !default;
 
 //skeleton
-$skeletonBg: rgba(255, 255, 255, 0.06) !default;
-$skeletonAnimationBg: rgba(255, 255, 255, 0.04) !default;
+$skeletonBg: ink(0.06) !default;
+$skeletonAnimationBg: ink(0.04) !default;
 
 //splitter
-$splitterGutterBg: rgba(255, 255, 255, 0.03) !default;
+$splitterGutterBg: ink(0.03) !default;
 $splitterGutterHandleBg: $shade600 !default;
 
 //speeddial
@@ -920,10 +920,10 @@ $toolbarBorder: none !default;
 $toolbarPadding: $panelHeaderPadding !default;
 
 :root {
-	font-family: "Exo", sans-serif;
+	font-family: "Exo 2", sans-serif;
 	font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 	font-variation-settings: normal;
-	--font-family: "Exo", sans-serif;
+	--font-family: "Exo 2", sans-serif;
 	--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 	--surface-a: #{$shade800};
 	--surface-b: #{$shade900};
@@ -970,8 +970,8 @@ $toolbarPadding: $panelHeaderPadding !default;
 	--surface-section: #{$surfaceColor};
 	--surface-card: #{$surfaceRaisedColor};
 	--surface-overlay: #{$surfaceRaisedColor};
-	--surface-border: rgba(255, 255, 255, 0.1);
-	--surface-hover: rgba(255, 255, 255, 0.03);
+	--surface-border: #{ink(0.1)};
+	--surface-hover: #{ink(0.03)};
 	--focus-ring: #{$focusShadow};
 	--maskbg: #{$maskBg};
 	--highlight-bg: #{$highlightBg};

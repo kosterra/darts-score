@@ -247,6 +247,16 @@ const MAX_SETUP_CLUBS = 10;
 const isId = (value) => typeof value === 'string' && /^[A-Za-z0-9._-]{1,60}$/.test(value);
 const plain = (value) => value && typeof value === 'object' && !Array.isArray(value);
 
+// the looks of the app (see utils/appearance.js)
+export const THEMES = ['dark', 'light', 'auto', 'black', 'contrast'];
+export const ACCENTS = ['green', 'red', 'blue', 'gold', 'purple'];
+export const BACKGROUNDS = ['photo', 'blurred', 'plain'];
+export const appearanceOf = (raw) => ({
+    theme: THEMES.includes(raw?.theme) ? raw.theme : 'dark',
+    accent: ACCENTS.includes(raw?.accent) ? raw.accent : null,
+    background: BACKGROUNDS.includes(raw?.background) ? raw.background : 'photo',
+});
+
 export const normalizeGamePreferences = (raw = {}) => {
     const favourites = {};
     for (const [game, keys] of Object.entries(plain(raw?.favourites) ? raw.favourites : {})) {
@@ -277,6 +287,8 @@ export const normalizeGamePreferences = (raw = {}) => {
         inputMode: ['board', 'keypad'].includes(raw?.inputMode) ? raw.inputMode : null,
         // how dates are shown; null: the usual format of the language
         dateFormat: ['DD.MM.YYYY', 'DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'].includes(raw?.dateFormat) ? raw.dateFormat : null,
+        // how the app looks: the theme, the accent colour (null: the club's) and the background
+        appearance: appearanceOf(raw?.appearance),
         favourites,
         setups,
         training: {

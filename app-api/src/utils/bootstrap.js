@@ -35,7 +35,23 @@ const ensureGlobalAdmin = async () => {
     return admin;
 };
 
+/**
+ * The way back in for a global admin who lost both the phone and the
+ * recovery codes: ADMIN_RESET_MFA=<email> turns off the two-step login of
+ * that account on the next start (remove the variable afterwards).
+ */
+const resetMfaFromEnv = async () => {
+    const email = process.env.ADMIN_RESET_MFA?.trim().toLowerCase();
+    if (!email) return;
+    const user = await db.user.findOne({ email });
+    if (!user?.mfa?.enabledAt) return;
+    user.mfa = { secret: null, pendingSecret: null, enabledAt: null, lastStep: null, recoveryHashes: [], trustSalt: null };
+    await user.save({ timestamps: false });
+    logger.warn(`Two-step login of ${email} turned off by ADMIN_RESET_MFA — remove the variable now`);
+};
+
 export const bootstrap = async () => {
     const admin = await ensureGlobalAdmin();
+    await resetMfaFromEnv();
     await runMigrations({ admin });
 };

@@ -23,13 +23,14 @@ $labelRed: $accentRed;
 }
 
 @mixin label-tone($color) {
-    background: rgba($color, 0.14);
-    color: $color;
+    background: with-alpha($color, 0.14);
+    // the pastel colours read on dark surfaces; on the light theme the text is darkened (--pastel-text)
+    color: color-mix(in srgb, #{$color} var(--pastel-text, 100%), black);
 }
 
 // a light tint on top, so it shows on panels and on cards alike
 @mixin label-neutral {
-    background: rgba(255, 255, 255, 0.08);
+    background: ink(0.08);
     color: var(--text-default);
 }
 
@@ -68,7 +69,7 @@ $labelRed: $accentRed;
 
 // a chosen entry in the list of a (multi) select: the soft green of a chosen pill
 :where(.p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight, .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight) {
-  background: rgba($primaryColor, 0.42);
+  background: soft($primaryColor, 0.42);
   color: $buttonTextColor;
 }
 
@@ -92,7 +93,7 @@ $labelRed: $accentRed;
     position: relative;
     top: -0.11em;
     border-radius: $radius-sm;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 1px ink(0.12);
     margin-left: 0.15em;
 }
 

@@ -2,6 +2,7 @@ import { loadFlightStanding } from '../utils/flight.service.js';
 import { mayUse, unlockCheck } from '../utils/flights.js';
 import logger from '../models/logger.model.js';
 import { noteCreated, noteDeleted, checkLater } from '../utils/spam.guard.js';
+import { linkPlayerToAccount } from '../utils/player.claims.js';
 import db from '../models/db.model.js';
 import { removeProfileImageFile } from './file.controller.js';
 import { CLUB_ROLES } from '../models/user.model.js';
@@ -28,15 +29,16 @@ const findInClub = (req, filter = inClub) =>
 
 /**
  * Players as sent to the client. Club admins also get the email of the
- * account a player logs in with.
+ * account a player logs in with, and whether it was used.
  */
 const toClient = async (players, req) => {
     const list = players.map(p => p.toJSON());
     if (req.clubRole !== CLUB_ROLES.ADMIN) return list;
 
-    const accounts = await db.user.find({ _id: { $in: list.map(p => p.user).filter(Boolean) } }, 'email');
-    const emailById = new Map(accounts.map(account => [String(account._id), account.email]));
-    return list.map(p => p.user ? { ...p, accountEmail: emailById.get(String(p.user)) ?? null } : p);
+    const accounts = await db.user.find({ _id: { $in: list.map(p => p.user).filter(Boolean) } }, 'email lastLoginAt');
+    const byId = new Map(accounts.map(account => [String(account._id), account]));
+    // with whether the login was ever used, to send the invitation again
+    return list.map(p => p.user ? { ...p, accountEmail: byId.get(String(p.user))?.email ?? null, accountUsed: Boolean(byId.get(String(p.user))?.lastLoginAt) } : p);
 };
 
 export const create = async (req, res) => {
@@ -264,6 +266,7 @@ export const remove = async (req, res) => {
     }
 
     await player.deleteOne();
+    await Promise.all([db.playerContact.deleteMany({ player: player._id }), db.playerClaim.deleteMany({ player: player._id })]);
     checkLater(() => noteDeleted(req, 'player'));
     await removeProfileImageIfUnused(player.profileImg);
     res.send({ message: 'Player was deleted successfully!', removed: 'player' });
@@ -321,26 +324,8 @@ export const giveLogin = async (req, res) => {
     if (error) return res.status(422).json({ errors: [error] });
     if (isGlobalAdminAccount(user)) return res.status(409).json({ message: `${user.email} is a global admin. ${NO_CLUB_FOR_GLOBAL_ADMINS}` });
 
-    // one account is one player per club, also in the player's other clubs
-    const other = await Player.findOne({ clubs: { $in: player.clubs }, user: user._id, _id: { $ne: player._id } });
-    if (other) {
-        return res.status(409).json({ message: `This account already plays as ${other.nickname} in a club of this player.` });
-    }
-
-    player.user = user._id;
-    // the player is the account's from now on: its name, and one picture for all its players
-    player.firstname = user.firstname;
-    player.lastname = user.lastname;
-    const pictured = await Player.findOne({ user: user._id, _id: { $ne: player._id }, profileImg: { $nin: ['', null] } }, 'profileImg');
-    if (pictured) {
-        const previousImg = player.profileImg;
-        player.profileImg = pictured.profileImg;
-        await player.save();
-        if (previousImg && previousImg !== player.profileImg) await removeProfileImageIfUnused(previousImg);
-    } else {
-        await player.save();
-        if (player.profileImg) await Player.updateMany({ user: user._id, _id: { $ne: player._id } }, { $set: { profileImg: player.profileImg } });
-    }
+    const refused = await linkPlayerToAccount(player, user);
+    if (refused) return res.status(409).json({ message: refused });
     logger.info(`${user.email} can now log in as player "${player.nickname}" of club "${req.club.name}"`);
 
     sendClubWelcomeMail(user, inviteLink, 'player', { club: req.club.name, inviter: `${req.user.firstname} ${req.user.lastname}`, nickname: player.nickname, language: req.user.language });

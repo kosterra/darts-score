@@ -35,7 +35,7 @@
 
         // a ticked row
         &.p-highlight > td {
-            background: rgba($primaryColor, 0.22);
+            background: with-alpha($primaryColor, 0.22);
         }
 
         // "no entries" is a message, not an entry
@@ -68,32 +68,32 @@
         padding: 0;
         border: 0;
         // a soft tint at rest, a little stronger on hover: the button is always seen as one
-        background: rgba(255, 255, 255, 0.07);
+        background: ink(0.07);
         color: $textSubtleColor;
         box-shadow: none;
         transition: background-color 0.2s ease, color 0.2s ease;
 
         &:enabled:hover,
         &:focus-visible {
-            background: rgba(255, 255, 255, 0.14);
+            background: ink(0.14);
             color: $textDefaultColor;
         }
 
         // deleting: in red, at rest and stronger on hover
         &.p-button-danger {
-            background: rgba($dangerButtonBg, 0.14);
-            color: lighten($dangerButtonBg, 12%);
+            background: with-alpha($dangerButtonBg, 0.14);
+            color: lighter($dangerButtonBg, 12%);
 
-            &:enabled:hover { background: rgba($dangerButtonBg, 0.26); color: lighten($dangerButtonBg, 22%); }
+            &:enabled:hover { background: with-alpha($dangerButtonBg, 0.26); color: lighter($dangerButtonBg, 22%); }
         }
 
         // buttons without a severity mark the main action or a switched-on state,
         // e.g. a player with a login or a public nickname
         &:not(.p-button-secondary):not(.p-button-info):not(.p-button-danger) {
-            background: rgba($primaryColor, 0.14);
+            background: with-alpha($primaryColor, 0.14);
             color: $primaryColor;
 
-            &:enabled:hover { background: rgba($primaryColor, 0.26); color: $softGreenTextHover; }
+            &:enabled:hover { background: with-alpha($primaryColor, 0.26); color: $softGreenTextHover; }
         }
     }
 
@@ -104,14 +104,14 @@
         width: 2.25rem;
         height: 2.25rem;
         border-radius: $radius-md;
-        background: rgba(255, 255, 255, 0.07);
+        background: ink(0.07);
         color: $textSubtleColor;
         text-decoration: none;
         transition: background-color 0.2s ease, color 0.2s ease;
 
         &:hover,
         &:focus-visible {
-            background: rgba(255, 255, 255, 0.14);
+            background: ink(0.14);
             color: $textDefaultColor;
         }
     }
@@ -139,7 +139,7 @@
     border: 2px solid transparent;
     border-radius: $radius-round;
     cursor: pointer;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 0 1px shadow(0.4);
 
     &.is-selected {
         border-color: $shade000;
@@ -312,7 +312,7 @@ $fair-play-suspicious: $accentAmber;
 
   // the visit at fault: tinted in the colour of its level, with an edge
   @each $level, $color in (impossible: $fair-play-impossible, error: $fair-play-error, suspicious: $fair-play-suspicious) {
-    tr.is-#{$level} td { background: rgba($color, 0.2); color: var(--text-default); }
+    tr.is-#{$level} td { background: with-alpha($color, 0.2); color: var(--text-default); }
     tr.is-#{$level} td:first-child { box-shadow: inset 3px 0 0 $color; }
   }
 }
@@ -669,7 +669,7 @@ $fair-play-suspicious: $accentAmber;
 }
 
 .quick-games-day .is-started,
-.quick-games-key.is-started { background: rgba($primaryColor, 0.35); }
+.quick-games-key.is-started { background: with-alpha($primaryColor, 0.35); }
 
 .quick-games-day .is-finished,
 .quick-games-key.is-finished { background: $primaryColor; }
@@ -689,13 +689,13 @@ $fair-play-suspicious: $accentAmber;
   padding: 0.15rem 0.5rem;
   border: 1px solid var(--border-default);
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.04);
+  background: ink(0.04);
   color: var(--text-subtle);
   font-family: monospace;
   font-size: $text-sm;
   cursor: pointer;
 
-  &:hover { color: var(--text-default); background: rgba(255, 255, 255, 0.09); }
+  &:hover { color: var(--text-default); background: ink(0.09); }
 }
 
 .mail-preview-subject {
@@ -869,3 +869,132 @@ $fair-play-suspicious: $accentAmber;
 .filter-pills .filter-pill-icon {
     font-size: $text-sm;
 }
+
+// the mail server: the settings as label and value, side by side
+.mail-server-setup {
+    grid-template-columns: max-content 1fr;
+    column-gap: 1.5rem;
+}
+
+// what the mail server answered: its words as they came, in the text's own colour
+.mail-server-answer code {
+    color: inherit;
+    font-size: inherit;
+    word-break: break-word;
+}
+
+// who is logged in: an account per row, its devices below it
+.session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.session-account {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: $radius-md;
+    background: ink(0.04);
+}
+
+.session-account-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.session-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+// used within the last minutes
+.session-dot {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: $primaryColor;
+    box-shadow: 0 0 0 2px var(--c-shade-800);
+}
+
+.session-devices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-left: 3.35rem;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 2.25rem;
+    }
+
+    @media (max-width: 575px) { padding-left: 0; }
+}
+
+// the use of the app per week
+.usage-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $text-sm;
+
+    th, td {
+        padding: 0.5rem 0.6rem;
+        text-align: right;
+        white-space: nowrap;
+        border-bottom: 1px solid ink(0.08);
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--text-subtle); font-weight: $weight-semibold; }
+    td { font-variant-numeric: tabular-nums; }
+    tr.is-current td { color: var(--text-subtle); }
+}
+
+.usage-table-wrap { overflow-x: auto; }
+
+// the mail server: a link from a notification lands on it below the top bar
+.scroll-anchor { scroll-margin-top: 5rem; }
+
+.mail-limit-input { width: 12rem; }
+
+// the mails of the last seven days, a bar each; red where the limit was reached
+.mail-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.4rem;
+    max-width: 28rem;
+}
+
+.mail-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: $text-xs;
+}
+
+.mail-day-bar {
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    height: 3.5rem;
+    border-radius: $radius-sm;
+    background: ink(0.05);
+    overflow: hidden;
+
+    span {
+        width: 100%;
+        background: soft($primaryColor, 0.7);
+    }
+}
+
+.mail-day.is-reached .mail-day-bar span { background: soft($accentRed, 0.7); }
+.mail-day-count { color: var(--text-default); font-variant-numeric: tabular-nums; }
+.mail-day-label { color: var(--text-faint); }

@@ -27,8 +27,9 @@ $dartboard-opacity: 0.4;
         opacity: 0.5;
     }
 
+    // the board keeps its own colours in every theme: dark and light fields, red and green rings
     .single.even {
-        fill: $shade800;
+        fill: map.get($theme-dark, shade-800);
 
         &:hover {
             opacity: 0.2;
@@ -123,7 +124,7 @@ $dartboard-opacity: 0.4;
   border: 3px solid $accentBlue;
   border-radius: $radius-round;
   background: $surfaceColor;
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0.5rem 1.5rem shadow(0.6);
 
   .item:hover { opacity: 1; }
 }
@@ -138,7 +139,7 @@ $dartboard-opacity: 0.4;
   border: 2px solid #fff;
   border-radius: $radius-round;
   background: $accentBlue;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px shadow(0.5);
 }
 
 .dartboard-loupe-label {
@@ -148,7 +149,7 @@ $dartboard-opacity: 0.4;
   color: #0b1620;
   font-size: $text-base;
   font-weight: $weight-bold;
-  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0.25rem 0.75rem shadow(0.5);
 }
 
 @media (prefers-reduced-motion: reduce) {

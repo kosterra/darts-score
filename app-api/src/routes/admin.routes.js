@@ -5,10 +5,13 @@ import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
 import * as MailTemplateController from '../controllers/mail.template.controller.js';
+import * as UsageController from '../controllers/usage.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
 import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
+import { GRACE_DAYS, MFA_POLICIES, getMfaSettings, isMfaEnabled, saveMfaSettings } from '../utils/mfa.js';
+import { LEGAL_LIMITS, getLegalSettings, saveLegalSettings } from '../utils/legal.settings.js';
 import { getStartPageSettings, saveStartPageSettings } from '../utils/start.page.settings.js';
 import { MAIL_LANGUAGES } from '../utils/mail.templates.js';
 import { installationNumbers } from '../controllers/public.controller.js';
@@ -67,6 +70,36 @@ export default (app) => {
         },
     );
 
+    // two-step login: off, optional, required for the admins or for everyone, with the days to set it up
+    router.get('/mfa', async (req, res) => res.json({ ...await getMfaSettings(), policies: MFA_POLICIES, graceLimits: GRACE_DAYS, ownEnabled: isMfaEnabled(req.user) }));
+    router.put('/mfa',
+        body('policy').isIn(MFA_POLICIES).withMessage(`policy must be one of: ${MFA_POLICIES.join(', ')}.`),
+        body('graceDays').isInt({ min: GRACE_DAYS.min, max: GRACE_DAYS.max }).withMessage(`The days to set it up are ${GRACE_DAYS.min} to ${GRACE_DAYS.max}.`).toInt(),
+        validate,
+        async (req, res) => {
+            // so nobody locks out the installation: required only by an admin who uses it
+            if ((req.body.policy === 'admins' || req.body.policy === 'everyone') && !isMfaEnabled(req.user)) {
+                return res.status(409).json({ message: 'Turn on two-step login for your own account first (Profile → Account).' });
+            }
+            const settings = await saveMfaSettings({ policy: req.body.policy, graceDays: req.body.graceDays });
+            logger.info(`Two-step login set to "${settings.policy}" (${settings.graceDays} days) by ${req.user.email}`);
+            res.json({ ...settings, policies: MFA_POLICIES, graceLimits: GRACE_DAYS, ownEnabled: true });
+        },
+    );
+
+    // who runs the installation, for the privacy policy and the imprint
+    router.get('/legal', async (req, res) => res.json({ ...await getLegalSettings(), limits: LEGAL_LIMITS }));
+    router.put('/legal',
+        ...Object.entries(LEGAL_LIMITS).map(([field, max]) => body(field).optional().isString().isLength({ max }).withMessage(`The ${field} can have at most ${max} characters.`)),
+        body('email').optional({ values: 'falsy' }).isEmail().withMessage('A valid email address is required.'),
+        validate,
+        async (req, res) => {
+            const settings = await saveLegalSettings(req.body);
+            logger.info(`Privacy and imprint details saved by ${req.user.email}`);
+            res.json({ ...settings, limits: LEGAL_LIMITS });
+        },
+    );
+
     // what the public start page shows: the numbers of the installation, or not yet
     // with the numbers as they are now, shown or not, to decide on
     router.get('/start-page', async (req, res) => res.json({ ...await getStartPageSettings(), numbers: await installationNumbers() }));
@@ -90,6 +123,28 @@ export default (app) => {
     router.delete('/mail-templates/:id', templateId, templateLanguage, validate, MailTemplateController.reset);
     router.post('/mail-templates/:id/preview', templateId, templateLanguage, templateFields, validate, MailTemplateController.preview);
     router.post('/mail-templates/:id/test', templateId, templateLanguage, templateFields, validate, MailTemplateController.test);
+
+    // the mail server: how it is set up, and a test mail to any address
+    router.get('/mail-server', MailTemplateController.setup);
+    router.put(
+        '/mail-server/limit',
+        body('perDay').optional({ values: 'null' }).isInt({ min: 1, max: 1000000 }).withMessage('The limit is a number from 1 to 1000000, or empty for none.'),
+        validate,
+        MailTemplateController.saveLimit,
+    );
+    router.post(
+        '/mail-server/test',
+        body('to').isEmail().withMessage('A valid email address is required.'),
+        body('language').optional().isIn(MAIL_LANGUAGES).withMessage('Unknown language.'),
+        validate,
+        MailTemplateController.sendTest,
+    );
+
+    // who is logged in, ending a session, and the use of the app per week
+    router.get('/sessions', UsageController.sessions);
+    router.delete('/sessions/users/:id', param('id').isMongoId().withMessage('Invalid id.'), validate, UsageController.endAllOf);
+    router.delete('/sessions/:id', param('id').isMongoId().withMessage('Invalid id.'), validate, UsageController.endOne);
+    router.get('/usage', query('weeks').optional().isInt({ min: 1, max: 26 }).withMessage('weeks is a number from 1 to 26.'), validate, UsageController.usage);
 
     // warnings and errors of the API
     router.get('/logs', SecurityController.logs);

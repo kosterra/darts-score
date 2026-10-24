@@ -107,6 +107,7 @@ const UsersList = () => {
         <span className="text-default fw-semibold">
             {user.firstname} {user.lastname}{isSelf(user) && <span className="text-faint fw-normal">{' '}{t('(you)')}</span>}
             {user.blockedAt && <Tag value="Blocked" severity="danger" className="ms-2" title={user.blockedReason} />}
+            {user.mfaEnabled && <Tag value={t('2-step')} severity="success" icon="pi pi-lock" className="ms-2" title={t('Two-step login is on')} />}
         </span>
     );
 

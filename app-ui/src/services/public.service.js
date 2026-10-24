@@ -11,9 +11,13 @@ const loadOverview = () => requestJSON('/api/public/overview');
  */
 const loadBanner = () => requestJSON('/api/public/banner');
 
+// the privacy policy and imprint: who runs the installation, how long what is kept
+const loadLegal = () => requestJSON('/api/public/legal');
+
 const PublicService = {
     loadOverview,
-    loadBanner
+    loadBanner,
+    loadLegal,
 };
 
 export default PublicService;

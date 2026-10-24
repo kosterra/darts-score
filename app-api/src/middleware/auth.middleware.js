@@ -1,6 +1,7 @@
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { readSession, setSessionCookie } from '../utils/auth.utils.js';
+import { findSession } from '../utils/sessions.js';
 import { cappedExpiry, getSessionTimeoutMs } from '../utils/session.settings.js';
 
 const User = db.user;
@@ -23,6 +24,18 @@ export const getClubRole = async (user, club) => {
 };
 
 /**
+ * The logged-in user as req.user when there is a session, else goes on
+ * without (e.g. setting up two-step login while logging in).
+ */
+export const optionalAuth = async (req, res, next) => {
+    const session = readSession(req);
+    if (!session || !db.mongoose.isValidObjectId(session.uid)) return next();
+    const user = await User.findById(session.uid);
+    if (user && user.sessionVersion === session.v && !user.blockedAt && (!session.sid || await findSession(session.sid, user))) req.user = user;
+    next();
+};
+
+/**
  * Requires a logged-in user and exposes it as req.user.
  */
 export const requireAuth = async (req, res, next) => {
@@ -37,10 +50,16 @@ export const requireAuth = async (req, res, next) => {
     if (user.blockedAt) {
         return res.status(403).json({ message: 'This account is blocked. Please contact the administrator of this installation.', blocked: true });
     }
-    // a session never lasts longer than the timeout set now: older, longer ones are cut
+    // ended elsewhere (logged out, or by a global admin)
+    if (session.sid && !(await findSession(session.sid, user))) {
+        return res.status(401).json({ message: 'Please log in.' });
+    }
+    // a session never lasts longer than the timeout set now: older, longer ones are cut;
+    // one from before sessions were kept on the server gets its record now
     const { exp, cut } = cappedExpiry(session.exp, Date.now(), await getSessionTimeoutMs());
-    if (cut) await setSessionCookie(req, res, user, exp);
+    if (cut || !session.sid) await setSessionCookie(req, res, user, exp);
     req.user = user;
+    req.sessionId = session.sid ?? null;
     req.sessionExpiresAt = exp;
     next();
 };

@@ -8,6 +8,8 @@ import { t } from '../../utils/i18n';
 
 // a day to show each format with: 24 October of this year
 const EXAMPLE = dayjs().month(9).date(24);
+// the dropdown shows no choice for null: the usual format of the language stands for it
+const AS_LANGUAGE = 'language';
 
 /**
  * How dates are shown: the usual format of the language, or one the player
@@ -15,14 +17,14 @@ const EXAMPLE = dayjs().month(9).date(24);
  */
 const DateFormatSetting = ({ onSaved }) => {
     const [preferences, save] = useGamePreferences();
-    const [value, setValue] = useState(preferences.dateFormat);
+    const [value, setValue] = useState(preferences.dateFormat ?? AS_LANGUAGE);
     const options = [
-        { value: null, label: t('As the language ({{example}})', { example: EXAMPLE.format(languageFormat()) }) },
+        { value: AS_LANGUAGE, label: t('As the language ({{example}})', { example: EXAMPLE.format(languageFormat()) }) },
         ...DATE_FORMATS.map(format => ({ value: format, label: EXAMPLE.format(format) })),
     ];
     const change = (next) => {
         setValue(next);
-        save({ dateFormat: next }).then(() => onSaved?.(t('Date format')));
+        save({ dateFormat: next === AS_LANGUAGE ? null : next }).then(() => onSaved?.(t('Date format')));
     };
 
     return (

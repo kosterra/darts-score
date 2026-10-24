@@ -9,6 +9,7 @@ import {
 import { RULES_TRAININGS } from '../utils/rules.kinds.js';
 import { fairPlayNotices } from '../utils/notices.js';
 import { withView } from '../utils/game.view.js';
+import { deliver } from '../utils/notify.js';
 
 // what can be checked: the games, the newer games (rules), the trainings of
 // Around the Clock and of the rules engine, and X01 against the bot
@@ -293,7 +294,7 @@ const itemOf = (type, doc, club, players, findings = compact(CHECKS[type](doc)))
 const notify = async (items, action, user) => {
     try {
         const notices = fairPlayNotices(items, action, { id: String(user._id), name: nameOf(user) });
-        if (notices.length) await db.notification.insertMany(notices);
+        if (notices.length) await deliver(notices);
     } catch (err) {
         logger.error(err, 'Failed to send the fair play notifications');
     }
@@ -433,7 +434,7 @@ export const restoreBirth = async (req, res) => {
     await db.integrityReview.deleteMany({ sourceType: 'birth', sourceId: String(change._id) });
     if (player.user && String(player.user) !== String(req.user._id)) {
         const day = (value) => { const date = new Date(value); return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`; };
-        await db.notification.create({
+        await deliver([{
             user: player.user,
             kind: 'fairPlayRestored',
             title: 'Your date of birth was set back',
@@ -442,7 +443,7 @@ export const restoreBirth = async (req, res) => {
             club: club._id,
             by: req.user._id,
             byName: nameOf(req.user),
-        }).catch(err => logger.error(err, 'Failed to send the notification'));
+        }]).catch(err => logger.error(err, 'Failed to send the notification'));
     }
     logger.warn(`${req.user.email} put back the date of birth of player "${player.nickname}" for fair play`);
     res.json({ restored: true });

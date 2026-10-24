@@ -4,6 +4,8 @@ import { CLUB_ROLES, ROLES } from '../models/user.model.js';
 import { clubsOfAccount } from '../utils/global.admins.js';
 import { hashPassword } from '../utils/auth.utils.js';
 import { issuePasswordLink } from '../utils/auth.tokens.js';
+import { notifySecurity } from '../utils/notify.js';
+import { deleteAccount } from '../utils/account.deletion.js';
 
 // how long a password link created by a global admin works
 export const ADMIN_LINK_HOURS = 24;
@@ -72,14 +74,10 @@ export const remove = async (req, res) => {
     if (await Club.exists({ admins: { $eq: [new db.mongoose.Types.ObjectId(id)] } })) {
         return res.status(409).json({ message: 'This user is the only admin of a club. Add another admin or delete the club first.' });
     }
-    const user = await User.findByIdAndDelete(id);
+    const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
-
-    await Club.updateMany({ admins: id }, { $pull: { admins: id } });
-    // Players the user played as stay in their clubs, just no longer linked
-    await db.player.updateMany({ user: id }, { $set: { user: null } });
-    // what they asked to join is no longer for anyone to decide
-    await db.joinRequest.updateMany({ user: id, status: 'open' }, { $set: { status: 'withdrawn', decidedAt: new Date() } });
+    // as when people delete their own: the players stay, anonymised, for the games of the others
+    await deleteAccount(user, { by: req.user.email });
     await db.notification.deleteMany({ kind: 'joinRequested', by: id });
     logger.info(`User ${user.email} deleted by ${req.user.email}`);
     res.json({ message: 'User deleted.' });
@@ -104,10 +102,15 @@ export const update = async (req, res) => {
     if (email !== user.email && await User.exists({ email })) {
         return res.status(409).json({ message: 'An account with this email already exists.' });
     }
+    const previousEmail = user.email;
     const changes = [user.email !== email && `email ${user.email} → ${email}`, (user.firstname !== firstname || user.lastname !== lastname) && 'name'].filter(Boolean);
     Object.assign(user, { firstname, lastname, email });
     await user.save();
     logger.info(`User ${user.email} edited by ${req.user.email}${changes.length ? ` (${changes.join(', ')})` : ''}`);
+    if (previousEmail !== user.email) {
+        const notice = { title: 'Your email address was changed', body: `From ${previousEmail} to ${user.email}. If that was not you, tell the admins of your club right away.`, vars: { oldEmail: previousEmail, newEmail: user.email } };
+        notifySecurity(user, 'emailChanged', { ...notice, to: previousEmail });
+    }
     res.json(user);
 };
 
@@ -126,6 +129,7 @@ export const setPassword = async (req, res) => {
     user.resetTokenExpires = null;
     await user.save();
     logger.info(`Password of ${user.email} set by ${req.user.email}`);
+    notifySecurity(user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
     res.json({ message: 'Password set.' });
 };
 

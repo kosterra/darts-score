@@ -177,8 +177,8 @@
     font-weight: $badgeFontWeight;
     line-height: 1.5;
 
-    &.game-result-won { background: rgba($accentGreen, 0.18); color: $accentGreen; }
-    &.game-result-lost { background: rgba($shade000, 0.08); color: $textSubtleColor; }
+    &.game-result-won { background: with-alpha($accentGreen, 0.18); color: $accentGreen; }
+    &.game-result-lost { background: with-alpha($shade000, 0.08); color: $textSubtleColor; }
 }
 
 // the weekly streak on a profile: lit flames for the weeks reached, grey ones still to go

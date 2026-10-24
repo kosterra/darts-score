@@ -39,20 +39,20 @@ $radius-pill: 999px;
 $radius-round: 50%;
 
 // Accent colours (the theme's primary and status colours are in the theme variables)
-$accentGreen: $primaryLighterColor;   // positive figures, bars, KPI numbers (#7ecca5)
-$accentGold: #ffc94d;                 // winners, records, big moments
-$accentAmber: #e9ac2f;                // flight points, what can be bought
-$accentPink: #e69ac0;                 // the newer games
-$accentBlue: #4aa8ff;                 // information, links in charts
-$accentRed: #ec8b80;                  // losses, a bust, the Hall of Shame
-$accentCream: #efe6d0;                // the dartboard's light fields
+$accentGreen: var(--c-positive);      // positive figures, bars, KPI numbers: green whatever the accent colour (#7ecca5)
+$accentGold: var(--c-accent-gold);                 // winners, records, big moments
+$accentAmber: var(--c-accent-amber);                // flight points, what can be bought
+$accentPink: var(--c-accent-pink);                 // the newer games
+$accentBlue: var(--c-accent-blue);                 // information, links in charts
+$accentRed: var(--c-accent-red);                  // losses, a bust, the Hall of Shame
+$accentCream: var(--c-accent-cream);                // the dartboard's light fields
 $momentGoldColor: $accentGold;
 
 // the colour of each game type: its icon, its line in the charts (the newer games share pink)
 $gameColorX01: $accentGreen;
-$gameColorCricket: #d4c783;
-$gameColorElimination: #c3a9e6;
-$gameColorClock: #86bfe6;
+$gameColorCricket: var(--c-game-cricket);
+$gameColorElimination: var(--c-game-elimination);
+$gameColorClock: var(--c-game-clock);
 $gameColorMore: $accentPink;
 
 // the podium: first, second, third
@@ -61,7 +61,7 @@ $podiumSilver: #c9d1d9;
 $podiumBronze: #d29a6a;
 
 // Focus: one ring for the whole app, light grey and never green
-$focusRingColor: rgba(255, 255, 255, 0.6);
+$focusRingColor: ink(0.6);
 @mixin focus-ring($offset: 2px) {
     outline: 2px solid $focusRingColor;
     outline-offset: $offset;

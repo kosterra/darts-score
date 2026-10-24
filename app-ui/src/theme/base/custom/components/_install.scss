@@ -11,9 +11,9 @@
     width: min(24rem, calc(100vw - 2rem));
     padding: 0.85rem 2.25rem 0.85rem 0.85rem;
     background: $shade800;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid ink(0.08);
     border-radius: $radius-lg;
-    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.55);
+    box-shadow: 0 0.75rem 2rem shadow(0.55);
     animation: install-hint-in 0.35s ease-out both;
 
     img { flex-shrink: 0; border-radius: $radius-lg; }
@@ -42,7 +42,7 @@
     color: var(--text-faint);
     cursor: pointer;
 
-    &:hover { color: var(--text-default); background: rgba(255, 255, 255, 0.06); }
+    &:hover { color: var(--text-default); background: ink(0.06); }
 }
 
 @keyframes install-hint-in {

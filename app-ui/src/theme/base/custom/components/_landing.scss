@@ -7,7 +7,7 @@
     .landing-hero {
         // Small screens: the photo sits behind the text, so it is darkened a lot
         background:
-            linear-gradient(to bottom, rgba($shade900, 0.7) 0%, rgba($shade900, 0.8) 60%, $shade900 100%),
+            linear-gradient(to bottom, with-alpha($shade900, 0.7) 0%, with-alpha($shade900, 0.8) 60%, $shade900 100%),
             url("/background.webp") center / cover no-repeat;
     }
 
@@ -17,8 +17,8 @@
         .landing-hero {
             background:
                 // fade out towards the plain surface below
-                linear-gradient(to bottom, rgba($shade900, 0.35) 0%, rgba($shade900, 0.6) 55%, $shade900 100%),
-                linear-gradient(to right, rgba($shade900, 0.9) 0%, rgba($shade900, 0.55) 55%, rgba($shade900, 0.15) 100%),
+                linear-gradient(to bottom, with-alpha($shade900, 0.35) 0%, with-alpha($shade900, 0.6) 55%, $shade900 100%),
+                linear-gradient(to right, with-alpha($shade900, 0.9) 0%, with-alpha($shade900, 0.55) 55%, with-alpha($shade900, 0.15) 100%),
                 url("/background.webp") center / cover no-repeat;
         }
     }
@@ -34,7 +34,7 @@
     justify-content: space-between;
     gap: $space-4;
     padding: $space-3 $space-5;
-    background: rgba($shade900, 0.72);
+    background: with-alpha($shade900, 0.72);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
@@ -243,7 +243,7 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: $radius-lg;
-    background: rgba($primaryColor, 0.16);
+    background: with-alpha($primaryColor, 0.16);
     color: $primaryColor;
     font-size: $text-xl;
 }
@@ -372,33 +372,66 @@
     text-align: center;
     border-radius: $radius-lg;
     background:
-        radial-gradient(ellipse at top, rgba($primaryColor, 0.25), transparent 70%),
+        radial-gradient(ellipse at top, with-alpha($primaryColor, 0.25), transparent 70%),
         $surfaceTranslucentColor;
 }
 
 .landing-footer {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: $space-3;
-    padding: $space-5;
-    border-top: 1px solid var(--border-default);
+    // a calm bar of its own, readable over the photo in every theme
+    background: $surfaceColor;
+    border-top: 1px solid ink(0.06);
     color: var(--text-faint);
     font-size: $text-sm;
 
     a { color: var(--text-subtle); text-decoration: none; }
-    a:hover { color: var(--text-default); }
+    a:hover, a:focus-visible { color: var(--text-default); }
+}
+
+.landing-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-4 $space-6;
+    max-width: 75rem;
+    margin: 0 auto;
+    padding: $space-5;
+}
+
+.landing-footer-brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    min-width: 0;
+}
+
+.landing-footer-name {
+    color: var(--text-default);
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+}
+
+.landing-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2 $space-6;
+}
+
+.landing-footer-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2 $space-4;
 }
 
 // jumping to a section leaves room for the bar at the top
 .landing section[id] { scroll-margin-top: 5rem; }
 
-// the quick games: the bar of the start page above the setup, the game and its statistics
+// the quick games: the bar of the start page above the setup, the game and its
+// statistics, on the background of the app's pages (the one chosen under Display)
 .quick-page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: $shade900;
 
     // the footer at the bottom of the window, also under a short page
     .quick-page-content { flex: 1 0 auto; }
@@ -431,7 +464,7 @@
     width: 1.9rem;
     height: 1.9rem;
     border-radius: $radius-round;
-    background: rgba($primaryColor, 0.18);
+    background: with-alpha($primaryColor, 0.18);
     color: $primaryColor;
     font-weight: $weight-semibold;
     font-size: $text-sm;
@@ -447,7 +480,7 @@
     padding: 1.25rem 1.5rem;
     border-radius: $radius-lg;
     background:
-        radial-gradient(ellipse at left, rgba($primaryColor, 0.2), transparent 70%),
+        radial-gradient(ellipse at left, with-alpha($primaryColor, 0.2), transparent 70%),
         var(--surface-raised);
     border: 1px solid rgba(255, 255, 255, 0.06);
 
@@ -464,7 +497,7 @@
     padding: $space-6;
     border-radius: $radius-lg;
     background:
-        radial-gradient(ellipse at right, rgba($primaryColor, 0.28), transparent 65%),
+        radial-gradient(ellipse at right, with-alpha($primaryColor, 0.28), transparent 65%),
         $surfaceTranslucentColor;
     border: 1px solid rgba(255, 255, 255, 0.06);
 
@@ -539,3 +572,35 @@
 
     &:hover, &:focus-visible { transform: scale(1.08); outline: none; }
 }
+
+// the privacy policy and imprint: a page to read, between the bar and the footer of the start page
+.legal-page {
+    max-width: $page-reading;
+    margin: 0 auto;
+}
+
+.legal-text {
+    line-height: 1.6;
+
+    h2 {
+        margin: $space-5 0 $space-2;
+        font-size: $text-lg;
+        font-weight: $weight-semibold;
+        color: var(--text-default);
+    }
+
+    ul { padding-left: 1.2rem; }
+    li + li { margin-top: $space-2; }
+    // the cookie names: in the font of the page, as small labels
+    code {
+        padding: 0.05rem 0.35rem;
+        border-radius: $radius-sm;
+        background: ink(0.08);
+        color: var(--text-default);
+        font-family: inherit;
+        font-size: $text-md;
+        font-weight: $weight-semibold;
+    }
+}
+
+.legal-address, .legal-notes { white-space: pre-line; }

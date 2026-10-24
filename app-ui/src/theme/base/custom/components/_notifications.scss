@@ -1,0 +1,143 @@
+// The notification settings on the profile: per topic its title and what
+// it is about, then the switch for the app and the choice for mails
+.notification-settings-note {
+  padding: 0.6rem 0.85rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  color: var(--text-subtle);
+}
+
+.notification-group + .notification-group { margin-top: $space-4; }
+
+.notification-topics {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.notification-topic {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2 $space-4;
+  padding: 0.75rem 1rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+}
+
+.notification-topic-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.notification-topic-controls {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
+.notification-topic-app {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  cursor: pointer;
+  white-space: nowrap;
+
+  .p-inputswitch { flex-shrink: 0; }
+}
+
+.notification-topic-mail {
+  width: 9.5rem;
+  flex-shrink: 0;
+}
+
+// on a phone: the switch and the choice on one line under the text
+@media (max-width: 575.98px) {
+  .notification-topic-controls {
+    width: 100%;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+}
+
+// the claim link of a player: its QR code beside what to do with it
+.claim-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  align-items: flex-start;
+}
+
+.claim-link-qr {
+  width: 10rem;
+  height: 10rem;
+  padding: 0.5rem;
+  border-radius: $radius-md;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.claim-link-text {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  flex: 1 1 14rem;
+  min-width: 0;
+  word-break: break-all;
+}
+
+// the page of a claim link and of an unsubscribe link, before the login
+.public-card {
+  max-width: 32rem;
+  margin: $space-6 auto;
+}
+
+// two-step login: the code fields, the key, the recovery codes and the reminder to set it up
+.mfa-code {
+  max-width: 10rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mfa-key {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  word-break: break-all;
+}
+
+.mfa-steps {
+  padding-left: 1.2rem;
+  color: var(--text-subtle);
+}
+
+.recovery-codes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space-2 $space-4;
+  padding: 0.85rem 1rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem;
+}
+
+.mfa-due-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2 $space-3;
+  // in line with the pages below it
+  margin: 1.5rem 1.5rem 0;
+  padding: 0.6rem 1rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  border-left: 3px solid var(--accent-amber);
+  color: var(--text-default);
+  font-size: $text-sm;
+}

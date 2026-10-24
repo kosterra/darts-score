@@ -3,6 +3,7 @@ import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
 import * as PlayerController from '../controllers/player.controller.js';
+import * as ContactController from '../controllers/player.contact.controller.js';
 import { DOUBLES, MAIN_TREBLES } from '../utils/checkout.profile.js';
 import { DART_BARRELS, FLIGHT_COLORS, FLIGHT_DESIGNS, FLIGHT_SHAPES } from '../utils/flights.js';
 import { uploadProfileImage } from '../controllers/file.controller.js';
@@ -179,6 +180,15 @@ export default (app) => {
         PlayerController.giveLogin
     );
     router.delete('/:id/account', requireClubAdmin, PlayerController.removeLogin);
+    // a login given and never used: the invitation again
+    router.post('/:id/account/invite', requireClubAdmin, ContactController.resendInvite);
+
+    // a player without a login: the address the club keeps, and the links to take the player over
+    router.get('/:id/contact', requireClubAdmin, ContactController.getContact);
+    router.put('/:id/contact', requireClubAdmin, ContactController.saveContact);
+    router.delete('/:id/contact', requireClubAdmin, ContactController.removeContact);
+    router.post('/:id/claim', requireClubAdmin, ContactController.createClaim);
+    router.delete('/:id/claim', requireClubAdmin, ContactController.revokeClaims);
 
     // a player's clubs: club admins of several clubs add, move and remove players between their clubs
     router.get('/:id/clubs', requireClubAdmin, PlayerController.clubsOf);
@@ -198,3 +208,7 @@ export default (app) => {
 
     app.use('/api/players', router);
 };
+
+// a claim link: who it is for (no login needed), and taking the player over (logged in)
+export const claimInfoRoutes = (app) => app.get('/api/claim/:token', ContactController.claimInfo);
+export const claimRoutes = (app) => app.post('/api/claim/:token', ContactController.claim);

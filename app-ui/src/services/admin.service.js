@@ -47,12 +47,32 @@ const resetMailTemplate = (id, language = 'en') => requestJSON(`${API_URL}/mail-
 const previewMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/preview?language=${language}`, { method: 'POST', body: draft });
 const testMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/test?language=${language}`, { method: 'POST', body: draft });
 
+// the mail server: how it is set up, and a test mail to any address ({ sentTo, response, ms })
+const loadMailServer = () => requestJSON(`${API_URL}/mail-server`);
+const sendTestMail = (to, language = 'en') => requestJSON(`${API_URL}/mail-server/test`, { method: 'POST', body: { to, language } });
+// the daily limit of the mail server: { perDay } (null for none)
+const saveMailLimit = (perDay) => requestJSON(`${API_URL}/mail-server/limit`, { method: 'PUT', body: { perDay } });
+
+// who is logged in now, ending sessions, and the use of the app per week
+const loadSessions = () => requestJSON(`${API_URL}/sessions`);
+const endSession = (id) => requestJSON(`${API_URL}/sessions/${id}`, { method: 'DELETE' });
+const endSessionsOf = (userId) => requestJSON(`${API_URL}/sessions/users/${userId}`, { method: 'DELETE' });
+const loadUsage = (weeks = 12) => requestJSON(`${API_URL}/usage?weeks=${weeks}`);
+
 // what the public start page shows: { showNumbers }
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
 const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
 
+// who runs the installation, for the privacy policy and the imprint
+const loadLegalSettings = () => requestJSON(`${API_URL}/legal`);
+const saveLegalSettings = (settings) => requestJSON(`${API_URL}/legal`, { method: 'PUT', body: settings });
+
 const loadSessionSettings = () => requestJSON(`${API_URL}/session`);
 const saveSessionSettings = (timeoutHours) => requestJSON(`${API_URL}/session`, { method: 'PUT', body: { timeoutHours } });
+
+// two-step login: { policy, graceDays, requiredSince, policies, graceLimits, ownEnabled }
+const loadMfaSettings = () => requestJSON(`${API_URL}/mfa`);
+const saveMfaSettings = (settings) => requestJSON(`${API_URL}/mfa`, { method: 'PUT', body: settings });
 
 // warnings and errors of the API
 const loadLogs = ({ level = 'all', search = '' } = {}) =>
@@ -97,8 +117,19 @@ const AdminService = {
     resetMailTemplate,
     previewMailTemplate,
     testMailTemplate,
+    loadMailServer,
+    loadSessions,
+    endSession,
+    endSessionsOf,
+    loadUsage,
+    sendTestMail,
+    saveMailLimit,
     saveStartPageSettings,
     saveSessionSettings,
+    loadMfaSettings,
+    loadLegalSettings,
+    saveLegalSettings,
+    saveMfaSettings,
     loadOverview,
     loadPlayersInsights,
     loadGamesInsights,

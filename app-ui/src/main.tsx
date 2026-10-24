@@ -8,7 +8,11 @@ import 'dayjs/locale/it-ch';
 import 'dayjs/locale/es';
 import { initLanguage } from './utils/i18n';
 import { listenForInstallOffer, registerServiceWorker } from './utils/install';
+import { initAppearance } from './utils/appearance';
 import { PRIMEREACT_LOCALES } from './locales/primereact';
+
+// the look kept on this device, before anything shows
+initAppearance();
 
 // installable on the home screen: the browser's offer can come before the app is shown
 listenForInstallOffer();

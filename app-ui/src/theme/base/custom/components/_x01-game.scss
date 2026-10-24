@@ -286,7 +286,7 @@
   color: var(--text-faint);
   cursor: pointer;
 
-  &:hover, &:focus-visible { background: rgba(255, 255, 255, 0.08); color: var(--text-default); }
+  &:hover, &:focus-visible { background: ink(0.08); color: var(--text-default); }
 }
 
 .x01-visit-actions {
@@ -309,13 +309,13 @@
   height: 2.75rem;
   padding: 0;
   border: 0;
-  background: rgba($dangerButtonBg, 0.18);
-  color: lighten($dangerButtonBg, 15%);
+  background: with-alpha($dangerButtonBg, 0.18);
+  color: lighter($dangerButtonBg, 15%);
   white-space: nowrap;
 
-  &:enabled:hover { border: 0; background: rgba($dangerButtonBg, 0.3); color: lighten($dangerButtonBg, 22%); }
-  &:enabled:active, &:focus { border: 0; background: rgba($dangerButtonBg, 0.3); box-shadow: none; }
-  &:focus-visible { outline: 2px solid lighten($dangerButtonBg, 15%); outline-offset: 2px; }
+  &:enabled:hover { border: 0; background: with-alpha($dangerButtonBg, 0.3); color: lighter($dangerButtonBg, 22%); }
+  &:enabled:active, &:focus { border: 0; background: with-alpha($dangerButtonBg, 0.3); box-shadow: none; }
+  &:focus-visible { outline: 2px solid lighter($dangerButtonBg, 15%); outline-offset: 2px; }
 }
 
 .x01-visit-total {
@@ -373,7 +373,7 @@
 .x01-ways-route {
   padding: 0.2rem 0.55rem;
   border-radius: $radius-md;
-  background: rgba(255, 255, 255, 0.08);
+  background: ink(0.08);
   color: var(--text-default);
   font-size: $text-sm;
   font-variant-numeric: tabular-nums;
@@ -397,6 +397,7 @@
 
 .x01-visit-left {
   display: inline-block;
+  font-variant-numeric: tabular-nums;
   min-width: 2.25rem;
   margin-left: 0.6rem;
   color: var(--text-default);
@@ -415,7 +416,7 @@
   span {
     padding: 0 0.3rem;
     border-radius: $radius-md;
-    background: rgba(255, 255, 255, 0.06);
+    background: ink(0.06);
     font-size: $text-xs;
   }
 }
@@ -554,7 +555,7 @@
     padding: 0.45rem 0.6rem 0.45rem 0.85rem;
     border-radius: $radius-md;
     background: color-mix(in srgb, var(--surface) 94%, transparent);
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.55);
+    box-shadow: 0 0.5rem 1.5rem shadow(0.55);
     backdrop-filter: blur(6px);
 
     .x01-visit-bar-darts {
@@ -624,7 +625,7 @@
   min-height: 3.6rem;
   // an exception to the borderless buttons: the keypad stands on the page itself,
   // without a panel, so every key gets a thin edge to be told apart
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid ink(0.12);
   border-radius: $radius-md;
   background: var(--surface-raised);
   color: var(--text-default);
@@ -636,7 +637,7 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 
-  &:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.2); background: color-mix(in srgb, #fff 6%, var(--surface-raised)); }
+  &:hover:not(:disabled) { border-color: ink(0.2); background: color-mix(in srgb, var(--c-ink-color) 6%, var(--surface-raised)); }
   &:active:not(:disabled) { transform: scale(0.97); }
   &:focus-visible { outline: 2px solid $accentBlue; outline-offset: 2px; }
   &:disabled { opacity: 0.35; cursor: default; }
@@ -651,7 +652,7 @@
     text-transform: uppercase;
 
     // the chosen ring looks like a chosen pill
-    &.is-active { border-color: transparent; background: rgba($primaryColor, 0.42); color: $buttonTextColor; }
+    &.is-active { border-color: transparent; background: soft($primaryColor, 0.42); color: $buttonTextColor; }
   }
 
   &.is-miss, &.is-back { color: var(--text-subtle); font-size: $text-base; }
@@ -749,7 +750,7 @@
   height: 0.35rem;
   margin-top: 0.35rem;
   border-radius: $radius-pill;
-  background: rgba(255, 255, 255, 0.08);
+  background: ink(0.08);
   overflow: hidden;
 
   span {
@@ -901,7 +902,7 @@
   font-size: $text-base;
   font-weight: $weight-heavy;
   letter-spacing: 0.04em;
-  text-shadow: 0 0 0.8rem rgba(255, 201, 77, 0.6), 0 0.15rem 0.3rem rgba(0, 0, 0, 0.7);
+  text-shadow: 0 0 0.8rem rgba(255, 201, 77, 0.6), 0 0.15rem 0.3rem shadow(0.7);
   pointer-events: none;
   animation: ton-pop 1.8s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
@@ -950,7 +951,7 @@
   gap: $space-2;
   padding: 0.55rem 0.85rem;
   border-radius: $radius-md;
-  background: rgba($primaryColor, 0.18);
+  background: with-alpha($primaryColor, 0.18);
   color: var(--text-default);
   font-size: $text-md;
   font-weight: $weight-semibold;

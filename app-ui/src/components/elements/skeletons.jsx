@@ -185,7 +185,7 @@ export const SettingsSkeleton = ({ boxes = 3 }) => (
         <Skeleton width="9rem" height="0.9rem" className="mb-3" />
         {Array.from({ length: boxes }, (_, index) => (
             <div key={index} className="mb-4">
-                <p className="setting-title"><Skeleton width={index % 2 ? '7rem' : '10rem'} height="0.8rem" /></p>
+                <div className="setting-title"><Skeleton width={index % 2 ? '7rem' : '10rem'} height="0.8rem" /></div>
                 <div className="row mx-0 mt-0 setting-body">
                     <div className="col d-flex flex-column gap-2 py-1">
                         <Skeleton height="2.4rem" />

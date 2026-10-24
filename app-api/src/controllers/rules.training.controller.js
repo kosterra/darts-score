@@ -8,6 +8,7 @@ import { RULES_TRAININGS } from '../utils/rules.kinds.js';
 import { withPlayers } from './atc.controller.js';
 import { trainingOf } from '../rules/trainings.js';
 import { replayTraining } from '../rules/engine.js';
+import { noteTrainingRecords } from '../utils/player.notices.js';
 
 // a start time the app sent: in the past and at most a day ago, or none
 const startedAtOf = (value) => {
@@ -41,6 +42,7 @@ export const create = async (req, res) => {
             logger.warn(`Training ${kind} of player ${playerId}: the app sent the score ${req.body.score}, the darts give ${replayed.result.score}`);
         }
         const previousBest = await Training.findOne({ club: req.club._id, kind, 'player.id': playerId }).sort({ score: higher ? -1 : 1 }).lean();
+        const clubBest = await Training.findOne({ club: req.club._id, kind }).sort({ score: higher ? -1 : 1, createdAt: 1 }).lean();
         const data = await new Training({
             club: req.club._id,
             kind,
@@ -53,10 +55,14 @@ export const create = async (req, res) => {
         }).save();
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: RULES_TRAININGS[kind].title, names: [] }));
         checkLater(() => noteFairPlay(req.club._id, 'rulesTraining', data));
+        checkLater(() => noteTrainingRecords({
+            req, player, title: RULES_TRAININGS[kind].title, score: data.score, previousBest, clubBest,
+            better: (a, b) => (higher ? a > b : a < b), link: `/training/${kind}`,
+        }));
 
         let newBadges = [];
         if (!player.guest) {
-            ({ newBadges } = await syncPlayerBadges(player).catch(err => {
+            ({ newBadges } = await syncPlayerBadges(player, { notify: true }).catch(err => {
                 logger.error(err, 'Failed to update badges after a training');
                 return { newBadges: [] };
             }));

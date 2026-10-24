@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="The scoreboard for your club, your pub team or your living room: X01, Cricket, Elimination, Around the Clock, Shanghai, Killer, Halve-It, Golf and Tactics, trainings, statistics, badges and levels." />
+    <meta name="description" content="The darts scoreboard for your club, your pub team, your flatshare or your living room: X01, Cricket, Elimination, Around the Clock, Shanghai, Killer, Halve-It, Golf and Tactics, trainings, statistics, badges and levels." />
     <meta name="theme-color" content="#222121" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
@@ -13,8 +13,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="Oche" />
     <title>Oche</title>
-    <!-- dark from the first moment, before the styles arrive: no white flash -->
-    <style>html, body { background-color: #222121; color: #f2f2f2; margin: 0; }</style>
+    <!-- the look from the first moment, before the styles arrive: no flash (see src/utils/appearance.js) -->
+    <script>
+      try {
+        var look = JSON.parse(localStorage.getItem('darts-score.appearance') || 'null') || {};
+        var theme = look.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : look.theme;
+        if (theme && theme !== 'dark') document.documentElement.dataset.theme = theme;
+      } catch (e) { /* the default look */ }
+    </script>
+    <style>
+      html, body { background-color: var(--c-page-bg, #222121); color: var(--c-page-text, #f2f2f2); margin: 0; }
+      :root[data-theme="light"] { --c-page-bg: #f4f3ef; --c-page-text: #262626; }
+      :root[data-theme="black"] { --c-page-bg: #000; }
+    </style>
   </head>
   <body>
     <div id="modal-hook"></div>

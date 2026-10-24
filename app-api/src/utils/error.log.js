@@ -20,8 +20,10 @@ export const toLogEntry = (line) => {
     } catch {
         return null;
     }
-    const level = String(record.severity ?? '').toLowerCase();
-    if (!['warn', 'error', 'fatal'].includes(level)) return null;
+    const severity = String(record.severity ?? '').toLowerCase();
+    if (!['warn', 'error', 'fatal'].includes(severity)) return null;
+    // a mail held back by the daily limit is a warning: the global admins hear about the limit itself
+    const level = severity === 'error' && record.err?.code === 'ELIMIT' ? 'warn' : severity;
 
     const context = Object.fromEntries(Object.entries(record).filter(([key]) => !STANDARD_FIELDS.includes(key)));
     const err = record.err;

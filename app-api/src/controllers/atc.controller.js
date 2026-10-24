@@ -4,6 +4,7 @@ import { syncPlayerBadges } from '../utils/badge.service.js';
 import { clubBadgeView, syncClubAfterTraining } from '../utils/club.badge.service.js';
 import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
+import { noteTrainingRecords } from '../utils/player.notices.js';
 
 const ATC = db.atc;
 
@@ -44,6 +45,7 @@ export const create = async (req, res) => {
         const scoring = req.body.scoring === 'Darts' ? 'Darts' : 'Time';
         const field = scoreField(scoring);
         const previousBest = await ATC.findOne({ club: req.club._id, mode: req.body.mode, 'player.id': playerId, ...scoringFilter(scoring) }).sort({ [field]: 1 }).lean();
+        const clubBest = await ATC.findOne({ club: req.club._id, mode: req.body.mode, ...scoringFilter(scoring) }).sort({ [field]: 1, createdAt: 1 }).lean();
 
         // the player by id, with the nickname for when the player is deleted later
         const atc = new ATC({
@@ -59,10 +61,17 @@ export const create = async (req, res) => {
         const data = await atc.save();
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: 'Around the Clock', names: [] }));
         checkLater(() => noteFairPlay(req.club._id, 'training', data));
+        // the records, in darts or hundredths of a second (fewer is better)
+        const scoreOf = (entry) => (entry ? { score: entry[field], player: entry.player } : null);
+        checkLater(() => noteTrainingRecords({
+            req, player, title: `Around the Clock (${data.mode})`, score: data[field],
+            previousBest: scoreOf(previousBest), clubBest: scoreOf(clubBest), better: (a, b) => a < b,
+            format: (value) => (scoring === 'Darts' ? `${value} darts` : `${(value / 100).toFixed(2)} s`), link: '/training/atc',
+        }));
 
         let newBadges = [];
         if (!player.guest) {
-            ({ newBadges } = await syncPlayerBadges(player).catch(err => {
+            ({ newBadges } = await syncPlayerBadges(player, { notify: true }).catch(err => {
                 logger.error(err, 'Failed to update badges after a training');
                 return { newBadges: [] };
             }));

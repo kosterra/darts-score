@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -164,6 +164,7 @@ const useSections = () => {
             items: [
                 { label: t('Clubs'), icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: t('Users'), icon: FaUserGear, to: '/admin/users' },
+                { label: t('Logged in'), icon: FaUserClock, to: '/admin/sessions' },
                 { label: t('Players'), icon: FaUserPen, to: '/admin/players' },
             ],
         },
@@ -195,6 +196,7 @@ const useSections = () => {
                     badgeCritical: openAlerts?.critical > 0,
                 },
                 { label: t('Error log'), icon: FaBug, to: '/admin/logs' },
+                { label: t('Usage'), icon: FaChartColumn, to: '/admin/usage' },
             ],
         },
         {

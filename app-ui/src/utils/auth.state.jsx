@@ -8,6 +8,7 @@ import { SESSION_ENDED, getActiveClubId, setActiveClubId } from './service.utils
 import { currentLanguage, setLanguage, takeLanguageChosenBeforeLogin } from './i18n';
 import { connectGamePreferences } from './game.preferences';
 import { accountSaver } from './use.game.preferences';
+import { setAppearance, setClubAccent } from './appearance';
 
 // whether this tab already has its club: then a reload keeps it
 const CLUB_CHOSEN_KEY = 'darts-score.clubChosen';
@@ -111,17 +112,31 @@ const AuthState = ({ children }) => {
         restoreSession();
     }, [startSession]);
 
+    // with two-step login the answer asks for its next step ({ mfaRequired, step }),
+    // handed back to the page; otherwise the session starts and null comes back
     const login = useCallback(async (email, password) => {
-        await startSession(await AuthService.login(email, password), true);
+        const answer = await AuthService.login(email, password);
+        if (answer?.mfaRequired) return answer;
+        await startSession(answer, true);
+        return null;
     }, [startSession]);
 
     const register = useCallback(async (account) => {
-        await startSession(await AuthService.register({ ...account, language: currentLanguage() }));
+        const answer = await AuthService.register({ ...account, language: currentLanguage() });
+        if (answer?.mfaRequired) return answer;
+        await startSession(answer);
+        return null;
     }, [startSession]);
 
     const resetPassword = useCallback(async (token, password) => {
-        await startSession(await AuthService.resetPassword(token, password), true);
+        const answer = await AuthService.resetPassword(token, password);
+        if (answer?.mfaRequired) return answer;
+        await startSession(answer, true);
+        return null;
     }, [startSession]);
+
+    // after the second step of logging in: the account the server answered
+    const completeLogin = useCallback((loggedInUser) => startSession(loggedInUser, true), [startSession]);
 
     const logout = useCallback(async () => {
         await AuthService.logout().catch(() => {});
@@ -153,6 +168,15 @@ const AuthState = ({ children }) => {
 
     const activeClub = clubs.find(club => club.id === activeClubId) ?? null;
 
+    // the look the account chose (kept on the device too), and the club's accent colour
+    const ownAppearance = user?.gamePreferences?.appearance;
+    useEffect(() => {
+        if (ownAppearance) setAppearance(ownAppearance);
+    }, [ownAppearance]);
+    useEffect(() => {
+        setClubAccent(activeClub?.accent ?? null);
+    }, [activeClub?.accent]);
+
     const value = useMemo(() => ({
         user,
         setUser,
@@ -164,6 +188,7 @@ const AuthState = ({ children }) => {
         loading,
         mailEnabled,
         resetPassword,
+        completeLogin,
         login,
         register,
         logout,
@@ -173,7 +198,7 @@ const AuthState = ({ children }) => {
         loggedOut,
         refreshClubs,
         selectClub
-    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, login, register, logout, endSession, sessionEnded, returnTo, loggedOut, refreshClubs, selectClub]);
+    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, completeLogin, login, register, logout, endSession, sessionEnded, returnTo, loggedOut, refreshClubs, selectClub]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

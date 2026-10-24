@@ -2,7 +2,8 @@ import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { LANGUAGES, ROLES } from '../models/user.model.js';
-import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie } from '../utils/auth.utils.js';
+import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
+import { endSession } from '../utils/sessions.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
@@ -11,6 +12,14 @@ import { sendTemplateMail, validityOf } from '../utils/mail.service.js';
 import { checkRegistration, noteRegistration, noteLoginFailure, noteResetRequest, checkLater } from '../utils/spam.guard.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { getClubRole } from '../middleware/auth.middleware.js';
+import { notifySecurity } from '../utils/notify.js';
+import { claimOnRegister } from './player.contact.controller.js';
+import { finishLogin } from './mfa.controller.js';
+import { deleteAccount, deletionBlock } from '../utils/account.deletion.js';
+import { checkCode, decrypt, isMfaEnabled, mfaStateOf } from '../utils/mfa.js';
+import { translate } from '../utils/translate.js';
+import { dateTimeIn } from '../utils/notify.js';
+import { getAppUrl } from '../utils/mail.utils.js';
 
 export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
@@ -34,12 +43,15 @@ export const register = async (req, res) => {
         passwordHash: await hashPassword(password),
         role: ROLES.USER,
         language: LANGUAGES.includes(language) ? language : null,
+        // registering logs in
+        lastLoginAt: new Date(),
     });
     logger.info(`Registered user ${user.email}`);
     checkLater(() => noteRegistration(req, user));
+    // registered with a claim link: the account takes over the player
+    const claimed = req.body.claimToken ? await claimOnRegister(req.body.claimToken, user) : false;
 
-    await setSessionCookie(req, res, user);
-    res.status(201).json(user);
+    await finishLogin(req, res, user, { status: 201, extra: { claimed } });
 };
 
 export const login = async (req, res) => {
@@ -54,18 +66,20 @@ export const login = async (req, res) => {
     }
     if (user.blockedAt) return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
 
-    user.lastLoginAt = new Date();
-    await user.save({ timestamps: false });
-    await setSessionCookie(req, res, user);
-    res.json(user);
+    // the code of two-step login next, or the session
+    await finishLogin(req, res, user);
 };
 
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
+    const sid = readSession(req)?.sid;
+    if (sid) await endSession(sid);
     clearSessionCookie(req, res);
+    clearPendingCookie(req, res);
     res.json({ message: 'Logged out.' });
 };
 
-export const me = (req, res) => res.json(req.user);
+// the account, with its two-step login (e.g. until when it may still be set up)
+export const me = async (req, res) => res.json({ ...req.user.toJSON(), mfa: await mfaStateOf(req.user) });
 
 // when the session ends, so the app can warn in time: { expiresAt, timeoutHours }
 export const session = async (req, res) => {
@@ -133,10 +147,15 @@ export const updateMe = async (req, res) => {
             || await db.player.exists({ user: req.user._id, clubs: defaultClub });
         if (!member) return res.status(422).json({ errors: ['Choose one of your clubs.'] });
     }
+    const previousEmail = req.user.email;
     Object.assign(req.user, { email, firstname, lastname }, startPage ? { startPage } : {}, defaultClub !== undefined ? { defaultClub: defaultClub || null } : {});
     await req.user.save();
     // the players of the account carry its name
     await db.player.updateMany({ user: req.user._id }, { $set: { firstname: req.user.firstname, lastname: req.user.lastname } });
+    if (previousEmail !== req.user.email) {
+        const notice = { title: 'Your email address was changed', body: `From ${previousEmail} to ${req.user.email}. If that was not you, tell the admins of your club right away.`, vars: { oldEmail: previousEmail, newEmail: req.user.email } };
+        notifySecurity(req.user, 'emailChanged', { ...notice, to: previousEmail });
+    }
     res.json(req.user);
 };
 
@@ -180,6 +199,7 @@ export const changePassword = async (req, res) => {
     req.user.sessionVersion += 1;
     await req.user.save();
 
+    notifySecurity(req.user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
     // Other devices are logged out by the version bump; keep this one signed in
     await setSessionCookie(req, res, req.user);
     res.json({ message: 'Password changed.' });
@@ -224,7 +244,37 @@ export const resetPassword = async (req, res) => {
     user.resetTokenHash = null;
     user.resetTokenExpires = null;
     await user.save();
+    // not for a new account choosing its first password
+    if (user.lastLoginAt) notifySecurity(user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
 
-    await setSessionCookie(req, res, user);
-    res.json(user);
+    // a new password does not skip the code of two-step login
+    await finishLogin(req, res, user);
+};
+
+/**
+ * Deletes the logged-in account, after its password (and a code of two-step
+ * login when it is on): the account goes, its players stay anonymised for the
+ * games of the others (see utils/account.deletion.js). A last mail confirms it.
+ */
+export const deleteMe = async (req, res) => {
+    const user = req.user;
+    if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: 'The current password is wrong.' });
+    if (isMfaEnabled(user) && checkCode(decrypt(user.mfa.secret), req.body.code, user.mfa.lastStep) === null) {
+        return res.status(403).json({ message: 'This code is not right. Check the time of your phone and try the newest code.' });
+    }
+    const block = await deletionBlock(user);
+    if (block) return res.status(409).json(block);
+    const { email, firstname } = user;
+    const language = user.language ?? 'en';
+    await deleteAccount(user);
+    clearSessionCookie(req, res);
+    clearPendingCookie(req, res);
+    sendTemplateMail('securityNotice', email, {
+        firstname,
+        title: translate(language, 'Your Oche account was deleted'),
+        details: translate(language, 'Your login, settings and notifications are gone. Your players stay in their clubs under an anonymous name, so the games of the others stay whole; your name, picture and date of birth were removed.'),
+        date: dateTimeIn(language),
+        link: getAppUrl(),
+    }, language).catch(err => logger.error(err, 'Failed to send the mail about the deleted account'));
+    res.json({ message: 'Your account was deleted.' });
 };
