@@ -18,7 +18,10 @@ const AppInstallSetting = () => {
 
     const installed = isInstalled();
     const offered = canInstall();
-    const how = isIosSafari()
+    // browsers only install from a secure address (https, or the computer itself)
+    const how = !window.isSecureContext && !isIosSafari()
+        ? t('Installing needs a secure address (https://). This one is not, so the browser only offers a shortcut that opens in the browser. Ask whoever runs this installation for an https address.')
+        : isIosSafari()
         ? t('In Safari tap Share (the square with the arrow), then Add to Home Screen.')
         : isAndroid()
             ? t('In Chrome open the menu (⋮) and tap Install app, or Add to Home screen.')
