@@ -184,11 +184,14 @@ const DuelHighlights = ({ data, players, colours }) => {
     if (!tiles && !shame.length) return null;
     const gameLink = (gameId) => `/stats/games/x01/${gameId}`;
 
-    const Moment = ({ value, label, entry, detail }) => (
+    // a part of a whole, as "of 70 in the club · 57 %"
+    const share = (part, whole, text) => (whole ? `${text} · ${Math.round(part / whole * 100)} %` : null);
+
+    const Moment = ({ value, label, entry, detail, to }) => (
         <div className="duel-moment">
             <span className="duel-moment-value tabular-nums">{value}</span>
             <span className="duel-moment-label">
-                {label}
+                {to ? <Link to={to} className="duel-moment-link">{label}<i className="pi pi-arrow-right" aria-hidden="true" /></Link> : label}
                 {entry && <Link to={gameLink(entry.gameId)} className="duel-moment-date">{formatDate(entry.at)}<i className="pi pi-arrow-right" aria-hidden="true" /></Link>}
                 {detail && <span className="duel-moment-detail">{detail}</span>}
             </span>
@@ -219,9 +222,18 @@ const DuelHighlights = ({ data, players, colours }) => {
                                         {highlights && <>
                                             <Moment value={entry.bestAverage ? entry.bestAverage.value.toFixed(1) : '–'} label={t('Best game average')} entry={entry.bestAverage} />
                                             <Moment value={entry.highestCheckout?.value ?? '–'} label={t('Highest checkout')} entry={entry.highestCheckout} />
-                                            <Moment value={entry.num180s ?? 0} label={t('180s thrown')} />
+                                            <Moment
+                                                value={entry.num180s ?? 0}
+                                                label={t('180s thrown')}
+                                                detail={share(entry.num180s ?? 0, entry.total180s, t('of {{total}} in the club', { total: entry.total180s ?? 0 }))}
+                                            />
                                         </>}
-                                        <Moment value={badges[player.id]?.earned ?? 0} label={t('Badges earned in these games')} detail={t('{{count}} in all', { count: badges[player.id]?.total ?? 0 })} />
+                                        <Moment
+                                            value={badges[player.id]?.earned ?? 0}
+                                            label={t('Badges earned in these games')}
+                                            to={`/players/${player.id}#badges`}
+                                            detail={share(badges[player.id]?.earned ?? 0, badges[player.id]?.total, t('of {{total}} in all', { total: badges[player.id]?.total ?? 0 }))}
+                                        />
                                     </section>
                                 );
                             })}

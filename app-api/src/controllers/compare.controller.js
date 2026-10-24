@@ -57,6 +57,10 @@ const summaryOf = (game) => ({
     playerModels: Object.fromEntries(Object.entries(game.playerModels ?? {}).map(([id, model]) => [id, { hasWonGame: Boolean(model?.hasWonGame), score: model?.score ?? null, ...(model?.legsWon && { legsWon: { game: Number(model.legsWon.game ?? 0) || 0 } }) }])),
 });
 
+// the highlights with each player's 180s in all the club's games beside those of the duel
+const withClub180s = (highlights, totals) => Object.fromEntries(Object.entries(highlights)
+    .map(([id, entry]) => [id, { ...entry, total180s: Math.max(totals[id] ?? 0, entry.num180s) }]));
+
 // a player's figures of one game type in the duel
 const figuresOf = (type, games, playerId) => {
     if (type === 'cricket') return cricketKpis(games, playerId);
@@ -96,6 +100,14 @@ const duelBadges = async (playerIds, gameIds) => {
         earned: countBadges((player.badges ?? []).filter(entry => gameIds.has(String(entry.sourceId)))),
         total: countBadges(player.badges),
     }]));
+};
+
+/**
+ * Each player's 180s in all the club's games, from what the games added to it.
+ */
+const club180s = async (clubId, playerIds) => {
+    const tallies = await db.clubTally.find({ club: clubId, players: { $in: playerIds } }, 'byPlayer').lean();
+    return Object.fromEntries(playerIds.map(id => [id, tallies.reduce((sum, tally) => sum + (tally.byPlayer?.[id]?.num180s ?? 0), 0)]));
 };
 
 /**
@@ -139,7 +151,7 @@ export const getDuel = async (req, res) => {
             record,
             players: playerIds.map(playerId => ({ id: playerId, wins: wins[playerId] ?? 0, ...figuresOf(type, games, playerId) })),
             games: games.map(summaryOf),
-            highlights: x01 ? x01Highlights(games, playerIds) : null,
+            highlights: x01 ? withClub180s(x01Highlights(games, playerIds), await club180s(req.club._id, playerIds)) : null,
             shame: await duelShame(req.club, playerIds, gameIds),
             // the badges each earned in these games, and their whole collection
             badges: await duelBadges(playerIds, gameIds),

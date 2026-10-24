@@ -1231,6 +1231,15 @@
 
     .duel-moment-detail { color: $textFaintColor; font-size: $text-xs; }
 
+    // the label as the way to more, e.g. to the player's badges
+    // flows as text when it wraps, with the arrow after the last word
+    .duel-moment-link {
+        display: inline;
+
+        // inline, not an inline block: no line break between the last word and the arrow
+        i { display: inline; margin-left: $space-1; font-size: 0.6rem; }
+    }
+
     .duel-moment-date {
         display: inline-flex;
         align-items: center;

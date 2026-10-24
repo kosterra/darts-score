@@ -237,7 +237,7 @@ const migrations = [
     },
     {
         id: '2026-10-club-tallies-winners',
-        description: 'Add who won and whether it was friendly to what every finished game added to its club, for the club\'s rating in the player comparison',
+        description: 'Add who won, whether it was friendly and each player\'s 180s to what every finished game added to its club, for the club\'s rating and the player comparison',
         run: async () => {
             const { buildClubTallies } = await import('./club.badge.service.js');
             const clubs = await db.club.find({}, '_id');

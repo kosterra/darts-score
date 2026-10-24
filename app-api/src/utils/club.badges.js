@@ -122,7 +122,7 @@ export const GOAL_METRICS = {
 };
 
 // a tally of an older version is worked out again
-export const TALLY_VERSION = 2;
+export const TALLY_VERSION = 3;
 
 const FIRSTS = { max180: 'max180Firsts', bigFish: 'bigFishFirsts', nineDarter: 'nineDarterFirsts', shanghaiFinish: 'shanghaiFinishFirsts' };
 
@@ -137,6 +137,8 @@ export const tallyOf = (type, game) => {
         // for the club's rating: who won, and whether the game was friendly
         winners: (game.players ?? []).map(String).filter(id => game.playerModels?.[id]?.hasWonGame === true),
         friendly: game.friendly === true,
+        // each player's own share, e.g. for their 180s in all the club's games
+        byPlayer: {},
         version: TALLY_VERSION,
     };
     const add = (key, playerId) => { (tally.firsts[key] ??= []).push(playerId); };
@@ -146,6 +148,7 @@ export const tallyOf = (type, game) => {
         tally.num180s += feats.num180s;
         tally.tonPlus += feats.tonPlusVisits;
         tally.highFinishes += feats.highFinishes;
+        if (feats.num180s > 0) tally.byPlayer[playerId] = { num180s: feats.num180s };
         if (feats.num180s > 0) add('max180', playerId);
         if (feats.bigFishes > 0) add('bigFish', playerId);
         if (feats.nineDarters > 0) add('nineDarter', playerId);
