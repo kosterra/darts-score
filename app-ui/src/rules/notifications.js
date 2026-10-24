@@ -49,6 +49,7 @@ export const NOTIFICATION_TOPICS = [
     { id: 'alertsCritical', group: 'global', kinds: ['alertCritical'], inApp: true, mail: 'instant' },
     { id: 'alertsWarning', group: 'global', kinds: ['alertWarning'], inApp: true, mail: 'daily' },
     { id: 'errors', group: 'global', kinds: ['errorSpike'], inApp: true, mail: 'daily' },
+    { id: 'usageReport', group: 'global', kinds: [], mailOnly: true, mails: ['off', 'weekly'], inApp: false, mail: 'weekly' },
 
     { id: 'security', group: 'security', kinds: ['passwordChanged', 'emailChanged', 'accountBlocked', 'mfaEnabled', 'mfaDisabled', 'mfaRecoveryUsed', 'mfaReset'], inApp: true, mail: 'instant', locked: true },
 ];

@@ -10,6 +10,7 @@ import { deliverQuietly, digestDue, languageOf, mailContact, sendDigests, unsubs
 import { getAppUrl, isMailConfigured } from './mail.utils.js';
 import { sendTemplateMail } from './mail.service.js';
 import { tr, translate } from './translate.js';
+import { lastWeeks, usageLines } from './usage.stats.js';
 
 /**
  * What the app does once an hour for the notifications: the mails of the
@@ -308,6 +309,7 @@ export const sendWeeklySummaries = async (now = new Date()) => {
             logger.error(err, `Failed to send the weekly summary to ${user.email}`);
         }
     }
+    sent += await sendUsageReports(now);
     const contacts = await db.playerContact.find({ topics: 'weeklySummary', unsubscribedAt: null }).lean();
     for (const contact of contacts) {
         try {
@@ -320,6 +322,36 @@ export const sendWeeklySummaries = async (now = new Date()) => {
             sent += 1;
         } catch (err) {
             logger.error(err, `Failed to send the weekly summary of player ${contact.player}`);
+        }
+    }
+    return sent;
+};
+
+/**
+ * The use of the app in the week that ended, for every global admin who
+ * keeps the report on (it is on by default), in their language.
+ */
+export const sendUsageReports = async (now = new Date()) => {
+    const admins = await db.user.find({ role: ROLES.GLOBAL_ADMIN, blockedAt: null }, 'email firstname language notifications').lean();
+    const due = [];
+    for (const admin of admins) {
+        if (preferenceOf(admin.notifications, 'usageReport').mail !== 'weekly') continue;
+        if (await once(`usageReport:${admin._id}:${weekKey(now)}`)) due.push(admin);
+    }
+    if (!due.length) return 0;
+    const { week, before } = await lastWeeks(now);
+    const range = `${day(week.start)} – ${day(new Date(week.end - DAY))}`;
+    let sent = 0;
+    for (const admin of due) {
+        const language = languageOf(admin);
+        try {
+            await sendTemplateMail('usageReport', admin.email, {
+                firstname: admin.firstname, week: range, summary: usageLines(week, before, language).join('\n'),
+                link: `${getAppUrl()}/admin/usage`, manageUrl: manageUrl(),
+            }, language, { headers: headersOf(unsubscribeToken('user', admin._id, 'usageReport')) });
+            sent += 1;
+        } catch (err) {
+            logger.error(err, `Failed to send the usage report to ${admin.email}`);
         }
     }
     return sent;

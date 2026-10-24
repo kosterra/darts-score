@@ -36,6 +36,7 @@ const TOPICS = {
     alertsCritical: { title: t('Critical alerts'), hint: t('E.g. a taken-over club or much deleted at once.') },
     alertsWarning: { title: t('Warnings'), hint: t('Unusual activity, e.g. many accounts or games at once.') },
     errors: { title: t('Errors of the app'), hint: t('Many errors within a day.') },
+    usageReport: { title: t('Weekly usage report'), hint: t('A mail on Mondays: active users, logins, games, trainings and new accounts and clubs of the week, against the week before.') },
     security: { title: t('Security'), hint: t('Your password or email address was changed, or your account was blocked.') },
 };
 const MAILS = { off: t('No mail'), instant: t('At once'), daily: t('Once a day'), weekly: t('Once a week') };

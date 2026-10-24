@@ -16,6 +16,8 @@ vi.mock('../models/db.model.js', () => ({
             updateOne: async (query, { $set }) => { setting = $set.value; },
         },
         club: { exists: async () => false },
+        session: { updateOne: async () => {} },
+        usageDay: { updateOne: async () => {} },
     },
 }));
 process.env.MFA_KEY = 'test key';

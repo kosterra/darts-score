@@ -14,7 +14,7 @@ vi.mock('../models/db.model.js', () => ({
         club: { ...collection('club'), find: (query) => ({ lean: async () => clubs.filter(club => !query.admins || club.admins.includes(String(query.admins))) }) },
         user: { ...collection('user'), countDocuments: async () => globalAdmins },
         atc: collection('atc'), rulesTraining: collection('rulesTraining'), deletionRequest: collection('deletionRequest'),
-        playerContact: collection('playerContact'), playerClaim: collection('playerClaim'), notification: collection('notification'),
+        playerContact: collection('playerContact'), playerClaim: collection('playerClaim'), notification: collection('notification'), session: collection('session'),
         joinRequest: collection('joinRequest'), integrityReview: collection('integrityReview'), alert: collection('alert'),
     },
 }));

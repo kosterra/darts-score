@@ -57,7 +57,7 @@ const PrivacyPage = () => {
 
                                 <h2>{t('What is stored, and why')}</h2>
                                 <ul>
-                                    <li><strong>{t('Your account:')}</strong>{' '}{t('your name, your email address, your password (only as a hash, never readable), your language and settings, and when you last logged in. To log you in, run your clubs and send you the mails you chose.')}</li>
+                                    <li><strong>{t('Your account:')}</strong>{' '}{t('your name, your email address, your password (only as a hash, never readable), your language and settings, and when you last logged in. To log you in, run your clubs and send you the mails you chose.')}{' '}{t('While you are logged in, the login on each device (browser and system, when it started and was last used), which the global admins see and can end; and on which days you used the app, for the usage statistics of the global admins (numbers only, never what you did).')}</li>
                                     <li><strong>{t('Players:')}</strong>{' '}{t('nickname, name, picture and country, the date of birth (entered by the club admins, also for children: for fair handicaps between ages, and to keep children out of the Hall of Shame), and the games, trainings, statistics, badges and levels. To keep score and show the statistics within the club.')}</li>
                                     <li><strong>{t('Clubs and groups:')}</strong>{' '}{t('name, logo, description, country, admins and members, and what they play.')}</li>
                                     <li><strong>{t('Players without a login:')}</strong>{' '}{t('an email address only when a club admin enters it with the player\'s consent, for the mails chosen there; every mail has a link to get no more.')}</li>
@@ -86,6 +86,7 @@ const PrivacyPage = () => {
                                 <h2>{t('How long')}</h2>
                                 <ul>
                                     <li>{t('Your account and your players: until you delete your account or a club admin deletes the player.')}</li>
+                                    <li>{t('Logins: until you log out or their time is up. The days you used the app: {{days}} days.', { days: keep.usageDays })}</li>
                                     <li>{t('Notifications: {{days}} days. Quick games: {{quick}} days. Notes of fair play: {{fair}} days. Links to take over a player: {{claim}} days.', { days: keep.notificationDays, quick: keep.quickGameDays, fair: keep.fairPlayDays, claim: keep.claimLinkDays })}</li>
                                 </ul>
 

@@ -51,6 +51,12 @@ const testMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}
 const loadMailServer = () => requestJSON(`${API_URL}/mail-server`);
 const sendTestMail = (to, language = 'en') => requestJSON(`${API_URL}/mail-server/test`, { method: 'POST', body: { to, language } });
 
+// who is logged in now, ending sessions, and the use of the app per week
+const loadSessions = () => requestJSON(`${API_URL}/sessions`);
+const endSession = (id) => requestJSON(`${API_URL}/sessions/${id}`, { method: 'DELETE' });
+const endSessionsOf = (userId) => requestJSON(`${API_URL}/sessions/users/${userId}`, { method: 'DELETE' });
+const loadUsage = (weeks = 12) => requestJSON(`${API_URL}/usage?weeks=${weeks}`);
+
 // what the public start page shows: { showNumbers }
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
 const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
@@ -110,6 +116,10 @@ const AdminService = {
     previewMailTemplate,
     testMailTemplate,
     loadMailServer,
+    loadSessions,
+    endSession,
+    endSessionsOf,
+    loadUsage,
     sendTestMail,
     saveStartPageSettings,
     saveSessionSettings,

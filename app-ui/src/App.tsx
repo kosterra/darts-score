@@ -71,7 +71,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play'];
+const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play', '/admin/sessions', '/admin/usage'];
 
 function AppContent() {
     // a new theme or accent colour: drawn again, for the colours set from scripts (charts, levels)

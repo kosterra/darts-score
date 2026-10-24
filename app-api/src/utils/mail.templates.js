@@ -97,6 +97,15 @@ export const MAIL_TEMPLATES = [
         button: 'Your statistics',
     },
     {
+        id: 'usageReport',
+        title: 'Weekly usage report',
+        description: 'On Mondays, for the global admins who keep it on: the use of the app in the week that ended, against the week before.',
+        placeholders: [...COMMON, { key: 'week', description: 'The week, from Monday to Sunday', sample: '19.10.2026 – 25.10.2026' }, { key: 'summary', description: 'The figures of the week, one line each', sample: '• Active users: 42 (+12 %)\n• Logins: 118 (+5 %)\n• Games started: 230 (−3 %)' }],
+        subject: 'Oche: the week of {{week}}',
+        body: 'Hello {{firstname}},\n\nThis is how Oche was used in the week of {{week}}, against the week before:\n\n{{summary}}',
+        button: 'Usage in detail',
+    },
+    {
         id: 'clubSummary',
         title: 'Weekly summary of a club',
         description: 'Once a week, for the club admins who chose it: the games, players, badges, records and goals of the week.',

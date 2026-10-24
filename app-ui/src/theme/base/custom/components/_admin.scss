@@ -882,3 +882,79 @@ $fair-play-suspicious: $accentAmber;
     font-size: inherit;
     word-break: break-word;
 }
+
+// who is logged in: an account per row, its devices below it
+.session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.session-account {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: $radius-md;
+    background: ink(0.04);
+}
+
+.session-account-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.session-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+// used within the last minutes
+.session-dot {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: $primaryColor;
+    box-shadow: 0 0 0 2px var(--c-shade-800);
+}
+
+.session-devices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-left: 3.35rem;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 2.25rem;
+    }
+
+    @media (max-width: 575px) { padding-left: 0; }
+}
+
+// the use of the app per week
+.usage-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $text-sm;
+
+    th, td {
+        padding: 0.5rem 0.6rem;
+        text-align: right;
+        white-space: nowrap;
+        border-bottom: 1px solid ink(0.08);
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--text-subtle); font-weight: $weight-semibold; }
+    td { font-variant-numeric: tabular-nums; }
+    tr.is-current td { color: var(--text-subtle); }
+}
+
+.usage-table-wrap { overflow-x: auto; }

@@ -96,6 +96,7 @@ export const deleteAccount = async (user, { by = null } = {}) => {
     await Promise.all([
         db.club.updateMany({ admins: userId }, { $pull: { admins: userId, adminSince: { user: userId } } }),
         db.notification.deleteMany({ user: userId }),
+        db.session.deleteMany({ user: userId }),
         // what it asked: closed, without its name
         db.joinRequest.deleteMany({ user: userId }),
         db.deletionRequest.updateMany({ by: userId }, { $set: { byName: FORMER_MEMBER } }),

@@ -24,6 +24,8 @@ import fairPlayHitModel from './fair.play.hit.model.js';
 import playerContactModel from './player.contact.model.js';
 import playerClaimModel from './player.claim.model.js';
 import noticeSentModel from './notice.sent.model.js';
+import sessionModel from './session.model.js';
+import usageDayModel from './usage.day.model.js';
 
 const db = {
   mongoose,
@@ -53,6 +55,8 @@ const db = {
   playerContact: playerContactModel(mongoose),
   playerClaim: playerClaimModel(mongoose),
   noticeSent: noticeSentModel(mongoose),
+  session: sessionModel(mongoose),
+  usageDay: usageDayModel(mongoose),
 };
 
 export default db;

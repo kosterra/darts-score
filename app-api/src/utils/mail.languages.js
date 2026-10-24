@@ -46,6 +46,11 @@ export const TEMPLATE_TEXTS = {
             body: "Hallo {{firstname}}\n\nDas war deine Woche am Oche:\n\n{{summary}}",
             button: "Deine Statistik",
         },
+        usageReport: {
+            subject: "Oche: die Woche vom {{week}}",
+            body: "Hallo {{firstname}}\n\nSo wurde Oche in der Woche vom {{week}} genutzt, verglichen mit der Woche davor:\n\n{{summary}}",
+            button: "Nutzung im Detail",
+        },
         clubSummary: {
             subject: "Die Woche von {{club}}",
             body: "Hallo {{firstname}}\n\nDas war die Woche von {{club}}:\n\n{{summary}}",
@@ -117,6 +122,11 @@ export const TEMPLATE_TEXTS = {
             subject: "Ta semaine à l'oche",
             body: "Bonjour {{firstname}},\n\nVoici ta semaine à l'oche :\n\n{{summary}}",
             button: "Tes statistiques",
+        },
+        usageReport: {
+            subject: "Oche : la semaine du {{week}}",
+            body: "Bonjour {{firstname}},\n\nVoici comment Oche a été utilisé la semaine du {{week}}, par rapport à la semaine précédente :\n\n{{summary}}",
+            button: "Utilisation en détail",
         },
         clubSummary: {
             subject: "La semaine de {{club}}",
@@ -190,6 +200,11 @@ export const TEMPLATE_TEXTS = {
             body: "Ciao {{firstname}},\n\nEcco la tua settimana all'oche:\n\n{{summary}}",
             button: "Le tue statistiche",
         },
+        usageReport: {
+            subject: "Oche: la settimana del {{week}}",
+            body: "Ciao {{firstname}},\n\nEcco come è stato usato Oche nella settimana del {{week}}, rispetto alla settimana prima:\n\n{{summary}}",
+            button: "Utilizzo nel dettaglio",
+        },
         clubSummary: {
             subject: "La settimana di {{club}}",
             body: "Ciao {{firstname}},\n\nEcco la settimana di {{club}}:\n\n{{summary}}",
@@ -261,6 +276,11 @@ export const TEMPLATE_TEXTS = {
             subject: "Tu semana en el oche",
             body: "Hola, {{firstname}}:\n\nAsí fue tu semana en el oche:\n\n{{summary}}",
             button: "Tus estadísticas",
+        },
+        usageReport: {
+            subject: "Oche: la semana del {{week}}",
+            body: "Hola, {{firstname}}:\n\nAsí se usó Oche en la semana del {{week}}, comparado con la semana anterior:\n\n{{summary}}",
+            button: "Uso en detalle",
         },
         clubSummary: {
             subject: "La semana de {{club}}",

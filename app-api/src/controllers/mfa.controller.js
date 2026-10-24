@@ -22,7 +22,7 @@ const startSession = async (req, res, user, { status = 200, extra = {} } = {}) =
     user.lastLoginAt = new Date();
     await user.save({ timestamps: false });
     clearPendingCookie(req, res);
-    await setSessionCookie(req, res, user);
+    await setSessionCookie(req, res, user, null, { login: true });
     res.status(status).json({ ...user.toJSON(), ...extra, mfa: await mfaStateOf(user) });
 };
 

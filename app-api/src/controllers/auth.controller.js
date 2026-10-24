@@ -2,7 +2,8 @@ import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { LANGUAGES, ROLES } from '../models/user.model.js';
-import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie, clearPendingCookie } from '../utils/auth.utils.js';
+import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
+import { endSession } from '../utils/sessions.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
 import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.tokens.js';
@@ -69,7 +70,9 @@ export const login = async (req, res) => {
     await finishLogin(req, res, user);
 };
 
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
+    const sid = readSession(req)?.sid;
+    if (sid) await endSession(sid);
     clearSessionCookie(req, res);
     clearPendingCookie(req, res);
     res.json({ message: 'Logged out.' });

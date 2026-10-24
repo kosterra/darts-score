@@ -2,6 +2,7 @@ import { randomBytes, scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import logger from '../models/logger.model.js';
 import { getSessionTimeoutMs } from './session.settings.js';
+import { recordSession } from './sessions.js';
 
 const scryptAsync = promisify(scrypt);
 const KEY_LENGTH = 64;
@@ -49,13 +50,17 @@ const cookieOptions = (req) => ({
 /**
  * Starts (or extends) a session: it lasts the timeout the global admins set,
  * or until exp when given (a session cut to a shorter timeout). Returns when
- * it ends.
+ * it ends. login: a new login, with a session of its own (also on a device
+ * that had one); otherwise the session of the cookie goes on.
  */
-export const setSessionCookie = async (req, res, user, exp = null) => {
+export const setSessionCookie = async (req, res, user, exp = null, { login = false } = {}) => {
     const expiresAt = exp ?? Date.now() + await getSessionTimeoutMs();
+    const current = readSession(req);
+    const own = current?.uid === String(user._id) && typeof current.sid === 'string' ? current.sid : null;
+    const sid = await recordSession(req, user, expiresAt, { sid: login ? null : own, login });
     res.cookie(
         SESSION_COOKIE,
-        { uid: String(user._id), v: user.sessionVersion, exp: expiresAt },
+        { uid: String(user._id), v: user.sessionVersion, exp: expiresAt, sid },
         { ...cookieOptions(req), maxAge: Math.max(0, expiresAt - Date.now()) }
     );
     return expiresAt;

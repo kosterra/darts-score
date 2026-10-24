@@ -2137,6 +2137,91 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: putAdminSession
+  /api/admin/sessions:
+    get:
+      tags:
+        - Administration
+      summary: Who is logged in now, with every session (device, start, last use, end); the admin's own marked as current
+      responses:
+        '200':
+          description: '{ activeMinutes, totals: { sessions, users, activeNow, usedToday }, users: [{ id, firstname, lastname, email, role, lastSeenAt, sessions: [{ id, device, startedAt, lastSeenAt, expiresAt, current }] }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminSessions
+  /api/admin/sessions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - Administration
+      summary: End one session; the device has to log in again
+      responses:
+        '200':
+          description: Who is logged in now, as GET /api/admin/sessions
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: The session has already ended
+        '409':
+          description: The admin's own session
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: deleteAdminSessionsByid
+  /api/admin/sessions/users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - Administration
+      summary: End every session of an account
+      responses:
+        '200':
+          description: Who is logged in now, as GET /api/admin/sessions
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '409':
+          description: The admin's own account
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: deleteAdminSessionsUsersByid
+  /api/admin/usage:
+    get:
+      tags:
+        - Administration
+      summary: The use of the app per week (Monday to Sunday), the current week so far first
+      parameters:
+        - name: weeks
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 26
+            default: 12
+      responses:
+        '200':
+          description: '{ since: from when active users and logins are counted, weeks: [{ start, end, current, tracked, activeUsers, logins, busiestDay, newUsers, newClubs, newPlayers, activeClubs, games: { total, x01, cricket, elimination, clock, more }, finishedGames, num180s, trainings, quickGames }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: getAdminUsage
   /api/admin/logs:
     get:
       tags:

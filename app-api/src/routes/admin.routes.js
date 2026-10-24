@@ -5,6 +5,7 @@ import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
 import * as MailTemplateController from '../controllers/mail.template.controller.js';
+import * as UsageController from '../controllers/usage.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
 import * as SecurityController from '../controllers/security.controller.js';
 import logger from '../models/logger.model.js';
@@ -132,6 +133,12 @@ export default (app) => {
         validate,
         MailTemplateController.sendTest,
     );
+
+    // who is logged in, ending a session, and the use of the app per week
+    router.get('/sessions', UsageController.sessions);
+    router.delete('/sessions/users/:id', param('id').isMongoId().withMessage('Invalid id.'), validate, UsageController.endAllOf);
+    router.delete('/sessions/:id', param('id').isMongoId().withMessage('Invalid id.'), validate, UsageController.endOne);
+    router.get('/usage', query('weeks').optional().isInt({ min: 1, max: 26 }).withMessage('weeks is a number from 1 to 26.'), validate, UsageController.usage);
 
     // warnings and errors of the API
     router.get('/logs', SecurityController.logs);
