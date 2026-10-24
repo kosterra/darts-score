@@ -136,36 +136,87 @@ const AboutCard = () => {
             {section === 'badges' &&
             <Panel header={t('Badges')}>
                 <div className="d-flex flex-column gap-4 p-2">
-                    <p className="text-subtle fs-7 m-0">
-                        {t('Badges are earned automatically in games and trainings, and each one adds XP to the player level. Your own collection is on your profile and under')}{' '}<Link to="/badges">{t('Club → Badges')}</Link>{t(', next to the flights and barrels you collected with your flight points (see')}{' '}<Link to="#levels">{t('Levels')}</Link>).
-                    </p>
+                    {/* three kinds: what a player earns, what a player gets but nobody wants, and what the club earns together */}
+                    <div className="d-flex flex-column gap-3">
+                        <p className="text-subtle fs-7 m-0">{t('Badges are earned by themselves in games and trainings. There are three kinds:')}</p>
+                        <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+                            <li className="d-flex align-items-center gap-3">
+                                {catalogue?.badges?.[0] && <BadgeMedal badge={catalogue.badges.find(badge => badge.tier === 3) ?? catalogue.badges[0]} size="sm" />}
+                                <span className="fs-7"><strong className="text-default">{t('Player badges')}</strong>{' '}<span className="text-subtle">{t('(round): each player earns them for what they do, in all their clubs. Each adds XP to the player\'s level.')}</span></span>
+                            </li>
+                            <li className="d-flex align-items-center gap-3">
+                                {catalogue?.shame?.[0] && <ShameMedal badge={catalogue.shame[0]} size="sm" />}
+                                <span className="fs-7"><strong className="text-default">{t('Hall of Shame')}</strong>{' '}<span className="text-subtle">{t('(round, in rust): player badges too, the ones nobody wants. They add no XP and can be washed off.')}</span></span>
+                            </li>
+                            <li className="d-flex align-items-center gap-3">
+                                {catalogue?.club?.badges?.[0] && <ClubMedal badge={catalogue.club.badges[0]} size="sm" />}
+                                <span className="fs-7"><strong className="text-default">{t('Club badges')}</strong>{' '}<span className="text-subtle">{t('(a shield): the club earns them together, with the games and trainings of all its members. They belong to the club and add no XP.')}</span></span>
+                            </li>
+                        </ul>
+                    </div>
                     {!catalogue && <Lines count={6} />}
-                    {categories.map(category => (
-                        <section key={category.category} className="d-flex flex-column gap-3">
-                            <h2 className="game-setup-section-title m-0">{category.title}</h2>
+
+                    {catalogue &&
+                        <section className="d-flex flex-column gap-4">
+                            <div className="d-flex flex-column gap-2">
+                                <h2 className="about-badge-kind">{t('Player badges')}</h2>
+                                <p className="text-subtle fs-7 m-0">
+                                    {t('Earned by each player for themselves, in series that get harder tier by tier (bronze, silver, gold and up). Each one adds XP to the player level. Your own collection is on your profile and under')}{' '}<Link to="/badges">{t('Club → Badges')}</Link>{t(', next to the flights and barrels you collected with your flight points (see')}{' '}<Link to="#levels">{t('Levels')}</Link>).
+                                </p>
+                            </div>
+                            {categories.map(category => (
+                                <section key={category.category} className="d-flex flex-column gap-3">
+                                    <h3 className="game-setup-section-title m-0">{category.title}</h3>
+                                    <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+                                        {category.series.map(badges => (
+                                            <li key={badges[0].group} className="d-flex align-items-center gap-3">
+                                                <BadgeMedal badge={badges.at(-1)} size="sm" />
+                                                <div className="d-flex flex-column min-w-0">
+                                                    <span className="text-default fs-7 fw-semibold">{badges[0].groupTitle}</span>
+                                                    <span className="text-faint fs-8">
+                                                        {badges.length === 1
+                                                            ? badges[0].description
+                                                            : badges.map(badge => `${badge.title} (${badge.targetLabel ?? new Intl.NumberFormat(locale()).format(badge.target)})`).join(' · ')}
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+                            ))}
+                        </section>
+                    }
+
+                    {catalogue?.shame?.length > 0 &&
+                        <section className="d-flex flex-column gap-3">
+                            <div className="d-flex flex-column gap-2">
+                                <h2 className="about-badge-kind">{t('Hall of Shame: the player badges nobody wants')}</h2>
+                                <p className="text-subtle fs-7 m-0">
+                                    {t('These are player badges too: a player gets them for a bad moment of their own. In every club one player holds each of them, whoever got it last; they show on the dashboard and next to the name during X01, Cricket and Elimination games. A player keeps one until someone else gets it, or until they wash it off with the good deed written next to it. They add no XP. A club admin can switch them off, or keep them and leave children out (under 16, or another age the club chooses); a player without a date of birth is never in the Hall of Shame.')}
+                                </p>
+                            </div>
                             <ul className="list-unstyled m-0 d-flex flex-column gap-3">
-                                {category.series.map(badges => (
-                                    <li key={badges[0].group} className="d-flex align-items-center gap-3">
-                                        <BadgeMedal badge={badges.at(-1)} size="sm" />
+                                {catalogue.shame.map(badge => (
+                                    <li key={badge.id} className="d-flex align-items-center gap-3">
+                                        <ShameMedal badge={badge} size="sm" />
                                         <div className="d-flex flex-column min-w-0">
-                                            <span className="text-default fs-7 fw-semibold">{badges[0].groupTitle}</span>
-                                            <span className="text-faint fs-8">
-                                                {badges.length === 1
-                                                    ? badges[0].description
-                                                    : badges.map(badge => `${badge.title} (${badge.targetLabel ?? new Intl.NumberFormat(locale()).format(badge.target)})`).join(' · ')}
-                                            </span>
+                                            <span className="text-default fs-7 fw-semibold">{badge.title}</span>
+                                            <span className="text-faint fs-8">{badge.description}{' '}{t('· Wash it off:')}{' '}{badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}</span>
                                         </div>
                                     </li>
                                 ))}
                             </ul>
                         </section>
-                    ))}
+                    }
+
                     {catalogue?.club?.badges?.length > 0 &&
                         <section className="d-flex flex-column gap-3">
-                            <h2 className="game-setup-section-title m-0">{t('Club badges')}</h2>
-                            <p className="text-subtle fs-7 m-0">
-                                {t('Badges the club earns together: every game and training of its members adds to them. Each is a shield, with the game or training that tipped it and who made it happen; the members hear about each new one. They add no XP. The club admins also set up to three goals for the whole club, under Edit club. All of them are under')}{' '}<Link to="/badges#club">{t('Club → Badges')}</Link>.
-                            </p>
+                            <div className="d-flex flex-column gap-2">
+                                <h2 className="about-badge-kind">{t('Club badges: earned by the club together')}</h2>
+                                <p className="text-subtle fs-7 m-0">
+                                    {t('Not a player\'s, but the club\'s: every game and training of its members adds to them. Each shows the game or training that tipped it and who made it happen, and the members hear about each new one. They add no XP. The club admins can also set up to three goals for the whole club under Edit club. The club\'s badges and goals are under')}{' '}<Link to="/badges#club">{t('Club → Badges')}</Link>.
+                                </p>
+                            </div>
                             <ul className="list-unstyled m-0 d-flex flex-column gap-3">
                                 {clubSeries.map(badges => (
                                     <li key={badges[0].group} className="d-flex align-items-center gap-3">
@@ -177,25 +228,6 @@ const AboutCard = () => {
                                                     ? `${badges[0].title}: ${badges[0].description}`
                                                     : badges.map(badge => `${badge.title} (${badge.targetLabel})`).join(' · ')}
                                             </span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    }
-                    {catalogue?.shame?.length > 0 &&
-                        <section className="d-flex flex-column gap-3">
-                            <h2 className="game-setup-section-title m-0">{t('Hall of Shame')}</h2>
-                            <p className="text-subtle fs-7 m-0">
-                                {t('Badges nobody wants. In every club one player holds each of them: whoever got it last, shown on the dashboard and next to their name during X01, Cricket and Elimination games. Shanghai, Killer, Halve-It, Golf, Tactics and Bob\'s 27 have shame badges of their own too, listed below. They keep it until someone else gets it or until they wash it off with the good deed. These badges add no XP. A club admin can switch them off in the club settings, or keep them and leave children out (under 16, or another age the club chooses). A player without a date of birth is never in the Hall of Shame: their age is unknown.')}
-                            </p>
-                            <ul className="list-unstyled m-0 d-flex flex-column gap-3">
-                                {catalogue.shame.map(badge => (
-                                    <li key={badge.id} className="d-flex align-items-center gap-3">
-                                        <ShameMedal badge={badge} size="sm" />
-                                        <div className="d-flex flex-column min-w-0">
-                                            <span className="text-default fs-7 fw-semibold">{badge.title}</span>
-                                            <span className="text-faint fs-8">{badge.description}{' '}{t('· Wash it off:')}{' '}{badge.wash.charAt(0).toLowerCase() + badge.wash.slice(1)}</span>
                                         </div>
                                     </li>
                                 ))}
