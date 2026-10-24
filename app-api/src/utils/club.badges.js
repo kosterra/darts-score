@@ -257,5 +257,15 @@ export const topClubBadges = (entries = [], count = 3) => entries
     .slice(0, count)
     .map(({ entry, badge }) => ({ ...publicClubBadge(badge), earnedAt: entry.earnedAt, nickname: entry.nickname ?? null }));
 
+/**
+ * The badges a club earned last, newest first, for its header.
+ */
+export const latestClubBadges = (entries = [], count = 5) => entries
+    .map(entry => ({ entry, badge: getClubBadge(entry.badge) }))
+    .filter(({ badge }) => badge)
+    .sort((a, b) => new Date(b.entry.earnedAt) - new Date(a.entry.earnedAt))
+    .slice(0, count)
+    .map(({ entry, badge }) => ({ ...publicClubBadge(badge), earnedAt: entry.earnedAt, nickname: entry.nickname ?? null }));
+
 // eslint-disable-next-line no-unused-vars
 export const publicClubBadge = ({ metric, ...badge }) => badge;

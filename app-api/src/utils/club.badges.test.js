@@ -72,3 +72,15 @@ describe('club badges', () => {
         expect(top[0].metric).toBeUndefined();
     });
 });
+
+describe('latest club badges', () => {
+    it('newest first, only known ones', async () => {
+        const { latestClubBadges } = await import('./club.badges.js');
+        const latest = latestClubBadges([
+            { badge: 'clubGames-100', earnedAt: new Date(2026, 0, 1) },
+            { badge: 'clubFirst180-1', earnedAt: new Date(2026, 5, 1) },
+            { badge: 'gone-1', earnedAt: new Date(2026, 6, 1) },
+        ]);
+        expect(latest.map(badge => badge.id)).toEqual(['clubFirst180-1', 'clubGames-100']);
+    });
+});

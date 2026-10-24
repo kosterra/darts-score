@@ -26,6 +26,8 @@ import HallOfShameWidget from './widgets/hall.of.shame.widget';
 import ClubGoalsWidget from './widgets/club.goals.widget';
 import MeWidget from './widgets/me.widget';
 import { t } from '../../utils/i18n';
+import { Link } from 'react-router-dom';
+import ClubMedal from '../badges/club.medal';
 import { formatDate } from '../../utils/dates';
 
 
@@ -79,6 +81,8 @@ const Dashboard = () => {
         [t('Admins'), club.adminCount],
         [t('Games played'), totals.gamesPlayed],
         [t('Last game'), formatDate(totals.lastGameAt)],
+        // as the badges in a player's header: how many of all, to the club's badges
+        ...(club.badgeTotal ? [[t('Club badges'), <Link key="badges" to="/badges#club">{t('{{count}} of {{total}}', { count: club.badgeCount, total: club.badgeTotal })}</Link>]] : []),
     ];
 
     // the arrangement to start from: one's own (or the club's, to start one's own from), or the club's
@@ -157,6 +161,14 @@ const Dashboard = () => {
                     </dl>
                 </div>
                 </div>
+                {/* the club's latest badges, as in a player's header */}
+                {club.latestBadges?.length > 0 &&
+                    <div className="d-flex flex-column gap-2 ms-md-auto">
+                        <span className="text-faint fs-8">{t('Latest club badges')}</span>
+                        <Link to="/badges#club" className="d-flex gap-2" aria-label={t('All club badges')}>
+                            {club.latestBadges.map(badge => <ClubMedal key={badge.id} badge={badge} size="sm" />)}
+                        </Link>
+                    </div>}
                 {!editing && (
                     <div className="d-flex flex-column align-items-end gap-1">
                         <Button label={t('Edit dashboard')} icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />

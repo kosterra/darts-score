@@ -2946,7 +2946,7 @@ paths:
     get:
       tags:
         - Statistics
-      summary: Club dashboard data - facts about the club, leaderboards over all finished games, recent and running games
+      summary: Club dashboard data - facts about the club (with its latest club badges and how many of all it has), leaderboards over all finished games, recent and running games
       responses:
         '200':
           description: OK
