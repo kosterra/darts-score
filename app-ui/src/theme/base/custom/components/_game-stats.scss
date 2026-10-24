@@ -209,6 +209,8 @@
 
 .result-hero-score {
     color: $textDefaultColor;
+    // a score counting down keeps its place: every figure as wide as the others
+    font-variant-numeric: tabular-nums;
     font-size: 3.25rem;
     font-weight: $weight-bold;
     line-height: 1;

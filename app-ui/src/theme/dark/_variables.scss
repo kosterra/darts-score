@@ -61,7 +61,7 @@ $statusTextColor: var(--c-status-text) !default;
 $hoverBg: ink(0.03) !default;
 
 //global
-$fontFamily: "Exo", sans-serif !default;
+$fontFamily: "Exo 2", sans-serif !default;
 $fontSize: 1rem !default;
 $fontWeight: normal !default;
 $textColor: $shade000 !default;
@@ -920,10 +920,10 @@ $toolbarBorder: none !default;
 $toolbarPadding: $panelHeaderPadding !default;
 
 :root {
-	font-family: "Exo", sans-serif;
+	font-family: "Exo 2", sans-serif;
 	font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 	font-variation-settings: normal;
-	--font-family: "Exo", sans-serif;
+	--font-family: "Exo 2", sans-serif;
 	--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 	--surface-a: #{$shade800};
 	--surface-b: #{$shade900};

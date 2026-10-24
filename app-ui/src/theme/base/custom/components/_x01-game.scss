@@ -397,6 +397,7 @@
 
 .x01-visit-left {
   display: inline-block;
+  font-variant-numeric: tabular-nums;
   min-width: 2.25rem;
   margin-left: 0.6rem;
   color: var(--text-default);

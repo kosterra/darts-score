@@ -247,6 +247,7 @@
 
 .atc-row-time {
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
   color: var(--text-default);
   font-size: $text-lg;
   font-weight: $weight-semibold;
