@@ -377,17 +377,50 @@
 }
 
 .landing-footer {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: $space-3;
-    padding: $space-5;
-    border-top: 1px solid var(--border-default);
+    // a calm bar of its own, readable over the photo in every theme
+    background: $surfaceColor;
+    border-top: 1px solid ink(0.06);
     color: var(--text-faint);
     font-size: $text-sm;
 
     a { color: var(--text-subtle); text-decoration: none; }
-    a:hover { color: var(--text-default); }
+    a:hover, a:focus-visible { color: var(--text-default); }
+}
+
+.landing-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-4 $space-6;
+    max-width: 75rem;
+    margin: 0 auto;
+    padding: $space-5;
+}
+
+.landing-footer-brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    min-width: 0;
+}
+
+.landing-footer-name {
+    color: var(--text-default);
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+}
+
+.landing-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2 $space-6;
+}
+
+.landing-footer-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2 $space-4;
 }
 
 // jumping to a section leaves room for the bar at the top

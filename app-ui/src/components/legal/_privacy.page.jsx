@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 
 import PublicService from '../../services/public.service';
@@ -23,6 +23,12 @@ const PrivacyPage = () => {
         PublicService.loadLegal().then(setLegal).catch(() => setFailed(true));
     }, []);
 
+    // the imprint has its own address (/privacy#imprint): there once the text is in
+    const { hash } = useLocation();
+    useEffect(() => {
+        if (legal && hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' });
+    }, [legal, hash]);
+
     const keep = legal?.keep ?? {};
     const operator = legal && (legal.operator || legal.address || legal.email)
         ? (
@@ -44,7 +50,7 @@ const PrivacyPage = () => {
                         {failed && <p className="text-subtle m-0">{t('The privacy policy could not be loaded. Please try again later.')}</p>}
                         {legal &&
                             <div className="legal-text">
-                                <p>{t('Oche is a scoreboard and statistics app for darts clubs. This page says which personal data this installation keeps, why, for how long and what your rights are.')}</p>
+                                <p>{t('Oche is a scoreboard and statistics app for darts: for clubs and pub teams as well as for friends, flatshares and families. Every group plays in Oche as a "club". This page says which personal data this installation keeps, why, for how long and what your rights are.')}</p>
 
                                 <h2>{t('Who is responsible')}</h2>
                                 {operator}
@@ -53,7 +59,7 @@ const PrivacyPage = () => {
                                 <ul>
                                     <li><strong>{t('Your account:')}</strong>{' '}{t('your name, your email address, your password (only as a hash, never readable), your language and settings, and when you last logged in. To log you in, run your clubs and send you the mails you chose.')}</li>
                                     <li><strong>{t('Players:')}</strong>{' '}{t('nickname, name, picture and country, the date of birth (entered by the club admins, also for children: for fair handicaps between ages, and to keep children out of the Hall of Shame), and the games, trainings, statistics, badges and levels. To keep score and show the statistics within the club.')}</li>
-                                    <li><strong>{t('Clubs:')}</strong>{' '}{t('name, logo, description, country, admins and members, and what the club plays.')}</li>
+                                    <li><strong>{t('Clubs and groups:')}</strong>{' '}{t('name, logo, description, country, admins and members, and what they play.')}</li>
                                     <li><strong>{t('Players without a login:')}</strong>{' '}{t('an email address only when a club admin enters it with the player\'s consent, for the mails chosen there; every mail has a link to get no more.')}</li>
                                     <li><strong>{t('Quick games without an account:')}</strong>{' '}{t('only the names typed in, kept {{days}} days.', { days: keep.quickGameDays })}</li>
                                     <li><strong>{t('Protection:')}</strong>{' '}{t('the internet address (IP) of requests, to stop spam and attacks (e.g. too many failed logins); alerts with it are kept for the global admins until they remove them. Errors of the app are kept {{days}} days.', { days: keep.errorLogDays })}</li>
