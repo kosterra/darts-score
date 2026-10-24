@@ -393,12 +393,12 @@
 // jumping to a section leaves room for the bar at the top
 .landing section[id] { scroll-margin-top: 5rem; }
 
-// the quick games: the bar of the start page above the setup, the game and its statistics
+// the quick games: the bar of the start page above the setup, the game and its
+// statistics, on the background of the app's pages (the one chosen under Display)
 .quick-page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: $shade900;
 
     // the footer at the bottom of the window, also under a short page
     .quick-page-content { flex: 1 0 auto; }

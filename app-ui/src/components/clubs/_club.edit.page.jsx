@@ -220,7 +220,7 @@ const ClubEditPage = () => {
                                             </button>
                                         ))}
                                     </div>
-                                    <span className="text-faint fs-8">{t('The accent colour of the app for the members who did not choose their own (Profile → Playing → Look): buttons, highlights and the club\'s tablet.')}</span>
+                                    <span className="text-faint fs-8">{t('The accent colour of the app for the members who did not choose their own (Profile → Account → Display): buttons, highlights and the club\'s tablet.')}</span>
                                 </div>
                             </div>
                             <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">

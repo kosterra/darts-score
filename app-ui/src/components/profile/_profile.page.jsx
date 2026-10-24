@@ -27,9 +27,9 @@ const LAST_CLUB = 'last';
 
 // the parts of the profile, each with its own address (/profile#player)
 const SECTIONS = [
-    { value: 'account', label: t('Account'), icon: 'pi pi-user', intro: t('Your account: the name your clubs see, the email you log in with, the language and date format, what opens after logging in, your password and two-step login.') },
+    { value: 'account', label: t('Account'), icon: 'pi pi-user', intro: t('Your account: the name your clubs see, the email you log in with, what opens after logging in, the language, the date format and how the app looks, your password and two-step login.') },
     { value: 'player', label: t('Player'), icon: 'pi pi-id-card', intro: t('How you appear in your clubs: your nickname, picture and country, what the others see of you, and your darts. Your name comes from your account; your club admins set the date of birth, and as an adult you can correct it.') },
-    { value: 'playing', label: t('Playing'), icon: 'pi pi-bullseye', intro: t('How the app looks, and everything in a game: the ways out, how you enter the darts, the doubles the tips aim at, the handicap, the dart animation and the celebrations.') },
+    { value: 'playing', label: t('Playing'), icon: 'pi pi-bullseye', intro: t('Everything in a game: the ways out, how you enter the darts, the doubles the tips aim at, the handicap, the dart animation and the celebrations.') },
     { value: 'notifications', label: t('Notifications'), icon: 'pi pi-bell', intro: t('What you are told about, and how: in the app, by mail at once, or in one mail a day or a week.') },
 ];
 
@@ -142,7 +142,8 @@ const ProfilePage = () => {
                 {/* laid out as the game setup: a section title, then a box per setting */}
                 {section.value === 'account' &&
                 <div className="row g-4">
-                    <form onSubmit={onSaveProfile} className="col-12 col-xl-6">
+                    <div className="col-12 col-xl-6">
+                    <form onSubmit={onSaveProfile}>
                         <p className="game-setup-section-title">{t('Your account')}</p>
                         <p className="setting-title">{t('Name')}</p>
                         <div className="row mx-0 mt-0 setting-body">
@@ -158,22 +159,6 @@ const ProfilePage = () => {
                                 {field('profile-email', t('Email address'), <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />, t('You log in with it; a new password is sent there.'))}
                             </div>
                         </div>
-                        <p className="setting-title">{t('Language')}</p>
-                        <div className="row mx-0 mt-0 setting-body">
-                            <div className="col d-flex flex-column gap-2">
-                                <SelectButton
-                                    value={currentLanguage()}
-                                    options={LANGUAGES}
-                                    optionLabel="label"
-                                    optionValue="code"
-                                    onChange={(e) => onChangeLanguage(e.value)}
-                                    className="p-selectbutton-pills flex-wrap"
-                                    aria-label={t('Language')}
-                                />
-                                <span className="text-faint fs-8">{t('The app and the mails you get come in this language. Saved right away.')}</span>
-                            </div>
-                        </div>
-                        <DateFormatSetting onSaved={(detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 })} />
 
                         {/* no clubs and no statistics of their own for global admins */}
                         {!isGlobalAdmin && (
@@ -216,6 +201,27 @@ const ProfilePage = () => {
                         </div>
                     </form>
 
+                    {/* how the app shows itself: language, dates and the look, each saved right away */}
+                    <p className="game-setup-section-title">{t('Display')}</p>
+                        <p className="setting-title">{t('Language')}</p>
+                        <div className="row mx-0 mt-0 setting-body">
+                            <div className="col d-flex flex-column gap-2">
+                                <SelectButton
+                                    value={currentLanguage()}
+                                    options={LANGUAGES}
+                                    optionLabel="label"
+                                    optionValue="code"
+                                    onChange={(e) => onChangeLanguage(e.value)}
+                                    className="p-selectbutton-pills flex-wrap"
+                                    aria-label={t('Language')}
+                                />
+                                <span className="text-faint fs-8">{t('The app and the mails you get come in this language. Saved right away.')}</span>
+                            </div>
+                        </div>
+                        <DateFormatSetting onSaved={(detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 })} />
+                    <AppearanceSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} />
+                    </div>
+
                     <div className="col-12 col-xl-6">
                     <form onSubmit={onChangePassword}>
                         <p className="game-setup-section-title">{t('Security')}</p>
@@ -250,7 +256,6 @@ const ProfilePage = () => {
                     <div className="row g-4">
                         {/* how you like to play, with your account on every device */}
                         <div className="col-12 col-xl-6">
-                            <AppearanceSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} />
                             <PlayingPreferences onSaved={(detail) => showSuccess(t('Saved'), detail)} />
                         </div>
                         {/* your player's own: the club sees them too */}

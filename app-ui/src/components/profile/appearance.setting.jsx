@@ -23,7 +23,8 @@ const BACKGROUND_OPTIONS = [
 
 /**
  * How the app looks, with the account on every device: the theme, the accent
- * colour (or the club's) and the background. Shown at once and saved.
+ * colour (or the club's) and the background. Shown at once and saved; part
+ * of Display on the profile (Account), with the language and date format.
  */
 const AppearanceSetting = ({ onSaved }) => {
     const [preferences, save] = useGamePreferences();
@@ -40,9 +41,6 @@ const AppearanceSetting = ({ onSaved }) => {
 
     return (
         <>
-            <p className="game-setup-section-title">{t('Look')}</p>
-            <p className="text-faint fs-8 mt-0">{t('With your account, on every device. Shown and saved right away.')}</p>
-
             <p className="setting-title">{t('Theme')}</p>
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col pt-1">
@@ -116,7 +114,7 @@ const AppearanceSetting = ({ onSaved }) => {
                         className="p-selectbutton-pills flex-wrap"
                         aria-label={t('Background')}
                     />
-                    <span className="text-faint fs-8">{t('Behind the pages: the dartboard photo, the photo blurred, or none (calmer, and lighter on older phones).')}</span>
+                    <span className="text-faint fs-8">{t('Behind the pages: the dartboard photo, the photo blurred, or none (calmer, and lighter on older phones). The theme, colour and background come with your account on every device.')}</span>
                 </div>
             </div>
         </>
