@@ -122,7 +122,7 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                         <ul className="training-popular list-unstyled m-0">
                             {overview.newest.map(player => (
                                 <li key={player.id}>
-                                    <Link to={`/players/${player.id}`} className="d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
+                                    <Link to={`/players/${player.id}`} className="link-row d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
                                         <PlayerAvatar player={player} className="avatar-md" />
                                         <span className="d-flex flex-column min-w-0">
                                             <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
@@ -142,7 +142,7 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                             : <ul className="training-popular list-unstyled m-0">
                                 {overview.birthdays.map(entry => (
                                     <li key={entry.player.id}>
-                                        <Link to={`/players/${entry.player.id}`} className="d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
+                                        <Link to={`/players/${entry.player.id}`} className="link-row d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
                                             <PlayerAvatar player={entry.player} className="avatar-md" />
                                             <span className="text-default fw-semibold text-truncate">{entry.player.nickname}</span>
                                             <span className={`ms-auto fs-7 text-nowrap ${entry.inDays === 0 ? 'text-warning fw-semibold' : 'text-subtle'}`}>

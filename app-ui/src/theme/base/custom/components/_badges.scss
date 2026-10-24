@@ -983,3 +983,20 @@ $tar: #17110c;
     font-size: $text-lg;
     font-weight: $weight-semibold;
 }
+
+// a line of a list that leads somewhere (e.g. to a player): the light background
+// of the rankings shows on hover, the text stays where it is
+.link-row {
+    margin: (-$space-2) (-$space-2);
+    padding: $space-2;
+    border-radius: $radius-md;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color $transitionDuration;
+
+    &:hover,
+    &:focus-visible {
+        background: $surfaceRaisedColor;
+        color: inherit;
+    }
+}

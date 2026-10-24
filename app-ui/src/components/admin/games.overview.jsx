@@ -88,7 +88,7 @@ const GamesOverview = () => {
                                     const player = playerOf(entry.playerId);
                                     return (
                                         <li key={entry.playerId}>
-                                            <Link to={`/players/${entry.playerId}`} className="badge-feed-row text-decoration-none">
+                                            <Link to={`/players/${entry.playerId}`} className="link-row badge-feed-row text-decoration-none">
                                                 <span className="badge-ranking-place text-faint fw-bold">{index + 1}</span>
                                                 <Avatar
                                                     label={player?.profileImg ? undefined : resolvePlayerInitials(player?.firstname ?? '?', player?.lastname ?? '')}

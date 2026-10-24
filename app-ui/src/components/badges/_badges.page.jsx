@@ -130,13 +130,16 @@ const BadgesOverview = () => {
                         ? <span className="text-faint fs-7">{t('No badges earned yet.')}</span>
                         : <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                             {overview.recent.map((entry, index) => (
-                                <li key={`${entry.player.id}-${entry.badge.id}-${index}`} className="badge-feed-row">
-                                    <BadgeMedal badge={entry.badge} size="sm" />
-                                    <span className="d-flex flex-column flex-grow-1 min-w-0">
-                                        <span className="text-default fs-7 fw-semibold text-truncate" title={entry.badge.description}>{entry.badge.title}</span>
-                                        <Link to={toPlayer(entry.player)} className="text-subtle fs-8 text-truncate">{entry.player.nickname}</Link>
-                                    </span>
-                                    <span className="text-faint fs-8 text-nowrap">{dayjs(entry.earnedAt).fromNow()}</span>
+                                <li key={`${entry.player.id}-${entry.badge.id}-${index}`}>
+                                    {/* the whole line leads to the player's badges */}
+                                    <Link to={toPlayer(entry.player)} className="link-row badge-feed-row">
+                                        <BadgeMedal badge={entry.badge} size="sm" />
+                                        <span className="d-flex flex-column flex-grow-1 min-w-0">
+                                            <span className="text-default fs-7 fw-semibold text-truncate" title={entry.badge.description}>{entry.badge.title}</span>
+                                            <span className="text-subtle fs-8 text-truncate">{entry.player.nickname}</span>
+                                        </span>
+                                        <span className="text-faint fs-8 text-nowrap">{dayjs(entry.earnedAt).fromNow()}</span>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>}
@@ -158,9 +161,9 @@ const BadgesOverview = () => {
             </Panel>
 
             {/* what the club earned together; beside it the goals of its admins */}
-            {club &&
+            {club?.badges &&
                 <div className="row g-4" id="club">
-                    <div className={club.goals.length ? 'col-12 col-xl-8' : 'col-12'}>
+                    <div className={(club.goals ?? []).length ? 'col-12 col-xl-8' : 'col-12'}>
                         <Panel header={t('Club badges')}>
                             <p className="text-subtle fs-7 mt-0 mb-4">
                                 {t('Badges the club earns together: every game and training of its members adds to them. {{earned}} of {{total}} so far.', { earned: club.earnedCount, total: club.total })}
@@ -168,11 +171,11 @@ const BadgesOverview = () => {
                             <ClubBadgeList badges={club.badges} />
                         </Panel>
                     </div>
-                    {club.goals.length > 0 &&
+                    {(club.goals ?? []).length > 0 &&
                         <div className="col-12 col-xl-4">
                             <Panel header={t('Club goals')} className="h-100">
                                 <p className="text-faint fs-8 mt-0">{t('Set by the club admins: what the club plays until the end date counts.')}</p>
-                                <ClubGoalList goals={club.goals} />
+                                <ClubGoalList goals={club.goals ?? []} />
                             </Panel>
                         </div>}
                 </div>}
