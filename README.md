@@ -258,6 +258,16 @@ docker compose up -d
 
 The app runs on `http://<server>:3001`, the Swagger UI at `/api-docs`. For HTTPS put a reverse proxy (Caddy, Traefik, nginx …) in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`. Uploaded pictures and logos are kept in the Docker volume `darts_score_data`, the database in `darts_score_db`. To keep the pictures in a folder of your own, mount it at `/app/data` and give it to user 1000, the user the app runs as (`chown -R 1000:1000 <folder>`).
 
+#### Public access with a Cloudflare Tunnel
+
+To make the app public from a server at home, `docker-compose.yml` includes an optional [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). The tunnel connects out to Cloudflare, so no port has to be opened on the router, the address of your home connection stays hidden, and Cloudflare provides https. You need a domain whose DNS is managed by Cloudflare; the tunnel itself is free.
+
+1. In the Cloudflare dashboard go to **Zero Trust → Networks → Tunnels**, create a tunnel (type *Cloudflared*) and copy its token.
+2. Add a **public hostname** to the tunnel, e.g. `darts.example.com`, with the service `http://darts_score:3001`.
+3. In `.env` (or the stack's variables in Portainer) set `COMPOSE_PROFILES=tunnel`, `TUNNEL_TOKEN=<the token>` and `APP_URL=https://darts.example.com`, then run `docker compose up -d` again.
+
+Cloudflare sends `X-Forwarded-Proto: https`, so the login cookie is marked secure. Once the app is reached through the tunnel only, you can remove `ports` from the `darts_score` service so port 3001 is no longer open on the server's network.
+
 To build and run the production image from the source instead:
 
 ```bash

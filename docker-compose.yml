@@ -7,6 +7,9 @@
 # Traefik, nginx …) in front of port 3001; the login cookie is marked secure
 # automatically when the proxy forwards "X-Forwarded-Proto: https".
 #
+# To make it public without opening a port on your router, turn on the
+# Cloudflare Tunnel below: set TUNNEL_TOKEN and COMPOSE_PROFILES=tunnel.
+#
 # In Portainer: create a stack from this file and enter the settings of
 # .env.sample as the stack's environment variables.
 #
@@ -92,6 +95,27 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Cloudflare Tunnel (optional): makes the app public on your own domain with
+  # https, without opening a port on the router and without showing the
+  # server's address. Only started with the profile "tunnel", i.e. with
+  # COMPOSE_PROFILES=tunnel in the settings or "docker compose --profile tunnel".
+  # In the Cloudflare dashboard (Zero Trust → Networks → Tunnels) create a
+  # tunnel, copy its token to TUNNEL_TOKEN and add a public hostname, e.g.
+  # darts.example.com, with the service http://darts_score:3001.
+  # ---------------------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: darts_score_tunnel
+    restart: unless-stopped
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      darts_score:
+        condition: service_healthy
 
 volumes:
   darts_score_db:
