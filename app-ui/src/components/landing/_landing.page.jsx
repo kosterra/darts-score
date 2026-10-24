@@ -56,7 +56,7 @@ const FEATURES = [
     { icon: <FaRegClock />, title: t('Training'), text: t('Around the Clock against the stopwatch, X01 against a bot as strong as you, and six more trainings from Bob\'s 27 to Catch 40.') },
     { icon: <FaRobot />, title: t('A bot to practise with'), text: t('Easy, normal, hard or pro, or one that plays at your own level.') },
     { icon: <FaPeopleGroup />, title: t('Made for clubs'), text: t('Several admins, a login for every player, and new members who join on their own if you let them.') },
-    { icon: <FaUserGroup />, title: t('Friends and family too'), text: t('A second club for the people at home, and a guest for a single game in seconds.') },
+    { icon: <FaUserGroup />, title: t('Friends and family too'), text: t('Your own group for friends, the flatshare or the family, and a guest for a single game in seconds.') },
     { icon: <FaMobileScreen />, title: t('On any screen'), text: t('Phone, tablet or the PC next to the board: nothing to install, or add Oche to the home screen as an app.') },
     { icon: <FaBookOpen />, title: t('Rules at hand'), text: t('Every game and training explains its rules, in its setup and while it is played.') },
     { icon: <FaWandMagicSparkles />, title: t('The big moments celebrated'), text: t('180s, big finishes, a Shanghai or a hole in one, and the winner in gold, without holding up the next game.') },
@@ -67,16 +67,17 @@ const FEATURES = [
 
 const STEPS = [
     { title: t('Create your account'), text: t('Register with your email address. It takes a minute.') },
-    { title: t('Set up or join a club'), text: t('Name your own club and add your players, or find a club that takes new members and join it.') },
+    { title: t('Set up your group or join a club'), text: t('Set up a club for your team, your friends or your flatshare and add the players, or find a club that takes new members and join it.') },
     { title: t('Play'), text: t('Start a game, throw, and let Oche do the counting. Or try a quick game first, without an account.') },
 ];
 
 const FAQ = [
-    { q: t('What does Oche cost?'), a: t('Nothing. Oche is free for clubs and players, without ads.') },
+    { q: t('Is Oche only for clubs?'), a: t('No. In Oche every group is a "club": a darts club or pub team as well as friends, a flatshare or the family. Set one up in a minute, add the players, and play.') },
+    { q: t('What does Oche cost?'), a: t('Nothing. Oche is free for everyone, without ads.') },
     { q: t('Can I try it without an account?'), a: t('Yes: a quick game of X01 or Cricket needs only the names of the players, and ends with its statistics. It stays on your device for 30 days; an account keeps every game.') },
     { q: t('Do we need to know the rules?'), a: t('No. Every game and training has its rules one tap away, when setting it up and while playing, and Oche counts by them.') },
     { q: t('Which languages does Oche speak?'), a: t('English, German, French, Italian and Spanish. It starts in the language of your browser, and your account remembers your choice. The darts terms stay English: leg, set, bust, checkout.') },
-    { q: t('Who sees our games?'), a: t('Only the members of your club. A club appears on this page only when its admins make it public, and even then a player is only named when they chose to show their nickname.') },
+    { q: t('Who sees our games?'), a: t('Only the members of your club or group. A club appears on this page only when its admins make it public, and even then a player is only named when they chose to show their nickname.') },
     { q: t('Do I need a dartboard with electronics?'), a: t('No. Oche is for steel and soft tip on any board: you enter the darts on the phone, tablet or PC next to it.') },
     { q: t('Can a player be in more than one club?'), a: t('Yes. One account plays in several clubs, with one player whose statistics, badges and darts go along.') },
     { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the GPLv3 and runs with Docker on your own server.') },
@@ -126,10 +127,10 @@ const LandingPage = () => {
                 <section className="container landing-hero-content">
                     <div className="row align-items-center gy-5">
                         <div className="col-12 col-lg-5 d-flex flex-column gap-3">
-                            <span className="landing-eyebrow">{t('Free darts scoring for clubs')}</span>
+                            <span className="landing-eyebrow">{t('Free darts scoring for clubs, friends and flatshares')}</span>
                             <h1 className="landing-title m-0">{t('Game on. We keep the score.')}</h1>
                             <p className="fs-5 text-default m-0">
-                                {t('Oche is the scoreboard for your club, your pub team or your living room: it counts every dart, keeps the statistics and shows who is on the oche right now.')}
+                                {t('Oche is the scoreboard for your club, your pub team, your flatshare or your living room: it counts every dart, keeps the statistics and shows who is on the oche right now.')}
                             </p>
                             <div className="d-flex flex-wrap gap-3 pt-2">
                                 <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
@@ -299,7 +300,7 @@ const LandingPage = () => {
                 <section className="container">
                     <div className="landing-cta">
                         <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
-                        <p className="text-subtle m-0">{t('Set up your club, or join one, today. It is free.')}</p>
+                        <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
                         <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
                     </div>
                 </section>
