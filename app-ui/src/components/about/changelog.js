@@ -22,7 +22,9 @@ const CHANGELOG = [
             t('The game type filter shows the chosen types as pills with their icon in their colour, on the lists and in the comparison, and no longer gets a light frame after a click.'),
             t('Your head to head on My statistics: the opponent you played most and least, your best record and your toughest opponent, with the games together and the score of wins, each straight to the comparison in the game you play most against them.'),
             t('The comparison grew up: the players chosen at the top as in a game setup and closed to a line, so the statistics use the whole width; three or four players side by side in the header; the highlights of their games with their dates, the 180s and the badges earned in them as a share of all; each figure of three or four players in a box of its own.'),
-            t('The lines of the overviews that lead to a player light up on hover; a filter of a list no longer scrolls the page back to the top.'),
+            t('The lines of the overviews that lead to a player light up on hover.'),
+            t('Fix: a filter of a list (a search, the status or the type) no longer scrolls the page back to the top.'),
+            t('Fix: the Add button of a widget to add on the dashboard shows its whole label next to a long description.'),
         ],
     },
     {
