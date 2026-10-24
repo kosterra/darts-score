@@ -1266,3 +1266,37 @@
         background: $surfaceRaisedColor;
     }
 }
+
+// three or four players: each in a column, side by side, "vs." between them; on a
+// narrow screen two by two
+.compare-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: $space-3 $space-5;
+
+    .compare-vs { align-self: center; margin-top: -2.5rem; }
+}
+
+.compare-entrant {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-1;
+    min-width: 0;
+    width: 10rem;
+
+    .compare-avatar { margin-bottom: $space-2; }
+}
+
+@media (max-width: 575.98px) {
+    .compare-field {
+        gap: $space-4 $space-2;
+
+        // two in a row: the "vs." between the rows would stand alone
+        .compare-vs { display: none; }
+    }
+
+    .compare-entrant { width: calc(50% - #{$space-2}); }
+}

@@ -213,6 +213,31 @@ const PlayersStatisticsPage = () => {
                                     />
                                     <Button type="button" label={copied ? t('Link copied') : t('Copy link')} icon={copied ? 'pi pi-check' : 'pi pi-link'} size="small" severity="secondary" text onClick={copyLink} className="compare-copy" aria-label={copied ? t('Link copied') : t('Copy link')} />
                                 </div>
+                                {/* three or four: everyone against everyone, side by side with "vs." between them */}
+                                {selected.length > 2 &&
+                                    <div className="compare-field">
+                                        {selected.map((player, index) => (
+                                            <Fragment key={player.id}>
+                                                {index > 0 && <span className="compare-vs text-faint fw-semibold fs-6">{t('vs.')}</span>}
+                                                <div className="compare-entrant">
+                                                    <Avatar
+                                                        label={resolvePlayerInitials(player.firstname, player.lastname)}
+                                                        image={resolvePlayerImg(player.profileImg)}
+                                                        shape="circle"
+                                                        className="avatar-lg bg-surface-high compare-avatar"
+                                                        style={{ '--compare-colour': colours[index] }}
+                                                    />
+                                                    <Link to={`/players/${player.id}`} className="fs-5 fw-semibold text-default text-decoration-none text-center">{player.nickname}</Link>
+                                                    <span className="text-subtle fs-8 text-center">{player.firstname} {player.lastname}</span>
+                                                    <LevelBadge level={levels[player.id]} />
+                                                    {/* beside each other in a wide column, one under the other in a narrow one */}
+                                                    <span className="d-none d-sm-inline-flex"><FormBadge form={forms[player.id]} color={colours[index]} /></span>
+                                                    <span className="d-sm-none"><FormBadge form={forms[player.id]} color={colours[index]} stacked /></span>
+                                                </div>
+                                            </Fragment>
+                                        ))}
+                                    </div>}
+                                {selected.length === 2 && <>
                                 {/* the two sides face each other around "vs.", which stays in the middle */}
                                 <div className="compare-faceoff">
                                     {[selected.slice(0, Math.ceil(selected.length / 2)), selected.slice(Math.ceil(selected.length / 2))].map((side, sideIndex) => (
@@ -244,6 +269,7 @@ const PlayersStatisticsPage = () => {
                                         </Fragment>
                                     ))}
                                 </div>
+                                </>}
                                 <FilterPanel {...describeFilters(filters, DEFAULT_FILTERS, { ...filterProps, withType: filterProps.withType ?? true, withOthers: filterProps.withOthers ?? true })}>
                                     <ComparisonFilters filters={filters} onChange={setFilters} {...filterProps} />
                                 </FilterPanel>
