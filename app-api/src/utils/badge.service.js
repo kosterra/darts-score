@@ -96,7 +96,7 @@ export const syncGameBadges = async (clubId, game, type = null) => {
  */
 export const removeWithBadges = async (type, doc) => {
     const id = String(doc._id);
-    const playerIds = (type === 'training' ? [doc.player?.id] : (doc.players ?? []).map(String))
+    const playerIds = (type === 'training' || type === 'rulesTraining' ? [doc.player?.id] : (doc.players ?? []).map(String))
         .filter(playerId => playerId && db.mongoose.isValidObjectId(playerId));
     await doc.deleteOne();
     await db.integrityReview.deleteMany({ sourceType: type, sourceId: id });

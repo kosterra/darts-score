@@ -2,7 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { syncPlayerBadges } from '../utils/badge.service.js';
 import { clubBadgeView, syncClubAfterTraining } from '../utils/club.badge.service.js';
-import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 import { RULES_TRAININGS } from '../utils/rules.kinds.js';
 import { withPlayers } from './atc.controller.js';
@@ -52,6 +52,7 @@ export const create = async (req, res) => {
             player: { id: String(player._id), nickname: player.nickname },
         }).save();
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: RULES_TRAININGS[kind].title, names: [] }));
+        checkLater(() => noteFairPlay(req.club._id, 'rulesTraining', data));
 
         let newBadges = [];
         if (!player.guest) {
@@ -100,6 +101,7 @@ export const del = async (req, res) => {
         if (!entry) return res.status(404).json({ message: 'Training not found.' });
         if (!(await mayDeleteTrainingOf(req, entry.player?.id))) return res.status(403).json({ message: 'Only the player or a club admin can delete a training.' });
         await entry.deleteOne();
+        checkLater(() => noteDeleted(req, 'training'));
         const player = db.mongoose.isValidObjectId(entry.player?.id) ? await db.player.findById(entry.player.id) : null;
         if (player) {
             player.badges = player.badges.filter(badge => badge.sourceId !== String(entry._id));

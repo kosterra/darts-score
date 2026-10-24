@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { x01StatsOf } from './x01.stats.controller.js';
 import { hashKey, keyMatches, newKey, quickGameError, quickGameView, winnerOf } from '../utils/quick.games.js';
 import { storedOf } from '../utils/game.view.js';
+import { checkLater, noteQuickGame } from '../utils/spam.guard.js';
 
 const QuickGame = db.quickGame;
 
@@ -48,6 +49,7 @@ export const create = async (req, res) => {
     const key = newKey();
     const created = await QuickGame.create({ kind, keyHash: hashKey(key), ...fields(kind, game) });
     logger.info(`Quick ${kind} game started with ${created.names.length} players`);
+    checkLater(() => noteQuickGame(req, created));
     res.status(201).json({ game: quickGameView(created), key });
 };
 

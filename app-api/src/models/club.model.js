@@ -38,6 +38,8 @@ export default (mongoose) => {
       goals:  { type: [{ _id: false, id: String, metric: String, target: Number, from: Date, until: Date, reachedAt: Date, reachedBy: String, nickname: String }], default: [] },
       // Users who manage the club; always at least one
       admins: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }], index: true },
+      // when each admin was made one, for the alert on a taken-over club
+      adminSince: { type: [{ _id: false, user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' }, at: Date }], default: [] },
     },
     { timestamps: true }
   );

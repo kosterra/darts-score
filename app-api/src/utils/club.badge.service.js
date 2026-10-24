@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { isRulesGame } from './rules.kinds.js';
 import { viewOf } from './game.view.js';
+import { checkLater, noteClubBadges } from './spam.guard.js';
 import { CLUB_BADGES, GOAL_METRICS, TALLY_VERSION, getClubBadge, goalProgress, publicClubBadge, replayClubBadges, tallyOf } from './club.badges.js';
 
 const GAME_COLLECTIONS = {
@@ -130,7 +131,10 @@ export const syncClubBadges = async (clubOrId, { notify = true } = {}) => {
         await db.club.updateOne({ _id: club._id }, { $set: { badges: club.badges, goals: club.goals } });
         if (fresh.length) logger.info(`${club.name} earned ${fresh.map(entry => entry.badge).join(', ')}`);
     }
-    if (notify && fresh.length) await notifyClub(club, fresh);
+    if (notify && fresh.length) {
+        await notifyClub(club, fresh);
+        checkLater(() => noteClubBadges(club, fresh));
+    }
     if (notify && reached.length) await notifyGoals(club, reached);
     return { fresh, metrics, progress };
 };

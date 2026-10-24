@@ -159,3 +159,64 @@ describe('own date of birth', () => {
         expect(checkBirthChange({ from: new Date(1990, 0, 1), to: new Date(1985, 0, 1) })).toEqual([]);
     });
 });
+
+describe('the newer games and trainings', () => {
+    const golf = (darts, playerModels) => ({
+        kind: 'golf', players: ['a'], settings: { holes: 9 },
+        visits: Array.from({ length: 9 }, (_, index) => ({ player: 'a', darts: [darts(index + 1)] })),
+        playerModels, createdAt: new Date(2026, 0, 1, 18), updatedAt: new Date(2026, 0, 1, 19),
+    });
+
+    it('a stored result that is not what the darts give is impossible', async () => {
+        const { checkRulesGame } = await import('./integrity.js');
+        const honest = golf((hole) => `S${hole}`, { a: { hasWonGame: true, score: 27 } });
+        expect(checkRulesGame(honest).map(item => item.rule)).not.toContain('resultMismatch');
+        const forged = golf((hole) => `S${hole}`, { a: { hasWonGame: true, score: 9 } });
+        expect(checkRulesGame(forged).find(item => item.rule === 'resultMismatch')?.level).toBe('impossible');
+    });
+
+    it('a dart that is not on the board, and the play of a professional', async () => {
+        const { checkRulesGame } = await import('./integrity.js');
+        const wrong = golf((hole) => (hole === 3 ? 'T25' : `S${hole}`), { a: { hasWonGame: true, score: 27 } });
+        expect(checkRulesGame(wrong).map(item => item.rule)).toContain('invalidDart');
+        const aces = golf((hole) => `D${hole}`, { a: { hasWonGame: true, score: 9 } });
+        expect(checkRulesGame(aces).map(item => item.rule)).toContain('proPlay');
+    });
+
+    it('an opponent who only missed', async () => {
+        const { checkRulesGame } = await import('./integrity.js');
+        const visits = Array.from({ length: 24 }, (_, index) => ({ player: index % 2 ? 'b' : 'a', darts: index % 2 ? ['0', '0', '0'] : ['S20', 'S1', 'S5'] }));
+        const game = { kind: 'tactics', players: ['a', 'b'], settings: {}, visits, playerModels: { a: { hasWonGame: true }, b: {} }, createdAt: new Date(2026, 0, 1, 18), updatedAt: new Date(2026, 0, 1, 19) };
+        expect(checkRulesGame(game).map(item => item.rule)).toContain('padding');
+    });
+
+    it('a training\'s score from its darts, played very fast, out of reach and a sudden jump', async () => {
+        const { checkRulesTraining } = await import('./integrity.js');
+        const darts = Array(63).fill('H');
+        const entry = { kind: 'bobs27', score: 1437, darts, player: { id: 'a' }, createdAt: new Date(2026, 0, 1, 18, 0, 20), startedAt: new Date(2026, 0, 1, 18) };
+        const rules = checkRulesTraining(entry, [{ score: 100 }, { score: 120 }, { score: 90 }]).map(item => item.rule);
+        expect(rules).toEqual(expect.arrayContaining(['tooFast', 'proPlay', 'bestJump']));
+        expect(rules).not.toContain('scoreMismatch');
+        expect(checkRulesTraining({ ...entry, score: 2000, startedAt: null }).map(item => item.rule)).toContain('scoreMismatch');
+    });
+});
+
+describe('patterns over many games', () => {
+    let minute = 0;
+    const game = (players, winner, extra = {}) => ({ type: 'x01', id: `g${minute}`, at: new Date(2026, 0, 5, 18, minute++), players, winners: winner ? [winner] : [], friendly: false, darts: 120, ...extra });
+
+    it('own players, rating farming, tiny games and deleting losses', async () => {
+        const { patternFindings } = await import('./integrity.js');
+        const games = [
+            game(['a', 'b'], 'a'),
+            ...Array.from({ length: 5 }, () => game(['c', 'g'], 'c')),
+            ...Array.from({ length: 10 }, () => game(['d', 'e'], 'd', { darts: 20 })),
+            game(['f', 'a'], 'a'), game(['f', 'a'], 'a'), game(['f', 'a'], 'a'),
+        ];
+        const owners = new Map([['a', 'user1'], ['b', 'user1'], ['f', 'user2']]);
+        const requests = games.slice(-3).map(entry => ({ gameId: entry.id, playerId: 'f', lost: true, at: entry.at }));
+        const found = patternFindings({ games, owners, guests: new Set(['g']), requests });
+        const rules = [...found.values()].flat().map(item => item.rule);
+        expect(rules).toEqual(expect.arrayContaining(['ownPlayers', 'ratingFarming', 'tinyBurst', 'deletesLosses']));
+    });
+});

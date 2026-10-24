@@ -2,7 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
 import { removeWithBadges, syncGameBadges } from '../utils/badge.service.js';
-import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import { knownInClub } from '../models/player.model.js';
 import { answerOf, hasRules, storedOf } from '../utils/game.view.js';
 import { GAME_SETTINGS, RULES_KINDS, ruleViolations } from '../rules/club.rules.js';
@@ -142,7 +142,10 @@ export const createGameController = (Model, gameName, type = null) => {
             const data = await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true });
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges
-            if (data.hasWinner) await syncGameBadges(req.club._id, data, type ?? data.kind);
+            if (data.hasWinner) {
+                await syncGameBadges(req.club._id, data, type ?? data.kind);
+                checkLater(() => noteFairPlay(req.club._id, type ?? 'rules', data));
+            }
             res.json(answer(data));
         } catch (err) {
             logger.error(err, `Failed to update ${label} game id=${id}`);
@@ -158,6 +161,7 @@ export const createGameController = (Model, gameName, type = null) => {
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // the badges earned in it go along
             await removeWithBadges(Model.modelName, data);
+            checkLater(() => noteDeleted(req, 'game'));
             await db.deletionRequest.updateMany({ game: id, status: 'open' }, { status: 'deleted', decidedBy: req.user._id, decidedByName: `${req.user.firstname} ${req.user.lastname}`, decidedAt: new Date() });
             res.json({ message: `${label} game deleted successfully.` });
         } catch (err) {

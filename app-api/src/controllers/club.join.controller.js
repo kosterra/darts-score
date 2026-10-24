@@ -4,6 +4,7 @@ import { addToClub } from './player.controller.js';
 import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
 import { topClubBadges } from '../utils/club.badges.js';
 import { joinBlock, joinNotices } from '../utils/club.joining.js';
+import { checkLater, noteJoinRequest } from '../utils/spam.guard.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -144,6 +145,7 @@ export const join = async (req, res) => {
             message: String(req.body.message ?? '').trim(),
         };
 
+        checkLater(() => noteJoinRequest(req, club, request.message));
         if (club.joinPolicy === 'open') {
             const member = await makeMember(req.user, club, nickname);
             await notify('joined', request, club, req.user);

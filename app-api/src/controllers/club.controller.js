@@ -1,5 +1,5 @@
 import logger from '../models/logger.model.js';
-import { noteCreated, checkLater } from '../utils/spam.guard.js';
+import { noteCreated, noteClubTexts, checkTakeover, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount } from '../utils/accounts.js';
@@ -111,6 +111,7 @@ export const update = async (req, res) => {
         club.dashboardWidgets = undefined;
     }
     await club.save();
+    if (typeof req.body.description === 'string') checkLater(() => noteClubTexts(req, club, { description: club.description }));
     res.json(await withAdmins(club));
 };
 
@@ -162,6 +163,7 @@ export const updateGameRules = async (req, res) => {
     club.gameRules = normalizeClubRules(req.body);
     club.markModified('gameRules');
     await club.save();
+    checkLater(() => noteClubTexts(req, club, { formatNames: (club.gameRules?.formats ?? []).map(format => format.name) }));
     res.json(await withAdmins(club));
 };
 
@@ -196,6 +198,7 @@ export const remove = async (req, res) => {
     removeClubLogoFile(club.logo);
     for (const player of players) await removeProfileImageIfUnused(player.profileImg);
     logger.info(`Club "${club.name}" deleted by ${req.user.email}`);
+    checkLater(() => checkTakeover(req, club, 'deleted the club'));
     res.json({ message: 'Club deleted.' });
 };
 
@@ -248,6 +251,7 @@ export const addAdmin = async (req, res) => {
     }
 
     club.admins.push(user._id);
+    club.adminSince = [...(club.adminSince ?? []).filter(entry => !entry.user?.equals(user._id)), { user: user._id, at: new Date() }];
     // a club still looked after by a global admin from before they had to stay
     // out of clubs (e.g. the default club of an upgrade) is handed over
     {
@@ -276,6 +280,8 @@ export const removeAdmin = async (req, res) => {
     }
 
     club.admins.pull(userId);
+    club.adminSince = (club.adminSince ?? []).filter(entry => String(entry.user) !== String(userId));
     await club.save();
+    if (String(userId) !== String(req.user._id)) checkLater(() => checkTakeover(req, club, 'removed another admin'));
     res.json(await withAdmins(club));
 };

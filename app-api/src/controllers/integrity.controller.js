@@ -4,30 +4,32 @@ import db from '../models/db.model.js';
 import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
 import { removeWithBadges, syncPlayerBadges } from '../utils/badge.service.js';
 import {
-    LEVELS, THRESHOLDS, checkBirthChange, checkClock, checkCricket, checkElimination, checkTraining, checkX01, compact, levelOf, repairX01, usualAverages, x01Legs,
+    INTEGRITY_CHECKS, LEVELS, THRESHOLDS, checkBirthChange, checkClock, checkCricket, checkElimination, checkRulesGame, checkRulesTraining, checkTraining, checkX01, compact, levelOf, patternFindings, repairX01, usualAverages, x01Legs,
 } from '../utils/integrity.js';
+import { RULES_TRAININGS } from '../utils/rules.kinds.js';
 import { fairPlayNotices } from '../utils/notices.js';
 import { withView } from '../utils/game.view.js';
 
-// what can be checked: the games, and the trainings of Around the Clock
+// what can be checked: the games, the newer games (rules), the trainings of
+// Around the Clock and of the rules engine, and X01 against the bot
 const SOURCES = {
     x01: () => db.x01,
     cricket: () => db.cricket,
     elimination: () => db.elimination,
     clock: () => db.clock,
+    rules: () => db.rulesGame,
     training: () => db.atc,
+    rulesTraining: () => db.rulesTraining,
+    x01training: () => db.x01Training,
 };
 
-const CHECKS = {
-    x01: (doc) => checkX01(doc),
-    cricket: checkCricket,
-    elimination: checkElimination,
-    clock: checkClock,
-    training: (doc) => checkTraining({ ...doc, scoring: doc.scoring ?? 'Time' }),
-};
+const CHECKS = INTEGRITY_CHECKS;
+
+// a training of one player (the others are games, with their players)
+const isTraining = (type) => type === 'training' || type === 'rulesTraining';
 
 const idOf = (doc) => String(doc._id);
-const playersOf = (type, doc) => type === 'training' ? [doc.player?.id].filter(Boolean) : (doc.players ?? []).map(String);
+const playersOf = (type, doc) => isTraining(type) ? [doc.player?.id].filter(Boolean) : (doc.players ?? []).map(String);
 
 // one line about what was played
 export const describe = (type, doc) => {
@@ -35,6 +37,9 @@ export const describe = (type, doc) => {
         const scoring = doc.scoring === 'Darts' ? `${doc.darts} darts` : `${((doc.timeMs ?? 0) / 100).toFixed(2)} s`;
         return `Around the Clock training · ${doc.mode} · ${scoring}`;
     }
+    if (type === 'rulesTraining') return `${RULES_TRAININGS[doc.kind]?.title ?? doc.kind} training · ${doc.score}`;
+    if (type === 'rules') return RULES_GAMES[doc.kind] ?? doc.kind;
+    if (type === 'x01training') return `X01 against the bot · ${doc.startingScore ?? ''}`;
     if (type === 'x01') return `X01 · ${doc.startingScore ?? ''} · ${doc.legInMode ?? ''} / ${doc.legOutMode ?? ''}`;
     if (type === 'cricket') return `Cricket${doc.variant && doc.variant !== 'Standard' ? ` · ${doc.variant}` : ''}`;
     if (type === 'elimination') return `Elimination · ${doc.targetScore}`;
@@ -114,13 +119,18 @@ const loadBirthChange = async (req, res) => {
  * findings, review }].
  */
 const collectEntries = async (where) => {
-    const [x01, cricket, elimination, clock, trainings, reviews] = await Promise.all([
+    const [x01, cricket, elimination, clock, rulesGames, trainings, rulesTrainings, botTrainings, reviews, tallies, requests] = await Promise.all([
         db.x01.find({ ...where, hasWinner: true }).lean(),
         db.cricket.find({ ...where, hasWinner: true }).lean(),
         db.elimination.find({ ...where, hasWinner: true }).lean(),
         db.clock.find({ ...where, hasWinner: true }).lean(),
+        db.rulesGame.find({ ...where, hasWinner: true }).lean(),
         db.atc.find(where).sort({ createdAt: 1 }).lean(),
+        db.rulesTraining.find(where).sort({ createdAt: 1 }).lean(),
+        db.x01Training.find({ ...where, hasWinner: true }).lean(),
         db.integrityReview.find(where).lean(),
+        db.clubTally.find(where, 'sourceId darts').lean(),
+        db.deletionRequest.find({ ...where, status: { $ne: 'deleted' } }, 'type game by createdAt').lean(),
     ]);
 
     const usual = usualAverages(x01);
@@ -133,6 +143,16 @@ const collectEntries = async (where) => {
     cricket.forEach(game => add('cricket', game, checkCricket(game)));
     elimination.forEach(game => add('elimination', game, checkElimination(game)));
     clock.forEach(game => add('clock', game, checkClock(game)));
+    rulesGames.forEach(game => add('rules', game, checkRulesGame(game)));
+    botTrainings.forEach(game => add('x01training', game, checkX01(game)));
+    // each training of the rules engine against the player's earlier ones of the same kind
+    const earlierRules = new Map();
+    for (const entry of rulesTrainings) {
+        const key = `${entry.player?.id}|${entry.kind}`;
+        const history = earlierRules.get(key) ?? [];
+        add('rulesTraining', entry, checkRulesTraining(entry, history));
+        earlierRules.set(key, [...history, entry]);
+    }
     // each training against the player's earlier ones of the same mode and scoring
     const earlier = new Map();
     for (const entry of trainings) {
@@ -140,6 +160,41 @@ const collectEntries = async (where) => {
         const history = earlier.get(key) ?? [];
         add('training', entry, checkTraining({ ...entry, scoring: entry.scoring ?? 'Time' }, history));
         earlier.set(key, [...history, entry]);
+    }
+
+    // what only shows over many games: own players, rating farming, tiny games, deleting losses
+    const allGames = [
+        ...x01.map(doc => ['x01', doc]), ...cricket.map(doc => ['cricket', doc]), ...elimination.map(doc => ['elimination', doc]),
+        ...clock.map(doc => ['clock', doc]), ...rulesGames.map(doc => ['rules', doc]),
+    ];
+    const dartsOf = new Map(tallies.map(tally => [tally.sourceId, tally.darts]));
+    const gamePlayerIds = [...new Set(allGames.flatMap(([, doc]) => (doc.players ?? []).map(String)))].filter(id => db.mongoose.isValidObjectId(id));
+    const gamePlayers = await db.player.find({ _id: { $in: gamePlayerIds } }, 'user guest').lean();
+    const owners = new Map(gamePlayers.filter(player => player.user).map(player => [String(player._id), String(player.user)]));
+    const guests = new Set(gamePlayers.filter(player => player.guest).map(player => String(player._id)));
+    const docById = new Map(allGames.map(([type, doc]) => [idOf(doc), { type, doc }]));
+    const patterns = patternFindings({
+        games: allGames.map(([type, doc]) => ({
+            type, id: idOf(doc), at: doc.updatedAt,
+            players: (doc.players ?? []).map(String),
+            winners: (doc.players ?? []).map(String).filter(id => doc.playerModels?.[id]?.hasWonGame === true),
+            friendly: doc.friendly === true,
+            darts: dartsOf.get(idOf(doc)) ?? null,
+        })),
+        owners,
+        guests,
+        requests: requests.flatMap(request => {
+            const game = docById.get(String(request.game))?.doc;
+            if (!game) return [];
+            const playerId = (game.players ?? []).map(String).find(id => owners.get(id) === String(request.by));
+            return playerId ? [{ gameId: idOf(game), playerId, lost: game.playerModels?.[playerId]?.hasWonGame !== true, at: request.createdAt }] : [];
+        }),
+    });
+    for (const [key, findings] of patterns) {
+        const [type, id] = key.split('|');
+        const existing = found.find(entry => entry.type === type && idOf(entry.doc) === id);
+        if (existing) existing.findings = compact([...existing.findings, ...findings]);
+        else add(type, docById.get(id).doc, findings);
     }
 
     const birthEntries = await birthChangeEntries(where, reviews);
@@ -159,8 +214,10 @@ const collectEntries = async (where) => {
         return {
             type,
             id: idOf(doc),
+            // the kind of a newer game or training, for the link to it
+            ...(doc.kind && { kind: doc.kind }),
             club: { id: String(doc.club), name: clubById.get(String(doc.club))?.name ?? '', logo: clubById.get(String(doc.club))?.logo ?? '' },
-            at: type === 'training' ? doc.createdAt : doc.updatedAt,
+            at: isTraining(type) ? doc.createdAt : doc.updatedAt,
             summary: describe(type, doc),
             players: playersOf(type, doc).map(id => {
                 const player = playerById.get(id);
@@ -222,7 +279,7 @@ const itemOf = (type, doc, club, players, findings = compact(CHECKS[type](doc)))
         id: idOf(doc),
         club: { id: String(doc.club), name: club?.name ?? '' },
         summary: describe(type, doc),
-        at: type === 'training' ? doc.createdAt : doc.updatedAt,
+        at: isTraining(type) ? doc.createdAt : doc.updatedAt,
         players: playersOf(type, doc).map(playerId => ({
             nickname: byId.get(playerId)?.nickname ?? doc.player?.nickname ?? '',
             user: byId.get(playerId)?.user ? String(byId.get(playerId).user) : null,
@@ -317,8 +374,26 @@ export const details = async (req, res) => {
     const plain = doc.toObject();
     const findings = compact(CHECKS[type](plain));
     const result = { type, findings, ...repairOf(type, plain, findings) };
-    if (type === 'x01') {
+    if (type === 'x01' || type === 'x01training') {
         result.legs = x01Legs(plain);
+    } else if (type === 'rules') {
+        // the visits as thrown, each with its player
+        result.visits = (plain.visits ?? []).map(visit => ({
+            playerId: visit.player ?? null,
+            darts: (visit.darts ?? []).filter(dart => dart !== '' && dart != null),
+            roundScore: null,
+            scoreLeft: null,
+            bust: false,
+        }));
+    } else if (type === 'rulesTraining') {
+        const darts = (plain.darts ?? []).map(String);
+        result.facts = [
+            ['Training', RULES_TRAININGS[plain.kind]?.title ?? plain.kind],
+            ['Score', String(plain.score)],
+            ['Darts', `${darts.length}: ${darts.slice(0, 60).join(' ')}${darts.length > 60 ? ' …' : ''}`],
+            ...(plain.startedAt ? [['Started', new Date(plain.startedAt).toISOString()]] : []),
+            ['Saved', new Date(plain.createdAt).toISOString()],
+        ];
     } else if (type === 'cricket' || type === 'elimination') {
         result.visits = (withView(type, plain).allThrows ?? []).map(visit => ({
             playerId: visit?.playerId ?? null,
