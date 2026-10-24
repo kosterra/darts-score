@@ -19,6 +19,7 @@ const CHANGELOG = [
             t('The background behind the pages: the dartboard photo, blurred, or plain (calmer, and lighter on older phones).'),
             t('Delete your account under Profile → Account: your players stay in their clubs under an anonymous name, so the games and statistics of the others stay whole; your name, picture and date of birth are removed.'),
             t('A privacy page with the imprint, linked in the footer of the public pages and on About; the global admins enter who runs the installation under System settings.'),
+            t('For global admins: a test mail to any address under System settings → Mail server, with how mail is set up and, when it fails, what to check (login, server name, port, encryption or sender) and the answer of the mail server.'),
             t('A new font, Exo 2, delivered by Oche itself instead of by Google: scores keep their place while they count down (every figure equally wide) and small text reads more easily.'),
             t('Two-step login: after the password, a code of an authenticator app on your phone (or one of ten recovery codes), turned on under Profile → Account; a device of your own can skip it for 30 days.'),
             t('Global admins choose under System settings whether two-step login is off, optional, or required for the admins or for everyone, with days to set it up; for a lost phone they reset it under Users.'),

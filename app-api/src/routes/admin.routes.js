@@ -123,6 +123,16 @@ export default (app) => {
     router.post('/mail-templates/:id/preview', templateId, templateLanguage, templateFields, validate, MailTemplateController.preview);
     router.post('/mail-templates/:id/test', templateId, templateLanguage, templateFields, validate, MailTemplateController.test);
 
+    // the mail server: how it is set up, and a test mail to any address
+    router.get('/mail-server', MailTemplateController.setup);
+    router.post(
+        '/mail-server/test',
+        body('to').isEmail().withMessage('A valid email address is required.'),
+        body('language').optional().isIn(MAIL_LANGUAGES).withMessage('Unknown language.'),
+        validate,
+        MailTemplateController.sendTest,
+    );
+
     // warnings and errors of the API
     router.get('/logs', SecurityController.logs);
     router.delete('/logs', SecurityController.clearLogs);

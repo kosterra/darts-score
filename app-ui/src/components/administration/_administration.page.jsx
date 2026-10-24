@@ -11,6 +11,7 @@ import MfaSettings from './mfa.settings';
 import LegalSettings from './legal.settings';
 import StartPageSettings from './start.page.settings';
 import MailTemplates from './mail.templates';
+import MailServer from './mail.server';
 import StatTile from '../stats/players/stat.tile';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
@@ -74,6 +75,8 @@ const AdministrationPage = () => {
             <BannerSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Banner saved'), detail, life: 3000 })} />
 
             <StartPageSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Start page'), detail, life: 3000 })} />
+
+            <MailServer />
 
             <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
 

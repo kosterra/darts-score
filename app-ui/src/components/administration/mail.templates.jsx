@@ -83,7 +83,7 @@ const MailTemplates = ({ onSaved }) => {
         try {
             await action();
         } catch (err) {
-            setError(err.message);
+            setError(err.data?.detail ? `${err.message} (${err.data.detail})` : err.message);
         } finally {
             setBusy('');
         }

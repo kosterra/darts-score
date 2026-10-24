@@ -345,3 +345,32 @@ export const LAYOUT = {
 };
 
 export const layoutOf = (language) => LAYOUT[language] ?? LAYOUT.en;
+
+// the test mail of the global admins: whether mails get through, with when and over which server
+export const TEST_MAIL = {
+    en: {
+        subject: 'Test mail from Oche',
+        body: 'Hello {{firstname}},\n\nThis is a test mail from Oche. If you can read it, the mail server of the installation works: password resets, invitations and notifications get through.\n\nSent on {{date}} through {{server}}.',
+        button: 'Open Oche',
+    },
+    de: {
+        subject: 'Test-E-Mail von Oche',
+        body: 'Hallo {{firstname}}\n\nDas ist eine Test-E-Mail von Oche. Wenn du sie lesen kannst, funktioniert der Mailserver der Installation: Passwort-Resets, Einladungen und Mitteilungen kommen an.\n\nGesendet am {{date}} über {{server}}.',
+        button: 'Oche öffnen',
+    },
+    fr: {
+        subject: 'E-mail de test d\'Oche',
+        body: 'Salut {{firstname}},\n\nCeci est un e-mail de test d\'Oche. Si tu peux le lire, le serveur mail de l\'installation fonctionne : les réinitialisations de mot de passe, les invitations et les notifications arrivent.\n\nEnvoyé le {{date}} via {{server}}.',
+        button: 'Ouvrir Oche',
+    },
+    it: {
+        subject: 'Email di prova da Oche',
+        body: 'Ciao {{firstname}},\n\nQuesta è un\'email di prova da Oche. Se riesci a leggerla, il server di posta dell\'installazione funziona: il ripristino della password, gli inviti e le notifiche arrivano.\n\nInviata il {{date}} tramite {{server}}.',
+        button: 'Apri Oche',
+    },
+    es: {
+        subject: 'Correo de prueba de Oche',
+        body: 'Hola {{firstname}}:\n\nEste es un correo de prueba de Oche. Si puedes leerlo, el servidor de correo de la instalación funciona: los restablecimientos de contraseña, las invitaciones y las notificaciones llegan.\n\nEnviado el {{date}} a través de {{server}}.',
+        button: 'Abrir Oche',
+    },
+};

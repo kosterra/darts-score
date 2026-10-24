@@ -1828,8 +1828,55 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
         '502':
-          description: The mail could not be sent
+          description: '{ message: what to check, code, detail: the answer of the mail server }'
       operationId: postAdminMailTemplatesByidTest
+  /api/admin/mail-server:
+    get:
+      tags:
+        - Administration
+      summary: How mail is set up on this installation (server, port, encryption, login, sender), without the password
+      responses:
+        '200':
+          description: '{ configured, host, port, encryption: tls | starttls, user, password: whether one is set, from, appUrl, missing }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminMailServer
+  /api/admin/mail-server/test:
+    post:
+      tags:
+        - Administration
+      summary: Send a plain test mail to any address, in one language
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - to
+              properties:
+                to:
+                  type: string
+                  format: email
+                language:
+                  type: string
+                  enum: [en, de, fr, it, es]
+      responses:
+        '200':
+          description: '{ sentTo, response: what the mail server answered, messageId, rejected, ms }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '409':
+          description: Mail is not set up
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '502':
+          description: '{ message: what to check, code, detail: the answer of the mail server, ms }'
+      operationId: postAdminMailServerTest
   /api/admin/start-page:
     get:
       tags:

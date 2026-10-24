@@ -47,6 +47,10 @@ const resetMailTemplate = (id, language = 'en') => requestJSON(`${API_URL}/mail-
 const previewMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/preview?language=${language}`, { method: 'POST', body: draft });
 const testMailTemplate = (id, draft, language = 'en') => requestJSON(`${API_URL}/mail-templates/${id}/test?language=${language}`, { method: 'POST', body: draft });
 
+// the mail server: how it is set up, and a test mail to any address ({ sentTo, response, ms })
+const loadMailServer = () => requestJSON(`${API_URL}/mail-server`);
+const sendTestMail = (to, language = 'en') => requestJSON(`${API_URL}/mail-server/test`, { method: 'POST', body: { to, language } });
+
 // what the public start page shows: { showNumbers }
 const loadStartPageSettings = () => requestJSON(`${API_URL}/start-page`);
 const saveStartPageSettings = (settings) => requestJSON(`${API_URL}/start-page`, { method: 'PUT', body: settings });
@@ -105,6 +109,8 @@ const AdminService = {
     resetMailTemplate,
     previewMailTemplate,
     testMailTemplate,
+    loadMailServer,
+    sendTestMail,
     saveStartPageSettings,
     saveSessionSettings,
     loadMfaSettings,

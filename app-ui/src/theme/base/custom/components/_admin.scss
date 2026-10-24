@@ -869,3 +869,16 @@ $fair-play-suspicious: $accentAmber;
 .filter-pills .filter-pill-icon {
     font-size: $text-sm;
 }
+
+// the mail server: the settings as label and value, side by side
+.mail-server-setup {
+    grid-template-columns: max-content 1fr;
+    column-gap: 1.5rem;
+}
+
+// what the mail server answered: its words as they came, in the text's own colour
+.mail-server-answer code {
+    color: inherit;
+    font-size: inherit;
+    word-break: break-word;
+}
