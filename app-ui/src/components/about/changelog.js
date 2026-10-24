@@ -7,6 +7,17 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.14',
+        changes: [
+            t('Choose your notifications under Profile → Notifications: for each kind in the app or not, and by mail at once, once a day or once a week. Every mail has a link to get no more.'),
+            t('New notifications: your badges, a new level, your records (a personal best someone else entered for you, your club record beaten), the Hall of Shame, the club rating (off until you turn it on) and a game left running for three days; and your week by mail on Mondays.'),
+            t('For club admins: a game or training in the club that cannot be real, a goal ending within a week, a login not used after a week (with Send the invitation again on the player\'s page), and the week of the club by mail on Mondays.'),
+            t('For global admins: the alerts at once (critical ones) or once a day, and many errors of the app within a day.'),
+            t('A mail whenever your password or email address is changed (to the old address too) or your account is blocked, so you notice when someone else uses it.'),
+            t('Players without a login: with their consent their club keeps an address for them, for their badges, level and records once a day and their week on Mondays; and a link with a QR code lets them take over their player with a login of their own, with all games, statistics and badges.'),
+        ],
+    },
+    {
         version: '2026.10.13',
         changes: [
             t('Badges for the newer games: a win series for each of Shanghai, Killer, Halve-It, Golf and Tactics, and Untouchable (a Killer win without losing a life), Instant Shanghai, Triple Kill (three lives in one visit), Never Halved, Hole in One and Clean Sheet (all twelve numbers of Tactics). The All-rounder counts all nine games now: 3, 6 or 9 game types won. Games played before count too.'),

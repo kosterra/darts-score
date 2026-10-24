@@ -3,7 +3,9 @@ import db from '../models/db.model.js';
 import { isRulesGame } from './rules.kinds.js';
 import { viewOf } from './game.view.js';
 import { checkLater, noteClubBadges } from './spam.guard.js';
+import { noteRatingChanges } from './player.notices.js';
 import { CLUB_BADGES, GOAL_METRICS, TALLY_VERSION, getClubBadge, goalProgress, publicClubBadge, replayClubBadges, tallyOf } from './club.badges.js';
+import { deliver } from './notify.js';
 
 const GAME_COLLECTIONS = {
     x01: () => db.x01,
@@ -19,11 +21,11 @@ const GAME_COLLECTIONS = {
  * or the kind of a newer game.
  */
 export const saveTally = async (clubId, type, game) => {
-    if (!clubId || !game?.hasWinner) return;
+    if (!clubId || !game?.hasWinner) return false;
     const sourceId = String(game._id ?? game.id);
     const at = game.updatedAt ?? new Date();
     const known = await db.clubTally.findOne({ sourceId }, 'at version').lean();
-    if (known && known.version === TALLY_VERSION && new Date(known.at).getTime() === new Date(at).getTime()) return;
+    if (known && known.version === TALLY_VERSION && new Date(known.at).getTime() === new Date(at).getTime()) return false;
     const data = viewOf(isRulesGame(type) ? 'rules' : type, game);
     const tally = tallyOf(type, data);
     await db.clubTally.updateOne(
@@ -31,6 +33,8 @@ export const saveTally = async (clubId, type, game) => {
         { $set: { club: clubId, sourceType: type, sourceId, at, ...tally } },
         { upsert: true }
     );
+    // true for a game finished just now
+    return !known;
 };
 
 // what a club played: its game tallies and its trainings, as events for the replay
@@ -70,7 +74,7 @@ const notifyClub = async (club, fresh) => {
                 club: club._id,
             }));
         });
-        if (notes.length) await db.notification.insertMany(notes);
+        if (notes.length) await deliver(notes);
     } catch (err) {
         logger.error(err, 'Failed to tell the club about its new badges');
     }
@@ -87,7 +91,7 @@ const notifyGoals = async (club, goals) => {
             link: '/dashboard',
             club: club._id,
         })));
-        if (notes.length) await db.notification.insertMany(notes);
+        if (notes.length) await deliver(notes);
     } catch (err) {
         logger.error(err, 'Failed to tell the club about its goal');
     }
@@ -145,7 +149,8 @@ export const syncClubBadges = async (clubOrId, { notify = true } = {}) => {
  */
 export const syncClubAfterGame = async (clubId, type, game) => {
     try {
-        await saveTally(clubId, type, game);
+        const fresh = await saveTally(clubId, type, game);
+        if (fresh) checkLater(() => noteRatingChanges(clubId, String(game._id ?? game.id)));
         return (await syncClubBadges(clubId)).fresh;
     } catch (err) {
         logger.error(err, 'Failed to update the club badges after a game');

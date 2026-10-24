@@ -7,7 +7,7 @@ import LanguageSwitch from '../elements/language.switch';
  * The bar on top of the public pages (the start page, the quick games, login
  * and registration): the brand back to the start page, the sections of the
  * page (nav), and on the right the language and the way to an account.
- * suffix: a word after the brand, e.g. "· Quick game"; hide: 'login' or 'register', the page itself
+ * suffix: a word after the brand, e.g. "· Quick game"; hide: 'login' or 'register', the page itself ('both' for a logged-in user)
  */
 export const PublicHeader = ({ suffix, nav, hide }) => (
     <header className="landing-bar">
@@ -19,8 +19,8 @@ export const PublicHeader = ({ suffix, nav, hide }) => (
         {nav}
         <nav className="d-flex align-items-center gap-2" aria-label={t('Account')}>
             <LanguageSwitch />
-            {hide !== 'login' && <Link to="/login"><Button label={t('Log in')} size="small" outlined /></Link>}
-            {hide !== 'register' && <Link to="/register"><Button label={t('Register')} size="small" /></Link>}
+            {hide !== 'login' && hide !== 'both' && <Link to="/login"><Button label={t('Log in')} size="small" outlined /></Link>}
+            {hide !== 'register' && hide !== 'both' && <Link to="/register"><Button label={t('Register')} size="small" /></Link>}
         </nav>
     </header>
 );

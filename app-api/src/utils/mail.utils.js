@@ -26,13 +26,14 @@ const getTransporter = () => {
     return transporter;
 };
 
-export const sendMail = async ({ to, subject, text, html }) => {
+export const sendMail = async ({ to, subject, text, html, headers }) => {
     await getTransporter().sendMail({
         from: process.env.SMTP_FROM || 'Oche <no-reply@darts-score.local>',
         to,
         subject,
         text,
         ...(html && { html }),
+        ...(headers && { headers }),
     });
     logger.info(`Sent "${subject}" mail to ${to}`);
 };

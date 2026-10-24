@@ -21,6 +21,7 @@ const CLUB = [
 ];
 const VALIDITY = { key: 'validity', description: 'How long the link works, e.g. "7 days"', sample: '7 days' };
 const NICKNAME = { key: 'nickname', description: 'Nickname of the player', sample: 'Sammy' };
+const DATE = { key: 'date', description: 'When it happened', sample: '24.10.2026 20:15' };
 
 export const MAIL_TEMPLATES = [
     {
@@ -67,6 +68,78 @@ export const MAIL_TEMPLATES = [
         subject: 'You are invited to play at {{club}}',
         body: 'Hello {{firstname}},\n\n{{inviter}} has invited you to {{club}} on Oche, the scoreboard and statistics for darts clubs, as the player {{nickname}}. An account has been created for you.\n\nChoose your password with the button below to log in. The link is valid for {{validity}}.',
         button: 'Choose your password',
+    },
+    {
+        id: 'notification',
+        title: 'Notification',
+        description: 'A notification the user chose to get by mail at once, e.g. a request to join the club.',
+        placeholders: [...COMMON, { key: 'title', description: 'What happened, in one line', sample: 'Anna Muster asks to join Red Lion Darts Club' }, { key: 'details', description: 'More about it', sample: 'Anna plays as Sammy. Accept or decline the request.' }],
+        subject: '{{title}}',
+        body: 'Hello {{firstname}},\n\n{{title}}\n\n{{details}}',
+        button: 'Open in Oche',
+    },
+    {
+        id: 'digest',
+        title: 'Notifications of the day or week',
+        description: 'The notifications the user chose to get by mail once a day or once a week, in one mail.',
+        placeholders: [...COMMON, { key: 'period', description: '"today" or "this week"', sample: 'today' }, { key: 'list', description: 'The notifications, one per line', sample: '• Sammy earned the badge One Hundred and Eighty!\n• Red Lion Darts Club reached its goal: 100 × 180' }],
+        subject: 'Your Oche news {{period}}',
+        body: 'Hello {{firstname}},\n\nThis happened {{period}}:\n\n{{list}}',
+        button: 'Open your notifications',
+    },
+    {
+        id: 'weeklySummary',
+        title: 'Weekly summary of a player',
+        description: 'Once a week, for the players who chose it: their games, average, badges and level of the week.',
+        placeholders: [...COMMON, { key: 'summary', description: 'The week, one line per figure', sample: '• 12 games, 7 won\n• X01 average 54.3\n• 2 new badges' }],
+        subject: 'Your week on the oche',
+        body: 'Hello {{firstname}},\n\nThis was your week on the oche:\n\n{{summary}}',
+        button: 'Your statistics',
+    },
+    {
+        id: 'clubSummary',
+        title: 'Weekly summary of a club',
+        description: 'Once a week, for the club admins who chose it: the games, players, badges, records and goals of the week.',
+        placeholders: [...COMMON, CLUB[0], { key: 'summary', description: 'The week, one line per figure', sample: '• 48 games by 14 players\n• 3 new club records\n• Goal 100 × 180: 64 of 100' }],
+        subject: 'The week of {{club}}',
+        body: 'Hello {{firstname}},\n\nThis was the week of {{club}}:\n\n{{summary}}',
+        button: 'Open the club',
+    },
+    {
+        id: 'passwordChanged',
+        title: 'Password changed',
+        description: 'The password of an account was changed: by its user, with a reset link or by a global admin. Always sent.',
+        placeholders: [...COMMON, DATE],
+        subject: 'Your Oche password was changed',
+        body: 'Hello {{firstname}},\n\nThe password of your Oche account was changed on {{date}}. If that was you, all is well.\n\nIf it was not you, choose a new password right away with the button below and tell the admins of your club.',
+        button: 'Choose a new password',
+    },
+    {
+        id: 'emailChanged',
+        title: 'Email address changed',
+        description: 'The email address of an account was changed; the mail goes to the old address. Always sent.',
+        placeholders: [...COMMON, { key: 'oldEmail', description: 'The address before', sample: 'anna@example.com' }, { key: 'newEmail', description: 'The new address', sample: 'anna.muster@example.com' }, DATE],
+        subject: 'The email address of your Oche account was changed',
+        body: 'Hello {{firstname}},\n\nThe email address of your Oche account was changed from {{oldEmail}} to {{newEmail}} on {{date}}. From now on you log in with the new one.\n\nIf it was not you, tell the admins of your club right away: they can set the address back.',
+        button: 'Open Oche',
+    },
+    {
+        id: 'accountBlocked',
+        title: 'Account blocked',
+        description: 'An account was blocked by a global admin or a spam rule. Always sent.',
+        placeholders: [...COMMON, { key: 'reason', description: 'Why it was blocked', sample: 'More than 30 games created in an hour' }],
+        subject: 'Your Oche account was blocked',
+        body: 'Hello {{firstname}},\n\nYour Oche account was blocked, so you can no longer log in. The reason: {{reason}}\n\nIf you think this is a mistake, tell the admins of your club.',
+        button: 'Open Oche',
+    },
+    {
+        id: 'contactNews',
+        title: 'News for a player without a login',
+        description: 'For a player without a login whose address the club keeps: their badges, level and records, or their week. The button leads to a login of their own.',
+        placeholders: [...COMMON, CLUB[0], NICKNAME, { key: 'title', description: 'What it is about', sample: 'Your week on the oche' }, { key: 'details', description: 'What happened, one line each', sample: '• Sammy earned the badge One Hundred and Eighty!\n• Sammy is now a Club Regular' }],
+        subject: '{{title}}',
+        body: 'Hello {{firstname}},\n\n{{details}}\n\nYou get this mail because {{club}} keeps your address for your player {{nickname}}. With a login of your own you see your statistics, badges and level any time.',
+        button: 'Get your own login',
     },
 ];
 
@@ -145,7 +218,9 @@ export const renderMail = ({ subject, body, button }, vars, language = 'en') => 
     const layout = layoutOf(language);
     const filledBody = fill(body, vars);
     const footer = layout.footer(vars.appUrl);
-    const text = `${filledBody}\n\n${fill(button, vars)}: ${vars.link}\n\n--\n${footer}\n`;
+    // a link to choose the notifications (an account) or to get no more (a player without a login)
+    const manage = vars.manageUrl ? { label: layout.manage, url: vars.manageUrl } : vars.unsubscribeUrl ? { label: layout.unsubscribe, url: vars.unsubscribeUrl } : null;
+    const text = `${filledBody}\n\n${fill(button, vars)}: ${vars.link}\n\n--\n${footer}\n${manage ? `${manage.label} ${manage.url}\n` : ''}`;
 
     const paragraphs = fill(body, vars, escapeHtml)
         .split(/\n{2,}/)
@@ -164,7 +239,7 @@ export const renderMail = ({ subject, body, button }, vars, language = 'en') => 
 <a href="${link}" style="display:inline-block;background:${BRAND};color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:6px;">${escapeHtml(fill(button, vars))}</a>
 <p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#777777;">${escapeHtml(layout.noButton)}<br><a href="${link}" style="color:${BRAND};word-break:break-all;">${link}</a></p>
 </td></tr>
-<tr><td style="padding:16px 28px;background:#f7f8f6;border-top:1px solid #e6e8e4;font-size:12px;line-height:1.5;color:#888888;">${escapeHtml(footer)}</td></tr>
+<tr><td style="padding:16px 28px;background:#f7f8f6;border-top:1px solid #e6e8e4;font-size:12px;line-height:1.5;color:#888888;">${escapeHtml(footer)}${manage ? `<br>${escapeHtml(manage.label)} <a href="${escapeHtml(manage.url)}" style="color:${BRAND};">${escapeHtml(manage.url)}</a>` : ''}</td></tr>
 </table>
 </td></tr>
 </table>

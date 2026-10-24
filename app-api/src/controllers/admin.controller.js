@@ -175,6 +175,7 @@ export const deletePlayer = async (req, res) => {
     const player = await loadPlayer(req, res);
     if (!player) return;
     await player.deleteOne();
+    await Promise.all([db.playerContact.deleteMany({ player: player._id }), db.playerClaim.deleteMany({ player: player._id })]);
     await removeProfileImageIfUnused(player.profileImg);
     logger.info(`Player "${player.nickname}" deleted by ${req.user.email}`);
     res.json({ message: 'Player deleted.' });

@@ -11,6 +11,7 @@ import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
+import { peekPendingClaim } from './utils/pending.claim';
 
 const Dashboard = lazy(() => import('./components/dashboard/_dashboard.page'));
 const X01ConfigPage = lazy(() => import('./components/game_config/x01/_x01.config.page'));
@@ -52,6 +53,8 @@ const LandingPage = lazy(() => import('./components/landing/_landing.page'));
 const RegisterPage = lazy(() => import('./components/auth/register.page'));
 const ForgotPasswordPage = lazy(() => import('./components/auth/forgot.password.page'));
 const ResetPasswordPage = lazy(() => import('./components/auth/reset.password.page'));
+const ClaimPage = lazy(() => import('./components/auth/claim.page'));
+const UnsubscribePage = lazy(() => import('./components/auth/unsubscribe.page'));
 const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
 const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
 
@@ -102,6 +105,13 @@ function AppContent() {
     if (pathname === '/reset-password') {
         return <Suspense fallback={<PageLoader />}><ResetPasswordPage /></Suspense>;
     }
+    // so do the links to take over a player and to get no more mails
+    if (pathname.startsWith('/claim/')) {
+        return <Suspense fallback={<PageLoader />}><ClaimPage /></Suspense>;
+    }
+    if (pathname === '/unsubscribe') {
+        return <Suspense fallback={<PageLoader />}><UnsubscribePage /></Suspense>;
+    }
 
     if (!user) {
         return (
@@ -122,6 +132,12 @@ function AppContent() {
                 </Routes>
             </Suspense>
         );
+    }
+
+    // logged in to take over a player with a claim link: back to the link
+    const pendingClaim = peekPendingClaim();
+    if (pendingClaim) {
+        return <Navigate replace to={`/claim/${encodeURIComponent(pendingClaim)}`} />;
     }
 
     // logged in again after the session ran out: back to the page it ended on

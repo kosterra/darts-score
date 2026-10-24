@@ -1,10 +1,12 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { getBadge, replayBadges } from './badges.js';
+import { countBadges, getBadge, replayBadges } from './badges.js';
 import { knownInClub } from '../models/player.model.js';
 import { isRulesGame } from './rules.kinds.js';
 import { viewOf } from './game.view.js';
 import { syncClubAfterGame } from './club.badge.service.js';
+import { levelInputs, playerLevel } from './levels.js';
+import { progressNotices, tellPlayer } from './player.notices.js';
 
 export const GAME_MODELS = {
     x01: () => db.x01,
@@ -41,14 +43,30 @@ export const loadPlayerEvents = async (player) => {
     ];
 };
 
+// the level of a player from their events (as their statistics show it)
+const levelOfEvents = (player, events) => playerLevel(levelInputs({
+    x01Games: events.filter(event => event.type === 'x01').map(event => event.data),
+    cricketGames: events.filter(event => event.type === 'cricket').map(event => event.data),
+    eliminationGames: events.filter(event => event.type === 'elimination').map(event => event.data),
+    clockGames: events.filter(event => event.type === 'clock').map(event => event.data),
+    rulesGames: events.filter(event => isRulesGame(event.type)).map(event => event.data),
+    playerId: String(player._id),
+    badgeCount: countBadges(player.badges),
+})).level;
+
 /**
  * Brings a player's stored badges up to date with their history. Badges are
  * only ever added, so deleting an old game does not take one away.
+ * With "notify" (after a game or training just played) the player hears
+ * about new badges, the Hall of Shame and a new level.
  *
  * Resolves to the newly earned badges and the player's current metrics.
  */
-export const syncPlayerBadges = async (player) => {
-    const { earned, metrics, shame, washes } = replayBadges(await loadPlayerEvents(player), String(player._id), { privateTrainings: Boolean(player.privateTrainings) });
+export const syncPlayerBadges = async (player, { notify = false } = {}) => {
+    const events = await loadPlayerEvents(player);
+    const { earned, metrics, shame, washes } = replayBadges(events, String(player._id), { privateTrainings: Boolean(player.privateTrainings) });
+    const shameBefore = [...(player.shame ?? [])];
+    const washesBefore = [...(player.shameWashes ?? [])];
     const known = new Set((player.badges ?? []).map(entry => entry.badge));
     const fresh = earned.filter(entry => !known.has(entry.badge));
     const activity = { lastWeek: metrics.lastWeek, weekStreak: metrics.weekStreak, bestWeekStreak: metrics.bestWeekStreak };
@@ -64,9 +82,23 @@ export const syncPlayerBadges = async (player) => {
         player.shame = shame;
         player.shameWashes = washes;
     }
-    if (fresh.length > 0 || activityChanged || shameChanged) await player.save();
+    // a new level: told from the second one on (the first time it is only noted)
+    let newLevel = null;
+    let levelChanged = false;
+    if (notify) {
+        const level = levelOfEvents(player, events);
+        if (player.notifiedLevel == null || level.index > player.notifiedLevel) {
+            if (player.notifiedLevel != null) newLevel = level;
+            player.notifiedLevel = level.index;
+            levelChanged = true;
+        }
+    }
+    if (fresh.length > 0 || activityChanged || shameChanged || levelChanged) await player.save();
     if (fresh.length > 0) {
         logger.info(`${player.nickname} earned ${fresh.map(entry => entry.badge).join(', ')}`);
+    }
+    if (notify) {
+        await tellPlayer(player, progressNotices(player, { fresh, shameBefore, shameAfter: shame, washesBefore, washesAfter: washes, level: newLevel }));
     }
     return { newBadges: fresh.map(entry => getBadge(entry.badge)), metrics };
 };
@@ -81,7 +113,7 @@ export const syncGameBadges = async (clubId, game, type = null) => {
     try {
         const ids = (game.players ?? []).filter(id => db.mongoose.isValidObjectId(id));
         const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(clubId), guest: { $ne: true } });
-        for (const player of players) await syncPlayerBadges(player);
+        for (const player of players) await syncPlayerBadges(player, { notify: true });
     } catch (err) {
         logger.error(err, 'Failed to update badges after a game');
     }

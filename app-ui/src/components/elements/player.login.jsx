@@ -20,6 +20,7 @@ const PlayerLogin = ({ player, onChange }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [sent, setSent] = useState(false);
 
     const hasLogin = !!player.user;
 
@@ -42,6 +43,18 @@ const PlayerLogin = ({ player, onChange }) => {
         setSubmitting(false);
     };
 
+    const resend = async () => {
+        setError('');
+        setSubmitting(true);
+        try {
+            await PlayerService.resendInvite(player.id);
+            setSent(true);
+        } catch (err) {
+            setError(err.message);
+        }
+        setSubmitting(false);
+    };
+
     const onGiveLogin = (event) => {
         event.preventDefault();
         run(() => PlayerService.giveLogin(player.id, { email, password }));
@@ -53,11 +66,16 @@ const PlayerLogin = ({ player, onChange }) => {
                 <span className="text-default">
                     {player.nickname}{' '}{t('logs in as')}{' '}<span className="fw-semibold text-break">{player.accountEmail ?? t('a linked account')}</span>{' '}{t('and can start games and trainings in this club.')}
                 </span>
+                {player.accountUsed === false &&
+                    <span className="fs-7 text-subtle">
+                        {sent ? t('The invitation was sent again, with a new link to choose the password.') : t('Not used yet: the invitation may have got lost.')}
+                    </span>}
                 <span className="fs-7 text-subtle">
                     {t('Removing the login keeps the player, their games and statistics. The account itself stays, in case it is used in other clubs.')}
                 </span>
                 {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
-                <div className="d-flex justify-content-end gap-3">
+                <div className="d-flex justify-content-end gap-3 flex-wrap">
+                    {player.accountUsed === false && mailEnabled && !sent && <Button type="button" label={t('Send the invitation again')} icon="pi pi-send" severity="secondary" size="small" loading={submitting} onClick={resend} />}
                     <Button type="button" label={t('Remove login')} icon="pi pi-times" severity="danger" size="small" loading={submitting} onClick={() => run(() => PlayerService.removeLogin(player.id))} />
                 </div>
             </div>

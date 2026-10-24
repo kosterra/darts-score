@@ -16,6 +16,7 @@ import { LANGUAGES, currentLanguage, setLanguage, t } from '../../utils/i18n';
 import PlayingPreferences from './playing.preferences';
 import DateFormatSetting from './date.format.setting';
 import AppInstallSetting from '../install/app.install.setting';
+import NotificationSettings from './notification.settings';
 import { MyPlayers } from '../players/_my.player.page';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -27,6 +28,7 @@ const SECTIONS = [
     { value: 'account', label: t('Account'), icon: 'pi pi-user', intro: t('Your account: the name your clubs see, the email you log in with, the language and date format, what opens after logging in and your password.') },
     { value: 'player', label: t('Player'), icon: 'pi pi-id-card', intro: t('How you appear in your clubs: your nickname, picture and country, what the others see of you, and your darts. Your name comes from your account; your club admins set the date of birth, and as an adult you can correct it.') },
     { value: 'playing', label: t('Playing'), icon: 'pi pi-bullseye', intro: t('Everything in a game: the ways out, how you enter the darts, the doubles the tips aim at, the handicap, the dart animation and the celebrations.') },
+    { value: 'notifications', label: t('Notifications'), icon: 'pi pi-bell', intro: t('What you are told about, and how: in the app, by mail at once, or in one mail a day or a week.') },
 ];
 
 /**
@@ -41,7 +43,7 @@ const ProfilePage = () => {
     const { hash } = useLocation();
     const navigate = useNavigate();
     // global admins belong to no club: they have no player
-    const sections = isGlobalAdmin ? SECTIONS.slice(0, 1) : SECTIONS;
+    const sections = isGlobalAdmin ? SECTIONS.filter(entry => entry.value === 'account' || entry.value === 'notifications') : SECTIONS;
     const section = sections.find(entry => `#${entry.value}` === hash) ?? sections[0];
 
     const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email, startPage: user.startPage ?? 'dashboard', defaultClub: user.defaultClub ? String(user.defaultClub) : null });
@@ -233,6 +235,13 @@ const ProfilePage = () => {
                 </div>}
 
                 {section.value === 'player' && <MyPlayers part="player" onSaved={showSuccess} onError={showError} />}
+
+                {section.value === 'notifications' &&
+                    <div className="row g-4">
+                        <div className="col-12 col-xxl-9">
+                            <NotificationSettings onSaved={(detail) => showSuccess(t('Saved'), detail)} onError={showError} />
+                        </div>
+                    </div>}
 
                 {section.value === 'playing' &&
                     <div className="row g-4">

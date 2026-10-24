@@ -4,6 +4,7 @@ import { CLUB_ROLES, ROLES } from '../models/user.model.js';
 import { clubsOfAccount } from '../utils/global.admins.js';
 import { hashPassword } from '../utils/auth.utils.js';
 import { issuePasswordLink } from '../utils/auth.tokens.js';
+import { notifySecurity } from '../utils/notify.js';
 
 // how long a password link created by a global admin works
 export const ADMIN_LINK_HOURS = 24;
@@ -104,10 +105,15 @@ export const update = async (req, res) => {
     if (email !== user.email && await User.exists({ email })) {
         return res.status(409).json({ message: 'An account with this email already exists.' });
     }
+    const previousEmail = user.email;
     const changes = [user.email !== email && `email ${user.email} → ${email}`, (user.firstname !== firstname || user.lastname !== lastname) && 'name'].filter(Boolean);
     Object.assign(user, { firstname, lastname, email });
     await user.save();
     logger.info(`User ${user.email} edited by ${req.user.email}${changes.length ? ` (${changes.join(', ')})` : ''}`);
+    if (previousEmail !== user.email) {
+        const notice = { title: 'Your email address was changed', body: `From ${previousEmail} to ${user.email}. If that was not you, tell the admins of your club right away.`, vars: { oldEmail: previousEmail, newEmail: user.email } };
+        notifySecurity(user, 'emailChanged', { ...notice, to: previousEmail });
+    }
     res.json(user);
 };
 
@@ -126,6 +132,7 @@ export const setPassword = async (req, res) => {
     user.resetTokenExpires = null;
     await user.save();
     logger.info(`Password of ${user.email} set by ${req.user.email}`);
+    notifySecurity(user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
     res.json({ message: 'Password set.' });
 };
 

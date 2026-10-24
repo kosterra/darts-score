@@ -31,6 +31,46 @@ export const TEMPLATE_TEXTS = {
             body: 'Hallo {{firstname}}\n\n{{inviter}} hat dich zu {{club}} auf Oche eingeladen, der Anzeigetafel und Statistik für Dartclubs, als Spieler {{nickname}}. Für dich wurde ein Konto erstellt.\n\nWähle mit dem Knopf unten dein Passwort, um dich anzumelden. Der Link ist {{validity}} gültig.',
             button: 'Passwort wählen',
         },
+        notification: {
+            subject: "{{title}}",
+            body: "Hallo {{firstname}}\n\n{{title}}\n\n{{details}}",
+            button: "In Oche öffnen",
+        },
+        digest: {
+            subject: "Deine Oche-News {{period}}",
+            body: "Hallo {{firstname}}\n\nDas ist {{period}} passiert:\n\n{{list}}",
+            button: "Deine Mitteilungen öffnen",
+        },
+        weeklySummary: {
+            subject: "Deine Woche am Oche",
+            body: "Hallo {{firstname}}\n\nDas war deine Woche am Oche:\n\n{{summary}}",
+            button: "Deine Statistik",
+        },
+        clubSummary: {
+            subject: "Die Woche von {{club}}",
+            body: "Hallo {{firstname}}\n\nDas war die Woche von {{club}}:\n\n{{summary}}",
+            button: "Club öffnen",
+        },
+        passwordChanged: {
+            subject: "Dein Oche-Passwort wurde geändert",
+            body: "Hallo {{firstname}}\n\nDas Passwort deines Oche-Kontos wurde am {{date}} geändert. Wenn du das warst, ist alles in Ordnung.\n\nWenn nicht, wähle mit dem Knopf unten sofort ein neues Passwort und informiere die Admins deines Clubs.",
+            button: "Neues Passwort wählen",
+        },
+        emailChanged: {
+            subject: "Die E-Mail-Adresse deines Oche-Kontos wurde geändert",
+            body: "Hallo {{firstname}}\n\nDie E-Mail-Adresse deines Oche-Kontos wurde am {{date}} von {{oldEmail}} zu {{newEmail}} geändert. Ab jetzt meldest du dich mit der neuen an.\n\nWenn du das nicht warst, informiere sofort die Admins deines Clubs: Sie können die Adresse zurücksetzen.",
+            button: "Oche öffnen",
+        },
+        accountBlocked: {
+            subject: "Dein Oche-Konto wurde gesperrt",
+            body: "Hallo {{firstname}}\n\nDein Oche-Konto wurde gesperrt, du kannst dich nicht mehr anmelden. Der Grund: {{reason}}\n\nWenn du denkst, dass das ein Fehler ist, informiere die Admins deines Clubs.",
+            button: "Oche öffnen",
+        },
+        contactNews: {
+            subject: "{{title}}",
+            body: "Hallo {{firstname}}\n\n{{details}}\n\nDu erhältst diese E-Mail, weil {{club}} deine Adresse für deinen Spieler {{nickname}} hinterlegt hat. Mit einem eigenen Login siehst du deine Statistik, Badges und dein Level jederzeit.",
+            button: "Eigenes Login holen",
+        },
     },
     fr: {
         passwordReset: {
@@ -57,6 +97,46 @@ export const TEMPLATE_TEXTS = {
             subject: 'Tu es invité à jouer à {{club}}',
             body: 'Bonjour {{firstname}},\n\n{{inviter}} t\'a invité à {{club}} sur Oche, le tableau de score et les statistiques pour les clubs de fléchettes, en tant que joueur {{nickname}}. Un compte a été créé pour toi.\n\nChoisis ton mot de passe avec le bouton ci-dessous pour te connecter. Le lien est valable {{validity}}.',
             button: 'Choisir ton mot de passe',
+        },
+        notification: {
+            subject: "{{title}}",
+            body: "Bonjour {{firstname}},\n\n{{title}}\n\n{{details}}",
+            button: "Ouvrir dans Oche",
+        },
+        digest: {
+            subject: "Tes nouvelles d'Oche {{period}}",
+            body: "Bonjour {{firstname}},\n\nVoici ce qui s'est passé {{period}} :\n\n{{list}}",
+            button: "Ouvrir tes notifications",
+        },
+        weeklySummary: {
+            subject: "Ta semaine à l'oche",
+            body: "Bonjour {{firstname}},\n\nVoici ta semaine à l'oche :\n\n{{summary}}",
+            button: "Tes statistiques",
+        },
+        clubSummary: {
+            subject: "La semaine de {{club}}",
+            body: "Bonjour {{firstname}},\n\nVoici la semaine de {{club}} :\n\n{{summary}}",
+            button: "Ouvrir le club",
+        },
+        passwordChanged: {
+            subject: "Ton mot de passe Oche a été modifié",
+            body: "Bonjour {{firstname}},\n\nLe mot de passe de ton compte Oche a été modifié le {{date}}. Si c'était toi, tout va bien.\n\nSinon, choisis tout de suite un nouveau mot de passe avec le bouton ci-dessous et préviens les admins de ton club.",
+            button: "Choisir un nouveau mot de passe",
+        },
+        emailChanged: {
+            subject: "L'adresse e-mail de ton compte Oche a été modifiée",
+            body: "Bonjour {{firstname}},\n\nL'adresse e-mail de ton compte Oche est passée de {{oldEmail}} à {{newEmail}} le {{date}}. Désormais, tu te connectes avec la nouvelle.\n\nSi ce n'était pas toi, préviens tout de suite les admins de ton club : ils peuvent remettre l'ancienne adresse.",
+            button: "Ouvrir Oche",
+        },
+        accountBlocked: {
+            subject: "Ton compte Oche a été bloqué",
+            body: "Bonjour {{firstname}},\n\nTon compte Oche a été bloqué, tu ne peux plus te connecter. La raison : {{reason}}\n\nSi tu penses que c'est une erreur, préviens les admins de ton club.",
+            button: "Ouvrir Oche",
+        },
+        contactNews: {
+            subject: "{{title}}",
+            body: "Bonjour {{firstname}},\n\n{{details}}\n\nTu reçois cet e-mail parce que {{club}} garde ton adresse pour ton joueur {{nickname}}. Avec ton propre accès, tu vois tes statistiques, tes badges et ton niveau à tout moment.",
+            button: "Obtenir ton propre accès",
         },
     },
     it: {
@@ -85,6 +165,46 @@ export const TEMPLATE_TEXTS = {
             body: 'Ciao {{firstname}},\n\n{{inviter}} ti ha invitato a {{club}} su Oche, il segnapunti e le statistiche per i club di freccette, come giocatore {{nickname}}. È stato creato un account per te.\n\nScegli la tua password con il pulsante qui sotto per accedere. Il link è valido per {{validity}}.',
             button: 'Scegli la tua password',
         },
+        notification: {
+            subject: "{{title}}",
+            body: "Ciao {{firstname}},\n\n{{title}}\n\n{{details}}",
+            button: "Apri in Oche",
+        },
+        digest: {
+            subject: "Le tue novità di Oche {{period}}",
+            body: "Ciao {{firstname}},\n\nEcco cosa è successo {{period}}:\n\n{{list}}",
+            button: "Apri le tue notifiche",
+        },
+        weeklySummary: {
+            subject: "La tua settimana all'oche",
+            body: "Ciao {{firstname}},\n\nEcco la tua settimana all'oche:\n\n{{summary}}",
+            button: "Le tue statistiche",
+        },
+        clubSummary: {
+            subject: "La settimana di {{club}}",
+            body: "Ciao {{firstname}},\n\nEcco la settimana di {{club}}:\n\n{{summary}}",
+            button: "Apri il club",
+        },
+        passwordChanged: {
+            subject: "La tua password di Oche è stata cambiata",
+            body: "Ciao {{firstname}},\n\nLa password del tuo account Oche è stata cambiata il {{date}}. Se sei stato tu, va tutto bene.\n\nAltrimenti scegli subito una nuova password con il pulsante qui sotto e avvisa gli admin del tuo club.",
+            button: "Scegli una nuova password",
+        },
+        emailChanged: {
+            subject: "L'indirizzo email del tuo account Oche è stato cambiato",
+            body: "Ciao {{firstname}},\n\nL'indirizzo email del tuo account Oche è stato cambiato da {{oldEmail}} a {{newEmail}} il {{date}}. D'ora in poi accedi con quello nuovo.\n\nSe non sei stato tu, avvisa subito gli admin del tuo club: possono rimettere l'indirizzo di prima.",
+            button: "Apri Oche",
+        },
+        accountBlocked: {
+            subject: "Il tuo account Oche è stato bloccato",
+            body: "Ciao {{firstname}},\n\nIl tuo account Oche è stato bloccato, non puoi più accedere. Il motivo: {{reason}}\n\nSe pensi che sia un errore, avvisa gli admin del tuo club.",
+            button: "Apri Oche",
+        },
+        contactNews: {
+            subject: "{{title}}",
+            body: "Ciao {{firstname}},\n\n{{details}}\n\nRicevi questa email perché {{club}} conserva il tuo indirizzo per il tuo giocatore {{nickname}}. Con un accesso tuo vedi le tue statistiche, i badge e il livello in ogni momento.",
+            button: "Ottieni un accesso tuo",
+        },
     },
     es: {
         passwordReset: {
@@ -112,36 +232,91 @@ export const TEMPLATE_TEXTS = {
             body: 'Hola, {{firstname}}:\n\n{{inviter}} te ha invitado a {{club}} en Oche, el marcador y las estadísticas para clubes de dardos, como el jugador {{nickname}}. Se ha creado una cuenta para ti.\n\nElige tu contraseña con el botón de abajo para iniciar sesión. El enlace es válido durante {{validity}}.',
             button: 'Elegir tu contraseña',
         },
+        notification: {
+            subject: "{{title}}",
+            body: "Hola, {{firstname}}:\n\n{{title}}\n\n{{details}}",
+            button: "Abrir en Oche",
+        },
+        digest: {
+            subject: "Tus novedades de Oche {{period}}",
+            body: "Hola, {{firstname}}:\n\nEsto pasó {{period}}:\n\n{{list}}",
+            button: "Abrir tus notificaciones",
+        },
+        weeklySummary: {
+            subject: "Tu semana en el oche",
+            body: "Hola, {{firstname}}:\n\nAsí fue tu semana en el oche:\n\n{{summary}}",
+            button: "Tus estadísticas",
+        },
+        clubSummary: {
+            subject: "La semana de {{club}}",
+            body: "Hola, {{firstname}}:\n\nAsí fue la semana de {{club}}:\n\n{{summary}}",
+            button: "Abrir el club",
+        },
+        passwordChanged: {
+            subject: "Tu contraseña de Oche ha cambiado",
+            body: "Hola, {{firstname}}:\n\nLa contraseña de tu cuenta de Oche se cambió el {{date}}. Si fuiste tú, todo está bien.\n\nSi no, elige ahora mismo una contraseña nueva con el botón de abajo y avisa a los admins de tu club.",
+            button: "Elegir una contraseña nueva",
+        },
+        emailChanged: {
+            subject: "La dirección de correo de tu cuenta de Oche ha cambiado",
+            body: "Hola, {{firstname}}:\n\nLa dirección de correo de tu cuenta de Oche se cambió de {{oldEmail}} a {{newEmail}} el {{date}}. A partir de ahora inicias sesión con la nueva.\n\nSi no fuiste tú, avisa ahora mismo a los admins de tu club: pueden volver a poner la dirección anterior.",
+            button: "Abrir Oche",
+        },
+        accountBlocked: {
+            subject: "Tu cuenta de Oche ha sido bloqueada",
+            body: "Hola, {{firstname}}:\n\nTu cuenta de Oche ha sido bloqueada y ya no puedes iniciar sesión. El motivo: {{reason}}\n\nSi crees que es un error, avisa a los admins de tu club.",
+            button: "Abrir Oche",
+        },
+        contactNews: {
+            subject: "{{title}}",
+            body: "Hola, {{firstname}}:\n\n{{details}}\n\nRecibes este correo porque {{club}} guarda tu dirección para tu jugador {{nickname}}. Con un acceso propio ves tus estadísticas, insignias y nivel en cualquier momento.",
+            button: "Conseguir tu propio acceso",
+        },
     },
 };
 
 // the words of the layout around every mail
 export const LAYOUT = {
     en: {
+        manage: "Choose which notifications you get:",
+        unsubscribe: "No more mails like this:",
+        period: { daily: "today", weekly: "this week" },
         footer: (appUrl) => `This email was sent by Oche${appUrl ? ` (${appUrl})` : ''}. If you did not expect it, you can ignore it.`,
         noButton: 'If the button does not work, copy this address into your browser:',
         hour: ['hour', 'hours'],
         day: ['day', 'days'],
     },
     de: {
+        manage: "Wähle, welche Mitteilungen du erhältst:",
+        unsubscribe: "Keine solchen E-Mails mehr:",
+        period: { daily: "heute", weekly: "diese Woche" },
         footer: (appUrl) => `Diese E-Mail wurde von Oche${appUrl ? ` (${appUrl})` : ''} gesendet. Falls du sie nicht erwartet hast, kannst du sie ignorieren.`,
         noButton: 'Falls der Knopf nicht funktioniert, kopiere diese Adresse in deinen Browser:',
         hour: ['Stunde', 'Stunden'],
         day: ['Tag', 'Tage'],
     },
     fr: {
+        manage: "Choisis les notifications que tu reçois :",
+        unsubscribe: "Plus d'e-mails comme celui-ci :",
+        period: { daily: "aujourd'hui", weekly: "cette semaine" },
         footer: (appUrl) => `Cet e-mail a été envoyé par Oche${appUrl ? ` (${appUrl})` : ''}. Si tu ne l'attendais pas, tu peux l'ignorer.`,
         noButton: 'Si le bouton ne fonctionne pas, copie cette adresse dans ton navigateur :',
         hour: ['heure', 'heures'],
         day: ['jour', 'jours'],
     },
     it: {
+        manage: "Scegli quali notifiche ricevi:",
+        unsubscribe: "Niente più email come questa:",
+        period: { daily: "oggi", weekly: "questa settimana" },
         footer: (appUrl) => `Questa email è stata inviata da Oche${appUrl ? ` (${appUrl})` : ''}. Se non te l'aspettavi, puoi ignorarla.`,
         noButton: 'Se il pulsante non funziona, copia questo indirizzo nel tuo browser:',
         hour: ['ora', 'ore'],
         day: ['giorno', 'giorni'],
     },
     es: {
+        manage: "Elige qué notificaciones recibes:",
+        unsubscribe: "No más correos como este:",
+        period: { daily: "hoy", weekly: "esta semana" },
         footer: (appUrl) => `Este correo lo ha enviado Oche${appUrl ? ` (${appUrl})` : ''}. Si no lo esperabas, puedes ignorarlo.`,
         noButton: 'Si el botón no funciona, copia esta dirección en tu navegador:',
         hour: ['hora', 'horas'],

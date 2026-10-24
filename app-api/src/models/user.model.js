@@ -23,6 +23,10 @@ export default (mongoose) => {
       role:           { type: String, enum: Object.values(ROLES), default: ROLES.USER },
       // how the player likes to play, on every device: the ways out, the keypad, the last setups, … (see rules/club.rules.js)
       gamePreferences: { type: mongoose.Schema.Types.Mixed, default: undefined },
+      // which notifications the user gets, and how: { [topic]: { inApp, mail } } (see rules/notifications.js)
+      notifications:  { type: mongoose.Schema.Types.Mixed, default: undefined },
+      // when the last mail with the notifications of the day and of the week went out
+      digestSentAt:   { daily: { type: Date, default: null }, weekly: { type: Date, default: null } },
       // Bumped on password change so older session cookies stop working
       sessionVersion: { type: Number, default: 0 },
       // Hash of the token from a "set your password" mail, and when it stops working

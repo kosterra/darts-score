@@ -180,6 +180,7 @@ export const remove = async (req, res) => {
     // players of this club only go with it; members of other clubs stay there
     const onlyHere = { clubs: [club._id] };
     const players = await Player.find(onlyHere, 'profileImg');
+    await db.playerContact.deleteMany({ player: { $in: players.map(player => player._id) } });
     // one after the other, so no player loses their last club without being deleted
     await Player.deleteMany(onlyHere);
     await Promise.all([
@@ -193,6 +194,7 @@ export const remove = async (req, res) => {
         db.atc.deleteMany({ club: club._id }),
         db.x01Training.deleteMany({ club: club._id }),
         db.joinRequest.deleteMany({ club: club._id }),
+        db.playerClaim.deleteMany({ club: club._id }),
     ]);
     await club.deleteOne();
     removeClubLogoFile(club.logo);

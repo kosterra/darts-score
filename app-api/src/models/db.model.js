@@ -21,6 +21,9 @@ import rulesGameModel from './rules.game.model.js';
 import rulesTrainingModel from './rules.training.model.js';
 import clubTallyModel from './club.tally.model.js';
 import fairPlayHitModel from './fair.play.hit.model.js';
+import playerContactModel from './player.contact.model.js';
+import playerClaimModel from './player.claim.model.js';
+import noticeSentModel from './notice.sent.model.js';
 
 const db = {
   mongoose,
@@ -47,6 +50,9 @@ const db = {
   rulesTraining: rulesTrainingModel(mongoose),
   clubTally: clubTallyModel(mongoose),
   fairPlayHit: fairPlayHitModel(mongoose),
+  playerContact: playerContactModel(mongoose),
+  playerClaim: playerClaimModel(mongoose),
+  noticeSent: noticeSentModel(mongoose),
 };
 
 export default db;

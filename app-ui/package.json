@@ -34,6 +34,7 @@
     "dayjs": "^1.11.23",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.9",
+    "qrcode": "1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-hook-form": "^7.89.0",

@@ -5,6 +5,7 @@ import { canManageClub, isGlobalAdmin } from '../middleware/auth.middleware.js';
 import { topClubBadges } from '../utils/club.badges.js';
 import { joinBlock, joinNotices } from '../utils/club.joining.js';
 import { checkLater, noteJoinRequest } from '../utils/spam.guard.js';
+import { deliver } from '../utils/notify.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -18,7 +19,7 @@ const TAKES_MEMBERS = { joinPolicy: { $in: ['open', 'approval'] } };
 const notify = async (event, request, club, actor) => {
     try {
         const notices = joinNotices(event, { request, clubName: club.name, admins: club.admins, actor: { id: String(actor._id), name: nameOf(actor) } });
-        if (notices.length) await db.notification.insertMany(notices);
+        if (notices.length) await deliver(notices);
     } catch (err) {
         logger.error(err, 'Failed to send the notifications of a join request');
     }

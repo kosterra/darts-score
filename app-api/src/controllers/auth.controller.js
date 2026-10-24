@@ -11,6 +11,8 @@ import { sendTemplateMail, validityOf } from '../utils/mail.service.js';
 import { checkRegistration, noteRegistration, noteLoginFailure, noteResetRequest, checkLater } from '../utils/spam.guard.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { getClubRole } from '../middleware/auth.middleware.js';
+import { notifySecurity } from '../utils/notify.js';
+import { claimOnRegister } from './player.contact.controller.js';
 
 export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
@@ -34,12 +36,16 @@ export const register = async (req, res) => {
         passwordHash: await hashPassword(password),
         role: ROLES.USER,
         language: LANGUAGES.includes(language) ? language : null,
+        // registering logs in
+        lastLoginAt: new Date(),
     });
     logger.info(`Registered user ${user.email}`);
     checkLater(() => noteRegistration(req, user));
+    // registered with a claim link: the account takes over the player
+    const claimed = req.body.claimToken ? await claimOnRegister(req.body.claimToken, user) : false;
 
     await setSessionCookie(req, res, user);
-    res.status(201).json(user);
+    res.status(201).json({ ...user.toJSON(), claimed });
 };
 
 export const login = async (req, res) => {
@@ -133,10 +139,15 @@ export const updateMe = async (req, res) => {
             || await db.player.exists({ user: req.user._id, clubs: defaultClub });
         if (!member) return res.status(422).json({ errors: ['Choose one of your clubs.'] });
     }
+    const previousEmail = req.user.email;
     Object.assign(req.user, { email, firstname, lastname }, startPage ? { startPage } : {}, defaultClub !== undefined ? { defaultClub: defaultClub || null } : {});
     await req.user.save();
     // the players of the account carry its name
     await db.player.updateMany({ user: req.user._id }, { $set: { firstname: req.user.firstname, lastname: req.user.lastname } });
+    if (previousEmail !== req.user.email) {
+        const notice = { title: 'Your email address was changed', body: `From ${previousEmail} to ${req.user.email}. If that was not you, tell the admins of your club right away.`, vars: { oldEmail: previousEmail, newEmail: req.user.email } };
+        notifySecurity(req.user, 'emailChanged', { ...notice, to: previousEmail });
+    }
     res.json(req.user);
 };
 
@@ -180,6 +191,7 @@ export const changePassword = async (req, res) => {
     req.user.sessionVersion += 1;
     await req.user.save();
 
+    notifySecurity(req.user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
     // Other devices are logged out by the version bump; keep this one signed in
     await setSessionCookie(req, res, req.user);
     res.json({ message: 'Password changed.' });
@@ -224,6 +236,8 @@ export const resetPassword = async (req, res) => {
     user.resetTokenHash = null;
     user.resetTokenExpires = null;
     await user.save();
+    // not for a new account choosing its first password
+    if (user.lastLoginAt) notifySecurity(user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
 
     await setSessionCookie(req, res, user);
     res.json(user);

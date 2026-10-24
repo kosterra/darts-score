@@ -22,6 +22,24 @@ setInterval(() => counter.prune(LONGEST_WINDOW), 10 * 60 * 1000).unref();
 // time counts up the open alert
 const REPEAT_WINDOW_MS = 60 * 60 * 1000;
 
+// a new alert for the global admins, as each of them wants it
+const tellGlobalAdmins = async (rule, severity, message, club) => {
+    try {
+        const { deliver } = await import('./notify.js');
+        const admins = await db.user.find({ role: ROLES.GLOBAL_ADMIN, blockedAt: null }, '_id').lean();
+        await deliver(admins.map(admin => ({
+            user: admin._id,
+            kind: severity === 'critical' ? 'alertCritical' : 'alertWarning',
+            title: `Alert: ${RULES[rule].title}`,
+            body: message,
+            link: '/admin/alerts',
+            club: club?._id ?? null,
+        })));
+    } catch (err) {
+        logger.error(err, 'Failed to tell the global admins about an alert');
+    }
+};
+
 // IPv4 addresses arrive as "::ffff:1.2.3.4" on a dual-stack server
 export const clientIp = (req) => String(req.ip ?? req.socket?.remoteAddress ?? '').replace(/^::ffff:(?=\d+\.\d+\.\d+\.\d+$)/, '');
 
@@ -48,6 +66,7 @@ export const raiseAlert = async ({ rule, message, subject = {}, user = null, clu
         return existing;
     }
     logger.info({ rule, user: user?.email, ip }, `Spam alert: ${message}`);
+    tellGlobalAdmins(rule, severity, message, club);
     return db.alert.create({
         rule,
         severity,
@@ -74,6 +93,8 @@ export const blockUser = async (user, reason) => {
     user.sessionVersion += 1;
     await user.save();
     logger.info(`Blocked user ${user.email}: ${reason}`);
+    const { notifySecurity } = await import('./notify.js');
+    notifySecurity(user, 'accountBlocked', { title: 'Your account was blocked', body: reason, vars: { reason } });
     return true;
 };
 
@@ -305,6 +326,27 @@ export const noteClubBadges = async (club, fresh) => {
     });
 };
 
+const tellClubAdmins = async (clubId, type, doc) => {
+    try {
+        const club = await db.club.findById(clubId, 'name admins').lean();
+        if (!club) return;
+        const { deliver } = await import('./notify.js');
+        const { INTEGRITY_CHECKS } = await import('./integrity.js');
+        const reasons = [...new Set(INTEGRITY_CHECKS[type](doc).filter(item => item.level === 'impossible').map(item => item.title))];
+        const what = type === 'training' || type === 'rulesTraining' || type === 'x01training' ? 'A training' : 'A game';
+        await deliver((club.admins ?? []).map(admin => ({
+            user: admin,
+            kind: 'fairPlayFound',
+            title: `${what} in ${club.name} that cannot be real`,
+            body: `Why: ${reasons.join('; ')}. Delete it or mark it as a false alarm under Fair play.`,
+            link: '/fair-play',
+            club: clubId,
+        })));
+    } catch (err) {
+        logger.error(err, 'Failed to tell the club admins about fair play');
+    }
+};
+
 /**
  * After a game was finished or a training saved: an impossible one is noted
  * for its club, and enough of them within 30 days raise an alert.
@@ -313,11 +355,13 @@ export const noteClubBadges = async (club, fresh) => {
 export const noteFairPlay = async (clubId, type, doc) => {
     const plain = typeof doc?.toObject === 'function' ? doc.toObject() : doc;
     if (!clubId || !plain || !isImpossible(type, plain)) return;
-    await db.fairPlayHit.updateOne(
+    const written = await db.fairPlayHit.updateOne(
         { sourceId: String(plain._id) },
         { $setOnInsert: { club: clubId, sourceType: type, sourceId: String(plain._id), at: new Date() } },
         { upsert: true },
     );
+    // the club admins hear about each one once
+    if (written?.upsertedCount) await tellClubAdmins(clubId, type, plain);
     const count = await db.fairPlayHit.countDocuments({ club: clubId, at: { $gte: new Date(Date.now() - FAIR_PLAY_IMPOSSIBLE.windowMs) } });
     if (count < FAIR_PLAY_IMPOSSIBLE.count) return;
     const club = await db.club.findById(clubId, 'name');

@@ -8,6 +8,7 @@ import { Message } from 'primereact/message';
 import AuthLayout from './auth.layout';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
+import { clearPendingClaim, peekPendingClaim, setPendingClaim } from '../../utils/pending.claim';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -34,9 +35,14 @@ const RegisterPage = () => {
         }
         setError('');
         setSubmitting(true);
+        // registered from a claim link: the new account takes over the player at once
+        // (no longer pending, so the app does not open the link again)
+        const claimToken = peekPendingClaim();
+        clearPendingClaim();
         try {
-            await register({ ...account, website, formTimeMs: Date.now() - openedAt.current });
+            await register({ ...account, website, formTimeMs: Date.now() - openedAt.current, ...(claimToken && { claimToken }) });
         } catch (err) {
+            if (claimToken) setPendingClaim(claimToken);
             setError(err.message);
             setSubmitting(false);
         }
@@ -45,6 +51,7 @@ const RegisterPage = () => {
     return (
         <AuthLayout hide="register" title={t('Register')}>
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
+                {peekPendingClaim() && <Message severity="info" text={t('Once your account is there, you play as your player of the club, with everything you played so far.')} className="w-100 justify-content-start" />}
                 <span className="fs-7 text-subtle">
                     {t('Create your account, then set up your own club and add its players, or join a club that takes new members. A club admin can also give you a login for their club.')}
                 </span>

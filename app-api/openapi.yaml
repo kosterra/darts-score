@@ -88,6 +88,112 @@ paths:
         '200':
           description: The server is running
       operationId: getHealth
+  /api/unsubscribe:
+    get:
+      tags:
+        - Notifications
+      summary: What an unsubscribe link of a mail is for
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: For an account or a player without a login, and the topic ('all' for every mail)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unsubscribed'
+        '404':
+          description: Not a valid link
+      operationId: getUnsubscribe
+    post:
+      tags:
+        - Notifications
+      summary: Get no more of the mails of an unsubscribe link
+      description: Also the one-click unsubscribing of mail programs (List-Unsubscribe-Post).
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Turned off
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unsubscribed'
+        '404':
+          description: Not a valid link
+      operationId: postUnsubscribe
+  /api/claim/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Players
+      summary: Who a claim link is for
+      description: A claim link lets a player without a login take over their player with an account of their own.
+      security: []
+      responses:
+        '200':
+          description: The player and the club
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nickname:
+                    type: string
+                  firstname:
+                    type: string
+                  club:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      logo:
+                        type: string
+        '404':
+          description: Unknown or expired, or the player has a login already
+      operationId: getClaimBytoken
+    post:
+      tags:
+        - Players
+      summary: Take over the player of a claim link with the logged-in account
+      responses:
+        '200':
+          description: The account plays as the player from now on
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  club:
+                    type: string
+                  player:
+                    type: string
+                  nickname:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Unknown or expired, or the player has a login already
+        '409':
+          description: The account already plays as someone else in a club of the player
+      operationId: postClaimBytoken
   /api/auth/register:
     post:
       tags:
@@ -2265,6 +2371,45 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       operationId: getNotificationsUnread
+  /api/notifications/settings:
+    get:
+      tags:
+        - Notifications
+      summary: Which notifications the user gets, and how
+      description: The topics of the groups the user sees (the admin ones only for admins), each with the notification center on or off and the mail at once, daily, weekly or off. Security mails cannot be turned off.
+      responses:
+        '200':
+          description: The settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getNotificationsSettings
+    put:
+      tags:
+        - Notifications
+      summary: Save the user's choices
+      description: 'An object of topics, e.g. { "badges": { "inApp": true, "mail": "daily" } }; unknown topics and choices are left out.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/NotificationChoice'
+      responses:
+        '200':
+          description: The settings as saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: putNotificationsSettings
   /api/notifications/read:
     put:
       tags:
@@ -2855,6 +3000,169 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ClubId'
       operationId: deletePlayersByidAccount
+  /api/players/{id}/account/invite:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+        - Players
+      summary: Send the invitation of a player's login again (club admins only)
+      description: With a new link to choose the password, while the login was never used.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: Sent
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: The player has no login
+        '409':
+          description: The login was used already
+        '503':
+          description: Email sending is not set up
+      operationId: postPlayersByidAccountInvite
+  /api/players/{id}/contact:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Players
+      summary: The address the club keeps for a player without a login (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: The address and the open claim links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerContact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getPlayersByidContact
+    put:
+      tags:
+        - Players
+      summary: Keep an address for a player without a login, with their consent (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - consent
+              properties:
+                email:
+                  type: string
+                  format: email
+                topics:
+                  type: array
+                  items:
+                    type: string
+                    enum: [badges, level, records, weeklySummary]
+                language:
+                  $ref: '#/components/schemas/Language'
+                consent:
+                  type: boolean
+                  description: The admin confirms the player agreed to get these mails
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerContact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The player has a login, or is a guest
+        '422':
+          description: No valid address, or no consent
+      operationId: putPlayersByidContact
+    delete:
+      tags:
+        - Players
+      summary: Forget the address of a player without a login (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: Forgotten
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerContact'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: deletePlayersByidContact
+  /api/players/{id}/claim:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      tags:
+        - Players
+      summary: A new claim link of a player without a login (club admins only)
+      description: Whoever opens it creates an account, or logs in, and takes over the player with all their games, statistics and badges. Valid for 30 days.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '201':
+          description: The link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  link:
+                    type: string
+                  days:
+                    type: integer
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  claims:
+                    $ref: '#/components/schemas/PlayerClaims'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: The player has a login already
+      operationId: postPlayersByidClaim
+    delete:
+      tags:
+        - Players
+      summary: Make every open claim link of a player stop working (club admins only)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: Done
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claims:
+                    $ref: '#/components/schemas/PlayerClaims'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: deletePlayersByidClaim
   /api/players/{id}/clubs:
     get:
       tags:
@@ -4863,6 +5171,93 @@ components:
           maxLength: 25
         language:
           $ref: '#/components/schemas/Language'
+        claimToken:
+          type: string
+          description: The token of a claim link; the new account takes over its player
+    NotificationChoice:
+      type: object
+      properties:
+        inApp:
+          type: boolean
+          description: In the notification center
+        mail:
+          type: string
+          enum: [off, instant, daily, weekly]
+    NotificationSettings:
+      type: object
+      properties:
+        mailEnabled:
+          type: boolean
+          description: Whether the installation sends mails
+        groups:
+          type: array
+          items:
+            type: string
+            enum: [games, club, admin, global, security]
+        topics:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              group:
+                type: string
+              locked:
+                type: boolean
+              mailOnly:
+                type: boolean
+              mails:
+                type: array
+                items:
+                  type: string
+              inApp:
+                type: boolean
+              mail:
+                type: string
+    Unsubscribed:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [user, contact]
+        topic:
+          type: string
+    PlayerClaims:
+      type: object
+      description: The open claim links of a player
+      properties:
+        count:
+          type: integer
+        until:
+          type: [string, 'null']
+          format: date-time
+    PlayerContact:
+      type: object
+      properties:
+        contact:
+          type: [object, 'null']
+          properties:
+            email:
+              type: string
+            language:
+              type: string
+            topics:
+              type: array
+              items:
+                type: string
+            consentAt:
+              type: string
+              format: date-time
+            consentByName:
+              type: string
+            unsubscribedAt:
+              type: [string, 'null']
+              format: date-time
+        claims:
+          $ref: '#/components/schemas/PlayerClaims'
+        mailEnabled:
+          type: boolean
     Language:
       type: string
       description: The language of the app, the mails and the messages of the API

@@ -138,6 +138,20 @@ const giveLogin = (playerId, account) =>
 const removeLogin = (playerId) =>
     requestJSON(`${API_URL}players/${playerId}/account`, { method: 'DELETE' });
 
+// a login given and never used: the invitation again
+const resendInvite = (playerId) => requestJSON(`${API_URL}players/${playerId}/account/invite`, { method: 'POST' });
+
+// a player without a login: the address the club keeps ({ contact, claims, mailEnabled }) and the claim links
+const loadContact = (playerId) => requestJSON(`${API_URL}players/${playerId}/contact`);
+const saveContact = (playerId, contact) => requestJSON(`${API_URL}players/${playerId}/contact`, { method: 'PUT', body: contact });
+const removeContact = (playerId) => requestJSON(`${API_URL}players/${playerId}/contact`, { method: 'DELETE' });
+const createClaim = (playerId) => requestJSON(`${API_URL}players/${playerId}/claim`, { method: 'POST' });
+const revokeClaims = (playerId) => requestJSON(`${API_URL}players/${playerId}/claim`, { method: 'DELETE' });
+
+// taking over a player with a claim link: who it is for (no login needed), and doing it
+const claimInfo = (token) => requestJSON(`${API_URL}claim/${encodeURIComponent(token)}`);
+const claim = (token) => requestJSON(`${API_URL}claim/${encodeURIComponent(token)}`, { method: 'POST' });
+
 /**
  * Adds a guest for a game. The guest does not become a member of the club.
  */
@@ -195,6 +209,14 @@ const PlayerService = {
     createGuest,
     makeMember,
     giveLogin,
+    resendInvite,
+    loadContact,
+    saveContact,
+    removeContact,
+    createClaim,
+    revokeClaims,
+    claimInfo,
+    claim,
     removeLogin,
     createPlayer,
     getPlayer,

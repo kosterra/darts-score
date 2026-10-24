@@ -4,6 +4,7 @@ import { CLUB_ROLES } from '../models/user.model.js';
 import { gameModelOf, removeWithBadges } from '../utils/badge.service.js';
 import { deletionNotices, tally } from '../utils/deletion.requests.js';
 import { describe } from './integrity.controller.js';
+import { deliver } from '../utils/notify.js';
 
 const nameOf = (user) => `${user.firstname} ${user.lastname}`;
 const actorOf = (user) => ({ id: String(user._id), name: nameOf(user) });
@@ -40,7 +41,7 @@ const view = (request, req) => {
 const notify = async (event, request, req, auto = false) => {
     try {
         const notices = deletionNotices(event, request, { actor: actorOf(req.user), clubName: req.club.name, admins: req.club.admins, auto });
-        if (notices.length) await db.notification.insertMany(notices);
+        if (notices.length) await deliver(notices);
     } catch (err) {
         logger.error(err, 'Failed to send the notifications of a deletion request');
     }
