@@ -548,6 +548,9 @@
     display: flex;
     flex-direction: column;
 
+    // the footer at the bottom of the window, also under a short page (privacy, support)
+    > main { flex: 1 0 auto; }
+
     .auth-page-content {
         flex: 1 0 auto;
         display: flex;
