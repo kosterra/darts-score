@@ -204,3 +204,51 @@ export const opponentsOf = (tallies, playerId, count = 5) => {
     }
     return [...counts].sort((a, b) => b[1] - a[1]).slice(0, count).map(([other, games]) => ({ playerId: other, games }));
 };
+
+// a record says something about the best and the toughest opponent from this many games on
+export const RIVAL_MIN_GAMES = 3;
+
+/**
+ * A player's opponents in the club, from the club's games: per opponent the
+ * games together, the player's wins and the opponent's, and the game type they
+ * play most; and of them the one played most and least, the best record and
+ * the toughest (both from RIVAL_MIN_GAMES games on; a tie on the share goes to
+ * the one with more games).
+ * tallies: [{ players, winners, sourceType }]
+ * → { opponents: [{ playerId, games, wins, losses, type }], mostPlayed, leastPlayed, best, worst }
+ */
+export const rivalsOf = (tallies, playerId, { minGames = RIVAL_MIN_GAMES } = {}) => {
+    const id = String(playerId);
+    const byOpponent = new Map();
+    for (const tally of tallies) {
+        const players = [...new Set((tally.players ?? []).map(String))];
+        if (!players.includes(id)) continue;
+        const winners = (tally.winners ?? []).map(String);
+        for (const other of players) {
+            if (other === id) continue;
+            const entry = byOpponent.get(other) ?? { playerId: other, games: 0, wins: 0, losses: 0, types: new Map() };
+            entry.games += 1;
+            if (winners.includes(id)) entry.wins += 1;
+            if (winners.includes(other)) entry.losses += 1;
+            entry.types.set(tally.sourceType, (entry.types.get(tally.sourceType) ?? 0) + 1);
+            byOpponent.set(other, entry);
+        }
+    }
+    const opponents = [...byOpponent.values()].map(({ types, ...entry }) => ({
+        ...entry,
+        type: [...types].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null,
+    }));
+    const share = (entry) => (entry.wins + entry.losses ? entry.wins / (entry.wins + entry.losses) : 0.5);
+    const byGames = [...opponents].sort((a, b) => b.games - a.games);
+    const counted = opponents.filter(entry => entry.games >= minGames && entry.wins + entry.losses > 0);
+    const best = [...counted].sort((a, b) => share(b) - share(a) || b.games - a.games)[0] ?? null;
+    const worst = [...counted].sort((a, b) => share(a) - share(b) || b.games - a.games)[0] ?? null;
+    return {
+        opponents: byGames,
+        mostPlayed: byGames[0] ?? null,
+        leastPlayed: byGames.length > 1 ? byGames.at(-1) : null,
+        best,
+        // the toughest only when it is someone else than the best
+        worst: worst && worst.playerId !== best?.playerId ? worst : null,
+    };
+};

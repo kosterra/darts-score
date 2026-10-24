@@ -7,7 +7,7 @@ import { viewOf } from '../utils/game.view.js';
 import { countBadges, getShameBadge } from '../utils/badges.js';
 import { isShameChild, shameMinAgeOf } from '../utils/shame.js';
 import { seesTrainingsOf } from '../utils/training.privacy.js';
-import { RATING_MIN_GAMES, RATING_START, clubRatings, duelRecord, opponentsOf, rulesFigures, winChances, x01Highlights } from '../utils/compare.js';
+import { RATING_MIN_GAMES, RATING_START, RIVAL_MIN_GAMES, clubRatings, duelRecord, opponentsOf, rivalsOf, rulesFigures, winChances, x01Highlights } from '../utils/compare.js';
 import { calculateX01PlayersStats } from './players.x01.stats.controller.js';
 import { calculatePlayerStats } from './player.stats.controller.js';
 
@@ -239,4 +239,28 @@ export const getSideBySide = async (req, res) => {
 export const getOpponents = async (req, res) => {
     const tallies = await db.clubTally.find({ club: req.club._id, players: String(req.params.id) }, 'players').lean();
     res.json(opponentsOf(tallies, req.params.id));
+};
+
+/**
+ * A player's head to head with the others of the club, for their statistics:
+ * the opponent played most and least, the best record and the toughest, each
+ * with the games together, the wins of both and the game type played most,
+ * and the player's name and picture. { mostPlayed, leastPlayed, best, worst, minGames }
+ */
+export const getRivals = async (req, res) => {
+    const playerId = String(req.params.id);
+    const tallies = await db.clubTally.find({ club: req.club._id, players: playerId }, 'players winners sourceType').lean();
+    const rivals = rivalsOf(tallies, playerId);
+    const ids = [rivals.mostPlayed, rivals.leastPlayed, rivals.best, rivals.worst].filter(Boolean).map(entry => entry.playerId);
+    const players = await db.player.find({ _id: { $in: ids.filter(id => db.mongoose.isValidObjectId(id)) } }, 'nickname firstname lastname profileImg').lean();
+    const byId = new Map(players.map(player => [String(player._id), { id: String(player._id), nickname: player.nickname, firstname: player.firstname, lastname: player.lastname, profileImg: player.profileImg }]));
+    const withPlayer = (entry) => (entry && byId.has(entry.playerId) ? { ...entry, player: byId.get(entry.playerId) } : null);
+    res.json({
+        mostPlayed: withPlayer(rivals.mostPlayed),
+        leastPlayed: withPlayer(rivals.leastPlayed),
+        best: withPlayer(rivals.best),
+        worst: withPlayer(rivals.worst),
+        opponents: rivals.opponents.length,
+        minGames: RIVAL_MIN_GAMES,
+    });
 };

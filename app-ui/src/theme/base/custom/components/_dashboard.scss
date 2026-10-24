@@ -1301,3 +1301,49 @@
 
     .compare-entrant { width: calc(50% - #{$space-2}); }
 }
+
+// a player's head to head on their statistics: a tile per opponent, each to the comparison
+.rival-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    gap: $space-3;
+}
+
+.rival-tile {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    height: 100%;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color $transitionDuration;
+
+    &:hover, &:focus-visible { background: $surfaceHighColor; color: inherit; }
+
+    .rival-tile-label {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-2;
+        color: $textFaintColor;
+        font-size: $text-xs;
+        font-weight: $weight-bold;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+
+        i { font-size: $text-xs; color: $primaryColor; }
+    }
+
+    .rival-tile-compare {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-1;
+        margin-top: auto;
+        color: $primaryColor;
+        font-size: $text-sm;
+
+        i { font-size: 0.65rem; }
+    }
+}

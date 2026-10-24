@@ -5,7 +5,7 @@ import { getPlayerStats } from '../controllers/player.stats.controller.js';
 import { getX01Stats } from '../controllers/x01.stats.controller.js';
 import { getPlayersX01Stats } from '../controllers/players.x01.stats.controller.js';
 import { getHeadToHead } from '../controllers/head.to.head.controller.js';
-import { getDuel, getOpponents, getSideBySide } from '../controllers/compare.controller.js';
+import { getDuel, getOpponents, getRivals, getSideBySide } from '../controllers/compare.controller.js';
 import { getClubStats, getGamesOverview, getPlayerGames, getPlayerLevels, getPlayersForm } from '../controllers/club.stats.controller.js';
 import { getClubBadges, getClubOwnBadges, getClubShame, getPlayerBadges, getGameBadges } from '../controllers/badge.controller.js';
 import { playersKnownInClub } from '../controllers/game.controller.js';
@@ -59,6 +59,7 @@ export default (app) => {
     router.post('/compare/duel', validatePlayerIds, validate, playersInClub, getDuel);
     router.post('/compare/side', validatePlayerIds, validate, playersInClub, getSideBySide);
     router.get('/compare/opponents/:id', playerInClub, getOpponents);
+    router.get('/compare/rivals/:id', playerInClub, getRivals);
     // the current form of compared players, from their own latest games
     router.post('/players/form', validatePlayerIds, validate, playersInClub, getPlayersForm);
 

@@ -96,6 +96,8 @@ const loadPlayersForm = (playerIds) => requestJSON(`${API_URL}stats/players/form
 const loadDuel = (body) => requestJSON(`${API_URL}stats/compare/duel`, { method: 'POST', body });
 const loadSideBySide = (body) => requestJSON(`${API_URL}stats/compare/side`, { method: 'POST', body });
 const loadOpponents = (playerId) => requestJSON(`${API_URL}stats/compare/opponents/${playerId}`);
+// a player's head to head with the others: played most and least, the best record and the toughest
+const loadRivals = (playerId) => requestJSON(`${API_URL}stats/compare/rivals/${playerId}`);
 
 const loadPlayerGames = (playerId, limit = 5) => requestJSON(`${API_URL}stats/player/${playerId}/games?limit=${limit}`);
 
@@ -117,6 +119,7 @@ const StatsService = {
     loadDuel,
     loadSideBySide,
     loadOpponents,
+    loadRivals,
     loadPlayerLevels,
     loadPlayersForm,
     loadX01GameStats

@@ -85,3 +85,21 @@ describe('club rating', () => {
         expect(opponentsOf(tallies, A)).toEqual([{ playerId: B, games: 2 }, { playerId: C, games: 1 }]);
     });
 });
+
+describe('rivals', () => {
+    it('the opponent played most and least, the best record and the toughest', async () => {
+        const { rivalsOf } = await import('./compare.js');
+        const game = (players, winner, type = 'x01') => ({ players, winners: [winner], sourceType: type });
+        const tallies = [
+            game([A, B], A), game([A, B], A), game([A, B], B), game([A, B], A, 'cricket'), game([A, B], A, 'cricket'), game([A, B], A, 'cricket'),
+            game([A, C], C), game([A, C], C), game([A, C], A),
+            game([A, 'd'], A),
+        ];
+        const rivals = rivalsOf(tallies, A);
+        expect(rivals.mostPlayed).toMatchObject({ playerId: B, games: 6, wins: 5, losses: 1 });
+        expect(['x01', 'cricket']).toContain(rivals.mostPlayed.type);
+        expect(rivals.leastPlayed.playerId).toBe('d');
+        expect(rivals.best.playerId).toBe(B);
+        expect(rivals.worst).toMatchObject({ playerId: C, wins: 1, losses: 2 });
+    });
+});

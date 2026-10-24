@@ -3413,6 +3413,29 @@ paths:
         '404':
           description: Player not found
       operationId: getStatsCompareOpponentsByid
+  /api/stats/compare/rivals/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Statistics
+      summary: A player's head to head with the others of the club
+      description: >-
+        From the club's games: the opponent played most and least, the one with the best record and the toughest (both from minGames
+        games on), each { playerId, games, wins, losses, type (the game type they play most), player }; opponents is how many
+        different opponents there are.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      responses:
+        '200':
+          description: The head to head
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Player not found
+      operationId: getStatsCompareRivalsByid
   /api/stats/players/form:
     post:
       tags:
