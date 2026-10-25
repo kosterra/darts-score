@@ -20,6 +20,7 @@ export const PUBLIC_PAGES = {
     '/whats-new': { title: "What's new", description: 'The latest games, features and fixes of Oche, release by release.' },
     '/quick': { title: 'Quick game', description: 'X01, Cricket or Elimination for up to four players, without an account: the full scoreboard, and the statistics of the game at the end.' },
     '/evening/new': { title: 'Darts evening', description: 'Up to eight players, game after game, a table of the evening and awards, and friends follow it on their phones. No account needed.' },
+    '/contact': { title: 'Contact', description: 'Feedback and questions to the people who run Oche, and problems and ideas on GitHub.' },
     '/support': { title: 'Support Oche', description: 'Oche is free for everyone and without ads. Help to keep it that way.' },
     '/privacy': { title: 'Privacy', description: 'Which personal data Oche keeps, why, for how long, and what your rights are.' },
     '/register': { title: 'Register', description: DEFAULT_DESCRIPTION },

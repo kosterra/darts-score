@@ -1,4 +1,5 @@
 import logger from '../models/logger.model.js';
+import { contactError, sendContactMessage } from '../utils/contact.js';
 import { RULES_GAMES } from '../utils/rules.kinds.js';
 import db from '../models/db.model.js';
 import { clubFigures } from '../utils/public.figures.js';
@@ -193,4 +194,21 @@ export const overview = async (req, res) => {
         cache = { data: await buildOverview(), expires: Date.now() + CACHE_MS };
     }
     res.set('Cache-Control', 'public, max-age=5').json(cache.data);
+};
+
+/**
+ * A message of the contact form to the operator: { name, email, message,
+ * website (left empty by people: a field bots fill) }.
+ */
+export const contact = async (req, res) => {
+    const error = contactError(req.body);
+    if (error) return res.status(422).json({ errors: [error] });
+    try {
+        const result = await sendContactMessage({ ...req.body, bot: Boolean(req.body.website) });
+        if (result === 'off') return res.status(404).json({ message: 'This installation has no contact form. Please open an issue on GitHub.' });
+        res.json({ message: 'Thank you! Your message was sent.' });
+    } catch (err) {
+        logger.error(err, 'Failed to send a message of the contact form');
+        res.status(502).json({ message: 'The message could not be sent. Please try again later.' });
+    }
 };

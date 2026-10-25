@@ -17,6 +17,10 @@ export default (app) => {
     router.get('/banner', getBanner);
     // the privacy policy and imprint: who runs this installation, how long what is kept
     router.get('/legal', async (req, res) => res.json(await legalPage()));
+    // the contact form: a few messages an hour from one network
+    const writing = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false,
+        message: { message: 'Many messages were sent from your network. Please try again later.' } });
+    router.post('/contact', writing, PublicController.contact);
     // the ways to support Oche with a gift
     router.get('/support', async (req, res) => res.json(await supportPage()));
 

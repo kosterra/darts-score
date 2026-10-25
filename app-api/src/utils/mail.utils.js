@@ -63,7 +63,7 @@ const quietly = (promise) => promise.catch(err => logger.warn(`Could not count a
  * throws a MailLimitError once it is reached. Resolves to what the mail
  * server answered ({ response, messageId, accepted, rejected }).
  */
-export const sendMail = async ({ to, subject, text, html, headers }) => {
+export const sendMail = async ({ to, subject, text, html, headers, replyTo }) => {
     await checkMailLimit();
     let info;
     try {
@@ -74,6 +74,8 @@ export const sendMail = async ({ to, subject, text, html, headers }) => {
             text,
             ...(html && { html }),
             ...(headers && { headers }),
+            // a message of the contact form is answered to its sender
+            ...(replyTo && { replyTo }),
         });
     } catch (err) {
         await quietly(noteLimitRefusal(err));

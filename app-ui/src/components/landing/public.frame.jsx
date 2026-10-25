@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import PublicService from '../../services/public.service';
 import { t } from '../../utils/i18n';
 import LanguageSwitch from '../elements/language.switch';
 
@@ -53,29 +51,6 @@ export const PageHeader = ({ user }) => (user
 // where the code of Oche lives, and its licence
 const REPOSITORY = 'https://github.com/kosterra/darts-score';
 const LICENCE = 'https://www.gnu.org/licenses/gpl-3.0.html';
-// ideas and problems: to the operator of this installation, else where the development happens
-const ISSUES = `${REPOSITORY}/issues`;
-
-// the address of the operator (Privacy → Who is responsible), asked once for every footer
-let contact = null;
-const loadContact = () => {
-    contact ??= PublicService.loadLegal().then(legal => legal?.email || '').catch(() => '');
-    return contact;
-};
-
-/**
- * Where to write to: the operator's address as a mail link, else the issues
- * of the project on GitHub. → { href, external }
- */
-const useContact = () => {
-    const [email, setEmail] = useState(null);
-    useEffect(() => {
-        let alive = true;
-        loadContact().then(found => alive && setEmail(found));
-        return () => { alive = false; };
-    }, []);
-    return email ? { href: `mailto:${email}`, external: false } : { href: ISSUES, external: true };
-};
 
 /**
  * "Open source under the GPLv3", the GPLv3 a link to its official text (the
@@ -91,16 +66,9 @@ const Licence = () => {
 };
 
 /**
- * The way to write to Oche, as a link with its icon.
- */
-export const ContactLink = ({ className, children }) => {
-    const { href, external } = useContact();
-    return <a href={href} className={className} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{children}</a>;
-};
-
-/**
- * The footer of the public pages: the brand with what Oche is, the ways to
- * play or to an account, and the privacy policy, imprint and source code.
+ * The footer of the public pages: the brand with what Oche is and its
+ * licence, the ways to play or to an account, and Support Oche, What's new,
+ * Darts A–Z, Contact, the privacy policy, the imprint and the source code.
  */
 export const PublicFooter = () => (
     <footer className="landing-footer">
@@ -127,7 +95,7 @@ export const PublicFooter = () => (
                     <Link to="/support" className="landing-footer-icon-link"><i className="pi pi-heart-fill is-heart" aria-hidden="true" />{t('Support Oche')}</Link>
                     <Link to="/whats-new" className="landing-footer-icon-link"><i className="pi pi-sparkles" aria-hidden="true" />{t('What\'s new')}</Link>
                     <Link to="/darts-terms" className="landing-footer-icon-link"><i className="pi pi-book" aria-hidden="true" />{t('Darts A–Z')}</Link>
-                    <ContactLink className="landing-footer-icon-link"><i className="pi pi-envelope" aria-hidden="true" />{t('Contact')}</ContactLink>
+                    <Link to="/contact" className="landing-footer-icon-link"><i className="pi pi-envelope" aria-hidden="true" />{t('Contact')}</Link>
                     <Link to="/privacy" className="landing-footer-icon-link"><i className="pi pi-shield" aria-hidden="true" />{t('Privacy')}</Link>
                     <Link to="/privacy#imprint" className="landing-footer-icon-link"><i className="pi pi-id-card" aria-hidden="true" />{t('Imprint')}</Link>
                     <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="landing-footer-icon-link"><i className="pi pi-github" aria-hidden="true" />{t('Source code')}</a>

@@ -91,6 +91,11 @@ export const TEMPLATE_TEXTS = {
             body: "Hallo {{firstname}}\n\n{{details}}\n\nDu erhältst diese E-Mail, weil {{club}} deine Adresse für deinen Spieler {{nickname}} hinterlegt hat. Mit einem eigenen Login siehst du deine Statistik, Badges und dein Level jederzeit.",
             button: "Eigenes Login holen",
         },
+        contactMessage: {
+            subject: "Eine Nachricht an Oche von {{name}}",
+            body: "Über das Kontaktformular von Oche ist eine Nachricht gekommen.\n\nVon: {{name}} ({{email}})\n\n{{message}}\n\nAntworte auf diese E-Mail, um {{name}} zu antworten.",
+            button: "Oche öffnen",
+        },
     },
     fr: {
         passwordReset: {
@@ -177,6 +182,11 @@ export const TEMPLATE_TEXTS = {
             subject: "{{title}}",
             body: "Bonjour {{firstname}},\n\n{{details}}\n\nTu reçois cet e-mail parce que {{club}} garde ton adresse pour ton joueur {{nickname}}. Avec ton propre accès, tu vois tes statistiques, tes badges et ton niveau à tout moment.",
             button: "Obtenir ton propre accès",
+        },
+        contactMessage: {
+            subject: "Un message pour Oche de {{name}}",
+            body: "Un message est arrivé par le formulaire de contact d'Oche.\n\nDe : {{name}} ({{email}})\n\n{{message}}\n\nRéponds à cet e-mail pour répondre à {{name}}.",
+            button: "Ouvrir Oche",
         },
     },
     it: {
@@ -265,6 +275,11 @@ export const TEMPLATE_TEXTS = {
             body: "Ciao {{firstname}},\n\n{{details}}\n\nRicevi questa email perché {{club}} conserva il tuo indirizzo per il tuo giocatore {{nickname}}. Con un accesso tuo vedi le tue statistiche, i badge e il livello in ogni momento.",
             button: "Ottieni un accesso tuo",
         },
+        contactMessage: {
+            subject: "Un messaggio per Oche da {{name}}",
+            body: "È arrivato un messaggio dal modulo di contatto di Oche.\n\nDa: {{name}} ({{email}})\n\n{{message}}\n\nRispondi a questa email per rispondere a {{name}}.",
+            button: "Apri Oche",
+        },
     },
     es: {
         passwordReset: {
@@ -351,6 +366,11 @@ export const TEMPLATE_TEXTS = {
             subject: "{{title}}",
             body: "Hola, {{firstname}}:\n\n{{details}}\n\nRecibes este correo porque {{club}} guarda tu dirección para tu jugador {{nickname}}. Con un acceso propio ves tus estadísticas, insignias y nivel en cualquier momento.",
             button: "Conseguir tu propio acceso",
+        },
+        contactMessage: {
+            subject: "Un mensaje para Oche de {{name}}",
+            body: "Ha llegado un mensaje por el formulario de contacto de Oche.\n\nDe: {{name}} ({{email}})\n\n{{message}}\n\nResponde a este correo para contestar a {{name}}.",
+            button: "Abrir Oche",
         },
     },
 };

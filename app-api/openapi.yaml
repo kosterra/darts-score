@@ -196,6 +196,49 @@ paths:
         '409':
           description: The account already plays as someone else in a club of the player
       operationId: postClaimBytoken
+  /api/public/contact:
+    post:
+      tags:
+        - Public
+      summary: Send a message of the contact form
+      description: The message goes by mail to the operator of the installation (System settings → Privacy and imprint), with the sender as the address to reply to; Oche stores nothing of it. At most 5 messages an hour from one network. A filled website field (left empty by people) drops the message quietly.
+      security: []
+      operationId: postPublicContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - message
+              properties:
+                name:
+                  type: string
+                  maxLength: 80
+                email:
+                  type: string
+                  format: email
+                message:
+                  type: string
+                  minLength: 10
+                  maxLength: 3000
+                website:
+                  type: string
+                  description: Left empty; filled only by bots
+      responses:
+        '200':
+          description: Sent
+        '404':
+          description: This installation has no contact form
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many messages from this network
+        '502':
+          description: The mail server did not take the message
   /api/public/support:
     get:
       tags:
@@ -224,6 +267,9 @@ paths:
                     properties:
                       mailEnabled:
                         type: boolean
+                      contactForm:
+                        type: boolean
+                        description: Whether the contact form can send (the operator's address and a mail server are set)
                       keep:
                         type: object
                         additionalProperties:

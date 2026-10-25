@@ -16,11 +16,15 @@ const loadLegal = () => requestJSON('/api/public/legal');
 // the ways to support Oche with a gift: { url, twint, project }
 const loadSupport = () => requestJSON('/api/public/support');
 
+// a message of the contact form to the operator: { name, email, message, website }
+const sendContact = (message) => requestJSON('/api/public/contact', { method: 'POST', body: message });
+
 const PublicService = {
     loadOverview,
     loadBanner,
     loadLegal,
     loadSupport,
+    sendContact,
 };
 
 export default PublicService;

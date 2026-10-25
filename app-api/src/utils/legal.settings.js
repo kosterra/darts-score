@@ -30,9 +30,13 @@ export const saveLegalSettings = async (raw) => {
  * What the privacy page shows: the operator, and how long things are kept on
  * this installation, so the text says what really happens.
  */
-export const legalPage = async () => ({
-    ...(await getLegalSettings()),
+export const legalPage = async () => {
+    const legal = await getLegalSettings();
+    return {
+    ...legal,
     mailEnabled: isMailConfigured(),
+    // the contact form sends to the operator's address, so it needs both
+    contactForm: Boolean(legal.email && isMailConfigured()),
     keep: {
         sessionHours: (await getSessionSettings()).timeoutHours,
         trustedDeviceDays: 30,
@@ -43,4 +47,5 @@ export const legalPage = async () => ({
         claimLinkDays: 30,
         usageDays: USAGE_KEEP_DAYS,
     },
-});
+    };
+};

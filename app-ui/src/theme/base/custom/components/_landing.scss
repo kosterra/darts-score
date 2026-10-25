@@ -1007,6 +1007,7 @@
     .landing-step,
     .term-card,
     .support-option,
+    .contact-way,
     .privacy-glance-item,
     .privacy-section { background: var(--tile-surface); }
 
@@ -1099,3 +1100,48 @@
 
 // What's new: the releases as in the app, in a narrower column
 .whats-new-main { max-width: 56rem; }
+
+// Contact: the form for feedback and the way to GitHub, side by side, one below the other on a phone
+.contact-main { max-width: 64rem; }
+
+.contact-ways {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: $space-4;
+    align-items: start;
+
+    @media (max-width: 849.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.contact-way {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    padding: 1.5rem;
+    border-radius: $radius-lg;
+
+    @media (max-width: 575.98px) { padding: 1.2rem; }
+}
+
+.contact-way-title {
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+    color: var(--text-default);
+}
+
+.contact-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+// the field only bots fill: out of sight and out of reach
+.contact-trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}

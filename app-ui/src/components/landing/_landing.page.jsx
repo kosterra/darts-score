@@ -10,7 +10,7 @@ import PublicGameCard from './public.game.card';
 import PublicClubCard from './public.club.card';
 import { ShowcaseShot, PhoneShot } from './showcase.shot';
 import { locale, t } from '../../utils/i18n';
-import { ContactLink, PublicHeader, PublicFooter } from './public.frame';
+import { PublicHeader, PublicFooter } from './public.frame';
 import usePageTitle from '../../utils/use.page.title';
 
 const REFRESH_MS = 15 * 1000;
@@ -122,7 +122,7 @@ const FAQ = [
     { q: t('Can a player be in more than one club?'), a: t('Yes. One account plays in several clubs, with one player whose statistics, badges and darts go along.') },
     { q: t('Can we play tournaments?'), a: t('Yes, as a beta: club admins set up knockout tournaments for 8 to 64 players with a date and rules for every round. The members enter with one tap, also from the invitation mail, and the bracket shows every match live.') },
     { q: t('What do leg, bust or Madhouse mean?'), a: <>{t('The basics of the game and every term you hear at the oche, explained in your language:')}{' '}<Link to="/darts-terms">{t('Darts A–Z')}</Link>.</> },
-    { q: t('Found a problem, or have an idea?'), a: <>{t('Tell us, every message is read:')}{' '}<ContactLink>{t('Contact')}</ContactLink>. {t('What changed lately is under')}{' '}<Link to="/whats-new">{t('What\'s new')}</Link>.</> },
+    { q: t('Found a problem, or have an idea?'), a: <>{t('Tell us, every message is read:')}{' '}<Link to="/contact">{t('Contact')}</Link>. {t('What changed lately is under')}{' '}<Link to="/whats-new">{t('What\'s new')}</Link>.</> },
     { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the GPLv3 and runs with Docker on your own server.') },
 ];
 

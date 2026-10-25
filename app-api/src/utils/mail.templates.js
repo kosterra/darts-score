@@ -184,6 +184,20 @@ export const MAIL_TEMPLATES = [
         body: 'Hello {{firstname}},\n\n{{details}}\n\nYou get this mail because {{club}} keeps your address for your player {{nickname}}. With a login of your own you see your statistics, badges and level any time.',
         button: 'Get your own login',
     },
+    {
+        id: 'contactMessage',
+        title: 'Message of the contact form',
+        description: 'Someone wrote through the contact form; it goes to the address of the operator under System settings → Privacy and imprint, and a reply goes back to the sender.',
+        placeholders: [
+            { key: 'name', description: 'Name of the sender', sample: 'Alex Brunner' },
+            { key: 'email', description: 'Address of the sender, to reply to', sample: 'alex@example.com' },
+            { key: 'message', description: 'What they wrote', sample: 'Hello! We play every Tuesday and love Oche.' },
+            COMMON[1], COMMON[2],
+        ],
+        subject: 'A message to Oche from {{name}}',
+        body: 'A message came through the contact form of Oche.\n\nFrom: {{name}} ({{email}})\n\n{{message}}\n\nReply to this mail to answer {{name}}.',
+        button: 'Open Oche',
+    },
 ];
 
 export const LIMITS = { subject: 150, body: 4000, button: 40 };
