@@ -77,7 +77,7 @@ export const TERM_GROUPS = [
             { id: 'robin-hood', term: 'Robin Hood', text: t('A dart that sticks in the back of another dart.') },
             { id: 'bag-o-nuts', term: "Bag o' nuts", text: t('45 in a visit.') },
             { id: 'three-in-a-bed', term: 'Three in a bed', text: t('All three darts of a visit in the same field.') },
-            { id: 'hat-trick', term: 'Hat trick', text: t('Three bullseyes in one visit: 150 points.') },
+            { id: 'hat-trick', term: 'Hat-trick', aka: ['Hattrick'], text: t('Three bullseyes in one visit: 150 points.') },
             { id: 'double-trouble', term: 'Double trouble', text: t('When the finishing double just will not come.') },
             { id: 'downstairs', term: 'Downstairs', text: t('Going for the treble 19 at the bottom of the board, often when the treble 20 is blocked by darts.') },
             { id: 'married-mans-side', term: "Married man's side", text: t('The left of the board around the 11 and 14: playing it safe.') },
