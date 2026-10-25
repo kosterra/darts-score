@@ -48,7 +48,7 @@ const SupportPage = () => {
     }, [support?.twint]);
 
     return (
-        <div className="landing support-page">
+        <div className="support-page">
             <PageHeader user={user} />
             <main className="container support-main">
                 <section className="support-hero">

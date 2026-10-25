@@ -397,7 +397,8 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: $space-4 $space-6;
+    // the brand and the links apart, also when the links go below it
+    gap: $space-6 $space-6;
     // the brand and the links side by side on a wide screen, also with their icons
     max-width: 82rem;
     margin: 0 auto;
@@ -584,7 +585,8 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: $space-4 $space-6;
+    // the brand and the links apart, also when the links go below it
+    gap: $space-6 $space-6;
     padding: 1.25rem 1.5rem;
     border-radius: $radius-lg;
     background:
@@ -745,6 +747,8 @@
 .support-page {
     display: flex;
     flex-direction: column;
+    // on the background of the app's pages, as the privacy policy
+    min-height: 100vh;
 
     .support-main { flex: 1 0 auto; }
 }
@@ -834,9 +838,11 @@
 }
 
 // Darts 1×1 & slang: the setup in figures, 501 in five steps and the terms, searchable
+// on the background of the app's pages (the dartboard, or plain as chosen under Display)
 .terms-page {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 
     .terms-main { flex: 1 0 auto; }
 }

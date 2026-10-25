@@ -73,7 +73,7 @@ const DartsTermsPage = () => {
     const groups = TERM_GROUPS.filter(entry => group === 'all' || entry.id === group);
 
     return (
-        <div className="landing terms-page">
+        <div className="terms-page">
             <PageHeader user={user} />
             <main className="container terms-main">
                 <section className="terms-hero">
