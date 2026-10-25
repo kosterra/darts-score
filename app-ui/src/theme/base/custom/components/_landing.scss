@@ -44,6 +44,11 @@
 .landing-nav {
     display: none;
     gap: 1.75rem;
+    // next to the logo, with room between them; the account stays on the right
+    margin-left: 2.5rem;
+    margin-right: auto;
+    padding-left: 2.5rem;
+    border-left: 1px solid ink(0.1);
 
     a {
         color: var(--text-subtle);
