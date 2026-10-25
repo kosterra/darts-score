@@ -26,7 +26,7 @@ export default (app) => {
         message: { message: 'Many quick games were started from your network. Please wait a while, or create an account.' } });
     const playing = rateLimit({ windowMs: 15 * 60 * 1000, limit: 900, standardHeaders: true, legacyHeaders: false });
     const id = param('id').isMongoId().withMessage('Invalid game.');
-    router.post('/quick-games', starting, body('kind').isIn(['x01', 'cricket']).withMessage('A quick game is X01 or Cricket.'), validate, QuickGameController.create);
+    router.post('/quick-games', starting, body('kind').isIn(['x01', 'cricket', 'elimination']).withMessage('A quick game is X01, Cricket or Elimination.'), validate, QuickGameController.create);
     router.get('/quick-games/:id', playing, id, validate, QuickGameController.findOne);
     router.put('/quick-games/:id', playing, id, validate, QuickGameController.update);
     router.get('/quick-games/:id/stats', playing, id, validate, QuickGameController.stats);

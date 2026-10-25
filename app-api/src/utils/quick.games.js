@@ -1,22 +1,25 @@
 /**
- * Quick games: X01 and Cricket on the public start page, without an account.
- * The players are only names; the game is kept apart from the clubs for 30
- * days, and only the browser that started it (with its key) plays on.
+ * Quick games: X01, Cricket and Elimination on the public start page, without
+ * an account. The players are only names; the game is kept apart from the
+ * clubs for 30 days, and only the browser that started it (with its key)
+ * plays on. A darts evening (see evenings.js) plays its games as quick games.
  */
 import crypto from 'node:crypto';
 import { viewOf } from './game.view.js';
 
-export const QUICK_KINDS = ['x01', 'cricket'];
+export const QUICK_KINDS = ['x01', 'cricket', 'elimination'];
 export const QUICK_KEEP_DAYS = 30;
-export const QUICK_PLAYER_IDS = ['q1', 'q2', 'q3', 'q4'];
+// a game has up to four players; a darts evening up to eight, each with the same id in all its games
+export const QUICK_PLAYER_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8'];
 // what a quick game may be set up as
 export const QUICK_X01 = { startingScores: [301, 501], outModes: ['Double Out', 'Straight Out'], legs: [1, 3, 5] };
 export const QUICK_CRICKET = { variants: ['Standard', 'Cut-throat'] };
+export const QUICK_ELIMINATION = { targetScores: [301, 501], outModes: ['Double Out', 'Straight Out'] };
 // a whole game of five legs between four players stays well below this
 export const MAX_GAME_SIZE = 400 * 1024;
 // a dart of a visit: a miss, a single, double or treble of 1–20, the outer bull or the bullseye
 const DART = /^(0|[SDT]([1-9]|1\d|20)|[SD]25)$/;
-const NAME = /^[\p{L}\p{N}][\p{L}\p{N} '.-]{0,19}$/u;
+export const NAME = /^[\p{L}\p{N}][\p{L}\p{N} '.-]{0,19}$/u;
 
 export const newKey = () => crypto.randomBytes(24).toString('hex');
 export const hashKey = (key) => crypto.createHash('sha256').update(String(key)).digest('hex');
@@ -33,7 +36,7 @@ export const keyMatches = (key, hash) => {
  * updated: its setup and players cannot change any more.
  */
 export const quickGameError = (kind, game, before = null) => {
-    if (!QUICK_KINDS.includes(kind)) return 'A quick game is X01 or Cricket.';
+    if (!QUICK_KINDS.includes(kind)) return 'A quick game is X01, Cricket or Elimination.';
     if (!game || typeof game !== 'object' || Array.isArray(game)) return 'The game is missing.';
     if (JSON.stringify(game).length > MAX_GAME_SIZE) return 'The game is too large.';
 
@@ -52,6 +55,9 @@ export const quickGameError = (kind, game, before = null) => {
         if (!QUICK_X01.startingScores.includes(Number(game.startingScore))) return 'A quick X01 game starts at 301 or 501.';
         if (!QUICK_X01.outModes.includes(game.legOutMode) || game.legInMode !== 'Straight In') return 'A quick X01 game is Straight In, with Double Out or Straight Out.';
         if (Number(game.numberOfSets) !== 1 || !QUICK_X01.legs.includes(Number(game.numberOfLegs)) || game.legMode !== 'Best of') return 'A quick X01 game is best of 1, 3 or 5 legs.';
+    } else if (kind === 'elimination') {
+        if (!QUICK_ELIMINATION.targetScores.includes(Number(game.targetScore))) return 'A quick Elimination game goes to 301 or 501.';
+        if (!QUICK_ELIMINATION.outModes.includes(game.gameOutMode) || game.gameInMode !== 'Straight In') return 'A quick Elimination game is Straight In, with Double Out or Straight Out.';
     } else if (!QUICK_CRICKET.variants.includes(game.variant)) {
         return 'A quick Cricket game is Standard or Cut-throat.';
     }
@@ -64,7 +70,7 @@ export const quickGameError = (kind, game, before = null) => {
     }
 
     if (before) {
-        const setup = ['startingScore', 'legOutMode', 'numberOfLegs', 'variant'];
+        const setup = ['startingScore', 'legOutMode', 'numberOfLegs', 'variant', 'targetScore', 'gameOutMode'];
         if (setup.some(key => String(before[key] ?? '') !== String(game[key] ?? ''))) return 'The setup of a game cannot change.';
         if (JSON.stringify(before.players) !== JSON.stringify(players)) return 'The players of a game cannot change.';
         if (JSON.stringify(before.quickPlayers) !== JSON.stringify(names)) return 'The names of the players cannot change.';

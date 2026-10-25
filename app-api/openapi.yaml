@@ -743,11 +743,152 @@ paths:
         '200':
           description: OK
       operationId: getPublicOverview
+  /api/public/evenings:
+    post:
+      tags:
+        - Quick games
+      summary: 'Start a darts evening without an account: 2 to 8 players by name; the key comes back once'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - names
+              properties:
+                name:
+                  type: string
+                  maxLength: 60
+                names:
+                  type: array
+                  minItems: 2
+                  maxItems: 8
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: '{ evening, key }'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many evenings from one network
+      operationId: postPublicEvenings
+  /api/public/evenings/{id}:
+    get:
+      tags:
+        - Quick games
+      summary: An evening with its games and report, for the browser with its key (X-Quick-Key)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '{ id, name, players: [{ id, name }], games: [{ id, kind, players, winner, finished, running, setup, createdAt }], report: { table, awards, headToHead, form, played, running }, createdAt, club, shareToken (only with the key) }'
+        '404':
+          description: Not found on this device
+      operationId: getPublicEveningsByid
+  /api/public/evenings/{id}/games:
+    post:
+      tags:
+        - Quick games
+      summary: Start a game of the evening (X01, Cricket or Elimination, 2 to 4 of its players), played with the evening's key
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - kind
+                - game
+              properties:
+                kind:
+                  type: string
+                  enum: [x01, cricket, elimination]
+                game:
+                  type: object
+      responses:
+        '201':
+          description: '{ game }: the quick game'
+        '404':
+          description: Not found on this device
+        '409':
+          description: The evening became a club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postPublicEveningsByidGames
+  /api/public/evenings/shared/{token}:
+    get:
+      tags:
+        - Quick games
+      summary: An evening read-only, for everyone with its link
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The evening as for its owner, without the link to share it
+        '404':
+          description: Not there (any more)
+      operationId: getPublicEveningsSharedBytoken
+  /api/evenings/{id}/club:
+    post:
+      tags:
+        - Quick games
+      summary: Make the evening a club of the user (with its key, X-Quick-Key) - its players and finished games are taken over
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  maxLength: 60
+                me:
+                  type: [string, 'null']
+                  description: The user's own player of the evening (q1 … q8), who gets the login
+      responses:
+        '201':
+          description: '{ club: { id, name }, games }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admins have no clubs
+        '404':
+          description: Not found on this device
+        '409':
+          description: The evening is a club already
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postEveningsByidClub
   /api/public/quick-games:
     post:
       tags:
         - Quick games
-      summary: Start a quick game without an account (X01 or Cricket, 1 to 4 players by name)
+      summary: Start a quick game without an account (X01, Cricket or Elimination, 1 to 4 players by name)
       description: 'No login. At most 10 new games per hour from one network. The key in the answer comes only once: the browser keeps it and sends it as X-Quick-Key to play on. Quick games are kept 30 days and never count for clubs, players or the public figures.'
       security: []
       requestBody:
@@ -765,9 +906,10 @@ paths:
                   enum:
                     - x01
                     - cricket
+                    - elimination
                 game:
                   type: object
-                  description: 'The game as the game page keeps it, with players ["q1", …] and quickPlayers [{ id, nickname }]. X01: 301 or 501, Straight In, Double or Straight Out, best of 1, 3 or 5 legs; Cricket: Standard or Cut-throat; flyingDarts "off".'
+                  description: 'The game as the game page keeps it, with players ["q1", …] and quickPlayers [{ id, nickname }]. X01: 301 or 501, Straight In, Double or Straight Out, best of 1, 3 or 5 legs; Cricket: Standard or Cut-throat; Elimination: 301 or 501, Straight In, Double or Straight Out; flyingDarts "off".'
       responses:
         '201':
           description: The game and its key

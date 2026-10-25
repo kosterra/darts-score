@@ -13,8 +13,16 @@ describe('quick games', () => {
         expect(quickGameError('cricket', { variant: 'Cut-throat', players: ['q1'], quickPlayers: [{ id: 'q1', nickname: 'Solo' }], flyingDarts: 'off' })).toBeNull();
     });
 
+    it('takes Elimination to 301 or 501, and the players of an evening (up to q8)', () => {
+        const elimination = (extra = {}) => ({ targetScore: 301, gameInMode: 'Straight In', gameOutMode: 'Double Out', players: ['q5', 'q8'], quickPlayers: [{ id: 'q5', nickname: 'Eva' }, { id: 'q8', nickname: 'Hans' }], flyingDarts: 'off', ...extra });
+        expect(quickGameError('elimination', elimination())).toBeNull();
+        expect(quickGameError('elimination', elimination({ targetScore: 701 }))).toMatch(/301 or 501/);
+        expect(quickGameError('elimination', elimination({ gameInMode: 'Double In' }))).toMatch(/Straight In/);
+        expect(quickGameError('elimination', elimination({ targetScore: 501 }), elimination())).toMatch(/setup/);
+    });
+
     it('turns away other games, setups and players', () => {
-        expect(quickGameError('clock', x01())).toMatch(/X01 or Cricket/);
+        expect(quickGameError('clock', x01())).toMatch(/X01, Cricket or Elimination/);
         expect(quickGameError('x01', x01({ startingScore: 701 }))).toMatch(/301 or 501/);
         expect(quickGameError('x01', x01({ legInMode: 'Double In' }))).toMatch(/Straight In/);
         expect(quickGameError('x01', x01({ numberOfSets: 3 }))).toMatch(/best of/);

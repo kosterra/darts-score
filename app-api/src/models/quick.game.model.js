@@ -4,8 +4,10 @@ import { QUICK_KEEP_DAYS } from '../utils/quick.games.js';
 export default (mongoose) => {
   const schema = mongoose.Schema(
     {
-      // 'x01' or 'cricket'
+      // 'x01', 'cricket' or 'elimination'
       kind:          { type: String, required: true },
+      // the darts evening it was played in, if any
+      evening:       { type: mongoose.Schema.Types.ObjectId, ref: 'quickEvening', default: null, index: true },
       // the game as the game page keeps it, with quickPlayers [{ id, nickname }]
       data:          { type: mongoose.Schema.Types.Mixed, required: true },
       // the names and the winner, for the list of the global admins
