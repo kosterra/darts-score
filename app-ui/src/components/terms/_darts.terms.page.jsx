@@ -32,8 +32,8 @@ const normalize = (text) => text.toLowerCase().normalize('NFD').replace(/\p{Diac
 /**
  * One term: its name (and other names), what it means, and its own link.
  */
-const TermCard = ({ term }) => (
-    <article id={term.id} className="term-card">
+const TermCard = ({ term, target }) => (
+    <article id={term.id} className={`term-card${target ? ' is-target' : ''}`}>
         <h3 className="term-name m-0">
             {term.term}
             <a href={`#${term.id}`} className="term-anchor" aria-label={t('Link to {{term}}', { term: term.term })}><i className="pi pi-link" aria-hidden="true" /></a>
@@ -53,6 +53,8 @@ const DartsTermsPage = () => {
     const { hash } = useLocation();
     const [query, setQuery] = useState('');
     const [group, setGroup] = useState('all');
+    // the term a link leads to, marked (:target misses a page drawn after the link)
+    const target = hash ? decodeURIComponent(hash.slice(1)) : null;
 
     // a link to a term: every term shown again, and there once the page is laid out
     useEffect(() => {
@@ -128,12 +130,12 @@ const DartsTermsPage = () => {
 
                     {found
                         ? (found.length
-                            ? <div className="terms-grid">{found.map(term => <TermCard key={term.id} term={term} />)}</div>
+                            ? <div className="terms-grid">{found.map(term => <TermCard key={term.id} term={term} target={term.id === target} />)}</div>
                             : <p className="text-subtle m-0">{t('No term found. Try another word.')}</p>)
                         : groups.map(entry => (
                             <div key={entry.id} className="d-flex flex-column gap-3">
                                 <h3 className="game-setup-section-title m-0">{entry.title}</h3>
-                                <div className="terms-grid">{entry.terms.map(term => <TermCard key={term.id} term={term} />)}</div>
+                                <div className="terms-grid">{entry.terms.map(term => <TermCard key={term.id} term={term} target={term.id === target} />)}</div>
                             </div>
                         ))}
                 </section>

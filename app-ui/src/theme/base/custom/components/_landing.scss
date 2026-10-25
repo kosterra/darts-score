@@ -956,8 +956,10 @@
     scroll-margin-top: 6rem;
     transition: border-color 0.3s, background-color 0.3s;
 
-    &:target {
-        border-color: with-alpha($primaryColor, 0.6);
+    &:target,
+    &.is-target {
+        border-color: $primaryColor;
+        box-shadow: 0 0 0 1px $primaryColor;
         background: with-alpha($primaryColor, 0.12);
     }
 
@@ -984,3 +986,23 @@
 }
 
 .terms-cta { padding: 2.5rem 1.5rem; }
+
+// on the photo of the app's pages the tiles are almost solid, as the panels of the app
+.terms-page,
+.support-page {
+    --tile-surface: color-mix(in srgb, var(--c-shade-800) 94%, transparent);
+
+    .terms-figure,
+    .landing-step,
+    .term-card,
+    .support-option { background: var(--tile-surface); }
+
+    .term-card:target,
+    .term-card.is-target { background: color-mix(in srgb, #{$primaryColor} 24%, var(--c-shade-800)); }
+
+    .terms-cta {
+        background:
+            radial-gradient(ellipse at top, with-alpha($primaryColor, 0.25), transparent 70%),
+            var(--tile-surface);
+    }
+}
