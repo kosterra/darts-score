@@ -279,19 +279,26 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/LegalSettings'
-                  - type: object
-                    properties:
-                      mailEnabled:
-                        type: boolean
-                      contactForm:
-                        type: boolean
-                        description: Whether the contact form can send (the operator's address and a mail server are set)
-                      keep:
-                        type: object
-                        additionalProperties:
-                          type: integer
+                type: object
+                properties:
+                  operator:
+                    type: string
+                  address:
+                    type: string
+                  email:
+                    type: string
+                  notes:
+                    type: string
+                    description: The notes for the privacy page in the language asked for (Accept-Language), else the English ones
+                  mailEnabled:
+                    type: boolean
+                  contactForm:
+                    type: boolean
+                    description: Whether the contact form can send (the operator's address and a mail server are set)
+                  keep:
+                    type: object
+                    additionalProperties:
+                      type: integer
       operationId: getPublicLegal
   /api/auth/register:
     post:
@@ -6816,9 +6823,24 @@ components:
           type: string
           maxLength: 254
         notes:
-          type: string
-          maxLength: 2000
-          description: More for the privacy page, e.g. the hosting provider or a tunnel service
+          type: object
+          description: More for the privacy page, e.g. the hosting provider or a tunnel service, in each language (a language left empty shows the English ones; one text is taken as the English ones)
+          properties:
+            en:
+              type: string
+              maxLength: 2000
+            de:
+              type: string
+              maxLength: 2000
+            fr:
+              type: string
+              maxLength: 2000
+            it:
+              type: string
+              maxLength: 2000
+            es:
+              type: string
+              maxLength: 2000
     MfaState:
       type: object
       properties:

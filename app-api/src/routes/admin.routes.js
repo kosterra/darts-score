@@ -132,7 +132,12 @@ export default (app) => {
     // who runs the installation, for the privacy policy and the imprint
     router.get('/legal', async (req, res) => res.json({ ...await getLegalSettings(), limits: LEGAL_LIMITS }));
     router.put('/legal',
-        ...Object.entries(LEGAL_LIMITS).map(([field, max]) => body(field).optional().isString().isLength({ max }).withMessage(`The ${field} can have at most ${max} characters.`)),
+        ...Object.entries(LEGAL_LIMITS).filter(([field]) => field !== 'notes').map(([field, max]) => body(field).optional().isString().isLength({ max }).withMessage(`The ${field} can have at most ${max} characters.`)),
+        // the notes in each language, or one text (the English ones)
+        body('notes').optional().custom(value => {
+            const texts = typeof value === 'string' ? [value] : (value && typeof value === 'object' && !Array.isArray(value) ? Object.values(value) : null);
+            return texts !== null && texts.every(text => typeof text === 'string' && text.length <= LEGAL_LIMITS.notes);
+        }).withMessage('The notes can have at most 2000 characters.'),
         body('email').optional({ values: 'falsy' }).isEmail().withMessage('A valid email address is required.'),
         validate,
         async (req, res) => {
