@@ -112,7 +112,7 @@ const FAQ = [
     { q: t('Do I need a dartboard with electronics?'), a: t('No. Oche is for steel and soft tip on any board: you enter the darts on the phone, tablet or PC next to it.') },
     { q: t('Can a player be in more than one club?'), a: t('Yes. One account plays in several clubs, with one player whose statistics, badges and darts go along.') },
     { q: t('Can we play tournaments?'), a: t('Yes, as a beta: club admins set up knockout tournaments for 8 to 64 players with a date and rules for every round. The members enter with one tap, also from the invitation mail, and the bracket shows every match live.') },
-    { q: t('What do leg, bust or Madhouse mean?'), a: <>{t('The basics of the game and every term you hear at the oche, explained in your language:')}{' '}<Link to="/darts-terms">{t('Darts 1×1 & slang')}</Link>.</> },
+    { q: t('What do leg, bust or Madhouse mean?'), a: <>{t('The basics of the game and every term you hear at the oche, explained in your language:')}{' '}<Link to="/darts-terms">{t('Darts A–Z')}</Link>.</> },
     { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the GPLv3 and runs with Docker on your own server.') },
 ];
 
@@ -169,7 +169,7 @@ const LandingPage = () => {
                     {clubs.length > 0 && <a href="#clubs">{t('Clubs')}</a>}
                     {(liveGames.length > 0 || results.length > 0) && <a href="#live">{liveGames.length > 0 ? t('Live') : t('Results')}</a>}
                     <a href="#faq">{t('FAQ')}</a>
-                    <Link to="/darts-terms">{t('Darts 1×1')}</Link>
+                    <Link to="/darts-terms">{t('Darts A–Z')}</Link>
                 </nav>
             } />
             <div className="landing-hero">

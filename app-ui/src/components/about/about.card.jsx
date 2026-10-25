@@ -112,7 +112,7 @@ const AboutCard = () => {
                     {/* entering darts applies to every game, so it spans the full width above the four game modes */}
                     <Topics topics={RULES} firstWide />
                     <p className="text-subtle fs-7 mt-3 mb-0">
-                        {t('New to darts, or a term you do not know?')}{' '}<Link to="/darts-terms">{t('Darts 1×1 & slang')}</Link>
+                        {t('New to darts, or a term you do not know?')}{' '}<Link to="/darts-terms">{t('Darts A–Z')}</Link>
                     </p>
                 </Panel>
             }
