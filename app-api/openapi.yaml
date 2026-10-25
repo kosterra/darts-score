@@ -255,7 +255,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '429':
           description: Too many messages from this network
-        '502':
+        '424':
           description: The mail server did not take the message
   /api/public/support:
     get:
@@ -2283,7 +2283,7 @@ paths:
           description: Mail is not set up
         '422':
           $ref: '#/components/responses/ValidationError'
-        '502':
+        '424':
           description: '{ message: what to check, code, detail: the answer of the mail server }'
       operationId: postAdminMailTemplatesByidTest
   /api/admin/mail-server:
@@ -2357,7 +2357,7 @@ paths:
           description: Mail is not set up
         '422':
           $ref: '#/components/responses/ValidationError'
-        '502':
+        '424':
           description: '{ message: what to check, code, detail: the answer of the mail server, ms }'
       operationId: postAdminMailServerTest
   /api/admin/start-page:

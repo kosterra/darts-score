@@ -3385,6 +3385,7 @@
  "The scoreboard of the training shows all attempts when a training just saved is not a personal best, so it can be seen moving up; a place below the top ten shows the podium and the places around it, so the card moves up in view.": "La clasificación del entrenamiento muestra todos los intentos cuando un entrenamiento recién guardado no es récord personal, para verlo subir; un puesto por debajo del top diez muestra el podio y los puestos de alrededor, para que la tarjeta suba a la vista.",
  "The scores left of": "Lo que le queda a",
  "The server and the domain": "El servidor y el dominio",
+ "The server answered with an error ({{status}}). Please try again later.": "El servidor ha respondido con un error ({{status}}). Inténtalo más tarde.",
  "The session has ended.": "La sesión ha terminado.",
  "The setup": "La instalación",
  "The setup of a game cannot change.": "La configuración de una partida no puede cambiar.",
