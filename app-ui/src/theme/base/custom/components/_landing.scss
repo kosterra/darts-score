@@ -747,7 +747,6 @@
 .support-page {
     display: flex;
     flex-direction: column;
-    // on the background of the app's pages, as the privacy policy
     min-height: 100vh;
 
     .support-main { flex: 1 0 auto; }
@@ -838,7 +837,6 @@
 }
 
 // Darts 1×1 & slang: the setup in figures, 501 in five steps and the terms, searchable
-// on the background of the app's pages (the dartboard, or plain as chosen under Display)
 .terms-page {
     display: flex;
     flex-direction: column;
@@ -987,9 +985,16 @@
 
 .terms-cta { padding: 2.5rem 1.5rem; }
 
-// on the photo of the app's pages the tiles are almost solid, as the panels of the app
+// the pages to read (darts terms, supporting Oche): the board behind the top only,
+// fading into the dark of the start page, so the long rest reads calmly
 .terms-page,
 .support-page {
+    background:
+        linear-gradient(to bottom, with-alpha($shade900, 0.6) 0, with-alpha($shade900, 0.88) 22rem, $shade900 38rem),
+        // as wide as the window, and wide enough on a phone to show the board
+        url("/background.webp") top center / max(100%, 60rem) auto no-repeat,
+        $shade900;
+
     --tile-surface: color-mix(in srgb, var(--c-shade-800) 94%, transparent);
 
     .terms-figure,
