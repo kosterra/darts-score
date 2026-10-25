@@ -62,12 +62,16 @@ export const PublicFooter = () => (
                 <img alt="" src="/logo.svg" width="32" height="32" />
                 <div className="d-flex flex-column">
                     <span className="landing-footer-name">Oche</span>
-                    <span>{t('The darts scoreboard for clubs, friends and flatshares · open source under the GPLv3')}</span>
+                    <span>
+                        {t('The darts scoreboard for clubs, friends and flatshares')}
+                        <span className="landing-footer-licence">{t('Open source under the GPLv3')}</span>
+                    </span>
                 </div>
             </div>
             <nav className="landing-footer-links" aria-label={t('Footer')}>
                 <span className="landing-footer-group">
                     <Link to="/quick" className="landing-footer-icon-link"><i className="pi pi-bolt" aria-hidden="true" />{t('Quick game')}</Link>
+                    <Link to="/evening/new" className="landing-footer-icon-link"><i className="pi pi-users" aria-hidden="true" />{t('Darts evening')}</Link>
                     <Link to="/login" className="landing-footer-icon-link"><i className="pi pi-sign-in" aria-hidden="true" />{t('Log in')}</Link>
                     <Link to="/register" className="landing-footer-icon-link"><i className="pi pi-user-plus" aria-hidden="true" />{t('Register')}</Link>
                 </span>
