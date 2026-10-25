@@ -8,10 +8,10 @@ import PublicService from '../../services/public.service';
 import { useAuth } from '../../utils/auth.context';
 import usePageTitle from '../../utils/use.page.title';
 import { t } from '../../utils/i18n';
+import { ISSUES } from '../../utils/project';
 import { PageHeader, PublicFooter } from '../landing/public.frame';
 import { Lines } from '../elements/skeletons';
 
-const REPOSITORY = 'https://github.com/kosterra/darts-score';
 const external = { target: '_blank', rel: 'noopener noreferrer' };
 const MAX_MESSAGE = 3000;
 
@@ -119,10 +119,10 @@ const ContactPage = () => {
                         <h2 className="contact-way-title m-0">{t('Problems, bugs and ideas')}</h2>
                         <p className="text-subtle m-0">{t('Something does not work, a feature is missing, or you have an idea for Oche? Open an issue on GitHub: everyone sees it there, others can add to it, and you follow how it gets done. It needs a free GitHub account; please look first whether it is there already.')}</p>
                         <div className="d-flex flex-wrap gap-2">
-                            <a href={`${REPOSITORY}/issues/new?labels=bug`} {...external} className="p-button text-decoration-none"><i className="pi pi-exclamation-circle me-2" aria-hidden="true" />{t('Report a problem')}</a>
-                            <a href={`${REPOSITORY}/issues/new?labels=enhancement`} {...external} className="p-button p-button-secondary text-decoration-none"><i className="pi pi-lightbulb me-2" aria-hidden="true" />{t('Suggest an idea')}</a>
+                            <a href={`${ISSUES}/new?labels=bug`} {...external} className="p-button text-decoration-none"><i className="pi pi-exclamation-circle me-2" aria-hidden="true" />{t('Report a problem')}</a>
+                            <a href={`${ISSUES}/new?labels=enhancement`} {...external} className="p-button p-button-secondary text-decoration-none"><i className="pi pi-lightbulb me-2" aria-hidden="true" />{t('Suggest an idea')}</a>
                         </div>
-                        <a href={`${REPOSITORY}/issues`} {...external} className="fs-7">{t('See the open issues')}</a>
+                        <a href={ISSUES} {...external} className="fs-7">{t('See the open issues')}</a>
                     </section>
                 </div>
             </main>

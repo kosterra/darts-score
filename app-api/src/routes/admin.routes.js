@@ -117,11 +117,13 @@ export default (app) => {
     // with the numbers as they are now, shown or not, to decide on
     router.get('/start-page', async (req, res) => res.json({ ...await getStartPageSettings(), numbers: await installationNumbers() }));
     router.put('/start-page',
-        body('showNumbers').isBoolean({ strict: true }).withMessage('showNumbers must be true or false.'),
+        body('showNumbers').optional().isBoolean({ strict: true }).withMessage('showNumbers must be true or false.'),
+        body('publicSite').optional().isBoolean({ strict: true }).withMessage('publicSite must be true or false.'),
         validate,
         async (req, res) => {
-            const settings = await saveStartPageSettings({ showNumbers: req.body.showNumbers });
-            logger.info(`Numbers on the start page ${settings.showNumbers ? 'shown' : 'hidden'} by ${req.user.email}`);
+            const changes = Object.fromEntries(['showNumbers', 'publicSite'].filter(key => typeof req.body[key] === 'boolean').map(key => [key, req.body[key]]));
+            const settings = await saveStartPageSettings(changes);
+            logger.info(`Start page set to ${JSON.stringify(changes)} by ${req.user.email}`);
             res.json(settings);
         },
     );

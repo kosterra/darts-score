@@ -5,10 +5,9 @@ import ReleaseNotes from '../about/release.notes';
 import { useAuth } from '../../utils/auth.context';
 import usePageTitle from '../../utils/use.page.title';
 import { t } from '../../utils/i18n';
+import { REPOSITORY } from '../../utils/project';
 import { PageHeader, PublicFooter } from '../landing/public.frame';
 
-// where Oche is made, in the open
-const REPOSITORY = 'https://github.com/kosterra/darts-score';
 
 /**
  * What's new, for everyone: the releases of Oche with their changes, as on

@@ -418,4 +418,14 @@ Clubs and people who keep Oche going (Bullseye tier and up):
 
 ## License
 
-[GPLv3](LICENSE)
+Copyright (C) 2023–2026 kosterra
+
+Oche is free software under the [GNU Affero General Public License v3](LICENSE) (AGPL-3.0-only): you may run it, study it, change it and share it. Whoever offers a **changed** Oche to others over a network, e.g. as a hosted service, must offer them its source code as well (section 13 of the licence).
+
+Running Oche for your club, unchanged or changed, is welcome. If you change it and others use it, point the **Source code** link to your own code: it is set once in `app-ui/src/utils/project.js`.
+
+Versions up to 2026.10.15 were published under the GPLv3; they stay under it.
+
+### The name and the logo
+
+The name "Oche" and its logo stand for this project. Forks are welcome under the AGPL, but please give a changed version that you offer to others a name and logo of its own, so nobody mistakes it for this project.

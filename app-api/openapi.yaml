@@ -23,8 +23,8 @@ info:
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
   version: 2026.10.16
   license:
-    name: GPLv3
-    url: https://www.gnu.org/licenses/gpl-3.0.html
+    name: AGPL-3.0-only
+    url: https://www.gnu.org/licenses/agpl-3.0.html
 servers:
   - url: http://localhost:3001
     description: Local development
@@ -196,6 +196,24 @@ paths:
         '409':
           description: The account already plays as someone else in a club of the player
       operationId: postClaimBytoken
+  /api/public/site:
+    get:
+      tags:
+        - Public
+      summary: Whether the installation shows its start page to everyone
+      description: false when the global admins chose to open with the login instead (System settings → Start page).
+      security: []
+      operationId: getPublicSite
+      responses:
+        '200':
+          description: The setting
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publicSite:
+                    type: boolean
   /api/public/contact:
     post:
       tags:
@@ -2130,7 +2148,7 @@ paths:
       summary: What the public start page shows, with the numbers of the installation as they are now
       responses:
         '200':
-          description: '{ showNumbers, numbers: { clubs, players, gamesPlayed, gamesThisWeek } }'
+          description: '{ showNumbers, publicSite, numbers: { clubs, players, gamesPlayed, gamesThisWeek } }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2139,21 +2157,22 @@ paths:
     put:
       tags:
         - Administration
-      summary: Show the numbers of the installation (clubs, players, games) on the public start page, or not
+      summary: Show the numbers of the installation (clubs, players, games) on the public start page, and whether there is a public start page at all
+      description: Either or both. publicSite false makes the installation open with the login instead of the page about Oche, e.g. for the clubs of one association only; the other public pages stay.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - showNumbers
               properties:
                 showNumbers:
                   type: boolean
+                publicSite:
+                  type: boolean
       responses:
         '200':
-          description: '{ showNumbers }'
+          description: '{ showNumbers, publicSite }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

@@ -44,9 +44,10 @@ const escape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;
 /**
  * The meta of a path: { title, description, index (whether search engines
  * may list it) }. evening: the name of a shared darts evening, when the path
- * is one (undefined: not found).
+ * is one (undefined: not found). publicSite false: the installation opens
+ * with the login, its start page is not listed.
  */
-export const metaOf = (pathname, language = 'en', { evening } = {}) => {
+export const metaOf = (pathname, language = 'en', { evening, publicSite = true } = {}) => {
     const path = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
     const tr = (text) => translate(language, text);
     if (path.startsWith('/evening/shared/')) {
@@ -54,6 +55,7 @@ export const metaOf = (pathname, language = 'en', { evening } = {}) => {
         return { title: `${name} – ${BRAND}`, description: tr('Follow the darts evening live: the table, the awards and the games.'), index: false };
     }
     const page = PUBLIC_PAGES[path];
+    if (path === '/' && !publicSite) return { title: BRAND, description: tr(DEFAULT_DESCRIPTION), index: false };
     if (!page) return { title: BRAND, description: tr(DEFAULT_DESCRIPTION), index: false };
     return {
         // "Support Oche" names Oche already
@@ -93,11 +95,11 @@ export const renderIndex = (html, { title, description, index }, { base, path, l
 };
 
 // the public pages for the search engines
-export const sitemapOf = (base) => [
+export const sitemapOf = (base, { publicSite = true } = {}) => [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...Object.entries(PUBLIC_PAGES)
-        .filter(([path]) => metaOf(path).index)
+        .filter(([path]) => metaOf(path, 'en', { publicSite }).index)
         .map(([path]) => `  <url><loc>${escape(base + path)}</loc><changefreq>${path === '/whats-new' ? 'weekly' : 'monthly'}</changefreq></url>`),
     '</urlset>',
     '',

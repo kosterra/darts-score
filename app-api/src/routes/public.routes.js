@@ -6,6 +6,7 @@ import * as PublicController from '../controllers/public.controller.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
 import { getBanner } from '../controllers/banner.controller.js';
 import { legalPage } from '../utils/legal.settings.js';
+import { getStartPageSettings } from '../utils/start.page.settings.js';
 import { supportPage } from '../utils/support.settings.js';
 
 export default (app) => {
@@ -17,6 +18,8 @@ export default (app) => {
     router.get('/banner', getBanner);
     // the privacy policy and imprint: who runs this installation, how long what is kept
     router.get('/legal', async (req, res) => res.json(await legalPage()));
+    // whether the installation shows its start page to everyone, or opens with the login
+    router.get('/site', async (req, res) => res.json({ publicSite: (await getStartPageSettings()).publicSite }));
     // the contact form: a few messages an hour from one network
     const writing = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false,
         message: { message: 'Many messages were sent from your network. Please try again later.' } });

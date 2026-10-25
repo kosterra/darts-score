@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { GiDart } from "react-icons/gi";
 import { MdQueryStats } from "react-icons/md";
@@ -12,6 +12,7 @@ import { ShowcaseShot, PhoneShot } from './showcase.shot';
 import { locale, t } from '../../utils/i18n';
 import { PublicHeader, PublicFooter } from './public.frame';
 import usePageTitle from '../../utils/use.page.title';
+import usePublicSite from '../../utils/use.public.site';
 
 const REFRESH_MS = 15 * 1000;
 
@@ -123,7 +124,7 @@ const FAQ = [
     { q: t('Can we play tournaments?'), a: t('Yes, as a beta: club admins set up knockout tournaments for 8 to 64 players with a date and rules for every round. The members enter with one tap, also from the invitation mail, and the bracket shows every match live.') },
     { q: t('What do leg, bust or Madhouse mean?'), a: <>{t('The basics of the game and every term you hear at the oche, explained in your language:')}{' '}<Link to="/darts-terms">{t('Darts A–Z')}</Link>.</> },
     { q: t('Found a problem, or have an idea?'), a: <>{t('Tell us, every message is read:')}{' '}<Link to="/contact">{t('Contact')}</Link>. {t('What changed lately is under')}{' '}<Link to="/whats-new">{t('What\'s new')}</Link>.</> },
-    { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the GPLv3 and runs with Docker on your own server.') },
+    { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the AGPLv3 and runs with Docker on your own server.') },
 ];
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -134,6 +135,8 @@ const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 
  */
 const LandingPage = () => {
     usePageTitle(`Oche – ${t('The darts scoreboard')}`, { full: true });
+    // an installation of its own clubs only opens with the login (System settings → Start page)
+    const publicSite = usePublicSite();
     const [overview, setOverview] = useState(null);
     // a section asked for from another page (/#faq): there, and kept there while the
     // clubs, results and pictures above it come in and push it down, until the
@@ -171,6 +174,10 @@ const LandingPage = () => {
     const liveGames = overview?.liveGames ?? [];
     const results = overview?.results ?? [];
     const clubs = overview?.clubs ?? [];
+
+    if (publicSite === false) return <Navigate to="/login" replace />;
+    // nothing of the page about Oche shows before it is known that there is one
+    if (publicSite === null) return null;
 
     return (
         <div className="landing container-fluid p-0">

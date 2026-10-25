@@ -47,6 +47,7 @@ import { startNotificationJobs } from './src/utils/notification.jobs.js';
 import { clientIp } from './src/utils/spam.guard.js';
 import { getAppUrl } from './src/utils/mail.utils.js';
 import { languageOfHeader, metaOf, renderIndex, robotsOf, sitemapOf } from './src/utils/page.meta.js';
+import { getStartPageSettings } from './src/utils/start.page.settings.js';
 
 const { UI_URL } = process.env;
 
@@ -114,7 +115,7 @@ const HAS_UI  = existsSync(path.join(UI_DIST, 'index.html'));
 const baseOf = (req) => getAppUrl() || `${req.protocol}://${req.get('host')}`;
 // for the search engines: the public pages, and where to find them
 app.get('/robots.txt', (req, res) => res.type('text/plain').send(robotsOf(baseOf(req))));
-app.get('/sitemap.xml', (req, res) => res.type('application/xml').send(sitemapOf(baseOf(req))));
+app.get('/sitemap.xml', async (req, res) => res.type('application/xml').send(sitemapOf(baseOf(req), await getStartPageSettings())));
 // index.html is served with the meta of each page (see the SPA fallback below), the rest as it is
 if (HAS_UI) app.use(express.static(UI_DIST, { index: false }));
 
@@ -206,7 +207,7 @@ app.use(async (req, res) => {
         // a shared darts evening is previewed with its name
         const token = req.path.match(/^\/evening\/shared\/([A-Za-z0-9_-]{8,40})$/)?.[1];
         const evening = token ? (await db.quickEvening.findOne({ shareToken: token }, 'name').lean())?.name : undefined;
-        const meta = metaOf(req.path, language, { evening });
+        const meta = metaOf(req.path, language, { evening, publicSite: (await getStartPageSettings()).publicSite });
         res.set('Cache-Control', 'no-cache');
         res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: req.path, language }));
     } catch (err) {

@@ -1101,16 +1101,13 @@
 // What's new: the releases as in the app, in a narrower column
 .whats-new-main { max-width: 56rem; }
 
-// Contact: the form for feedback and the way to GitHub, side by side, one below the other on a phone
-.contact-main { max-width: 64rem; }
+// Contact: the form for feedback, and the way to GitHub below it
+.contact-main { max-width: 46rem; }
 
 .contact-ways {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: $space-4;
-    align-items: start;
-
-    @media (max-width: 849.98px) { grid-template-columns: minmax(0, 1fr); }
 }
 
 .contact-way {

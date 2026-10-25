@@ -48,5 +48,8 @@ describe('the meta of a page', () => {
         expect(sitemap).not.toContain('/login');
         expect(robotsOf('https://oche.example')).toContain('Sitemap: https://oche.example/sitemap.xml');
         expect(robotsOf('https://oche.example')).toContain('Disallow: /api/');
+        // an installation that opens with the login lists the other public pages only
+        expect(sitemapOf('https://oche.example', { publicSite: false })).not.toContain('<loc>https://oche.example/</loc>');
+        expect(metaOf('/', 'en', { publicSite: false }).index).toBe(false);
     });
 });

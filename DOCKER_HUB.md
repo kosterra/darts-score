@@ -214,4 +214,4 @@ volumes:
 
 ## License
 
-[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
+[AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html): run it, change it and share it; whoever offers a changed Oche to others over the network shares its source code too.

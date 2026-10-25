@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { t } from '../../utils/i18n';
+import { LICENCE, REPOSITORY } from '../../utils/project';
+import usePublicSite from '../../utils/use.public.site';
 import LanguageSwitch from '../elements/language.switch';
 
 /**
@@ -41,26 +43,32 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
  * sections of the start page and the way to an account, logged in the way
  * back into the app (the start page is then the dashboard).
  */
-export const PageHeader = ({ user }) => (user
-    ? <PublicHeader hide="both" action={<Link to="/"><Button label={t('Open Oche')} size="small" /></Link>} />
-    : <PublicHeader nav={<nav className="landing-nav" aria-label={t('Sections')}><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link><Link to="/darts-terms">{t('Darts A–Z')}</Link></nav>} />);
+export const PageHeader = ({ user }) => {
+    // an installation that opens with the login has no sections of a start page to go to
+    const publicSite = usePublicSite();
+    if (user) return <PublicHeader hide="both" action={<Link to="/"><Button label={t('Open Oche')} size="small" /></Link>} />;
+    return (
+        <PublicHeader nav={
+            <nav className="landing-nav" aria-label={t('Sections')}>
+                {publicSite !== false && <><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></>}
+                <Link to="/darts-terms">{t('Darts A–Z')}</Link>
+            </nav>} />
+    );
+};
 
 /**
  * The line at the bottom of the public pages.
  */
-// where the code of Oche lives, and its licence
-const REPOSITORY = 'https://github.com/kosterra/darts-score';
-const LICENCE = 'https://www.gnu.org/licenses/gpl-3.0.html';
 
 /**
- * "Open source under the GPLv3", the GPLv3 a link to its official text (the
+ * "Open source under the AGPLv3", the AGPLv3 a link to its official text (the
  * name stays the same in every language).
  */
-const Licence = () => {
-    const [before, after = ''] = t('Open source under the GPLv3').split('GPLv3');
+export const Licence = ({ className = 'landing-footer-licence' }) => {
+    const [before, after = ''] = t('Open source under the AGPLv3').split(LICENCE.name);
     return (
-        <span className="landing-footer-licence">
-            {before}<a href={LICENCE} target="_blank" rel="license noopener noreferrer">GPLv3</a>{after}
+        <span className={className}>
+            {before}<a href={LICENCE.url} target="_blank" rel="license noopener noreferrer">{LICENCE.name}</a>{after}
         </span>
     );
 };

@@ -10,7 +10,7 @@
     "api"
   ],
   "author": "kosterra",
-  "license": "GPLv3",
+  "license": "AGPL-3.0-only",
   "homepage": "https://github.com/kosterra/darts-score-api#readme",
   "bugs": {
     "url": "https://github.com/kosterra/darts-score-api/issues"
