@@ -530,22 +530,47 @@
 }
 
 // the invitation to a quick game, between the numbers and the features
-.landing-quick {
+// the three ways in, side by side; on a phone one below the other
+.landing-ways {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-4;
+
+    @media (max-width: 991.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.landing-way {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.25rem 2rem;
-    padding: $space-6;
+    flex-direction: column;
+    gap: $space-3;
+    padding: 1.5rem;
     border-radius: $radius-lg;
-    background:
-        radial-gradient(ellipse at right, with-alpha($primaryColor, 0.28), transparent 65%),
-        $surfaceTranslucentColor;
+    background: $surfaceTranslucentColor;
     border: 1px solid rgba(255, 255, 255, 0.06);
 
-    > div { flex: 1 1 26rem; max-width: 44rem; }
+    // the club: the way for those who stay
+    &.is-main {
+        background:
+            radial-gradient(ellipse at top right, with-alpha($primaryColor, 0.28), transparent 70%),
+            $surfaceTranslucentColor;
+        border-color: with-alpha($primaryColor, 0.45);
+    }
 
-    @media (max-width: 575.98px) { padding: 1.5rem; }
+    > a { text-decoration: none; }
+}
+
+.landing-way-points {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    margin: 0 0 $space-2;
+    padding: 0;
+    list-style: none;
+    font-size: $text-sm;
+    color: var(--text-subtle);
+
+    li { display: flex; align-items: baseline; gap: $space-2; }
+    .pi { color: $primaryColor; font-size: 0.8rem; }
 }
 
 // the language before logging in: the code with a globe, as small as the buttons next to it

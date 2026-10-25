@@ -50,6 +50,25 @@ const SHOWCASE = [
     },
 ];
 
+// the ways in, from trying it out to a club of your own
+const WAYS = [
+    {
+        to: '/quick', icon: <FaBullseye />, eyebrow: t('Try it out'), buttonIcon: 'pi pi-play', action: t('Play a quick game'),
+        question: t('Just want to see how Oche works, or play a few games without keeping statistics?'),
+        points: [t('No account, only the names of the players'), t('X01, Cricket or Elimination for up to four'), t('The statistics of the game at the end')],
+    },
+    {
+        to: '/evening/new', icon: <FaUserGroup />, eyebrow: t('With friends'), buttonIcon: 'pi pi-users', action: t('Start a darts evening'),
+        question: t('Together with friends for a good darts night, with some statistics at the end?'),
+        points: [t('No account, up to eight players'), t('A table of the evening, awards and who beat whom'), t('Friends follow it on their phones')],
+    },
+    {
+        to: '/register', icon: <FaPeopleGroup />, eyebrow: t('Your club'), buttonIcon: 'pi pi-arrow-right', action: t('Create an account and your club'), main: true,
+        question: t('A club, a pub team or a group that plays darts regularly?'),
+        points: [t('Statistics, records and head to head over time'), t('Levels, badges, trainings and tournaments'), t('A login for every player, free and without ads')],
+    },
+];
+
 const FEATURES = [
     { icon: <FaBullseye />, title: t('Nine games'), text: t('X01, Cricket, Elimination and Around the Clock, plus Shanghai, Killer, Halve-It, Golf and Tactics, for one to four players.') },
     { icon: <MdQueryStats />, title: t('Statistics that mean something'), text: t('Averages, checkout rates and head-to-head for every player and game.') },
@@ -74,7 +93,7 @@ const STEPS = [
 const FAQ = [
     { q: t('Is Oche only for clubs?'), a: t('No. In Oche every group is a "club": a darts club or pub team as well as friends, a flatshare or the family. Set one up in a minute, add the players, and play.') },
     { q: t('What does Oche cost?'), a: t('Nothing. Oche is free for everyone, without ads.') },
-    { q: t('Can I try it without an account?'), a: t('Yes: a quick game of X01 or Cricket needs only the names of the players, and ends with its statistics. It stays on your device for 30 days; an account keeps every game.') },
+    { q: t('Can I try it without an account?'), a: t('Yes: a quick game of X01, Cricket or Elimination needs only the names of the players, and ends with its statistics; a darts evening plays game after game with up to eight, with a table of the evening and awards. Both stay on your device for 30 days; an account keeps every game, and an evening can become a club.') },
     { q: t('Do we need to know the rules?'), a: t('No. Every game and training has its rules one tap away, when setting it up and while playing, and Oche counts by them.') },
     { q: t('Which languages does Oche speak?'), a: t('English, German, French, Italian and Spanish. It starts in the language of your browser, and your account remembers your choice. The darts terms stay English: leg, set, bust, checkout.') },
     { q: t('Who sees our games?'), a: t('Only the members of your club or group. A club appears on this page only when its admins make it public, and even then a player is only named when they chose to show their nickname.') },
@@ -183,19 +202,26 @@ const LandingPage = () => {
                     </section>
                 }
 
-                <section className="container">
-                    <div className="landing-quick">
-                        <div className="d-flex flex-column gap-1">
-                            <span className="landing-eyebrow">{t('No account needed')}</span>
-                            <h2 className="fs-4 fw-semibold text-default m-0">{t('Throw a few darts right now')}</h2>
-                            <p className="text-subtle m-0">
-                                {t('X01, Cricket or Elimination for up to four players, who only need a name: the full scoreboard with the ways out, and the statistics of the game at the end. A whole evening with friends? Up to eight players, game after game, with a table of the evening and awards.')}
-                            </p>
-                        </div>
-                        <div className="d-flex flex-wrap gap-2">
-                            <Link to="/quick"><Button label={t('Play a quick game')} icon="pi pi-play" size="large" /></Link>
-                            <Link to="/evening/new"><Button label={t('Start a darts evening')} icon="pi pi-users" size="large" severity="secondary" outlined /></Link>
-                        </div>
+                {/* three ways in: a game to try, an evening with friends, or a club */}
+                <section id="start" className="container d-flex flex-column gap-4">
+                    <div className="landing-section-head">
+                        <span className="landing-eyebrow">{t('Three ways to play')}</span>
+                        <h2 className="landing-heading m-0">{t('What is right for you?')}</h2>
+                    </div>
+                    <div className="landing-ways">
+                        {WAYS.map(way => (
+                            <div key={way.to} className={`landing-way${way.main ? ' is-main' : ''}`}>
+                                <span className="landing-feature-icon" aria-hidden="true">{way.icon}</span>
+                                <span className="landing-eyebrow">{way.eyebrow}</span>
+                                <h3 className="fs-5 fw-semibold text-default m-0">{way.question}</h3>
+                                <ul className="landing-way-points">
+                                    {way.points.map(point => <li key={point}><i className="pi pi-check" aria-hidden="true" />{point}</li>)}
+                                </ul>
+                                <Link to={way.to} className="mt-auto">
+                                    <Button label={way.action} icon={way.buttonIcon} iconPos="right" className="w-100" outlined={!way.main} />
+                                </Link>
+                            </div>
+                        ))}
                     </div>
                 </section>
 
