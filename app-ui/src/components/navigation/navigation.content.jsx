@@ -121,7 +121,7 @@ const useSections = () => {
             id: 'me',
             visible: hasClub,
             items: [
-                { label: t('Dashboard'), icon: MdDashboard, to: '/', end: true },
+                { label: t('Dashboard'), icon: MdDashboard, to: '/', end: true, tour: 'dashboard' },
                 { label: t('My statistics'), icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
             ],
         },
@@ -132,7 +132,7 @@ const useSections = () => {
             visible: hasClub,
             items: [
                 {
-                    label: t('Play a game'), icon: GiDart,
+                    label: t('Play a game'), icon: GiDart, tour: 'play',
                     children: [
                         ...games,
                         ...(RULES_KINDS.some(kind => isEnabled(kind, activeClub?.gameRules)) ? [{ label: t('More games'), icon: GiDiceTarget, to: '/play' }] : []),
@@ -155,7 +155,7 @@ const useSections = () => {
             title: t('My club'),
             visible: hasClub,
             items: [
-                { label: t('My club'), icon: FaPeopleGroup, to: '/club' },
+                { label: t('My club'), icon: FaPeopleGroup, to: '/club', tour: 'my-club' },
                 // on the own player "My statistics" is the one that is marked
                 { label: t('Players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
                 {
@@ -396,6 +396,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 <li key={item.key}>
                     <button
                         type="button"
+                        data-tour={item.tour}
                         className={`nav-link-item p-ripple ${isInside(item, pathname) ? 'contains-active' : ''}`}
                         aria-expanded={open}
                         title={collapsed ? item.label : undefined}
@@ -412,7 +413,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
         }
         return (
             <li key={item.key}>
-                <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
+                <NavLink to={item.to} end={item.end} data-tour={item.tour} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
                     {item.tag && <span className="nav-tag">{item.tag}</span>}
@@ -467,7 +468,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
-                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Legmate') : undefined} onClick={onNavigate}>
+                <NavLink to="/about" data-tour="about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Legmate') : undefined} onClick={onNavigate}>
                     <img alt="" src="/logo.svg" width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column min-w-0">
@@ -483,6 +484,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             <div className={`nav-profile ${profileOpen ? 'open' : ''}`}>
                 <button
                     type="button"
+                    data-tour="profile"
                     className={`nav-profile-link p-ripple ${PROFILE_PATHS.includes(pathname) ? 'contains-active' : ''}`}
                     onClick={toggleProfile}
                     aria-expanded={profileOpen}

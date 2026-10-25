@@ -82,6 +82,10 @@ export default (app) => {
     router.post('/session/extend', requireAuth, AuthController.extendSession);
     // how the player likes to play (merged into what they had)
     router.put('/game-preferences', requireAuth, body().isObject().withMessage('The preferences are an object.'), validate, AuthController.setGamePreferences);
+    router.put('/onboarding', requireAuth,
+        body('tour').optional().isIn(['done', 'again']).withMessage('tour is done or again.'),
+        body('firstSteps').optional().isIn(['hidden', 'shown']).withMessage('firstSteps is hidden or shown.'),
+        validate, AuthController.setOnboarding);
     router.put('/language', requireAuth, body('language').isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.setLanguage);
     router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), body('defaultClub').optional({ values: 'null' }).isMongoId().withMessage('Choose one of your clubs.'), validate, AuthController.updateMe);
     router.put('/password',

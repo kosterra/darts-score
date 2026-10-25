@@ -14,6 +14,7 @@ import { DASHBOARD_WIDGETS, PERSONAL_DEFAULT_LAYOUT, resolveLayout, toLayout } f
 import DashboardEditor from './dashboard.editor';
 import DashboardWidget from './dashboard.widget';
 import { t } from '../../utils/i18n';
+import FirstSteps from '../onboarding/first.steps';
 
 // a greeting by the time of day
 const greeting = (name, hour = new Date().getHours()) => {
@@ -93,6 +94,9 @@ const Dashboard = () => {
                 </div>
                 {!editing && <Button label={t('Arrange')} icon="pi pi-th-large" size="small" severity="secondary" onClick={() => { setDraft(toLayout(stored, PERSONAL_DEFAULT_LAYOUT).map(({ id, size }) => ({ id, size }))); setEditing(true); }} />}
             </header>
+
+            {/* a new account: what to do first, ticked as it is done */}
+            {!editing && <FirstSteps />}
 
             {editing && (
                 <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging your dashboard')}>

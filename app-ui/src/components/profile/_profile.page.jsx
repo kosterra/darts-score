@@ -21,6 +21,7 @@ import AppearanceSetting from './appearance.setting';
 import TwoStepSetting from '../mfa/two.step.setting';
 import DeleteAccount from './delete.account';
 import { MyPlayers } from '../players/_my.player.page';
+import OnboardingSetting from '../onboarding/onboarding.setting';
 
 const MIN_PASSWORD_LENGTH = 8;
 // "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
@@ -241,6 +242,8 @@ const ProfilePage = () => {
                     <TwoStepSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} onError={showError} />
                     {/* Legmate on the home screen of this device */}
                     <div className="mt-4"><AppInstallSetting /></div>
+                    {/* the welcome tour once more, the first steps back */}
+                    <div className="mt-4"><OnboardingSetting onError={showError} /></div>
                     {/* the end of the account: deleting it, the players stay anonymised */}
                     <div className="mt-4"><DeleteAccount /></div>
                     </div>

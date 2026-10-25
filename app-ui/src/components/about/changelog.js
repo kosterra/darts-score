@@ -7,6 +7,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.17',
+        changes: [
+            t('New accounts get a short welcome tour through the menu, and first steps on the Dashboard that tick themselves off: for the admin of a new club its face, its players, how it plays and the first game; for a member their player, the first game, a training, the notifications and Legmate as an app. Both can be shown again under Profile → Account.'),
+        ],
+    },
+    {
         version: '2026.10.16',
         changes: [
             t('A Dashboard of your own: what waits for you (a tournament to enter, your match, games left running, requests to answer; for admins requests to join and fair play), your favourites – the games you play most lately, started again with one tap – and yourself. Arrange it as you like; it comes with your account on every device.'),

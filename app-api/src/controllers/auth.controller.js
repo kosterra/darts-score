@@ -91,6 +91,18 @@ export const extendSession = async (req, res) => {
     res.json({ expiresAt });
 };
 
+/**
+ * The welcome tour and the first steps: { tour: 'done' | 'again', firstSteps:
+ * 'hidden' | 'shown' }, either or both. → the user
+ */
+export const setOnboarding = async (req, res) => {
+    const now = new Date();
+    if (req.body.tour) req.user.set('onboarding.tourDoneAt', req.body.tour === 'done' ? now : null);
+    if (req.body.firstSteps) req.user.set('onboarding.firstStepsHiddenAt', req.body.firstSteps === 'hidden' ? now : null);
+    await req.user.save();
+    res.json(req.user);
+};
+
 // the language of the app, saved on the account: { language }
 export const setLanguage = async (req, res) => {
     req.user.language = req.body.language;

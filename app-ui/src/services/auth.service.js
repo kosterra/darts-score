@@ -22,6 +22,9 @@ const register = (account) =>
 
 const logout = () => requestJSON(API_URL + 'logout', { method: 'POST' });
 
+// the welcome tour and the first steps: { tour: 'done' | 'again', firstSteps: 'hidden' | 'shown' }; the user
+const setOnboarding = (changes) => requestJSON(API_URL + 'onboarding', { method: 'PUT', body: changes });
+
 const updateProfile = (profile) =>
     requestJSON(API_URL + 'me', { method: 'PUT', body: profile });
 
@@ -80,6 +83,7 @@ export const MY_PLAYERS_CHANGED = 'darts-score:my-players-changed';
 export const announceMyPlayersChange = () => window.dispatchEvent(new Event(MY_PLAYERS_CHANGED));
 
 const AuthService = {
+    setOnboarding,
     getConfig,
     getMyPlayers,
     getSession,

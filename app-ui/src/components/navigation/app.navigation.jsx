@@ -50,7 +50,7 @@ const AppNavigation = () => {
             </aside>
 
             <div className="app-navigation-bar d-md-none">
-                <button type="button" className="nav-bar-button" onClick={() => setDrawerOpen(true)} aria-label={t('Open the menu')}>
+                <button type="button" className="nav-bar-button" data-tour="menu" onClick={() => setDrawerOpen(true)} aria-label={t('Open the menu')}>
                     <FaBars aria-hidden="true" />
                     <span>{t('Menu')}</span>
                 </button>

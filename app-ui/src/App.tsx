@@ -6,6 +6,7 @@ import { PrimeReactProvider } from 'primereact/api';
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
 import InstallHint from './components/install/install.hint';
+import WelcomeTour from './components/onboarding/welcome.tour';
 import SessionWatch from './components/session/session.watch';
 import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
@@ -228,6 +229,8 @@ function AppContent() {
             <AppNavigation />
             {/* warns before the session ends, and goes back to the login once it has */}
             <SessionWatch />
+            {/* a new account: a few steps through the menu, once */}
+            <WelcomeTour />
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
                 <AppBanner />

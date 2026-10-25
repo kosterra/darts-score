@@ -716,6 +716,37 @@ paths:
         '422':
           description: Validation error
       operationId: putAuthGamePreferences
+  /api/auth/onboarding:
+    put:
+      tags:
+        - Auth
+      summary: The welcome tour and the first steps of a new account
+      description: tour done (finished or skipped) or again (shown at the next start); first steps on the Dashboard hidden or shown again. Either or both.
+      operationId: putAuthOnboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tour:
+                  type: string
+                  enum: [done, again]
+                firstSteps:
+                  type: string
+                  enum: [hidden, shown]
+      responses:
+        '200':
+          description: The user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/auth/language:
     put:
       tags:
@@ -4039,6 +4070,35 @@ paths:
             type: string
       description: Club admins only.
       operationId: deletePlayersByidClubsByclubId
+  /api/stats/first-steps:
+    get:
+      tags:
+        - Statistics
+      summary: The first steps of the user in the selected club, ticked from what is there
+      description: For an admin of the club its face (logo or description), its players, how it plays, the first game and the own player; for a member the own player, the first game, a training and the notifications. Whether Legmate is installed as an app is told by the device (done null).
+      operationId: getStatsFirstSteps
+      responses:
+        '200':
+          description: The steps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    enum: [admin, member]
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        done:
+                          type: [boolean, 'null']
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/stats/favourites:
     get:
       tags:
@@ -7899,6 +7959,16 @@ components:
         id:
           type: string
           description: MongoDB ObjectId
+        onboarding:
+          type: object
+          description: When the welcome tour was done or skipped and the first steps hidden; null while they are still to come
+          properties:
+            tourDoneAt:
+              type: [string, 'null']
+              format: date-time
+            firstStepsHiddenAt:
+              type: [string, 'null']
+              format: date-time
         mfaEnabled:
           type: boolean
           description: Whether two-step login is on

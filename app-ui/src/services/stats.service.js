@@ -52,6 +52,9 @@ const loadX01GameStats = async (gameId) => {
 const loadClubStats = () => requestJSON(API_URL + 'stats/club');
 // the games the user plays most lately: [{ id, type, kind, settings, players, opponents, count, lastAt }]
 const loadFavourites = () => requestJSON(API_URL + 'stats/favourites');
+
+// the first steps of a new user in the club: { role, items: [{ id, done }] }
+const loadFirstSteps = () => requestJSON(API_URL + 'stats/first-steps');
 // starts one again → { type, kind, id, path }
 const startFavourite = (id) => requestJSON(`${API_URL}stats/favourites/${id}/start`, { method: 'POST' });
 
@@ -119,6 +122,7 @@ const StatsService = {
     loadGameBadges,
     loadClubStats,
     loadFavourites,
+    loadFirstSteps,
     startFavourite,
     loadPlayerStats,
     loadPlayerGames,
