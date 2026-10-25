@@ -1561,7 +1561,7 @@
  "How long": "Cuánto tiempo",
  "How long a login lasts. Ten minutes before the end everyone is asked whether to stay logged in, which starts the time again; otherwise they are logged out. A shorter time also shortens logins that are running now.": "Cuánto dura una sesión. Diez minutos antes del final se pregunta a todos si quieren seguir conectados, lo que reinicia el tiempo; si no, se cierra la sesión. Un tiempo más corto también acorta las sesiones abiertas ahora.",
  "How long the link works, e.g. \"7 days\"": "Cuánto tiempo funciona el enlace, p. ej. «7 días»",
- "How many of the darts at a finishing double hit it, in per cent.": "Cuántos de los dardos al double de cierre aciertan, en porcentaje.",
+ "How many of the darts at a finishing double hit it, in percent.": "Cuántos de los dardos al double de cierre aciertan, en porcentaje.",
  "How new members join": "Cómo se unen los nuevos miembros",
  "How often each score range was thrown, as a share of all visits.{{value}}": "Con qué frecuencia se lanzó cada rango de puntuación, como parte de todas las tiradas.{{value}}",
  "How the club and the games call the player, 3 to 25 characters.": "Cómo llaman el club y las partidas al jugador, de 3 a 25 caracteres.",

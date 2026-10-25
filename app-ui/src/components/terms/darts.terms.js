@@ -41,7 +41,7 @@ export const TERM_GROUPS = [
             { id: 'setup-shot', term: 'Setup shot', text: t('A dart that leaves a good double, e.g. a single 20 from 60 to leave double 20.') },
             { id: 'average', term: '3-dart average', aka: ['Average'], text: t('The points per visit of three darts, over a leg, a game or longer. The measure of a player.') },
             { id: 'first-9', term: 'First 9 average', text: t('The average of the first nine darts of a leg, before the checkout plays a part: pure scoring.') },
-            { id: 'checkout-rate', term: 'Checkout rate', text: t('How many of the darts at a finishing double hit it, in per cent.') },
+            { id: 'checkout-rate', term: 'Checkout rate', text: t('How many of the darts at a finishing double hit it, in percent.') },
             { id: 'nine-darter', term: 'Nine-darter', text: t('The perfect leg: 501 in nine darts, e.g. two 180s and a checkout of 141.') },
             { id: 'high-finish', term: 'High finish', text: t('A checkout of 100 or more.') },
         ],
