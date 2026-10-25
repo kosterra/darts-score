@@ -656,6 +656,9 @@ $tar: #17110c;
   background: var(--surface-raised);
 }
 
+// a version not out yet: what comes with it, set apart by a dashed edge
+.release.is-upcoming { outline: 1px dashed with-alpha($accentGold, 0.55); outline-offset: -1px; }
+
 .release-head {
   display: flex;
   align-items: center;
