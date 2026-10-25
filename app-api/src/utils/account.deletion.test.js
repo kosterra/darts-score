@@ -4,22 +4,31 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const calls = [];
 let clubs = [];
 let globalAdmins = 1;
+let members = [];
+const accounts = [{ _id: 'u2', firstname: 'Lena', lastname: 'Frei' }, { _id: 'u3', firstname: 'Ben', lastname: 'Huber' }];
+// a query that is awaited at once or after .lean()
+const found = (list) => Object.assign(Promise.resolve(list), { lean: async () => list });
 const note = (collection, op) => (...args) => { calls.push({ collection, op, args }); return Promise.resolve({}); };
 const collection = (name) => ({ updateMany: note(name, 'updateMany'), updateOne: note(name, 'updateOne'), deleteMany: note(name, 'deleteMany'), deleteOne: note(name, 'deleteOne') });
 vi.mock('../models/logger.model.js', () => ({ default: { info: vi.fn(), error: vi.fn(), warn: vi.fn() } }));
 vi.mock('./player.images.js', () => ({ removeProfileImageIfUnused: vi.fn(async () => {}) }));
 vi.mock('../models/db.model.js', () => ({
     default: {
-        player: { ...collection('player'), find: async () => [{ _id: 'p1', nickname: 'Sammy', firstname: 'Sam', lastname: 'Muster', profileImg: 'sam.jpg', clubs: ['c1'], formerClubs: ['c0'] }] },
+        player: {
+            ...collection('player'),
+            // the account's own players, or the members of a club with a login
+            find: (query) => found(query.user?.$ne === null ? members : [{ _id: 'p1', nickname: 'Sammy', firstname: 'Sam', lastname: 'Muster', profileImg: 'sam.jpg', clubs: ['c1'], formerClubs: ['c0'] }]),
+            countDocuments: async () => 5,
+        },
         club: { ...collection('club'), find: (query) => ({ lean: async () => clubs.filter(club => !query.admins || club.admins.includes(String(query.admins))) }) },
-        user: { ...collection('user'), countDocuments: async () => globalAdmins },
+        user: { ...collection('user'), countDocuments: async () => globalAdmins, find: (query) => found(accounts.filter(account => query._id.$in.includes(account._id))) },
         atc: collection('atc'), rulesTraining: collection('rulesTraining'), deletionRequest: collection('deletionRequest'),
         playerContact: collection('playerContact'), playerClaim: collection('playerClaim'), notification: collection('notification'), session: collection('session'),
         joinRequest: collection('joinRequest'), integrityReview: collection('integrityReview'), alert: collection('alert'),
     },
 }));
 
-const { deleteAccount, deletionBlock, anonymousNickname } = await import('./account.deletion.js');
+const { deleteAccount, deletionBlock, anonymousNickname, soleAdminClubs, stepsError } = await import('./account.deletion.js');
 
 const user = { _id: 'u1', firstname: 'Sam', lastname: 'Muster', role: 'user' };
 const of = (name, op) => calls.filter(call => call.collection === name && call.op === op);
@@ -28,6 +37,7 @@ beforeEach(() => {
     calls.length = 0;
     clubs = [{ _id: 'c1', name: 'Red Lion', admins: ['u1', 'u2'] }];
     globalAdmins = 1;
+    members = [];
 });
 
 describe('deleting an account', () => {
@@ -72,6 +82,38 @@ describe('when it is refused', () => {
 
     it('not for an admin among others', async () => {
         expect(await deletionBlock(user)).toBeNull();
+    });
+});
+
+describe('the clubs of the only admin', () => {
+    const club = { id: 'c1', name: 'Red Lion', members: 5, candidates: [{ id: 'u2', name: 'Lena Frei' }] };
+
+    it('lists the clubs with the members who could take them over, not the account itself', async () => {
+        clubs = [{ _id: 'c1', name: 'Red Lion', admins: ['u1'] }];
+        members = [{ user: 'u1' }, { user: 'u2' }, { user: 'u3' }, { user: 'u2' }];
+        expect(await soleAdminClubs(user)).toEqual([{ id: 'c1', name: 'Red Lion', members: 5, candidates: [{ id: 'u3', name: 'Ben Huber' }, { id: 'u2', name: 'Lena Frei' }] }]);
+    });
+
+    it('needs a step for every club', () => {
+        expect(stepsError([club], [])).toMatch(/Hand Red Lion over or delete it/);
+        expect(stepsError([club], [{ club: 'c1', action: 'keep' }])).toMatch(/Hand Red Lion over/);
+        expect(stepsError([], undefined)).toBeNull();
+    });
+
+    it('hands over only to a member with a login', () => {
+        expect(stepsError([club], [{ club: 'c1', action: 'handover', to: 'u9' }])).toMatch(/Choose who takes Red Lion over/);
+        expect(stepsError([club], [{ club: 'c1', action: 'handover', to: 'u2' }])).toBeNull();
+    });
+
+    it('deletes only with the name of the club typed', () => {
+        expect(stepsError([club], [{ club: 'c1', action: 'delete', name: 'Red' }])).toMatch(/Type the name Red Lion/);
+        expect(stepsError([club], [{ club: 'c1', action: 'delete', name: ' red lion ' }])).toBeNull();
+    });
+
+    it('lets the account go once every club has its step', async () => {
+        clubs = [{ _id: 'c1', name: 'Red Lion', admins: ['u1'] }];
+        members = [{ user: 'u2' }];
+        expect(await deletionBlock(user, [{ club: 'c1', action: 'handover', to: 'u2' }])).toBeNull();
     });
 });
 

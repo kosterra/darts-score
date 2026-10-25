@@ -1,6 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { layoutFromWidgets } from './dashboard.layout.js';
+import { layoutFromWidgets, personalFromOwn } from './dashboard.layout.js';
 
 const DEFAULT_CLUB_NAME = 'Default Club';
 
@@ -245,6 +245,25 @@ const migrations = [
             // only the tallies of an older version are worked out again
             for (const club of clubs) games += await buildClubTallies(club._id);
             logger.info(`Club tallies checked for ${games} games in ${clubs.length} clubs`);
+            return true;
+        },
+    },
+    {
+        id: '2026-10-personal-dashboard',
+        description: 'Give the users who had arranged a club\'s dashboard their own way a personal dashboard from it (Up next and the favourites on top), and drop the arrangements per club',
+        run: async () => {
+            const users = await db.user.collection.find({ 'dashboards.0': { $exists: true } }, { projection: { dashboards: 1, defaultClub: 1, gamePreferences: 1 } }).toArray();
+            let carried = 0;
+            for (const user of users) {
+                const layout = personalFromOwn(user.dashboards, user.defaultClub);
+                // an arrangement of the new dashboard stays as it is
+                if (!layout || user.gamePreferences?.dashboard?.length) continue;
+                const gamePreferences = user.gamePreferences && typeof user.gamePreferences === 'object' ? user.gamePreferences : {};
+                await db.user.collection.updateOne({ _id: user._id }, { $set: { gamePreferences: { ...gamePreferences, dashboard: layout } } });
+                carried += 1;
+            }
+            const { modifiedCount } = await db.user.collection.updateMany({ dashboards: { $exists: true } }, { $unset: { dashboards: '' } });
+            logger.info(`${carried} arranged dashboards carried over to the personal dashboard; the arrangements per club dropped for ${modifiedCount} users`);
             return true;
         },
     },

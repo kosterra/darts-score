@@ -38,7 +38,7 @@ export const NOTIFICATION_TOPICS = [
 
     { id: 'clubBadges', group: 'club', kinds: ['clubBadge'], inApp: true, mail: 'off' },
     { id: 'clubGoals', group: 'club', kinds: ['clubGoal'], inApp: true, mail: 'off' },
-    { id: 'joining', group: 'club', kinds: ['joinAccepted', 'joinDeclined'], inApp: true, mail: 'instant' },
+    { id: 'joining', group: 'club', kinds: ['joinAccepted', 'joinDeclined', 'clubHandedOver'], inApp: true, mail: 'instant' },
     { id: 'tournamentInvites', group: 'club', kinds: ['tournamentInvite', 'tournamentReminder', 'tournamentCancelled'], mails: ['off', 'instant'], inApp: true, mail: 'instant' },
     { id: 'tournaments', group: 'club', kinds: ['tournamentDrawn', 'tournamentMatch', 'tournamentWon'], inApp: true, mail: 'off' },
 

@@ -22,10 +22,6 @@ const register = (account) =>
 
 const logout = () => requestJSON(API_URL + 'logout', { method: 'POST' });
 
-// the user's own dashboard in a club: the layout [{ id, size }], or null for the club's again; the user
-const saveDashboard = (clubId, layout) =>
-    requestJSON(`${API_URL}dashboard/${clubId}`, { method: 'PUT', body: { layout } });
-
 const updateProfile = (profile) =>
     requestJSON(API_URL + 'me', { method: 'PUT', body: profile });
 
@@ -63,8 +59,12 @@ const mfaDisable = (password, code) => requestJSON(API_URL + 'mfa/disable', { me
 const mfaRecoveryCodes = (code) => requestJSON(API_URL + 'mfa/recovery-codes', { method: 'POST', body: { code } });
 const mfaForgetDevices = () => requestJSON(API_URL + 'mfa/forget-devices', { method: 'POST' });
 
-// deletes the own account (the players stay, anonymised): { password, code }
-const deleteAccount = (password, code) => requestJSON(API_URL + 'delete-account', { method: 'POST', body: { password, ...(code && { code }) } });
+// what stands before deleting the own account: { globalAdmin, clubs: [{ id, name, members, candidates }] }
+const deletionSteps = () => requestJSON(API_URL + 'delete-account');
+
+// deletes the own account (the players stay, anonymised); clubs: what happens
+// to the clubs it is the only admin of, [{ club, action: 'handover', to } | { club, action: 'delete', name }]
+const deleteAccount = (password, code, clubs = []) => requestJSON(API_URL + 'delete-account', { method: 'POST', body: { password, ...(code && { code }), ...(clubs.length && { clubs }) } });
 
 // when the session ends: { expiresAt (ms), timeoutHours }
 const getSession = () => requestJSON(API_URL + 'session');
@@ -91,7 +91,6 @@ const AuthService = {
     register,
     logout,
     updateProfile,
-    saveDashboard,
     saveLanguage,
     changePassword,
     setGamePreferences,
@@ -102,6 +101,7 @@ const AuthService = {
     mfaDisable,
     mfaRecoveryCodes,
     mfaForgetDevices,
+    deletionSteps,
     deleteAccount,
 };
 

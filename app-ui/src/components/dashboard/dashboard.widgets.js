@@ -21,6 +21,7 @@ const integer = (value) => new Intl.NumberFormat(locale()).format(value);
 export const DASHBOARD_WIDGETS = [
     { id: 'upNext', title: t('Up next'), description: t('What waits for you: tournaments to enter and your matches, games left running, requests to answer'), kind: 'upNext', size: 'F', personal: true },
     { id: 'favourites', title: t('Your favourites'), description: t('The games you play most lately, to start again with one tap'), kind: 'favourites', size: 'L', personal: true },
+    { id: 'training', title: t('Your training'), description: t('Average and checkout rate against the bot, compared with your games, and how regularly you train'), kind: 'training', size: 'M', personal: true },
     { id: 'me', title: t('You'), description: t('Each player\'s own level, X01 average and form, with the way to their statistics'), kind: 'me', size: 'S' },
     { id: 'totals', title: t('Club in numbers'), description: t('Key figures: games, averages, checkouts and club bests'), kind: 'totals', size: 'F' },
     { id: 'activityCalendar', title: t('Activity'), description: t('A calendar of the last six months, greener the more games'), kind: 'activityCalendar', size: 'L' },
@@ -45,6 +46,18 @@ export const DASHBOARD_WIDGETS = [
     { id: 'leaderWinsClock', title: t('Most Around the Clock wins'), description: t('Wins in Around the Clock games'), kind: 'leaderboard', board: 'winsClock', unit: 'wins', format: integer, size: 'S' },
     { id: 'leaderMostDarts', title: t('Most darts thrown'), description: t('Darts thrown over all game types'), kind: 'leaderboard', board: 'mostDarts', unit: 'darts', format: integer, size: 'S' },
 ];
+
+/**
+ * What a widget shows, always of the club chosen at the top: 'you' only the
+ * user's own games, trainings and requests there, 'club' the whole club.
+ * No widget looks at several clubs at once.
+ */
+const OWN = new Set(['upNext', 'favourites', 'training', 'me']);
+export const scopeOf = (widget) => (OWN.has(widget.id) ? 'you' : 'club');
+export const SCOPES = {
+    you: { label: t('Yours'), hint: t('Only your own games, trainings and requests in this club') },
+    club: { label: t('Club'), hint: t('The whole club: all its members and games') },
+};
 
 // the widgets a club can show on My club (the personal ones only on one's own Dashboard)
 export const CLUB_WIDGETS = DASHBOARD_WIDGETS.filter(widget => !widget.personal);
@@ -87,12 +100,5 @@ export const resolveLayout = (stored, { shameBadges = true, fallback = DEFAULT_L
     .filter(Boolean)
     .filter(widget => shameBadges || widget.kind !== 'hallOfShame');
 
-/**
- * Which arrangement a user sees in a club: their own, else the club's, else
- * the default set. { layout, own: whether it is their own }.
- */
-export const layoutFor = (user, club) => {
-    const own = (user?.dashboards ?? []).find(entry => String(entry.club) === String(club?.id));
-    if (own) return { layout: own.layout, own: true };
-    return { layout: club?.dashboardLayout?.length ? club.dashboardLayout : club?.dashboardWidgets, own: false };
-};
+// the arrangement of the club's page as its admins made it (undefined: the default set)
+export const clubLayout = (club) => (club?.dashboardLayout?.length ? club.dashboardLayout : club?.dashboardWidgets);

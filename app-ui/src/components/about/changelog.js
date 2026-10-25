@@ -15,6 +15,10 @@ const CHANGELOG = [
             t('Darts evenings without an account: two to eight players by name, game after game of X01, Cricket or Elimination with two to four of them, the next game suggested; a table of the evening, awards (and a wooden spoon), who beat whom and the form, and a link with a QR code for friends to follow it on their phones.'),
             t('Make an evening a club: with an account, its players and games become a club of your own, counted in the statistics and badges.'),
             t('Elimination as a quick game, without an account.'),
+            t('The only admin of a club can delete their account now: each of their clubs is handed over on the way to a member with a login (who hears it by notification and mail) or deleted, its name typed to be sure.'),
+            t('Your training on the Dashboard: your average and checkout rate against the bot compared with your games, scoring and finishing, your best double, 180s, the averages of your last trainings and the days you trained in a row.'),
+            t('Your picture and nickname on top of the Dashboard, the picture leading to your statistics; when arranging, each widget is marked Yours or Club, as it shows only your own figures or the whole club.'),
+            t('Users who had arranged their club\'s dashboard their own way find that arrangement on their Dashboard, with Up next and the favourites on top.'),
         ],
     },
     {

@@ -27,7 +27,7 @@ const TOPICS = {
     weeklySummary: { title: t('Your week'), hint: t('A mail on Mondays: your games, average, trainings and badges of the week.') },
     clubBadges: { title: t('Club badges'), hint: t('Your club earned a badge.') },
     clubGoals: { title: t('Club goals'), hint: t('Your club reached a goal.') },
-    joining: { title: t('Joining clubs'), hint: t('Your request to join a club was accepted or declined.') },
+    joining: { title: t('Joining clubs'), hint: t('Your request to join a club was accepted or declined, or a club was handed over to you.') },
     joinRequests: { title: t('Requests to join'), hint: t('Someone asks to join your club, or joined it.') },
     fairPlayFound: { title: t('Fair play'), hint: t('A game or training in your club that cannot be real.') },
     goalEnding: { title: t('Goals ending'), hint: t('A goal of your club ends within a week, with how far it is.') },

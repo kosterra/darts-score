@@ -18,8 +18,6 @@ export default (mongoose) => {
       defaultClub:    { type: mongoose.Schema.Types.ObjectId, ref: 'club', default: null },
       // the language of the app and of the mails sent to the user; null: not chosen yet (English for mails)
       language:       { type: String, enum: [...LANGUAGES, null], default: null },
-      // the user's own dashboards, per club, instead of the club's: [{ club, layout: [{ id, size }] }]
-      dashboards:     { type: [{ _id: false, club: { type: mongoose.Schema.Types.ObjectId, ref: 'club' }, layout: [{ _id: false, id: String, size: String }] }], default: [] },
       role:           { type: String, enum: Object.values(ROLES), default: ROLES.USER },
       // how the player likes to play, on every device: the ways out, the keypad, the last setups, … (see rules/club.rules.js)
       gamePreferences: { type: mongoose.Schema.Types.Mixed, default: undefined },

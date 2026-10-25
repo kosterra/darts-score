@@ -10,12 +10,10 @@ import { hashToken, issuePasswordLink, RESET_TOKEN_HOURS } from '../utils/auth.t
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { sendTemplateMail, validityOf } from '../utils/mail.service.js';
 import { checkRegistration, noteRegistration, noteLoginFailure, noteResetRequest, checkLater } from '../utils/spam.guard.js';
-import { normalizeLayout } from '../utils/dashboard.layout.js';
-import { getClubRole } from '../middleware/auth.middleware.js';
 import { notifySecurity } from '../utils/notify.js';
 import { claimOnRegister } from './player.contact.controller.js';
 import { finishLogin } from './mfa.controller.js';
-import { deleteAccount, deletionBlock } from '../utils/account.deletion.js';
+import { carryOutSteps, deleteAccount, deletionBlock, lastGlobalAdmin, soleAdminClubs } from '../utils/account.deletion.js';
 import { checkCode, decrypt, isMfaEnabled, mfaStateOf } from '../utils/mfa.js';
 import { translate } from '../utils/translate.js';
 import { dateTimeIn } from '../utils/notify.js';
@@ -91,21 +89,6 @@ export const session = async (req, res) => {
 export const extendSession = async (req, res) => {
     const expiresAt = await setSessionCookie(req, res, req.user);
     res.json({ expiresAt });
-};
-
-/**
- * The user's own dashboard in a club: { layout: [{ id, size }] }, or
- * { layout: null } to go back to the club's. Only in a club they belong to.
- */
-export const setDashboard = async (req, res) => {
-    const club = db.mongoose.isValidObjectId(req.params.clubId) ? await db.club.findById(req.params.clubId) : null;
-    if (!club || !(await getClubRole(req.user, club))) return res.status(404).json({ message: 'Club not found.' });
-    const others = (req.user.dashboards ?? []).filter(entry => String(entry.club) !== String(club._id));
-    req.user.dashboards = Array.isArray(req.body.layout)
-        ? [...others, { club: club._id, layout: normalizeLayout(req.body.layout) }]
-        : others;
-    await req.user.save();
-    res.json(req.user);
 };
 
 // the language of the app, saved on the account: { language }
@@ -252,9 +235,21 @@ export const resetPassword = async (req, res) => {
 };
 
 /**
+ * What stands before deleting the logged-in account: { globalAdmin: why not
+ * (the only global admin) or null, clubs: those it is the only admin of, with
+ * the members who could take them over (see soleAdminClubs) }.
+ */
+export const deletionSteps = async (req, res) => {
+    const globalAdmin = await lastGlobalAdmin(req.user);
+    res.json({ globalAdmin, clubs: globalAdmin ? [] : await soleAdminClubs(req.user) });
+};
+
+/**
  * Deletes the logged-in account, after its password (and a code of two-step
  * login when it is on): the account goes, its players stay anonymised for the
- * games of the others (see utils/account.deletion.js). A last mail confirms it.
+ * games of the others (see utils/account.deletion.js). The clubs it is the only
+ * admin of are handed over or deleted first ({ clubs: steps }). A last mail
+ * confirms it.
  */
 export const deleteMe = async (req, res) => {
     const user = req.user;
@@ -262,10 +257,12 @@ export const deleteMe = async (req, res) => {
     if (isMfaEnabled(user) && checkCode(decrypt(user.mfa.secret), req.body.code, user.mfa.lastStep) === null) {
         return res.status(403).json({ message: 'This code is not right. Check the time of your phone and try the newest code.' });
     }
-    const block = await deletionBlock(user);
+    const steps = Array.isArray(req.body.clubs) ? req.body.clubs : [];
+    const block = await deletionBlock(user, steps);
     if (block) return res.status(409).json(block);
     const { email, firstname } = user;
     const language = user.language ?? 'en';
+    await carryOutSteps(user, steps);
     await deleteAccount(user);
     clearSessionCookie(req, res);
     clearPendingCookie(req, res);

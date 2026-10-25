@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 
@@ -7,6 +8,8 @@ import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
 import { useAuth } from '../../utils/auth.context';
 import useGamePreferences from '../../utils/use.game.preferences';
+import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { DASHBOARD_WIDGETS, PERSONAL_DEFAULT_LAYOUT, resolveLayout, toLayout } from './dashboard.widgets';
 import DashboardEditor from './dashboard.editor';
 import DashboardWidget from './dashboard.widget';
@@ -28,7 +31,9 @@ const greeting = (name, hour = new Date().getHours()) => {
  */
 const Dashboard = () => {
     const toast = useRef(null);
-    const { activeClub, user } = useAuth();
+    const { activeClub, user, isGlobalAdmin } = useAuth();
+    // who the user plays as in the club: their picture and nickname on top
+    const me = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
     const [preferences, savePreferences] = useGamePreferences();
     const [stats, setStats] = useState(null);
     const [failed, setFailed] = useState(false);
@@ -68,11 +73,23 @@ const Dashboard = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <header className="dashboard-header hero-header rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div className="d-flex flex-column gap-1 min-w-0">
-                    <h1 className="fs-2 fw-semibold text-default m-0 text-break">{greeting(user?.firstname ?? '')}</h1>
-                    <span className="text-subtle">
-                        {t('Your dashboard in {{club}}', { club: activeClub?.name ?? '' })}{' · '}<Link to="/club">{t('My club')}</Link>
-                    </span>
+                <div className="d-flex align-items-center gap-3 min-w-0">
+                    {me &&
+                        <Link to={`/players/${me.id}`} className="dashboard-header-avatar" aria-label={t('My statistics')}>
+                            <Avatar
+                                image={me.profileImg ? resolvePlayerImg(me.profileImg) : undefined}
+                                label={me.profileImg ? undefined : resolvePlayerInitials(me.firstname, me.lastname)}
+                                shape="circle"
+                                className="avatar-md bg-surface-high"
+                            />
+                        </Link>}
+                    <div className="d-flex flex-column gap-1 min-w-0">
+                        <h1 className="fs-2 fw-semibold text-default m-0 text-break">{greeting(user?.firstname ?? '')}</h1>
+                        <span className="text-subtle">
+                            {me?.nickname && <><span className="dashboard-header-nickname">{me.nickname}</span>{' · '}</>}
+                            {t('Your dashboard in {{club}}', { club: activeClub?.name ?? '' })}{' · '}<Link to="/club">{t('My club')}</Link>
+                        </span>
+                    </div>
                 </div>
                 {!editing && <Button label={t('Arrange')} icon="pi pi-th-large" size="small" severity="secondary" onClick={() => { setDraft(toLayout(stored, PERSONAL_DEFAULT_LAYOUT).map(({ id, size }) => ({ id, size }))); setEditing(true); }} />}
             </header>

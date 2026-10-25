@@ -7,7 +7,7 @@ import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
 import { useAuth } from '../../utils/auth.context';
 import ClubService from '../../services/club.service';
-import { DEFAULT_LAYOUT, layoutFor, resolveLayout, toLayout } from './dashboard.widgets';
+import { DEFAULT_LAYOUT, clubLayout as layoutOfClub, resolveLayout, toLayout } from './dashboard.widgets';
 import DashboardEditor from './dashboard.editor';
 import DashboardWidget from './dashboard.widget';
 import ClubLogo from '../elements/club.logo';
@@ -49,7 +49,7 @@ const ClubPage = () => {
 
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
     const shameBadges = activeClub?.shameBadges !== false;
-    const clubLayout = layoutFor(null, activeClub).layout;
+    const clubLayout = layoutOfClub(activeClub);
     const widgets = resolveLayout(clubLayout, { shameBadges });
 
     if (failed) {

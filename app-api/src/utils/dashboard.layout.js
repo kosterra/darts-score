@@ -37,3 +37,17 @@ export const normalizeLayout = (items) => {
  * widget keeps the width it had (the leaderboards a third).
  */
 export const layoutFromWidgets = (ids) => normalizeLayout((ids ?? []).map(id => ({ id, size: FORMER_SIZES[id] ?? 'S' })));
+
+/**
+ * The personal dashboard of a user who had arranged a club's dashboard their
+ * own way, before the dashboard became personal: Up next and the favourites on
+ * top, then the widgets they had chosen, in their order and widths. From the
+ * arrangement in their default club, else the one they made last; null
+ * without any.
+ */
+export const personalFromOwn = (dashboards, defaultClub = null) => {
+    const own = (dashboards ?? []).filter(entry => entry?.layout?.length);
+    if (!own.length) return null;
+    const chosen = own.find(entry => defaultClub && String(entry.club) === String(defaultClub)) ?? own.at(-1);
+    return normalizeLayout([{ id: 'upNext', size: 'F' }, { id: 'favourites', size: 'L' }, ...chosen.layout]);
+};

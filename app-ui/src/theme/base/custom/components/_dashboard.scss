@@ -849,6 +849,53 @@
   .form-trend { font-size: $text-base; }
 }
 
+// the Dashboard's header: one's picture (to one's statistics) and nickname by the greeting
+.dashboard-header-avatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  line-height: 0;
+
+  .p-avatar { box-shadow: 0 0 0 2px with-alpha($primaryColor, 0.55); }
+  &:hover .p-avatar, &:focus-visible .p-avatar { box-shadow: 0 0 0 2px $primaryColor; }
+}
+
+.dashboard-header-nickname {
+  font-weight: $weight-semibold;
+  color: var(--text-default);
+}
+
+// Your training: better than in games in green, the averages of the last trainings as bars
+.training-widget-gap.is-up { color: $accentGreen; }
+
+.training-widget-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 2.75rem;
+
+  > span {
+    flex: 1 1 0;
+    max-width: 1.5rem;
+    border-radius: 3px 3px 0 0;
+    background: with-alpha($accentGreen, 0.55);
+
+    &:last-child { background: $accentGreen; }
+  }
+}
+
+// the scope of a widget while arranging: only yours, or the whole club
+.dashboard-scope {
+  flex-shrink: 0;
+  padding: 0.05rem 0.45rem;
+  border-radius: $radius-pill;
+  font-size: $text-xs;
+  font-weight: $weight-semibold;
+  background: ink(0.08);
+  color: var(--text-subtle);
+
+  &.is-you { background: with-alpha($primaryColor, 0.16); color: $primaryColor; }
+}
+
 .me-widget-figures {
   display: grid;
   grid-template-columns: 1fr 1fr;

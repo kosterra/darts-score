@@ -96,6 +96,13 @@
   margin: $space-6 auto;
 }
 
+// deleting the account: a club only this account runs, to hand over or delete
+.delete-account-club {
+  padding: 0.85rem 1rem;
+  border: 1px solid ink(0.12);
+  border-radius: $radius-md;
+}
+
 // two-step login: the code fields, the key, the recovery codes and the reminder to set it up
 .mfa-code {
   max-width: 10rem;

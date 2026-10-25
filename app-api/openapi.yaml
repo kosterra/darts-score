@@ -453,11 +453,50 @@ paths:
           $ref: '#/components/responses/Unauthorized'
       operationId: postAuthMfaForgetDevices
   /api/auth/delete-account:
+    get:
+      tags:
+        - Auth
+      summary: What stands before deleting the own account
+      description: Whether the account is the only global admin (then it cannot go), and the clubs it is the only admin of, each with how many members it has and the members with a login who could take it over.
+      responses:
+        '200':
+          description: The steps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  globalAdmin:
+                    type: [string, 'null']
+                    description: Why the only global admin cannot go
+                  clubs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        members:
+                          type: integer
+                        candidates:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              name:
+                                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAuthDeleteAccount
     post:
       tags:
         - Auth
       summary: Delete the own account
-      description: With the password, and a code of the authenticator app when two-step login is on. The account goes with its settings, notifications and login; its players stay in their clubs, anonymised (an anonymous nickname, no name, picture, date of birth or country, as guests), so the games and statistics of the others stay whole. Refused for the only admin of a club and the only global admin. A last mail confirms it.
+      description: With the password, and a code of the authenticator app when two-step login is on. The account goes with its settings, notifications and login; its players stay in their clubs, anonymised (an anonymous nickname, no name, picture, date of birth or country, as guests), so the games and statistics of the others stay whole. Each club the account is the only admin of is handed over to one of its members with a login (who is told so) or deleted with everything in it, confirmed with its name; all steps are checked before anything changes. Refused for the only global admin. A last mail confirms it.
       requestBody:
         required: true
         content:
@@ -471,6 +510,26 @@ paths:
                   type: string
                 code:
                   type: string
+                clubs:
+                  type: array
+                  description: One step for each club the account is the only admin of
+                  items:
+                    type: object
+                    required:
+                      - club
+                      - action
+                    properties:
+                      club:
+                        type: string
+                      action:
+                        type: string
+                        enum: [handover, delete]
+                      to:
+                        type: string
+                        description: The account that takes the club over (handover)
+                      name:
+                        type: string
+                        description: The name of the club, typed to delete it (delete)
       responses:
         '200':
           description: Deleted; the session ends
@@ -479,7 +538,7 @@ paths:
         '403':
           description: Wrong password or code
         '409':
-          description: The only admin of a club, or the only global admin
+          description: A club of the only admin without a step that does, or the only global admin
       operationId: postAuthDeleteAccount
   /api/auth/logout:
     post:
@@ -620,45 +679,6 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/auth/dashboard/{clubId}:
-    put:
-      tags:
-        - Auth
-      summary: Arrange the user's own dashboard in a club
-      description: The user's own arrangement of the dashboard in one of their clubs; with layout null they see the club's again.
-      operationId: putAuthDashboardByclubId
-      parameters:
-        - name: clubId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - layout
-              properties:
-                layout:
-                  oneOf:
-                    - $ref: '#/components/schemas/DashboardLayout'
-                    - type: 'null'
-      responses:
-        '200':
-          description: The user, with their dashboards
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
   /api/auth/session:
@@ -7850,16 +7870,6 @@ components:
           oneOf:
             - $ref: '#/components/schemas/Language'
             - type: 'null'
-        dashboards:
-          type: array
-          description: The user's own dashboards, per club
-          items:
-            type: object
-            properties:
-              club:
-                type: string
-              layout:
-                $ref: '#/components/schemas/DashboardLayout'
     Session:
       type: object
       properties:

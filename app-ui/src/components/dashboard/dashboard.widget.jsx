@@ -11,6 +11,7 @@ import TimelineWidget from './widgets/timeline.widget';
 import HallOfShameWidget from './widgets/hall.of.shame.widget';
 import ClubGoalsWidget from './widgets/club.goals.widget';
 import MeWidget from './widgets/me.widget';
+import TrainingWidget from './widgets/training.widget';
 import UpNextWidget from './widgets/up.next.widget';
 import FavouritesWidget from './widgets/favourites.widget';
 
@@ -35,6 +36,7 @@ const DashboardWidget = ({ widget, stats, players }) => {
         case 'hallOfShame': return <HallOfShameWidget widget={widget} />;
         case 'clubGoals': return <ClubGoalsWidget widget={widget} />;
         case 'me': return <MeWidget widget={widget} />;
+        case 'training': return <TrainingWidget widget={widget} />;
         case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
         case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;
         default: return null;
