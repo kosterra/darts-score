@@ -7,6 +7,7 @@ import { useAuth } from '../../utils/auth.context';
 import { locale, t } from '../../utils/i18n';
 import { PageHeader, PublicFooter } from '../landing/public.frame';
 import { ALL_TERMS, TERM_GROUPS } from './darts.terms';
+import usePageTitle from '../../utils/use.page.title';
 
 // the board as it hangs, in figures
 const SETUP = [
@@ -49,6 +50,7 @@ const TermCard = ({ term, target }) => (
  * with a link of its own. The terms stay English, as in the app.
  */
 const DartsTermsPage = () => {
+    usePageTitle(t('Darts A–Z'));
     const { user } = useAuth();
     const { hash } = useLocation();
     const [query, setQuery] = useState('');

@@ -471,8 +471,10 @@
     gap: $space-2 $space-3;
 }
 
-// the licence after the line about Oche; on a phone on a line of its own
-.landing-footer-licence::before { content: ' · '; }
+// the licence after the line about Oche, to its official text; on a phone on a line of its own
+.landing-footer-licence::before { content: ' · '; color: var(--text-faint); }
+.landing-footer .landing-footer-licence a { text-decoration: underline; text-decoration-color: ink(0.25); text-underline-offset: 3px; }
+.landing-footer .landing-footer-licence a:hover { text-decoration-color: currentColor; }
 
 // on a phone: all centred, the links in two even columns, the ways to play as tiles to tap
 @media (max-width: 767.98px) {
@@ -1094,3 +1096,6 @@
 
     .landing-feature-icon { width: 2.1rem; height: 2.1rem; font-size: $text-md; }
 }
+
+// What's new: the releases as in the app, in a narrower column
+.whats-new-main { max-width: 56rem; }

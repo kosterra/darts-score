@@ -66,6 +66,7 @@ const TournamentEditor = lazy(() => import('./components/tournaments/tournament.
 const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
 const SupportPage = lazy(() => import('./components/legal/_support.page'));
 const DartsTermsPage = lazy(() => import('./components/terms/_darts.terms.page'));
+const WhatsNewPage = lazy(() => import('./components/whats.new/_whats.new.page'));
 const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
 const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
 const EveningNewPage = lazy(() => import('./components/evening/evening.new.page'));
@@ -164,6 +165,10 @@ function AppContent() {
     // the darts terms explained
     if (pathname === '/darts-terms') {
         return <Suspense fallback={<PageLoader />}><DartsTermsPage /></Suspense>;
+    }
+    // what is new in Oche
+    if (pathname === '/whats-new') {
+        return <Suspense fallback={<PageLoader />}><WhatsNewPage /></Suspense>;
     }
 
     if (!user) {

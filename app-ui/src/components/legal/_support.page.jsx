@@ -6,6 +6,7 @@ import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import { PageHeader, PublicFooter } from '../landing/public.frame';
 import { Lines } from '../elements/skeletons';
+import usePageTitle from '../../utils/use.page.title';
 
 // the name of the site a link goes to: "ko-fi.com"
 const hostOf = (url) => {
@@ -36,6 +37,7 @@ const Option = ({ icon, title, text, children, primary = false }) => (
  * nothing of another company is loaded before one is opened.
  */
 const SupportPage = () => {
+    usePageTitle(t('Support Oche'), { full: true });
     const { user } = useAuth();
     const [support, setSupport] = useState(null);
     const [qr, setQr] = useState('');

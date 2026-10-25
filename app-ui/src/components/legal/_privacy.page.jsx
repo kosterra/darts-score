@@ -6,6 +6,7 @@ import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import { PageHeader, PublicFooter } from '../landing/public.frame';
 import { Lines } from '../elements/skeletons';
+import usePageTitle from '../../utils/use.page.title';
 
 // what matters most, before the details
 const GLANCE = [
@@ -22,6 +23,7 @@ const GLANCE = [
  * the people in it. Open to everyone, logged in or not.
  */
 const PrivacyPage = () => {
+    usePageTitle(t('Privacy'));
     const { user } = useAuth();
     const [legal, setLegal] = useState(null);
     const [failed, setFailed] = useState(false);

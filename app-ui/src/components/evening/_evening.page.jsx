@@ -17,6 +17,7 @@ import { QUICK_DEFAULTS, newQuickGame, quickSetupText } from '../../utils/quick.
 import { formatDate, formatDateTime } from '../../utils/dates';
 import { t, tn } from '../../utils/i18n';
 import { Lines } from '../elements/skeletons';
+import usePageTitle from '../../utils/use.page.title';
 
 const GAME_NAMES = { x01: 'X01', cricket: 'Cricket', elimination: 'Elimination' };
 // the evening and the games follow on their own, for the phones following it
@@ -110,6 +111,8 @@ const EveningPage = ({ shared = false }) => {
     const [busy, setBusy] = useState(false);
     const [sharing, setSharing] = useState(false);
     const [qr, setQr] = useState('');
+    // the tab, and the preview of a shared link, name the evening
+    usePageTitle(evening?.name || t('Darts evening'));
 
     const load = useCallback(() => (shared ? EveningService.loadShared(token) : EveningService.loadEvening(id))
         .then(loaded => { setEvening(loaded); setError(''); })

@@ -10,7 +10,8 @@ import PublicGameCard from './public.game.card';
 import PublicClubCard from './public.club.card';
 import { ShowcaseShot, PhoneShot } from './showcase.shot';
 import { locale, t } from '../../utils/i18n';
-import { PublicHeader, PublicFooter } from './public.frame';
+import { ContactLink, PublicHeader, PublicFooter } from './public.frame';
+import usePageTitle from '../../utils/use.page.title';
 
 const REFRESH_MS = 15 * 1000;
 
@@ -31,6 +32,14 @@ const SHOWCASE = [
         points: [t('Every leg with its visits'), t('Where the darts landed, as a heatmap'), t('Head to head or side by side, in every game'), t('Play again with one tap')],
         shot: 'game-stats',
         alt: t('The statistics of an X01 game: the players, their figures side by side and the charts'),
+    },
+    {
+        eyebrow: t('With friends'),
+        title: t('A darts evening, with a table and awards'),
+        text: t('Two to eight friends, game after game of X01, Cricket or Elimination, without an account. After every game the table of the evening, at the end the awards, from the champion to the wooden spoon.'),
+        points: [t('The next game suggested, so everyone plays'), t('Who beat whom, and the form game by game'), t('Friends follow it live on their phones'), t('Make it a club later, with every game')],
+        shot: 'darts-evening',
+        alt: t('The table of a darts evening with five players, and the awards of the evening'),
     },
     {
         eyebrow: t('Your club'),
@@ -113,6 +122,7 @@ const FAQ = [
     { q: t('Can a player be in more than one club?'), a: t('Yes. One account plays in several clubs, with one player whose statistics, badges and darts go along.') },
     { q: t('Can we play tournaments?'), a: t('Yes, as a beta: club admins set up knockout tournaments for 8 to 64 players with a date and rules for every round. The members enter with one tap, also from the invitation mail, and the bracket shows every match live.') },
     { q: t('What do leg, bust or Madhouse mean?'), a: <>{t('The basics of the game and every term you hear at the oche, explained in your language:')}{' '}<Link to="/darts-terms">{t('Darts A–Z')}</Link>.</> },
+    { q: t('Found a problem, or have an idea?'), a: <>{t('Tell us, every message is read:')}{' '}<ContactLink>{t('Contact')}</ContactLink>. {t('What changed lately is under')}{' '}<Link to="/whats-new">{t('What\'s new')}</Link>.</> },
     { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the GPLv3 and runs with Docker on your own server.') },
 ];
 
@@ -123,6 +133,7 @@ const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 
  * games and latest results and the clubs of the installation that are public.
  */
 const LandingPage = () => {
+    usePageTitle(`Oche – ${t('The darts scoreboard')}`, { full: true });
     const [overview, setOverview] = useState(null);
     // a section asked for from another page (/#faq): there, and kept there while the
     // clubs, results and pictures above it come in and push it down, until the
