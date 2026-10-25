@@ -83,7 +83,7 @@ const DartsTermsPage = () => {
                 <section className="terms-hero">
                     <span className="landing-eyebrow">{t('Darts A–Z')}</span>
                     <h1 className="landing-title m-0">{t('Speak darts')}</h1>
-                    <p className="terms-lead m-0">{t('New to darts, or wondering what a Madhouse is? How the board hangs, how a game goes, and the terms you hear at the oche. The terms stay English in every language, as in Oche.')}</p>
+                    <p className="terms-lead m-0">{t('New to darts, or wondering what a Madhouse is? How the board hangs, how a game goes, and the terms you hear at the oche. The terms stay English in every language, as in Legmate.')}</p>
                 </section>
 
                 <section className="d-flex flex-column gap-3" aria-labelledby="terms-setup">

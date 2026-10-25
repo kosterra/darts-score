@@ -159,7 +159,7 @@ function AppContent() {
     if (pathname === '/privacy') {
         return <Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>;
     }
-    // and the ways to support Oche
+    // and the ways to support Legmate
     if (pathname === '/support') {
         return <Suspense fallback={<PageLoader />}><SupportPage /></Suspense>;
     }
@@ -171,7 +171,7 @@ function AppContent() {
     if (pathname === '/contact') {
         return <Suspense fallback={<PageLoader />}><ContactPage /></Suspense>;
     }
-    // what is new in Oche
+    // what is new in Legmate
     if (pathname === '/whats-new') {
         return <Suspense fallback={<PageLoader />}><WhatsNewPage /></Suspense>;
     }

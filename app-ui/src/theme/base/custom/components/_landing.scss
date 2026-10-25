@@ -450,7 +450,7 @@
     @media (min-width: 768px) { display: inline; }
 }
 
-// the heart in the bar on top: to the page Support Oche
+// the heart in the bar on top: to the page Support Legmate
 .landing-support-link {
     display: inline-flex;
     align-items: center;
@@ -471,7 +471,7 @@
     gap: $space-2 $space-3;
 }
 
-// the licence after the line about Oche, to its official text; on a phone on a line of its own
+// the licence after the line about Legmate, to its official text; on a phone on a line of its own
 .landing-footer-licence::before { content: ' · '; color: var(--text-faint); }
 .landing-footer .landing-footer-licence a { text-decoration: underline; text-decoration-color: ink(0.25); text-underline-offset: 3px; }
 .landing-footer .landing-footer-licence a:hover { text-decoration-color: currentColor; }
@@ -674,7 +674,7 @@
     .language-switch.p-dropdown .p-dropdown-label { padding: 0.4rem 0.5rem; }
 }
 
-// the smallest phones: the logo alone says Oche, so the buttons keep their words
+// the smallest phones: the logo alone says Legmate, so the buttons keep their words
 @media (max-width: 399.98px) {
     .landing-bar .landing-brand-name { display: none; }
 }
@@ -740,7 +740,7 @@
 
 .legal-address, .legal-notes { white-space: pre-line; }
 
-// Support Oche: the look of the start page, the footer at the bottom of the window
+// Support Legmate: the look of the start page, the footer at the bottom of the window
 .support-page {
     display: flex;
     flex-direction: column;
@@ -982,7 +982,7 @@
 
 .terms-cta { padding: 2.5rem 1.5rem; }
 
-// every public page (the darts terms, supporting Oche, the privacy policy, logging in
+// every public page (the darts terms, supporting Legmate, the privacy policy, logging in
 // and registering, the quick games and darts evenings): the board behind the top only,
 // fading into the dark of the start page, so what follows reads calmly
 .terms-page,

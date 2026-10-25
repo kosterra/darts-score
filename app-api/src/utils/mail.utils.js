@@ -11,7 +11,7 @@ export const getAppUrl = () => (process.env.APP_URL || process.env.UI_URL || '')
 
 export const isMailConfigured = () => Boolean(process.env.SMTP_HOST && getAppUrl());
 
-const DEFAULT_FROM = 'Oche <no-reply@darts-score.local>';
+const DEFAULT_FROM = 'Legmate <no-reply@darts-score.local>';
 const portOf = () => Number(process.env.SMTP_PORT) || 587;
 const secureOf = () => (process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : portOf() === 465);
 

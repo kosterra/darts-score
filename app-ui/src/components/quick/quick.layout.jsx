@@ -7,7 +7,7 @@ import usePageTitle from '../../utils/use.page.title';
  * suffix: the word after the brand ("· Quick game" by default).
  */
 const QuickLayout = ({ children, suffix = t('· Quick game') }) => {
-    // the tab says what the page is: "Quick game – Oche"
+    // the tab says what the page is: "Quick game – Legmate"
     usePageTitle(suffix.replace(/^·\s*/, ''));
     return (
         <div className="quick-page">

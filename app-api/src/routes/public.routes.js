@@ -24,7 +24,7 @@ export default (app) => {
     const writing = rateLimit({ windowMs: 60 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false,
         message: { message: 'Many messages were sent from your network. Please try again later.' } });
     router.post('/contact', writing, PublicController.contact);
-    // the ways to support Oche with a gift
+    // the ways to support Legmate with a gift
     router.get('/support', async (req, res) => res.json(await supportPage()));
 
     // quick games without an account: a few new ones per hour from one network,

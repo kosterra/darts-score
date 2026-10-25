@@ -437,9 +437,9 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 {(activeClub || !isGlobalAdmin)
                     ? <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
                     : (
-                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label={t('Oche')}>
+                        <Link to="/" className="nav-brand" onClick={onNavigate} aria-label={t('Legmate')}>
                             <img alt="" src="/logo.svg" width="40" height="40" />
-                            <span className="nav-label fw-semibold">{t('Oche')}</span>
+                            <span className="nav-label fw-semibold">{t('Legmate')}</span>
                         </Link>
                     )
                 }
@@ -467,11 +467,11 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
-                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Oche') : undefined} onClick={onNavigate}>
+                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Legmate') : undefined} onClick={onNavigate}>
                     <img alt="" src="/logo.svg" width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column min-w-0">
-                            <span className="text-subtle fw-semibold fs-7">{t('Oche')}</span>
+                            <span className="text-subtle fw-semibold fs-7">{t('Legmate')}</span>
                             <span className="text-faint fs-9">{t('About ·')}{' '}{import.meta.env.VITE_APP_VERSION}</span>
                         </span>
                     }

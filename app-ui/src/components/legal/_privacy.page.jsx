@@ -18,7 +18,7 @@ const GLANCE = [
 
 /**
  * The privacy policy and the imprint of the installation: who runs it (as its
- * global admins entered it under System settings), what Oche stores and why,
+ * global admins entered it under System settings), what Legmate stores and why,
  * the cookies, who else gets data, how long what is kept, and the rights of
  * the people in it. Open to everyone, logged in or not.
  */
@@ -61,7 +61,7 @@ const PrivacyPage = () => {
                         <li><strong>{t('Clubs and groups:')}</strong>{' '}{t('name, logo, description, country, admins and members, and what they play.')}</li>
                         <li><strong>{t('Players without a login:')}</strong>{' '}{t('an email address only when a club admin enters it with the player\'s consent, for the mails chosen there; every mail has a link to get no more.')}</li>
                         <li><strong>{t('Quick games without an account:')}</strong>{' '}{t('only the names typed in, kept {{days}} days.', { days: keep.quickGameDays })}</li>
-                        {legal.contactForm && <li><strong>{t('Messages of the contact form:')}</strong>{' '}{t('your name, your email address and your message go by mail to the operator above, to answer you; Oche itself keeps nothing of them.')}</li>}
+                        {legal.contactForm && <li><strong>{t('Messages of the contact form:')}</strong>{' '}{t('your name, your email address and your message go by mail to the operator above, to answer you; Legmate itself keeps nothing of them.')}</li>}
                         <li><strong>{t('Protection:')}</strong>{' '}{t('the internet address (IP) of requests, to stop spam and attacks (e.g. too many failed logins); alerts with it are kept for the global admins until they remove them. Errors of the app are kept {{days}} days.', { days: keep.errorLogDays })}</li>
                     </ul>
                     <p className="m-0">{t('What a club makes public (its live games and results, and the nicknames of the players who allow it) is shown on the public start page; everything else only to the members of the club.')}</p>
@@ -71,7 +71,7 @@ const PrivacyPage = () => {
         {
             id: 'cookies', icon: 'pi-desktop', title: t('Cookies and storage on your device'), body: (
                 <>
-                    <p>{t('Oche uses no tracking, no advertising, no analytics and no cookies of other companies. It only stores what is needed for what you use, which needs no consent:')}</p>
+                    <p>{t('Legmate uses no tracking, no advertising, no analytics and no cookies of other companies. It only stores what is needed for what you use, which needs no consent:')}</p>
                     <ul className="mb-0">
                         <li><code>ds_session</code>{' '}{t('keeps you logged in, until you log out or for {{hours}} hours.', { hours: keep.sessionHours })}</li>
                         <li><code>ds_mfa</code>{' '}{t('holds a login for five minutes while it waits for the code of two-step login.')}</li>
@@ -87,8 +87,8 @@ const PrivacyPage = () => {
                     <ul className={legal.notes ? undefined : 'mb-0'}>
                         {legal.mailEnabled && <li>{t('The mail server of this installation, for the mails you get (password reset, invitations, the notifications you chose).')}</li>}
                         <li>{t('The provider that hosts this installation and carries its traffic.')}</li>
-                        <li>{t('Nothing is sold or used for advertising. The font, the icons and the pictures come from Oche itself, not from other companies.')}</li>
-                        <li>{t('The donation pages linked on Support Oche (e.g. TWINT, GitHub) belong to their providers and only learn about you when you open them.')}</li>
+                        <li>{t('Nothing is sold or used for advertising. The font, the icons and the pictures come from Legmate itself, not from other companies.')}</li>
+                        <li>{t('The donation pages linked on Support Legmate (e.g. TWINT, GitHub) belong to their providers and only learn about you when you open them.')}</li>
                     </ul>
                     {legal.notes && <p className="legal-notes m-0">{legal.notes}</p>}
                 </>
@@ -121,8 +121,8 @@ const PrivacyPage = () => {
             <main className="container privacy-main">
                 <section className="terms-hero">
                     <span className="landing-eyebrow">{t('Privacy')}</span>
-                    <h1 className="landing-title m-0">{t('Your data in Oche')}</h1>
-                    <p className="terms-lead m-0">{t('Oche is a scoreboard and statistics app for darts: for clubs and pub teams as well as for friends, flatshares and families. Every group plays in Oche as a "club". This page says which personal data this installation keeps, why, for how long and what your rights are.')}</p>
+                    <h1 className="landing-title m-0">{t('Your data in Legmate')}</h1>
+                    <p className="terms-lead m-0">{t('Legmate is a scoreboard and statistics app for darts: for clubs and pub teams as well as for friends, flatshares and families. Every group plays in Legmate as a "club". This page says which personal data this installation keeps, why, for how long and what your rights are.')}</p>
                 </section>
 
                 <ul className="privacy-glance" aria-label={t('At a glance')}>

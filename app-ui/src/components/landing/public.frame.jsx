@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { t } from '../../utils/i18n';
-import { LICENCE, REPOSITORY } from '../../utils/project';
+import { BRAND, LICENCE, REPOSITORY } from '../../utils/project';
 import usePublicSite from '../../utils/use.public.site';
 import LanguageSwitch from '../elements/language.switch';
 
@@ -16,18 +16,18 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
     const { pathname } = useLocation();
     return (
         <header className="landing-bar">
-            <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none" aria-label={t('Oche start page')}>
+            <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none" aria-label={t('Legmate start page')}>
                 <img alt="" src="/logo.svg" width="40" height="40" />
-                <span className="fs-5 fw-semibold text-default landing-brand-name">{t('Oche')}</span>
+                <span className="fs-5 fw-semibold text-default landing-brand-name">{t('Legmate')}</span>
                 {suffix && <span className="text-faint fs-8 d-none d-sm-inline">{suffix}</span>}
             </Link>
             {nav}
             <nav className="d-flex align-items-center gap-2" aria-label={t('Account')}>
-                {/* the way to support Oche, quiet: a heart, with its word on wider screens */}
+                {/* the way to support Legmate, quiet: a heart, with its word on wider screens */}
                 {pathname !== '/support' &&
-                    <Link to="/support" className="landing-support-link" title={t('Support Oche')} aria-label={t('Support Oche')}>
+                    <Link to="/support" className="landing-support-link" title={t('Support Legmate')} aria-label={t('Support Legmate')}>
                         <i className="pi pi-heart" aria-hidden="true" />
-                        <span className="d-none d-xl-inline">{t('Support Oche')}</span>
+                        <span className="d-none d-xl-inline">{t('Support Legmate')}</span>
                     </Link>}
                 <LanguageSwitch />
                 {hide !== 'login' && hide !== 'both' && <Link to="/login"><Button label={t('Log in')} size="small" outlined /></Link>}
@@ -46,7 +46,7 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
 export const PageHeader = ({ user }) => {
     // an installation that opens with the login has no sections of a start page to go to
     const publicSite = usePublicSite();
-    if (user) return <PublicHeader hide="both" action={<Link to="/"><Button label={t('Open Oche')} size="small" /></Link>} />;
+    if (user) return <PublicHeader hide="both" action={<Link to="/"><Button label={t('Open Legmate')} size="small" /></Link>} />;
     return (
         <PublicHeader nav={
             <nav className="landing-nav" aria-label={t('Sections')}>
@@ -74,8 +74,8 @@ export const Licence = ({ className = 'landing-footer-licence' }) => {
 };
 
 /**
- * The footer of the public pages: the brand with what Oche is and its
- * licence, the ways to play or to an account, and Support Oche, What's new,
+ * The footer of the public pages: the brand with what Legmate is and its
+ * licence, the ways to play or to an account, and Support Legmate, What's new,
  * Darts A–Z, Contact, the privacy policy, the imprint and the source code.
  */
 export const PublicFooter = () => (
@@ -84,7 +84,7 @@ export const PublicFooter = () => (
             <div className="landing-footer-brand">
                 <img alt="" src="/logo.svg" width="32" height="32" />
                 <div className="d-flex flex-column">
-                    <span className="landing-footer-name">Oche</span>
+                    <span className="landing-footer-name">{BRAND}</span>
                     <span>
                         {t('The darts scoreboard for clubs, friends and flatshares')}
                         <Licence />
@@ -100,7 +100,7 @@ export const PublicFooter = () => (
                 </span>
                 <span className="landing-footer-divider" aria-hidden="true">|</span>
                 <span className="landing-footer-group">
-                    <Link to="/support" className="landing-footer-icon-link"><i className="pi pi-heart-fill is-heart" aria-hidden="true" />{t('Support Oche')}</Link>
+                    <Link to="/support" className="landing-footer-icon-link"><i className="pi pi-heart-fill is-heart" aria-hidden="true" />{t('Support Legmate')}</Link>
                     <Link to="/whats-new" className="landing-footer-icon-link"><i className="pi pi-sparkles" aria-hidden="true" />{t('What\'s new')}</Link>
                     <Link to="/darts-terms" className="landing-footer-icon-link"><i className="pi pi-book" aria-hidden="true" />{t('Darts A–Z')}</Link>
                     <Link to="/contact" className="landing-footer-icon-link"><i className="pi pi-envelope" aria-hidden="true" />{t('Contact')}</Link>

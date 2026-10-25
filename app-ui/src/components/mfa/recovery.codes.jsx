@@ -7,7 +7,7 @@ import { t } from '../../utils/i18n';
  * safe place. Each one logs in once instead of a code of the app.
  */
 const RecoveryCodes = ({ codes, email, onSaved }) => {
-    const text = `${t('Recovery codes for Oche')}${email ? ` (${email})` : ''}\n\n${codes.join('\n')}\n\n${t('Each code works once, instead of a code of your authenticator app.')}\n`;
+    const text = `${t('Recovery codes for Legmate')}${email ? ` (${email})` : ''}\n\n${codes.join('\n')}\n\n${t('Each code works once, instead of a code of your authenticator app.')}\n`;
     const copy = () => navigator.clipboard?.writeText(text).then(() => onSaved?.(t('Codes copied'))).catch(() => {});
     const download = () => {
         const link = document.createElement('a');
@@ -19,7 +19,7 @@ const RecoveryCodes = ({ codes, email, onSaved }) => {
     const print = () => {
         const page = window.open('', '_blank', 'width=480,height=640');
         if (!page) return;
-        page.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Oche</title></head><body style="font-family:Helvetica,Arial,sans-serif;padding:24px"><pre style="font-size:16px;line-height:1.6">${text.replace(/[&<>]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char])}</pre></body></html>`);
+        page.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Legmate</title></head><body style="font-family:Helvetica,Arial,sans-serif;padding:24px"><pre style="font-size:16px;line-height:1.6">${text.replace(/[&<>]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char])}</pre></body></html>`);
         page.document.close();
         page.focus();
         page.print();

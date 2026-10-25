@@ -1,5 +1,5 @@
 /**
- * Oche as an app on the home screen: the service worker, and the browser's
+ * Legmate as an app on the home screen: the service worker, and the browser's
  * offer to install it (Chrome, Edge, Samsung Internet), kept until the app
  * asks for it. Safari on iPhone and iPad has no such offer: there it is
  * added with Share → Add to Home Screen.

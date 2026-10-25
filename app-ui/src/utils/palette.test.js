@@ -24,7 +24,7 @@ describe('the palette', () => {
         expect(PODIUM).toEqual([token('podiumGold'), token('podiumSilver'), token('podiumBronze')]);
     });
 
-    it('has the lighter Oche green as the green of good figures', () => {
+    it('has the lighter Legmate green as the green of good figures', () => {
         expect(ACCENT.green).toBe(themes.match(/green: \(primary: #[0-9a-f]{6}, dark: #[0-9a-f]{6}, light: #[0-9a-f]{6}, lighter: (#[0-9a-f]{6})/)[1]);
         expect(ACCENT.green).toBe(color('positive'));
         expect(GAME_COLORS.x01).toBe(ACCENT.green);

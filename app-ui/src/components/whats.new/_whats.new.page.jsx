@@ -10,7 +10,7 @@ import { PageHeader, PublicFooter } from '../landing/public.frame';
 
 
 /**
- * What's new, for everyone: the releases of Oche with their changes, as on
+ * What's new, for everyone: the releases of Legmate with their changes, as on
  * About in the app, so visitors see that it lives and grows.
  */
 const WhatsNewPage = () => {
@@ -23,9 +23,9 @@ const WhatsNewPage = () => {
             <main className="container terms-main whats-new-main">
                 <section className="terms-hero">
                     <span className="landing-eyebrow">{t('What\'s new')}</span>
-                    <h1 className="landing-title m-0">{t('Oche keeps growing')}</h1>
+                    <h1 className="landing-title m-0">{t('Legmate keeps growing')}</h1>
                     <p className="terms-lead m-0">
-                        {t('New games, features and fixes, release by release. Oche is made in the open:')}{' '}
+                        {t('New games, features and fixes, release by release. Legmate is made in the open:')}{' '}
                         <a href={REPOSITORY} target="_blank" rel="noopener noreferrer">{t('the code on GitHub')}</a>.
                     </p>
                 </section>

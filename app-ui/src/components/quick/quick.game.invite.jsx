@@ -15,7 +15,7 @@ const QuickGameInvite = () => (
         </div>
         <div className="d-flex flex-wrap gap-2">
             <Link to="/register"><Button label={t('Create an account')} icon="pi pi-user-plus" size="small" /></Link>
-            <Link to="/"><Button label={t('What Oche does')} size="small" severity="secondary" text /></Link>
+            <Link to="/"><Button label={t('What Legmate does')} size="small" severity="secondary" text /></Link>
         </div>
     </section>
 );

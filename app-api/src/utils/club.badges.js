@@ -59,7 +59,7 @@ export const CLUB_BADGE_GROUPS = [
     },
     {
         group: 'clubAnniversary', category: 'clubLife', title: 'Anniversary', metric: 'years',
-        describe: (n) => n === 1 ? 'One year of the club on Oche' : `${n} years of the club on Oche`,
+        describe: (n) => n === 1 ? 'One year of the club on Legmate' : `${n} years of the club on Legmate`,
         tiers: [[1, 'One Year on the Oche'], [2, 'Two Years on the Oche'], [5, 'Five Years on the Oche']],
     },
     {

@@ -15,7 +15,7 @@ import { getSessionSecret } from './auth.utils.js';
 // a code of the step before or after counts too (a clock off by up to 30 s)
 authenticator.options = { window: 1 };
 
-export const ISSUER = 'Oche';
+export const ISSUER = 'Legmate';
 export const RECOVERY_CODES = 10;
 export const TRUST_DAYS = 30;
 export const PENDING_MINUTES = 5;

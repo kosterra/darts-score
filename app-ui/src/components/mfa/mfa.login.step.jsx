@@ -49,7 +49,7 @@ const MfaLoginStep = ({ step, onRestart }) => {
     return (
         <form onSubmit={submit} className="d-flex flex-column gap-3 pt-2">
             <span className="fs-7 text-subtle">
-                {recovery ? t('Enter one of your recovery codes. Each one works once.') : t('Enter the code your authenticator app shows for Oche.')}
+                {recovery ? t('Enter one of your recovery codes. Each one works once.') : t('Enter the code your authenticator app shows for Legmate.')}
             </span>
             <InputText
                 id="mfa-login-code"

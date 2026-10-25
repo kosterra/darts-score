@@ -7,7 +7,7 @@ import { sendTemplateMail } from './mail.service.js';
 /**
  * The contact form: a message by mail to the operator of the installation
  * (their address under System settings → Privacy and imprint), answered to its sender.
- * Nothing of it is stored by Oche.
+ * Nothing of it is stored by Legmate.
  */
 export const CONTACT_LIMITS = { name: 80, email: 254, message: 3000 };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

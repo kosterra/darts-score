@@ -1,5 +1,7 @@
 # darts-score
 
+**Legmate** (called Oche until version 2026.10.16): the darts scoreboard for clubs, friends and flatshares.
+
 REST API **and** React UI for the [darts-score](https://github.com/kosterra/darts-score-sample) application. Built with **Express 5**, **Mongoose 9**, and **Node.js 24**. Serves the React frontend, player management, game data (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics — all from a single container.
 
 ---
@@ -19,7 +21,7 @@ REST API **and** React UI for the [darts-score](https://github.com/kosterra/dart
 - [API Endpoints](#api-endpoints)
 - [Image Upload](#image-upload)
 - [Environment Variables](#environment-variables)
-- [Support Oche](#support-oche)
+- [Support Legmate](#support-oche)
 
 ---
 
@@ -110,7 +112,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
-SMTP_FROM=Oche <no-reply@example.com>
+SMTP_FROM=Legmate <no-reply@example.com>
 ```
 
 ### Accounts, clubs and roles
@@ -399,17 +401,17 @@ Images are saved to the path configured in `IMG_DIR` (default: `data/img/players
 
 ---
 
-## Support Oche
+## Support Legmate
 
-Oche is free for everyone, without ads and without tracking — and it stays that way. It is built in spare time; sponsoring pays for the server, the domain and the mails, and for time to build what comes next (group stages and leagues, tournaments between clubs, more games and statistics).
+Legmate is free for everyone, without ads and without tracking — and it stays that way. It is built in spare time; sponsoring pays for the server, the domain and the mails, and for time to build what comes next (group stages and leagues, tournaments between clubs, more games and statistics).
 
 [![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/kosterra)
 
-Every sponsor helps every installation of Oche. Each installation can also show its own ways to give (e.g. TWINT) on its page **Support Oche** (`/support`), set by its global admins under System settings.
+Every sponsor helps every installation of Legmate. Each installation can also show its own ways to give (e.g. TWINT) on its page **Support Legmate** (`/support`), set by its global admins under System settings.
 
 ### Sponsors
 
-Clubs and people who keep Oche going (Bullseye tier and up):
+Clubs and people who keep Legmate going (Bullseye tier and up):
 
 <!-- sponsors: add new names below, newest last -->
 *Be the first: [become a sponsor](https://github.com/sponsors/kosterra).*
@@ -420,12 +422,12 @@ Clubs and people who keep Oche going (Bullseye tier and up):
 
 Copyright (C) 2023–2026 kosterra
 
-Oche is free software under the [GNU Affero General Public License v3](LICENSE) (AGPL-3.0-only): you may run it, study it, change it and share it. Whoever offers a **changed** Oche to others over a network, e.g. as a hosted service, must offer them its source code as well (section 13 of the licence).
+Legmate is free software under the [GNU Affero General Public License v3](LICENSE) (AGPL-3.0-only): you may run it, study it, change it and share it. Whoever offers a **changed** Legmate to others over a network, e.g. as a hosted service, must offer them its source code as well (section 13 of the licence).
 
-Running Oche for your club, unchanged or changed, is welcome. If you change it and others use it, point the **Source code** link to your own code: it is set once in `app-ui/src/utils/project.js`.
+Running Legmate for your club, unchanged or changed, is welcome. If you change it and others use it, point the **Source code** link to your own code: it is set once in `app-ui/src/utils/project.js`.
 
 Versions up to 2026.10.15 were published under the GPLv3; they stay under it.
 
 ### The name and the logo
 
-The name "Oche" and its logo stand for this project. Forks are welcome under the AGPL, but please give a changed version that you offer to others a name and logo of its own, so nobody mistakes it for this project.
+The name "Legmate" and its logo stand for this project. Forks are welcome under the AGPL, but please give a changed version that you offer to others a name and logo of its own, so nobody mistakes it for this project.

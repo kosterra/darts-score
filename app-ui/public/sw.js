@@ -1,5 +1,5 @@
 /*
- * The service worker of Oche, so the app can be installed on a phone or a
+ * The service worker of Legmate, so the app can be installed on a phone or a
  * computer and opens quickly. It only keeps the app itself, never the data:
  * - pages: from the network, the last one kept for when the network is gone
  * - /assets (names change with every build): kept once loaded

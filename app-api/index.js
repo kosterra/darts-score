@@ -212,7 +212,7 @@ app.use(async (req, res) => {
         res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: req.path, language }));
     } catch (err) {
         logger.error(err, 'Failed to serve the app');
-        res.status(500).send('Oche could not be loaded. Please try again in a moment.');
+        res.status(500).send('Legmate could not be loaded. Please try again in a moment.');
     }
 });
 

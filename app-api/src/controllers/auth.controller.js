@@ -268,7 +268,7 @@ export const deleteMe = async (req, res) => {
     clearPendingCookie(req, res);
     sendTemplateMail('securityNotice', email, {
         firstname,
-        title: translate(language, 'Your Oche account was deleted'),
+        title: translate(language, 'Your Legmate account was deleted'),
         details: translate(language, 'Your login, settings and notifications are gone. Your players stay in their clubs under an anonymous name, so the games of the others stay whole; your name, picture and date of birth were removed.'),
         date: dateTimeIn(language),
         link: getAppUrl(),

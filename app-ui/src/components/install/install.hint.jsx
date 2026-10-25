@@ -16,7 +16,7 @@ const dismissed = () => {
 };
 
 /**
- * A small card on the start page and the dashboard: Oche can go on the home
+ * A small card on the start page and the dashboard: Legmate can go on the home
  * screen like an app. With the browser's offer it installs with one tap; on
  * an iPhone or iPad it says how (Share → Add to Home Screen). Gone once the
  * app is installed or the card is closed.
@@ -47,13 +47,13 @@ const InstallHint = ({ loggedIn = false }) => {
     };
 
     return (
-        <aside className="install-hint" aria-label={t('Install Oche')}>
+        <aside className="install-hint" aria-label={t('Install Legmate')}>
             <img src="/icons/icon-192.png" alt="" width="44" height="44" />
             <div className="d-flex flex-column gap-1 min-w-0">
-                <strong className="text-default fs-7">{t('Oche on your home screen')}</strong>
+                <strong className="text-default fs-7">{t('Legmate on your home screen')}</strong>
                 <span className="text-subtle fs-8">
                     {ios
-                        ? <><i className="pi pi-upload me-1" aria-hidden="true" />{t('Tap Share, then Add to Home Screen: Oche opens full screen, like an app.')}</>
+                        ? <><i className="pi pi-upload me-1" aria-hidden="true" />{t('Tap Share, then Add to Home Screen: Legmate opens full screen, like an app.')}</>
                         : t('Install it like an app: it opens full screen, without the browser around it.')}
                 </span>
                 {!ios && <div className="d-flex gap-2 mt-1">

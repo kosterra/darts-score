@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Oche API
+  title: Legmate API
   description: >-
-    REST API for Oche, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock, and Shanghai,
+    REST API for Legmate, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock, and Shanghai,
     Killer, Halve-It, Golf and Tactics on the rules engine), trainings (Around the Clock, X01 against the bot, Bob's 27, 121 Checkout,
     Random checkouts, Scoring, Doubles around the board and Catch 40), statistics and the overviews of the club's games, trainings and
     badges, badges and levels, flights to collect, fair play, deletion requests, notifications, quick games without an account, and the
@@ -219,7 +219,7 @@ paths:
       tags:
         - Public
       summary: Send a message of the contact form
-      description: The message goes by mail to the operator of the installation (System settings → Privacy and imprint), with the sender as the address to reply to; Oche stores nothing of it. At most 5 messages an hour from one network. A filled website field (left empty by people) drops the message quietly.
+      description: The message goes by mail to the operator of the installation (System settings → Privacy and imprint), with the sender as the address to reply to; Legmate stores nothing of it. At most 5 messages an hour from one network. A filled website field (left empty by people) drops the message quietly.
       security: []
       operationId: postPublicContact
       requestBody:
@@ -261,7 +261,7 @@ paths:
     get:
       tags:
         - Public
-      summary: The ways to support Oche with a gift, for the page /support
+      summary: The ways to support Legmate with a gift, for the page /support
       responses:
         '200':
           description: '{ url: a donation page of this installation, twint: its TWINT link, project: the sponsoring page of the project (empty when url is the same) }'
@@ -2158,7 +2158,7 @@ paths:
       tags:
         - Administration
       summary: Show the numbers of the installation (clubs, players, games) on the public start page, and whether there is a public start page at all
-      description: Either or both. publicSite false makes the installation open with the login instead of the page about Oche, e.g. for the clubs of one association only; the other public pages stay.
+      description: Either or both. publicSite false makes the installation open with the login instead of the page about Legmate, e.g. for the clubs of one association only; the other public pages stay.
       requestBody:
         required: true
         content:
@@ -6941,7 +6941,7 @@ components:
         accent:
           type: [string, 'null']
           enum: [green, red, blue, gold, purple, null]
-          description: "The club's accent colour in the app, for the members who did not choose their own (null or unknown: Oche green)"
+          description: "The club's accent colour in the app, for the members who did not choose their own (null or unknown: Legmate green)"
         isPublic:
           type: boolean
           description: List the club on the public start page
@@ -7040,7 +7040,7 @@ components:
                 description: ISO 3166 country code, empty when not set
               accent:
                 type: [string, 'null']
-                description: "The club's accent colour (null: Oche green)"
+                description: "The club's accent colour (null: Legmate green)"
               logo:
                 type: string
               joinPolicy:

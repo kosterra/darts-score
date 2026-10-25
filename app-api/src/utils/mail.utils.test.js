@@ -13,12 +13,12 @@ describe('the mail setup', () => {
         vi.stubEnv('SMTP_SECURE', '');
         vi.stubEnv('SMTP_USER', 'oche@example.com');
         vi.stubEnv('SMTP_PASSWORD', 'secret');
-        vi.stubEnv('SMTP_FROM', 'Oche <oche@example.com>');
+        vi.stubEnv('SMTP_FROM', 'Legmate <oche@example.com>');
         vi.stubEnv('APP_URL', 'https://oche.example.com/');
         const setup = mailSetup();
         expect(setup).toEqual({
             configured: true, host: 'smtp.example.com', port: 465, encryption: 'tls', user: 'oche@example.com',
-            password: true, from: 'Oche <oche@example.com>', appUrl: 'https://oche.example.com', missing: [],
+            password: true, from: 'Legmate <oche@example.com>', appUrl: 'https://oche.example.com', missing: [],
         });
         expect(JSON.stringify(setup)).not.toContain('secret');
     });
@@ -58,7 +58,7 @@ describe('the test mail', () => {
     it('is there in every language, with no placeholder left', () => {
         for (const language of MAIL_LANGUAGES) {
             const mail = renderMail(TEST_MAIL[language], { firstname: 'Anna', date: '24 Oct 2026, 20:15', server: 'smtp.example.com:587', link: 'https://x', appUrl: 'https://x' }, language);
-            expect(mail.subject).toContain('Oche');
+            expect(mail.subject).toContain('Legmate');
             expect(mail.text).toContain('smtp.example.com:587');
             expect(mail.html).not.toContain('{{');
         }

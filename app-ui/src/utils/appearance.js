@@ -3,7 +3,7 @@ import { forgetThemeColors } from './palette';
 
 /**
  * How the app looks: the theme (dark, light, like the device, pure black or
- * high contrast), the accent colour (one's own, else the club's, else Oche
+ * high contrast), the accent colour (one's own, else the club's, else Legmate
  * green) and the background (the dartboard photo, blurred, or plain). Set
  * as data attributes on <html> (see theme/base/_theme-vars.scss), kept on
  * the device too so a page starts in its look before the account is loaded.

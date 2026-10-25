@@ -7,7 +7,7 @@ import { isMailConfigured } from './mail.utils.js';
 
 /**
  * Who runs the installation, for its privacy policy and imprint: set by the
- * global admins (one setting, "legal"), as every installation of Oche has an
+ * global admins (one setting, "legal"), as every installation of Legmate has an
  * operator of its own.
  */
 const KEY = 'legal';

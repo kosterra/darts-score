@@ -78,7 +78,7 @@ const ContactForm = ({ user }) => {
  * Contact, for everyone: feedback and questions to the operator of this
  * installation through the form (when their address and a mail server are
  * set, else their address, if any), and problems, bugs and ideas as issues on
- * GitHub, where everyone sees them and Oche is made.
+ * GitHub, where everyone sees them and Legmate is made.
  */
 const ContactPage = () => {
     const { user } = useAuth();
@@ -103,21 +103,21 @@ const ContactPage = () => {
                 <section className="terms-hero">
                     <span className="landing-eyebrow">{t('Contact')}</span>
                     <h1 className="landing-title m-0">{t('Get in touch')}</h1>
-                    <p className="terms-lead m-0">{t('Feedback, a question or just a hello: write to us. Problems and ideas belong on GitHub, where everyone sees them and they become part of Oche.')}</p>
+                    <p className="terms-lead m-0">{t('Feedback, a question or just a hello: write to us. Problems and ideas belong on GitHub, where everyone sees them and they become part of Legmate.')}</p>
                 </section>
 
                 <div className="contact-ways">
                     <section className="contact-way">
                         <span className="landing-feature-icon" aria-hidden="true"><i className="pi pi-comments" /></span>
                         <h2 className="contact-way-title m-0">{t('Feedback and questions')}</h2>
-                        <p className="text-subtle m-0">{t('Tell us how Oche works for you, ask a question or say what you like. Your message goes to the people who run this installation, and they answer by mail.')}</p>
+                        <p className="text-subtle m-0">{t('Tell us how Legmate works for you, ask a question or say what you like. Your message goes to the people who run this installation, and they answer by mail.')}</p>
                         {feedback()}
                     </section>
 
                     <section className="contact-way">
                         <span className="landing-feature-icon" aria-hidden="true"><i className="pi pi-github" /></span>
                         <h2 className="contact-way-title m-0">{t('Problems, bugs and ideas')}</h2>
-                        <p className="text-subtle m-0">{t('Something does not work, a feature is missing, or you have an idea for Oche? Open an issue on GitHub: everyone sees it there, others can add to it, and you follow how it gets done. It needs a free GitHub account; please look first whether it is there already.')}</p>
+                        <p className="text-subtle m-0">{t('Something does not work, a feature is missing, or you have an idea for Legmate? Open an issue on GitHub: everyone sees it there, others can add to it, and you follow how it gets done. It needs a free GitHub account; please look first whether it is there already.')}</p>
                         <div className="d-flex flex-wrap gap-2">
                             <a href={`${ISSUES}/new?labels=bug`} {...external} className="p-button text-decoration-none"><i className="pi pi-exclamation-circle me-2" aria-hidden="true" />{t('Report a problem')}</a>
                             <a href={`${ISSUES}/new?labels=enhancement`} {...external} className="p-button p-button-secondary text-decoration-none"><i className="pi pi-lightbulb me-2" aria-hidden="true" />{t('Suggest an idea')}</a>

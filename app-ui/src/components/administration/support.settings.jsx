@@ -37,7 +37,7 @@ const SupportSettings = ({ onSaved }) => {
             const saved = await AdminService.saveSupportSettings(Object.fromEntries(FIELDS.map(name => [name, (draft[name] ?? '').trim()])));
             setSettings(saved);
             setDraft(saved);
-            onSaved?.(t('Support Oche'));
+            onSaved?.(t('Support Legmate'));
         } catch (err) {
             setError(err.message);
         }
@@ -45,10 +45,10 @@ const SupportSettings = ({ onSaved }) => {
     };
 
     return (
-        <Panel header={t('Support Oche')}>
+        <Panel header={t('Support Legmate')}>
             <div className="d-flex flex-column gap-3">
                 <span className="text-subtle fs-7">
-                    {t('Links for gifts to this installation, shown on the page Support Oche (in the footer of the public pages and on About), only when set. The sponsoring page of the project on GitHub is always shown there.')}{' '}<Link to="/support">{t('Open the page')}</Link>
+                    {t('Links for gifts to this installation, shown on the page Support Legmate (in the footer of the public pages and on About), only when set. The sponsoring page of the project on GitHub is always shown there.')}{' '}<Link to="/support">{t('Open the page')}</Link>
                 </span>
                 <label className="d-flex flex-column gap-1" htmlFor="support-twint">
                     <span className="fs-7 text-default fw-semibold">{t('TWINT link')}</span>

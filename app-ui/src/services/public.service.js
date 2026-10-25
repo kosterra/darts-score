@@ -15,7 +15,7 @@ const loadBanner = () => requestJSON('/api/public/banner');
 const loadLegal = () => requestJSON('/api/public/legal');
 // whether the installation shows its start page to everyone: { publicSite }
 const loadSite = () => requestJSON('/api/public/site');
-// the ways to support Oche with a gift: { url, twint, project }
+// the ways to support Legmate with a gift: { url, twint, project }
 const loadSupport = () => requestJSON('/api/public/support');
 
 // a message of the contact form to the operator: { name, email, message, website }

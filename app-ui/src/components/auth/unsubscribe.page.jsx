@@ -50,7 +50,7 @@ const UnsubscribePage = () => {
                     <p className="m-0">
                         {contact
                             ? t('Get no more mails about your player? Your club keeps your player with its games and statistics.')
-                            : t('Get no more mails from Oche? Mails about the security of your account still come.')}
+                            : t('Get no more mails from Legmate? Mails about the security of your account still come.')}
                     </p>
                     <Button type="button" label={t('No more mails')} icon="pi pi-envelope" loading={busy} onClick={confirm} />
                 </div>}
@@ -58,7 +58,7 @@ const UnsubscribePage = () => {
                 <div className="d-flex flex-column gap-3 pt-2">
                     <Message severity="success" text={t('Done: no more of these mails.')} className="w-100 justify-content-start" />
                     {!contact && <span className="text-subtle fs-7">{t('You can choose again any time on your profile, under Notifications.')}</span>}
-                    <Button type="button" label={contact ? t('Open Oche') : t('Choose your notifications')} icon={contact ? 'pi pi-home' : 'pi pi-bell'} severity="secondary" onClick={() => navigate(contact ? '/' : '/profile#notifications', { replace: true })} />
+                    <Button type="button" label={contact ? t('Open Legmate') : t('Choose your notifications')} icon={contact ? 'pi pi-home' : 'pi pi-bell'} severity="secondary" onClick={() => navigate(contact ? '/' : '/profile#notifications', { replace: true })} />
                 </div>}
         </AuthLayout>
     );

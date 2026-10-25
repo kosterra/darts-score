@@ -8,7 +8,7 @@ import { translate } from './translate.js';
  * come in the language the visitor's browser asks for.
  */
 
-const BRAND = 'Oche';
+const BRAND = 'Legmate';
 const DEFAULT_DESCRIPTION = 'The darts scoreboard for your club, your pub team, your flatshare or your living room: X01, Cricket, Elimination and six more games, trainings, statistics, badges, levels and tournaments. Free and without ads.';
 const LOCALES = { en: 'en_GB', de: 'de_CH', fr: 'fr_CH', it: 'it_CH', es: 'es_ES' };
 export const OG_IMAGE = { path: '/og-image.jpg', width: 1200, height: 630 };
@@ -17,12 +17,12 @@ export const OG_IMAGE = { path: '/og-image.jpg', width: 1200, height: 630 };
 export const PUBLIC_PAGES = {
     '/': { title: 'The darts scoreboard', description: DEFAULT_DESCRIPTION },
     '/darts-terms': { title: 'Darts A–Z', description: 'How the board hangs, a game of 501 in five steps, and the darts terms explained: from the oche to the Madhouse.' },
-    '/whats-new': { title: "What's new", description: 'The latest games, features and fixes of Oche, release by release.' },
+    '/whats-new': { title: "What's new", description: 'The latest games, features and fixes of Legmate, release by release.' },
     '/quick': { title: 'Quick game', description: 'X01, Cricket or Elimination for up to four players, without an account: the full scoreboard, and the statistics of the game at the end.' },
     '/evening/new': { title: 'Darts evening', description: 'Up to eight players, game after game, a table of the evening and awards, and friends follow it on their phones. No account needed.' },
-    '/contact': { title: 'Contact', description: 'Feedback and questions to the people who run Oche, and problems and ideas on GitHub.' },
-    '/support': { title: 'Support Oche', description: 'Oche is free for everyone and without ads. Help to keep it that way.' },
-    '/privacy': { title: 'Privacy', description: 'Which personal data Oche keeps, why, for how long, and what your rights are.' },
+    '/contact': { title: 'Contact', description: 'Feedback and questions to the people who run Legmate, and problems and ideas on GitHub.' },
+    '/support': { title: 'Support Legmate', description: 'Legmate is free for everyone and without ads. Help to keep it that way.' },
+    '/privacy': { title: 'Privacy', description: 'Which personal data Legmate keeps, why, for how long, and what your rights are.' },
     '/register': { title: 'Register', description: DEFAULT_DESCRIPTION },
     '/login': { title: 'Log in', description: DEFAULT_DESCRIPTION },
 };
@@ -58,7 +58,7 @@ export const metaOf = (pathname, language = 'en', { evening, publicSite = true }
     if (path === '/' && !publicSite) return { title: BRAND, description: tr(DEFAULT_DESCRIPTION), index: false };
     if (!page) return { title: BRAND, description: tr(DEFAULT_DESCRIPTION), index: false };
     return {
-        // "Support Oche" names Oche already
+        // "Support Legmate" names Legmate already
         title: path === '/' ? `${BRAND} – ${tr(page.title)}` : page.title.includes(BRAND) ? tr(page.title) : `${tr(page.title)} – ${BRAND}`,
         description: tr(page.description),
         index: !['/register', '/login'].includes(path),

@@ -3,7 +3,7 @@ import db from '../models/db.model.js';
 // What the public start page shows, set by the global admins (one setting,
 // "startPage"): the numbers of the installation only once they speak for it;
 // publicSite false for an installation of its own clubs only, which opens
-// with the login instead of the page about Oche.
+// with the login instead of the page about Legmate.
 const KEY = 'startPage';
 export const START_PAGE_DEFAULTS = { showNumbers: false, publicSite: true };
 // the public page is read often: the setting at most once a minute

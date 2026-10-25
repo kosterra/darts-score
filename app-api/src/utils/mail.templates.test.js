@@ -4,10 +4,10 @@ import { MAIL_LANGUAGES, MAIL_TEMPLATES, defaultsOf, effectiveTemplate, renderMa
 describe('mail templates', () => {
     it('fills the placeholders in the subject, the text and the button', () => {
         const mail = renderMail(effectiveTemplate('adminInvited'), { firstname: 'Anna', club: 'Red Lion', inviter: 'Alex', validity: '7 days', link: 'https://x/l?t=1', appUrl: 'https://x' });
-        expect(mail.subject).toBe('You are invited to run Red Lion on Oche');
+        expect(mail.subject).toBe('You are invited to run Red Lion on Legmate');
         expect(mail.text).toContain('Hello Anna,');
         expect(mail.text).toContain('Choose your password: https://x/l?t=1');
-        expect(mail.text).toContain('This email was sent by Oche (https://x).');
+        expect(mail.text).toContain('This email was sent by Legmate (https://x).');
         expect(mail.html).toContain('href="https://x/l?t=1"');
         expect(mail.html).toContain('>Choose your password</a>');
         expect(mail.html).not.toContain('{{');
@@ -55,9 +55,9 @@ describe('mail templates', () => {
 
     it('writes a mail in the language of its reader, layout and validity too', () => {
         const mail = renderMail(effectiveTemplate('passwordReset', {}, 'de'), { firstname: 'Anna', validity: validityOf(1, 'de'), link: 'https://x/r', appUrl: 'https://x' }, 'de');
-        expect(mail.subject).toBe('Setze dein Oche-Passwort zurück');
+        expect(mail.subject).toBe('Setze dein Legmate-Passwort zurück');
         expect(mail.text).toContain('läuft in 1 Stunde ab');
-        expect(mail.text).toContain('Diese E-Mail wurde von Oche (https://x) gesendet.');
+        expect(mail.text).toContain('Diese E-Mail wurde von Legmate (https://x) gesendet.');
         expect(mail.html).toContain('<html lang="de">');
         expect(mail.html).toContain('Falls der Knopf nicht funktioniert');
         expect(validityOf(7 * 24, 'fr')).toBe('7 jours');
@@ -68,6 +68,6 @@ describe('mail templates', () => {
         const overrides = { passwordReset: { subject: 'New password' }, 'passwordReset:it': { subject: 'Nuova password' } };
         expect(effectiveTemplate('passwordReset', overrides).subject).toBe('New password');
         expect(effectiveTemplate('passwordReset', overrides, 'it').subject).toBe('Nuova password');
-        expect(effectiveTemplate('passwordReset', overrides, 'fr').subject).toBe('Réinitialise ton mot de passe Oche');
+        expect(effectiveTemplate('passwordReset', overrides, 'fr').subject).toBe('Réinitialise ton mot de passe Legmate');
     });
 });

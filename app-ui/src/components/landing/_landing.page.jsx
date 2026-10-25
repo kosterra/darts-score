@@ -13,6 +13,7 @@ import { locale, t } from '../../utils/i18n';
 import { PublicHeader, PublicFooter } from './public.frame';
 import usePageTitle from '../../utils/use.page.title';
 import usePublicSite from '../../utils/use.public.site';
+import { BRAND } from '../../utils/project';
 
 const REFRESH_MS = 15 * 1000;
 
@@ -21,10 +22,10 @@ const SHOWCASE = [
     {
         eyebrow: t('Scoring'),
         title: t('Every dart counted, every way out shown'),
-        text: t('Tap the darts on the board or the keypad, or type the score of a visit. Oche keeps the score of every player, shows the ways out from 170 down, and celebrates the 180s and the big finishes.'),
+        text: t('Tap the darts on the board or the keypad, or type the score of a visit. Legmate keeps the score of every player, shows the ways out from 170 down, and celebrates the 180s and the big finishes.'),
         points: [t('X01 from 101 to 1001, sets and legs, double in and out'), t('Cricket, Elimination, Around the Clock, Shanghai, Killer, Halve-It, Golf and Tactics'), t('Undo, handicaps and a guest for a single game'), t('The rules of every game one tap away')],
         shot: 'cricket-game',
-        alt: t('A Cricket game in Oche: the marks of every player and the board to tap the darts on'),
+        alt: t('A Cricket game in Legmate: the marks of every player and the board to tap the darts on'),
     },
     {
         eyebrow: t('Statistics'),
@@ -72,7 +73,7 @@ const SHOWCASE = [
 const WAYS = [
     {
         to: '/quick', icon: <FaBullseye />, eyebrow: t('Try it out'), buttonIcon: 'pi pi-play', action: t('Play a quick game'),
-        question: t('Just want to see how Oche works, or play a few games without keeping statistics?'),
+        question: t('Just want to see how Legmate works, or play a few games without keeping statistics?'),
         points: [t('No account, only the names of the players'), t('X01, Cricket or Elimination for up to four'), t('The statistics of the game at the end')],
     },
     {
@@ -94,11 +95,11 @@ const FEATURES = [
     { icon: <FaRobot />, title: t('A bot to practise with'), text: t('Easy, normal, hard or pro, or one that plays at your own level.') },
     { icon: <FaPeopleGroup />, title: t('Made for clubs'), text: t('Several admins, a login for every player, and new members who join on their own if you let them.') },
     { icon: <FaUserGroup />, title: t('Friends and family too'), text: t('Your own group for friends, the flatshare or the family, and a guest for a single game in seconds.') },
-    { icon: <FaMobileScreen />, title: t('On any screen'), text: t('Phone, tablet or the PC next to the board: nothing to install, or add Oche to the home screen as an app.') },
+    { icon: <FaMobileScreen />, title: t('On any screen'), text: t('Phone, tablet or the PC next to the board: nothing to install, or add Legmate to the home screen as an app.') },
     { icon: <FaBookOpen />, title: t('Rules at hand'), text: t('Every game and training explains its rules, in its setup and while it is played.') },
     { icon: <FaWandMagicSparkles />, title: t('The big moments celebrated'), text: t('180s, big finishes, a Shanghai or a hole in one, and the winner in gold, without holding up the next game.') },
     { icon: <FaLanguage />, title: t('In five languages'), text: t('English, German, French, Italian and Spanish; the darts terms stay English.') },
-    { icon: <FaScaleBalanced />, title: t('Fair play'), text: t('Oche checks every game for scores that cannot be thrown; a game entered by mistake goes when its players agree, or a club admin decides.') },
+    { icon: <FaScaleBalanced />, title: t('Fair play'), text: t('Legmate checks every game for scores that cannot be thrown; a game entered by mistake goes when its players agree, or a club admin decides.') },
     { icon: <FaPeopleArrows />, title: t('Who beats whom'), text: t('Compare two to four players in any game: the score of wins, the streaks, the highlights of their duels and, from the club rating, the chances for the next game.') },
     { icon: <FaTableCellsLarge />, title: t('A Dashboard of your own'), text: t('What waits for you, your favourite games started again with one tap, your training and your form, arranged as you like.') },
     { icon: <FaBell />, title: t('Nothing missed'), text: t('Badges, records, tournaments and requests in the app or by mail, at once, daily or weekly, and your week on Mondays: you choose.') },
@@ -109,32 +110,32 @@ const FEATURES = [
 const STEPS = [
     { title: t('Create your account'), text: t('Register with your email address. It takes a minute.') },
     { title: t('Set up your group or join a club'), text: t('Set up a club for your team, your friends or your flatshare and add the players, or find a club that takes new members and join it.') },
-    { title: t('Play'), text: t('Start a game, throw, and let Oche do the counting. Or try a quick game first, without an account.') },
+    { title: t('Play'), text: t('Start a game, throw, and let Legmate do the counting. Or try a quick game first, without an account.') },
 ];
 
 const FAQ = [
-    { q: t('Is Oche only for clubs?'), a: t('No. In Oche every group is a "club": a darts club or pub team as well as friends, a flatshare or the family. Set one up in a minute, add the players, and play.') },
-    { q: t('What does Oche cost?'), a: t('Nothing. Oche is free for everyone, without ads.') },
+    { q: t('Is Legmate only for clubs?'), a: t('No. In Legmate every group is a "club": a darts club or pub team as well as friends, a flatshare or the family. Set one up in a minute, add the players, and play.') },
+    { q: t('What does Legmate cost?'), a: t('Nothing. Legmate is free for everyone, without ads.') },
     { q: t('Can I try it without an account?'), a: t('Yes: a quick game of X01, Cricket or Elimination needs only the names of the players, and ends with its statistics; a darts evening plays game after game with up to eight, with a table of the evening and awards. Both stay on your device for 30 days; an account keeps every game, and an evening can become a club.') },
-    { q: t('Do we need to know the rules?'), a: t('No. Every game and training has its rules one tap away, when setting it up and while playing, and Oche counts by them.') },
-    { q: t('Which languages does Oche speak?'), a: t('English, German, French, Italian and Spanish. It starts in the language of your browser, and your account remembers your choice. The darts terms stay English: leg, set, bust, checkout.') },
+    { q: t('Do we need to know the rules?'), a: t('No. Every game and training has its rules one tap away, when setting it up and while playing, and Legmate counts by them.') },
+    { q: t('Which languages does Legmate speak?'), a: t('English, German, French, Italian and Spanish. It starts in the language of your browser, and your account remembers your choice. The darts terms stay English: leg, set, bust, checkout.') },
     { q: t('Who sees our games?'), a: t('Only the members of your club or group. A club appears on this page only when its admins make it public, and even then a player is only named when they chose to show their nickname.') },
-    { q: t('Do I need a dartboard with electronics?'), a: t('No. Oche is for steel and soft tip on any board: you enter the darts on the phone, tablet or PC next to it.') },
+    { q: t('Do I need a dartboard with electronics?'), a: t('No. Legmate is for steel and soft tip on any board: you enter the darts on the phone, tablet or PC next to it.') },
     { q: t('Can a player be in more than one club?'), a: t('Yes. One account plays in several clubs, with one player whose statistics, badges and darts go along.') },
     { q: t('Can we play tournaments?'), a: t('Yes, as a beta: club admins set up knockout tournaments for 8 to 64 players with a date and rules for every round. The members enter with one tap, also from the invitation mail, and the bracket shows every match live.') },
     { q: t('What do leg, bust or Madhouse mean?'), a: <>{t('The basics of the game and every term you hear at the oche, explained in your language:')}{' '}<Link to="/darts-terms">{t('Darts A–Z')}</Link>.</> },
     { q: t('Found a problem, or have an idea?'), a: <>{t('Tell us, every message is read:')}{' '}<Link to="/contact">{t('Contact')}</Link>. {t('What changed lately is under')}{' '}<Link to="/whats-new">{t('What\'s new')}</Link>.</> },
-    { q: t('Can we run Oche ourselves?'), a: t('Yes. Oche is open source under the AGPLv3 and runs with Docker on your own server.') },
+    { q: t('Can we run Legmate ourselves?'), a: t('Yes. Legmate is open source under the AGPLv3 and runs with Docker on your own server.') },
 ];
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
- * The public start page: what Oche is, with pictures of it, the running
+ * The public start page: what Legmate is, with pictures of it, the running
  * games and latest results and the clubs of the installation that are public.
  */
 const LandingPage = () => {
-    usePageTitle(`Oche – ${t('The darts scoreboard')}`, { full: true });
+    usePageTitle(`${BRAND} – ${t('The darts scoreboard')}`, { full: true });
     // an installation of its own clubs only opens with the login (System settings → Start page)
     const publicSite = usePublicSite();
     const [overview, setOverview] = useState(null);
@@ -176,7 +177,7 @@ const LandingPage = () => {
     const clubs = overview?.clubs ?? [];
 
     if (publicSite === false) return <Navigate to="/login" replace />;
-    // nothing of the page about Oche shows before it is known that there is one
+    // nothing of the page about Legmate shows before it is known that there is one
     if (publicSite === null) return null;
 
     return (
@@ -198,7 +199,7 @@ const LandingPage = () => {
                             <span className="landing-eyebrow">{t('Free darts scoring for everyone – clubs, friends, flatshares')}</span>
                             <h1 className="landing-title m-0">{t('Game on. We keep the score.')}</h1>
                             <p className="fs-5 text-default m-0">
-                                {t('Oche is the scoreboard for your club, your pub team, your flatshare or your living room: it counts every dart, keeps the statistics and shows who is on the oche right now.')}
+                                {t('Legmate is the scoreboard for your club, your pub team, your flatshare or your living room: it counts every dart, keeps the statistics and shows who is on the oche right now.')}
                             </p>
                             <div className="d-flex flex-wrap gap-3 pt-2">
                                 <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
@@ -212,7 +213,7 @@ const LandingPage = () => {
                         </div>
                         <div className="col-12 col-lg-7">
                             <div className="landing-hero-shots">
-                                <ShowcaseShot name="x01-game" alt={t('An X01 game in Oche: the scores, the ways out and the board to tap the darts on')} eager />
+                                <ShowcaseShot name="x01-game" alt={t('An X01 game in Legmate: the scores, the ways out and the board to tap the darts on')} eager />
                                 <PhoneShot name="x01-game-phone" alt={t('The same X01 game on a phone')} />
                             </div>
                         </div>
@@ -223,7 +224,7 @@ const LandingPage = () => {
             <main className="d-flex flex-column landing-main">
                 {/* the numbers only once the global admins show them */}
                 {overview?.totals &&
-                    <section className="container" aria-label={t('Oche in numbers')}>
+                    <section className="container" aria-label={t('Legmate in numbers')}>
                         <div className="landing-numbers">
                             {[[t('Clubs'), overview.totals.clubs], [t('Players'), overview.totals.players], [t('Games played'), overview.totals.gamesPlayed], [t('Games this week'), overview.totals.gamesThisWeek]].map(([label, value]) => (
                                 <div key={label}>
@@ -326,7 +327,7 @@ const LandingPage = () => {
                 {clubs.length > 0 &&
                     <section id="clubs" className="container d-flex flex-column gap-4">
                         <div className="landing-section-head">
-                            <span className="landing-eyebrow">{t('Playing with Oche')}</span>
+                            <span className="landing-eyebrow">{t('Playing with Legmate')}</span>
                             <h2 className="landing-heading m-0">{t('Public clubs')}</h2>
                             <p className="text-subtle m-0">{t('Clubs that show themselves here, with what they played. Some take new members: register and join them.')}</p>
                         </div>
@@ -380,7 +381,7 @@ const LandingPage = () => {
                         <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
                         <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
                         <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
-                        <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Oche')}</Link></span>
+                        <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Legmate')}</Link></span>
                     </div>
                 </section>
             </main>
