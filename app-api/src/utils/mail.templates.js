@@ -36,8 +36,8 @@ export const MAIL_TEMPLATES = [
         title: 'Password reset',
         description: 'Someone asked for a new password on the login page.',
         placeholders: [...COMMON, { ...VALIDITY, sample: '1 hour' }],
-        subject: 'Reset your Oche password',
-        body: 'Hello {{firstname}},\n\nWe received a request to reset the password of your Oche account. Use the button below to choose a new one. The link works once and expires in {{validity}}.\n\nIf you did not ask for this, you can ignore this email: your password stays as it is.',
+        subject: 'Reset your Legmate password',
+        body: 'Hello {{firstname}},\n\nWe received a request to reset the password of your Legmate account. Use the button below to choose a new one. The link works once and expires in {{validity}}.\n\nIf you did not ask for this, you can ignore this email: your password stays as it is.',
         button: 'Choose a new password',
     },
     {
@@ -46,16 +46,16 @@ export const MAIL_TEMPLATES = [
         description: 'An admin made an existing account an admin of their club.',
         placeholders: [...COMMON, ...CLUB],
         subject: 'You are now an admin of {{club}}',
-        body: 'Hello {{firstname}},\n\n{{inviter}} has made you an administrator of {{club}} on Oche. As an admin you look after the club: its players, their logins, the games and the settings.\n\nLog in with your email address to get started.',
-        button: 'Open Oche',
+        body: 'Hello {{firstname}},\n\n{{inviter}} has made you an administrator of {{club}} on Legmate. As an admin you look after the club: its players, their logins, the games and the settings.\n\nLog in with your email address to get started.',
+        button: 'Open Legmate',
     },
     {
         id: 'adminInvited',
         title: 'Club admin invited (new account)',
         description: 'An admin made someone without an account an admin of their club: the account is created and they choose their password.',
         placeholders: [...COMMON, ...CLUB, VALIDITY],
-        subject: 'You are invited to run {{club}} on Oche',
-        body: 'Hello {{firstname}},\n\n{{inviter}} has made you an administrator of {{club}} on Oche, the scoreboard and statistics for darts clubs. An account has been created for you.\n\nChoose your password with the button below to log in. The link is valid for {{validity}}.',
+        subject: 'You are invited to run {{club}} on Legmate',
+        body: 'Hello {{firstname}},\n\n{{inviter}} has made you an administrator of {{club}} on Legmate, the scoreboard and statistics for darts clubs. An account has been created for you.\n\nChoose your password with the button below to log in. The link is valid for {{validity}}.',
         button: 'Choose your password',
     },
     {
@@ -64,8 +64,8 @@ export const MAIL_TEMPLATES = [
         description: 'An admin gave an existing account the login of a player of their club.',
         placeholders: [...COMMON, ...CLUB, NICKNAME],
         subject: 'Your login for {{club}}',
-        body: 'Hello {{firstname}},\n\n{{inviter}} has given you a login for {{club}} on Oche, as the player {{nickname}}. You can now start games and trainings on your own and follow your statistics, badges and level.\n\nLog in with your email address to get started.',
-        button: 'Open Oche',
+        body: 'Hello {{firstname}},\n\n{{inviter}} has given you a login for {{club}} on Legmate, as the player {{nickname}}. You can now start games and trainings on your own and follow your statistics, badges and level.\n\nLog in with your email address to get started.',
+        button: 'Open Legmate',
     },
     {
         id: 'playerInvited',
@@ -73,7 +73,7 @@ export const MAIL_TEMPLATES = [
         description: 'An admin gave someone without an account the login of a player: the account is created and they choose their password.',
         placeholders: [...COMMON, ...CLUB, NICKNAME, VALIDITY],
         subject: 'You are invited to play at {{club}}',
-        body: 'Hello {{firstname}},\n\n{{inviter}} has invited you to {{club}} on Oche, the scoreboard and statistics for darts clubs, as the player {{nickname}}. An account has been created for you.\n\nChoose your password with the button below to log in. The link is valid for {{validity}}.',
+        body: 'Hello {{firstname}},\n\n{{inviter}} has invited you to {{club}} on Legmate, the scoreboard and statistics for darts clubs, as the player {{nickname}}. An account has been created for you.\n\nChoose your password with the button below to log in. The link is valid for {{validity}}.',
         button: 'Choose your password',
     },
     {
@@ -83,14 +83,14 @@ export const MAIL_TEMPLATES = [
         placeholders: [...COMMON, { key: 'title', description: 'What happened, in one line', sample: 'Anna Muster asks to join Red Lion Darts Club' }, { key: 'details', description: 'More about it', sample: 'Anna plays as Sammy. Accept or decline the request.' }],
         subject: '{{title}}',
         body: 'Hello {{firstname}},\n\n{{title}}\n\n{{details}}',
-        button: 'Open in Oche',
+        button: 'Open in Legmate',
     },
     {
         id: 'digest',
         title: 'Notifications of the day or week',
         description: 'The notifications the user chose to get by mail once a day or once a week, in one mail.',
         placeholders: [...COMMON, { key: 'period', description: '"today" or "this week"', sample: 'today' }, { key: 'list', description: 'The notifications, one per line', sample: '• Sammy earned the badge One Hundred and Eighty!\n• Red Lion Darts Club reached its goal: 100 × 180' }],
-        subject: 'Your Oche news {{period}}',
+        subject: 'Your Legmate news {{period}}',
         body: 'Hello {{firstname}},\n\nThis happened {{period}}:\n\n{{list}}',
         button: 'Open your notifications',
     },
@@ -126,8 +126,8 @@ export const MAIL_TEMPLATES = [
         title: 'Weekly usage report',
         description: 'On Mondays, for the global admins who keep it on: the use of the app in the week that ended, against the week before.',
         placeholders: [...COMMON, { key: 'week', description: 'The week, from Monday to Sunday', sample: '19.10.2026 – 25.10.2026' }, { key: 'summary', description: 'The figures of the week, one line each', sample: '• Active users: 42 (+12 %)\n• Logins: 118 (+5 %)\n• Games started: 230 (−3 %)' }],
-        subject: 'Oche: the week of {{week}}',
-        body: 'Hello {{firstname}},\n\nThis is how Oche was used in the week of {{week}}, against the week before:\n\n{{summary}}',
+        subject: 'Legmate: the week of {{week}}',
+        body: 'Hello {{firstname}},\n\nThis is how Legmate was used in the week of {{week}}, against the week before:\n\n{{summary}}',
         button: 'Usage in detail',
     },
     {
@@ -144,8 +144,8 @@ export const MAIL_TEMPLATES = [
         title: 'Password changed',
         description: 'The password of an account was changed: by its user, with a reset link or by a global admin. Always sent.',
         placeholders: [...COMMON, DATE],
-        subject: 'Your Oche password was changed',
-        body: 'Hello {{firstname}},\n\nThe password of your Oche account was changed on {{date}}. If that was you, all is well.\n\nIf it was not you, choose a new password right away with the button below and tell the admins of your club.',
+        subject: 'Your Legmate password was changed',
+        body: 'Hello {{firstname}},\n\nThe password of your Legmate account was changed on {{date}}. If that was you, all is well.\n\nIf it was not you, choose a new password right away with the button below and tell the admins of your club.',
         button: 'Choose a new password',
     },
     {
@@ -153,27 +153,27 @@ export const MAIL_TEMPLATES = [
         title: 'Email address changed',
         description: 'The email address of an account was changed; the mail goes to the old address. Always sent.',
         placeholders: [...COMMON, { key: 'oldEmail', description: 'The address before', sample: 'anna@example.com' }, { key: 'newEmail', description: 'The new address', sample: 'anna.muster@example.com' }, DATE],
-        subject: 'The email address of your Oche account was changed',
-        body: 'Hello {{firstname}},\n\nThe email address of your Oche account was changed from {{oldEmail}} to {{newEmail}} on {{date}}. From now on you log in with the new one.\n\nIf it was not you, tell the admins of your club right away: they can set the address back.',
-        button: 'Open Oche',
+        subject: 'The email address of your Legmate account was changed',
+        body: 'Hello {{firstname}},\n\nThe email address of your Legmate account was changed from {{oldEmail}} to {{newEmail}} on {{date}}. From now on you log in with the new one.\n\nIf it was not you, tell the admins of your club right away: they can set the address back.',
+        button: 'Open Legmate',
     },
     {
         id: 'accountBlocked',
         title: 'Account blocked',
         description: 'An account was blocked by a global admin or a spam rule. Always sent.',
         placeholders: [...COMMON, { key: 'reason', description: 'Why it was blocked', sample: 'More than 30 games created in an hour' }],
-        subject: 'Your Oche account was blocked',
-        body: 'Hello {{firstname}},\n\nYour Oche account was blocked, so you can no longer log in. The reason: {{reason}}\n\nIf you think this is a mistake, tell the admins of your club.',
-        button: 'Open Oche',
+        subject: 'Your Legmate account was blocked',
+        body: 'Hello {{firstname}},\n\nYour Legmate account was blocked, so you can no longer log in. The reason: {{reason}}\n\nIf you think this is a mistake, tell the admins of your club.',
+        button: 'Open Legmate',
     },
     {
         id: 'securityNotice',
         title: 'Two-step login changed',
         description: 'Two-step login of an account was turned on or off, reset by a global admin, or a recovery code was used. Always sent.',
-        placeholders: [...COMMON, { key: 'title', description: 'What happened, in one line', sample: 'Two-step login is on' }, { key: 'details', description: 'More about it', sample: 'From now on Oche asks for a code of your authenticator app after the password.' }, DATE],
+        placeholders: [...COMMON, { key: 'title', description: 'What happened, in one line', sample: 'Two-step login is on' }, { key: 'details', description: 'More about it', sample: 'From now on Legmate asks for a code of your authenticator app after the password.' }, DATE],
         subject: '{{title}}',
         body: 'Hello {{firstname}},\n\n{{title}} ({{date}}).\n\n{{details}}',
-        button: 'Open Oche',
+        button: 'Open Legmate',
     },
     {
         id: 'contactNews',
@@ -183,6 +183,20 @@ export const MAIL_TEMPLATES = [
         subject: '{{title}}',
         body: 'Hello {{firstname}},\n\n{{details}}\n\nYou get this mail because {{club}} keeps your address for your player {{nickname}}. With a login of your own you see your statistics, badges and level any time.',
         button: 'Get your own login',
+    },
+    {
+        id: 'contactMessage',
+        title: 'Message of the contact form',
+        description: 'Someone wrote through the contact form; it goes to the address of the operator under System settings → Privacy and imprint, and a reply goes back to the sender.',
+        placeholders: [
+            { key: 'name', description: 'Name of the sender', sample: 'Alex Brunner' },
+            { key: 'email', description: 'Address of the sender, to reply to', sample: 'alex@example.com' },
+            { key: 'message', description: 'What they wrote', sample: 'Hello! We play every Tuesday and love Legmate.' },
+            COMMON[1], COMMON[2],
+        ],
+        subject: 'A message to Legmate from {{name}}',
+        body: 'A message came through the contact form of Legmate.\n\nFrom: {{name}} ({{email}})\n\n{{message}}\n\nReply to this mail to answer {{name}}.',
+        button: 'Open Legmate',
     },
 ];
 
@@ -276,7 +290,7 @@ export const renderMail = ({ subject, body, button }, vars, language = 'en') => 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f3f1;padding:24px 12px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:10px;overflow:hidden;font-family:Helvetica,Arial,sans-serif;color:#2b2b2b;">
-<tr><td style="background:${BRAND};padding:18px 28px;color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">Oche</td></tr>
+<tr><td style="background:${BRAND};padding:18px 28px;color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">Legmate</td></tr>
 <tr><td style="padding:28px 28px 8px;font-size:15px;line-height:1.6;">${paragraphs}</td></tr>
 <tr><td style="padding:0 28px 28px;">
 <a href="${link}" style="display:inline-block;background:${BRAND};color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:6px;">${escapeHtml(fill(button, vars))}</a>

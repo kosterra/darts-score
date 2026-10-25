@@ -7,6 +7,9 @@ import { t, tn } from '../../utils/i18n';
 
 // the newest releases shown at first
 const RECENT_RELEASES = 4;
+// the version of this build, not released yet (any build but the release of main):
+// its changes are coming soon, the latest released version is the one after it
+const UPCOMING = import.meta.env.VITE_APP_RELEASED ? null : import.meta.env.VITE_APP_VERSION;
 // a topic in front of a change ("Fair play: ..."), short enough to read as its title
 const TOPIC = /^([^:.]{2,60}):\s+/;
 
@@ -40,7 +43,8 @@ const Change = ({ change }) => {
  */
 const ReleaseNotes = () => {
     const [allReleases, setAllReleases] = useState(false);
-    const [open, setOpen] = useState(() => new Set([CHANGELOG[0]?.version]));
+    // open at first: what is coming, and the latest version that is out
+    const [open, setOpen] = useState(() => new Set(CHANGELOG.slice(0, CHANGELOG[0]?.version === UPCOMING ? 2 : 1).map(release => release.version)));
     const toggle = (version) => setOpen(current => {
         const next = new Set(current);
         if (next.has(version)) next.delete(version);
@@ -48,6 +52,8 @@ const ReleaseNotes = () => {
         return next;
     });
     const shown = allReleases ? CHANGELOG : CHANGELOG.slice(0, RECENT_RELEASES);
+    // the newest version that is out
+    const latest = CHANGELOG.findIndex(release => release.version !== UPCOMING);
 
     return (
         <div className="d-flex flex-column gap-3 p-1">
@@ -56,10 +62,12 @@ const ReleaseNotes = () => {
                 const fixes = release.changes.filter(change => change.startsWith(t('Fix: '))).length;
                 const id = `release-${release.version.replaceAll('.', '-')}`;
                 return (
-                    <section key={release.version} className={`release ${isOpen ? 'is-open' : ''}`}>
+                    <section key={release.version} className={`release ${isOpen ? 'is-open' : ''} ${release.version === UPCOMING ? 'is-upcoming' : ''}`}>
                         <button type="button" className="release-head" aria-expanded={isOpen} aria-controls={id} onClick={() => toggle(release.version)}>
                             <span className="release-version">{release.version}</span>
-                            {index === 0 && <Tag value={t('Latest')} />}
+                            {release.version === UPCOMING
+                                ? <Tag value={t('Coming soon')} severity="warning" icon="pi pi-clock" />
+                                : index === latest && <Tag value={t('Latest')} />}
                             <span className="text-faint fs-8 me-auto">
                                 {tn(release.changes.length - fixes, '{{count}} new', '{{count}} new')}{fixes ? ` · ${tn(fixes, '{{count}} fix', '{{count}} fixes')}` : ''}
                             </span>

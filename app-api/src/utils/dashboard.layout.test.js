@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { layoutFromWidgets, normalizeLayout, MAX_WIDGETS } from './dashboard.layout.js';
+import { layoutFromWidgets, normalizeLayout, personalFromOwn, MAX_WIDGETS } from './dashboard.layout.js';
 
 describe('dashboard layout', () => {
     it('keeps valid widgets in their order, each once, with a known width', () => {
@@ -16,5 +16,24 @@ describe('dashboard layout', () => {
             { id: 'me', size: 'S' }, { id: 'totals', size: 'F' }, { id: 'leaderMostWins', size: 'S' }, { id: 'timeline', size: 'L' },
         ]);
         expect(layoutFromWidgets(undefined)).toEqual([]);
+    });
+});
+
+describe('personalFromOwn', () => {
+    const red = { club: 'c1', layout: [{ id: 'me', size: 'S' }, { id: 'records', size: 'M' }] };
+    const blue = { club: 'c2', layout: [{ id: 'timeline', size: 'L' }, { id: 'favourites', size: 'S' }] };
+
+    it('puts Up next and the favourites on top of the arrangement made last', () => {
+        expect(personalFromOwn([red, blue])).toEqual([{ id: 'upNext', size: 'F' }, { id: 'favourites', size: 'L' }, { id: 'timeline', size: 'L' }]);
+    });
+
+    it('takes the one of the default club first', () => {
+        expect(personalFromOwn([red, blue], 'c1').map(item => item.id)).toEqual(['upNext', 'favourites', 'me', 'records']);
+    });
+
+    it('is null without an arrangement', () => {
+        expect(personalFromOwn([])).toBeNull();
+        expect(personalFromOwn(undefined)).toBeNull();
+        expect(personalFromOwn([{ club: 'c1', layout: [] }])).toBeNull();
     });
 });

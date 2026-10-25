@@ -91,7 +91,7 @@ export const update = async (req, res) => {
 export const list = async (req, res) => {
     const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 200));
     const [games, total, perDay] = await Promise.all([
-        QuickGame.find({}, 'kind names winner gameIsRunning hasWinner createdAt updatedAt data.startingScore data.legOutMode data.numberOfLegs data.variant')
+        QuickGame.find({}, 'kind names winner gameIsRunning hasWinner createdAt updatedAt data.startingScore data.legOutMode data.numberOfLegs data.variant data.targetScore data.gameOutMode')
             .sort({ createdAt: -1 }).limit(limit).lean(),
         QuickGame.countDocuments(),
         QuickGame.aggregate([
@@ -108,7 +108,9 @@ export const list = async (req, res) => {
             kind: game.kind,
             format: game.kind === 'x01'
                 ? `${game.data?.startingScore} · ${game.data?.legOutMode} · best of ${game.data?.numberOfLegs} ${game.data?.numberOfLegs === 1 ? 'leg' : 'legs'}`
-                : `Cricket · ${game.data?.variant ?? 'Standard'}`,
+                : game.kind === 'elimination'
+                    ? `Elimination · ${game.data?.targetScore} · ${game.data?.gameOutMode}`
+                    : `Cricket · ${game.data?.variant ?? 'Standard'}`,
             names: game.names,
             winner: game.winner,
             finished: game.hasWinner,

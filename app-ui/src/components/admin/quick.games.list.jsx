@@ -21,7 +21,7 @@ import { t } from '../../utils/i18n';
 import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
-const TYPE_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }];
+const TYPE_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }, { label: t('Elimination'), value: 'elimination' }];
 const STATUS_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('Running'), value: 'running', icon: 'pi pi-play' }, { label: t('Finished'), value: 'finished', icon: 'pi pi-check-circle' }];
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)

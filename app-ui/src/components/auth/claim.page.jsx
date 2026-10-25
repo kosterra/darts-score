@@ -60,7 +60,7 @@ const ClaimPage = () => {
             {error && !info &&
                 <div className="d-flex flex-column gap-3">
                     <Message severity="warn" text={error} className="w-100 justify-content-start" />
-                    <Button type="button" label={t('Open Oche')} icon="pi pi-home" severity="secondary" onClick={() => navigate('/', { replace: true })} />
+                    <Button type="button" label={t('Open Legmate')} icon="pi pi-home" severity="secondary" onClick={() => navigate('/', { replace: true })} />
                 </div>}
             {info &&
                 <div className="d-flex flex-column gap-3 pt-2">

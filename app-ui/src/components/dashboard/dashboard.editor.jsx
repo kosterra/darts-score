@@ -2,7 +2,7 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 
-import { DASHBOARD_WIDGETS, WIDGET_SIZES, resolveLayout } from './dashboard.widgets';
+import { CLUB_WIDGETS, DEFAULT_LAYOUT, SCOPES, WIDGET_SIZES, resolveLayout, scopeOf } from './dashboard.widgets';
 import { t } from '../../utils/i18n';
 
 // a widget lies across (nearly) the whole row: it is moved before or after it by height, not by side
@@ -17,6 +17,12 @@ const GHOST_MAX_WIDTH = 360;
 
 // a widget's content is drawn once: dragging moves it, but it is not drawn again
 // (the charts and lists would make the dragging slow), only when its width changes
+// whether a widget shows only the user's own figures or the whole club
+const ScopeTag = ({ widget }) => {
+    const scope = scopeOf(widget);
+    return <span className={`dashboard-scope is-${scope}`} title={SCOPES[scope].hint}>{SCOPES[scope].label}</span>;
+};
+
 const TileContent = memo(
     function TileContent({ widget, renderWidget }) {
         return <div className="dashboard-tile-content" inert>{renderWidget(widget)}</div>;
@@ -46,6 +52,7 @@ const EditorTile = memo(
                         >
                             <i className="pi pi-arrows-alt" aria-hidden="true" />
                             <span className="text-truncate">{widget.title}</span>
+                            <ScopeTag widget={widget} />
                         </button>
                         <SelectButton
                             value={widget.size}
@@ -76,14 +83,15 @@ const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.
  * (mouse, pen or finger; or the arrow keys on the handle), its width (S, M,
  * L, Full) and a button to remove it; below, the widgets not shown yet, to
  * add. layout: [{ id, size }], onChange(layout). renderWidget(widget) draws a
- * widget as on the dashboard; it does not react while being arranged.
+ * widget as on the dashboard; it does not react while being arranged. pool:
+ * the widgets that can be added; fallback: the layout of an empty one.
  *
  * While dragging, a copy of the widget's bar follows the pointer and the
  * widget itself shows where it will land; the others glide out of the way.
  * The places are worked out at most once a frame, from where the widgets
  * stand (not where they are gliding), so they never jump back and forth.
  */
-const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true }) => {
+const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, pool = CLUB_WIDGETS, fallback = DEFAULT_LAYOUT }) => {
     const gridRef = useRef(null);
     const ghostRef = useRef(null);
     const tileRefs = useRef(new Map());
@@ -97,10 +105,10 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
     // places, not on every move (that would lay the dashboard out again each frame)
     const stands = useRef(null);
 
-    const widgets = resolveLayout(layout, { shameBadges });
+    const widgets = resolveLayout(layout, { shameBadges, fallback });
     const ids = widgets.map(widget => widget.id);
     const shown = new Set(ids);
-    const available = DASHBOARD_WIDGETS.filter(widget => !shown.has(widget.id) && (shameBadges || widget.kind !== 'hallOfShame'));
+    const available = pool.filter(widget => !shown.has(widget.id) && (shameBadges || widget.kind !== 'hallOfShame'));
 
     // the place of each widget in the grid, without the gliding (offsets ignore transforms)
     const positions = () => new Map([...tileRefs.current].map(([id, element]) => [id, { left: element.offsetLeft, top: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }]));
@@ -262,11 +270,19 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true })
             {available.length > 0 && (
                 <section className="mt-5">
                     <p className="game-setup-section-title">{t('Add widgets')}</p>
+                    <p className="text-faint fs-8 mt-0">
+                        {t('Every widget shows the club chosen at the top.')}{' '}
+                        <span className="dashboard-scope is-you">{SCOPES.you.label}</span>{' '}{t('only your own games, trainings and requests there;')}{' '}
+                        <span className="dashboard-scope is-club">{SCOPES.club.label}</span>{' '}{t('the whole club.')}
+                    </p>
                     <ul className="dashboard-available list-unstyled m-0">
                         {available.map(widget => (
                             <li key={widget.id} className="dashboard-available-item">
                                 <div className="d-flex flex-column flex-grow-1 min-w-0">
-                                    <span className="text-default fs-7 fw-semibold">{widget.title}</span>
+                                    <span className="d-flex align-items-center gap-2 min-w-0">
+                                        <span className="text-default fs-7 fw-semibold text-truncate">{widget.title}</span>
+                                        <ScopeTag widget={widget} />
+                                    </span>
                                     <span className="text-faint fs-8">{widget.description}</span>
                                 </div>
                                 <Button type="button" label={t('Add')} icon="pi pi-plus" size="small" severity="secondary" onClick={() => add(widget)} aria-label={t('Add {{title}}', { title: widget.title })} />

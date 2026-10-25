@@ -146,7 +146,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=darts@example.com
 SMTP_PASSWORD=yourmailpassword
-SMTP_FROM=Oche <darts@example.com>
+SMTP_FROM=Legmate <darts@example.com>
 IMG_DIR=data/img
 LOG_LEVEL=info
 ```
@@ -175,7 +175,7 @@ LOG_LEVEL=info
 | `SMTP_HOST` | for email | — | SMTP server. Without it password reset and invitations by mail are off |
 | `SMTP_PORT` | no | `587` | SMTP port (`465` implies TLS) |
 | `SMTP_USER` / `SMTP_PASSWORD` | no | — | SMTP login, if the server needs one |
-| `SMTP_FROM` | no | `Oche <no-reply@darts-score.local>` | Sender of the mails |
+| `SMTP_FROM` | no | `Legmate <no-reply@darts-score.local>` | Sender of the mails |
 | `SMTP_SECURE` | no | `true` on port 465 | `true` for TLS from the start on another port |
 | `LOG_LEVEL` | no | `debug` | `error`, `warn`, `info` or `debug` |
 
@@ -214,4 +214,4 @@ volumes:
 
 ## License
 
-[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
+[AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html): run it, change it and share it; whoever offers a changed Legmate to others over the network shares its source code too.

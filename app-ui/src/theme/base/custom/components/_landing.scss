@@ -44,6 +44,11 @@
 .landing-nav {
     display: none;
     gap: 1.75rem;
+    // next to the logo, with room between them; the account stays on the right
+    margin-left: 2.5rem;
+    margin-right: auto;
+    padding-left: 2.5rem;
+    border-left: 1px solid ink(0.1);
 
     a {
         color: var(--text-subtle);
@@ -392,7 +397,8 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: $space-4 $space-6;
+    // the brand and the links apart, also when the links go below it
+    gap: $space-6 $space-6;
     // the brand and the links side by side on a wide screen, also with their icons
     max-width: 82rem;
     margin: 0 auto;
@@ -444,7 +450,7 @@
     @media (min-width: 768px) { display: inline; }
 }
 
-// the heart in the bar on top: to the page Support Oche
+// the heart in the bar on top: to the page Support Legmate
 .landing-support-link {
     display: inline-flex;
     align-items: center;
@@ -463,6 +469,69 @@
     display: flex;
     flex-wrap: wrap;
     gap: $space-2 $space-3;
+}
+
+// the licence after the line about Legmate, to its official text; on a phone on a line of its own
+.landing-footer-licence::before { content: ' · '; color: var(--text-faint); }
+.landing-footer .landing-footer-licence a { text-decoration: underline; text-decoration-color: ink(0.25); text-underline-offset: 3px; }
+.landing-footer .landing-footer-licence a:hover { text-decoration-color: currentColor; }
+
+// on a phone: all centred, the links in two even columns, the ways to play as tiles to tap
+@media (max-width: 767.98px) {
+    .landing-footer-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: $space-5;
+        padding: $space-6 $space-4;
+        text-align: center;
+    }
+
+    .landing-footer-brand {
+        flex-direction: column;
+        gap: $space-2;
+    }
+
+    .landing-footer-licence {
+        display: block;
+        margin-top: 0.15rem;
+        font-size: $text-xs;
+
+        &::before { content: none; }
+    }
+
+    .landing-footer-links {
+        flex-direction: column;
+        align-items: stretch;
+        gap: $space-3;
+    }
+
+    .landing-footer-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: $space-2;
+    }
+
+    .landing-footer-icon-link {
+        justify-content: center;
+        margin: 0;
+        min-height: 2.75rem;
+        padding: 0.5rem 0.6rem;
+        white-space: nowrap;
+    }
+
+    // the ways to play and to log in: tiles; the rest as quieter links below
+    .landing-footer-group:first-child .landing-footer-icon-link {
+        background: ink(0.05);
+        color: var(--text-default);
+        font-weight: $weight-semibold;
+
+        &:hover, &:focus-visible { background: ink(0.09); }
+    }
+
+    .landing-footer-group:last-child .landing-footer-icon-link { min-height: 2.25rem; }
+
+    // an odd one out at the end takes the whole row
+    .landing-footer-group > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 
 // jumping to a section leaves room for the bar at the top
@@ -518,7 +587,8 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: $space-4 $space-6;
+    // the brand and the links apart, also when the links go below it
+    gap: $space-6 $space-6;
     padding: 1.25rem 1.5rem;
     border-radius: $radius-lg;
     background:
@@ -530,22 +600,47 @@
 }
 
 // the invitation to a quick game, between the numbers and the features
-.landing-quick {
+// the three ways in, side by side; on a phone one below the other
+.landing-ways {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-4;
+
+    @media (max-width: 991.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.landing-way {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.25rem 2rem;
-    padding: $space-6;
+    flex-direction: column;
+    gap: $space-3;
+    padding: 1.5rem;
     border-radius: $radius-lg;
-    background:
-        radial-gradient(ellipse at right, with-alpha($primaryColor, 0.28), transparent 65%),
-        $surfaceTranslucentColor;
+    background: $surfaceTranslucentColor;
     border: 1px solid rgba(255, 255, 255, 0.06);
 
-    > div { flex: 1 1 26rem; max-width: 44rem; }
+    // the club: the way for those who stay
+    &.is-main {
+        background:
+            radial-gradient(ellipse at top right, with-alpha($primaryColor, 0.28), transparent 70%),
+            $surfaceTranslucentColor;
+        border-color: with-alpha($primaryColor, 0.45);
+    }
 
-    @media (max-width: 575.98px) { padding: 1.5rem; }
+    > a { text-decoration: none; }
+}
+
+.landing-way-points {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    margin: 0 0 $space-2;
+    padding: 0;
+    list-style: none;
+    font-size: $text-sm;
+    color: var(--text-subtle);
+
+    li { display: flex; align-items: baseline; gap: $space-2; }
+    .pi { color: $primaryColor; font-size: 0.8rem; }
 }
 
 // the language before logging in: the code with a globe, as small as the buttons next to it
@@ -579,7 +674,7 @@
     .language-switch.p-dropdown .p-dropdown-label { padding: 0.4rem 0.5rem; }
 }
 
-// the smallest phones: the logo alone says Oche, so the buttons keep their words
+// the smallest phones: the logo alone says Legmate, so the buttons keep their words
 @media (max-width: 399.98px) {
     .landing-bar .landing-brand-name { display: none; }
 }
@@ -619,11 +714,6 @@
 }
 
 // the privacy policy and imprint: a page to read, between the bar and the footer of the start page
-.legal-page {
-    max-width: $page-reading;
-    margin: 0 auto;
-}
-
 .legal-text {
     line-height: 1.6;
 
@@ -650,10 +740,11 @@
 
 .legal-address, .legal-notes { white-space: pre-line; }
 
-// Support Oche: the look of the start page, the footer at the bottom of the window
+// Support Legmate: the look of the start page, the footer at the bottom of the window
 .support-page {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 
     .support-main { flex: 1 0 auto; }
 }
@@ -740,4 +831,314 @@
     color: var(--text-faint);
     font-size: $text-sm;
     text-align: center;
+}
+
+// Darts 1×1 & slang: the setup in figures, 501 in five steps and the terms, searchable
+.terms-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    .terms-main { flex: 1 0 auto; }
+}
+
+.terms-main {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    max-width: 72rem;
+    padding: 3.5rem 1rem 4rem;
+
+    @media (max-width: 575.98px) { padding-top: 2rem; gap: 2.25rem; }
+}
+
+.terms-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    max-width: 46rem;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.terms-lead {
+    color: var(--text-subtle);
+    font-size: $text-lg;
+    line-height: 1.55;
+}
+
+.terms-setup {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 991.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.terms-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: $radius-lg;
+    background: $surfaceTranslucentColor;
+}
+
+.terms-figure-value {
+    font-size: $text-2xl;
+    font-weight: $weight-semibold;
+    color: $primaryColor;
+    font-variant-numeric: tabular-nums;
+}
+
+.terms-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: $space-3;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.terms-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-3;
+}
+
+.terms-search {
+    flex: 1 1 16rem;
+    max-width: 24rem;
+}
+
+.terms-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+}
+
+.terms-group-pill {
+    padding: 0.35rem 0.85rem;
+    border: 1px solid ink(0.12);
+    border-radius: $radius-pill;
+    background: transparent;
+    color: var(--text-subtle);
+    font-size: $text-sm;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+
+    &:hover { color: var(--text-default); background: ink(0.05); }
+    &.is-chosen { border-color: $primaryColor; background: with-alpha($primaryColor, 0.18); color: var(--text-default); }
+}
+
+.terms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: $space-3;
+}
+
+.term-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.15rem;
+    border-radius: $radius-lg;
+    background: $surfaceTranslucentColor;
+    border: 1px solid transparent;
+    // a term linked to stands out, below the bar on top
+    scroll-margin-top: 6rem;
+    transition: border-color 0.3s, background-color 0.3s;
+
+    &:target,
+    &.is-target {
+        border-color: $primaryColor;
+        box-shadow: 0 0 0 1px $primaryColor;
+        background: with-alpha($primaryColor, 0.12);
+    }
+
+    &:hover .term-anchor { opacity: 1; }
+}
+
+.term-name {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+    color: var(--text-default);
+}
+
+.term-anchor {
+    color: var(--text-faint);
+    font-size: 0.75em;
+    opacity: 0;
+    transition: opacity 0.15s;
+
+    &:focus-visible { opacity: 1; }
+    @media (hover: none) { opacity: 0.6; }
+}
+
+.terms-cta { padding: 2.5rem 1.5rem; }
+
+// every public page (the darts terms, supporting Legmate, the privacy policy, logging in
+// and registering, the quick games and darts evenings): the board behind the top only,
+// fading into the dark of the start page, so what follows reads calmly
+.terms-page,
+.support-page,
+.privacy-page,
+.auth-page,
+.quick-page {
+    background:
+        linear-gradient(to bottom, with-alpha($shade900, 0.6) 0, with-alpha($shade900, 0.88) 22rem, $shade900 38rem),
+        // as wide as the window, and wide enough on a phone to show the board
+        url("/background.webp") top center / max(100%, 60rem) auto no-repeat,
+        $shade900;
+}
+
+// the tiles of the pages to read are almost solid, as the panels of the app
+.terms-page,
+.support-page,
+.privacy-page {
+    --tile-surface: color-mix(in srgb, var(--c-shade-800) 94%, transparent);
+
+    .terms-figure,
+    .landing-step,
+    .term-card,
+    .support-option,
+    .contact-way,
+    .privacy-glance-item,
+    .privacy-section { background: var(--tile-surface); }
+
+    .term-card:target,
+    .term-card.is-target { background: color-mix(in srgb, #{$primaryColor} 24%, var(--c-shade-800)); }
+
+    .terms-cta {
+        background:
+            radial-gradient(ellipse at top, with-alpha($primaryColor, 0.25), transparent 70%),
+            var(--tile-surface);
+    }
+}
+
+// the privacy policy: at a glance, the contents, then each section a tile of its own
+.privacy-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    .privacy-main { flex: 1 0 auto; }
+}
+
+.privacy-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+    max-width: 56rem;
+    padding: 3.5rem 1rem 4rem;
+
+    @media (max-width: 575.98px) { padding-top: 2rem; gap: 1.75rem; }
+}
+
+.privacy-glance {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-3;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.privacy-glance-item {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-3;
+    padding: 1rem 1.15rem;
+    border-radius: $radius-lg;
+
+    .landing-feature-icon { flex-shrink: 0; }
+}
+
+.privacy-contents {
+    justify-content: center;
+
+    a { text-decoration: none; }
+}
+
+.privacy-sections {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+}
+
+.privacy-section {
+    padding: 1.4rem 1.5rem;
+    border-radius: $radius-lg;
+    // below the bar on top when jumped to
+    scroll-margin-top: 5.5rem;
+
+    ul { padding-left: 1.2rem; }
+    li + li { margin-top: 0.4rem; }
+
+    @media (max-width: 575.98px) { padding: 1.1rem 1.1rem; }
+}
+
+// the title with its icon; the h2 margins of the old page are not needed in a tile
+.legal-text .privacy-section-title {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin: 0 0 $space-3;
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+    color: var(--text-default);
+
+    .landing-feature-icon { width: 2.1rem; height: 2.1rem; font-size: $text-md; }
+}
+
+// What's new: the releases as in the app, in a narrower column
+.whats-new-main { max-width: 56rem; }
+
+// Contact: the form for feedback, and the way to GitHub below it
+.contact-main { max-width: 46rem; }
+
+.contact-ways {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+}
+
+.contact-way {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    padding: 1.5rem;
+    border-radius: $radius-lg;
+
+    @media (max-width: 575.98px) { padding: 1.2rem; }
+}
+
+.contact-way-title {
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+    color: var(--text-default);
+}
+
+.contact-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+// the field only bots fill: out of sight and out of reach
+.contact-trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
 }

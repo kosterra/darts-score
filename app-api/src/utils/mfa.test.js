@@ -35,7 +35,7 @@ describe('the secret', () => {
     });
 
     it('goes to the authenticator app as an otpauth address', () => {
-        expect(otpauthUri('anna@example.ch', 'ABC')).toBe('otpauth://totp/Oche:anna%40example.ch?secret=ABC&period=30&digits=6&algorithm=SHA1&issuer=Oche');
+        expect(otpauthUri('anna@example.ch', 'ABC')).toBe('otpauth://totp/Legmate:anna%40example.ch?secret=ABC&period=30&digits=6&algorithm=SHA1&issuer=Legmate');
     });
 });
 

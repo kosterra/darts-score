@@ -5,7 +5,7 @@ export default (mongoose) => {
       description: { type: String, trim: true, default: '' },
       // where the club plays: an ISO 3166 country code (CH, DE, …); empty when not set
       country:     { type: String, uppercase: true, trim: true, default: '' },
-      // the club's accent colour in the app, for the members who did not choose their own (null: Oche green)
+      // the club's accent colour in the app, for the members who did not choose their own (null: Legmate green)
       accent:      { type: String, default: null },
       // File name of the uploaded logo in IMG_DIR/clubs
       logo:        { type: String, default: '' },

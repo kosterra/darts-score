@@ -3,23 +3,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
-import { SelectButton } from 'primereact/selectbutton';
 import { Toast } from 'primereact/toast';
 
-import X01Models from '../../models/x01.models';
-import CricketModels from '../../models/cricket.models';
-import { QuickCricketService, QuickX01Service } from '../../services/quick.game.service';
+import { QuickCricketService, QuickEliminationService, QuickX01Service } from '../../services/quick.game.service';
+import { QUICK_DEFAULTS, QUICK_GAMES, QUICK_NAME, newQuickGame, quickSetupText } from '../../utils/quick.games';
+import QuickSettings, { Choice } from './quick.settings';
 import QuickLayout from './quick.layout';
 import { t } from '../../utils/i18n';
 import useGameRules from '../games/common/game.rules';
 
-const GAMES = [{ label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }];
-const SCORES = [{ label: '301', value: 301 }, { label: '501', value: 501 }];
-const OUTS = [{ label: t('Double Out'), value: 'Double Out' }, { label: t('Straight Out'), value: 'Straight Out' }];
-const LEGS = [{ label: t('1 leg'), value: 1 }, { label: t('Best of 3'), value: 3 }, { label: t('Best of 5'), value: 5 }];
-const VARIANTS = [{ label: t('Standard'), value: 'Standard' }, { label: t('Cut-throat'), value: 'Cut-throat' }];
 const IDS = ['q1', 'q2', 'q3', 'q4'];
-const NAME = /^[\p{L}\p{N}][\p{L}\p{N} '.-]{0,19}$/u;
+const NAME = QUICK_NAME;
 
 // what the last quick game was set up with, to start the next one from
 const SETUP = 'darts-score.quickSetup';
@@ -38,35 +32,20 @@ const keepSetup = (setup) => {
     }
 };
 
-// a setting with its choices, as on the setup pages of the club games
-const Choice = ({ title, value, options, onChange }) => (
-    <div>
-        <p className="setting-title">{title}</p>
-        <div className="row mx-0 mt-0 setting-body">
-            <div className="col d-flex justify-content-center">
-                <SelectButton value={value} options={options} onChange={(event) => event.value != null && onChange(event.value)} className="p-selectbutton-pills" aria-label={title} />
-            </div>
-        </div>
-    </div>
-);
-
 /**
- * A quick game without an account: X01 or Cricket for one to four players,
- * who only need a name, in a few common setups. The game is played like a
+ * A quick game without an account: X01, Cricket or Elimination for one to
+ * four players, who only need a name, in a few common setups. The game is played like a
  * club game, without the dart animation, and ends with its statistics.
  */
 const QuickSetupPage = () => {
     const navigate = useNavigate();
     const toast = useRef(null);
     const remembered = readSetup();
-    const [kind, setKind] = useState(remembered?.kind ?? 'x01');
+    const [settings, setSettings] = useState({ ...QUICK_DEFAULTS, ...(remembered ?? {}) });
+    const { kind } = settings;
     // the rules of the game chosen, opened from the title of the setup
     const [rulesButton, rules] = useGameRules(kind);
     const [names, setNames] = useState(remembered?.names?.length ? remembered.names : ['', '']);
-    const [startingScore, setStartingScore] = useState(remembered?.startingScore ?? 501);
-    const [legOutMode, setLegOutMode] = useState(remembered?.legOutMode ?? 'Double Out');
-    const [numberOfLegs, setNumberOfLegs] = useState(remembered?.numberOfLegs ?? 3);
-    const [variant, setVariant] = useState(remembered?.variant ?? 'Standard');
     const [starting, setStarting] = useState(false);
 
     const trimmed = names.map(name => name.trim());
@@ -80,43 +59,13 @@ const QuickSetupPage = () => {
         event.preventDefault();
         if (missing) return;
         setStarting(true);
-        keepSetup({ kind, names: trimmed, startingScore, legOutMode, numberOfLegs, variant });
-        const players = IDS.slice(0, trimmed.length);
-        const quickPlayers = players.map((id, index) => ({ id, nickname: trimmed[index] }));
-        const common = {
-            isSoloGame: players.length === 1,
-            numberOfPlayers: players.length,
-            players,
-            quickPlayers,
-            currentPlayerTurn: players[0],
-            flyingDarts: 'off',
-        };
+        keepSetup({ ...settings, names: trimmed });
+        const players = IDS.slice(0, trimmed.length).map((id, index) => ({ id, nickname: trimmed[index] }));
+        const game = newQuickGame(kind, settings, players);
         try {
-            if (kind === 'x01') {
-                const game = await QuickX01Service.createX01Game({
-                    ...X01Models.X01GameModel,
-                    ...common,
-                    startingScore,
-                    legInMode: 'Straight In',
-                    legOutMode,
-                    setMode: 'Best of',
-                    legMode: 'Best of',
-                    numberOfSets: 1,
-                    numberOfLegs,
-                    startingPlayerSet: players[0],
-                    startingPlayerLeg: players[0],
-                    playerModels: Object.fromEntries(players.map(id => [id, { ...X01Models.X01PlayerModel, score: startingScore }])),
-                });
-                navigate(`/quick/x01/${game.id}`);
-            } else {
-                const game = await QuickCricketService.createCricketGame({
-                    ...CricketModels.CricketGameModel,
-                    ...common,
-                    variant,
-                    playerModels: Object.fromEntries(players.map(id => [id, { ...CricketModels.CricketPlayerModel, score: Number(CricketModels.CricketGameModel.startingScore) }])),
-                });
-                navigate(`/quick/cricket/${game.id}`);
-            }
+            const service = { x01: () => QuickX01Service.createX01Game(game), cricket: () => QuickCricketService.createCricketGame(game), elimination: () => QuickEliminationService.createEliminationGame(game) }[kind];
+            const created = await service();
+            navigate(`/quick/${kind}/${created.id}`);
         } catch (error) {
             toast.current?.show({ severity: 'error', summary: t('Start the game'), detail: error.message, life: 5000 });
             setStarting(false);
@@ -133,9 +82,17 @@ const QuickSetupPage = () => {
                         {t('Play right away, without an account: the players only need a name. The game and its statistics stay on this device for 30 days.')}{' '}
                         <Link to="/register">{t('Create an account')}</Link>{' '}{t('for a club with players, their statistics over time, badges, levels and all the settings.')}
                     </p>
+                    <Link to="/evening/new" className="quick-evening-link">
+                        <i className="pi pi-users" aria-hidden="true" />
+                        <span className="d-flex flex-column">
+                            <span className="text-default fw-semibold">{t('Playing several games tonight?')}</span>
+                            <span className="text-subtle fs-8">{t('Start a darts evening: up to eight players, game after game, a table of the evening and awards at the end.')}</span>
+                        </span>
+                        <i className="pi pi-chevron-right ms-auto" aria-hidden="true" />
+                    </Link>
 
                     <p className="game-setup-section-title">{t('Game')}</p>
-                    <Choice title={t('Game')} value={kind} options={GAMES} onChange={setKind} />
+                    <Choice title={t('Game')} value={kind} options={QUICK_GAMES} onChange={(value) => setSettings(current => ({ ...current, kind: value }))} />
 
                     <p className="game-setup-section-title mt-4">{t('Players')}</p>
                     <div className="quick-names">
@@ -163,21 +120,12 @@ const QuickSetupPage = () => {
                     </div>
 
                     <p className="game-setup-section-title mt-4">{t('Setup')}</p>
-                    {kind === 'x01'
-                        ? <>
-                            <Choice title={t('Score')} value={startingScore} options={SCORES} onChange={setStartingScore} />
-                            <Choice title={t('Out')} value={legOutMode} options={OUTS} onChange={setLegOutMode} />
-                            <Choice title={t('Legs')} value={numberOfLegs} options={LEGS} onChange={setNumberOfLegs} />
-                        </>
-                        : <Choice title={t('Variant')} value={variant} options={VARIANTS} onChange={setVariant} />
-                    }
+                    <QuickSettings settings={settings} onChange={(changes) => setSettings(current => ({ ...current, ...changes }))} withGame={false} />
 
                     <div className="game-setup-start">
                         <Button type="submit" label={t('Start game')} icon="pi pi-play" loading={starting} disabled={Boolean(missing)} aria-label={t('Start game')} />
                         <span className="game-setup-summary" aria-live="polite">
-                            {missing ?? (kind === 'x01'
-                                ? `${startingScore} · ${legOutMode} · ${numberOfLegs === 1 ? t('1 leg') : t('best of {{numberOfLegs}} legs', { numberOfLegs: numberOfLegs })} · ${trimmed.length} ${trimmed.length === 1 ? t('player') : t('players')}`
-                                : `Cricket ${variant} · ${trimmed.length === 1 ? t('{{count}} player', { count: 1 }) : t('{{count}} players', { count: trimmed.length })}`)}
+                            {missing ?? `${quickSetupText(kind, settings)} · ${trimmed.length === 1 ? t('{{count}} player', { count: 1 }) : t('{{count}} players', { count: trimmed.length })}`}
                         </span>
                     </div>
                 </form>

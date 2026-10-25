@@ -2,7 +2,7 @@
 // The themes and accent colours as CSS variables. The stylesheets take the
 // colours through the SASS variables (dark/_variables.scss, _tokens.scss),
 // the charts and inline colours through utils/palette.js. The default look
-// (dark, Oche green) is on :root; the others on <html data-theme="…"
+// (dark, Legmate green) is on :root; the others on <html data-theme="…"
 // data-accent="…"> (see utils/appearance.js). Bootstrap's colour classes
 // follow through its --bs-…-rgb variables.
 // Every theme keeps text at 4.5:1 or more on its surfaces (see the test of
@@ -183,7 +183,7 @@ $accents: (
     --bs-success-rgb: #{rgb-of(map.get($accent, primary))};
 }
 
-// the default: dark, Oche green
+// the default: dark, Legmate green
 :root {
     @include theme-vars($theme-dark);
     @include accent-vars(map.get($accents, green));

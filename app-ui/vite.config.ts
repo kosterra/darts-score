@@ -45,6 +45,9 @@ export default defineConfig({
   define: {
     // read as import.meta.env.VITE_APP_VERSION
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+    // only the release build of main is the version itself; any other build (the
+    // dev server, an image of develop) shows what comes with it as coming soon
+    'import.meta.env.VITE_APP_RELEASED': JSON.stringify(process.env.APP_RELEASED === 'true'),
   },
   css: {
     preprocessorOptions: {

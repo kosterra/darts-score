@@ -5,6 +5,7 @@ import PlayerService from '../../../services/player.service';
 import ClubCricketService from '../../../services/cricket.service';
 import { QuickCricketService, quickPlayersOf } from '../../../services/quick.game.service';
 import QuickGameInvite from '../../quick/quick.game.invite';
+import EveningGameActions from '../../quick/evening.game.actions';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import GameResultHeader from '../common/game.result.header';
@@ -94,7 +95,10 @@ const CricketGameStats = ({ quick = false }) => {
         navigate(quick ? `/quick/cricket/${newGame.id}` : `/cricket/${newGame.id}`);
     };
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} />;
+    // a game of a darts evening goes back to it; others offer a rematch
+    const actions = quick && game.evening
+        ? <EveningGameActions eveningId={game.evening} />
+        : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} />;
 
     return (
         <div className="container-fluid p-4 border-0">

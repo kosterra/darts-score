@@ -88,7 +88,7 @@ const notifyGoals = async (club, goals) => {
             kind: 'clubGoal',
             title: `${club.name} reached its goal: ${GOAL_METRICS[goal.metric]?.describe(goal.target) ?? goal.target}`,
             body: 'Everyone who played added to it. Well done!',
-            link: '/dashboard',
+            link: '/club',
             club: club._id,
         })));
         if (notes.length) await deliver(notes);

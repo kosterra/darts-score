@@ -28,6 +28,7 @@ import { sectionHitsOf } from '../charts/chart.theme';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import UpLink from '../../elements/up.link';
+import EveningGameActions from '../../quick/evening.game.actions';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 import { t } from '../../../utils/i18n';
 import CompareLink from '../compare/compare.link';
@@ -168,9 +169,12 @@ const X01GameStats = ({ training = false, quick = false }) => {
 
     // a tournament match: on to its bracket, no rematch
     const tournamentId = game.tournament?.id;
+    // a game of a darts evening goes back to it; others offer a rematch
     const actions = tournamentId
         ? <div className="d-flex justify-content-center"><Link to={`/tournaments/${tournamentId}`} className="p-button p-button-sm text-decoration-none"><i className="pi pi-sitemap me-2" />{t('To the bracket')}</Link></div>
-        : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
+        : quick && game.evening
+            ? <EveningGameActions eveningId={game.evening} />
+            : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">

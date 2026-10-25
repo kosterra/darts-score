@@ -3,7 +3,10 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Panel } from 'primereact/panel';
 
 import PlayerService from '../../../services/player.service';
-import EliminationService from '../../../services/elimination.service';
+import ClubEliminationService from '../../../services/elimination.service';
+import { QuickEliminationService, quickPlayersOf } from '../../../services/quick.game.service';
+import QuickGameInvite from '../../quick/quick.game.invite';
+import EveningGameActions from '../../quick/evening.game.actions';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import GameResultHeader from '../common/game.result.header';
@@ -42,7 +45,9 @@ const GAME_COLOR = GAME_COLORS.elimination;
  * figures, the moments of the game, the race to the target with every
  * knock-out, how the visits scored and where the darts landed.
  */
-const EliminationGameStats = () => {
+// quick: a quick game of the start page or of a darts evening, the players only names and no badges
+const EliminationGameStats = ({ quick = false }) => {
+    const EliminationService = quick ? QuickEliminationService : ClubEliminationService;
     const { id } = useParams();
     const navigate = useNavigate();
     const [game, setGame] = useState(null);
@@ -61,7 +66,7 @@ const EliminationGameStats = () => {
             try {
                 const gameData = await EliminationService.loadEliminationGameById(id);
                 if (!gameData) return setFailed(true);
-                const playerData = (await PlayerService.findPlayersByIds(gameData.players))
+                const playerData = quick ? quickPlayersOf(gameData) : (await PlayerService.findPlayersByIds(gameData.players))
                     .filter(player => gameData.players.includes(player.id))
                     .sort((a, b) => gameData.players.indexOf(a.id) - gameData.players.indexOf(b.id));
                 setGame(gameData);
@@ -72,6 +77,8 @@ const EliminationGameStats = () => {
             }
         };
         loadData();
+        // the service follows "quick", which a page never changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const replay = useMemo(() => game ? replayElimination(game) : null, [game]);
@@ -80,7 +87,7 @@ const EliminationGameStats = () => {
         : {}, [game, players, replay]);
     const race = useMemo(() => game && replay ? eliminationRace(game, replay) : [], [game, replay]);
 
-    if (failed) return <div className="container-fluid p-4 text-subtle">{t('This game could not be found in the selected club.')}</div>;
+    if (failed) return <div className="container-fluid p-4 text-subtle">{quick ? t('This quick game was not found on this device.') : t('This game could not be found in the selected club.')}</div>;
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const indexOf = new Map(players.map((player, index) => [player.id, index]));
@@ -92,11 +99,15 @@ const EliminationGameStats = () => {
     const target = Number(game.targetScore);
 
     const onRestartGame = async (switchPlayers = false, shuffle = false) => {
-        const newGame = await EliminationService.createEliminationGame(eliminationRematch(game, { switchPlayers, shuffle }));
-        navigate(`/elimination/${newGame.id}`);
+        const rematch = eliminationRematch(game, { switchPlayers, shuffle });
+        const newGame = await EliminationService.createEliminationGame(quick ? { ...rematch, quickPlayers: game.quickPlayers, flyingDarts: 'off' } : rematch);
+        navigate(quick ? `/quick/elimination/${newGame.id}` : `/elimination/${newGame.id}`);
     };
 
-    const actions = <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/elimination', { replace: true })} />;
+    // a game of a darts evening goes back to it; others offer a rematch
+    const actions = quick && game.evening
+        ? <EveningGameActions eveningId={game.evening} />
+        : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/elimination', { replace: true })} />;
 
     const Who = ({ playerId }) => (
         <span className="d-inline-flex align-items-center text-nowrap">
@@ -108,13 +119,13 @@ const EliminationGameStats = () => {
     return (
         <div className="container-fluid p-4 border-0">
             <div className="game-stats-page">
-                <UpLink to="/games" label={t('Games')} />
+                {!quick && <UpLink to="/games" label={t('Games')} />}
                 <GameResultHeader
                     celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
                     // the way to the comparison of these players, in this game
-                    footer={players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type={'elimination'} /></div> : null}
+                    footer={!quick && players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type={'elimination'} /></div> : null}
                     title={t('Elimination · first to {{target}}', { target: target })}
                     subtitle={`${game.gameInMode ?? 'Straight In'} / ${game.gameOutMode ?? 'Straight Out'} · ${whenPlayed(game)}`}
                     scoreOf={(player) => figures[player.id]?.score ?? 0}
@@ -124,14 +135,16 @@ const EliminationGameStats = () => {
                     actions={actions}
                 />
 
-                <GameBadges
+                {/* quick games earn no badges */}
+                {quick && <QuickGameInvite />}
+                {!quick && <GameBadges
                     gameType="elimination"
                     gameId={game.id}
                     players={players}
                     winner={players.find(player => game.playerModels[player.id]?.hasWonGame)}
                     celebrate={justFinished && game.hasWinner}
                     className="mb-4"
-                />
+                />}
 
                 <MatchMoments moments={moments} players={players} color={GAME_COLOR} />
 

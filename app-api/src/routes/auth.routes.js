@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body, param } from 'express-validator';
+import { body } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 import { validate } from '../utils/validation.js';
 import { optionalAuth, requireAuth } from '../middleware/auth.middleware.js';
@@ -55,7 +55,16 @@ export default (app) => {
     router.post('/mfa/recovery-codes', requireAuth, credentialLimiter, codeRule('code'), validate, MfaController.recoveryCodes);
     router.post('/mfa/forget-devices', requireAuth, MfaController.forgetDevices);
     // deleting the own account: the players stay, anonymised
-    router.post('/delete-account', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), body('code').optional().isString().isLength({ max: 20 }), validate, AuthController.deleteMe);
+    router.get('/delete-account', requireAuth, AuthController.deletionSteps);
+    router.post('/delete-account', requireAuth, credentialLimiter,
+        body('password').isString().notEmpty().withMessage('Current password is required.'),
+        body('code').optional().isString().isLength({ max: 20 }),
+        body('clubs').optional().isArray({ max: 50 }).withMessage('Invalid clubs.'),
+        body('clubs.*.club').optional().isMongoId().withMessage('Invalid clubs.'),
+        body('clubs.*.action').optional().isIn(['handover', 'delete']).withMessage('Invalid clubs.'),
+        body('clubs.*.to').optional().isMongoId().withMessage('Invalid clubs.'),
+        body('clubs.*.name').optional().isString().isLength({ max: 100 }).withMessage('Invalid clubs.'),
+        validate, AuthController.deleteMe);
 
     router.get('/config', AuthController.config);
     router.post('/forgot-password', credentialLimiter, emailValidator, validate, AuthController.forgotPassword);
@@ -71,13 +80,6 @@ export default (app) => {
     router.get('/session', requireAuth, AuthController.session);
     router.get('/players', requireAuth, AuthController.myPlayers);
     router.post('/session/extend', requireAuth, AuthController.extendSession);
-    // the user's own dashboard in one of their clubs ({ layout: null } goes back to the club's)
-    router.put('/dashboard/:clubId', requireAuth,
-        param('clubId').isMongoId(),
-        body('layout').custom(value => value === null || (Array.isArray(value) && value.length <= 40)).withMessage('layout is a list of widgets, or null.'),
-        body('layout.*.id').optional().isString().matches(/^[A-Za-z0-9]{1,40}$/).withMessage('Invalid dashboard widget.'),
-        body('layout.*.size').optional().isIn(['S', 'M', 'L', 'F']).withMessage('The width of a widget is S, M, L or F.'),
-        validate, AuthController.setDashboard);
     // how the player likes to play (merged into what they had)
     router.put('/game-preferences', requireAuth, body().isObject().withMessage('The preferences are an object.'), validate, AuthController.setGamePreferences);
     router.put('/language', requireAuth, body('language').isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.setLanguage);

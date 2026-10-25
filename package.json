@@ -1,9 +1,9 @@
 {
   "name": "darts-score",
   "description": "Darts Score Application",
-  "version": "2026.10.15",
+  "version": "2026.10.16",
   "private": true,
-  "license": "GPLv3",
+  "license": "AGPL-3.0-only",
   "author": "kosterra",
   "repository": {
     "url": "git+https://github.com/kosterra/darts-score"

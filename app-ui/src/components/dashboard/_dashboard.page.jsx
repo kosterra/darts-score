@@ -1,109 +1,66 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
-import { SelectButton } from 'primereact/selectbutton';
-import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
 import { useAuth } from '../../utils/auth.context';
-import AuthService from '../../services/auth.service';
-import ClubService from '../../services/club.service';
-import { DEFAULT_LAYOUT, layoutFor, resolveLayout, toLayout } from './dashboard.widgets';
+import useGamePreferences from '../../utils/use.game.preferences';
+import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
+import { DASHBOARD_WIDGETS, PERSONAL_DEFAULT_LAYOUT, resolveLayout, toLayout } from './dashboard.widgets';
 import DashboardEditor from './dashboard.editor';
-import ClubLogo from '../elements/club.logo';
-import LeaderboardWidget from './widgets/leaderboard.widget';
-import ClubKpisWidget from './widgets/club.kpis.widget';
-import ActivityCalendarWidget from './widgets/activity.calendar.widget';
-import WhenWePlayWidget from './widgets/when.we.play.widget';
-import RecordsWidget from './widgets/records.widget';
-import HeadToHeadWidget from './widgets/head.to.head.widget';
-import GamesPerMonthWidget from './widgets/games.per.month.widget';
-import ClubFormWidget from './widgets/club.form.widget';
-import RunningGamesWidget from './widgets/running.games.widget';
-import TimelineWidget from './widgets/timeline.widget';
-import HallOfShameWidget from './widgets/hall.of.shame.widget';
-import ClubGoalsWidget from './widgets/club.goals.widget';
-import MeWidget from './widgets/me.widget';
-import TournamentBanner from '../tournaments/tournament.banner';
+import DashboardWidget from './dashboard.widget';
 import { t } from '../../utils/i18n';
-import { Link } from 'react-router-dom';
-import ClubMedal from '../badges/club.medal';
-import { formatDate } from '../../utils/dates';
 
-
-// what a club admin arranges: their own dashboard or the club's
-const TARGETS = [{ label: t('My dashboard'), value: 'mine' }, { label: t('The club\'s dashboard'), value: 'club' }];
+// a greeting by the time of day
+const greeting = (name, hour = new Date().getHours()) => {
+    if (hour < 5 || hour >= 22) return t('Good evening, {{name}}', { name });
+    if (hour < 12) return t('Good morning, {{name}}', { name });
+    if (hour < 18) return t('Hello, {{name}}', { name });
+    return t('Good evening, {{name}}', { name });
+};
 
 /**
- * The club dashboard: the club at a glance, followed by the widgets. Members
- * see the club's arrangement, or their own if they made one; the club admins
- * arrange the club's. Edit dashboard arranges it right on the page: widgets
- * dragged into place, made wider or narrower, removed and added.
+ * One's own Dashboard: what waits (tournaments, games left running,
+ * requests), the favourites to start again with one tap, oneself, and a look
+ * at the club. Arranged by each user for themselves, with their account on
+ * every device; the club itself is on My club.
  */
 const Dashboard = () => {
     const toast = useRef(null);
-    const { activeClub, isClubAdmin, refreshClubs, user, setUser } = useAuth();
-
+    const { activeClub, user, isGlobalAdmin } = useAuth();
+    // who the user plays as in the club: their picture and nickname on top
+    const me = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
+    const [preferences, savePreferences] = useGamePreferences();
     const [stats, setStats] = useState(null);
     const [failed, setFailed] = useState(false);
-    // while arranging: what (mine or the club's) and the layout so far
-    const [editing, setEditing] = useState(null);
+    const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState([]);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        const load = async () => {
-            try {
-                setStats(await StatsService.loadClubStats());
-            } catch (error) {
-                console.error('Failed to load the club dashboard', error);
-                setFailed(true);
-            }
-        };
-        load();
-    }, []);
+        StatsService.loadClubStats().then(setStats).catch((error) => {
+            console.error('Failed to load the dashboard', error);
+            setFailed(true);
+        });
+    }, [activeClub?.id]);
 
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
     const shameBadges = activeClub?.shameBadges !== false;
-    const current = layoutFor(user, activeClub);
-    const widgets = resolveLayout(current.layout, { shameBadges });
-    const clubLayout = layoutFor(null, activeClub).layout;
+    const stored = preferences.dashboard;
+    const widgets = resolveLayout(stored, { shameBadges, fallback: PERSONAL_DEFAULT_LAYOUT });
 
-    if (failed) {
-        return <div className="container-fluid p-4 text-subtle">{t('The dashboard could not be loaded. Please reload the page.')}</div>;
-    }
+    if (failed) return <div className="container-fluid p-4 text-subtle">{t('The dashboard could not be loaded. Please reload the page.')}</div>;
     if (!stats) return <DashboardSkeleton club={activeClub} widgets={widgets} />;
 
-    const { club, totals } = stats;
-    const facts = [
-        [t('Club since'), formatDate(club.createdAt)],
-        [t('Players'), club.playerCount],
-        [t('Admins'), club.adminCount],
-        [t('Games played'), totals.gamesPlayed],
-        [t('Last game'), formatDate(totals.lastGameAt)],
-        // as the badges in a player's header: how many of all, to the club's badges
-        ...(club.badgeTotal ? [[t('Club badges'), <Link key="badges" to="/badges#club">{t('{{count}} of {{total}}', { count: club.badgeCount, total: club.badgeTotal })}</Link>]] : []),
-    ];
-
-    // the arrangement to start from: one's own (or the club's, to start one's own from), or the club's
-    const layoutOf = (target) => toLayout(target === 'club' ? clubLayout : current.layout).map(({ id, size }) => ({ id, size }));
-    const startEditing = () => {
-        const target = isClubAdmin && !current.own ? 'club' : 'mine';
-        setEditing(target);
-        setDraft(layoutOf(target));
-    };
-    const switchTarget = (target) => {
-        if (!target || target === editing) return;
-        setEditing(target);
-        setDraft(layoutOf(target));
-    };
-
-    const run = async (action, summary) => {
+    const save = async (layout, summary) => {
         setSaving(true);
         try {
-            await action();
-            setEditing(null);
+            await savePreferences({ dashboard: layout });
+            setEditing(false);
             toast.current?.show({ severity: 'success', summary, life: 3000 });
         } catch (error) {
             toast.current?.show({ severity: 'error', summary: t('Dashboard'), detail: error.message, life: 4000 });
@@ -111,102 +68,48 @@ const Dashboard = () => {
             setSaving(false);
         }
     };
-    const save = () => editing === 'club'
-        ? run(async () => {
-            await ClubService.updateClub(activeClub.id, { name: activeClub.name, dashboardLayout: draft });
-            await refreshClubs();
-        }, t('The club\'s dashboard is saved'))
-        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, draft)), t('Your dashboard is saved'));
-    // back to the club's dashboard (one's own) or to the default widgets (the club's, saved with Save)
-    const reset = () => editing === 'club'
-        ? setDraft(DEFAULT_LAYOUT)
-        : run(async () => setUser(await AuthService.saveDashboard(activeClub.id, null)), t('You see the club\'s dashboard again'));
-
-    const renderWidget = (widget) => {
-        switch (widget.kind) {
-            case 'totals': return <ClubKpisWidget widget={widget} kpis={stats.kpis} totals={totals} players={players} />;
-            case 'activityCalendar': return <ActivityCalendarWidget widget={widget} gameLog={stats.gameLog} />;
-            case 'whenWePlay': return <WhenWePlayWidget widget={widget} gameLog={stats.gameLog} />;
-            case 'records': return <RecordsWidget widget={widget} records={stats.records} players={players} />;
-            case 'headToHead': return <HeadToHeadWidget widget={widget} headToHead={stats.headToHead} players={players} />;
-            case 'gamesPerMonth': return <GamesPerMonthWidget widget={widget} gameLog={stats.gameLog} />;
-            case 'clubForm': return <ClubFormWidget widget={widget} gameLog={stats.gameLog} />;
-            case 'runningGames': return <RunningGamesWidget widget={widget} games={stats.runningGames} total={totals.running} players={players} />;
-            case 'hallOfShame': return <HallOfShameWidget widget={widget} />;
-            case 'clubGoals': return <ClubGoalsWidget widget={widget} />;
-            case 'me': return <MeWidget widget={widget} />;
-            case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
-            case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;
-            default: return null;
-        }
-    };
+    const renderWidget = (widget) => <DashboardWidget widget={widget} stats={stats} players={players} />;
 
     return (
         <div className="container-fluid p-4 border-0">
-            <header className="dashboard-header hero-header rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div className="d-flex flex-wrap align-items-start gap-4 min-w-0">
-                <ClubLogo club={club} size="lg" />
-                <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 18rem' }}>
-                    <div className="d-flex flex-wrap align-items-center gap-3">
-                        <h1 className="fs-2 fw-semibold text-default m-0 text-break">{club.name}</h1>
-                        <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />
-                    </div>
-                    {club.description && <p className="text-subtle m-0" style={{ maxWidth: '60ch' }}>{club.description}</p>}
-                    <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
-                        {facts.map(([label, value]) => (
-                            <div key={label}>
-                                <dt className="text-faint fs-8 fw-normal">{label}</dt>
-                                <dd className="text-default fw-semibold m-0 tabular-nums">{value}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                </div>
-                </div>
-                {/* the club's latest badges, as in a player's header */}
-                {club.latestBadges?.length > 0 &&
-                    <div className="d-flex flex-column gap-2 ms-md-auto">
-                        <span className="text-faint fs-8">{t('Latest club badges')}</span>
-                        <Link to="/badges#club" className="d-flex gap-2" aria-label={t('All club badges')}>
-                            {club.latestBadges.map(badge => <ClubMedal key={badge.id} badge={badge} size="sm" />)}
-                        </Link>
-                    </div>}
-                {/* as the filters under a player's header: whose arrangement it is, and the button to change it */}
-                {!editing && (
-                    <div className="w-100 filter-panel-bar">
-                        <span className="filter-panel-summary">
-                            <span className="filter-chip">{current.own ? t('Your own arrangement') : t('The club\'s arrangement')}</span>
+            <header className="dashboard-header hero-header rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div className="d-flex align-items-center gap-3 min-w-0">
+                    {me &&
+                        <Link to={`/players/${me.id}`} className="dashboard-header-avatar" aria-label={t('My statistics')}>
+                            <Avatar
+                                image={me.profileImg ? resolvePlayerImg(me.profileImg) : undefined}
+                                label={me.profileImg ? undefined : resolvePlayerInitials(me.firstname, me.lastname)}
+                                shape="circle"
+                                className="avatar-md bg-surface-high"
+                            />
+                        </Link>}
+                    <div className="d-flex flex-column gap-1 min-w-0">
+                        <h1 className="fs-2 fw-semibold text-default m-0 text-break">{greeting(user?.firstname ?? '')}</h1>
+                        <span className="text-subtle">
+                            {me?.nickname && <><span className="dashboard-header-nickname">{me.nickname}</span>{' · '}</>}
+                            {t('Your dashboard in {{club}}', { club: activeClub?.name ?? '' })}{' · '}<Link to="/club">{t('My club')}</Link>
                         </span>
-                        <Button label={t('Edit dashboard')} icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />
                     </div>
-                )}
+                </div>
+                {!editing && <Button label={t('Arrange')} icon="pi pi-th-large" size="small" severity="secondary" onClick={() => { setDraft(toLayout(stored, PERSONAL_DEFAULT_LAYOUT).map(({ id, size }) => ({ id, size }))); setEditing(true); }} />}
             </header>
 
-            {/* the club's tournaments, from the registration to a week after the final */}
-            {!editing && <TournamentBanner />}
-
             {editing && (
-                <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging the dashboard')}>
+                <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging your dashboard')}>
                     <div className="d-flex flex-column gap-1 min-w-0">
-                        {isClubAdmin
-                            ? <SelectButton value={editing} options={TARGETS} onChange={(event) => switchTarget(event.value)} className="p-selectbutton-pills" aria-label={t('What to arrange')} />
-                            : <span className="text-default fw-semibold">{t('Arranging your dashboard')}</span>}
-                        <span className="text-faint fs-8">
-                            {editing === 'club'
-                                ? t('Everyone in the club sees it, unless they arranged their own.')
-                                : t('Only you see it, in this club. Drag the widgets by their bar, choose their width, remove them or add more below.')}
-                        </span>
+                        <span className="text-default fw-semibold">{t('Arranging your dashboard')}</span>
+                        <span className="text-faint fs-8">{t('Only you see it, on every device. Drag the widgets by their bar, choose their width, remove them or add more below.')}</span>
                     </div>
                     <div className="d-flex flex-wrap align-items-center gap-2">
-                        {(editing === 'club' || current.own) &&
-                            <Button type="button" label={editing === 'club' ? t('Default widgets') : t('Use the club\'s')} icon="pi pi-replay" size="small" severity="secondary" text onClick={reset} disabled={saving} />}
-                        <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setEditing(null)} disabled={saving} />
-                        <Button type="button" label={t('Save')} icon="pi pi-check" size="small" onClick={save} loading={saving} disabled={!draft.length} />
+                        <Button type="button" label={t('Default widgets')} icon="pi pi-replay" size="small" severity="secondary" text onClick={() => setDraft(PERSONAL_DEFAULT_LAYOUT)} disabled={saving} />
+                        <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setEditing(false)} disabled={saving} />
+                        <Button type="button" label={t('Save')} icon="pi pi-check" size="small" onClick={() => save(draft, t('Your dashboard is saved'))} loading={saving} disabled={!draft.length} />
                     </div>
                 </div>
             )}
 
             {editing
-                ? <DashboardEditor layout={draft} onChange={setDraft} renderWidget={renderWidget} shameBadges={shameBadges} />
+                ? <DashboardEditor layout={draft} onChange={setDraft} renderWidget={renderWidget} shameBadges={shameBadges} pool={DASHBOARD_WIDGETS} fallback={PERSONAL_DEFAULT_LAYOUT} />
                 : (
                     <div className="row g-4">
                         {widgets.map(widget => (
@@ -215,8 +118,7 @@ const Dashboard = () => {
                             </div>
                         ))}
                     </div>
-                )
-            }
+                )}
             <Toast ref={toast} position="bottom-right" />
         </div>
     );

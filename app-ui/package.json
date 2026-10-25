@@ -3,7 +3,7 @@
   "description": "WebUI for darts-score Application",
   "version": "0.0.0",
   "private": true,
-  "license": "GPLv3",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "author": "kosterra",
   "keywords": [

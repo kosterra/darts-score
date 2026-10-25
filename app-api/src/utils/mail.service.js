@@ -24,10 +24,10 @@ export { validityOf };
  * for its placeholders (the address of the installation is added). Resolves
  * to false when mail is not set up; failures are logged by the caller.
  */
-export const sendTemplateMail = async (id, to, vars, language = 'en', { headers } = {}) => {
+export const sendTemplateMail = async (id, to, vars, language = 'en', { headers, replyTo } = {}) => {
     if (!isMailConfigured()) return false;
     const mail = renderMail(effectiveTemplate(id, await getTemplateOverrides(), language), { appUrl: getAppUrl(), ...vars }, language);
-    await sendMail({ to, ...mail, headers });
+    await sendMail({ to, ...mail, headers, replyTo });
     return true;
 };
 

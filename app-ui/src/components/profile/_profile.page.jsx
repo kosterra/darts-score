@@ -239,7 +239,7 @@ const ProfilePage = () => {
                         </div>
                     </form>
                     <TwoStepSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} onError={showError} />
-                    {/* Oche on the home screen of this device */}
+                    {/* Legmate on the home screen of this device */}
                     <div className="mt-4"><AppInstallSetting /></div>
                     {/* the end of the account: deleting it, the players stay anonymised */}
                     <div className="mt-4"><DeleteAccount /></div>

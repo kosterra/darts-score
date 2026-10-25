@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DASHBOARD_WIDGETS, DEFAULT_LAYOUT, DEFAULT_WIDGET_IDS, WIDGET_SIZES, layoutFor, resolveLayout, toLayout } from './dashboard.widgets';
+import { DASHBOARD_WIDGETS, DEFAULT_LAYOUT, DEFAULT_WIDGET_IDS, WIDGET_SIZES, clubLayout, resolveLayout, toLayout } from './dashboard.widgets';
 
 describe('resolveLayout', () => {
     it('gives a dashboard without a choice of its own the default set', () => {
@@ -19,15 +19,13 @@ describe('resolveLayout', () => {
     });
 });
 
-describe('layoutFor', () => {
-    const club = { id: 'c1', dashboardLayout: [{ id: 'records', size: 'M' }] };
-    it("shows a user's own arrangement in the club, else the club's", () => {
-        expect(layoutFor({ dashboards: [{ club: 'c1', layout: [{ id: 'me', size: 'F' }] }] }, club)).toEqual({ layout: [{ id: 'me', size: 'F' }], own: true });
-        expect(layoutFor({ dashboards: [{ club: 'c2', layout: [{ id: 'me', size: 'F' }] }] }, club)).toEqual({ layout: club.dashboardLayout, own: false });
-        expect(layoutFor(null, { id: 'c1', dashboardWidgets: ['me'] }).layout).toEqual(['me']);
+describe('clubLayout', () => {
+    it("is the club's arrangement, also as it was stored before widths", () => {
+        expect(clubLayout({ id: 'c1', dashboardLayout: [{ id: 'records', size: 'M' }] })).toEqual([{ id: 'records', size: 'M' }]);
+        expect(clubLayout({ id: 'c1', dashboardWidgets: ['me'] })).toEqual(['me']);
     });
     it('falls back to the default set', () => {
-        expect(toLayout(layoutFor(null, { id: 'c1' }).layout)).toEqual(DEFAULT_LAYOUT);
+        expect(toLayout(clubLayout({ id: 'c1' }))).toEqual(DEFAULT_LAYOUT);
     });
 });
 

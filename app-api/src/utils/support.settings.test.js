@@ -14,7 +14,7 @@ const { PROJECT_SPONSORS, cleanUrl, saveSupportSettings, supportPage } = await i
 
 beforeEach(() => { stored = null; });
 
-describe('the ways to support Oche', () => {
+describe('the ways to support Legmate', () => {
     it('only keep https addresses', () => {
         expect(cleanUrl(' https://ko-fi.com/oche ')).toBe('https://ko-fi.com/oche');
         expect(cleanUrl('http://ko-fi.com/oche')).toBe('');

@@ -10,8 +10,9 @@ import { locale, t } from '../../utils/i18n';
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
 /**
- * What the public start page shows: the numbers of the installation (clubs,
- * players, games played, games this week) only once they speak for it.
+ * The public start page: whether there is one at all (off: visitors see the
+ * login first), and the numbers of the installation (clubs, players, games
+ * played, games this week) only once they speak for it.
  */
 const StartPageSettings = ({ onSaved }) => {
     const [settings, setSettings] = useState(null);
@@ -23,23 +24,25 @@ const StartPageSettings = ({ onSaved }) => {
 
     if (!settings) return error ? <Message severity="error" text={error} /> : null;
 
-    const toggle = async (showNumbers) => {
+    const save = async (changes, message) => {
         setError('');
         try {
-            const saved = await AdminService.saveStartPageSettings({ showNumbers });
+            const saved = await AdminService.saveStartPageSettings(changes);
             // the numbers stay as they were loaded
             setSettings(current => ({ ...current, ...saved }));
-            onSaved?.(showNumbers ? t('The numbers are shown on the start page.') : t('The numbers are no longer shown on the start page.'));
+            onSaved?.(message);
         } catch (err) {
             setError(err.message);
         }
     };
+    const toggle = (showNumbers) => save({ showNumbers }, showNumbers ? t('The numbers are shown on the start page.') : t('The numbers are no longer shown on the start page.'));
+    const togglePublic = (publicSite) => save({ publicSite }, publicSite ? t('Visitors see the start page about Legmate again.') : t('Visitors now see the login first.'));
 
     return (
         <Panel header={t('Start page')}>
             <div className="d-flex flex-column gap-3">
                 <span className="text-subtle fs-7">
-                    {t('The public page everyone sees before logging in. A few clubs and games make a small number: show the numbers once they speak for Oche.')}
+                    {t('The public page everyone sees before logging in. A few clubs and games make a small number: show the numbers once they speak for Legmate.')}
                 </span>
                 {settings.numbers &&
                     <div className="d-flex flex-column gap-2">
@@ -53,6 +56,15 @@ const StartPageSettings = ({ onSaved }) => {
                         </div>
                     </div>
                 }
+                <SettingSwitch
+                    id="start-page-public"
+                    title={t('Public start page')}
+                    hint={settings.publicSite
+                        ? t('Visitors see the page about Legmate: what it does, the ways to play, the public clubs and live games.')
+                        : t('Off: visitors see the login first, e.g. for an installation of your own clubs only. Darts A–Z, privacy, contact, quick games and darts evenings stay open.')}
+                    checked={settings.publicSite}
+                    onChange={togglePublic}
+                />
                 <SettingSwitch
                     id="start-page-numbers"
                     title={t('Numbers of the installation')}

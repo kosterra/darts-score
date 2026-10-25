@@ -14,8 +14,9 @@ import ClubMedal from '../badges/club.medal';
 import { requestJSON } from '../../utils/service.utils';
 import { Lines } from '../elements/skeletons';
 import { locale, t } from '../../utils/i18n';
+import { ISSUES, REPOSITORY } from '../../utils/project';
+import { Licence } from '../landing/public.frame';
 
-const REPOSITORY = 'https://github.com/kosterra/darts-score';
 
 // the parts of the page, each with its own address (/about#levels)
 const SECTIONS = [
@@ -79,15 +80,15 @@ const AboutCard = () => {
             <header className="hero-header rounded-2 p-4 d-flex flex-wrap align-items-center gap-4">
                 <img alt="" src="/logo.svg" width="80" height="80" />
                 <div className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
-                    <h1 className="fs-2 fw-semibold text-default m-0">{t('Oche')}</h1>
+                    <h1 className="fs-2 fw-semibold text-default m-0">{t('Legmate')}</h1>
                     <span className="text-subtle">{t('The scoreboard for your club, your pub team or your living room.')}</span>
-                    <span className="text-faint fs-7">{t('Version')}{' '}{import.meta.env.VITE_APP_VERSION}{' '}{t('· open source under the GPLv3')}{' · '}<Link to="/privacy">{t('Privacy')}</Link>{' · '}<Link to="/privacy#imprint">{t('Imprint')}</Link>{' · '}<Link to="/support"><i className="pi pi-heart me-1" aria-hidden="true" />{t('Support Oche')}</Link></span>
+                    <span className="text-faint fs-7">{t('Version')}{' '}{import.meta.env.VITE_APP_VERSION}{' '}{'· '}<Licence className="" />{' · '}<Link to="/privacy">{t('Privacy')}</Link>{' · '}<Link to="/privacy#imprint">{t('Imprint')}</Link>{' · '}<Link to="/support"><i className="pi pi-heart me-1" aria-hidden="true" />{t('Support Legmate')}</Link></span>
                 </div>
                 <div className="d-flex flex-wrap gap-2">
                     <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm p-button-outlined">
                         <FaGithub className="me-2" aria-hidden="true" />{t('Source code')}
                     </a>
-                    <a href={`${REPOSITORY}/issues`} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm">
+                    <a href={ISSUES} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm">
                         <i className="pi pi-comment me-2" aria-hidden="true" />{t('Report a problem or idea')}
                     </a>
                 </div>
@@ -111,6 +112,9 @@ const AboutCard = () => {
                 <Panel header={t('How to play')}>
                     {/* entering darts applies to every game, so it spans the full width above the four game modes */}
                     <Topics topics={RULES} firstWide />
+                    <p className="text-subtle fs-7 mt-3 mb-0">
+                        {t('New to darts, or a term you do not know?')}{' '}<Link to="/darts-terms">{t('Darts A–Z')}</Link>
+                    </p>
                 </Panel>
             }
 

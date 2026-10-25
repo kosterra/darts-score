@@ -1,18 +1,20 @@
 import db from '../models/db.model.js';
 
 // What the public start page shows, set by the global admins (one setting,
-// "startPage"): the numbers of the installation only once they speak for it.
+// "startPage"): the numbers of the installation only once they speak for it;
+// publicSite false for an installation of its own clubs only, which opens
+// with the login instead of the page about Legmate.
 const KEY = 'startPage';
-export const START_PAGE_DEFAULTS = { showNumbers: false };
+export const START_PAGE_DEFAULTS = { showNumbers: false, publicSite: true };
 // the public page is read often: the setting at most once a minute
 const CACHE_MS = 60 * 1000;
 
 let cached = null;
 
-const settingsOf = (value) => ({ showNumbers: value?.showNumbers === true });
+const settingsOf = (value) => ({ showNumbers: value?.showNumbers === true, publicSite: value?.publicSite !== false });
 
 /**
- * The settings of the start page: { showNumbers }.
+ * The settings of the start page: { showNumbers, publicSite }.
  */
 export const getStartPageSettings = async () => {
     if (cached && Date.now() - cached.at < CACHE_MS) return cached.settings;

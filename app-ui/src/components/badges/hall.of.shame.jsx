@@ -8,6 +8,7 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils
 import { t } from '../../utils/i18n';
 import { Lines } from '../elements/skeletons';
 import { isRulesKind } from '../../utils/game.paths';
+import { BADGE_TERMS, termLink } from '../terms/darts.terms';
 
 dayjs.extend(relativeTime);
 
@@ -24,7 +25,13 @@ const HallOfShame = ({ shame }) => {
                 <li key={badge.id} className="hall-of-shame-row">
                     <ShameMedal badge={badge} size="sm" washed={!badge.holder} />
                     <div className="d-flex flex-column min-w-0">
-                        <span className="text-default fw-semibold" title={badge.description}>{badge.title}</span>
+                        <span className="d-flex align-items-center gap-2 min-w-0">
+                            <span className="text-default fw-semibold" title={badge.description}>{badge.title}</span>
+                            {BADGE_TERMS[badge.id] &&
+                                <Link to={termLink(BADGE_TERMS[badge.id])} className="shame-term-link" title={t('What does {{term}} mean?', { term: badge.title })} aria-label={t('What does {{term}} mean?', { term: badge.title })}>
+                                    <i className="pi pi-question-circle" aria-hidden="true" />
+                                </Link>}
+                        </span>
                         {badge.holder
                             ? (
                                 <span className="d-flex align-items-center gap-2 min-w-0">

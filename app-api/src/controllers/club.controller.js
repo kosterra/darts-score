@@ -5,7 +5,7 @@ import { ROLES, CLUB_ROLES } from '../models/user.model.js';
 import { findOrCreateAccount } from '../utils/accounts.js';
 import { sendClubWelcomeMail } from '../utils/mail.service.js';
 import { removeClubLogoFile } from './file.controller.js';
-import { removeProfileImageIfUnused } from '../utils/player.images.js';
+import { deleteClubData } from '../utils/club.deletion.js';
 import { isGlobalAdmin, canManageClub } from '../middleware/auth.middleware.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS, isGlobalAdminAccount } from '../utils/global.admins.js';
 import { normalizeLayout } from '../utils/dashboard.layout.js';
@@ -178,29 +178,7 @@ export const remove = async (req, res) => {
         return res.status(409).json({ message: 'Remove the players of this club before deleting it.' });
     }
 
-    // players of this club only go with it; members of other clubs stay there
-    const onlyHere = { clubs: [club._id] };
-    const players = await Player.find(onlyHere, 'profileImg');
-    await db.playerContact.deleteMany({ player: { $in: players.map(player => player._id) } });
-    // one after the other, so no player loses their last club without being deleted
-    await Player.deleteMany(onlyHere);
-    await Promise.all([
-        Player.updateMany({ $or: [{ clubs: club._id }, { formerClubs: club._id }] }, { $pull: { clubs: club._id, formerClubs: club._id } }),
-        db.x01.deleteMany({ club: club._id }),
-        db.cricket.deleteMany({ club: club._id }),
-        db.elimination.deleteMany({ club: club._id }),
-        db.clock.deleteMany({ club: club._id }),
-        db.rulesGame.deleteMany({ club: club._id }),
-        db.rulesTraining.deleteMany({ club: club._id }),
-        db.atc.deleteMany({ club: club._id }),
-        db.x01Training.deleteMany({ club: club._id }),
-        db.joinRequest.deleteMany({ club: club._id }),
-        db.playerClaim.deleteMany({ club: club._id }),
-    ]);
-    await club.deleteOne();
-    removeClubLogoFile(club.logo);
-    for (const player of players) await removeProfileImageIfUnused(player.profileImg);
-    logger.info(`Club "${club.name}" deleted by ${req.user.email}`);
+    await deleteClubData(club, { by: req.user.email });
     checkLater(() => checkTakeover(req, club, 'deleted the club'));
     res.json({ message: 'Club deleted.' });
 };

@@ -18,17 +18,92 @@ export const FORMER_MEMBER = 'Former member';
 export const anonymousNickname = () => `${ANON} ${randomBytes(2).toString('hex').toUpperCase()}`;
 
 /**
- * Why the account cannot be deleted now, or null: the only admin of a club
- * hands it over or deletes it first; the installation keeps a global admin.
+ * The clubs the user is the only admin of, each with the members who could
+ * take it over: the accounts of its players, except global admins and
+ * blocked accounts; members: how many other members it has.
+ * [{ id, name, members, candidates: [{ id, name }] }]
  */
-export const deletionBlock = async (user) => {
-    if (user.role === ROLES.GLOBAL_ADMIN && (await db.user.countDocuments({ role: ROLES.GLOBAL_ADMIN })) <= 1) {
-        return { message: 'You are the only global admin. Make another account a global admin first.' };
+export const soleAdminClubs = async (user) => {
+    const clubs = (await db.club.find({ admins: user._id }, 'name admins').lean()).filter(club => (club.admins ?? []).length <= 1);
+    const result = [];
+    for (const club of clubs) {
+        const players = await db.player.find({ clubs: club._id, user: { $ne: null } }, 'user').lean();
+        const ids = [...new Set(players.map(player => String(player.user)).filter(id => id !== String(user._id)))];
+        const users = ids.length ? await db.user.find({ _id: { $in: ids }, role: { $ne: ROLES.GLOBAL_ADMIN }, blockedAt: null }, 'firstname lastname').lean() : [];
+        result.push({
+            id: String(club._id),
+            name: club.name,
+            // the others who lose the club when it is deleted
+            members: await db.player.countDocuments({ clubs: club._id, guest: { $ne: true }, user: { $ne: user._id } }),
+            candidates: users.map(entry => ({ id: String(entry._id), name: `${entry.firstname} ${entry.lastname}`.trim() }))
+                .sort((a, b) => a.name.localeCompare(b.name)),
+        });
     }
-    const clubs = await db.club.find({ admins: user._id }, 'name admins').lean();
-    const alone = clubs.filter(club => (club.admins ?? []).length <= 1).map(club => club.name);
-    if (alone.length) return { message: `You are the only admin of ${alone.join(', ')}. Add another admin or delete the club first.`, clubs: alone };
+    return result;
+};
+
+/**
+ * Why the steps for the clubs of the only admin do not do, or null. Every
+ * such club is handed over to one of its candidates ({ club, action:
+ * 'handover', to }) or deleted, confirmed with its name ({ club, action:
+ * 'delete', name }).
+ */
+export const stepsError = (clubs, steps = []) => {
+    for (const club of clubs) {
+        const step = (Array.isArray(steps) ? steps : []).find(entry => String(entry?.club) === club.id);
+        if (!step) return `Hand ${club.name} over or delete it first.`;
+        if (step.action === 'handover') {
+            if (!club.candidates.some(candidate => candidate.id === String(step.to))) return `Choose who takes ${club.name} over.`;
+        } else if (step.action === 'delete') {
+            if (String(step.name ?? '').trim().toLowerCase() !== club.name.trim().toLowerCase()) return `Type the name ${club.name} to delete the club.`;
+        } else return `Hand ${club.name} over or delete it first.`;
+    }
     return null;
+};
+
+// why the only global admin cannot go, or null: the installation keeps one
+export const lastGlobalAdmin = async (user) => (
+    user.role === ROLES.GLOBAL_ADMIN && (await db.user.countDocuments({ role: ROLES.GLOBAL_ADMIN })) <= 1
+        ? 'You are the only global admin. Make another account a global admin first.'
+        : null
+);
+
+/**
+ * Why the account cannot be deleted now, or null: the installation keeps a
+ * global admin; the only admin of a club hands it over or deletes it, with
+ * the steps given (see stepsError).
+ */
+export const deletionBlock = async (user, steps = []) => {
+    const lastOne = await lastGlobalAdmin(user);
+    if (lastOne) return { message: lastOne };
+    const clubs = await soleAdminClubs(user);
+    const message = stepsError(clubs, steps);
+    return message ? { message, clubs: clubs.map(club => club.name) } : null;
+};
+
+/**
+ * Carries out the steps for the clubs of the only admin before the account
+ * goes: the new admin first (and told so), so no club is left without one;
+ * or the club deleted with everything in it. Checked with stepsError before.
+ */
+export const carryOutSteps = async (user, steps = []) => {
+    const clubs = await soleAdminClubs(user);
+    const { deleteClubData } = await import('./club.deletion.js');
+    const { deliverQuietly } = await import('./notify.js');
+    for (const club of clubs) {
+        const step = steps.find(entry => String(entry?.club) === club.id);
+        if (step.action === 'handover') {
+            await db.club.updateOne({ _id: club.id }, { $addToSet: { admins: step.to }, $push: { adminSince: { user: step.to, at: new Date() } } });
+            await deliverQuietly([{
+                user: step.to, kind: 'clubHandedOver', club: club.id, link: '/club',
+                title: `You are now the admin of ${club.name}`,
+                body: 'Its admin deleted their account and handed the club over to you: its players, members and settings are yours to look after now.',
+            }]);
+            logger.info(`Club "${club.name}" handed over to ${step.to} before deleting the account ${user._id}`);
+        } else {
+            await deleteClubData(await db.club.findById(club.id), { by: `its only admin ${user._id}, deleting their account` });
+        }
+    }
 };
 
 // replaces a name in the titles and texts of the notifications of some clubs
@@ -41,6 +116,8 @@ const replaceInNotifications = async (from, to, clubIds) => {
     await db.notification.updateMany(
         { club: { $in: clubIds }, $or: [{ title: { $regex: pattern } }, { body: { $regex: pattern } }] },
         [{ $set: { title: replaced('title'), body: replaced('body') } }],
+        // an update made of stages: Mongoose only runs it when asked to
+        { updatePipeline: true },
     );
 };
 

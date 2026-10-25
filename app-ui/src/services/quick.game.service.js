@@ -12,7 +12,7 @@ const readKeys = () => {
     }
 };
 const keyOf = (id) => readKeys()[id] ?? '';
-const keepKey = (id, key) => {
+export const keepKey = (id, key) => {
     try {
         // a month later the game is gone on the server too
         const monthAgo = Date.now() - 31 * 24 * 60 * 60 * 1000;
@@ -39,7 +39,7 @@ const request = async (url, { method = 'GET', body, key } = {}) => {
 };
 
 /**
- * Starts a quick game ('x01' or 'cricket') and keeps its key. → the game
+ * Starts a quick game ('x01', 'cricket' or 'elimination') and keeps its key. → the game
  */
 const createQuickGame = async (kind, game) => {
     // stored as its settings, players and visits; the game comes back worked out from them
@@ -80,6 +80,12 @@ export const QuickCricketService = {
     createCricketGame: (game) => createQuickGame('cricket', game),
     loadCricketGameById: loadQuickGame,
     updateCricketGame: updateQuickGame,
+};
+
+export const QuickEliminationService = {
+    createEliminationGame: (game) => createQuickGame('elimination', game),
+    loadEliminationGameById: loadQuickGame,
+    updateEliminationGame: updateQuickGame,
 };
 
 const QuickGameService = { createQuickGame, loadQuickGame, updateQuickGame };

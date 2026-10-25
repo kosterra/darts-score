@@ -15,6 +15,10 @@ RUN npm ci --no-audit --no-fund --loglevel warn
 COPY app-ui/ ./
 # the version shown in the app comes from the root package.json (read as ../package.json)
 COPY package.json /package.json
+# true only for the release build of main (.github/workflows/release.yml): otherwise
+# the changes of this version are shown as coming soon
+ARG APP_RELEASED=false
+ENV APP_RELEASED=$APP_RELEASED
 RUN npm run build
 
 

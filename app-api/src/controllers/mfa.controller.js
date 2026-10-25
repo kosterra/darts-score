@@ -140,7 +140,7 @@ export const enable = async (req, res) => {
     Object.assign(user.mfa, { secret: user.mfa.pendingSecret, pendingSecret: null, enabledAt: new Date(), lastStep: step, recoveryHashes: hashes, trustSalt: randomBytes(12).toString('base64url') });
     notifySecurity(user, 'mfaEnabled', {
         title: 'Two-step login is on',
-        body: 'From now on Oche asks for a code of your authenticator app after the password. Keep your recovery codes in a safe place.',
+        body: 'From now on Legmate asks for a code of your authenticator app after the password. Keep your recovery codes in a safe place.',
         template: 'securityNotice',
     });
     logger.info(`${user.email} turned on two-step login`);
@@ -163,7 +163,7 @@ export const disable = async (req, res) => {
     await user.save({ timestamps: false });
     notifySecurity(user, 'mfaDisabled', {
         title: 'Two-step login is off',
-        body: 'Oche no longer asks for a code after the password. If that was not you, change your password and tell the admins of your club right away.',
+        body: 'Legmate no longer asks for a code after the password. If that was not you, change your password and tell the admins of your club right away.',
         template: 'securityNotice',
     });
     logger.info(`${user.email} turned off two-step login`);

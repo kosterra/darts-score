@@ -28,6 +28,9 @@ const useGameRules = (id, houseRules = []) => {
                     <ul className="mb-0">{houseRules.map(line => <li key={line}>{line}</li>)}</ul>
                 </div>}
             {entry.body}
+            <a href="/darts-terms" target="_blank" rel="noopener noreferrer" className="game-rules-terms">
+                <i className="pi pi-book" aria-hidden="true" />{t('Darts terms explained')}
+            </a>
         </div>
     );
     return [button, panel];

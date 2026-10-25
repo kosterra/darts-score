@@ -1,5 +1,6 @@
 import { Panel } from 'primereact/panel';
 import { PublicFooter, PublicHeader } from '../landing/public.frame';
+import usePageTitle from '../../utils/use.page.title';
 
 /**
  * The frame of the login, registration and password pages: the bar and the
@@ -7,6 +8,7 @@ import { PublicFooter, PublicHeader } from '../landing/public.frame';
  * middle. hide: 'login' or 'register', the page itself, left out of the bar.
  */
 const AuthLayout = ({ title, hide, children }) => {
+    usePageTitle(title);
     return (
         <div className="auth-page">
             <PublicHeader hide={hide} />

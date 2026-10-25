@@ -70,6 +70,9 @@ jobs:
           context: .
           file: ./Dockerfile
           target: production
+          # the version of this build is out: What's new shows it as released
+          build-args: |
+            APP_RELEASED=true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

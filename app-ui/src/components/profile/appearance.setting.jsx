@@ -8,7 +8,7 @@ import { ACCENT_OPTIONS } from '../../utils/accents';
 
 // each theme with what its little preview shows: the page, a panel, text and a button
 const THEME_OPTIONS = [
-    { value: 'dark', label: t('Dark'), hint: t('The usual look of Oche.'), preview: { page: '#1f1f1f', panel: '#313131', text: '#d4d4d4', line: '#7a7a7a' } },
+    { value: 'dark', label: t('Dark'), hint: t('The usual look of Legmate.'), preview: { page: '#1f1f1f', panel: '#313131', text: '#d4d4d4', line: '#7a7a7a' } },
     { value: 'light', label: t('Light'), hint: t('Easy to read in daylight and on bright screens.'), preview: { page: '#e9e7e1', panel: '#f7f6f3', text: '#262626', line: '#9a978f' } },
     { value: 'auto', label: t('Like this device'), hint: t('Light or dark, as the phone or computer is set.'), preview: { page: '#1f1f1f', panel: '#f7f6f3', text: '#262626', line: '#7a7a7a', split: true } },
     { value: 'black', label: t('Pure black'), hint: t('Saves battery on phones with an OLED screen.'), preview: { page: '#000', panel: '#161616', text: '#d4d4d4', line: '#5c5c5c' } },

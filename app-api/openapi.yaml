@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Oche API
+  title: Legmate API
   description: >-
-    REST API for Oche, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock, and Shanghai,
+    REST API for Legmate, the darts club app: accounts, clubs, players, games (X01, Cricket, Elimination, Around the Clock, and Shanghai,
     Killer, Halve-It, Golf and Tactics on the rules engine), trainings (Around the Clock, X01 against the bot, Bob's 27, 121 Checkout,
     Random checkouts, Scoring, Doubles around the board and Catch 40), statistics and the overviews of the club's games, trainings and
     badges, badges and levels, flights to collect, fair play, deletion requests, notifications, quick games without an account, and the
@@ -21,10 +21,10 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.15
+  version: 2026.10.16
   license:
-    name: GPLv3
-    url: https://www.gnu.org/licenses/gpl-3.0.html
+    name: AGPL-3.0-only
+    url: https://www.gnu.org/licenses/agpl-3.0.html
 servers:
   - url: http://localhost:3001
     description: Local development
@@ -196,11 +196,72 @@ paths:
         '409':
           description: The account already plays as someone else in a club of the player
       operationId: postClaimBytoken
+  /api/public/site:
+    get:
+      tags:
+        - Public
+      summary: Whether the installation shows its start page to everyone
+      description: false when the global admins chose to open with the login instead (System settings → Start page).
+      security: []
+      operationId: getPublicSite
+      responses:
+        '200':
+          description: The setting
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  publicSite:
+                    type: boolean
+  /api/public/contact:
+    post:
+      tags:
+        - Public
+      summary: Send a message of the contact form
+      description: The message goes by mail to the operator of the installation (System settings → Privacy and imprint), with the sender as the address to reply to; Legmate stores nothing of it. At most 5 messages an hour from one network. A filled website field (left empty by people) drops the message quietly.
+      security: []
+      operationId: postPublicContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - message
+              properties:
+                name:
+                  type: string
+                  maxLength: 80
+                email:
+                  type: string
+                  format: email
+                message:
+                  type: string
+                  minLength: 10
+                  maxLength: 3000
+                website:
+                  type: string
+                  description: Left empty; filled only by bots
+      responses:
+        '200':
+          description: Sent
+        '404':
+          description: This installation has no contact form
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many messages from this network
+        '502':
+          description: The mail server did not take the message
   /api/public/support:
     get:
       tags:
         - Public
-      summary: The ways to support Oche with a gift, for the page /support
+      summary: The ways to support Legmate with a gift, for the page /support
       responses:
         '200':
           description: '{ url: a donation page of this installation, twint: its TWINT link, project: the sponsoring page of the project (empty when url is the same) }'
@@ -224,6 +285,9 @@ paths:
                     properties:
                       mailEnabled:
                         type: boolean
+                      contactForm:
+                        type: boolean
+                        description: Whether the contact form can send (the operator's address and a mail server are set)
                       keep:
                         type: object
                         additionalProperties:
@@ -453,11 +517,50 @@ paths:
           $ref: '#/components/responses/Unauthorized'
       operationId: postAuthMfaForgetDevices
   /api/auth/delete-account:
+    get:
+      tags:
+        - Auth
+      summary: What stands before deleting the own account
+      description: Whether the account is the only global admin (then it cannot go), and the clubs it is the only admin of, each with how many members it has and the members with a login who could take it over.
+      responses:
+        '200':
+          description: The steps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  globalAdmin:
+                    type: [string, 'null']
+                    description: Why the only global admin cannot go
+                  clubs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        members:
+                          type: integer
+                        candidates:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              name:
+                                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAuthDeleteAccount
     post:
       tags:
         - Auth
       summary: Delete the own account
-      description: With the password, and a code of the authenticator app when two-step login is on. The account goes with its settings, notifications and login; its players stay in their clubs, anonymised (an anonymous nickname, no name, picture, date of birth or country, as guests), so the games and statistics of the others stay whole. Refused for the only admin of a club and the only global admin. A last mail confirms it.
+      description: With the password, and a code of the authenticator app when two-step login is on. The account goes with its settings, notifications and login; its players stay in their clubs, anonymised (an anonymous nickname, no name, picture, date of birth or country, as guests), so the games and statistics of the others stay whole. Each club the account is the only admin of is handed over to one of its members with a login (who is told so) or deleted with everything in it, confirmed with its name; all steps are checked before anything changes. Refused for the only global admin. A last mail confirms it.
       requestBody:
         required: true
         content:
@@ -471,6 +574,26 @@ paths:
                   type: string
                 code:
                   type: string
+                clubs:
+                  type: array
+                  description: One step for each club the account is the only admin of
+                  items:
+                    type: object
+                    required:
+                      - club
+                      - action
+                    properties:
+                      club:
+                        type: string
+                      action:
+                        type: string
+                        enum: [handover, delete]
+                      to:
+                        type: string
+                        description: The account that takes the club over (handover)
+                      name:
+                        type: string
+                        description: The name of the club, typed to delete it (delete)
       responses:
         '200':
           description: Deleted; the session ends
@@ -479,7 +602,7 @@ paths:
         '403':
           description: Wrong password or code
         '409':
-          description: The only admin of a club, or the only global admin
+          description: A club of the only admin without a step that does, or the only global admin
       operationId: postAuthDeleteAccount
   /api/auth/logout:
     post:
@@ -622,45 +745,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '422':
           $ref: '#/components/responses/ValidationError'
-  /api/auth/dashboard/{clubId}:
-    put:
-      tags:
-        - Auth
-      summary: Arrange the user's own dashboard in a club
-      description: The user's own arrangement of the dashboard in one of their clubs; with layout null they see the club's again.
-      operationId: putAuthDashboardByclubId
-      parameters:
-        - name: clubId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - layout
-              properties:
-                layout:
-                  oneOf:
-                    - $ref: '#/components/schemas/DashboardLayout'
-                    - type: 'null'
-      responses:
-        '200':
-          description: The user, with their dashboards
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
   /api/auth/session:
     get:
       tags:
@@ -743,11 +827,152 @@ paths:
         '200':
           description: OK
       operationId: getPublicOverview
+  /api/public/evenings:
+    post:
+      tags:
+        - Quick games
+      summary: 'Start a darts evening without an account: 2 to 8 players by name; the key comes back once'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - names
+              properties:
+                name:
+                  type: string
+                  maxLength: 60
+                names:
+                  type: array
+                  minItems: 2
+                  maxItems: 8
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: '{ evening, key }'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many evenings from one network
+      operationId: postPublicEvenings
+  /api/public/evenings/{id}:
+    get:
+      tags:
+        - Quick games
+      summary: An evening with its games and report, for the browser with its key (X-Quick-Key)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '{ id, name, players: [{ id, name }], games: [{ id, kind, players, winner, finished, running, setup, createdAt }], report: { table, awards, headToHead, form, played, running }, createdAt, club, shareToken (only with the key) }'
+        '404':
+          description: Not found on this device
+      operationId: getPublicEveningsByid
+  /api/public/evenings/{id}/games:
+    post:
+      tags:
+        - Quick games
+      summary: Start a game of the evening (X01, Cricket or Elimination, 2 to 4 of its players), played with the evening's key
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - kind
+                - game
+              properties:
+                kind:
+                  type: string
+                  enum: [x01, cricket, elimination]
+                game:
+                  type: object
+      responses:
+        '201':
+          description: '{ game }: the quick game'
+        '404':
+          description: Not found on this device
+        '409':
+          description: The evening became a club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postPublicEveningsByidGames
+  /api/public/evenings/shared/{token}:
+    get:
+      tags:
+        - Quick games
+      summary: An evening read-only, for everyone with its link
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The evening as for its owner, without the link to share it
+        '404':
+          description: Not there (any more)
+      operationId: getPublicEveningsSharedBytoken
+  /api/evenings/{id}/club:
+    post:
+      tags:
+        - Quick games
+      summary: Make the evening a club of the user (with its key, X-Quick-Key) - its players and finished games are taken over
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  maxLength: 60
+                me:
+                  type: [string, 'null']
+                  description: The user's own player of the evening (q1 … q8), who gets the login
+      responses:
+        '201':
+          description: '{ club: { id, name }, games }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admins have no clubs
+        '404':
+          description: Not found on this device
+        '409':
+          description: The evening is a club already
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postEveningsByidClub
   /api/public/quick-games:
     post:
       tags:
         - Quick games
-      summary: Start a quick game without an account (X01 or Cricket, 1 to 4 players by name)
+      summary: Start a quick game without an account (X01, Cricket or Elimination, 1 to 4 players by name)
       description: 'No login. At most 10 new games per hour from one network. The key in the answer comes only once: the browser keeps it and sends it as X-Quick-Key to play on. Quick games are kept 30 days and never count for clubs, players or the public figures.'
       security: []
       requestBody:
@@ -765,9 +990,10 @@ paths:
                   enum:
                     - x01
                     - cricket
+                    - elimination
                 game:
                   type: object
-                  description: 'The game as the game page keeps it, with players ["q1", …] and quickPlayers [{ id, nickname }]. X01: 301 or 501, Straight In, Double or Straight Out, best of 1, 3 or 5 legs; Cricket: Standard or Cut-throat; flyingDarts "off".'
+                  description: 'The game as the game page keeps it, with players ["q1", …] and quickPlayers [{ id, nickname }]. X01: 301 or 501, Straight In, Double or Straight Out, best of 1, 3 or 5 legs; Cricket: Standard or Cut-throat; Elimination: 301 or 501, Straight In, Double or Straight Out; flyingDarts "off".'
       responses:
         '201':
           description: The game and its key
@@ -1922,7 +2148,7 @@ paths:
       summary: What the public start page shows, with the numbers of the installation as they are now
       responses:
         '200':
-          description: '{ showNumbers, numbers: { clubs, players, gamesPlayed, gamesThisWeek } }'
+          description: '{ showNumbers, publicSite, numbers: { clubs, players, gamesPlayed, gamesThisWeek } }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1931,21 +2157,22 @@ paths:
     put:
       tags:
         - Administration
-      summary: Show the numbers of the installation (clubs, players, games) on the public start page, or not
+      summary: Show the numbers of the installation (clubs, players, games) on the public start page, and whether there is a public start page at all
+      description: Either or both. publicSite false makes the installation open with the login instead of the page about Legmate, e.g. for the clubs of one association only; the other public pages stay.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - showNumbers
               properties:
                 showNumbers:
                   type: boolean
+                publicSite:
+                  type: boolean
       responses:
         '200':
-          description: '{ showNumbers }'
+          description: '{ showNumbers, publicSite }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -3812,6 +4039,45 @@ paths:
             type: string
       description: Club admins only.
       operationId: deletePlayersByidClubsByclubId
+  /api/stats/favourites:
+    get:
+      tags:
+        - Statistics
+      summary: The games the user's player played most in the last 90 days (same game, settings and opponents), the most played first, at most three
+      responses:
+        '200':
+          description: '[{ id, type, kind, settings, players, opponents, count, lastAt, lastSettings }]'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getStatsFavourites
+  /api/stats/favourites/{id}/start:
+    post:
+      tags:
+        - Statistics
+      summary: Start a favourite again with the same settings and opponents; the player who threw first last time throws last
+      responses:
+        '201':
+          description: '{ type, kind, id, path: where the app plays it }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: The favourite is no longer there
+        '409':
+          description: The club's rules no longer allow it
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postStatsFavouritesByidStart
   /api/stats/club:
     get:
       tags:
@@ -6675,7 +6941,7 @@ components:
         accent:
           type: [string, 'null']
           enum: [green, red, blue, gold, purple, null]
-          description: "The club's accent colour in the app, for the members who did not choose their own (null or unknown: Oche green)"
+          description: "The club's accent colour in the app, for the members who did not choose their own (null or unknown: Legmate green)"
         isPublic:
           type: boolean
           description: List the club on the public start page
@@ -6774,7 +7040,7 @@ components:
                 description: ISO 3166 country code, empty when not set
               accent:
                 type: [string, 'null']
-                description: "The club's accent colour (null: Oche green)"
+                description: "The club's accent colour (null: Legmate green)"
               logo:
                 type: string
               joinPolicy:
@@ -7669,16 +7935,6 @@ components:
           oneOf:
             - $ref: '#/components/schemas/Language'
             - type: 'null'
-        dashboards:
-          type: array
-          description: The user's own dashboards, per club
-          items:
-            type: object
-            properties:
-              club:
-                type: string
-              layout:
-                $ref: '#/components/schemas/DashboardLayout'
     Session:
       type: object
       properties:

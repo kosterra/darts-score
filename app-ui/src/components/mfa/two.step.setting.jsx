@@ -95,7 +95,7 @@ const TwoStepSetting = ({ onSaved, onError }) => {
                 <div className="col d-flex flex-column gap-3 pt-1">
                     {!state.enabled && open !== 'setup' &&
                         <>
-                            <span className="fs-7 text-subtle">{t('After the password, Oche also asks for a code of an app on your phone: a stolen password alone is not enough to log in.')}</span>
+                            <span className="fs-7 text-subtle">{t('After the password, Legmate also asks for a code of an app on your phone: a stolen password alone is not enough to log in.')}</span>
                             {state.required &&
                                 <Message severity="warn" text={state.setupDue ? t('This installation requires it: set it up by {{date}}.', { date: formatDate(state.setupDue) }) : t('This installation requires it: you set it up at your next login.')} className="w-100 justify-content-start" />}
                             <div className="d-flex justify-content-end">

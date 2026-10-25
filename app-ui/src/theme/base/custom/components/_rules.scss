@@ -253,6 +253,16 @@
     }
 }
 
+// below the rules of a game: the darts terms, in a tab of their own
+.game-rules-terms {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: $space-3;
+    font-size: $text-sm;
+    text-decoration: none;
+}
+
 // help that opens in place (how to enter darts, the rules of a training)
 .entering-help {
     margin-bottom: $space-4;

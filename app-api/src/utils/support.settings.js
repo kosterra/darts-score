@@ -1,7 +1,7 @@
 import db from '../models/db.model.js';
 
 /**
- * Supporting Oche with a gift: the project's own sponsoring page (the same
+ * Supporting Legmate with a gift: the project's own sponsoring page (the same
  * on every installation), and what the global admins of this installation
  * add for it: a TWINT link and a link to any other donation page (Ko-fi,
  * PayPal, their own GitHub Sponsors …). Shown on the page /support, as plain
