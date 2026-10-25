@@ -178,24 +178,41 @@ const useSections = () => {
                 }] : []),
             ],
         },
-        // for global admins, across all clubs: who uses the app, what was played, what needs watching,
-        // and the installation; open, and folded only when the admin folds it
+        // for global admins, across all clubs: the overview first, then who uses the app, what was played,
+        // what needs watching and the installation; each section open, and folded only when the admin folds it
         {
             id: 'admin',
-            title: t('Administration'),
             visible: isGlobalAdmin,
             items: [
                 { label: t('Overview'), icon: FaGaugeHigh, to: '/admin/dashboard' },
-
+            ],
+        },
+        {
+            id: 'admin-accounts',
+            title: t('Admin · Accounts'),
+            visible: isGlobalAdmin,
+            items: [
                 { label: t('Clubs'), icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: t('Users'), icon: FaUserGear, to: '/admin/users' },
                 { label: t('Logged in'), icon: FaUserClock, to: '/admin/sessions' },
                 { label: t('Players'), icon: FaUserPen, to: '/admin/players' },
-
+            ],
+        },
+        {
+            id: 'admin-played',
+            title: t('Admin · Played'),
+            visible: isGlobalAdmin,
+            items: [
                 { label: t('Games'), icon: GiDart, to: '/admin/games' },
                 { label: t('Trainings'), icon: BsPersonFillCheck, to: '/admin/trainings' },
                 { label: t('Quick games'), icon: FaBolt, to: '/admin/quick-games' },
-
+            ],
+        },
+        {
+            id: 'admin-monitoring',
+            title: t('Admin · Monitoring'),
+            visible: isGlobalAdmin,
+            items: [
                 {
                     label: t('Fair play'),
                     icon: FaScaleBalanced,
@@ -212,7 +229,13 @@ const useSections = () => {
                 },
                 { label: t('Error log'), icon: FaBug, to: '/admin/logs' },
                 { label: t('Usage'), icon: FaChartColumn, to: '/admin/usage' },
-
+            ],
+        },
+        {
+            id: 'admin-system',
+            title: t('Admin · System'),
+            visible: isGlobalAdmin,
+            items: [
                 { label: t('Backups'), icon: FaDatabase, to: '/admin/backups' },
                 { label: t('System settings'), icon: FaShieldHalved, to: '/system-settings' },
             ],
