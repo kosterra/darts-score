@@ -320,6 +320,16 @@ $badgeMetals: (
     min-width: 0;
 }
 
+// a shame badge named after a darts term: what the term means
+.shame-term-link {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    font-size: $text-sm;
+    line-height: 1;
+
+    &:hover, &:focus-visible { color: $primaryColor; }
+}
+
 // The Hall of Shame on a player's profile. What is on them right now: cards
 // with a rust edge that stand out
 .shame-cards {

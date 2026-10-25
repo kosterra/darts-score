@@ -43,7 +43,7 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
  */
 export const PageHeader = ({ user }) => (user
     ? <PublicHeader hide="both" action={<Link to="/"><Button label={t('Open Oche')} size="small" /></Link>} />
-    : <PublicHeader nav={<nav className="landing-nav" aria-label={t('Sections')}><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></nav>} />);
+    : <PublicHeader nav={<nav className="landing-nav" aria-label={t('Sections')}><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link><Link to="/darts-terms">{t('Darts 1×1')}</Link></nav>} />);
 
 /**
  * The line at the bottom of the public pages.
@@ -78,6 +78,7 @@ export const PublicFooter = () => (
                 <span className="landing-footer-divider" aria-hidden="true">|</span>
                 <span className="landing-footer-group">
                     <Link to="/support" className="landing-footer-icon-link"><i className="pi pi-heart-fill is-heart" aria-hidden="true" />{t('Support Oche')}</Link>
+                    <Link to="/darts-terms" className="landing-footer-icon-link"><i className="pi pi-book" aria-hidden="true" />{t('Darts 1×1')}</Link>
                     <Link to="/privacy" className="landing-footer-icon-link"><i className="pi pi-shield" aria-hidden="true" />{t('Privacy')}</Link>
                     <Link to="/privacy#imprint" className="landing-footer-icon-link"><i className="pi pi-id-card" aria-hidden="true" />{t('Imprint')}</Link>
                     <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="landing-footer-icon-link"><i className="pi pi-github" aria-hidden="true" />{t('Source code')}</a>

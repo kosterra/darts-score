@@ -526,6 +526,9 @@
     }
 
     .landing-footer-group:last-child .landing-footer-icon-link { min-height: 2.25rem; }
+
+    // an odd one out at the end takes the whole row
+    .landing-footer-group > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 
 // jumping to a section leaves room for the bar at the top
@@ -829,3 +832,149 @@
     font-size: $text-sm;
     text-align: center;
 }
+
+// Darts 1×1 & slang: the setup in figures, 501 in five steps and the terms, searchable
+.terms-page {
+    display: flex;
+    flex-direction: column;
+
+    .terms-main { flex: 1 0 auto; }
+}
+
+.terms-main {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    max-width: 72rem;
+    padding: 3.5rem 1rem 4rem;
+
+    @media (max-width: 575.98px) { padding-top: 2rem; gap: 2.25rem; }
+}
+
+.terms-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    max-width: 46rem;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.terms-lead {
+    color: var(--text-subtle);
+    font-size: $text-lg;
+    line-height: 1.55;
+}
+
+.terms-setup {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 991.98px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.terms-figure {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.1rem 1.25rem;
+    border-radius: $radius-lg;
+    background: $surfaceTranslucentColor;
+}
+
+.terms-figure-value {
+    font-size: $text-2xl;
+    font-weight: $weight-semibold;
+    color: $primaryColor;
+    font-variant-numeric: tabular-nums;
+}
+
+.terms-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: $space-3;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.terms-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-3;
+}
+
+.terms-search {
+    flex: 1 1 16rem;
+    max-width: 24rem;
+}
+
+.terms-groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2;
+}
+
+.terms-group-pill {
+    padding: 0.35rem 0.85rem;
+    border: 1px solid ink(0.12);
+    border-radius: $radius-pill;
+    background: transparent;
+    color: var(--text-subtle);
+    font-size: $text-sm;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+
+    &:hover { color: var(--text-default); background: ink(0.05); }
+    &.is-chosen { border-color: $primaryColor; background: with-alpha($primaryColor, 0.18); color: var(--text-default); }
+}
+
+.terms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: $space-3;
+}
+
+.term-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.15rem;
+    border-radius: $radius-lg;
+    background: $surfaceTranslucentColor;
+    border: 1px solid transparent;
+    // a term linked to stands out, below the bar on top
+    scroll-margin-top: 6rem;
+    transition: border-color 0.3s, background-color 0.3s;
+
+    &:target {
+        border-color: with-alpha($primaryColor, 0.6);
+        background: with-alpha($primaryColor, 0.12);
+    }
+
+    &:hover .term-anchor { opacity: 1; }
+}
+
+.term-name {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+    color: var(--text-default);
+}
+
+.term-anchor {
+    color: var(--text-faint);
+    font-size: 0.75em;
+    opacity: 0;
+    transition: opacity 0.15s;
+
+    &:focus-visible { opacity: 1; }
+    @media (hover: none) { opacity: 0.6; }
+}
+
+.terms-cta { padding: 2.5rem 1.5rem; }
