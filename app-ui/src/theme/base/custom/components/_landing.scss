@@ -674,9 +674,15 @@
     .language-switch.p-dropdown .p-dropdown-label { padding: 0.4rem 0.5rem; }
 }
 
-// the smallest phones: the logo alone says Legmate, so the buttons keep their words
-@media (max-width: 399.98px) {
+// phones: the logo alone stands for Legmate, so the language and both buttons keep their words on one line
+@media (max-width: 519.98px) {
     .landing-bar .landing-brand-name { display: none; }
+}
+.landing-bar .p-button { white-space: nowrap; }
+// the smallest phones: the heart goes (Support is in the footer), the buttons get tight
+@media (max-width: 359.98px) {
+    .landing-bar .landing-support-link { display: none; }
+    .landing-bar .p-button.p-button-sm { padding-left: 0.45rem; padding-right: 0.45rem; font-size: 0.8125rem; }
 }
 
 // login, registration and the passwords: the bar on top, the card in the middle, the footer at the bottom
