@@ -712,11 +712,6 @@
 }
 
 // the privacy policy and imprint: a page to read, between the bar and the footer of the start page
-.legal-page {
-    max-width: $page-reading;
-    margin: 0 auto;
-}
-
 .legal-text {
     line-height: 1.6;
 
@@ -990,6 +985,7 @@
 // fading into the dark of the start page, so what follows reads calmly
 .terms-page,
 .support-page,
+.privacy-page,
 .auth-page,
 .quick-page {
     background:
@@ -1001,13 +997,16 @@
 
 // the tiles of the pages to read are almost solid, as the panels of the app
 .terms-page,
-.support-page {
+.support-page,
+.privacy-page {
     --tile-surface: color-mix(in srgb, var(--c-shade-800) 94%, transparent);
 
     .terms-figure,
     .landing-step,
     .term-card,
-    .support-option { background: var(--tile-surface); }
+    .support-option,
+    .privacy-glance-item,
+    .privacy-section { background: var(--tile-surface); }
 
     .term-card:target,
     .term-card.is-target { background: color-mix(in srgb, #{$primaryColor} 24%, var(--c-shade-800)); }
@@ -1017,4 +1016,81 @@
             radial-gradient(ellipse at top, with-alpha($primaryColor, 0.25), transparent 70%),
             var(--tile-surface);
     }
+}
+
+// the privacy policy: at a glance, the contents, then each section a tile of its own
+.privacy-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    .privacy-main { flex: 1 0 auto; }
+}
+
+.privacy-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem;
+    max-width: 56rem;
+    padding: 3.5rem 1rem 4rem;
+
+    @media (max-width: 575.98px) { padding-top: 2rem; gap: 1.75rem; }
+}
+
+.privacy-glance {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-3;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.privacy-glance-item {
+    display: flex;
+    align-items: flex-start;
+    gap: $space-3;
+    padding: 1rem 1.15rem;
+    border-radius: $radius-lg;
+
+    .landing-feature-icon { flex-shrink: 0; }
+}
+
+.privacy-contents {
+    justify-content: center;
+
+    a { text-decoration: none; }
+}
+
+.privacy-sections {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+}
+
+.privacy-section {
+    padding: 1.4rem 1.5rem;
+    border-radius: $radius-lg;
+    // below the bar on top when jumped to
+    scroll-margin-top: 5.5rem;
+
+    ul { padding-left: 1.2rem; }
+    li + li { margin-top: 0.4rem; }
+
+    @media (max-width: 575.98px) { padding: 1.1rem 1.1rem; }
+}
+
+// the title with its icon; the h2 margins of the old page are not needed in a tile
+.legal-text .privacy-section-title {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin: 0 0 $space-3;
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+    color: var(--text-default);
+
+    .landing-feature-icon { width: 2.1rem; height: 2.1rem; font-size: $text-md; }
 }
