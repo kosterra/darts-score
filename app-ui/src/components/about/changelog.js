@@ -12,6 +12,9 @@ const CHANGELOG = [
             t('A Dashboard of your own: what waits for you (a tournament to enter, your match, games left running, requests to answer; for admins requests to join and fair play), your favourites – the games you play most lately, started again with one tap – and yourself. Arrange it as you like; it comes with your account on every device.'),
             t('The club at a glance moves to My club, arranged by the club\'s admins for everyone.'),
             t('A shorter menu: Play (games and trainings in groups that fold, tournaments), My club (with games and trainings in one group) and, for global admins, Administration in one section; sections fold with their title, and the menu remembers what you opened.'),
+            t('Darts evenings without an account: two to eight players by name, game after game of X01, Cricket or Elimination with two to four of them, the next game suggested; a table of the evening, awards (and a wooden spoon), who beat whom and the form, and a link with a QR code for friends to follow it on their phones.'),
+            t('Make an evening a club: with an account, its players and games become a club of your own, counted in the statistics and badges.'),
+            t('Elimination as a quick game, without an account.'),
         ],
     },
     {

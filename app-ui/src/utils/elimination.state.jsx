@@ -6,7 +6,8 @@ import EliminationContext from './elimination.context';
 import GameReducer from './game.reducer';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import KnockOut from '../components/games/common/knock.out';
-import EliminationService from '../services/elimination.service';
+import ClubEliminationService from '../services/elimination.service';
+import { QuickEliminationService, quickPlayersOf } from '../services/quick.game.service';
 import { eliminationVisitOutcome, replayElimination } from '../rules/elimination';
 import PlayerService from '../services/player.service';
 import { knockOutScene } from './elimination.moments';
@@ -22,7 +23,9 @@ import {
 import { FETCH_GAME_SUCCESS, FETCH_PLAYERS_SUCCESS, SET_GAME, SET_LOADING, UPDATE_CURRENT_THROW } from './constants';
 import { t } from './i18n';
 
-const EliminationState = ({ children }) => {
+// quick: a quick game of the start page (or of a darts evening), the players only names
+const EliminationState = ({ children, quick = false }) => {
+    const EliminationService = quick ? QuickEliminationService : ClubEliminationService;
     const { id } = useParams();
     const toast = useRef(null);
     const navigate = useNavigate();
@@ -68,7 +71,7 @@ const EliminationState = ({ children }) => {
                 const game = await EliminationService.loadEliminationGameById(id);
                 dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
 
-                const players = await Promise.all(game.players.map(PlayerService.getPlayer));
+                const players = quick ? quickPlayersOf(game) : await Promise.all(game.players.map(PlayerService.getPlayer));
                 dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
 
                 setLoading('initGameLoading', false);
@@ -79,10 +82,12 @@ const EliminationState = ({ children }) => {
                     detail: t('Failed to load game. ') + err.message,
                     life: 3000
                 });
-                navigate('/', { replace: true });
+                navigate(quick ? '/quick' : '/', { replace: true });
             }
         };
         fetchGame();
+        // the service follows "quick", which a page never changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, navigate]);
 
     // -------------------- Helper Functions --------------------
@@ -311,6 +316,7 @@ const EliminationState = ({ children }) => {
                 game: state.game,
                 players: state.players,
                 loading: state.loading,
+                quick,
                 winnerSaved,
                 // a moment of the winning visit plays to its end before the statistics page
                 celebrating: Boolean(knockOut || oneEighty),

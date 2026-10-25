@@ -87,6 +87,8 @@ export const quickGameView = (doc) => ({
     id: String(doc._id),
     quick: true,
     kind: doc.kind,
+    // the darts evening it belongs to: its statistics lead back there
+    evening: doc.evening ? String(doc.evening) : null,
     gameIsRunning: doc.gameIsRunning,
     hasWinner: doc.hasWinner,
     createdAt: doc.createdAt,

@@ -11,6 +11,7 @@ import AppTooltip from './components/elements/app.tooltip';
 import PageLoader from './components/elements/page.loader';
 import AuthState from './utils/auth.state';
 import { useAuth } from './utils/auth.context';
+import { peekPendingEvening } from './utils/pending.evening';
 import { peekPendingClaim } from './utils/pending.claim';
 import MfaDueNotice from './components/mfa/mfa.due.notice';
 import { APPEARANCE_CHANGED } from './utils/appearance';
@@ -66,6 +67,9 @@ const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
 const SupportPage = lazy(() => import('./components/legal/_support.page'));
 const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
 const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
+const EveningNewPage = lazy(() => import('./components/evening/evening.new.page'));
+const EveningPage = lazy(() => import('./components/evening/_evening.page'));
+const EveningClubPage = lazy(() => import('./components/evening/evening.club.page'));
 
 import 'primeicons/primeicons.css';
 import "./theme/dark/green/theme.scss";
@@ -132,6 +136,22 @@ function AppContent() {
     if (pathname === '/tournament-reply') {
         return <Suspense fallback={<PageLoader />}><TournamentReplyPage /></Suspense>;
     }
+    // a darts evening and its games, logged in or not (making it a club needs the account)
+    if (pathname.startsWith('/evening') || pathname.startsWith('/quick/')) {
+        return (
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/evening/new" element={<EveningNewPage />} />
+                    <Route path="/evening/shared/:token" element={<EveningPage shared />} />
+                    <Route path="/evening/:id/club" element={<EveningClubPage />} />
+                    <Route path="/evening/:id" element={<EveningPage />} />
+                    <Route path="/quick/:kind/:id" element={<QuickGamePage />} />
+                    <Route path="/quick/stats/:kind/:id" element={<QuickGamePage stats />} />
+                    <Route path="*" element={<Navigate replace to="/" />} />
+                </Routes>
+            </Suspense>
+        );
+    }
     // the privacy policy and imprint, for everyone
     if (pathname === '/privacy') {
         return <Suspense fallback={<PageLoader />}><PrivacyPage /></Suspense>;
@@ -153,13 +173,17 @@ function AppContent() {
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     {/* quick games without an account */}
                     <Route path="/quick" element={<QuickSetupPage />} />
-                    <Route path="/quick/:kind/:id" element={<QuickGamePage />} />
-                    <Route path="/quick/stats/:kind/:id" element={<QuickGamePage stats />} />
                     {/* after logging out: the public start page; otherwise the login */}
                     <Route path="*" element={<Navigate replace to={loggedOut ? '/' : '/login'} />} />
                 </Routes>
             </Suspense>
         );
+    }
+
+    // logged in to make a darts evening a club: back to it
+    const pendingEvening = peekPendingEvening();
+    if (pendingEvening) {
+        return <Navigate replace to={`/evening/${pendingEvening}/club`} />;
     }
 
     // logged in to take over a player with a claim link: back to the link

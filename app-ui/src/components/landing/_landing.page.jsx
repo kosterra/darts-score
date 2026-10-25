@@ -189,10 +189,13 @@ const LandingPage = () => {
                             <span className="landing-eyebrow">{t('No account needed')}</span>
                             <h2 className="fs-4 fw-semibold text-default m-0">{t('Throw a few darts right now')}</h2>
                             <p className="text-subtle m-0">
-                                {t('X01 or Cricket for up to four players, who only need a name: the full scoreboard with the ways out, and the statistics of the game at the end.')}
+                                {t('X01, Cricket or Elimination for up to four players, who only need a name: the full scoreboard with the ways out, and the statistics of the game at the end. A whole evening with friends? Up to eight players, game after game, with a table of the evening and awards.')}
                             </p>
                         </div>
-                        <Link to="/quick"><Button label={t('Play a quick game')} icon="pi pi-play" size="large" /></Link>
+                        <div className="d-flex flex-wrap gap-2">
+                            <Link to="/quick"><Button label={t('Play a quick game')} icon="pi pi-play" size="large" /></Link>
+                            <Link to="/evening/new"><Button label={t('Start a darts evening')} icon="pi pi-users" size="large" severity="secondary" outlined /></Link>
+                        </div>
                     </div>
                 </section>
 

@@ -22,8 +22,8 @@ export const newShareToken = () => crypto.randomBytes(12).toString('base64url');
  * name of their own; the evening's name at most EVENING_NAME_MAX characters.
  */
 export const eveningError = ({ name = '', names } = {}) => {
-    if (typeof name !== 'string' || name.trim().length > EVENING_NAME_MAX) return `The name of the evening is at most ${EVENING_NAME_MAX} characters.`;
-    if (!Array.isArray(names) || names.length < EVENING_PLAYERS.min || names.length > EVENING_PLAYERS.max) return `An evening has ${EVENING_PLAYERS.min} to ${EVENING_PLAYERS.max} players.`;
+    if (typeof name !== 'string' || name.trim().length > EVENING_NAME_MAX) return 'The name of the evening is at most 60 characters.';
+    if (!Array.isArray(names) || names.length < EVENING_PLAYERS.min || names.length > EVENING_PLAYERS.max) return 'An evening has 2 to 8 players.';
     const trimmed = names.map(entry => (typeof entry === 'string' ? entry.trim() : ''));
     if (trimmed.some(entry => !NAME.test(entry))) return 'A name has 1 to 20 letters or digits.';
     if (new Set(trimmed.map(entry => entry.toLowerCase())).size !== trimmed.length) return 'Every player needs a name of their own.';
@@ -129,8 +129,10 @@ export const eveningReport = (evening, games) => {
     if (oneEighties) awards.push({ id: 'oneEighties', player: oneEighties.id, value: oneEighties.oneEighties });
     const checkout = best(row => row.highestCheckout ?? 0);
     if (checkout) awards.push({ id: 'checkout', player: checkout.id, value: checkout.highestCheckout });
-    // the wooden spoon, in good humour: the fewest wins of those who played at least two games
-    const spoon = played.filter(row => row.games >= 2).sort((a, b) => a.winRate - b.winRate || a.wins - b.wins || b.games - a.games).at(0);
+    // the wooden spoon, in good humour: the lowest win rate of those who played at least half
+    // as many games as the busiest player (one unlucky game alone does not earn it early on)
+    const enough = Math.max(1, Math.ceil(Math.max(0, ...played.map(row => row.games)) / 2));
+    const spoon = played.filter(row => row.games >= enough).sort((a, b) => a.winRate - b.winRate || a.wins - b.wins || b.games - a.games).at(0);
     if (spoon && played.length > 2 && spoon.id !== champion?.id) awards.push({ id: 'woodenSpoon', player: spoon.id, value: spoon.wins });
 
     return { table, awards, headToHead, form, played: ordered.filter(game => game.hasWinner).length, running };
