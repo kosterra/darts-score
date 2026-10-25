@@ -985,16 +985,23 @@
 
 .terms-cta { padding: 2.5rem 1.5rem; }
 
-// the pages to read (darts terms, supporting Oche): the board behind the top only,
-// fading into the dark of the start page, so the long rest reads calmly
+// every public page (the darts terms, supporting Oche, the privacy policy, logging in
+// and registering, the quick games and darts evenings): the board behind the top only,
+// fading into the dark of the start page, so what follows reads calmly
 .terms-page,
-.support-page {
+.support-page,
+.auth-page,
+.quick-page {
     background:
         linear-gradient(to bottom, with-alpha($shade900, 0.6) 0, with-alpha($shade900, 0.88) 22rem, $shade900 38rem),
         // as wide as the window, and wide enough on a phone to show the board
         url("/background.webp") top center / max(100%, 60rem) auto no-repeat,
         $shade900;
+}
 
+// the tiles of the pages to read are almost solid, as the panels of the app
+.terms-page,
+.support-page {
     --tile-surface: color-mix(in srgb, var(--c-shade-800) 94%, transparent);
 
     .terms-figure,
