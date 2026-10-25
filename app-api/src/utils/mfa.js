@@ -27,13 +27,15 @@ export const CODE_TRIES = { limit: 5, windowMs: 5 * 60 * 1000 };
 // ---------------------------------------------------------------------------
 
 let warned = false;
+// the key from the session secret, used while MFA_KEY is not set
+const fallbackKey = () => createHash('sha256').update(`mfa:${getSessionSecret()}`).digest();
 const keyOf = () => {
     const configured = process.env.MFA_KEY;
     if (!configured && !warned) {
         warned = true;
         logger.warn('MFA_KEY is not set — the secrets of two-step login are encrypted with a key from SESSION_SECRET; changing that secret ends every two-step login');
     }
-    return createHash('sha256').update(configured || `mfa:${getSessionSecret()}`).digest();
+    return configured ? createHash('sha256').update(configured).digest() : fallbackKey();
 };
 
 export const encrypt = (text) => {
@@ -43,16 +45,20 @@ export const encrypt = (text) => {
     return [iv, cipher.getAuthTag(), data].map(part => part.toString('base64url')).join('.');
 };
 
-export const decrypt = (stored) => {
+const decryptWith = (key, stored) => {
     try {
         const [iv, tag, data] = String(stored ?? '').split('.').map(part => Buffer.from(part, 'base64url'));
-        const decipher = createDecipheriv('aes-256-gcm', keyOf(), iv);
+        const decipher = createDecipheriv('aes-256-gcm', key, iv);
         decipher.setAuthTag(tag);
         return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
     } catch {
         return null;
     }
 };
+
+// secrets saved before MFA_KEY was set were encrypted with the key from the
+// session secret: they still work once MFA_KEY is set
+export const decrypt = (stored) => decryptWith(keyOf(), stored) ?? (process.env.MFA_KEY ? decryptWith(fallbackKey(), stored) : null);
 
 // ---------------------------------------------------------------------------
 // Codes

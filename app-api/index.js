@@ -243,11 +243,15 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown
 const shutdown = (signal) => {
     logger.info(`${signal} received — shutting down`);
-    server.close(() => {
-        db.mongoose.connection.close(false, () => {
+    server.close(async () => {
+        // Mongoose 9 closes with a promise, no callback any more
+        try {
+            await db.mongoose.connection.close(false);
             logger.info('MongoDB connection closed');
-            process.exit(0);
-        });
+        } catch (err) {
+            logger.error(err, 'Closing the MongoDB connection failed');
+        }
+        process.exit(0);
     });
 };
 process.on('SIGTERM', () => shutdown('SIGTERM'));
