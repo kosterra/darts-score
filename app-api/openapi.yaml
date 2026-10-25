@@ -3933,6 +3933,65 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'
       operationId: getPlayersByidFlights
+  /api/players/{id}/shirt:
+    get:
+      tags:
+        - Flights
+      summary: A player's shirt and the designs their level opens
+      description: >-
+        Everyone wears the shirt of their club; from the level Pro on a player may wear one of their own with their nickname on the back,
+        more designs with World Class and Legend. A level once reached keeps its shirts.
+      responses:
+        '200':
+          description: '{ level: the highest level reached, shirt: { design, color, accent }, designs: [{ id, label, level, levelName, owned }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Player not found
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: getPlayersByidShirt
+    put:
+      tags:
+        - Flights
+      summary: Choose a player's shirt
+      description: The player themselves, or a club admin for a player without a login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                design:
+                  type: string
+                  enum: [club, flames, lightning, chevrons, waves, stripes, checker, splash, globe, goldTrim, laurel]
+                color:
+                  type: string
+                  description: The main colour, one of the flight colours
+                accent:
+                  type: string
+                  description: The second colour, one of the flight colours
+      responses:
+        '200':
+          description: As GET
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not the player (or a club admin for a player without a login)
+        '404':
+          description: Player not found
+        '409':
+          description: The level does not open this shirt yet
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      operationId: putPlayersByidShirt
   /api/players/{id}/flights/unlock:
     post:
       tags:

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
@@ -20,6 +20,7 @@ import { MIN_PLAYERS, isDecided, nextOf } from '../../rules/tournaments';
 import TournamentBracket from './tournament.bracket';
 import { INVITE_WORDS, STATUS_WORDS, nameOf, roundName, rulesText } from './tournament.words';
 import BetaTag from './beta.tag';
+import { ShirtPicture } from '../shirts/shirt.art';
 import { Lines } from '../elements/skeletons';
 
 /**
@@ -27,7 +28,26 @@ import { Lines } from '../elements/skeletons';
  * throws first), go on with or watch a running one, see the statistics of a
  * played one, and (admins) decide it without a game.
  */
+// the walk-on: both players in their shirts, as on the stage, before a match is played
+const WalkOn = ({ tournament, match, club }) => (
+    <div className="tournament-walk-on" aria-hidden="true">
+        {match.players.map((id, index) => {
+            const player = tournament.players?.[id];
+            return (
+                <Fragment key={id ?? index}>
+                    {index === 1 && <span className="tournament-walk-on-vs">{t('vs')}</span>}
+                    <span className="tournament-walk-on-player">
+                        {player?.shirt && <ShirtPicture {...player.shirt} nickname={player.nickname} club={club} uid={`walk-on-${match.id}-${index}`} />}
+                        <span className="text-default fw-semibold fs-7 text-truncate">{player?.nickname ?? '?'}</span>
+                    </span>
+                </Fragment>
+            );
+        })}
+    </div>
+);
+
 const MatchDialog = ({ tournament, match, isAdmin, onHide, onStart, onResult, busy }) => {
+    const { activeClub } = useAuth();
     const [first, setFirst] = useState(null);
     const [winner, setWinner] = useState(null);
     useEffect(() => { setFirst(match?.players?.[0] ?? null); setWinner(null); }, [match]);
@@ -43,6 +63,8 @@ const MatchDialog = ({ tournament, match, isAdmin, onHide, onStart, onResult, bu
     return (
         <Dialog header={`${roundName(match.size)} · ${options.map(option => option.label).join(' – ')}`} visible onHide={onHide} className="tournament-dialog" dismissableMask>
             <div className="d-flex flex-column gap-3">
+                {match.players[0] && match.players[1] && !match.bye && ['ready', 'running'].includes(match.status) &&
+                    <WalkOn tournament={tournament} match={match} club={activeClub} />}
                 <span className="text-subtle fs-7">{rulesText(round?.rules)}{round?.date ? ` · ${formatDateTime(round.date)}` : ''}</span>
                 {isDecided(match) &&
                     <Message severity="success" className="w-100 justify-content-start" text={match.status === 'walkover'

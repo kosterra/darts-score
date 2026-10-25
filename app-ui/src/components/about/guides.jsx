@@ -125,6 +125,7 @@ PLAYER_GUIDE.push({
                 <li><strong>{t('Flight points:')}</strong>{' '}{t('every finished game and training earns points, wins, 180s and checkouts of 100 or more earn extra. Spend them on the shapes, designs and barrels you like; the tiles show the price, in gold once you can pay it.')}</li>
                 <li>{t('Many flights also need a player level or an X01 average first, greyed out until then; the master flights belong to the levels (see')}{' '}<Link to="#levels">{t('Levels')}</Link>{t('). The legendary ones cannot be bought: they come with a feat, e.g. a nine-darter.')}</li>
                 <li>{t('Next to your badges you see what you collected and the points you have left.')}</li>
+                <li><strong>{t('Your shirt:')}</strong>{' '}{t('everyone plays in the shirt of their club, in its colour with its name on the chest. From the level Pro on you get a shirt of your own with your nickname on the back, as the pros wear it: six designs in two colours of your choice, two more with World Class and two with Legend, all free. A level once reached keeps its shirts. Your shirt shows on your statistics and at the walk-on before a tournament match.')}</li>
             </ul>
         </>
     ),

@@ -46,7 +46,8 @@ describe('createGameFilterQuery', () => {
         const diffMs = result.createdAt.$lt - result.createdAt.$gte;
         const diffDays = diffMs / (1000 * 60 * 60 * 24);
         expect(diffDays).toBeGreaterThan(6);
-        expect(diffDays).toBeLessThan(8);
+        // a week with the change to or from summer time is an hour longer or shorter
+        expect(diffDays).toBeLessThan(8 + 1 / 24 + 0.001);
     });
 
     it('adds createdAt range for "1 M"', () => {

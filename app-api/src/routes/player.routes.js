@@ -6,6 +6,7 @@ import * as PlayerController from '../controllers/player.controller.js';
 import * as ContactController from '../controllers/player.contact.controller.js';
 import { DOUBLES, MAIN_TREBLES } from '../utils/checkout.profile.js';
 import { DART_BARRELS, FLIGHT_COLORS, FLIGHT_DESIGNS, FLIGHT_SHAPES } from '../utils/flights.js';
+import { SHIRT_COLORS, SHIRT_DESIGNS } from '../utils/shirts.js';
 import { uploadProfileImage } from '../controllers/file.controller.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { emailValidator, passwordValidator } from './auth.routes.js';
@@ -169,6 +170,16 @@ export default (app) => {
         body('id').isString().isLength({ max: 40 }),
         validate,
         PlayerController.unlockFlight
+    );
+
+    // A player's shirt: the club's, or from the level Pro on one of their own
+    router.get('/:id/shirt', PlayerController.shirt);
+    router.put('/:id/shirt',
+        body('design').optional().isIn(SHIRT_DESIGNS.map(design => design.id)).withMessage('There is no such shirt.'),
+        body('color').optional().isIn(SHIRT_COLORS).withMessage('Choose the colours of the shirt from the list.'),
+        body('accent').optional().isIn(SHIRT_COLORS).withMessage('Choose the colours of the shirt from the list.'),
+        validate,
+        PlayerController.setShirt
     );
 
     // Give a player a login (or take it away again)

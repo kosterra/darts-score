@@ -6,6 +6,8 @@ import { FaFire, FaBullseye, FaTrophy, FaStopwatch, FaFlagCheckered, FaHashtag, 
 import { GiDart } from "react-icons/gi";
 import dayjs from 'dayjs';
 import { DartSet } from '../../players/dart.side';
+import { ShirtPicture } from '../../shirts/shirt.art';
+import { useAuth } from '../../../utils/auth.context';
 import { flightOf } from '../../../utils/flights';
 
 import StatsService from '../../../services/stats.service';
@@ -104,6 +106,8 @@ const scrollToShame = scrollTo('hall-of-shame');
  * everything. "afterFigures" is shown between the key figures and the charts.
  */
 const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
+    // the club shirt is the one of the club the profile is seen in
+    const { activeClub } = useAuth();
     const [stats, setStats] = useState(null);
     const [badges, setBadges] = useState(null);
     // the filters live in the address: back from a game, the statistics are filtered as they were
@@ -212,6 +216,12 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         ))}
                     </dl>
                 </div>
+                {/* the shirt they play in: the club's, or from Pro on one of their own */}
+                {player.shirt &&
+                    <div className="player-hero-shirt d-flex flex-column gap-2">
+                        <span className="text-faint fs-8">{isOwn ? t('Your shirt') : t('Their shirt')}</span>
+                        <ShirtPicture {...player.shirt} nickname={player.nickname} club={activeClub} uid={`hero-shirt-${player.id}`} />
+                    </div>}
                 {/* the darts they throw with */}
                 <div className="player-hero-dart d-flex flex-column gap-2">
                     <span className="text-faint fs-8">{isOwn ? t('Your darts') : t('Their darts')}</span>

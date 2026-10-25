@@ -12,6 +12,7 @@ import ClubLogo from '../elements/club.logo';
 import SettingSwitch from '../elements/setting.switch';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
 import PlayerDartPreferences from './player.dart.preferences';
+import ShirtChooser from '../shirts/shirt.chooser';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
@@ -213,6 +214,12 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError, part = 'player' 
             </div>
 
             <div className="col-12 col-xl-6">
+                <p id="shirt" className="game-setup-section-title">{t('Your shirt')}</p>
+                <div className="row mx-0 mt-0 setting-body mb-4">
+                    <div className="col">
+                        <ShirtChooser player={current} club={player.clubs.find(club => club.id === clubId)} clubId={clubId} onError={(error) => onError(t('Your shirt'), error)} />
+                    </div>
+                </div>
                 <p className="game-setup-section-title">{t('Your darts')}</p>
                 <PlayerDartPreferences part="flights" player={current} clubId={clubId} onSaved={setCurrent} onError={(error) => onError(t('Darts on the board'), error)} />
             </div>

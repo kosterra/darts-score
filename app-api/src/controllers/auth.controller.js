@@ -157,11 +157,11 @@ export const updateMe = async (req, res) => {
 /**
  * The players the user plays as, with their clubs, for the player profile:
  * [{ id, nickname, firstname, lastname, profileImg, dateOfBirth, publicProfile,
- * preferences, clubs: [{ id, name, logo, isPublic }] }].
+ * preferences, clubs: [{ id, name, logo, isPublic, accent }] }].
  */
 export const myPlayers = async (req, res) => {
     const players = await db.player.find({ user: req.user._id, guest: { $ne: true } })
-        .populate('clubs', 'name logo isPublic shameMinAge')
+        .populate('clubs', 'name logo isPublic shameMinAge accent')
         .lean();
     res.json(players.map(player => ({
         id: String(player._id),
@@ -178,7 +178,7 @@ export const myPlayers = async (req, res) => {
         // adults correct their date of birth themselves once the admins set it
         birthMinAge: selfBirthAge(player.clubs ?? []),
         birthEditable: Boolean(player.dateOfBirth) && ageOn(player.dateOfBirth) >= selfBirthAge(player.clubs ?? []),
-        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic) })),
+        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic), accent: club.accent ?? null })),
     })));
 };
 

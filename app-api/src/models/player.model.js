@@ -1,3 +1,5 @@
+import { shirtOf } from '../utils/shirts.js';
+
 // A player is a member of one or more clubs; these filters find them
 export const inClub = (clubId) => ({ clubs: clubId });
 // ... and also those removed from the club, whose names its games still show
@@ -84,6 +86,14 @@ export default (mongoose) => {
       flights: {
         unlocked:        { type: [String], default: [] },
       },
+      // the shirt: the club's, or from the level Pro on one of their own with two colours (utils/shirts.js)
+      shirt: {
+        design:          { type: String, default: 'club' },
+        color:           { type: String, default: null },
+        accent:          { type: String, default: null },
+      },
+      // the highest level reached, so a shirt it opened stays when the level goes down again
+      bestLevel: { type: Number, default: null },
       // A guest only exists for the games they were added to: not offered when
       // picking players and not listed as a club member
       guest:      { type: Boolean, default: false },
@@ -107,6 +117,8 @@ export default (mongoose) => {
     // eslint-disable-next-line no-unused-vars
     const { _id, birthChanges, ...object } = this.toObject();
     object.id = _id;
+    // the shirt as it is seen: the club's where the level does not open the one chosen
+    object.shirt = shirtOf(object);
     return object;
   });
 

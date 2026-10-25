@@ -1,5 +1,7 @@
 import { loadFlightStanding } from '../utils/flight.service.js';
 import { mayUse, unlockCheck } from '../utils/flights.js';
+import { shirtCheck, shirtStanding } from '../utils/shirts.js';
+import { LEVELS } from '../utils/levels.js';
 import logger from '../models/logger.model.js';
 import { noteCreated, noteDeleted, checkLater } from '../utils/spam.guard.js';
 import { linkPlayerToAccount } from '../utils/player.claims.js';
@@ -461,6 +463,51 @@ export const unlockFlight = async (req, res) => {
     } catch (err) {
         logger.error(err, `Failed to unlock a flight of player ${player._id}`);
         res.status(500).send({ message: 'The flight could not be unlocked.' });
+    }
+};
+
+/**
+ * A player's shirt and the designs their level opens (see shirtStanding):
+ * the current level counts too, so a player who just reached Pro may choose
+ * before their next game noted it.
+ */
+export const shirt = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    try {
+        const { levelIndex } = await loadFlightStanding(player);
+        res.send(shirtStanding(player.toObject(), { current: levelIndex, levels: LEVELS }));
+    } catch (err) {
+        logger.error(err, `Failed to work out the shirt of player ${player._id}`);
+        res.status(500).send({ message: 'The shirt could not be loaded.' });
+    }
+};
+
+/**
+ * Chooses a player's shirt: { design, color, accent }, each optional. The
+ * player themselves, or a club admin for a player without a login. Answers
+ * as GET.
+ */
+export const setShirt = async (req, res) => {
+    const player = await findInClub(req);
+    if (!player) return res.status(404).send({ message: 'Player not found.' });
+    const isOwnPlayer = Boolean(player.user && player.user.equals(req.user._id));
+    if (!isOwnPlayer && !(req.clubRole === CLUB_ROLES.ADMIN && !player.user)) {
+        return res.status(403).send({ message: 'Only the player can choose their shirt.' });
+    }
+    try {
+        const { levelIndex } = await loadFlightStanding(player);
+        const standing = shirtStanding(player.toObject(), { current: levelIndex, levels: LEVELS });
+        const check = shirtCheck(player.toObject(), req.body, standing.level);
+        if (!check.ok) return res.status(409).send({ message: check.reason });
+        player.shirt = check.shirt;
+        player.bestLevel = standing.level;
+        await player.save();
+        logger.info(`${player.nickname} chose the shirt ${check.shirt.design}`);
+        res.send(shirtStanding(player.toObject(), { current: levelIndex, levels: LEVELS }));
+    } catch (err) {
+        logger.error(err, `Failed to choose the shirt of player ${player._id}`);
+        res.status(500).send({ message: 'The shirt could not be saved.' });
     }
 };
 
