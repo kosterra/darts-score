@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -179,12 +179,13 @@ const useSections = () => {
             ],
         },
         // for global admins, across all clubs: who uses the app, what was played, what needs watching,
-        // and the installation; one section, folded until opened
+        // and the installation; open, and folded only when the admin folds it
         {
             id: 'admin',
             title: t('Administration'),
             visible: isGlobalAdmin,
             items: [
+                { label: t('Overview'), icon: FaGaugeHigh, to: '/admin/dashboard' },
 
                 { label: t('Clubs'), icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: t('Users'), icon: FaUserGear, to: '/admin/users' },
@@ -212,6 +213,7 @@ const useSections = () => {
                 { label: t('Error log'), icon: FaBug, to: '/admin/logs' },
                 { label: t('Usage'), icon: FaChartColumn, to: '/admin/usage' },
 
+                { label: t('Backups'), icon: FaDatabase, to: '/admin/backups' },
                 { label: t('System settings'), icon: FaShieldHalved, to: '/system-settings' },
             ],
         },
@@ -318,9 +320,15 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
     // groups start open when they contain the current page
     // the groups open (and the one of the page shown opens by itself), the sections folded
-    // (the administration until opened), both remembered on this device
+    // (only when folded by hand), both remembered on this device
     const [openGroups, setOpenGroups] = useState(() => remembered(GROUPS_KEY, []));
-    const [folded, setFolded] = useState(() => remembered(FOLDED_KEY, ['admin']));
+    const [folded, setFolded] = useState(() => remembered(FOLDED_KEY, []));
+    // the section of the page shown opens by itself
+    useEffect(() => {
+        const section = sections.find(entry => entry.items.some(item => item.to && (pathname === item.to || pathname.startsWith(item.to + '/'))));
+        if (section && folded.has(section.id)) setFolded(current => { const next = new Set(current); next.delete(section.id); remember(FOLDED_KEY, next); return next; });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
     useEffect(() => {
         const group = sections.flatMap(section => section.items).find(item => isInside(item, pathname));
         if (group && !openGroups.has(group.key)) setOpenGroups(open => { const next = new Set([...open, group.key]); remember(GROUPS_KEY, next); return next; });

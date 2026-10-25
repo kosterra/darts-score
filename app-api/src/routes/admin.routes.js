@@ -8,6 +8,10 @@ import * as MailTemplateController from '../controllers/mail.template.controller
 import * as UsageController from '../controllers/usage.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
 import * as SecurityController from '../controllers/security.controller.js';
+import * as AdminDashboardController from '../controllers/admin.dashboard.controller.js';
+import * as BackupController from '../controllers/backup.controller.js';
+import fs from 'node:fs/promises';
+import multer from 'multer';
 import logger from '../models/logger.model.js';
 import { SESSION_HOURS, getSessionSettings, saveSessionSettings } from '../utils/session.settings.js';
 import { GRACE_DAYS, MFA_POLICIES, getMfaSettings, isMfaEnabled, saveMfaSettings } from '../utils/mfa.js';
@@ -24,6 +28,31 @@ export default (app) => {
     router.use(requireGlobalAdmin);
 
     router.get('/overview', AdminController.overview);
+    // what the global admins see first
+    router.get('/dashboard', AdminDashboardController.dashboard);
+
+    // backups of the whole installation: made by hand or on a schedule, downloaded, brought back and restored
+    const backupName = param('name').matches(/^legmate-\d{8}-\d{6}-(manual|auto|before-restore|upload)\.json\.gz$/).withMessage('There is no such backup.');
+    const backupUpload = multer({
+        storage: multer.diskStorage({
+            destination: (req, file, done) => fs.mkdir(BackupController.BACKUP_DIR, { recursive: true }).then(() => done(null, BackupController.BACKUP_DIR), done),
+            filename: (req, file, done) => done(null, BackupController.backupName('upload')),
+        }),
+        limits: { fileSize: 4 * 1024 * 1024 * 1024 },
+    });
+    router.get('/backups', BackupController.list);
+    router.post('/backups', BackupController.create);
+    router.put('/backups/schedule',
+        body('enabled').isBoolean({ strict: true }).withMessage('enabled must be true or false.'),
+        body('frequency').isIn(['daily', 'weekly']).withMessage('Backups are made daily or weekly.'),
+        body('hour').isInt({ min: 0, max: 23 }).toInt().withMessage('Choose an hour from 0 to 23.'),
+        body('weekday').isInt({ min: 0, max: 6 }).toInt().withMessage('Choose a day of the week.'),
+        body('keep').isInt({ min: BackupController.KEEP_RANGE.min, max: BackupController.KEEP_RANGE.max }).toInt().withMessage('Keep 1 to 60 backups.'),
+        validate, BackupController.saveSchedule);
+    router.post('/backups/upload', backupUpload.single('backup'), BackupController.uploaded);
+    router.get('/backups/:name', backupName, validate, BackupController.download);
+    router.delete('/backups/:name', backupName, validate, BackupController.remove);
+    router.post('/backups/:name/restore', backupName, validate, BackupController.restore);
     router.get('/clubs', AdminController.clubs);
     // the whole installation at a glance, above the lists of players, games and trainings
     router.get('/insights/players', AdminController.playersInsightsOfAll);

@@ -43,6 +43,8 @@ const AboutPage = lazy(() => import('./components/about/_about.page'));
 const PlayerProfilePage = lazy(() => import('./components/players/_player.profile.page'));
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
+const AdminDashboardPage = lazy(() => import('./components/admin/admin.dashboard.page'));
+const BackupsPage = lazy(() => import('./components/admin/backups.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
 const FairPlayPage = lazy(() => import('./components/fairplay/_fair.play.page'));
 const NotificationsPage = lazy(() => import('./components/notifications/_notifications.page'));
@@ -85,7 +87,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play', '/admin/sessions', '/admin/usage'];
+const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/dashboard', '/admin/backups', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play', '/admin/sessions', '/admin/usage'];
 
 function AppContent() {
     // a new theme or accent colour: drawn again, for the colours set from scripts (charts, levels)
@@ -221,7 +223,7 @@ function AppContent() {
     // Without a club there is nothing to play with yet: send the user to create one.
     // A global admin without a club of their own looks after the app instead.
     if (!activeClub && !CLUBLESS_PATHS.includes(pathname)) {
-        return <Navigate replace to={isGlobalAdmin ? '/system-settings' : '/my-clubs'} />;
+        return <Navigate replace to={isGlobalAdmin ? '/admin/dashboard' : '/my-clubs'} />;
     }
 
     return (
@@ -294,7 +296,9 @@ function AppContent() {
                     <Route path="/administration" element={<Navigate replace to="/system-settings" />} />
                     <Route path="/fair-play" element={<FairPlayPage />} />
                     <Route path="/admin/fair-play" element={<FairPlayPage all />} />
-                    <Route path="/admin" element={<Navigate replace to="/admin/players" />} />
+                    <Route path="/admin" element={<Navigate replace to="/admin/dashboard" />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                    <Route path="/admin/backups" element={<BackupsPage />} />
                     <Route path="/admin/:id" element={<AdminPage />} />
                     <Route path="/admin/games/:id" element={<AdminPage />} />
                     <Route path="/admin/training/:id" element={<AdminPage />} />

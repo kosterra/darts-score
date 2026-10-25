@@ -10,6 +10,8 @@ const CHANGELOG = [
         version: '2026.10.17',
         changes: [
             t('New accounts get a short welcome tour through the menu, and first steps on the Dashboard that tick themselves off: for the admin of a new club its face, its players, how it plays and the first game; for a member their player, the first game, a training, the notifications and Legmate as an app. Both can be shown again under Profile → Account.'),
+            t('For global admins, an overview to start with: what needs them (alerts, errors, fair play, the last backup), who uses the app now and this week, the mails of today and the installation in numbers. The Administration section stays open.'),
+            t('Backups of the whole installation for global admins: made by hand or automatically every day or week, the newest few kept; downloaded, uploaded again and restored, with a backup of the state before made first.'),
         ],
     },
     {

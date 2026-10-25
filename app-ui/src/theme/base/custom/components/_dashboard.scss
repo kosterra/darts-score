@@ -1515,3 +1515,88 @@
 .tour-actions { display: flex; align-items: center; gap: $space-2; margin-top: $space-2; flex-wrap: wrap; }
 
 @media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
+
+// ---------------------------------------------------------------------------
+// The overview of the global admins: groups of figures, each leading to its page
+// ---------------------------------------------------------------------------
+.admin-dashboard-group { margin-bottom: $space-5; }
+.admin-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+  gap: $space-3;
+}
+.admin-tile {
+  --tile-tone: var(--text-default);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+  padding: $space-4;
+  border-radius: $radius-lg;
+  background: var(--surface-raised);
+  border: 1px solid ink(0.08);
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--tile-tone);
+    opacity: 0;
+  }
+  &.is-good { --tile-tone: #{$accentGreen}; }
+  &.is-warn { --tile-tone: #{$accentAmber}; }
+  &.is-bad { --tile-tone: #{$accentRed}; }
+  &.is-good::before, &.is-warn::before, &.is-bad::before { opacity: 1; }
+}
+a.admin-tile:hover, a.admin-tile:focus-visible { border-color: ink(0.2); transform: translateY(-1px); }
+.admin-tile-label {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: $text-sm;
+  color: var(--text-subtle);
+  .pi { font-size: $text-sm; color: var(--tile-tone); }
+}
+.admin-tile-value {
+  font-size: $text-3xl;
+  font-weight: $weight-heavy;
+  line-height: 1.1;
+  color: var(--text-default);
+  overflow-wrap: anywhere;
+}
+.admin-tile.is-warn .admin-tile-value, .admin-tile.is-bad .admin-tile-value { color: var(--tile-tone); }
+.admin-tile.is-wordy .admin-tile-value { font-size: $text-xl; font-weight: $weight-bold; line-height: 1.3; padding: 0.35rem 0; }
+.admin-tile-detail { font-size: $text-sm; color: var(--text-faint); }
+
+// the backups: one row each, with the confirmation of a restore below it
+.backup-list { display: flex; flex-direction: column; }
+.backup-row {
+  padding: $space-3 0;
+  border-top: 1px solid ink(0.08);
+  &:first-child { border-top: 0; }
+}
+.backup-row-main { display: flex; align-items: center; flex-wrap: wrap; gap: $space-3; }
+.backup-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin-top: $space-3;
+  padding: $space-3;
+  border-radius: $radius-md;
+  border: 1px solid #{$accentAmber};
+  color: var(--text-default);
+}
+.backup-schedule-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+  gap: $space-3;
+  align-items: start;
+  .p-dropdown, .p-inputnumber { width: 100%; }
+  .p-inputnumber-input { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .admin-tile { transition: none; } }

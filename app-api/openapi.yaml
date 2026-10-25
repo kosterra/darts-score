@@ -1719,6 +1719,194 @@ paths:
           description: Global admin rights required
       description: Global admins only.
       operationId: getAdminOverview
+  /api/admin/dashboard:
+    get:
+      tags:
+        - Administration
+      summary: What the global admins see first
+      responses:
+        '200':
+          description: '{ numbers: { clubs, players, gamesPlayed, gamesThisWeek, users, usersNew, quickGames }, now: { sessions, users }, week: { users }, attention: { critical, warning, errors }, mail: { configured, today, limit }, backups: { latest, count, enabled, nextAt, lastError } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminDashboard
+  /api/admin/backups:
+    get:
+      tags:
+        - Administration
+      summary: The backups of the installation, newest first, and the schedule of the automatic ones
+      responses:
+        '200':
+          description: '{ backups: [{ name, kind, createdAt, size }], schedule: { enabled, frequency, hour, weekday, keep, lastRunAt, lastError, nextAt, timeZone }, busy }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminBackups
+    post:
+      tags:
+        - Administration
+      summary: Back up the whole installation now (all collections but the logins, and the pictures)
+      responses:
+        '201':
+          description: '{ name, kind, createdAt, size, counts }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '409':
+          description: A backup or a restore is running
+      operationId: postAdminBackups
+  /api/admin/backups/schedule:
+    put:
+      tags:
+        - Administration
+      summary: The automatic backups, daily or weekly at an hour of the server, the newest few kept
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled, frequency, hour, weekday, keep]
+              properties:
+                enabled:
+                  type: boolean
+                frequency:
+                  type: string
+                  enum: [daily, weekly]
+                hour:
+                  type: integer
+                  minimum: 0
+                  maximum: 23
+                weekday:
+                  type: integer
+                  minimum: 0
+                  maximum: 6
+                  description: 0 is Sunday; used for weekly backups
+                keep:
+                  type: integer
+                  minimum: 1
+                  maximum: 60
+                  description: How many automatic backups are kept
+      responses:
+        '200':
+          description: The schedule, as in GET /api/admin/backups
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putAdminBackupsSchedule
+  /api/admin/backups/upload:
+    post:
+      tags:
+        - Administration
+      summary: Bring back a downloaded backup file, to restore it then
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [backup]
+              properties:
+                backup:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: The uploaded backup, '{ name, kind, createdAt, size }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          description: No file, or not a backup of Legmate
+      operationId: postAdminBackupsUpload
+  /api/admin/backups/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: The file name of the backup, legmate-YYYYMMDD-HHmmss-{manual|auto|before-restore|upload}.json.gz
+        schema:
+          type: string
+    get:
+      tags:
+        - Administration
+      summary: Download a backup
+      responses:
+        '200':
+          description: The gzipped backup file
+          content:
+            application/gzip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: There is no such backup
+      operationId: getAdminBackupsByname
+    delete:
+      tags:
+        - Administration
+      summary: Delete a backup
+      responses:
+        '200':
+          description: The backup is deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: There is no such backup
+        '409':
+          description: A backup or a restore is running
+      operationId: deleteAdminBackupsByname
+  /api/admin/backups/{name}/restore:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: The file name of the backup, legmate-YYYYMMDD-HHmmss-{manual|auto|before-restore|upload}.json.gz
+        schema:
+          type: string
+    post:
+      tags:
+        - Administration
+      summary: Put a backup back; a backup of the state before is made first. In production the API starts again afterwards.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirm]
+              properties:
+                confirm:
+                  type: string
+                  enum: [RESTORE]
+      responses:
+        '200':
+          description: '{ counts, before: the backup of the state before, restart: whether the API starts again }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: There is no such backup
+        '409':
+          description: A backup or a restore is running
+        '422':
+          description: Not confirmed, or not a backup of Legmate
+      operationId: postAdminBackupsBynameRestore
   /api/admin/clubs:
     get:
       tags:

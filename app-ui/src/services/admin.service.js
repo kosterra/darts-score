@@ -1,4 +1,5 @@
-import { requestJSON } from '../utils/service.utils';
+import { translateAnswer } from '../utils/i18n';
+import { getHeaders, requestJSON } from '../utils/service.utils';
 
 const API_URL = '/api/admin';
 
@@ -96,7 +97,36 @@ const unblockUser = (id) => requestJSON(`${API_URL}/blocks/users/${id}`, { metho
 const blockIp = (ip, reason, hours) => requestJSON(`${API_URL}/blocks/ips`, { method: 'POST', body: { ip, reason, hours } });
 const unblockIp = (id) => requestJSON(`${API_URL}/blocks/ips/${id}`, { method: 'DELETE' });
 
+// what the global admins see first: the installation, now, this week, what needs them, mail and backups
+const loadDashboard = () => requestJSON(`${API_URL}/dashboard`);
+
+// the backups on the server and their schedule: { backups, schedule, busy }
+const loadBackups = () => requestJSON(`${API_URL}/backups`);
+const createBackup = () => requestJSON(`${API_URL}/backups`, { method: 'POST' });
+const deleteBackup = (name) => requestJSON(`${API_URL}/backups/${encodeURIComponent(name)}`, { method: 'DELETE' });
+const restoreBackup = (name) => requestJSON(`${API_URL}/backups/${encodeURIComponent(name)}/restore`, { method: 'POST', body: { confirm: 'RESTORE' } });
+const saveBackupSchedule = (schedule) => requestJSON(`${API_URL}/backups/schedule`, { method: 'PUT', body: schedule });
+// where the file of a backup is downloaded (the login goes along as its cookie)
+const backupUrl = (name) => `${API_URL}/backups/${encodeURIComponent(name)}`;
+// a backup file from elsewhere, kept next to the others to restore from
+const uploadBackup = async (file) => {
+    const formData = new FormData();
+    formData.append('backup', file);
+    const response = await fetch(`${API_URL}/backups/upload`, { method: 'POST', headers: getHeaders(false), body: formData });
+    const data = translateAnswer(await response.json().catch(() => ({})));
+    if (!response.ok) throw new Error(data.errors?.join(' ') || data.message || response.statusText);
+    return data;
+};
+
 const AdminService = {
+    loadDashboard,
+    loadBackups,
+    createBackup,
+    deleteBackup,
+    restoreBackup,
+    saveBackupSchedule,
+    backupUrl,
+    uploadBackup,
     loadQuickGames,
     deleteQuickGames,
     loadLogs,
