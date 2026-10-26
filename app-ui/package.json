@@ -25,7 +25,8 @@
     "preview": "vite preview --port 3000",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "copy-rules": "node scripts/copy.rules.mjs"
+    "copy-rules": "node scripts/copy.rules.mjs",
+    "i18n": "node scripts/i18n.mjs"
   },
   "dependencies": {
     "@uiw/react-json-view": "^2.0.0-alpha.44",
@@ -45,6 +46,8 @@
     "sass": "^1.105.1"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.9",
+    "@babel/traverse": "^7.29.10",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

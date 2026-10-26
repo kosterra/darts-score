@@ -314,6 +314,12 @@ To release a new version, bump the version in the root `package.json` and push t
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run lint` | Check code style (ESLint) |
 | `npm run typecheck` | TypeScript type check (no emit) |
+| `npm run i18n check` | What is missing or wrong in the translations (also a test) |
+| `npm run i18n missing [file]` | Writes the texts without translations to a file to fill in: `{ "text": ["de", "fr", "it", "es"] }` |
+| `npm run i18n add <file> [--server]` | Adds a filled-in file; `--server` marks them as texts of the API too (then `npm run copy-rules`) |
+| `npm run i18n prune` | Removes translations no text uses any more |
+
+Translations: German in Swiss spelling (ss, never ß) with the informal "du", darts terms in English; English is the key itself.
 
 ---
 
