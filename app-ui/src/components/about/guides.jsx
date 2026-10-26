@@ -121,6 +121,7 @@ PLAYER_GUIDE.push({
         <>
             <p>{t('On your')}{' '}<Link to="/profile#player">{t('profile → Player')}</Link>{t(', under')}{' '}<strong>{t('Flights and barrels')}</strong>{t(', you choose the darts you throw with in the app. They show wherever you play:')}</p>
             <ul>
+                <li><strong>{t('Caller:')}</strong>{' '}{t('the speaker in the header of an X01 game switches it on, on this device: it calls the score of every visit, the 180 drawn out, No score for a bust, Game shot with the leg, set or match, who throws first in the next leg, and what a player on a finish requires. In the language of the app, with the voice of the device.')}</li>
                 <li><strong>{t('Dart animation:')}</strong>{' '}{t('on the board of X01, Cricket and Elimination a dart flies to the field you tap and sticks there; switched off (as it is to begin with), the field just lights up. The setup of a game can switch it on or off for everyone.')}</li>
                 <li><strong>{t('Flights:')}</strong>{' '}{t('the colour (your colour of the game or one of ten), the shape and the design; and the')}{' '}<strong>{t('barrel')}</strong>{t('. Your flight sits next to your name in the throwing order and the game header, your set of darts on your statistics.')}</li>
                 <li><strong>{t('Flight points:')}</strong>{' '}{t('every finished game and training earns points, wins, 180s and checkouts of 100 or more earn extra. Spend them on the shapes, designs and barrels you like; the tiles show the price, in gold once you can pay it.')}</li>

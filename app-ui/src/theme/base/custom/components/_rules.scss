@@ -304,3 +304,10 @@
     margin: 0 auto $space-5;
 }
 
+
+// the caller switched on: the speaker in the colour of the app
+.caller-toggle.is-on {
+    border-color: $primaryColor;
+    color: var(--text-default);
+    .pi { color: $primaryColor; }
+}

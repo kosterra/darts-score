@@ -7,6 +7,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.19',
+        changes: [
+            t('The caller for X01: switch it on with the speaker in the game, and the device calls the score of every visit, Game shot with the leg, set or match, and what a player on a finish requires, in your language.'),
+        ],
+    },
+    {
         version: '2026.10.18',
         changes: [
             t('Passkeys: log in with the fingerprint, the face or the PIN of your phone or computer instead of the password, in the browser and in Legmate added to the home screen. Add one under Profile → Account; no code of two-step login is asked with it.'),

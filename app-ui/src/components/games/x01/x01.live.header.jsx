@@ -13,6 +13,7 @@ import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
 import useGameRules from '../common/game.rules';
+import CallerButton from '../common/caller.button';
 import QuickHeroBrand from '../../quick/quick.hero.brand';
 import useWaysOut from './use.ways.out';
 import { houseRuleLines } from '../../../utils/club.rules.labels';
@@ -86,7 +87,10 @@ const X01LiveHeader = () => {
                     </span>
                 </div>
                 </div>
-                {rulesButton}
+                <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                    <CallerButton />
+                    {rulesButton}
+                </div>
             </div>
             {rules}
 

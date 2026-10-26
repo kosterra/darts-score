@@ -8,6 +8,7 @@ import OneEightyCelebration from '../components/games/common/one.eighty.celebrat
 import GameMoment from '../components/games/common/game.moment';
 import { BigFish, BedAndBreakfast, BullFinish, PerfectLeg } from '../components/games/common/x01.moments';
 import { x01VisitMoment } from './x01.moments';
+import { call, callsForVisit } from './caller';
 import X01Service from '../services/x01.service';
 import X01TrainingService from '../services/x01.training.service';
 import { QuickX01Service, quickPlayersOf } from '../services/quick.game.service';
@@ -245,6 +246,17 @@ const X01State = props => {
         dispatch({ type: SET_GAME, payload: next });
 
         if (!next.hasWinner && hasWonLeg) setMoment(buildMoment(hasWonSet, next.currentPlayerTurn));
+        // the caller, when it is switched on: the visit, and what the next player requires
+        const nextId = next.currentPlayerTurn;
+        call(callsForVisit(
+            { score: hasBusted ? 0 : roundScore, busted: hasBusted, wonLeg: hasWonLeg, wonSet: hasWonSet, wonMatch: hasWonLeg && next.hasWinner },
+            next.hasWinner ? null : {
+                name: state.players.find(p => p.id === nextId)?.nickname ?? '',
+                score: next.playerModels[nextId]?.score ?? 0,
+                outMode: outModeOf(next, nextId),
+                legStarts: hasWonLeg,
+            },
+        ));
         setLoading('validateThrow', false);
         setSaveRequest(request => request + 1);
     }
