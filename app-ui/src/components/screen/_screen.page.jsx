@@ -18,12 +18,12 @@ const POLL_MS = 1500;
 
 /**
  * The big screen of a running game, without a login: a TV or a second
- * tablet at the club opens the link (or its QR code) made from the game and
- * follows it, the screen kept awake. A tap makes it full screen; with the
- * sound on it calls the visits, and a 180 is celebrated large.
+ * tablet at the club follows the game of a screen link (token), the screen
+ * kept awake. A tap makes it full screen; with the sound on it calls the
+ * visits, and a 180 is celebrated large. corner: what else to show, e.g.
+ * the code of a paired TV.
  */
-const ScreenPage = () => {
-    const { token } = useParams();
+export const ScreenGame = ({ token, corner = null }) => {
     usePageTitle(t('Big screen'));
     const [screen, setScreen] = useState(null);
     const [error, setError] = useState('');
@@ -93,6 +93,7 @@ const ScreenPage = () => {
         <>
             <BigScreenX01 game={screen.game} players={screen.players} club={screen.club} />
             <div className="big-screen-controls">
+                {corner}
                 <CallerButton />
                 <button type="button" className="game-rules-toggle" onClick={toggleFullscreen} aria-pressed={fullscreen}>
                     <i className={`pi ${fullscreen ? 'pi-window-minimize' : 'pi-window-maximize'}`} aria-hidden="true" />
@@ -102,6 +103,12 @@ const ScreenPage = () => {
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />
         </>
     );
+};
+
+// the page of a screen link: /screen/<token>
+const ScreenPage = () => {
+    const { token } = useParams();
+    return <ScreenGame token={token} />;
 };
 
 export default ScreenPage;

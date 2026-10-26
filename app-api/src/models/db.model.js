@@ -28,6 +28,7 @@ import sessionModel from './session.model.js';
 import usageDayModel from './usage.day.model.js';
 import tournamentModel from './tournament.model.js';
 import quickEveningModel from './quick.evening.model.js';
+import screenPairingModel from './screen.pairing.model.js';
 
 const db = {
   mongoose,
@@ -61,6 +62,7 @@ const db = {
   usageDay: usageDayModel(mongoose),
   tournament: tournamentModel(mongoose),
   quickEvening: quickEveningModel(mongoose),
+  screenPairing: screenPairingModel(mongoose),
 };
 
 export default db;

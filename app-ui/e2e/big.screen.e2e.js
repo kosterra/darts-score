@@ -64,3 +64,39 @@ test('a TV follows the game through the link of the big screen', async ({ page, 
     await tv.screenshot({ path: 'test-results/big-screen-tv.png' });
     await tvContext.close();
 });
+
+test('a TV opened at /tv shows its code, then the game sent to it', async ({ page, browser }) => {
+    await post('/__test/logged-out', { loggedOut: false });
+    await post('/__test/role', { admin: false });
+    // the TV: its own browser, not logged in
+    const tvContext = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+    const tv = await tvContext.newPage();
+    await tv.goto('/tv');
+    const code = (await tv.locator('.tv-code').innerText()).replace(/\D/g, '');
+    expect(code).toMatch(/^\d{6}$/);
+    await tv.screenshot({ path: 'test-results/tv-waiting.png' });
+
+    await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
+    await page.goto('/x01');
+    const picker = page.locator('.player-picker');
+    await expect(picker.locator('.player-pick-card').first()).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    while (await picker.locator('.player-pick-card.is-chosen').count()) await picker.locator('.player-pick-card.is-chosen').first().click();
+    await picker.locator('.player-pick-card', { hasText: 'Cleo' }).click();
+    await picker.locator('.player-pick-card', { hasText: 'Dario' }).click();
+    await page.getByRole('button', { name: 'Start game', exact: true }).click();
+    await expect(page).toHaveURL(/\/x01\/[^/]+$/);
+
+    await page.getByRole('button', { name: 'Big screen' }).click();
+    await page.getByRole('textbox', { name: 'The code of the TV' }).fill('999999');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(page.locator('.p-inline-message-error')).toContainText('No TV shows this code');
+    await page.getByRole('textbox', { name: 'The code of the TV' }).fill(code);
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect(page.locator('.p-inline-message-success')).toContainText(code);
+
+    await expect(tv.locator('.big-player-name')).toHaveText(['Cleo', 'Dario'], { timeout: 10000 });
+    await expect(tv.locator('.tv-corner-code')).toContainText(code);
+    await tvContext.close();
+});
+

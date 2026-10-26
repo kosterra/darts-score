@@ -5329,6 +5329,67 @@ paths:
         '404':
           description: The game is not in the selected club
       operationId: postGamesX01ByidScreen
+  /api/games/x01/{id}/screen/send:
+    post:
+      tags:
+        - Games
+      summary: Send the game to the TV that shows a code (it opened /tv)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No TV shows this code, or the game is not in the selected club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many attempts
+      operationId: postGamesX01ByidScreenSend
+  /api/screen/pairings:
+    post:
+      tags:
+        - Games
+      summary: A TV pairs itself, to be sent games by the code it shows, for 12 hours
+      security: []
+      responses:
+        '201':
+          description: '{ secret: what the TV asks with, code: six digits to show, expiresAt }'
+      operationId: postScreenPairings
+  /api/screen/pairings/{secret}:
+    get:
+      tags:
+        - Games
+      summary: What a paired TV shows
+      security: []
+      parameters:
+        - name: secret
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '{ code, expiresAt, token: the link of the game sent to it, or null while it waits }'
+        '404':
+          description: The pairing has run out
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: getScreenPairingsBysecret
   /api/screen/{token}:
     get:
       tags:

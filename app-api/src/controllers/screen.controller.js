@@ -2,7 +2,7 @@ import db from '../models/db.model.js';
 import logger from '../models/logger.model.js';
 import { answerOf, hasRules } from '../utils/game.view.js';
 import { shirtOf } from '../utils/shirts.js';
-import { readScreenToken, screenToken } from '../utils/screens.js';
+import { newPairing, pairingOf, readScreenToken, screenToken, sendToPairing } from '../utils/screens.js';
 
 /**
  * The big screen (see utils/screens.js): the link a member of the club makes
@@ -43,4 +43,26 @@ export const show = async (req, res) => {
         club: club ? { name: club.name, logo: club.logo ?? '', accent: club.accent ?? null } : null,
         expiresAt: screen.expiresAt,
     });
+};
+
+// a TV that opened /tv: its code and the secret it asks with
+export const pair = async (req, res) => res.status(201).json(await newPairing());
+
+// what a paired TV shows: { code, expiresAt, token } (token: the game's link, or null while waiting)
+export const pairing = async (req, res) => {
+    const found = await pairingOf(req.params.secret);
+    if (!found) return res.status(404).json({ message: 'This TV is not paired any more.', expired: true });
+    res.set('Cache-Control', 'no-store');
+    res.json(found);
+};
+
+// sends a game of the request's club to the TV showing a code
+export const send = (kind) => async (req, res) => {
+    const { id } = req.params;
+    if (!db.mongoose.isValidObjectId(id) || !(await MODELS[kind].exists({ _id: id, club: req.club._id }))) {
+        return res.status(404).json({ message: 'This game is not in the selected club.' });
+    }
+    if (!(await sendToPairing(req.body.code, kind, id))) return res.status(404).json({ message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+    logger.info(`${req.user.email} sent the ${kind} game ${id} to a TV`);
+    res.json({ sent: true });
 };

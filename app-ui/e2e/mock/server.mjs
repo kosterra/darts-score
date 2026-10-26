@@ -729,6 +729,25 @@ http.createServer((req, res) => {
         // the big screen: a link from the game, and the game for the screen (the token is the game's id, padded)
         const screenLink = path.match(/^\/api\/games\/x01\/([^/]+)\/screen$/);
         if (screenLink && req.method === 'POST') return send(res, 200, { token: `screen-token-for-${screenLink[1]}`, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+        // a TV paired by its code
+        globalThis.mockPairings ??= new Map();
+        if (path === '/api/screen/pairings' && req.method === 'POST') {
+            const pairing = { secret: `tv-secret-${Date.now()}-${Math.random().toString(36).slice(2)}`, code: String(100000 + globalThis.mockPairings.size + 23456).slice(0, 6), expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString(), token: null };
+            globalThis.mockPairings.set(pairing.secret, pairing);
+            return send(res, 201, pairing);
+        }
+        const pairingShow = path.match(/^\/api\/screen\/pairings\/([^/]+)$/);
+        if (pairingShow) {
+            const pairing = globalThis.mockPairings.get(decodeURIComponent(pairingShow[1]));
+            return pairing ? send(res, 200, { code: pairing.code, expiresAt: pairing.expiresAt, token: pairing.token }) : send(res, 404, { message: 'This TV is not paired any more.', expired: true });
+        }
+        const screenSend = path.match(/^\/api\/games\/x01\/([^/]+)\/screen\/send$/);
+        if (screenSend) {
+            const pairing = [...globalThis.mockPairings.values()].find(entry => entry.code === json.code);
+            if (!pairing) return send(res, 404, { message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+            pairing.token = `screen-token-for-${screenSend[1]}`;
+            return send(res, 200, { sent: true });
+        }
         const screenShow = path.match(/^\/api\/screen\/screen-token-for-([^/]+)$/);
         if (screenShow) {
             const game = games.get(screenShow[1]);

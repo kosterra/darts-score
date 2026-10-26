@@ -150,3 +150,42 @@
 // the dialog with the link and its QR code
 .big-screen-dialog { width: min(28rem, calc(100vw - 2rem)); }
 .big-screen-qr { border-radius: $radius-md; background: #fff; padding: $space-2; }
+
+// a TV waiting for a game: its code, large, readable from the sofa
+.tv-waiting {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(1rem, 3vh, 2rem);
+}
+.tv-title { margin: 0; font-size: clamp(1.6rem, 3.5vw, 3rem); font-weight: $weight-semibold; }
+.tv-steps { margin: 0; max-width: 44rem; font-size: clamp(1.1rem, 2vw, 1.8rem); color: var(--text-subtle); }
+.tv-code {
+  display: inline-flex;
+  align-items: center;
+  padding: clamp(0.5rem, 2vh, 1.25rem) clamp(1.25rem, 4vw, 3rem);
+  border-radius: $radius-lg;
+  background: var(--c-shade-800);
+  border: 2px solid $primaryColor;
+  font-size: clamp(3.5rem, 12vw, 9rem);
+  font-weight: $weight-heavy;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.tv-code-gap { display: inline-block; width: 0.4em; }
+.tv-note { margin: 0; max-width: 40rem; font-size: clamp(0.95rem, 1.5vw, 1.3rem); color: var(--text-faint); }
+.tv-spinner { font-size: 3rem; color: $primaryColor; }
+.tv-corner-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: $radius-pill;
+  border: 1px solid ink(0.15);
+  color: var(--text-subtle);
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.06em;
+}
+.big-screen-code-input { font-size: $text-lg; letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
