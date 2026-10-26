@@ -2,7 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 // The browser checks (e2e/*.e2e.js): the app against the stand-in for the
 // API (e2e/mock/server.mjs), at the width of a desktop and of a phone.
-// npm run e2e (the first time: npx playwright install chromium)
+// npm run e2e (the first time: npx playwright install chromium). In CI they run in
+// Playwright's image of the same version (.github/workflows/checks.yml): update both together.
 const MOCK = 3901;
 const UI = 5199;
 
