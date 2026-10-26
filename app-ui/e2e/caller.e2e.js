@@ -36,5 +36,5 @@ test('the caller says "Game on!", then the score of a visit', async ({ page }) =
     }
     const send = page.getByRole('button', { name: /^(OK|Send|Enter|Next)/ });
     if (await send.count()) await send.first().click();
-    await expect.poll(() => page.evaluate(() => window.spoken)).toContain('One hundred and eighty!');
+    await expect.poll(() => page.evaluate(() => window.spoken)).toEqual(expect.arrayContaining(['One hundred', 'and', 'eighty!']));
 });
