@@ -20,7 +20,8 @@ test('the caller says "Game on!", then the score of a visit', async ({ page }) =
 
     await page.goto('/x01');
     const picker = page.locator('.player-picker');
-    for (const chosen of await picker.locator('.player-pick-card.is-chosen').all()) await chosen.click();
+    // the cards move when chosen: one at a time, until none is chosen
+    while (await picker.locator('.player-pick-card.is-chosen').count()) await picker.locator('.player-pick-card.is-chosen').first().click();
     await picker.locator('.player-pick-card', { hasText: 'Anna' }).click();
     await picker.locator('.player-pick-card', { hasText: 'Ben' }).click();
     await page.getByRole('button', { name: /^Start/ }).first().click();
