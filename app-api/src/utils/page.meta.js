@@ -70,6 +70,20 @@ export const metaOf = (pathname, language = 'en', { evening, publicSite = true }
  * Open Graph and Twitter tags of the preview, the canonical address and,
  * for pages not to be listed, noindex. base: the address of the installation.
  */
+// for the search engines, on the start page: the website and its name, who it is from with
+// the logo, and that it is a free web app for darts (schema.org)
+const structuredData = (base, description) => JSON.stringify({
+    '@context': 'https://schema.org',
+    '@graph': [
+        { '@type': 'WebSite', '@id': `${base}/#website`, name: BRAND, alternateName: `${BRAND} darts scoreboard`, url: `${base}/`, publisher: { '@id': `${base}/#organization` } },
+        { '@type': 'Organization', '@id': `${base}/#organization`, name: BRAND, url: `${base}/`, logo: `${base}/icons/icon-512.png` },
+        {
+            '@type': 'WebApplication', name: BRAND, url: `${base}/`, description, applicationCategory: 'GameApplication', operatingSystem: 'Any (web browser)',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'CHF' }, image: `${base}${OG_IMAGE.path}`,
+        },
+    ],
+}).replace(/</g, '\\u003c');
+
 export const renderIndex = (html, { title, description, index }, { base, path, language }) => {
     const url = `${base}${path}`;
     const tags = [
@@ -87,6 +101,7 @@ export const renderIndex = (html, { title, description, index }, { base, path, l
         `<meta property="og:image:height" content="${OG_IMAGE.height}" />`,
         `<meta property="og:image:alt" content="${escape(translate(language, 'The darts scoreboard'))}" />`,
         '<meta name="twitter:card" content="summary_large_image" />',
+        ...(path === '/' && index && base ? [`<script type="application/ld+json">${structuredData(base, description)}</script>`] : []),
     ].join('\n    ');
     return html
         .replace(/<meta name="description"[^>]*>\s*/i, '')
