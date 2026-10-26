@@ -286,6 +286,14 @@ The application version is maintained in the **root `package.json`** and is the 
 
 To release a new version, bump the version in the root `package.json` and push to `main`. The CI workflow reads the version from there and tags the Docker image accordingly.
 
+The workflows (`.github/workflows`):
+
+| Workflow | When | What |
+|----------|------|------|
+| `checks.yml` | every pull request, and called by the two below | API: lint, tests, the OpenAPI description, the bundle · UI: lint, types, tests (also complete translations), the build |
+| `develop.yml` | every push to `develop` | the checks, then the image `:develop` for a test server with the newest state |
+| `release.yml` | every push to `main` | the checks, then the tag and the images `:<version>` and `:latest` |
+
 ---
 
 ## Available Scripts

@@ -1,0 +1,50 @@
+name: develop
+permissions:
+  contents: read
+
+# Every push to develop: the checks, then an image tagged "develop" for a test
+# server that runs the newest state (What's new shows its version as coming soon)
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: develop
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+
+  image:
+    runs-on: ubuntu-latest
+    needs: checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Get package info
+        id: package
+        run: echo "name=$(jq -r .name package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: production
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USER }}/${{ steps.package.outputs.name }}:develop
+          # a cache of its own, so the releases keep theirs
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/${{ steps.package.outputs.name }}:buildcache-develop
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/${{ steps.package.outputs.name }}:buildcache-develop,mode=max
