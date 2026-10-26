@@ -51,6 +51,7 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       IMG_DIR: ${IMG_DIR:-data/img}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENVIRONMENT_LABEL: ${ENVIRONMENT_LABEL:-}
     volumes:
       # uploaded player pictures and club logos, in a Docker volume the app may
       # write to. To keep them in a folder of your own instead, use e.g.

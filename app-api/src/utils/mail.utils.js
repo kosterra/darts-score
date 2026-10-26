@@ -63,7 +63,31 @@ const quietly = (promise) => promise.catch(err => logger.warn(`Could not count a
  * throws a MailLimitError once it is reached. Resolves to what the mail
  * server answered ({ response, messageId, accepted, rejected }).
  */
-export const sendMail = async ({ to, subject, text, html, headers, replyTo }) => {
+// the installation a mail comes from when it is not the real one (ENVIRONMENT_LABEL, e.g. TEST); empty in production
+export const environmentLabel = () => String(process.env.ENVIRONMENT_LABEL ?? '').trim().slice(0, 20);
+
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+
+/**
+ * A mail of a test installation, told apart at a glance: its label in front
+ * of the subject, and a yellow strip with it (and the address) on top of the
+ * mail and the first line of its text. Unchanged without a label.
+ */
+export const markEnvironment = ({ subject, text, html }, label = environmentLabel(), appUrl = getAppUrl()) => {
+    if (!label) return { subject, text, html };
+    const where = appUrl.replace(/^https?:\/\//, '');
+    const line = [label, where].filter(Boolean).join(' · ');
+    const strip = `<div style="background:#ffc53d;color:#1d2126;padding:10px 16px;font-family:Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;text-align:center;letter-spacing:0.5px;">${escapeHtml(line)}</div>`;
+    return {
+        subject: `[${label}] ${subject}`,
+        text: text ? `[${line}]\n\n${text}` : text,
+        // right after the opening of the body, or in front of a mail without one
+        html: html ? (/<body[^>]*>/i.test(html) ? html.replace(/<body[^>]*>/i, (open) => `${open}${strip}`) : `${strip}${html}`) : html,
+    };
+};
+
+export const sendMail = async ({ to, subject: rawSubject, text: rawText, html: rawHtml, headers, replyTo }) => {
+    const { subject, text, html } = markEnvironment({ subject: rawSubject, text: rawText, html: rawHtml });
     await checkMailLimit();
     let info;
     try {
