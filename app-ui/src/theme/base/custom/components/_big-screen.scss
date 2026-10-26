@@ -1,0 +1,152 @@
+// ---------------------------------------------------------------------------
+// The big screen of a running game (a TV or a second tablet at the club):
+// the whole window, readable from across the room, the player at the oche lit
+// ---------------------------------------------------------------------------
+.big-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 2vh, 1.5rem);
+  padding: clamp(0.75rem, 2.5vh, 2rem) clamp(0.75rem, 2.5vw, 2.5rem);
+  background:
+    radial-gradient(ellipse at top, with-alpha($primaryColor, 0.18), transparent 60%),
+    $shade900;
+  color: var(--text-default);
+}
+
+.big-screen-message {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+  color: var(--text-subtle);
+  .pi { font-size: clamp(2.5rem, 6vw, 4rem); color: $primaryColor; }
+  p { max-width: 36rem; margin: 0; }
+}
+
+.big-screen-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-3;
+  // room for the controls on the right
+  padding-right: 15rem;
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+  @media (max-width: 767.98px) { padding-right: 0; padding-top: 2.75rem; }
+}
+.big-screen-club { display: flex; align-items: center; gap: $space-3; font-weight: $weight-semibold; }
+.big-screen-format { display: flex; flex-wrap: wrap; align-items: baseline; gap: $space-3; color: var(--text-subtle); }
+.big-screen-leg { color: var(--text-default); font-weight: $weight-semibold; }
+
+.big-screen-winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-1;
+  padding: clamp(0.5rem, 2vh, 1.25rem);
+  border-radius: $radius-lg;
+  background: with-alpha($accentGold, 0.16);
+  border: 1px solid with-alpha($accentGold, 0.5);
+  text-align: center;
+}
+.big-screen-winner-label { color: $accentGold; font-weight: $weight-semibold; letter-spacing: 0.08em; text-transform: uppercase; font-size: clamp(0.9rem, 1.6vw, 1.4rem); }
+.big-screen-winner-name { font-size: clamp(2rem, 6vw, 5rem); font-weight: $weight-heavy; line-height: 1.05; }
+
+.big-screen-players {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: clamp(0.75rem, 2vw, 2rem);
+}
+.is-3-players .big-screen-players, .is-4-players .big-screen-players { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+
+.big-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.4rem, 1.5vh, 1rem);
+  padding: clamp(1rem, 3vh, 2.5rem) clamp(0.75rem, 2vw, 2rem);
+  border-radius: $radius-lg;
+  background: var(--c-shade-800);
+  border: 2px solid transparent;
+  opacity: 0.72;
+  transition: opacity 0.3s, border-color 0.3s, box-shadow 0.3s;
+  &.is-turn {
+    opacity: 1;
+    border-color: var(--player-colour);
+    box-shadow: 0 0 0 4px with-alpha(#ffffff, 0.04), 0 0 3rem -0.5rem var(--player-colour);
+  }
+}
+.big-player-head { display: flex; align-items: center; gap: $space-3; min-width: 0; max-width: 100%; }
+.big-player-avatar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2.5rem, 4.5vw, 4rem);
+  height: clamp(2.5rem, 4.5vw, 4rem);
+  border-radius: $radius-round;
+  background: var(--player-colour);
+  color: #1d2126;
+  font-weight: $weight-heavy;
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+}
+.big-player-name { font-size: clamp(1.5rem, 3.5vw, 3rem); font-weight: $weight-bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.big-player-flag { font-size: clamp(1.2rem, 2.5vw, 2rem); }
+.big-player-score {
+  font-size: clamp(5rem, 16vw, 14rem);
+  font-weight: $weight-heavy;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  .is-3-players &, .is-4-players & { font-size: clamp(4rem, 10vw, 10rem); }
+}
+.big-player-won { display: flex; flex-wrap: wrap; justify-content: center; gap: $space-4; }
+.big-won { display: inline-flex; align-items: center; gap: $space-2; }
+.big-won-label { color: var(--text-subtle); font-size: clamp(0.85rem, 1.4vw, 1.2rem); text-transform: uppercase; letter-spacing: 0.08em; }
+.big-won-dots { display: inline-flex; gap: 0.35rem; }
+.big-won-dot {
+  width: clamp(0.8rem, 1.4vw, 1.2rem);
+  height: clamp(0.8rem, 1.4vw, 1.2rem);
+  border-radius: $radius-round;
+  border: 2px solid $accentGold;
+  &.is-won { background: $accentGold; }
+}
+.big-won-number { font-size: clamp(1.2rem, 2.2vw, 2rem); font-weight: $weight-bold; color: $accentGold; }
+.big-player-figures {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.75rem, 3vw, 2.5rem);
+  margin: 0;
+  > div { display: flex; flex-direction: column; align-items: center; }
+  dt { color: var(--text-faint); font-weight: $weight-regular; font-size: clamp(0.8rem, 1.2vw, 1.1rem); }
+  dd { margin: 0; font-size: clamp(1.3rem, 2.6vw, 2.4rem); font-weight: $weight-bold; font-variant-numeric: tabular-nums; }
+}
+.big-player-turn {
+  padding: $space-1 $space-4;
+  border-radius: $radius-pill;
+  background: var(--player-colour);
+  color: #1d2126;
+  font-weight: $weight-bold;
+  font-size: clamp(1rem, 2vw, 1.8rem);
+}
+
+// the sound and full screen, quiet in the corner
+.big-screen-controls {
+  position: fixed;
+  top: clamp(0.75rem, 2.5vh, 2rem);
+  right: clamp(0.75rem, 2.5vw, 2.5rem);
+  display: flex;
+  gap: $space-2;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  &:hover, &:focus-within { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) { .big-player { transition: none; } }
+
+// the dialog with the link and its QR code
+.big-screen-dialog { width: min(28rem, calc(100vw - 2rem)); }
+.big-screen-qr { border-radius: $radius-md; background: #fff; padding: $space-2; }

@@ -726,6 +726,15 @@ http.createServer((req, res) => {
             const kind = url.searchParams.get('kind');
             return send(res, 200, list.filter(e => !kind || e.kind === kind));
         }
+        // the big screen: a link from the game, and the game for the screen (the token is the game's id, padded)
+        const screenLink = path.match(/^\/api\/games\/x01\/([^/]+)\/screen$/);
+        if (screenLink && req.method === 'POST') return send(res, 200, { token: `screen-token-for-${screenLink[1]}`, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+        const screenShow = path.match(/^\/api\/screen\/screen-token-for-([^/]+)$/);
+        if (screenShow) {
+            const game = games.get(screenShow[1]);
+            if (!game) return send(res, 404, { message: 'This big screen link is not valid any more. Open a new one from the game.', expired: true });
+            return send(res, 200, { kind: 'x01', game, players: players.filter(p => (game.players ?? []).includes(p.id)).map(p => ({ id: p.id, nickname: p.nickname, country: p.country, shirt: shirtOf(p) })), club: { name: CLUB_NAME, logo: '', accent: null }, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+        }
         const clock = path.match(/^\/api\/games\/(?:clock|x01|cricket|elimination)(?:\/([^/]+))?$/);
         if (clock) {
             const [, id] = clock;

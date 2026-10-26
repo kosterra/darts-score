@@ -46,6 +46,7 @@ const AboutPage = lazy(() => import('./components/about/_about.page'));
 const PlayerProfilePage = lazy(() => import('./components/players/_player.profile.page'));
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
+const ScreenPage = lazy(() => import('./components/screen/_screen.page'));
 const AdminDashboardPage = lazy(() => import('./components/admin/admin.dashboard.page'));
 const BackupsPage = lazy(() => import('./components/admin/backups.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
@@ -144,6 +145,16 @@ function AppContent() {
     // and the answers to a tournament invitation
     if (pathname === '/tournament-reply') {
         return <Suspense fallback={<PageLoader />}><TournamentReplyPage /></Suspense>;
+    }
+    // the big screen of a running game, without a login (a link made from the game)
+    if (pathname.startsWith('/screen/')) {
+        return (
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/screen/:token" element={<ScreenPage />} />
+                </Routes>
+            </Suspense>
+        );
     }
     // a darts evening and its games, logged in or not (making it a club needs the account)
     if (pathname.startsWith('/evening') || pathname.startsWith('/quick/')) {

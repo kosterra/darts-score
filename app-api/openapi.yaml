@@ -5313,6 +5313,42 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ClubId'
       operationId: postGamesX01Find
+  /api/games/x01/{id}/screen:
+    post:
+      tags:
+        - Games
+      summary: A link for a big screen that follows the game without a login, for 12 hours
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: '{ token, expiresAt }; the screen opens /screen/<token>'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: The game is not in the selected club
+      operationId: postGamesX01ByidScreen
+  /api/screen/{token}:
+    get:
+      tags:
+        - Games
+      summary: The game of a big screen link, without a login
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '{ kind, game, players: [{ id, nickname, country, shirt }], club: { name, logo, accent }, expiresAt }'
+        '404':
+          description: The link is not valid (any more), or the game is gone
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: getScreenBytoken
   /api/games/x01/{id}:
     parameters:
       - $ref: '#/components/parameters/Id'

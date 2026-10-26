@@ -3,6 +3,7 @@ import { validate } from '../utils/validation.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { validateX01Create, validatePlayerIds } from '../validators/game.validators.js';
 import controller from '../controllers/x01.controller.js';
+import * as ScreenController from '../controllers/screen.controller.js';
 
 export default (app) => {
     const router = Router();
@@ -13,6 +14,8 @@ export default (app) => {
     router.get('/:id',                               controller.findOne);
     router.put('/:id',  validateX01Create, validate, controller.update);
     router.delete('/:id', requireClubAdmin,                 controller.delete);
+    // a link for a big screen at the club that follows the game without a login
+    router.post('/:id/screen',                       ScreenController.link('x01'));
 
     app.use('/api/games/x01', router);
 };

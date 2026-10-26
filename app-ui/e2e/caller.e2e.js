@@ -21,10 +21,13 @@ test('the caller says "Game on!", then the score of a visit', async ({ page }) =
     await page.goto('/x01');
     const picker = page.locator('.player-picker');
     // the cards move when chosen: one at a time, until none is chosen
+    // the players of the last game are chosen once the list has loaded: wait for that first
+    await expect(picker.locator('.player-pick-card').first()).toBeVisible();
+    await page.waitForLoadState('networkidle');
     while (await picker.locator('.player-pick-card.is-chosen').count()) await picker.locator('.player-pick-card.is-chosen').first().click();
     await picker.locator('.player-pick-card', { hasText: 'Anna' }).click();
     await picker.locator('.player-pick-card', { hasText: 'Ben' }).click();
-    await page.getByRole('button', { name: /^Start/ }).first().click();
+    await page.getByRole('button', { name: 'Start game', exact: true }).click();
     await expect(page).toHaveURL(/\/x01\/[^/]+$/);
 
     await page.getByRole('button', { name: 'Caller' }).click();

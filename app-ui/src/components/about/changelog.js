@@ -9,6 +9,7 @@ const CHANGELOG = [
     {
         version: '2026.10.19',
         changes: [
+            t('The big screen: Big screen in a running X01 game gives a link and a QR code for a TV or a second tablet, which shows the game large and follows it live without logging in, with the caller and the 180 celebration.'),
             t('The caller for X01: switch it on with the speaker in the game, and the device calls the score of every visit, Game shot with the leg, set or match, and what a player on a finish requires, in your language.'),
         ],
     },

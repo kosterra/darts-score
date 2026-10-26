@@ -14,6 +14,7 @@ import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
 import useGameRules from '../common/game.rules';
 import CallerButton from '../common/caller.button';
+import BigScreenButton from '../../screen/big.screen.button';
 import QuickHeroBrand from '../../quick/quick.hero.brand';
 import useWaysOut from './use.ways.out';
 import { houseRuleLines } from '../../../utils/club.rules.labels';
@@ -48,7 +49,7 @@ const WonCount = ({ label, won, mode, count }) => {
  * the key figures are in a panel below, so the board stays in view.
  */
 const X01LiveHeader = () => {
-    const { game, players, checkoutProfiles = {}, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
+    const { game, players, checkoutProfiles = {}, getCurrentThrowScore, checkIfScoreIsBusted, training, quick } = useContext(X01Context);
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
@@ -89,6 +90,8 @@ const X01LiveHeader = () => {
                 </div>
                 <div className="d-flex align-items-center gap-2 flex-shrink-0">
                     <CallerButton />
+                    {/* a club game also on a TV or second tablet (not a training or a quick game) */}
+                    {!training && !quick && !game.hasWinner && (game.id ?? game._id) && <BigScreenButton kind="x01" gameId={game.id ?? game._id} />}
                     {rulesButton}
                 </div>
             </div>
