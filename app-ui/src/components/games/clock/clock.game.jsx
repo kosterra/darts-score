@@ -9,6 +9,7 @@ import PlayerService from '../../../services/player.service';
 import { replayClock, skipsAhead, withClockState } from '../../../utils/clock.game';
 import useClockMoment from '../../../utils/use.clock.moment';
 import ClockMoment from '../common/clock.moments';
+import GameScreenButton from '../../screen/game.screen.button';
 import LiveHero from '../common/live.hero';
 import { TARGETS, targetLabel } from '../../../utils/atc.darts';
 import { t } from '../../../utils/i18n';
@@ -94,6 +95,7 @@ const ClockGame = () => {
         <div className="col-12 clock-game">
             <LiveHero
                 rulesId="clock"
+                actions={<GameScreenButton kind="clock" game={{ ...game, hasWinner: state.done }} />}
                 title={t('Around the Clock ·') + ' ' + t(game.mode)}
                 subtitle={`${skipsAhead(game) ? t('Doubles and trebles move on · ') : ''}${t('first to finish wins')}`}
                 rows={players.map(player => {

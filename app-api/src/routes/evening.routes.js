@@ -2,6 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
+import { sendLimiter, tvCode } from './screen.routes.js';
 import * as EveningController from '../controllers/evening.controller.js';
 
 const id = param('id').isMongoId().withMessage('Invalid evening.');
@@ -19,6 +20,9 @@ export default (app) => {
     router.post('/', starting, EveningController.create);
     router.get('/shared/:token', reading, param('token').matches(/^[A-Za-z0-9_-]{8,40}$/).withMessage('Invalid link.'), validate, EveningController.shared);
     router.get('/:id', reading, id, validate, EveningController.findOne);
+    // the big screen of the evening (the browser that runs it): a link, or sent to a TV by its code
+    router.post('/:id/screen', games, id, validate, EveningController.screenLink);
+    router.post('/:id/screen/send', sendLimiter, id, tvCode, validate, EveningController.screenSend);
     router.post('/:id/games', games, id, body('kind').isIn(['x01', 'cricket', 'elimination']).withMessage('A game of the evening is X01, Cricket or Elimination.'), validate, EveningController.addGame);
 
     app.use('/api/public/evenings', router);

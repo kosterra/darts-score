@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { screenGameRoutes } from './screen.routes.js';
 import { validate } from '../utils/validation.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import { validatePlayerIds, validateRulesGame, validateRulesTraining } from '../validators/game.validators.js';
@@ -14,6 +15,8 @@ export default (app) => {
     games.get('/:id',                               controller.findOne);
     games.put('/:id',  validateRulesGame, validate, controller.update);
     games.delete('/:id', requireClubAdmin,          controller.delete);
+    // the big screen: a link, or sent to a TV by its code
+    screenGameRoutes(games, 'rules');
     app.use('/api/games/rules', games);
 
     const trainings = Router();

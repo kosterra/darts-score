@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import ScreenService from '../../services/screen.service';
 import BigScreenX01 from './big.screen.x01';
+import { BigScreenClock, BigScreenCricket, BigScreenElimination, BigScreenEveningTable, BigScreenRules } from './big.screen.games';
 import { newVisits } from './screen.visits';
 import CallerButton from '../games/common/caller.button';
 import OneEightyCelebration from '../games/common/one.eighty.celebration';
@@ -15,6 +16,24 @@ import { t } from '../../utils/i18n';
 
 // how often the screen asks for the game: about as fast as the next visit can come
 const POLL_MS = 1500;
+
+/**
+ * What a screen shows, from the answer of the API: the game (for a darts
+ * evening the one running now, or null between games), its kind, its players
+ * and the title. An X01 game is worked out from its visits by the rules, as
+ * the scorer's device does.
+ */
+const screenOf = (answer) => {
+    const evening = answer.kind === 'evening' ? answer.evening : null;
+    const { game } = answer;
+    const kind = evening ? game?.kind ?? null : answer.kind;
+    const players = evening ? (game?.quickPlayers ?? []) : answer.players;
+    const worked = kind === 'x01' && game?.visits ? replayX01(game) : game;
+    return { ...answer, view: { kind, game: worked, players, evening, title: evening ? (evening.name || t('Darts evening')) : null } };
+};
+
+// the display of a game by its kind
+const DISPLAYS = { x01: BigScreenX01, cricket: BigScreenCricket, elimination: BigScreenElimination, clock: BigScreenClock, rules: BigScreenRules };
 
 /**
  * The big screen of a running game, without a login: a TV or a second
@@ -39,21 +58,21 @@ export const ScreenGame = ({ token, corner = null }) => {
         let timer = null;
         const load = async () => {
             try {
-                const answer = await ScreenService.loadScreen(token);
+                const next = screenOf(await ScreenService.loadScreen(token));
                 if (!alive) return;
-                // worked out from its visits by the rules of the game, as the scorer's device does
-                const next = { ...answer, game: answer.game?.visits ? replayX01(answer.game) : answer.game };
-                const before = last.current?.game;
-                for (const visit of newVisits(before, next.game)) {
-                    const name = next.players.find(player => player.id === visit.playerId)?.nickname ?? '';
+                // the visits of an X01 game since the last answer (the same game): called, a 180 celebrated
+                const now = next.view.kind === 'x01' ? next.view.game : null;
+                const before = last.current?.view.kind === 'x01' && last.current.view.game?.id === now?.id ? last.current.view.game : null;
+                for (const visit of newVisits(before, now)) {
+                    const name = next.view.players.find(player => player.id === visit.playerId)?.nickname ?? '';
                     if (visit.points === 180) setOneEighty({ key: Date.now(), name });
-                    const nextId = next.game.currentPlayerTurn;
+                    const nextId = now.currentPlayerTurn;
                     call(callsForVisit(
                         { score: visit.points, busted: visit.busted, wonLeg: visit.wonLeg, wonSet: visit.wonSet, wonMatch: visit.wonMatch },
-                        next.game.hasWinner ? null : {
-                            name: next.players.find(player => player.id === nextId)?.nickname ?? '',
-                            score: next.game.playerModels[nextId]?.score ?? 0,
-                            outMode: outModeOf(next.game, nextId),
+                        now.hasWinner ? null : {
+                            name: next.view.players.find(player => player.id === nextId)?.nickname ?? '',
+                            score: now.playerModels[nextId]?.score ?? 0,
+                            outMode: outModeOf(now, nextId),
                             legStarts: visit.wonLeg,
                         },
                     ));
@@ -91,7 +110,13 @@ export const ScreenGame = ({ token, corner = null }) => {
 
     return (
         <>
-            <BigScreenX01 game={screen.game} players={screen.players} club={screen.club} />
+            {(() => {
+                const { kind, game, players, evening, title } = screen.view;
+                const Display = DISPLAYS[kind];
+                if (game && Display) return <Display game={game} players={players} club={screen.club} title={title} />;
+                if (evening) return <BigScreenEveningTable evening={evening} />;
+                return null;
+            })()}
             <div className="big-screen-controls">
                 {corner}
                 <CallerButton />

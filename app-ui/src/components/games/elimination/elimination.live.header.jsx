@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import EliminationContext from '../../../utils/elimination.context';
 import LiveHero from '../common/live.hero';
 import { checkoutRoutes, formatRoute } from '../../../utils/checkout.routes';
+import GameScreenButton from '../../screen/game.screen.button';
 import { knockBacks, liveScores, visitsOf } from './elimination.live';
 import { t } from '../../../utils/i18n';
 
@@ -12,7 +13,7 @@ import { t } from '../../../utils/i18n';
  * back, and what it takes to pass the next player.
  */
 const EliminationLiveHeader = () => {
-    const { game, players, getCurrentThrowScore, checkIfScoreIsBusted, getPointsToNextPlayer } = useContext(EliminationContext);
+    const { game, players, getCurrentThrowScore, checkIfScoreIsBusted, getPointsToNextPlayer, quick } = useContext(EliminationContext);
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
     const scores = liveScores(game, getCurrentThrowScore());
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
@@ -77,6 +78,7 @@ const EliminationLiveHeader = () => {
     return (
         <LiveHero
             rulesId="elimination"
+            actions={<GameScreenButton kind="elimination" game={game} quick={quick} />}
             title={t('Elimination · {{targetScore}}', { targetScore: game.targetScore })}
             subtitle={t('{{modes}} · land on an opponent\'s score to send them back to 0 · Round {{round}}', { modes: modes, round: round })}
             rows={rows}

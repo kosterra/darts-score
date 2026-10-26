@@ -15,7 +15,10 @@ import { t } from '../../utils/i18n';
  * code for a laptop or a second tablet. Either follows the game without
  * logging in; the link is made when the dialog opens and lasts some hours.
  */
-const BigScreenButton = ({ kind = 'x01', gameId }) => {
+const BigScreenButton = ({ kind = 'x01', gameId, create = null, send = null }) => {
+    // a club game by its kind, or other ways of their own (a darts evening)
+    const makeLink = create ?? (() => ScreenService.createScreenLink(kind, gameId));
+    const sendCode = send ?? ((tvCode) => ScreenService.sendToTv(kind, gameId, tvCode));
     const [open, setOpen] = useState(false);
     const [link, setLink] = useState(null);
     const [qr, setQr] = useState('');
@@ -32,7 +35,7 @@ const BigScreenButton = ({ kind = 'x01', gameId }) => {
         setSendError('');
         setSent('');
         try {
-            await ScreenService.sendToTv(kind, gameId, code);
+            await sendCode(code);
             setSent(code);
         } catch (err) {
             setSendError(err.message);
@@ -42,14 +45,15 @@ const BigScreenButton = ({ kind = 'x01', gameId }) => {
 
     useEffect(() => {
         if (!open || link) return;
-        ScreenService.createScreenLink(kind, gameId)
+        makeLink()
             .then(answer => {
                 const url = `${window.location.origin}/screen/${answer.token}`;
                 setLink({ url, expiresAt: answer.expiresAt });
                 QRCode.toDataURL(url, { margin: 1, width: 260 }).then(setQr).catch(() => setQr(''));
             })
             .catch(err => setError(err.message));
-    }, [open, link, kind, gameId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, link]);
 
     const copy = () => navigator.clipboard?.writeText(link.url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }).catch(() => {});
 

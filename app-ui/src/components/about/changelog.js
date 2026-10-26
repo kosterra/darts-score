@@ -9,7 +9,7 @@ const CHANGELOG = [
     {
         version: '2026.10.19',
         changes: [
-            t('The big screen: a TV opens /tv once and shows a code; Big screen in a running X01 game sends the game there by that code (or gives a link and QR code for a laptop or tablet). It shows the game large and follows it live without logging in, with the caller and the 180 celebration.'),
+            t('The big screen: a TV opens /tv once and shows a code; Big screen in a running game sends it there by that code (or gives a link and QR code for a laptop or tablet). X01, Cricket, Elimination, Around the Clock and the newer games, large and live without logging in, with the caller and the 180 celebration; a darts evening shows its running game, and its table in between.'),
             t('The caller for X01: switch it on with the speaker in the game, and the device calls the score of every visit, Game shot with the leg, set or match, and what a player on a finish requires, in your language.'),
         ],
     },

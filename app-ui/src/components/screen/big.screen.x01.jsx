@@ -30,7 +30,7 @@ const Won = ({ label, won, mode, count }) => {
  * with the score left, the legs and sets, the average and last visit of the
  * leg; the player at the oche lit, with the way out when they are on a finish.
  */
-const BigScreenX01 = ({ game, players, club }) => {
+const BigScreenX01 = ({ game, players, club, title = null }) => {
     const byId = new Map(players.map(player => [player.id, player]));
     const ordered = game.players.map(id => byId.get(id) ?? { id, nickname: '?' });
     const handicap = hasHandicap(game);
@@ -40,7 +40,7 @@ const BigScreenX01 = ({ game, players, club }) => {
             <header className="big-screen-top">
                 <span className="big-screen-club">
                     {club && <ClubLogo club={club} size="sm" />}
-                    <span>{club?.name ?? 'Legmate'}</span>
+                    <span>{club?.name ?? title ?? 'Legmate'}</span>
                 </span>
                 <span className="big-screen-format">
                     {handicap ? t('Handicap') : game.startingScore} · {game.setMode} {plural(game.numberOfSets, 'set')} · {game.legMode} {plural(game.numberOfLegs, 'leg')}

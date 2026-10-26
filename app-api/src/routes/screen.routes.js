@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { param } from 'express-validator';
+import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as ScreenController from '../controllers/screen.controller.js';
 
@@ -18,3 +18,17 @@ export default (app) => {
     router.get('/pairings/:secret', watching, param('secret').isString().isLength({ min: 20, max: 64 }).withMessage('Invalid link.'), validate, ScreenController.pairing);
     app.use('/api/screen', router);
 };
+
+// sending to a TV: a code is six digits, so the attempts are limited
+const sendLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false, message: { message: 'Too many attempts. Please try again later.' } });
+export const tvCode = body('code').isString().matches(/^\d{6}$/).withMessage('The code of the TV has six digits.');
+
+/**
+ * The big screen of a club game, on the router of its kind: a link for a
+ * laptop or tablet, and sending it to a TV by the code it shows.
+ */
+export const screenGameRoutes = (router, kind) => {
+    router.post('/:id/screen', ScreenController.link(kind));
+    router.post('/:id/screen/send', sendLimiter, tvCode, validate, ScreenController.send(kind));
+};
+export { sendLimiter };

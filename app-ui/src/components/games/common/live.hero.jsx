@@ -18,9 +18,10 @@ import { t } from '../../../utils/i18n';
  * rows: [{ player, isTurn, line, tags, score, scoreClass, scoreKey, below }];
  * a new scoreKey plays the score's animation again (e.g. taking the lead).
  * rulesId: the game's rules (see about/rules), opened from the header;
- * houseRules: the club's house rules the game is played with, in words.
+ * houseRules: the club's house rules the game is played with, in words;
+ * actions: more next to the rules, e.g. Big screen.
  */
-const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [] }) => {
+const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [], actions = null }) => {
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
     const [rulesButton, rules] = useGameRules(rulesId, houseRules);
@@ -35,7 +36,10 @@ const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [] }) => {
                         {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
                     </div>
                 </div>
-                {rulesButton}
+                <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                    {actions}
+                    {rulesButton}
+                </div>
             </div>
             {rules}
 

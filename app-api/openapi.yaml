@@ -5360,6 +5360,237 @@ paths:
         '429':
           description: Too many attempts
       operationId: postGamesX01ByidScreenSend
+  /api/games/cricket/{id}/screen:
+    post:
+      tags:
+        - Games
+      summary: A link for a big screen that follows the game without a login, for 12 hours
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: '{ token, expiresAt }; the screen opens /screen/<token>'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: The game is not in the selected club
+      operationId: postGamesCricketByidScreen
+  /api/games/cricket/{id}/screen/send:
+    post:
+      tags:
+        - Games
+      summary: Send the game to the TV that shows a code (it opened /tv)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No TV shows this code, or the game is not in the selected club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many attempts
+      operationId: postGamesCricketByidScreenSend
+  /api/games/elimination/{id}/screen:
+    post:
+      tags:
+        - Games
+      summary: A link for a big screen that follows the game without a login, for 12 hours
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: '{ token, expiresAt }; the screen opens /screen/<token>'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: The game is not in the selected club
+      operationId: postGamesEliminationByidScreen
+  /api/games/elimination/{id}/screen/send:
+    post:
+      tags:
+        - Games
+      summary: Send the game to the TV that shows a code (it opened /tv)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No TV shows this code, or the game is not in the selected club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many attempts
+      operationId: postGamesEliminationByidScreenSend
+  /api/games/clock/{id}/screen:
+    post:
+      tags:
+        - Games
+      summary: A link for a big screen that follows the game without a login, for 12 hours
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: '{ token, expiresAt }; the screen opens /screen/<token>'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: The game is not in the selected club
+      operationId: postGamesClockByidScreen
+  /api/games/clock/{id}/screen/send:
+    post:
+      tags:
+        - Games
+      summary: Send the game to the TV that shows a code (it opened /tv)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No TV shows this code, or the game is not in the selected club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many attempts
+      operationId: postGamesClockByidScreenSend
+  /api/games/rules/{id}/screen:
+    post:
+      tags:
+        - Games
+      summary: A link for a big screen that follows the game without a login, for 12 hours
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: '{ token, expiresAt }; the screen opens /screen/<token>'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: The game is not in the selected club
+      operationId: postGamesRulesByidScreen
+  /api/games/rules/{id}/screen/send:
+    post:
+      tags:
+        - Games
+      summary: Send the game to the TV that shows a code (it opened /tv)
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No TV shows this code, or the game is not in the selected club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many attempts
+      operationId: postGamesRulesByidScreenSend
+  /api/public/evenings/{id}/screen:
+    post:
+      tags:
+        - Games
+      summary: A link for a big screen that follows the darts evening (its running game, its table), for 12 hours; with the key of the evening (X-Quick-Key)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: '{ token, expiresAt }; the screen opens /screen/<token>'
+        '404':
+          description: The evening is not on this device
+      operationId: postEveningsByidScreen
+  /api/public/evenings/{id}/screen/send:
+    post:
+      tags:
+        - Games
+      summary: Send the darts evening to the TV that shows a code; with the key of the evening (X-Quick-Key)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '404':
+          description: No TV shows this code, or the evening is not on this device
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Too many attempts
+      operationId: postEveningsByidScreenSend
   /api/screen/pairings:
     post:
       tags:
@@ -5369,6 +5600,8 @@ paths:
       responses:
         '201':
           description: '{ secret: what the TV asks with, code: six digits to show, expiresAt }'
+        '429':
+          description: Too many TVs paired from this address
       operationId: postScreenPairings
   /api/screen/pairings/{secret}:
     get:
@@ -5404,7 +5637,7 @@ paths:
             type: string
       responses:
         '200':
-          description: '{ kind, game, players: [{ id, nickname, country, shirt }], club: { name, logo, accent }, expiresAt }'
+          description: '{ kind, game, players: [{ id, nickname, country, shirt }], club: { name, logo, accent }, expiresAt }; for a darts evening { kind: evening, evening, game: the quick game running now or null, expiresAt }'
         '404':
           description: The link is not valid (any more), or the game is gone
         '422':

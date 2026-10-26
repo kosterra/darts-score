@@ -189,3 +189,94 @@
   letter-spacing: 0.06em;
 }
 .big-screen-code-input { font-size: $text-lg; letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
+
+// Cricket: the numbers down the middle of a grid, a column per player
+.big-cricket {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(5rem, 0.6fr) repeat(var(--players), 1fr);
+  align-content: center;
+  gap: clamp(0.25rem, 1vh, 0.6rem) clamp(0.5rem, 2vw, 1.5rem);
+}
+.big-cricket-row { display: contents; }
+.big-cricket-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3;
+  border-radius: $radius-lg;
+  border: 2px solid transparent;
+  opacity: 0.75;
+  &.is-turn { opacity: 1; border-color: var(--player-colour); box-shadow: 0 0 2.5rem -0.5rem var(--player-colour); }
+}
+.big-cricket-score { font-size: clamp(2.5rem, 7vw, 6rem); font-weight: $weight-heavy; line-height: 1; font-variant-numeric: tabular-nums; }
+.big-cricket-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.5rem, 4vw, 3.5rem);
+  font-weight: $weight-heavy;
+  color: var(--text-subtle);
+}
+.big-cricket-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(2.5rem, 8vh, 5rem);
+  border-radius: $radius-md;
+  background: var(--c-shade-800);
+  font-size: clamp(1.8rem, 5vw, 4rem);
+  font-weight: $weight-bold;
+  color: var(--text-default);
+  &.is-closed { color: $primaryColor; }
+}
+
+// Elimination: the race to the target, the leader first
+.big-race { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(0.6rem, 2vh, 1.5rem); }
+.big-race-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 2fr auto;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  padding: clamp(0.5rem, 1.5vh, 1rem) clamp(0.75rem, 2vw, 1.5rem);
+  border-radius: $radius-lg;
+  background: var(--c-shade-800);
+  border: 2px solid transparent;
+  opacity: 0.75;
+  &.is-turn { opacity: 1; border-color: var(--player-colour); }
+  @media (max-width: 767.98px) { grid-template-columns: 1fr auto; .big-race-bar { grid-column: 1 / -1; } }
+}
+.big-race-bar {
+  height: clamp(0.75rem, 2vh, 1.4rem);
+  border-radius: $radius-pill;
+  background: ink(0.08);
+  overflow: hidden;
+  > span { display: block; height: 100%; width: var(--share); background: var(--player-colour); border-radius: inherit; transition: width 0.4s ease; }
+}
+.big-race-score { font-size: clamp(2.5rem, 7vw, 6rem); font-weight: $weight-heavy; line-height: 1; font-variant-numeric: tabular-nums; }
+
+// the newer games: their scoreboard, large
+.big-rules {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .rules-scoreboard { width: 100%; max-width: 90rem; font-size: clamp(1.1rem, 2.6vw, 2.4rem); }
+  .rules-scoreboard th { font-size: 0.6em; }
+  .rules-scoreboard td, .rules-scoreboard th { padding: 0.4em 0.6em; }
+}
+
+// a darts evening between its games: the table of the evening
+.big-evening-table {
+  width: 100%;
+  max-width: 70rem;
+  margin: auto;
+  border-collapse: collapse;
+  font-size: clamp(1.1rem, 2.6vw, 2.4rem);
+  font-variant-numeric: tabular-nums;
+  th { color: var(--text-subtle); font-weight: $weight-semibold; font-size: 0.6em; text-align: left; padding: 0.4em 0.6em; }
+  td { padding: 0.45em 0.6em; border-top: 1px solid ink(0.08); }
+  tr.is-leader td { color: $accentGold; font-weight: $weight-bold; }
+}
+.big-screen-hint { margin: 0; text-align: center; color: var(--text-faint); font-size: clamp(0.95rem, 1.6vw, 1.4rem); }

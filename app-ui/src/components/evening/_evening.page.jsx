@@ -6,6 +6,7 @@ import { Message } from 'primereact/message';
 import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
 import QRCode from 'qrcode';
+import BigScreenButton from '../screen/big.screen.button';
 
 import EveningService from '../../services/evening.service';
 import QuickLayout from '../quick/quick.layout';
@@ -167,7 +168,13 @@ const EveningPage = ({ shared = false }) => {
         <QuickLayout suffix={t('· Darts evening')}>
             <Toast ref={toast} position="bottom-right" />
             <div className="evening-page d-flex flex-column gap-4">
-                <Panel header={title} icons={owner && !adopted ? <Button type="button" icon="pi pi-qrcode" label={t('Share')} size="small" text onClick={() => setSharing(true)} /> : null}>
+                <Panel header={title} icons={owner && !adopted
+                    ? <span className="d-inline-flex align-items-center gap-2">
+                        {/* the evening on a TV: it follows its running game, the table in between */}
+                        <BigScreenButton create={() => EveningService.screenLink(evening.id)} send={(code) => EveningService.sendToTv(evening.id, code)} />
+                        <Button type="button" icon="pi pi-qrcode" label={t('Share')} size="small" text onClick={() => setSharing(true)} />
+                    </span>
+                    : null}>
                     <div className="d-flex flex-column gap-2">
                         <span className="text-subtle fs-7">
                             {formatDateTime(evening.createdAt)}{' · '}{tn(evening.players.length, '{{count}} player', '{{count}} players')}{' · '}{tn(report.played, '{{count}} game played', '{{count}} games played')}

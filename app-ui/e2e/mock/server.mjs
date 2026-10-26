@@ -370,6 +370,22 @@ http.createServer((req, res) => {
                 }
                 return send(res, 200, eveningView(evening, gamesOfEvening(ev[1]), { owner: true }));
             }
+            const evScreen = path.match(/^\/api\/public\/evenings\/(e\d+)\/screen(\/send)?$/);
+            if (evScreen && evenings.has(evScreen[1])) {
+                const token = `screen-token-for-evening--${evScreen[1]}`;
+                if (!evScreen[2]) return send(res, 200, { token, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+                const pairing = [...(globalThis.mockPairings ?? new Map()).values()].find(entry => entry.code === json.code);
+                if (!pairing) return send(res, 404, { message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+                pairing.token = token;
+                return send(res, 200, { sent: true });
+            }
+            const evShow = path.match(/^\/api\/screen\/screen-token-for-evening--(e\d+)$/);
+            if (evShow && evenings.has(evShow[1])) {
+                const evening = evenings.get(evShow[1]);
+                const games = gamesOfEvening(evShow[1]);
+                const running = [...games].sort((x, y) => new Date(y.createdAt) - new Date(x.createdAt)).find(game => game.gameIsRunning && !game.hasWinner);
+                return send(res, 200, { kind: 'evening', evening: eveningView(evening, games), game: running ? quickGameView(running) : null, club: null, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+            }
             const sh = path.match(/^\/api\/public\/evenings\/shared\/(.+)$/);
             if (sh) {
                 const evening = [...evenings.values()].find(entry => entry.shareToken === sh[1]);
@@ -727,8 +743,10 @@ http.createServer((req, res) => {
             return send(res, 200, list.filter(e => !kind || e.kind === kind));
         }
         // the big screen: a link from the game, and the game for the screen (the token is the game's id, padded)
-        const screenLink = path.match(/^\/api\/games\/x01\/([^/]+)\/screen$/);
-        if (screenLink && req.method === 'POST') return send(res, 200, { token: `screen-token-for-${screenLink[1]}`, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+        const screenLink = path.match(/^\/api\/games\/(x01|cricket|elimination|clock|rules)\/([^/]+)\/screen$/);
+        // the token says the kind (X01 as before: just the id)
+        const tokenFor = (kind, id) => (kind === 'x01' ? `screen-token-for-${id}` : `screen-token-for-${kind}--${id}`);
+        if (screenLink && req.method === 'POST') return send(res, 200, { token: tokenFor(screenLink[1], screenLink[2]), expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
         // a TV paired by its code
         globalThis.mockPairings ??= new Map();
         if (path === '/api/screen/pairings' && req.method === 'POST') {
@@ -741,18 +759,18 @@ http.createServer((req, res) => {
             const pairing = globalThis.mockPairings.get(decodeURIComponent(pairingShow[1]));
             return pairing ? send(res, 200, { code: pairing.code, expiresAt: pairing.expiresAt, token: pairing.token }) : send(res, 404, { message: 'This TV is not paired any more.', expired: true });
         }
-        const screenSend = path.match(/^\/api\/games\/x01\/([^/]+)\/screen\/send$/);
+        const screenSend = path.match(/^\/api\/games\/(?:x01|cricket|elimination|clock|rules)\/([^/]+)\/screen\/send$/);
         if (screenSend) {
             const pairing = [...globalThis.mockPairings.values()].find(entry => entry.code === json.code);
             if (!pairing) return send(res, 404, { message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
             pairing.token = `screen-token-for-${screenSend[1]}`;
             return send(res, 200, { sent: true });
         }
-        const screenShow = path.match(/^\/api\/screen\/screen-token-for-([^/]+)$/);
+        const screenShow = path.match(/^\/api\/screen\/screen-token-for-(?:(cricket|elimination|clock|rules)--)?([^/]+)$/);
         if (screenShow) {
-            const game = games.get(screenShow[1]);
+            const game = games.get(screenShow[2]);
             if (!game) return send(res, 404, { message: 'This big screen link is not valid any more. Open a new one from the game.', expired: true });
-            return send(res, 200, { kind: 'x01', game, players: players.filter(p => (game.players ?? []).includes(p.id)).map(p => ({ id: p.id, nickname: p.nickname, country: p.country, shirt: shirtOf(p) })), club: { name: CLUB_NAME, logo: '', accent: null }, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+            return send(res, 200, { kind: screenShow[1] ?? 'x01', game, players: players.filter(p => (game.players ?? []).includes(p.id)).map(p => ({ id: p.id, nickname: p.nickname, country: p.country, shirt: shirtOf(p) })), club: { name: CLUB_NAME, logo: '', accent: null }, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
         }
         const clock = path.match(/^\/api\/games\/(?:clock|x01|cricket|elimination)(?:\/([^/]+))?$/);
         if (clock) {

@@ -2,6 +2,7 @@ import db from '../models/db.model.js';
 import logger from '../models/logger.model.js';
 import { answerOf, hasRules } from '../utils/game.view.js';
 import { shirtOf } from '../utils/shirts.js';
+import { screenOfEvening } from './evening.controller.js';
 import { newPairing, pairingOf, readScreenToken, screenToken, sendToPairing } from '../utils/screens.js';
 
 /**
@@ -9,7 +10,8 @@ import { newPairing, pairingOf, readScreenToken, screenToken, sendToPairing } fr
  * from a game, and the game as the screen shows it, without a login.
  */
 
-const MODELS = { x01: db.x01 };
+// the club games by kind; the newer games share one model ('rules', their kind inside)
+const MODELS = { x01: db.x01, cricket: db.cricket, elimination: db.elimination, clock: db.clock, rules: db.rulesGame };
 
 // a link for the big screen of a game of the request's club: { token, expiresAt }
 export const link = (kind) => async (req, res) => {
@@ -28,6 +30,12 @@ export const link = (kind) => async (req, res) => {
 export const show = async (req, res) => {
     const screen = readScreenToken(req.params.token);
     if (!screen) return res.status(404).json({ message: 'This big screen link is not valid any more. Open a new one from the game.', expired: true });
+    if (screen.kind === 'evening') {
+        const evening = await screenOfEvening(screen.gameId);
+        if (!evening) return res.status(404).json({ message: 'This game is gone.', expired: true });
+        res.set('Cache-Control', 'no-store');
+        return res.json({ kind: 'evening', ...evening, club: null, expiresAt: screen.expiresAt });
+    }
     const doc = await MODELS[screen.kind].findById(screen.gameId);
     if (!doc) return res.status(404).json({ message: 'This game is gone.', expired: true });
     const game = hasRules(screen.kind) ? answerOf(screen.kind, doc) : doc.toJSON();

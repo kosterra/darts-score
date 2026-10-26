@@ -14,7 +14,7 @@ import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
 import useGameRules from '../common/game.rules';
 import CallerButton from '../common/caller.button';
-import BigScreenButton from '../../screen/big.screen.button';
+import GameScreenButton from '../../screen/game.screen.button';
 import QuickHeroBrand from '../../quick/quick.hero.brand';
 import useWaysOut from './use.ways.out';
 import { houseRuleLines } from '../../../utils/club.rules.labels';
@@ -90,8 +90,8 @@ const X01LiveHeader = () => {
                 </div>
                 <div className="d-flex align-items-center gap-2 flex-shrink-0">
                     <CallerButton />
-                    {/* a club game also on a TV or second tablet (not a training or a quick game) */}
-                    {!training && !quick && !game.hasWinner && (game.id ?? game._id) && <BigScreenButton kind="x01" gameId={game.id ?? game._id} />}
+                    {/* a club game, or the evening of a quick game, also on a TV or second tablet */}
+                    <GameScreenButton kind="x01" game={game} quick={quick} training={training} />
                     {rulesButton}
                 </div>
             </div>

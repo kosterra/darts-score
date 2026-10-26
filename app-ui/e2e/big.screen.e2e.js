@@ -100,3 +100,56 @@ test('a TV opened at /tv shows its code, then the game sent to it', async ({ pag
     await tvContext.close();
 });
 
+
+test('a Cricket game of the club on the big screen', async ({ page, browser }) => {
+    await post('/__test/logged-out', { loggedOut: false });
+    await post('/__test/role', { admin: false });
+    await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
+    await page.goto('/cricket');
+    const picker = page.locator('.player-picker');
+    await expect(picker.locator('.player-pick-card').first()).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    while (await picker.locator('.player-pick-card.is-chosen').count()) await picker.locator('.player-pick-card.is-chosen').first().click();
+    await picker.locator('.player-pick-card', { hasText: 'Anna' }).click();
+    await picker.locator('.player-pick-card', { hasText: 'Ben' }).click();
+    await page.getByRole('button', { name: 'Start game', exact: true }).click();
+    await expect(page).toHaveURL(/\/cricket\/[^/]+$/);
+
+    await page.getByRole('button', { name: 'Big screen' }).click();
+    const link = await page.getByRole('textbox', { name: 'Link for the big screen' }).inputValue();
+    const tvContext = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+    const tv = await tvContext.newPage();
+    await post('/__test/logged-out', { loggedOut: true });
+    await tv.goto(new URL(link).pathname);
+    await expect(tv.locator('.big-cricket-player .big-player-name')).toHaveText(['Anna', 'Ben']);
+    await expect(tv.locator('.big-cricket-number')).toHaveCount(7);
+    await tv.screenshot({ path: 'test-results/big-screen-cricket.png' });
+    await post('/__test/logged-out', { loggedOut: false });
+    await tvContext.close();
+});
+
+test('a darts evening on the big screen: its table, then the game that starts', async ({ page, browser }) => {
+    await post('/__test/logged-out', { loggedOut: true });
+    await page.goto('/evening/new');
+    const names = page.locator('.quick-name input');
+    await names.nth(0).fill('Lena');
+    await names.nth(1).fill('Marc');
+    await page.locator('form button[type="submit"]').click();
+    await expect(page).toHaveURL(/\/evening\/e\d+$/);
+
+    await page.getByRole('button', { name: 'Big screen' }).click();
+    const link = await page.getByRole('textbox', { name: 'Link for the big screen' }).inputValue();
+    await page.keyboard.press('Escape');
+    const tvContext = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+    const tv = await tvContext.newPage();
+    await tv.goto(new URL(link).pathname);
+    await expect(tv.locator('.big-evening-table tbody tr')).toHaveCount(2);
+    await tv.screenshot({ path: 'test-results/big-screen-evening-table.png' });
+
+    await page.getByRole('button', { name: /Start the game/ }).click();
+    await expect(page).toHaveURL(/\/quick\//);
+    await expect(tv.locator('.big-player .big-player-name')).toHaveText(['Lena', 'Marc'], { timeout: 10000 });
+    await tv.screenshot({ path: 'test-results/big-screen-evening-game.png' });
+    await tvContext.close();
+    await post('/__test/logged-out', { loggedOut: false });
+});

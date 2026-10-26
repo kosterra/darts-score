@@ -11,6 +11,7 @@ import useInputMode from '../games/common/use.input.mode';
 import useBoardDarts from '../games/common/use.board.darts';
 import useDartMarkers from '../games/common/use.dart.markers';
 import { TacticsMarks } from './rules.scoreboard';
+import GameScreenButton from '../screen/game.screen.button';
 import LiveHero from '../games/common/live.hero';
 import LiveFigures from '../games/common/live.figures';
 import OneEightyCelebration from '../games/common/one.eighty.celebration';
@@ -178,7 +179,7 @@ const RulesGame = () => {
 
     return (
         <div className="container-fluid bg-transparent border-0 x01-game-page">
-            <LiveHero rulesId={kind} title={title} subtitle={subtitle} rows={heroRows} houseRules={houseRuleLines(kind, game.settings)} />
+            <LiveHero rulesId={kind} title={title} subtitle={subtitle} rows={heroRows} houseRules={houseRuleLines(kind, game.settings)} actions={<GameScreenButton kind="rules" game={game} />} />
             <VisitInput
                 nickname={nameOf(current)}
                 input={input}

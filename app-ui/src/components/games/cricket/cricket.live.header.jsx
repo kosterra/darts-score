@@ -6,6 +6,7 @@ import LiveHero from '../common/live.hero';
 import { CRICKET_NUMBERS, replayCricket } from '../../../utils/cricket.game.summary';
 import { variantOf } from '../../../utils/cricket.variants';
 import { cricketTip, liveMarks, visitMarks } from './cricket.live';
+import GameScreenButton from '../../screen/game.screen.button';
 import { t } from '../../../utils/i18n';
 
 const RULES = {
@@ -20,7 +21,7 @@ const RULES = {
  * they closed.
  */
 const CricketLiveHeader = () => {
-    const { game, players, getCurrentThrowScore, getCurrentSectionHit } = useContext(CricketContext);
+    const { game, players, getCurrentThrowScore, getCurrentSectionHit, quick } = useContext(CricketContext);
     const variant = variantOf(game);
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
     const marks = liveMarks(game, getCurrentSectionHit());
@@ -72,6 +73,7 @@ const CricketLiveHeader = () => {
         <LiveHero
             rulesId="cricket"
             houseRules={houseRuleLines('cricket', game)}
+            actions={<GameScreenButton kind="cricket" game={game} quick={quick} />}
             title={t('Cricket{{value}}', { value: variant === 'Standard' ? '' : ` · ${variant}` })}
             subtitle={t('{{value}} · Round {{round}}', { value: RULES[variant] ?? RULES.Standard, round: round })}
             rows={rows}
