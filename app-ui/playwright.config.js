@@ -27,7 +27,7 @@ export default defineConfig({
         { name: 'phone', use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
     ],
     webServer: [
-        { command: `node e2e/mock/server.mjs`, port: MOCK, env: { MOCK_PORT: String(MOCK) }, reuseExistingServer: !process.env.CI },
-        { command: `npx vite --port ${UI} --strictPort`, port: UI, env: { API_PROXY_TARGET: `http://localhost:${MOCK}` }, reuseExistingServer: !process.env.CI, timeout: 120_000 },
+        { command: `node e2e/mock/server.mjs`, port: MOCK, env: { MOCK_PORT: String(MOCK) }, reuseExistingServer: !process.env.CI, stdout: 'pipe', timeout: 60_000 },
+        { command: `npx vite --port ${UI} --strictPort`, port: UI, env: { API_PROXY_TARGET: `http://localhost:${MOCK}` }, reuseExistingServer: !process.env.CI, stdout: 'pipe', timeout: 120_000 },
     ],
 });
