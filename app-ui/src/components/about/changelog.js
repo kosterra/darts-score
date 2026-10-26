@@ -9,6 +9,7 @@ const CHANGELOG = [
     {
         version: '2026.10.18',
         changes: [
+            t('A game or training set up without yourself says so: whom it counts for, and a button to add yourself. Nothing is blocked, for whoever scores the game of others.'),
             t('For global admins, the overview checks the installation: APP_URL, mail and the login at the mail server, MFA_KEY and two-step login, SESSION_SECRET, the backups (recent, on a disk of their own), the free space and the privacy page. Each problem says what to do; all well, one line says so.'),
             t('The error log shows the same warning or error once, with how often and since when; all of them one by one with a click.'),
         ],
