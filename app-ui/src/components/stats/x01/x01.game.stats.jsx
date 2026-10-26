@@ -31,7 +31,6 @@ import UpLink from '../../elements/up.link';
 import EveningGameActions from '../../quick/evening.game.actions';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 import { t } from '../../../utils/i18n';
-import CompareLink from '../compare/compare.link';
 import { ACCENT } from '../../../utils/palette';
 
 // the key figures of every player in the header; for the best leg less wins
@@ -174,7 +173,7 @@ const X01GameStats = ({ training = false, quick = false }) => {
         ? <div className="d-flex justify-content-center"><Link to={`/tournaments/${tournamentId}`} className="p-button p-button-sm text-decoration-none"><i className="pi pi-sitemap me-2" />{t('To the bracket')}</Link></div>
         : quick && game.evening
             ? <EveningGameActions eveningId={game.evening} />
-            : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
+            : <GameResultActions compare={!quick && !training && players.length > 1 ? { players, type: 'x01' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">
@@ -186,8 +185,6 @@ const X01GameStats = ({ training = false, quick = false }) => {
                     celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
-                    // the way to the comparison of these players, in this game
-                    footer={!quick && !training && players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type="x01" /></div> : null}
                     title={`${hasHandicap(game) ? t('Handicap') : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
                     subtitle={hasHandicap(game)
                         ? `${players.map(player => `${player.nickname} ${describeRules(rulesOf(game, player.id))}`).join(' · ')} · ${whenPlayed(game)}`
