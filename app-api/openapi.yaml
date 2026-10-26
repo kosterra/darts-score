@@ -3500,6 +3500,23 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       operationId: getNotifications
+    delete:
+      tags:
+        - Notifications
+      summary: Remove all of the user's notifications
+      responses:
+        '200':
+          description: Removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: deleteNotifications
   /api/notifications/unread:
     get:
       tags:

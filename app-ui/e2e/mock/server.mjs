@@ -10,7 +10,8 @@
 // (e.g. AS_PLAYER, CLUB_ADMIN, LOGGED_OUT, NEW_USER; DASH=0 for a club
 // without its statistics), and the tests
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
-// /__test/tournaments { scenario } and /__test/session { leftMs }.
+// /__test/tournaments { scenario }, /__test/session { leftMs } and
+// /__test/notifications (two of them, one unread).
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
@@ -332,6 +333,12 @@ http.createServer((req, res) => {
             if (action === '/answer') { r.players.filter(p => p.user === user.id).forEach(p => { p.answer = json.agree ? 'agreed' : 'declined'; }); if (deletionTally(r).everyoneAgreed) close(r, 'deleted', true); return send(res, 200, view(r)); }
             if (action === '/decide') { r.note = json.note; close(r, json.delete ? 'deleted' : 'kept', false); return send(res, 200, view(r)); }
             if (req.method === 'DELETE') { r.status = 'withdrawn'; return send(res, 200, view(r)); }
+        }
+        if (path === '/__test/notifications' && req.method === 'POST') {
+            notifications.splice(0, notifications.length,
+                { id: 'nt1', kind: 'badgeEarned', title: 'You earned the badge Champion', body: 'Win a tournament of your club', link: '/badges', at: new Date().toISOString(), read: false },
+                { id: 'nt2', kind: 'tournamentWon', title: 'Patch Panther wins Autumn Cup', link: '/tournaments', at: new Date().toISOString(), read: true });
+            return send(res, 200, {});
         }
         if (path === '/__test/session' && req.method === 'POST') { session.expiresAt = Date.now() + json.leftMs; session.loggedIn = true; return send(res, 200, session); }
         if (path === '/api/auth/session') return session.loggedIn && session.expiresAt > Date.now() ? send(res, 200, { expiresAt: session.expiresAt, timeoutHours: sessionHours }) : send(res, 401, { message: 'Please log in.' });
@@ -817,6 +824,7 @@ http.createServer((req, res) => {
             if (req.method === 'DELETE') contactOf = null;
             return send(res, 200, { contact: contactOf, claims: { count: claimCount, until: claimCount ? new Date(Date.now() + 30 * 864e5).toISOString() : null }, mailEnabled: !process.env.NO_MAIL });
         }
+        if (path === '/api/notifications' && req.method === 'DELETE') { const deleted = notifications.length; notifications.length = 0; return send(res, 200, { deleted }); }
         if (path === '/api/notifications') return send(res, 200, { notifications, unread: notifications.filter(n => !n.read).length });
         if (path === '/api/notifications/unread') return send(res, 200, { unread: notifications.filter(n => !n.read).length });
         if (path === '/api/notifications/read') { notifications.forEach(n => { n.read = true; }); return send(res, 200, {}); }

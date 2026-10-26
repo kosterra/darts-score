@@ -66,6 +66,12 @@ export const remove = async (req, res) => {
     res.json({ message: 'Deleted.' });
 };
 
+// clears the list: every notification of the user
+export const removeAll = async (req, res) => {
+    const result = await db.notification.deleteMany({ user: req.user._id });
+    res.json({ deleted: result.deletedCount });
+};
+
 // the groups of topics the user sees: the admin ones only for admins
 const audienceOf = async (user) => {
     if (isGlobalAdmin(user)) return ['globalAdmin', 'everyone'];

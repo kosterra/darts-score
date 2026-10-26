@@ -12,6 +12,7 @@ import NotificationService, { announceNotificationsChange } from '../../services
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import { Lines } from '../elements/skeletons';
+import DeletePopup from '../elements/delete.popup';
 import { formatDate } from '../../utils/dates';
 
 dayjs.extend(relativeTime);
@@ -63,6 +64,10 @@ const NotificationList = ({ limit }) => {
             unread: Math.max(0, current.unread - (notice.read ? 0 : 1)),
         }));
     };
+    const removeAll = () => {
+        NotificationService.removeAll().catch(() => {});
+        update(() => ({ notifications: [], unread: 0 }));
+    };
     // a link of another club of the user switches to that club first; one just
     // joined is not among the user's clubs yet, until they are loaded again
     const open = async (notice) => {
@@ -80,10 +85,22 @@ const NotificationList = ({ limit }) => {
 
     return (
         <div className="notification-list">
-            {data.unread > 0 &&
+            {/* clearing the whole list only where all of it is shown */}
+            {(data.unread > 0 || (!limit && data.notifications.length > 0)) &&
                 <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                    <span className="text-subtle fs-7">{data.unread}{' '}{t('unread')}</span>
-                    <Button type="button" label={t('Mark all as read')} icon="pi pi-check" size="small" severity="secondary" onClick={markAllRead} />
+                    <span className="text-subtle fs-7">{data.unread > 0 && <>{data.unread}{' '}{t('unread')}</>}</span>
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                        {data.unread > 0 && <Button type="button" label={t('Mark all as read')} icon="pi pi-check" size="small" severity="secondary" onClick={markAllRead} />}
+                        {!limit && data.notifications.length > 0 &&
+                            <DeletePopup
+                                header={t('Clear all notifications')}
+                                message={t('all {{count}} notifications', { count: data.notifications.length })}
+                                handleDelete={removeAll}
+                                label={t('Clear all')}
+                                size="small"
+                            />
+                        }
+                    </div>
                 </div>
             }
             {shown.length === 0
