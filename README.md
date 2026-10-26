@@ -107,7 +107,7 @@ ADMIN_EMAIL=admin@example.com       # First global admin, created on startup if 
 ADMIN_PASSWORD=at-least-8-chars
 
 # Email: password reset and club admin invitations (off without SMTP_HOST)
-APP_URL=https://darts.example.com   # Public address of the app, used for links in mails
+APP_URL=https://darts.example.com   # Public address of the app: links in mails, previews, and the domain passkeys belong to (HTTPS)
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=

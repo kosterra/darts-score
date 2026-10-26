@@ -37,8 +37,9 @@ export const uiKeys = (src = SRC) => {
         let ast;
         try {
             ast = parse(fs.readFileSync(file, 'utf8'), { sourceType: 'module', plugins: ['jsx', 'typescript'] });
-        } catch {
-            continue;
+        } catch (err) {
+            // a file that cannot be read would hide its texts: say which, rather than skip it
+            throw new Error(`${path.relative(src, file)} cannot be read: ${err.message}`);
         }
         const where = path.relative(src, file);
         traverse(ast, {

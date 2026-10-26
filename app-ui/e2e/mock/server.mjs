@@ -183,6 +183,32 @@ http.createServer((req, res) => {
         if (path === '/api/auth/mfa/recovery-codes') return json.code === '123456' ? send(res, 200, { recoveryCodes: ['n3wc-0de1', 'n3wc-0de2'], mfa: mfaState() }) : send(res, 403, { message: 'This code is not right.' });
         if (path === '/api/auth/mfa/disable') { mfa.enabled = false; return send(res, 200, { mfa: mfaState() }); }
         if (path === '/api/auth/mfa/forget-devices') return send(res, 200, { message: 'ok' });
+        // passkeys: kept as the browser made them, not checked (the API checks them; see its tests)
+        globalThis.mockPasskeys ??= [];
+        const b64 = (bytes) => Buffer.from(bytes).toString('base64url');
+        const challenge = () => b64(Array.from({ length: 32 }, () => Math.floor(Math.random() * 256)));
+        const passkeyList = () => ({ passkeys: globalThis.mockPasskeys.map(({ id, name, createdAt, lastUsedAt }) => ({ id, name, synced: false, createdAt, lastUsedAt })) });
+        if (path === '/api/auth/passkeys' && req.method === 'GET') return send(res, 200, passkeyList());
+        if (path === '/api/auth/passkeys/options') {
+            if (json.password !== 'secret123') return send(res, 403, { message: 'The current password is wrong.' });
+            return send(res, 200, { challenge: challenge(), rp: { id: 'localhost', name: 'Legmate' }, user: { id: b64([1, 2, 3, 4]), name: user.email, displayName: 'Test User' }, pubKeyCredParams: [{ type: 'public-key', alg: -7 }], authenticatorSelection: { residentKey: 'required', userVerification: 'required' }, attestation: 'none', excludeCredentials: [] });
+        }
+        if (path === '/api/auth/passkeys' && req.method === 'POST') {
+            globalThis.mockPasskeys.push({ id: json.response.id, name: 'Linux', createdAt: new Date().toISOString(), lastUsedAt: null });
+            return send(res, 201, passkeyList());
+        }
+        if (path.startsWith('/api/auth/passkeys/') && req.method === 'DELETE') {
+            globalThis.mockPasskeys = globalThis.mockPasskeys.filter(passkey => passkey.id !== decodeURIComponent(path.split('/').pop()));
+            return send(res, 200, passkeyList());
+        }
+        if (path === '/api/auth/login/passkey/options') return send(res, 200, { challenge: challenge(), rpId: 'localhost', userVerification: 'required', timeout: 60000 });
+        if (path === '/api/auth/login/passkey') {
+            const known = globalThis.mockPasskeys.find(passkey => passkey.id === json.response?.id);
+            if (!known) return send(res, 401, { message: 'This passkey does not open an account here. Log in with your password, and add the passkey under Profile → Account.' });
+            known.lastUsedAt = new Date().toISOString();
+            globalThis.mockLoggedOut = false;
+            return send(res, 200, { ...user, mfa: { enabled: false, required: false } });
+        }
         if (path === '/api/admin/dashboard') {
             const h = (n) => new Date(Date.now() - n * 3600000).toISOString();
             return send(res, 200, { numbers: { clubs: 14, players: 213, gamesPlayed: 4821, gamesThisWeek: 96, users: 87, usersNew: 3, quickGames: 41 }, now: { sessions: 9, users: 7 }, week: { users: 38 }, attention: { critical: 0, warning: 2, errors: 4 }, mail: { configured: true, today: 23, limit: 200 }, backups: { latest: { name: 'x', kind: 'auto', createdAt: h(19) }, count: 4, enabled: true, nextAt: h(-5), lastError: null }, health: process.env.HEALTHY ? { problems: [], checked: 9 } : { checked: 9, problems: [{ id: 'mail', level: 'bad', title: 'The mail server refuses the mails', detail: 'The mail server refused the login. Check SMTP_USER and SMTP_PASSWORD.', fix: { to: '/system-settings#mail-server' } }, { id: 'mfaKey', level: 'warn', title: 'MFA_KEY is not set', detail: 'The secrets of two-step login are encrypted with a key from SESSION_SECRET: changing that secret ends every two-step login. Set MFA_KEY once and keep it.', fix: { env: 'MFA_KEY' } }, { id: 'backupDisk', level: 'warn', title: 'The backups lie on the same disk as the data', detail: 'A broken disk takes both. Mount another disk or a network share (e.g. NFS) at /app/data/backups, or download a backup now and then.', fix: { to: '/admin/backups' } }] } });

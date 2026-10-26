@@ -155,3 +155,15 @@
   color: var(--text-default);
   font-size: $text-sm;
 }
+
+// the passkeys of the account: one row each, its device, when added and used, removed with the bin
+.passkey-list { display: flex; flex-direction: column; gap: $space-2; }
+.passkey-row {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  background: ink(0.04);
+  > .pi { color: $primaryColor; font-size: $text-lg; }
+}

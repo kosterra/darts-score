@@ -51,17 +51,35 @@ export default (mongoose) => {
         recoveryHashes: { type: [String], default: [] },
         trustSalt:      { type: String, default: null },
       },
+      // passkeys: logging in with the fingerprint, the face or the PIN of a device (utils/passkeys.js)
+      passkeyUserId: { type: String, default: null },
+      passkeys: [{
+        _id:          false,
+        credentialId: { type: String, required: true },
+        publicKey:    { type: String, required: true },
+        counter:      { type: Number, default: 0 },
+        transports:   { type: [String], default: [] },
+        deviceType:   { type: String, default: null },
+        backedUp:     { type: Boolean, default: false },
+        name:         { type: String, default: 'Passkey' },
+        createdAt:    { type: Date, default: Date.now },
+        lastUsedAt:   { type: Date, default: null },
+      }],
     },
     { timestamps: true }
   );
 
   schema.method('toJSON', function () {
     // eslint-disable-next-line no-unused-vars
-    const { _id, passwordHash, sessionVersion, resetTokenHash, resetTokenExpires, mfa, ...object } = this.toObject();
+    const { _id, passwordHash, sessionVersion, resetTokenHash, resetTokenExpires, mfa, passkeys, passkeyUserId, ...object } = this.toObject();
     object.id = _id;
     object.mfaEnabled = Boolean(mfa?.enabledAt && mfa?.secret);
+    object.passkeyCount = (passkeys ?? []).length;
     return object;
   });
+
+  // a passkey login finds its account by the passkey
+  schema.index({ 'passkeys.credentialId': 1 });
 
   return mongoose.model('user', schema);
 };

@@ -60,6 +60,13 @@ const mfaSetup = () => requestJSON(API_URL + 'mfa/setup', { method: 'POST' });
 const mfaEnable = (code, trust = false) => requestJSON(API_URL + 'mfa/enable', { method: 'POST', body: { code, trust } });
 const mfaDisable = (password, code) => requestJSON(API_URL + 'mfa/disable', { method: 'POST', body: { password, code } });
 const mfaRecoveryCodes = (code) => requestJSON(API_URL + 'mfa/recovery-codes', { method: 'POST', body: { code } });
+// passkeys: the list, adding one (the password first, then the browser's answer), removing one, and logging in with one
+const listPasskeys = () => requestJSON(API_URL + 'passkeys');
+const passkeyOptions = (password) => requestJSON(API_URL + 'passkeys/options', { method: 'POST', body: { password } });
+const savePasskey = (response, name) => requestJSON(API_URL + 'passkeys', { method: 'POST', body: { response, ...(name && { name }) } });
+const removePasskey = (id) => requestJSON(`${API_URL}passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' });
+const passkeyLoginOptions = () => requestJSON(API_URL + 'login/passkey/options', { method: 'POST' });
+const passkeyLogin = (response) => requestJSON(API_URL + 'login/passkey', { method: 'POST', body: { response } });
 const mfaForgetDevices = () => requestJSON(API_URL + 'mfa/forget-devices', { method: 'POST' });
 
 // what stands before deleting the own account: { globalAdmin, clubs: [{ id, name, members, candidates }] }
@@ -104,6 +111,12 @@ const AuthService = {
     mfaEnable,
     mfaDisable,
     mfaRecoveryCodes,
+    listPasskeys,
+    passkeyOptions,
+    savePasskey,
+    removePasskey,
+    passkeyLoginOptions,
+    passkeyLogin,
     mfaForgetDevices,
     deletionSteps,
     deleteAccount,

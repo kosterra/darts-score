@@ -30,6 +30,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
     "@uiw/react-json-view": "^2.0.0-alpha.44",
     "bootstrap": "^5.3.8",
     "country-flag-icons": "1.6.20",

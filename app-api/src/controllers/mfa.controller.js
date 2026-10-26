@@ -18,7 +18,7 @@ import { noteLoginFailure } from '../utils/spam.guard.js';
  */
 
 // the session starts: the login is complete
-const startSession = async (req, res, user, { status = 200, extra = {} } = {}) => {
+export const startSession = async (req, res, user, { status = 200, extra = {} } = {}) => {
     user.lastLoginAt = new Date();
     await user.save({ timestamps: false });
     clearPendingCookie(req, res);

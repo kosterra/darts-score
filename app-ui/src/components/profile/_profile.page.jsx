@@ -19,6 +19,7 @@ import AppInstallSetting from '../install/app.install.setting';
 import NotificationSettings from './notification.settings';
 import AppearanceSetting from './appearance.setting';
 import TwoStepSetting from '../mfa/two.step.setting';
+import PasskeysSetting from '../mfa/passkeys.setting';
 import DeleteAccount from './delete.account';
 import { MyPlayers } from '../players/_my.player.page';
 import OnboardingSetting from '../onboarding/onboarding.setting';
@@ -240,6 +241,7 @@ const ProfilePage = () => {
                         </div>
                     </form>
                     <TwoStepSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} onError={showError} />
+                    <PasskeysSetting onSaved={(detail) => showSuccess(t('Passkeys'), detail)} />
                     {/* Legmate on the home screen of this device */}
                     <div className="mt-4"><AppInstallSetting /></div>
                     {/* the welcome tour once more, the first steps back */}
