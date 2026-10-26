@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { explainMailError, mailSetup } from './mail.utils.js';
+import { explainMailError, mailSetup, markEnvironment } from './mail.utils.js';
 import { renderMail } from './mail.templates.js';
 import { TEST_MAIL } from './mail.languages.js';
 import { MAIL_LANGUAGES } from './mail.templates.js';
@@ -62,5 +62,24 @@ describe('the test mail', () => {
             expect(mail.text).toContain('smtp.example.com:587');
             expect(mail.html).not.toContain('{{');
         }
+    });
+});
+
+describe('the mails of a test installation', () => {
+    const mail = { subject: 'Reset your password', text: 'Hello Anna', html: '<html><body style="margin:0"><p>Hello Anna</p></body></html>' };
+
+    it('stay as they are without a label', () => {
+        expect(markEnvironment(mail, '', 'https://legmate.ch')).toEqual(mail);
+    });
+
+    it('carry the label in the subject, on top of the text and as a strip on top of the mail', () => {
+        const marked = markEnvironment(mail, 'TEST', 'https://test.legmate.ch');
+        expect(marked.subject).toBe('[TEST] Reset your password');
+        expect(marked.text.startsWith('[TEST · test.legmate.ch]\n\n')).toBe(true);
+        expect(marked.html).toMatch(/<body style="margin:0"><div style="background:#ffc53d;[^"]*">TEST · test\.legmate\.ch<\/div><p>Hello Anna/);
+    });
+
+    it('escape a label in the html', () => {
+        expect(markEnvironment(mail, '<b>QA</b>', '').html).toContain('&lt;b&gt;QA&lt;/b&gt;');
     });
 });

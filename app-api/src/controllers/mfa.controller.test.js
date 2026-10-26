@@ -22,7 +22,8 @@ vi.mock('../models/db.model.js', () => ({
 }));
 process.env.MFA_KEY = 'test key';
 
-const { finishLogin, loginCode, setup, enable } = await import('./mfa.controller.js');
+const { finishLogin, loginCode, setup, enable, disable, recoveryCodes } = await import('./mfa.controller.js');
+const { hashPassword } = await import('../utils/auth.utils.js');
 const { codeOf, encrypt, saveMfaSettings, newRecoveryCodes } = await import('../utils/mfa.js');
 
 // an account as mongoose gives it, enough for the controller
@@ -143,5 +144,85 @@ describe('required and not set up', () => {
         await finishLogin(request(), res, account('anna'));
         expect(res.cookies.ds_session).toBeDefined();
         expect(res.body.mfa.setupDue).toBeInstanceOf(Date);
+    });
+});
+
+describe('a changed MFA_KEY', () => {
+    // a secret kept with the key the installation had before
+    const lostSecret = () => {
+        process.env.MFA_KEY = 'the old key';
+        const stored = encrypt('JBSWY3DPEHPK3PXP');
+        process.env.MFA_KEY = 'test key';
+        return stored;
+    };
+    const pendingFor = async (user) => {
+        const res = answer();
+        await finishLogin(request(), res, user);
+        return res.cookies.ds_mfa;
+    };
+
+    it('says so for a code of the app, without counting it as wrong', async () => {
+        const anna = account('anna', { secret: lostSecret(), enabledAt: new Date() });
+        const res = answer();
+        await loginCode(request({ ds_mfa: await pendingFor(anna) }, { code: codeOf('JBSWY3DPEHPK3PXP') }), res);
+        expect(res.statusCode).toBe(409);
+        expect(res.body.unreadable).toBe(true);
+    });
+
+    it('lets a recovery code in, turns it off and tells the owner to set it up again', async () => {
+        const { codes, hashes } = newRecoveryCodes();
+        const anna = account('anna', { secret: lostSecret(), enabledAt: new Date(), recoveryHashes: hashes });
+        const res = answer();
+        await loginCode(request({ ds_mfa: await pendingFor(anna) }, { recoveryCode: codes[0] }), res);
+        expect(res.cookies.ds_session).toBeDefined();
+        expect(res.body.mfaReset).toBe(true);
+        expect(anna.mfa.enabledAt).toBeNull();
+        expect(security).toEqual(['mfaDisabled']);
+    });
+
+    it('sets it up again straight away where it is required', async () => {
+        await saveMfaSettings({ policy: 'everyone', graceDays: 0 });
+        const { codes, hashes } = newRecoveryCodes();
+        const anna = account('anna', { secret: lostSecret(), enabledAt: new Date(Date.now() - 864e5), recoveryHashes: hashes });
+        const res = answer();
+        await loginCode(request({ ds_mfa: await pendingFor(anna) }, { recoveryCode: codes[1] }), res);
+        expect(res.body).toMatchObject({ mfaRequired: true, step: 'enroll', mfaReset: true });
+        expect(res.cookies.ds_session).toBeUndefined();
+    });
+});
+
+describe('a recovery code in place of the code of the app', () => {
+    it('turns two-step login off, and gives new recovery codes, each once', async () => {
+        const { codes, hashes } = newRecoveryCodes();
+        const anna = account('anna', { secret: encrypt('JBSWY3DPEHPK3PXP'), enabledAt: new Date(), recoveryHashes: hashes });
+        anna.passwordHash = await hashPassword('secret123');
+
+        const fresh = answer();
+        await recoveryCodes({ user: anna, body: { code: codes[0] } }, fresh);
+        expect(fresh.body.recoveryCodes).toHaveLength(10);
+
+        const old = answer();
+        await disable({ user: anna, body: { password: 'secret123', code: codes[1] } }, old);
+        expect(old.statusCode).toBe(403);
+
+        const off = answer();
+        await disable({ user: anna, body: { password: 'secret123', code: fresh.body.recoveryCodes[3] } }, off);
+        expect(off.statusCode).toBe(200);
+        expect(anna.mfa.enabledAt).toBeNull();
+    });
+
+    it('works also when the secret no longer opens', async () => {
+        process.env.MFA_KEY = 'the old key';
+        const secret = encrypt('JBSWY3DPEHPK3PXP');
+        process.env.MFA_KEY = 'test key';
+        const { codes, hashes } = newRecoveryCodes();
+        const anna = account('anna', { secret, enabledAt: new Date(), recoveryHashes: hashes });
+        anna.passwordHash = await hashPassword('secret123');
+        const byApp = answer();
+        await disable({ user: anna, body: { password: 'secret123', code: '123456' } }, byApp);
+        expect(byApp.body.unreadable).toBe(true);
+        const byRecovery = answer();
+        await disable({ user: anna, body: { password: 'secret123', code: codes[0] } }, byRecovery);
+        expect(anna.mfa.enabledAt).toBeNull();
     });
 });

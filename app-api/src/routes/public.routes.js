@@ -6,6 +6,7 @@ import * as PublicController from '../controllers/public.controller.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
 import { getBanner } from '../controllers/banner.controller.js';
 import { legalPage } from '../utils/legal.settings.js';
+import { languageOfHeader } from '../utils/page.meta.js';
 import { getStartPageSettings } from '../utils/start.page.settings.js';
 import { supportPage } from '../utils/support.settings.js';
 
@@ -17,7 +18,7 @@ export default (app) => {
     // the banner on top of every page, e.g. for a test environment
     router.get('/banner', getBanner);
     // the privacy policy and imprint: who runs this installation, how long what is kept
-    router.get('/legal', async (req, res) => res.json(await legalPage()));
+    router.get('/legal', async (req, res) => res.json(await legalPage(languageOfHeader(req.headers['accept-language']))));
     // whether the installation shows its start page to everyone, or opens with the login
     router.get('/site', async (req, res) => res.json({ publicSite: (await getStartPageSettings()).publicSite }));
     // the contact form: a few messages an hour from one network

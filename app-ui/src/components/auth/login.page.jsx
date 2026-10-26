@@ -46,7 +46,7 @@ const LoginPage = () => {
     }
 
     return (
-        <AuthLayout hide="login" title={t('Log in')}>
+        <AuthLayout hide="login" title={t('Log in')} heading={t('Welcome back')} intro={t('Your club, your games and your statistics are waiting.')}>
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
                 {sessionEnded && <Message severity="info" text={t('Your session has ended. Log in again to go on where you were.')} className="w-100 justify-content-start mb-2" />}
                 <span className="p-float-label w-100">

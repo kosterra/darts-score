@@ -58,7 +58,8 @@ export const requestJSON = async (url, { method = 'GET', body, clubId } = {}) =>
     if (!response.ok) {
         // the session ended (timeout, logged out elsewhere): the app goes back to the login
         if (response.status === 401 && !url.startsWith('/api/auth/')) window.dispatchEvent(new Event(SESSION_ENDED));
-        const error = new Error(data.errors?.join(' ') || data.message || response.statusText);
+        // without a message of the API (e.g. the error page of a proxy in front), at least the status
+        const error = new Error(data.errors?.join(' ') || data.message || response.statusText || t('The server answered with an error ({{status}}). Please try again later.', { status: response.status }));
         error.status = response.status;
         error.data = data;
         throw error;

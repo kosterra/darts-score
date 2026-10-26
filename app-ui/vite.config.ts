@@ -17,9 +17,12 @@ const restartOnVersionChange = () => ({
   configureServer(server) {
     if (!existsSync(rootPackage)) return
     server.watcher.add(rootPackage)
-    server.watcher.on('change', (file) => {
+    // git replaces the file rather than changing it (a checkout, a merge), which the watcher reports as added
+    const restart = (file) => {
       if (path.resolve(file) === rootPackage) server.restart()
-    })
+    }
+    server.watcher.on('change', restart)
+    server.watcher.on('add', restart)
   },
 })
 

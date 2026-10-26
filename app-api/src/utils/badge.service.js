@@ -95,6 +95,11 @@ export const syncPlayerBadges = async (player, { notify = false } = {}) => {
             player.notifiedLevel = level.index;
             levelChanged = true;
         }
+        // the highest level reached keeps the shirts it opened
+        if (level.index > (player.bestLevel ?? 0)) {
+            player.bestLevel = level.index;
+            levelChanged = true;
+        }
     }
     if (fresh.length > 0 || activityChanged || shameChanged || levelChanged) await player.save();
     if (fresh.length > 0) {

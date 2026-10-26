@@ -209,6 +209,6 @@ export const contact = async (req, res) => {
         res.json({ message: 'Thank you! Your message was sent.' });
     } catch (err) {
         logger.error(err, 'Failed to send a message of the contact form');
-        res.status(502).json({ message: 'The message could not be sent. Please try again later.' });
+        res.status(424).json({ message: 'The message could not be sent. Please try again later.' });
     }
 };

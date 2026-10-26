@@ -34,6 +34,19 @@ describe('the secret', () => {
         expect(decrypt('nonsense')).toBeNull();
     });
 
+    it('saved before MFA_KEY was set still works once it is set', () => {
+        const secret = newSecret();
+        delete process.env.MFA_KEY;
+        const stored = encrypt(secret);
+        process.env.MFA_KEY = 'test key';
+        expect(decrypt(stored)).toBe(secret);
+        // the other way round not: a key set once has to stay
+        const withKey = encrypt(secret);
+        delete process.env.MFA_KEY;
+        expect(decrypt(withKey)).toBeNull();
+        process.env.MFA_KEY = 'test key';
+    });
+
     it('goes to the authenticator app as an otpauth address', () => {
         expect(otpauthUri('anna@example.ch', 'ABC')).toBe('otpauth://totp/Legmate:anna%40example.ch?secret=ABC&period=30&digits=6&algorithm=SHA1&issuer=Legmate');
     });

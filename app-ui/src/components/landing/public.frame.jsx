@@ -39,21 +39,27 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
 };
 
 /**
+ * The links of the bar to the sections of the start page and the Darts A–Z.
+ */
+export const PublicNav = () => {
+    // an installation that opens with the login has no sections of a start page to go to
+    const publicSite = usePublicSite();
+    return (
+        <nav className="landing-nav" aria-label={t('Sections')}>
+            {publicSite !== false && <><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></>}
+            <Link to="/darts-terms">{t('Darts A–Z')}</Link>
+        </nav>
+    );
+};
+
+/**
  * The bar on top of a page of its own (privacy, support): logged out the
  * sections of the start page and the way to an account, logged in the way
  * back into the app (the start page is then the dashboard).
  */
 export const PageHeader = ({ user }) => {
-    // an installation that opens with the login has no sections of a start page to go to
-    const publicSite = usePublicSite();
     if (user) return <PublicHeader hide="both" action={<Link to="/"><Button label={t('Open Legmate')} size="small" /></Link>} />;
-    return (
-        <PublicHeader nav={
-            <nav className="landing-nav" aria-label={t('Sections')}>
-                {publicSite !== false && <><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></>}
-                <Link to="/darts-terms">{t('Darts A–Z')}</Link>
-            </nav>} />
-    );
+    return <PublicHeader nav={<PublicNav />} />;
 };
 
 /**

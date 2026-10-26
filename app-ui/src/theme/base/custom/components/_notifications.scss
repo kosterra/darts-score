@@ -111,6 +111,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+// a code of the app or a recovery code in its place: wide enough for both, and for what it asks
+.mfa-code-any {
+  width: 100%;
+  max-width: 20rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .mfa-key {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 1rem;

@@ -11,6 +11,7 @@ import { getClubBadges, getClubOwnBadges, getClubShame, getPlayerBadges, getGame
 import { playersKnownInClub } from '../controllers/game.controller.js';
 import db from '../models/db.model.js';
 import * as FavouritesController from '../controllers/favourites.controller.js';
+import { firstStepsOf } from '../utils/first.steps.js';
 import { param } from 'express-validator';
 
 // Statistics are only given for players and games of the request's club,
@@ -43,6 +44,8 @@ export default (app) => {
     router.get('/club', getClubStats);
     // the games the user plays most lately, to start again with one tap
     router.get('/favourites', FavouritesController.list);
+    // the first steps of a new user in the club, ticked from what is there
+    router.get('/first-steps', async (req, res) => res.json(await firstStepsOf(req.user, req.club)));
     router.post('/favourites/:id/start', param('id').matches(/^[A-Za-z0-9_-]{8,32}$/).withMessage('Invalid favourite.'), validate, FavouritesController.start);
     router.get('/games', getGamesOverview);
     router.get('/levels', getPlayerLevels);

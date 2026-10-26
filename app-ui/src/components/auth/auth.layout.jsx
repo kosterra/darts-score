@@ -1,27 +1,27 @@
-import { Panel } from 'primereact/panel';
-import { PublicFooter, PublicHeader } from '../landing/public.frame';
+import { PublicFooter, PublicHeader, PublicNav } from '../landing/public.frame';
 import usePageTitle from '../../utils/use.page.title';
 
 /**
- * The frame of the login, registration and password pages: the bar and the
- * footer of the start page (the language on the right), and the card in the
- * middle. hide: 'login' or 'register', the page itself, left out of the bar.
+ * The frame of the login, registration and password pages, as the other
+ * public pages: the bar with the sections of the start page, the title on
+ * the board, the card below it, and the footer. heading: a headline under the
+ * title, which then stands small above it (as on the privacy page); intro: a
+ * line below. hide: 'login' or 'register', the page itself, left out of the
+ * bar ('both' for a logged-in user, who gets no sections either).
  */
-const AuthLayout = ({ title, hide, children }) => {
+const AuthLayout = ({ title, heading, intro, hide, children }) => {
     usePageTitle(title);
     return (
         <div className="auth-page">
-            <PublicHeader hide={hide} />
-            <main className="auth-page-content container-fluid p-4">
-                <div className="row justify-content-center">
-                    <div className="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
-                        <div className="d-flex justify-content-center mb-4">
-                            <img alt="" src="/logo.svg" width="96" height="96" />
-                        </div>
-                        <Panel header={title}>
-                            {children}
-                        </Panel>
-                    </div>
+            <PublicHeader hide={hide} nav={hide === 'both' ? undefined : <PublicNav />} />
+            <main className="auth-page-content container">
+                <section className="terms-hero auth-hero">
+                    {heading && <span className="landing-eyebrow">{title}</span>}
+                    <h1 className={`${heading ? 'landing-title' : 'landing-heading'} m-0`}>{heading ?? title}</h1>
+                    {intro && <p className="terms-lead m-0">{intro}</p>}
+                </section>
+                <div className="auth-card">
+                    {children}
                 </div>
             </main>
             <PublicFooter />

@@ -182,6 +182,10 @@ const loadFlights = (playerId, clubId) => requestJSON(`${API_URL}players/${playe
 const unlockFlight = (playerId, kind, id, clubId) =>
     requestJSON(`${API_URL}players/${playerId}/flights/unlock`, { method: 'POST', body: { kind, id }, clubId });
 
+// a player's shirt and the designs their level opens; choosing one ({ design, color, accent })
+const loadShirt = (playerId, clubId) => requestJSON(`${API_URL}players/${playerId}/shirt`, { clubId });
+const setShirt = (playerId, shirt, clubId) => requestJSON(`${API_URL}players/${playerId}/shirt`, { method: 'PUT', body: shirt, clubId });
+
 // how the players finish and score: { [playerId]: { doubleOrder, doubles, favouriteDouble, doubleSource, mainTreble, trebleSource, … } }
 const loadCheckoutProfiles = (playerIds, clubId) =>
     requestJSON(`${API_URL}players/checkout-profiles`, { method: 'POST', body: { playerIds }, clubId });
@@ -201,6 +205,8 @@ const PlayerService = {
     setPreferences,
     loadFlights,
     unlockFlight,
+    loadShirt,
+    setShirt,
     loadCheckoutProfiles,
     loadPlayerClubs,
     addPlayerToClub,

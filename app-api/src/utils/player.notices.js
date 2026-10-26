@@ -1,5 +1,6 @@
 import { getBadge, getShameBadge } from './badges.js';
 import { deliverQuietly, deliverToContacts } from './notify.js';
+import { SHIRT_DESIGNS } from './shirts.js';
 
 /**
  * The notifications about a player's own progress: badges, the Hall of
@@ -68,12 +69,16 @@ export const progressNotices = (player, { fresh = [], shameBefore = [], shameAft
         });
     }
     if (level) {
+        // a level that opens shirts of one's own says so, and leads to choosing one
+        const shirts = SHIRT_DESIGNS.some(design => design.level === level.index && design.level > 1);
         notices.push({
             kind: 'levelUp',
             title: `You are now a ${level.name}`,
             contactTitle: `${nickname} is now a ${level.name}`,
-            body: 'Your level grew with your games, wins, badges and skill.',
-            link: '/me',
+            body: shirts
+                ? 'Your level opens new shirts with your nickname on the back: choose yours on your profile under Player.'
+                : 'Your level grew with your games, wins, badges and skill.',
+            link: shirts ? '/profile#player' : '/me',
             club,
         });
     }

@@ -267,6 +267,19 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-10-onboarding',
+        description: 'Accounts from before the welcome tour have no need of it: their tour and first steps count as done',
+        run: async () => {
+            const now = new Date();
+            const { modifiedCount } = await db.user.collection.updateMany(
+                { 'onboarding.tourDoneAt': { $exists: false } },
+                { $set: { 'onboarding.tourDoneAt': now, 'onboarding.firstStepsHiddenAt': now } },
+            );
+            logger.info(`The welcome tour marked as done for ${modifiedCount} existing accounts`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

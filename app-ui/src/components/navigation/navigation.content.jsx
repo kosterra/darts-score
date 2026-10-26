@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -121,7 +121,7 @@ const useSections = () => {
             id: 'me',
             visible: hasClub,
             items: [
-                { label: t('Dashboard'), icon: MdDashboard, to: '/', end: true },
+                { label: t('Dashboard'), icon: MdDashboard, to: '/', end: true, tour: 'dashboard' },
                 { label: t('My statistics'), icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
             ],
         },
@@ -132,7 +132,7 @@ const useSections = () => {
             visible: hasClub,
             items: [
                 {
-                    label: t('Play a game'), icon: GiDart,
+                    label: t('Play a game'), icon: GiDart, tour: 'play',
                     children: [
                         ...games,
                         ...(RULES_KINDS.some(kind => isEnabled(kind, activeClub?.gameRules)) ? [{ label: t('More games'), icon: GiDiceTarget, to: '/play' }] : []),
@@ -155,7 +155,7 @@ const useSections = () => {
             title: t('My club'),
             visible: hasClub,
             items: [
-                { label: t('My club'), icon: FaPeopleGroup, to: '/club' },
+                { label: t('My club'), icon: FaPeopleGroup, to: '/club', tour: 'my-club' },
                 // on the own player "My statistics" is the one that is marked
                 { label: t('Players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
                 {
@@ -178,23 +178,41 @@ const useSections = () => {
                 }] : []),
             ],
         },
-        // for global admins, across all clubs: who uses the app, what was played, what needs watching,
-        // and the installation; one section, folded until opened
+        // for global admins, across all clubs: the overview first, then who uses the app, what was played,
+        // what needs watching and the installation; each section open, and folded only when the admin folds it
         {
             id: 'admin',
-            title: t('Administration'),
             visible: isGlobalAdmin,
             items: [
-
+                { label: t('Overview'), icon: FaGaugeHigh, to: '/admin/dashboard' },
+            ],
+        },
+        {
+            id: 'admin-accounts',
+            title: t('Admin · Accounts'),
+            visible: isGlobalAdmin,
+            items: [
                 { label: t('Clubs'), icon: FaPeopleGroup, to: '/admin/clubs' },
                 { label: t('Users'), icon: FaUserGear, to: '/admin/users' },
                 { label: t('Logged in'), icon: FaUserClock, to: '/admin/sessions' },
                 { label: t('Players'), icon: FaUserPen, to: '/admin/players' },
-
+            ],
+        },
+        {
+            id: 'admin-played',
+            title: t('Admin · Played'),
+            visible: isGlobalAdmin,
+            items: [
                 { label: t('Games'), icon: GiDart, to: '/admin/games' },
                 { label: t('Trainings'), icon: BsPersonFillCheck, to: '/admin/trainings' },
                 { label: t('Quick games'), icon: FaBolt, to: '/admin/quick-games' },
-
+            ],
+        },
+        {
+            id: 'admin-monitoring',
+            title: t('Admin · Monitoring'),
+            visible: isGlobalAdmin,
+            items: [
                 {
                     label: t('Fair play'),
                     icon: FaScaleBalanced,
@@ -211,7 +229,14 @@ const useSections = () => {
                 },
                 { label: t('Error log'), icon: FaBug, to: '/admin/logs' },
                 { label: t('Usage'), icon: FaChartColumn, to: '/admin/usage' },
-
+            ],
+        },
+        {
+            id: 'admin-system',
+            title: t('Admin · System'),
+            visible: isGlobalAdmin,
+            items: [
+                { label: t('Backups'), icon: FaDatabase, to: '/admin/backups' },
                 { label: t('System settings'), icon: FaShieldHalved, to: '/system-settings' },
             ],
         },
@@ -318,9 +343,15 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
     // groups start open when they contain the current page
     // the groups open (and the one of the page shown opens by itself), the sections folded
-    // (the administration until opened), both remembered on this device
+    // (only when folded by hand), both remembered on this device
     const [openGroups, setOpenGroups] = useState(() => remembered(GROUPS_KEY, []));
-    const [folded, setFolded] = useState(() => remembered(FOLDED_KEY, ['admin']));
+    const [folded, setFolded] = useState(() => remembered(FOLDED_KEY, []));
+    // the section of the page shown opens by itself
+    useEffect(() => {
+        const section = sections.find(entry => entry.items.some(item => item.to && (pathname === item.to || pathname.startsWith(item.to + '/'))));
+        if (section && folded.has(section.id)) setFolded(current => { const next = new Set(current); next.delete(section.id); remember(FOLDED_KEY, next); return next; });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pathname]);
     useEffect(() => {
         const group = sections.flatMap(section => section.items).find(item => isInside(item, pathname));
         if (group && !openGroups.has(group.key)) setOpenGroups(open => { const next = new Set([...open, group.key]); remember(GROUPS_KEY, next); return next; });
@@ -396,6 +427,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                 <li key={item.key}>
                     <button
                         type="button"
+                        data-tour={item.tour}
                         className={`nav-link-item p-ripple ${isInside(item, pathname) ? 'contains-active' : ''}`}
                         aria-expanded={open}
                         title={collapsed ? item.label : undefined}
@@ -412,7 +444,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
         }
         return (
             <li key={item.key}>
-                <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
+                <NavLink to={item.to} end={item.end} data-tour={item.tour} className={({ isActive }) => linkClass({ isActive: isActive && !item.notActiveOn?.includes(pathname) })} title={collapsed ? item.label : undefined} onClick={onNavigate}>
                     <Icon className="nav-icon" aria-hidden="true" />
                     <span className="nav-label">{item.label}</span>
                     {item.tag && <span className="nav-tag">{item.tag}</span>}
@@ -467,7 +499,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
 
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
-                <NavLink to="/about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Legmate') : undefined} onClick={onNavigate}>
+                <NavLink to="/about" data-tour="about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Legmate') : undefined} onClick={onNavigate}>
                     <img alt="" src="/logo.svg" width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column min-w-0">
@@ -483,6 +515,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             <div className={`nav-profile ${profileOpen ? 'open' : ''}`}>
                 <button
                     type="button"
+                    data-tour="profile"
                     className={`nav-profile-link p-ripple ${PROFILE_PATHS.includes(pathname) ? 'contains-active' : ''}`}
                     onClick={toggleProfile}
                     aria-expanded={profileOpen}

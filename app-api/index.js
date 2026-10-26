@@ -44,6 +44,7 @@ import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
 import { startErrorLog } from './src/utils/error.log.js';
 import { startNotificationJobs } from './src/utils/notification.jobs.js';
+import { startBackupJobs } from './src/utils/backups.js';
 import { clientIp } from './src/utils/spam.guard.js';
 import { getAppUrl } from './src/utils/mail.utils.js';
 import { languageOfHeader, metaOf, renderIndex, robotsOf, sitemapOf } from './src/utils/page.meta.js';
@@ -135,6 +136,7 @@ db.mongoose
     .then(() => {
         logger.info('Connected to MongoDB');
         startNotificationJobs();
+        startBackupJobs();
         return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
     })
     .catch(err => {
@@ -241,11 +243,15 @@ const server = app.listen(PORT, () => {
 // Graceful shutdown
 const shutdown = (signal) => {
     logger.info(`${signal} received — shutting down`);
-    server.close(() => {
-        db.mongoose.connection.close(false, () => {
+    server.close(async () => {
+        // Mongoose 9 closes with a promise, no callback any more
+        try {
+            await db.mongoose.connection.close(false);
             logger.info('MongoDB connection closed');
-            process.exit(0);
-        });
+        } catch (err) {
+            logger.error(err, 'Closing the MongoDB connection failed');
+        }
+        process.exit(0);
     });
 };
 process.on('SIGTERM', () => shutdown('SIGTERM'));

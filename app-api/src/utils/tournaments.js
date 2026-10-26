@@ -13,6 +13,7 @@ import { getAppUrl, isMailConfigured } from './mail.utils.js';
 import { sendTemplateMail } from './mail.service.js';
 import { dateIn, deliverQuietly, languageOf, unsubscribeToken } from './notify.js';
 import { tr } from './translate.js';
+import { shirtOf } from './shirts.js';
 
 /**
  * The tournaments of a club (knockout, see rules/tournaments.js): the
@@ -524,12 +525,14 @@ export const tournamentView = async (tournament, { playerId = null } = {}) => {
         ...(json.entries ?? []).map(entry => String(entry.player)),
         ...(json.matches ?? []).flatMap(match => match.players).filter(Boolean),
     ])];
-    const players = await db.player.find({ _id: { $in: ids } }, 'nickname firstname lastname profileImg country').lean();
+    const players = await db.player.find({ _id: { $in: ids } }, 'nickname firstname lastname profileImg country shirt bestLevel notifiedLevel').lean();
     const entries = json.entries ?? [];
     return {
         ...json,
         players: Object.fromEntries(players.map(player => [String(player._id), {
             id: String(player._id), nickname: player.nickname, firstname: player.firstname, lastname: player.lastname, profileImg: player.profileImg, country: player.country,
+            // for the walk-on before a match
+            shirt: shirtOf(player),
         }])),
         counts: {
             in: entries.filter(entry => entry.status === 'in').length,

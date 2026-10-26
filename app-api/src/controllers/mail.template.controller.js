@@ -83,7 +83,7 @@ export const test = async (req, res) => {
         res.json({ sentTo: req.user.email });
     } catch (err) {
         logger.error(err, 'Failed to send a test mail');
-        res.status(502).json(explainMailError(err));
+        res.status(424).json(explainMailError(err));
     }
 };
 
@@ -128,6 +128,7 @@ export const sendTest = async (req, res) => {
         });
     } catch (err) {
         logger.warn(`Test mail to ${to} by ${req.user.email} failed: ${err.code ?? ''} ${err.message}`);
-        res.status(502).json({ ...explainMailError(err), ms: Date.now() - started });
+        // 424, not 502: a proxy in front (e.g. Cloudflare) shows its own page for a 502, and the reason would be lost
+        res.status(424).json({ ...explainMailError(err), ms: Date.now() - started });
     }
 };

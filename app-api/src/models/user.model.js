@@ -34,6 +34,11 @@ export default (mongoose) => {
       lastLoginAt:       { type: Date, default: null },
       // A blocked account cannot log in or use the API, e.g. one a spam rule caught
       blockedAt:         { type: Date, default: null },
+      // the welcome tour (done or skipped) and the first steps on the Dashboard (hidden), for new accounts
+      onboarding: {
+        tourDoneAt:         { type: Date, default: null },
+        firstStepsHiddenAt: { type: Date, default: null },
+      },
       blockedReason:     { type: String, default: '' },
       // two-step login (see utils/mfa.js): the secret of the authenticator app (encrypted), one being set
       // up, since when it is on, the step of the code used last, the hashes of the recovery codes,

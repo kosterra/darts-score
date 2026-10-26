@@ -674,9 +674,15 @@
     .language-switch.p-dropdown .p-dropdown-label { padding: 0.4rem 0.5rem; }
 }
 
-// the smallest phones: the logo alone says Legmate, so the buttons keep their words
-@media (max-width: 399.98px) {
+// phones: the logo alone stands for Legmate, so the language and both buttons keep their words on one line
+@media (max-width: 519.98px) {
     .landing-bar .landing-brand-name { display: none; }
+}
+.landing-bar .p-button { white-space: nowrap; }
+// the smallest phones: the heart goes (Support is in the footer), the buttons get tight
+@media (max-width: 359.98px) {
+    .landing-bar .landing-support-link { display: none; }
+    .landing-bar .p-button.p-button-sm { padding-left: 0.45rem; padding-right: 0.45rem; font-size: 0.8125rem; }
 }
 
 // login, registration and the passwords: the bar on top, the card in the middle, the footer at the bottom
@@ -692,7 +698,25 @@
         flex: 1 0 auto;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        padding: 3.5rem 1rem 4rem;
+
+        @media (max-width: 575.98px) { padding-top: 2rem; gap: 1.5rem; }
+    }
+
+    // the form on an almost solid tile, as the sections of the privacy page
+    .auth-card {
+        width: 100%;
+        max-width: 28rem;
+        // less on top: the labels of the fields float up into it
+        padding: 1.1rem 1.5rem 1.75rem;
+        border-radius: $radius-lg;
+        border: 1px solid ink(0.08);
+        background: color-mix(in srgb, var(--c-shade-800) 94%, transparent);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+
+        @media (max-width: 575.98px) { padding: 0.9rem 1rem 1.25rem; }
     }
 }
 

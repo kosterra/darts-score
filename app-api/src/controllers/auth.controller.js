@@ -14,7 +14,7 @@ import { notifySecurity } from '../utils/notify.js';
 import { claimOnRegister } from './player.contact.controller.js';
 import { finishLogin } from './mfa.controller.js';
 import { carryOutSteps, deleteAccount, deletionBlock, lastGlobalAdmin, soleAdminClubs } from '../utils/account.deletion.js';
-import { checkCode, decrypt, isMfaEnabled, mfaStateOf } from '../utils/mfa.js';
+import { UNREADABLE, isMfaEnabled, mfaStateOf, secondFactor } from '../utils/mfa.js';
 import { translate } from '../utils/translate.js';
 import { dateTimeIn } from '../utils/notify.js';
 import { getAppUrl } from '../utils/mail.utils.js';
@@ -91,6 +91,18 @@ export const extendSession = async (req, res) => {
     res.json({ expiresAt });
 };
 
+/**
+ * The welcome tour and the first steps: { tour: 'done' | 'again', firstSteps:
+ * 'hidden' | 'shown' }, either or both. → the user
+ */
+export const setOnboarding = async (req, res) => {
+    const now = new Date();
+    if (req.body.tour) req.user.set('onboarding.tourDoneAt', req.body.tour === 'done' ? now : null);
+    if (req.body.firstSteps) req.user.set('onboarding.firstStepsHiddenAt', req.body.firstSteps === 'hidden' ? now : null);
+    await req.user.save();
+    res.json(req.user);
+};
+
 // the language of the app, saved on the account: { language }
 export const setLanguage = async (req, res) => {
     req.user.language = req.body.language;
@@ -145,11 +157,11 @@ export const updateMe = async (req, res) => {
 /**
  * The players the user plays as, with their clubs, for the player profile:
  * [{ id, nickname, firstname, lastname, profileImg, dateOfBirth, publicProfile,
- * preferences, clubs: [{ id, name, logo, isPublic }] }].
+ * preferences, clubs: [{ id, name, logo, isPublic, accent }] }].
  */
 export const myPlayers = async (req, res) => {
     const players = await db.player.find({ user: req.user._id, guest: { $ne: true } })
-        .populate('clubs', 'name logo isPublic shameMinAge')
+        .populate('clubs', 'name logo isPublic shameMinAge accent')
         .lean();
     res.json(players.map(player => ({
         id: String(player._id),
@@ -166,7 +178,7 @@ export const myPlayers = async (req, res) => {
         // adults correct their date of birth themselves once the admins set it
         birthMinAge: selfBirthAge(player.clubs ?? []),
         birthEditable: Boolean(player.dateOfBirth) && ageOn(player.dateOfBirth) >= selfBirthAge(player.clubs ?? []),
-        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic) })),
+        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic), accent: club.accent ?? null })),
     })));
 };
 
@@ -254,8 +266,10 @@ export const deletionSteps = async (req, res) => {
 export const deleteMe = async (req, res) => {
     const user = req.user;
     if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: 'The current password is wrong.' });
-    if (isMfaEnabled(user) && checkCode(decrypt(user.mfa.secret), req.body.code, user.mfa.lastStep) === null) {
-        return res.status(403).json({ message: 'This code is not right. Check the time of your phone and try the newest code.' });
+    if (isMfaEnabled(user)) {
+        // a code of the app, or a recovery code in its place
+        const check = secondFactor(user, req.body.code);
+        if (!check.ok) return res.status(403).json({ message: check.unreadable ? UNREADABLE : 'This code is not right. Check the time of your phone and try the newest code.' });
     }
     const steps = Array.isArray(req.body.clubs) ? req.body.clubs : [];
     const block = await deletionBlock(user, steps);

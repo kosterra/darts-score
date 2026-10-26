@@ -52,12 +52,9 @@ const RegisterPage = () => {
     };
 
     return (
-        <AuthLayout hide="register" title={t('Register')}>
+        <AuthLayout hide="register" title={t('Register')} heading={t('Your own club')} intro={t('Create your account, then set up your own club and add its players, or join a club that takes new members. A club admin can also give you a login for their club.')}>
             <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
                 {peekPendingClaim() && <Message severity="info" text={t('Once your account is there, you play as your player of the club, with everything you played so far.')} className="w-100 justify-content-start" />}
-                <span className="fs-7 text-subtle">
-                    {t('Create your account, then set up your own club and add its players, or join a club that takes new members. A club admin can also give you a login for their club.')}
-                </span>
                 <div className="register-website" aria-hidden="true">
                     <label htmlFor="register-website">{t('Website')}</label>
                     <input id="register-website" name="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
