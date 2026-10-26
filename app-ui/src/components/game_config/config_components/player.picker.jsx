@@ -9,6 +9,7 @@ import GuestForm from '../../elements/guest.form';
 import PlayerService from '../../../services/player.service';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { useAuth } from '../../../utils/auth.context';
+import { playerInClub, useMyPlayers } from '../../../utils/use.my.players';
 import { MAX_PLAYERS, MIN_PLAYERS, moveItem, offeredPlayers, playedWhen, shuffled, toggled, withStarter } from '../../../utils/player.picker';
 import { t, tn } from '../../../utils/i18n';
 
@@ -35,9 +36,14 @@ const PlayerAvatar = ({ player, className = 'avatar-md' }) => (
  * initialIds: the players of the last game, chosen once the list has loaded
  * single: one player only, e.g. for a training: a tap chooses that player
  * minPlayers: how many players are needed, e.g. 1 for a training
+ *
+ * When the user has a player in the club but did not choose it, a note says
+ * whom the game counts for, with a way to add themselves: a scorer may well
+ * set up a game of others, but more often it is a slip.
  */
 const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, minPlayers = MIN_PLAYERS }) => {
-    const { isClubAdmin } = useAuth();
+    const { isClubAdmin, isGlobalAdmin, activeClub } = useAuth();
+    const me = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
     const [players, setPlayers] = useState([]);
     const [lastPlayed, setLastPlayed] = useState({});
     const [search, setSearch] = useState('');
@@ -100,6 +106,12 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
     const move = (from, to) => onChange(moveItem(selected, from, to));
 
     const missing = minPlayers - selected.length;
+    const withoutMe = Boolean(me) && selected.length > 0 && !selected.some(player => player.id === me.id);
+    const addMe = () => {
+        const mine = all.find(player => player.id === me.id) ?? me;
+        onChange(single ? [mine] : [...selected, mine]);
+        setBullOff(false);
+    };
 
     return (
         <div className="player-picker">
@@ -159,6 +171,18 @@ const PlayerPicker = ({ selected, onChange, initialIds = [], single = false, min
                 </div>
             }
             {!loading && !offered.length && search && <div className="text-faint fs-7 mt-2">{t('No player matches “')}{search}”.</div>}
+
+            {withoutMe &&
+                <div className="player-picker-not-me mt-3" role="status">
+                    <i className="pi pi-info-circle" aria-hidden="true" />
+                    <span className="flex-grow-1">
+                        {single
+                            ? t('You are not training: this training counts for {{names}}, not for you.', { names: selected.map(player => player.nickname).join(', ') })
+                            : t('You are not playing: this game counts for {{names}}, not for you.', { names: selected.map(player => player.nickname).join(', ') })}
+                        {!single && isFull && <>{' '}{t('Remove a player to play yourself.')}</>}
+                    </span>
+                    {(single || !isFull) && <Button type="button" label={single ? t('Train as me') : t('Add me')} icon="pi pi-user-plus" size="small" outlined onClick={addMe} />}
+                </div>}
 
             {!single && <div className="player-order mt-4" aria-label={t('Throwing order')}>
                 <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">

@@ -626,3 +626,18 @@
   padding-top: $space-3;
   border-top: 1px solid var(--surface-high);
 }
+
+// a game set up without one's own player: whom it counts for, and the way to join
+.player-picker-not-me {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-2 $space-3;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  border: 1px solid with-alpha($accentBlue, 0.45);
+  background: with-alpha($accentBlue, 0.1);
+  color: var(--text-default);
+  font-size: $text-sm;
+  > .pi { color: $accentBlue; }
+}
