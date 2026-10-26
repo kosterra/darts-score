@@ -25,9 +25,12 @@
     "preview": "vite preview --port 3000",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "copy-rules": "node scripts/copy.rules.mjs"
+    "copy-rules": "node scripts/copy.rules.mjs",
+    "i18n": "node scripts/i18n.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
     "@uiw/react-json-view": "^2.0.0-alpha.44",
     "bootstrap": "^5.3.8",
     "country-flag-icons": "1.6.20",
@@ -45,6 +48,9 @@
     "sass": "^1.105.1"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.9",
+    "@babel/traverse": "^7.29.10",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

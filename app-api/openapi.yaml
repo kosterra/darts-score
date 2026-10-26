@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.17
+  version: 2026.10.18
   license:
     name: AGPL-3.0-only
     url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -84,11 +84,13 @@ paths:
     get:
       tags:
         - Auth
-      summary: Liveness probe
+      summary: Health probe, for Docker and monitoring
       security: []
       responses:
         '200':
-          description: The server is running
+          description: '{ status: ok, database: ok, version, uptime: seconds }'
+        '503':
+          description: '{ status: unavailable, database: unreachable, version, uptime }: the database does not answer'
       operationId: getHealth
   /api/unsubscribe:
     get:
@@ -512,6 +514,136 @@ paths:
         '403':
           description: Wrong code
       operationId: postAuthMfaRecoveryCodes
+  /api/auth/passkeys:
+    get:
+      tags:
+        - Auth
+      summary: The passkeys of the account
+      responses:
+        '200':
+          description: '{ passkeys: [{ id, name, synced, createdAt, lastUsedAt }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getAuthPasskeys
+    post:
+      tags:
+        - Auth
+      summary: Add the passkey the browser made with the options of POST /api/auth/passkeys/options
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [response]
+              properties:
+                response:
+                  type: object
+                  description: What the browser answered (WebAuthn, as JSON)
+                name:
+                  type: string
+                  maxLength: 40
+                  description: A name for it; the device it was made on when left out
+      responses:
+        '201':
+          description: '{ passkeys }, as GET'
+        '400':
+          description: The passkey could not be checked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Too late, added already, or no APP_URL
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postAuthPasskeys
+  /api/auth/passkeys/options:
+    post:
+      tags:
+        - Auth
+      summary: Start adding a passkey, with the password; the options for the browser (WebAuthn)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: The options for navigator.credentials.create (as JSON)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The password is wrong
+        '409':
+          description: Ten passkeys already, or no APP_URL
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postAuthPasskeysOptions
+  /api/auth/passkeys/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The id of the passkey (its credential id)
+        schema:
+          type: string
+    delete:
+      tags:
+        - Auth
+      summary: Remove a passkey
+      responses:
+        '200':
+          description: '{ passkeys }, as GET'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: There is no such passkey
+      operationId: deleteAuthPasskeysByid
+  /api/auth/login/passkey/options:
+    post:
+      tags:
+        - Auth
+      summary: Start a login with a passkey; the options for the browser (WebAuthn)
+      security: []
+      responses:
+        '200':
+          description: The options for navigator.credentials.get (as JSON)
+        '409':
+          description: No APP_URL
+      operationId: postAuthLoginPasskeyOptions
+  /api/auth/login/passkey:
+    post:
+      tags:
+        - Auth
+      summary: Log in with the passkey the browser answered with; no code of two-step login is asked
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [response]
+              properties:
+                response:
+                  type: object
+                  description: What the browser answered (WebAuthn, as JSON)
+      responses:
+        '200':
+          description: The account, as after logging in with the password; the session cookie is set
+        '401':
+          description: The passkey opens no account here
+        '403':
+          description: The account is blocked
+        '409':
+          description: Too late, or no APP_URL
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postAuthLoginPasskey
   /api/auth/mfa/forget-devices:
     post:
       tags:

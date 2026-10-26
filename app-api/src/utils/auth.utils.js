@@ -39,7 +39,7 @@ export const verifyPassword = async (password, stored) => {
     return timingSafeEqual(key, expected);
 };
 
-const cookieOptions = (req) => ({
+export const cookieOptions = (req) => ({
     signed: true,
     httpOnly: true,
     sameSite: 'lax',

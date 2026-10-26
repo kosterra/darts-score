@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
@@ -9,9 +9,10 @@ import AuthLayout from './auth.layout';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import MfaLoginStep from '../mfa/mfa.login.step';
+import { cancelPasskey, isCancelled, loginWithPasskey, passkeyAutofillSupported, passkeysSupported } from '../../utils/passkeys';
 
 const LoginPage = () => {
-    const { login, mailEnabled, sessionEnded } = useAuth();
+    const { login, completeLogin, mailEnabled, sessionEnded } = useAuth();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -20,6 +21,31 @@ const LoginPage = () => {
     // the second step of two-step login: 'code' or 'enroll' (also after registering or a new password)
     const { state } = useLocation();
     const [mfaStep, setMfaStep] = useState(state?.mfaStep ?? null);
+    const [passkeyBusy, setPasskeyBusy] = useState(false);
+    const [passkeyHint, setPasskeyHint] = useState('');
+    const withPasskeys = passkeysSupported();
+
+    // with a passkey: the button opens the device's dialog; the email field offers the passkeys
+    // of this website as saved passwords are offered, where the browser can
+    const passkeyLogin = async (autofill = false) => {
+        if (!autofill) { setError(''); setPasskeyHint(''); setPasskeyBusy(true); }
+        try {
+            await completeLogin(await loginWithPasskey({ autofill }));
+        } catch (err) {
+            // the offer in the email field fails quietly: nobody asked for it yet
+            if (autofill) return;
+            // closed, or no passkey for this website on the device: the browser does not tell them apart
+            if (isCancelled(err)) setPasskeyHint(t('No passkey was used. Log in with your password; you can add a passkey under Profile → Account.'));
+            else setError(err.message);
+        }
+        if (!autofill) setPasskeyBusy(false);
+    };
+    useEffect(() => {
+        if (mfaStep || !withPasskeys) return undefined;
+        passkeyAutofillSupported().then(can => { if (can) passkeyLogin(true); });
+        return () => cancelPasskey();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mfaStep]);
 
     const onSubmit = async (event) => {
         event.preventDefault();
@@ -53,7 +79,7 @@ const LoginPage = () => {
                     <InputText
                         id="login-email"
                         type="email"
-                        autoComplete="username"
+                        autoComplete="username webauthn"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-100"
@@ -75,7 +101,10 @@ const LoginPage = () => {
                     <label htmlFor="login-password">{t('Password')}</label>
                 </span>
                 {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
+                {passkeyHint && !error && <Message severity="info" text={passkeyHint} className="w-100 justify-content-start" />}
                 <Button type="submit" label={t('Log in')} icon="pi pi-sign-in" loading={submitting} />
+                {withPasskeys &&
+                    <Button type="button" label={t('Log in with a passkey')} icon="pi pi-key" severity="secondary" outlined loading={passkeyBusy} onClick={() => passkeyLogin(false)} />}
                 {mailEnabled &&
                     <span className="fs-7 text-subtle text-center">
                         <Link to="/forgot-password">{t('Forgot your password?')}</Link>

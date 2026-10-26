@@ -53,3 +53,21 @@ describe('the meta of a page', () => {
         expect(metaOf('/', 'en', { publicSite: false }).index).toBe(false);
     });
 });
+
+describe('the structured data for the search engines', () => {
+    const html = '<html lang="en"><head><title>Legmate</title></head><body></body></html>';
+    const dataOf = (page) => JSON.parse(page.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? 'null');
+
+    it('names the website, its logo and the free web app on the start page', () => {
+        const page = renderIndex(html, metaOf('/', 'en'), { base: 'https://legmate.ch', path: '/', language: 'en' });
+        const graph = dataOf(page)['@graph'];
+        expect(graph.find(node => node['@type'] === 'WebSite')).toMatchObject({ name: 'Legmate', url: 'https://legmate.ch/' });
+        expect(graph.find(node => node['@type'] === 'Organization').logo).toBe('https://legmate.ch/icons/icon-512.png');
+        expect(graph.find(node => node['@type'] === 'WebApplication').offers.price).toBe('0');
+    });
+
+    it('stays off the other pages, and off a start page that is not listed', () => {
+        expect(dataOf(renderIndex(html, metaOf('/privacy', 'en'), { base: 'https://legmate.ch', path: '/privacy', language: 'en' }))).toBeNull();
+        expect(dataOf(renderIndex(html, metaOf('/', 'en', { publicSite: false }), { base: 'https://legmate.ch', path: '/', language: 'en' }))).toBeNull();
+    });
+});

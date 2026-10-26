@@ -4,6 +4,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { Checkbox } from 'primereact/checkbox';
 import { DataTable } from 'primereact/datatable';
 import { InputText } from 'primereact/inputtext';
 import { Panel } from 'primereact/panel';
@@ -17,6 +18,7 @@ import { t, tn } from '../../utils/i18n';
 import FilterPills from '../elements/filter.pills';
 import { TableLoading } from '../elements/skeletons';
 import { formatDate } from '../../utils/dates';
+import { groupEntries } from './error.log.utils';
 
 dayjs.extend(relativeTime);
 
@@ -34,7 +36,8 @@ const LEVEL_TAGS = {
 
 /**
  * For global admins: the warnings and errors the API logged, newest first,
- * with the request that failed and the error's stack.
+ * with the request that failed and the error's stack. The same one logged
+ * again and again is one row with how often (unless shown one by one).
  */
 const ErrorLog = () => {
     const toast = useRef(null);
@@ -42,6 +45,8 @@ const ErrorLog = () => {
     const [level, setLevel] = useState('all');
     const [search, setSearch] = useState('');
     const [expanded, setExpanded] = useState(null);
+    const [grouped, setGrouped] = useState(true);
+    const rows = grouped ? groupEntries(log?.entries) : (log?.entries ?? []);
 
     const loadLog = async () => {
         setLog(current => current && { ...current, loading: true });
@@ -83,6 +88,7 @@ const ErrorLog = () => {
         <div className="d-flex flex-column">
             <span className="text-default fs-7 text-nowrap">{formatDate(entry.time, { time: true, seconds: true })}</span>
             <span className="text-faint fs-8 text-nowrap">{dayjs(entry.time).fromNow()}</span>
+            {entry.count > 1 && <span className="text-faint fs-8 text-nowrap">{t('first {{time}}', { time: dayjs(entry.firstTime).fromNow() })}</span>}
         </div>
     );
 
@@ -90,7 +96,10 @@ const ErrorLog = () => {
         const request = entry.context?.request;
         return (
             <div className="d-flex flex-column gap-1 min-w-0">
-                <span className="text-default fs-7 text-break">{entry.message || entry.error?.message}</span>
+                <span className="text-default fs-7 text-break">
+                    {entry.count > 1 && <Tag value={t('{{count}} times', { count: entry.count })} severity="secondary" className="me-2 error-log-count" />}
+                    {entry.message || entry.error?.message}
+                </span>
                 {entry.error && entry.error.message !== entry.message &&
                     <span className="text-subtle fs-8 text-break">{entry.error.type}: {entry.error.message}</span>}
                 {request &&
@@ -101,10 +110,14 @@ const ErrorLog = () => {
         );
     };
 
-    const hasDetails = (entry) => Boolean(entry.error?.stack || entry.context);
+    const hasDetails = (entry) => Boolean(entry.error?.stack || entry.context || entry.count > 1);
 
     const detailsTemplate = (entry) => (
         <div className="d-flex flex-column gap-3 p-2">
+            {entry.count > 1 &&
+                <span className="text-subtle fs-8">
+                    {t('Logged at:')}{' '}{entry.times.map(time => formatDate(time, { time: true, seconds: true })).join(' · ')}
+                </span>}
             {entry.error?.stack && <pre className="error-log-stack m-0">{entry.error.stack}</pre>}
             {entry.context && <pre className="error-log-stack m-0">{JSON.stringify(entry.context, null, 2)}</pre>}
         </div>
@@ -124,6 +137,10 @@ const ErrorLog = () => {
                         <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search messages')} aria-label={t('Search messages')} />
                     </span>
                     <FilterPills value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level')} />
+                    <label className="d-flex align-items-center gap-2 fs-7 text-subtle" htmlFor="error-log-grouped">
+                        <Checkbox inputId="error-log-grouped" checked={grouped} onChange={(e) => { setGrouped(e.checked); setExpanded(null); }} />
+                        {t('The same ones together')}
+                    </label>
                     <div className="ms-auto d-flex align-items-center gap-3">
                         {log?.entries && <span className="text-faint fs-7">{tn(log.entries.length, '{{count}} entry', '{{count}} entries')}</span>}
                         <Button icon="pi pi-refresh" label={t('Refresh')} size="small" severity="secondary" onClick={loadLog} />
@@ -132,7 +149,7 @@ const ErrorLog = () => {
                 </AdminToolbar>
 
                 <DataTable
-                    value={log?.entries ?? []}
+                    value={rows}
                     dataKey="id"
                     className="admin-table"
                     expandedRows={expanded}

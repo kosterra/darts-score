@@ -1,0 +1,78 @@
+name: checks
+permissions:
+  contents: read
+
+# Everything that has to pass before a version is built: on every pull
+# request, and called by the workflows of develop and of a release
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  api:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./app-api
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app-api/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm test
+      # the description of the API: valid, and (a test above) with every route
+      - run: npx --yes @redocly/cli@2.71.0 lint openapi.yaml
+      - run: npm run build
+
+  ui:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./app-ui
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app-ui/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm run typecheck
+      # also: every text translated, the rules the API copied up to date
+      - run: npm test
+      - run: npm run build
+
+  # the main pages in a browser, at desktop and phone width, against the stand-in for the API
+  e2e:
+    runs-on: ubuntu-24.04
+    # in Playwright's own image: Node 24, the browser and its system packages are there already
+    # (installing them took up to 15 minutes when the Ubuntu mirror was slow); its version
+    # goes with @playwright/test in app-ui/package.json
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+    # two or three minutes when it works: whatever hangs fails here instead of after six hours
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      # the stand-in uses the API's own logic (badges, levels, flights, fair play)
+      - run: npm ci --no-audit --no-fund
+        working-directory: ./app-api
+      - run: npm ci --no-audit --no-fund
+        working-directory: ./app-ui
+      - run: npm run e2e
+        working-directory: ./app-ui
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: app-ui/playwright-report
+          retention-days: 7

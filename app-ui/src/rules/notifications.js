@@ -55,7 +55,7 @@ export const NOTIFICATION_TOPICS = [
     { id: 'mailLimit', group: 'global', kinds: ['mailLimitNear', 'mailLimitReached'], inApp: true, mail: 'instant' },
     { id: 'usageReport', group: 'global', kinds: [], mailOnly: true, mails: ['off', 'weekly'], inApp: false, mail: 'weekly' },
 
-    { id: 'security', group: 'security', kinds: ['passwordChanged', 'emailChanged', 'accountBlocked', 'mfaEnabled', 'mfaDisabled', 'mfaRecoveryUsed', 'mfaReset'], inApp: true, mail: 'instant', locked: true },
+    { id: 'security', group: 'security', kinds: ['passwordChanged', 'emailChanged', 'accountBlocked', 'mfaEnabled', 'mfaDisabled', 'mfaRecoveryUsed', 'mfaReset', 'passkeyAdded', 'passkeyRemoved'], inApp: true, mail: 'instant', locked: true },
 ];
 
 const BY_ID = new Map(NOTIFICATION_TOPICS.map(topic => [topic.id, topic]));

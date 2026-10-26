@@ -107,7 +107,7 @@ ADMIN_EMAIL=admin@example.com       # First global admin, created on startup if 
 ADMIN_PASSWORD=at-least-8-chars
 
 # Email: password reset and club admin invitations (off without SMTP_HOST)
-APP_URL=https://darts.example.com   # Public address of the app, used for links in mails
+APP_URL=https://darts.example.com   # Public address of the app: links in mails, previews, and the domain passkeys belong to (HTTPS)
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=
@@ -261,6 +261,12 @@ docker compose up -d
 
 The app runs on `http://<server>:3001`, the Swagger UI at `/api-docs`. For HTTPS put a reverse proxy (Caddy, Traefik, nginx …) in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`. Uploaded pictures and logos are kept in the Docker volume `darts_score_data`, the database in `darts_score_db`. To keep the pictures in a folder of your own, mount it at `/app/data` and give it to user 1000, the user the app runs as (`chown -R 1000:1000 <folder>`).
 
+#### Health
+
+`GET /api/health` answers `200 { status: "ok", database: "ok", version, uptime }` while the API reaches its database, else `503`. The image has a Docker `HEALTHCHECK` on it (every 30 seconds, after a minute to start), so Docker and Portainer show the container as healthy or unhealthy. Plain Docker does not restart an unhealthy container by itself; a monitor (e.g. Uptime Kuma) can watch the same address.
+
+The overview of the global admins checks the installation too (`APP_URL`, mail, `MFA_KEY`, `SESSION_SECRET`, backups, disk space, privacy page) and says what to fix.
+
 #### Public access with a Cloudflare Tunnel
 
 To make the app public from a server at home, `docker-compose.yml` includes an optional [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). The tunnel connects out to Cloudflare, so no port has to be opened on the router, the address of your home connection stays hidden, and Cloudflare provides https. You need a domain whose DNS is managed by Cloudflare; the tunnel itself is free.
@@ -285,6 +291,14 @@ docker run -p 3001:3001 --env-file .env darts-score
 The application version is maintained in the **root `package.json`** and is the single source of truth for Docker image tags. Both `app-api/package.json` and `app-ui/package.json` carry `"version": "0.0.0"` to signal they are not independently published.
 
 To release a new version, bump the version in the root `package.json` and push to `main`. The CI workflow reads the version from there and tags the Docker image accordingly.
+
+The workflows (`.github/workflows`):
+
+| Workflow | When | What |
+|----------|------|------|
+| `checks.yml` | every pull request, and called by the two below | API: lint, tests, the OpenAPI description, the bundle · UI: lint, types, tests (also complete translations), the build · the browser checks |
+| `develop.yml` | every push to `develop` | the checks, then the image `:develop` for a test server with the newest state |
+| `release.yml` | every push to `main` | the checks, then the tag and the images `:<version>` and `:latest` |
 
 ---
 
@@ -314,6 +328,27 @@ To release a new version, bump the version in the root `package.json` and push t
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run lint` | Check code style (ESLint) |
 | `npm run typecheck` | TypeScript type check (no emit) |
+| `npm run e2e` | The browser checks (Playwright): the main pages as visitor, player and global admin, at desktop and phone width, against a stand-in for the API (`e2e/mock/server.mjs`); the first time `npx playwright install chromium` |
+| `npm run i18n check` | What is missing or wrong in the translations (also a test) |
+| `npm run i18n missing [file]` | Writes the texts without translations to a file to fill in: `{ "text": ["de", "fr", "it", "es"] }` |
+| `npm run i18n add <file> [--server]` | Adds a filled-in file; `--server` marks them as texts of the API too (then `npm run copy-rules`) |
+| `npm run i18n prune` | Removes translations no text uses any more |
+
+Translations: German in Swiss spelling (ss, never ß) with the informal "du", darts terms in English; English is the key itself.
+
+---
+
+### Looking at the app without a database
+
+The stand-in for the API (`app-ui/e2e/mock/server.mjs`) serves a club with players, games, badges and tournaments, worked out with the API's own logic. With it the UI runs in the browser without MongoDB, e.g. to try a page at phone width:
+
+```bash
+cd app-ui
+node e2e/mock/server.mjs &                                   # on port 3901
+API_PROXY_TARGET=http://localhost:3901 npx vite --port 5199  # http://localhost:5199
+```
+
+The user is a global admin; `AS_PLAYER=1`, `CLUB_ADMIN=1`, `LOGGED_OUT=1` or `NEW_USER=1` in front of the first command show the app as someone else.
 
 ---
 

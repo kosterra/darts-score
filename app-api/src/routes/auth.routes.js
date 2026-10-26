@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 import { validate } from '../utils/validation.js';
 import { optionalAuth, requireAuth } from '../middleware/auth.middleware.js';
 import * as AuthController from '../controllers/auth.controller.js';
 import * as MfaController from '../controllers/mfa.controller.js';
+import * as PasskeyController from '../controllers/passkey.controller.js';
 import { LANGUAGES } from '../models/user.model.js';
 
 const NAME_PATTERN = /^[\p{L}\s'-]+$/u;
@@ -54,6 +55,15 @@ export default (app) => {
     router.post('/mfa/disable', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), codeRule('code'), validate, MfaController.disable);
     router.post('/mfa/recovery-codes', requireAuth, credentialLimiter, codeRule('code'), validate, MfaController.recoveryCodes);
     router.post('/mfa/forget-devices', requireAuth, MfaController.forgetDevices);
+    // passkeys: logging in with the fingerprint, face or PIN of a device; adding one asks the password
+    const passkeyResponse = body('response').isObject().withMessage('The answer of the passkey is missing.');
+    router.get('/passkeys', requireAuth, PasskeyController.list);
+    router.post('/passkeys/options', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), validate, PasskeyController.registrationOptions);
+    router.post('/passkeys', requireAuth, credentialLimiter, passkeyResponse, body('name').optional().isString().isLength({ max: 40 }), validate, PasskeyController.register);
+    router.delete('/passkeys/:id', requireAuth, param('id').isString().isLength({ min: 1, max: 1024 }), validate, PasskeyController.remove);
+    router.post('/login/passkey/options', credentialLimiter, PasskeyController.loginOptions);
+    router.post('/login/passkey', credentialLimiter, passkeyResponse, validate, PasskeyController.login);
+
     // deleting the own account: the players stay, anonymised
     router.get('/delete-account', requireAuth, AuthController.deletionSteps);
     router.post('/delete-account', requireAuth, credentialLimiter,

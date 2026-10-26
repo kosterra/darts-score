@@ -26,4 +26,11 @@ export default [
     },
     settings: { react: { version: 'detect' } },
   },
+  // the browser checks and their stand-in for the API run in Node
+  {
+    files: ['e2e/**/*.{js,mjs}', 'playwright.config.js'],
+    languageOptions: { globals: { ...globals.node } },
+    // fields left out of a copy ({ secret, ...rest }) and callbacks with arguments they do not need
+    rules: { 'no-unused-vars': ['error', { ignoreRestSiblings: true, args: 'none' }] },
+  },
 ]

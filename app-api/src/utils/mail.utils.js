@@ -63,6 +63,30 @@ const quietly = (promise) => promise.catch(err => logger.warn(`Could not count a
  * throws a MailLimitError once it is reached. Resolves to what the mail
  * server answered ({ response, messageId, accepted, rejected }).
  */
+// whether the mail server takes a login: checked at the start and every few hours, and
+// noted from every test mail, for the installation check of the global admins
+const MAIL_CHECK_MS = 6 * 60 * 60 * 1000;
+const SERVER_FAILURES = ['EAUTH', 'ECONNECTION', 'ESOCKET', 'ETIMEDOUT', 'EDNS', 'ETLS'];
+let mailCheck = null;
+export const mailServerCheck = () => mailCheck;
+export const noteMailServer = (err = null) => {
+    mailCheck = { ok: !err, at: new Date(), ...(err && { error: explainMailError(err) }) };
+    return mailCheck;
+};
+export const checkMailServer = async () => {
+    if (!isMailConfigured()) return null;
+    try {
+        await getTransporter().verify();
+        return noteMailServer();
+    } catch (err) {
+        return noteMailServer(err);
+    }
+};
+export const startMailServerChecks = () => {
+    checkMailServer().catch(() => {});
+    setInterval(() => checkMailServer().catch(() => {}), MAIL_CHECK_MS).unref();
+};
+
 // the installation a mail comes from when it is not the real one (ENVIRONMENT_LABEL, e.g. TEST); empty in production
 export const environmentLabel = () => String(process.env.ENVIRONMENT_LABEL ?? '').trim().slice(0, 20);
 
@@ -103,8 +127,11 @@ export const sendMail = async ({ to, subject: rawSubject, text: rawText, html: r
         });
     } catch (err) {
         await quietly(noteLimitRefusal(err));
+        // the server itself failing (login, connection), not one address it refused
+        if (SERVER_FAILURES.includes(err?.code)) noteMailServer(err);
         throw err;
     }
+    noteMailServer();
     logger.info(`Sent "${subject}" mail to ${to}`);
     await quietly(countMail());
     return info;
