@@ -261,6 +261,12 @@ docker compose up -d
 
 The app runs on `http://<server>:3001`, the Swagger UI at `/api-docs`. For HTTPS put a reverse proxy (Caddy, Traefik, nginx …) in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`. Uploaded pictures and logos are kept in the Docker volume `darts_score_data`, the database in `darts_score_db`. To keep the pictures in a folder of your own, mount it at `/app/data` and give it to user 1000, the user the app runs as (`chown -R 1000:1000 <folder>`).
 
+#### Health
+
+`GET /api/health` answers `200 { status: "ok", database: "ok", version, uptime }` while the API reaches its database, else `503`. The image has a Docker `HEALTHCHECK` on it (every 30 seconds, after a minute to start), so Docker and Portainer show the container as healthy or unhealthy. Plain Docker does not restart an unhealthy container by itself; a monitor (e.g. Uptime Kuma) can watch the same address.
+
+The overview of the global admins checks the installation too (`APP_URL`, mail, `MFA_KEY`, `SESSION_SECRET`, backups, disk space, privacy page) and says what to fix.
+
 #### Public access with a Cloudflare Tunnel
 
 To make the app public from a server at home, `docker-compose.yml` includes an optional [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). The tunnel connects out to Cloudflare, so no port has to be opened on the router, the address of your home connection stays hidden, and Cloudflare provides https. You need a domain whose DNS is managed by Cloudflare; the tunnel itself is free.

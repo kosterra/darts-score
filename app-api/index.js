@@ -46,7 +46,7 @@ import { startErrorLog } from './src/utils/error.log.js';
 import { startNotificationJobs } from './src/utils/notification.jobs.js';
 import { startBackupJobs } from './src/utils/backups.js';
 import { clientIp } from './src/utils/spam.guard.js';
-import { getAppUrl } from './src/utils/mail.utils.js';
+import { getAppUrl, startMailServerChecks } from './src/utils/mail.utils.js';
 import { languageOfHeader, metaOf, renderIndex, robotsOf, sitemapOf } from './src/utils/page.meta.js';
 import { getStartPageSettings } from './src/utils/start.page.settings.js';
 
@@ -137,6 +137,7 @@ db.mongoose
         logger.info('Connected to MongoDB');
         startNotificationJobs();
         startBackupJobs();
+        startMailServerChecks();
         return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
     })
     .catch(err => {
@@ -157,8 +158,20 @@ if (!HAS_UI) {
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
-// Unauthenticated liveness probe for container health checks
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+// Unauthenticated health probe for Docker and monitoring: the database answers
+// (503 while it does not) and the version running (from the OpenAPI description)
+app.get('/api/health', async (req, res) => {
+    let database = false;
+    if (db.mongoose.connection.readyState === 1) {
+        database = await db.mongoose.connection.db.admin().ping().then(() => true, () => false);
+    }
+    res.status(database ? 200 : 503).json({
+        status: database ? 'ok' : 'unavailable',
+        database: database ? 'ok' : 'unreachable',
+        version: swaggerDocument?.info?.version ?? null,
+        uptime: Math.round(process.uptime()),
+    });
+});
 
 authRoutes(app);
 publicRoutes(app);

@@ -3,6 +3,7 @@ import { installationNumbers } from './public.controller.js';
 import { mailDays } from '../utils/mail.limit.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { getBackupSettings, listBackups, nextDueAt } from '../utils/backups.js';
+import { installationCheck } from '../utils/installation.check.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -10,7 +11,8 @@ const DAY = 24 * 60 * 60 * 1000;
  * What the global admins see first: the installation in numbers, who is
  * using it now and this week, what wants their attention (open alerts,
  * errors of the last day), the mails of today against the limit, and the
- * backups (the newest, the schedule, a failed one).
+ * backups (the newest, the schedule, a failed one), and what is wrong with
+ * the installation (see installationCheck).
  */
 export const dashboard = async (req, res) => {
     const now = new Date();
@@ -18,7 +20,7 @@ export const dashboard = async (req, res) => {
         const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - back);
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     });
-    const [numbers, users, usersNew, sessions, week, alerts, errors, quickGames, mail, backups, schedule] = await Promise.all([
+    const [numbers, users, usersNew, sessions, week, alerts, errors, quickGames, mail, backups, schedule, health] = await Promise.all([
         installationNumbers(),
         db.user.countDocuments(),
         db.user.countDocuments({ createdAt: { $gte: new Date(now - 7 * DAY) } }),
@@ -30,6 +32,7 @@ export const dashboard = async (req, res) => {
         mailDays(1, now),
         listBackups(),
         getBackupSettings(),
+        installationCheck(now),
     ]);
     const open = Object.fromEntries(alerts.map(entry => [entry._id, entry.count]));
     res.json({
@@ -45,5 +48,6 @@ export const dashboard = async (req, res) => {
             nextAt: schedule.enabled ? nextDueAt(schedule, now) : null,
             lastError: schedule.lastError,
         },
+        health,
     });
 };

@@ -41,6 +41,40 @@ const Tile = ({ label, value, detail, to, tone, icon, wordy = false }) => {
 };
 
 /**
+ * What is wrong with the installation: each problem with what to do, a page
+ * of the app or a setting of the server; else one line that all is well.
+ */
+const Health = ({ health }) => {
+    if (!health) return null;
+    if (!health.problems.length) {
+        return (
+            <p className="admin-health-ok">
+                <i className="pi pi-check-circle" aria-hidden="true" />
+                {t('All {{count}} checks of the installation passed: its settings, mail, two-step login, backups, disk and privacy page.', { count: health.checked })}
+            </p>
+        );
+    }
+    return (
+        <section className="admin-dashboard-group" aria-labelledby="admin-health">
+            <h2 id="admin-health" className="game-setup-section-title">{t('To fix')}</h2>
+            <ul className="admin-health list-unstyled m-0">
+                {health.problems.map(problem => (
+                    <li key={problem.id} className={`admin-health-item is-${problem.level}`}>
+                        <i className={`pi ${problem.level === 'bad' ? 'pi-times-circle' : 'pi-exclamation-triangle'}`} aria-hidden="true" />
+                        <span className="d-flex flex-column gap-1 min-w-0">
+                            <span className="text-default fw-semibold">{problem.title}</span>
+                            <span className="text-subtle fs-7">{problem.detail}</span>
+                            {problem.fix?.to && <Link to={problem.fix.to} className="fs-7 align-self-start">{t('Go there')}</Link>}
+                            {problem.fix?.env && <span className="text-faint fs-8">{t('A setting of the server (the environment of the stack):')}{' '}<code>{problem.fix.env}</code></span>}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+};
+
+/**
  * What a global admin sees first: the installation in numbers, who uses it
  * now and this week, what wants attention (alerts, errors, fair play), the
  * mails of today against the limit, and the backups. Every figure leads to
@@ -77,6 +111,8 @@ const AdminDashboardPage = () => {
                 <h1 className="fs-2 fw-semibold text-default m-0 text-break">{greeting(user?.firstname ?? '')}</h1>
                 <span className="text-subtle">{t('The installation at a glance. Every figure leads to its page.')}</span>
             </header>
+
+            <Health health={data.health} />
 
             <section className="admin-dashboard-group" aria-labelledby="admin-needs">
                 <h2 id="admin-needs" className="game-setup-section-title">{t('Needs you')}</h2>

@@ -1574,6 +1574,31 @@ a.admin-tile:hover, a.admin-tile:focus-visible { border-color: ink(0.2); transfo
 .admin-tile.is-wordy .admin-tile-value { font-size: $text-xl; font-weight: $weight-bold; line-height: 1.3; padding: 0.35rem 0; }
 .admin-tile-detail { font-size: $text-sm; color: var(--text-faint); }
 
+// what is wrong with the installation, the worst first; or one quiet line that all is well
+.admin-health { display: flex; flex-direction: column; gap: $space-2; }
+.admin-health-item {
+  --tone: #{$accentAmber};
+  display: flex;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border-radius: $radius-lg;
+  background: var(--surface-raised);
+  border: 1px solid ink(0.08);
+  border-left: 3px solid var(--tone);
+  > .pi { color: var(--tone); font-size: $text-lg; margin-top: 0.1rem; }
+  &.is-bad { --tone: #{$accentRed}; }
+  code { font-size: $text-sm; color: var(--text-default); background: ink(0.08); padding: 0.05rem 0.35rem; border-radius: $radius-sm; }
+}
+.admin-health-ok {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin: 0 0 $space-4;
+  color: var(--text-subtle);
+  font-size: $text-sm;
+  .pi { color: $accentGreen; }
+}
+
 // the backups: one row each, with the confirmation of a restore below it
 .backup-list { display: flex; flex-direction: column; }
 .backup-row {

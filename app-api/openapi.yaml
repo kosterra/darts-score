@@ -84,11 +84,13 @@ paths:
     get:
       tags:
         - Auth
-      summary: Liveness probe
+      summary: Health probe, for Docker and monitoring
       security: []
       responses:
         '200':
-          description: The server is running
+          description: '{ status: ok, database: ok, version, uptime: seconds }'
+        '503':
+          description: '{ status: unavailable, database: unreachable, version, uptime }: the database does not answer'
       operationId: getHealth
   /api/unsubscribe:
     get:

@@ -7,6 +7,13 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.18',
+        changes: [
+            t('For global admins, the overview checks the installation: APP_URL, mail and the login at the mail server, MFA_KEY and two-step login, SESSION_SECRET, the backups (recent, on a disk of their own), the free space and the privacy page. Each problem says what to do; all well, one line says so.'),
+            t('The error log shows the same warning or error once, with how often and since when; all of them one by one with a click.'),
+        ],
+    },
+    {
         version: '2026.10.17',
         changes: [
             t('New accounts get a short welcome tour through the menu, and first steps on the Dashboard that tick themselves off: for the admin of a new club its face, its players, how it plays and the first game; for a member their player, the first game, a training, the notifications and Legmate as an app. Both can be shown again under Profile → Account.'),
