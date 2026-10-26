@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigationType, useParams } from 'react-router-dom';
 import { noteLocation } from './utils/navigation.trail';
 import { PrimeReactProvider } from 'primereact/api';
+import { Button } from 'primereact/button';
+import { t } from './utils/i18n';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
@@ -15,6 +17,7 @@ import { useAuth } from './utils/auth.context';
 import { peekPendingEvening } from './utils/pending.evening';
 import { peekPendingClaim } from './utils/pending.claim';
 import MfaDueNotice from './components/mfa/mfa.due.notice';
+import ErrorBoundary from './components/elements/error.boundary';
 import { APPEARANCE_CHANGED } from './utils/appearance';
 
 const Dashboard = lazy(() => import('./components/dashboard/_dashboard.page'));
@@ -239,6 +242,7 @@ function AppContent() {
                 <InstallHint loggedIn />
                 <MfaDueNotice />
                 {/* Keyed by club so every page reloads its data after switching clubs */}
+                <ErrorBoundary key={pathname} fallback={(error, retry) => <PageFailed retry={retry} />}>
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
@@ -305,21 +309,37 @@ function AppContent() {
                     <Route path="*" element={<Navigate replace to="/" />} />
                 </Routes>
                 </Suspense>
+                </ErrorBoundary>
             </div>
         </div>
     );
 }
 
+// a page that failed to draw: what happened, and the ways on (the menu stays)
+const PageFailed = ({ retry }: { retry?: () => void }) => (
+    <div className="page-failed" role="alert">
+        <i className="pi pi-exclamation-circle" aria-hidden="true" />
+        <h1>{t('Something went wrong')}</h1>
+        <p>{t('This page could not be shown. Reload it; if it happens again, tell the admins what you did just before.')}</p>
+        <div className="d-flex flex-wrap gap-2 justify-content-center">
+            <Button label={t('Reload')} icon="pi pi-refresh" size="small" onClick={() => window.location.reload()} />
+            {retry && <Button label={t('Try again')} size="small" severity="secondary" outlined onClick={retry} />}
+        </div>
+    </div>
+);
+
 function App() {
 
     return (
         <PrimeReactProvider>
-            <AuthState>
-                <Router>
-                    <AppContent />
-                    <AppTooltip />
-                </Router>
-            </AuthState>
+            <ErrorBoundary fallback={() => <PageFailed />}>
+                <AuthState>
+                    <Router>
+                        <AppContent />
+                        <AppTooltip />
+                    </Router>
+                </AuthState>
+            </ErrorBoundary>
         </PrimeReactProvider>
     );
 }

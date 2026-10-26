@@ -33,3 +33,7 @@ coverage/
 .env*
 !.env.sample
 !.env.production
+
+# the browser checks (npm run e2e)
+test-results
+playwright-report

@@ -296,7 +296,7 @@ The workflows (`.github/workflows`):
 
 | Workflow | When | What |
 |----------|------|------|
-| `checks.yml` | every pull request, and called by the two below | API: lint, tests, the OpenAPI description, the bundle · UI: lint, types, tests (also complete translations), the build |
+| `checks.yml` | every pull request, and called by the two below | API: lint, tests, the OpenAPI description, the bundle · UI: lint, types, tests (also complete translations), the build · the browser checks |
 | `develop.yml` | every push to `develop` | the checks, then the image `:develop` for a test server with the newest state |
 | `release.yml` | every push to `main` | the checks, then the tag and the images `:<version>` and `:latest` |
 
@@ -328,12 +328,27 @@ The workflows (`.github/workflows`):
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run lint` | Check code style (ESLint) |
 | `npm run typecheck` | TypeScript type check (no emit) |
+| `npm run e2e` | The browser checks (Playwright): the main pages as visitor, player and global admin, at desktop and phone width, against a stand-in for the API (`e2e/mock/server.mjs`); the first time `npx playwright install chromium` |
 | `npm run i18n check` | What is missing or wrong in the translations (also a test) |
 | `npm run i18n missing [file]` | Writes the texts without translations to a file to fill in: `{ "text": ["de", "fr", "it", "es"] }` |
 | `npm run i18n add <file> [--server]` | Adds a filled-in file; `--server` marks them as texts of the API too (then `npm run copy-rules`) |
 | `npm run i18n prune` | Removes translations no text uses any more |
 
 Translations: German in Swiss spelling (ss, never ß) with the informal "du", darts terms in English; English is the key itself.
+
+---
+
+### Looking at the app without a database
+
+The stand-in for the API (`app-ui/e2e/mock/server.mjs`) serves a club with players, games, badges and tournaments, worked out with the API's own logic. With it the UI runs in the browser without MongoDB, e.g. to try a page at phone width:
+
+```bash
+cd app-ui
+node e2e/mock/server.mjs &                                   # on port 3901
+API_PROXY_TARGET=http://localhost:3901 npx vite --port 5199  # http://localhost:5199
+```
+
+The user is a global admin; `AS_PLAYER=1`, `CLUB_ADMIN=1`, `LOGGED_OUT=1` or `NEW_USER=1` in front of the first command show the app as someone else.
 
 ---
 

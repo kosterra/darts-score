@@ -1626,3 +1626,30 @@ a.admin-tile:hover, a.admin-tile:focus-visible { border-color: ink(0.2); transfo
   .p-inputnumber-input { min-width: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .admin-tile { transition: none; } }
+
+// a widget or a page that could not be drawn: what happened, in its place
+.dashboard-widget-failed {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-4;
+  border-radius: $radius-lg;
+  border: 1px dashed ink(0.2);
+  color: var(--text-subtle);
+  font-size: $text-sm;
+  .pi { color: $accentAmber; }
+}
+.page-failed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-3;
+  max-width: 32rem;
+  margin: 4rem auto;
+  padding: 0 $space-4;
+  text-align: center;
+  color: var(--text-subtle);
+  > .pi { font-size: 2.5rem; color: $accentAmber; }
+  h1 { margin: 0; font-size: $text-2xl; color: var(--text-default); }
+  p { margin: 0; }
+}
