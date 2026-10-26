@@ -7,6 +7,7 @@ import { t } from './utils/i18n';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import UnsentGamesNote from './components/offline/unsent.games.note';
 import InstallHint from './components/install/install.hint';
 import WelcomeTour from './components/onboarding/welcome.tour';
 import SessionWatch from './components/session/session.watch';
@@ -257,6 +258,8 @@ function AppContent() {
                 <AppBanner />
                 <InstallHint loggedIn />
                 <MfaDueNotice />
+                {/* games scored without a connection, not sent yet */}
+                <UnsentGamesNote />
                 {/* Keyed by club so every page reloads its data after switching clubs */}
                 <ErrorBoundary key={pathname} fallback={(error, retry) => <PageFailed retry={retry} />}>
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>

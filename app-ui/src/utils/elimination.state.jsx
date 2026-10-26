@@ -10,6 +10,8 @@ import ClubEliminationService from '../services/elimination.service';
 import { QuickEliminationService, quickPlayersOf } from '../services/quick.game.service';
 import { eliminationVisitOutcome, replayElimination } from '../rules/elimination';
 import PlayerService from '../services/player.service';
+import { loadWithUnsent, useGameSaves } from './unsent.games';
+import SaveStatus from '../components/games/common/save.status';
 import { knockOutScene } from './elimination.moments';
 
 import {
@@ -48,18 +50,16 @@ const EliminationState = ({ children, quick = false }) => {
     // a visit (or an undo) asks for a save of the game as it is afterwards;
     // the saves run one after the other, so they arrive in order
     const [saveRequest, setSaveRequest] = useState(0);
-    const saving = useRef(Promise.resolve());
     // the winning visit is saved: the statistics page can show the finished game
     const [winnerSaved, setWinnerSaved] = useState(false);
     const requestSave = () => setSaveRequest(request => request + 1);
 
+    // without a connection the game is kept on this device and sent once it is back
+    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'elimination'}:${id}`, (game) => EliminationService.updateEliminationGame(game), (game) => { if (game.hasWinner) setWinnerSaved(true); });
+
     useEffect(() => {
         if (!saveRequest) return;
-        const game = state.game;
-        saving.current = saving.current
-            .then(() => EliminationService.updateEliminationGame(game))
-            .catch(() => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail: t('The last visit could not be saved. Check the connection: the next visit saves everything.'), life: 4000 }))
-            .then(() => { if (game.hasWinner) setWinnerSaved(true); });
+        save(state.game, { players: state.players, kind: 'Elimination' });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [saveRequest]);
 
@@ -68,10 +68,9 @@ const EliminationState = ({ children, quick = false }) => {
         const fetchGame = async () => {
             try {
                 setLoading('initGameLoading', true);
-                const game = await EliminationService.loadEliminationGameById(id);
+                const playersOf = async (loaded) => quick ? quickPlayersOf(loaded) : Promise.all(loaded.players.map(PlayerService.getPlayer));
+                const { game, players } = await loadWithUnsent(`${quick ? 'quick' : 'elimination'}:${id}`, () => EliminationService.loadEliminationGameById(id), playersOf);
                 dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
-
-                const players = quick ? quickPlayersOf(game) : await Promise.all(game.players.map(PlayerService.getPlayer));
                 dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
 
                 setLoading('initGameLoading', false);
@@ -318,6 +317,7 @@ const EliminationState = ({ children, quick = false }) => {
                 loading: state.loading,
                 quick,
                 winnerSaved,
+                unsent,
                 // a moment of the winning visit plays to its end before the statistics page
                 celebrating: Boolean(knockOut || oneEighty),
                 updateCurrentThrowManual,
@@ -329,6 +329,7 @@ const EliminationState = ({ children, quick = false }) => {
                 onClickReturnToPreviousPlayer,
                 getPointsToNextPlayer
             }}>
+                <SaveStatus unsent={unsent} finished={Boolean(state.game.hasWinner)} />
                 {children}
             </EliminationContext.Provider>
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />

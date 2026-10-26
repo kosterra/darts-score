@@ -15,6 +15,8 @@ import { QuickX01Service, quickPlayersOf } from '../services/quick.game.service'
 import { BOT_ID, botDart, botPlayer, botSkill } from './x01.bot';
 import { replayX01, visitPoints } from '../rules/x01';
 import PlayerService from '../services/player.service';
+import { loadWithUnsent, useGameSaves } from './unsent.games';
+import SaveStatus from '../components/games/common/save.status';
 
 import {
     normalizeDart,
@@ -59,8 +61,14 @@ const X01State = props => {
     const [checkoutProfiles, setCheckoutProfiles] = useState({});
     // bumped after every visit and every undo: the game is saved then
     const [saveRequest, setSaveRequest] = useState(0);
-    // the saves run one after the other, in the order of the visits
-    const saving = useRef(Promise.resolve());
+    // the saves run one after the other, in the order of the visits; without a
+    // connection the game is kept on this device and sent once it is back
+    const saveKey = `${quick ? 'quick' : training ? 'x01training' : 'x01'}:${id}`;
+    // the won game is on the server: its result can open
+    const [winnerSaved, setWinnerSaved] = useState(false);
+    const { save, unsent } = useGameSaves(saveKey, async (game) => {
+        if (!(await Service.updateX01Game(game))) throw new Error(t('not saved'));
+    }, (game) => { if (game.hasWinner) setWinnerSaved(true); });
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
@@ -72,41 +80,21 @@ const X01State = props => {
     const [highlight, setHighlight] = useState(null);
     const endHighlight = useCallback(() => setHighlight(null), []);
 
-    // fetch a x01 game from the API
+    // fetch a x01 game from the API, or the one kept on this device (not sent yet)
     useEffect(() => {
         setLoading('initGameLoading', true);
-        async function fetchX01() {
-            try {
-                let x01 = await Service.loadX01GameById(id);
-                dispatch({ type: FETCH_GAME_SUCCESS, payload: x01 });
-                return x01;
-            } catch (error) {
-                throw new Error(error);
-            }
-        }
+        const playersOf = async (game) => {
+            if (quick) return quickPlayersOf(game);
+            // the bot is no player of the club
+            return Promise.all(game.players.map(playerId => playerId === BOT_ID ? botPlayer(game.bot) : PlayerService.getPlayer(playerId)));
+        };
 
-        async function fetchPlayers(game) {
-            try {
-                if (quick) {
-                    dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: quickPlayersOf(game) });
-                    return;
-                }
-                let players = [];
-                await Promise.all(game.players.map(async (playerId) => {
-                    // the bot is no player of the club
-                    let player = playerId === BOT_ID ? botPlayer(game.bot) : await PlayerService.getPlayer(playerId);
-                    players.push(player);
-                }));
-                dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
-            } catch (error) {
-                throw new Error(error);
-            }
-        }
-
-        fetchX01().then((game) => {
-            fetchPlayers(game).then(() => {
-                setLoading('initGameLoading', false);
-            });
+        loadWithUnsent(saveKey, () => Service.loadX01GameById(id), playersOf).then(({ game, players, kept }) => {
+            dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
+            // a game already over on the server shows its result at once
+            if (game.hasWinner && !kept) setWinnerSaved(true);
+            dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
+            setLoading('initGameLoading', false);
             // the ways out work without them, so a failure only means the usual order
             const people = game.players.filter(playerId => playerId !== BOT_ID);
             if (!quick) PlayerService.loadCheckoutProfiles(people).then(setCheckoutProfiles).catch(() => {});
@@ -293,11 +281,7 @@ const X01State = props => {
     // the game as it is after the visit (or undo) that asked for it
     useEffect(() => {
         if (!saveRequest) return;
-        const game = state.game;
-        saving.current = saving.current
-            .then(() => Service.updateX01Game(game))
-            .then(saved => { if (!saved) throw new Error(t('not saved')); })
-            .catch(() => showError(t('Not saved'), t('The last visit could not be saved. Check the connection: the next visit saves everything.')));
+        save(state.game, { players: state.players, kind: training ? t('X01 training') : 'X01' });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [saveRequest]);
 
@@ -378,6 +362,8 @@ const X01State = props => {
                 value={{
                     // a moment of the winning visit plays to its end before the statistics page
                     celebrating: Boolean(oneEighty || highlight),
+                    // the won game is on the server: its result can open
+                    winnerSaved,
                     training,
                     quick,
                     // the bot is at the oche: the input waits
@@ -395,6 +381,7 @@ const X01State = props => {
                     checkIfScoreIsBusted
                 }}
             >
+                <SaveStatus unsent={unsent} finished={Boolean(state.game.hasWinner)} />
                 {props.children}
             </X01Context.Provider>
             <OneEightyCelebration celebration={oneEighty} onDone={endOneEighty} />

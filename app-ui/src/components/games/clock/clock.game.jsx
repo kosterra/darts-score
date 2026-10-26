@@ -11,6 +11,8 @@ import useClockMoment from '../../../utils/use.clock.moment';
 import ClockMoment from '../common/clock.moments';
 import GameScreenButton from '../../screen/game.screen.button';
 import LiveHero from '../common/live.hero';
+import SaveStatus from '../common/save.status';
+import { loadWithUnsent, useGameSaves } from '../../../utils/unsent.games';
 import { TARGETS, targetLabel } from '../../../utils/atc.darts';
 import { t } from '../../../utils/i18n';
 
@@ -25,18 +27,20 @@ const ClockGame = () => {
     const [game, setGame] = useState(null);
     const [players, setPlayers] = useState([]);
     const [failed, setFailed] = useState(false);
-    // the saves run one after the other, in the order of the darts
-    const saving = useRef(Promise.resolve());
     const toast = useRef(null);
 
     useEffect(() => {
         const load = async () => {
             try {
-                const loaded = await ClockService.loadClockGameById(id);
+                // the game kept on this device (not sent yet) wins over the server's
+                const playersOf = async (loaded) => {
+                    const found = await PlayerService.findPlayersByIds(loaded.players);
+                    return loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') });
+                };
+                const { game: loaded, players: found, kept } = await loadWithUnsent(`clock:${id}`, () => ClockService.loadClockGameById(id), playersOf);
                 // a finished game shows its result
-                if (loaded.hasWinner) return navigate(`/stats/games/clock/${id}`, { replace: true });
-                const found = await PlayerService.findPlayersByIds(loaded.players);
-                setPlayers(loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') }));
+                if (loaded.hasWinner && !kept) return navigate(`/stats/games/clock/${id}`, { replace: true });
+                setPlayers(found);
                 setGame(loaded);
             } catch {
                 setFailed(true);
@@ -57,14 +61,11 @@ const ClockGame = () => {
         if (savedOver && !moment) navigate(`/stats/games/clock/${savedOver}`, { replace: true, state: { justFinished: true } });
     }, [savedOver, moment, navigate]);
 
-    const save = useCallback((next) => {
-        saving.current = saving.current
-            .then(() => ClockService.updateClockGame(next))
-            .then(() => {
-                if (next.hasWinner) setSavedOver(next.id);
-            })
-            .catch(() => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail: t('The last dart could not be saved. Check the connection and throw on: the next dart saves everything.'), life: 5000 }));
-    }, []);
+    // without a connection the game is kept on this device and sent once it is back
+    const { save: keepAndSend, unsent } = useGameSaves(`clock:${id}`, (next) => ClockService.updateClockGame(next), (next) => {
+        if (next.hasWinner) setSavedOver(next.id);
+    });
+    const save = useCallback((next) => keepAndSend(next, { players, kind: 'Around the Clock' }), [keepAndSend, players]);
 
     const change = useCallback((throws) => {
         const next = withClockState({ ...game, throws });
@@ -93,6 +94,7 @@ const ClockGame = () => {
 
     return (
         <div className="col-12 clock-game">
+            <SaveStatus unsent={unsent} finished={Boolean(game?.hasWinner)} />
             <LiveHero
                 rulesId="clock"
                 actions={<GameScreenButton kind="clock" game={{ ...game, hasWinner: state.done }} />}

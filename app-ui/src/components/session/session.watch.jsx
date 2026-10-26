@@ -55,7 +55,8 @@ const SessionWatch = () => {
                 if (fresh.expiresAt <= Date.now()) endSession();
                 else setConfirmed(fresh.expiresAt);
             })
-            .catch(() => current && endSession());
+            // without a connection it cannot be told: asked again when the tab comes back
+            .catch(error => current && !error.offline && endSession());
         return () => { current = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [phase]);
