@@ -36,6 +36,8 @@ const PAGES = {
         ['/admin/backups', '.backup-row'],
         ['/admin/logs', '.admin-table'],
         ['/admin/users', '.admin-table'],
+        ['/fair-play', '.fair-play-rules'],
+        ['/admin/fair-play', '.fair-play-rules'],
         ['/system-settings', '#session-hours'],
     ],
 };

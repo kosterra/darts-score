@@ -14,7 +14,7 @@
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
-import { checkBirthChange, checkTraining, checkX01, checkCricket, checkElimination, checkClock, compact, levelOf, repairX01, x01Legs } from '../../../app-api/src/utils/integrity.js';
+import { checkBirthChange, checkTraining, checkX01, checkCricket, checkElimination, checkClock, compact, levelOf, repairX01, x01Legs, THRESHOLDS } from '../../../app-api/src/utils/integrity.js';
 import fs from 'fs';
 import { BADGES as realBadges, BADGE_CATEGORIES as realCategories, SHAME_BADGES } from '../../../app-api/src/utils/badges.js';
 import http from 'node:http';
@@ -832,7 +832,7 @@ http.createServer((req, res) => {
             list.forEach(e => { if (e.level === 'impossible' && e.review?.status !== 'ok') count.impossible++; else if (e.level === 'error' && !e.review) count.errors++; else if (e.level === 'suspicious' && !e.review) count.suspicious++; });
             return send(res, 200, { ...count, open: count.impossible + count.errors + count.suspicious });
         }
-        if (path === '/api/integrity' && req.method === 'GET') return send(res, 200, { entries: await listEntries(url), thresholds: {} });
+        if (path === '/api/integrity' && req.method === 'GET') return send(res, 200, { entries: await listEntries(url), thresholds: THRESHOLDS });
         if (path === '/api/integrity/birth/b1/restore') { birthRestored = true; return send(res, 200, { restored: true }); }
         if (path === '/api/integrity/birth/b1' && req.method === 'GET') return send(res, 200, { type: 'birth', findings: checkBirthChange(birthChange, { minAge: 16, gameDates: [] }), facts: [['Before', birthChange.from.toISOString()], ['Changed to', birthChange.to.toISOString()], ['Changed on', birthChange.at.toISOString()], ['Age limit of the club', '16 years']] });
         const repairPath = path.match(/^\/api\/integrity\/x01\/([^/]+)\/repair$/);
