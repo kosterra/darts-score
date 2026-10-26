@@ -85,7 +85,7 @@ const TwoStepSetting = ({ onSaved, onError }) => {
         .then(() => onSaved?.(t('Every device asks for the code again')))
         .catch((err) => onError?.(t('Not saved'), err));
     const codeInput = (
-        <InputText id="two-step-code" value={code} onChange={(e) => setCode(e.target.value.replace(/[^\d ]/g, ''))} inputMode="numeric" autoComplete="one-time-code" maxLength={7} placeholder={t('Code of the app')} aria-label={t('Code of the app')} className="mfa-code" required />
+        <InputText id="two-step-code" value={code} onChange={(e) => setCode(e.target.value.replace(/[^\da-zA-Z -]/g, ''))} autoComplete="one-time-code" maxLength={12} placeholder={t('Code of the app or a recovery code')} aria-label={t('Code of the app or a recovery code')} className="mfa-code-any" required />
     );
 
     return (
@@ -117,7 +117,7 @@ const TwoStepSetting = ({ onSaved, onError }) => {
                             {codes && <RecoveryCodes codes={codes} email={user.email} onSaved={onSaved} />}
                             {open === 'codes' &&
                                 <form onSubmit={newCodes} className="d-flex flex-column gap-2">
-                                    <span className="fs-7 text-subtle">{t('New recovery codes: the old ones stop working. Enter a code of your app to go on.')}</span>
+                                    <span className="fs-7 text-subtle">{t('New recovery codes: the old ones stop working. Enter a code of your app, or one of your recovery codes, to go on.')}</span>
                                     {codeInput}
                                     {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
                                     <div className="d-flex justify-content-end gap-2">
@@ -127,7 +127,7 @@ const TwoStepSetting = ({ onSaved, onError }) => {
                                 </form>}
                             {open === 'off' &&
                                 <form onSubmit={turnOff} className="d-flex flex-column gap-2">
-                                    <span className="fs-7 text-subtle">{t('Turn off two-step login: enter your password and a code of your app.')}</span>
+                                    <span className="fs-7 text-subtle">{t('Turn off two-step login: enter your password and a code of your app, or one of your recovery codes.')}</span>
                                     <Password inputId="two-step-password" value={password} onChange={(e) => setPassword(e.target.value)} feedback={false} placeholder={t('Current password')} aria-label={t('Current password')} autoComplete="current-password" className="w-100" inputClassName="w-100" required />
                                     {codeInput}
                                     {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}

@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { hashPassword } from './auth.utils.js';
 import { runMigrations } from './migrations.js';
+import { secretReadable } from './mfa.js';
 
 /**
  * Creates the first global admin from ADMIN_EMAIL / ADMIN_PASSWORD when there
@@ -50,8 +51,22 @@ const resetMfaFromEnv = async () => {
     logger.warn(`Two-step login of ${email} turned off by ADMIN_RESET_MFA — remove the variable now`);
 };
 
+/**
+ * Says at the start when the secrets of two-step login no longer open with
+ * MFA_KEY (it was changed or removed): those accounts can only log in with a
+ * recovery code (and set it up again) until the old key is back.
+ */
+const checkMfaKey = async () => {
+    const users = await db.user.find({ 'mfa.enabledAt': { $ne: null } }, 'email mfa').lean();
+    const lost = users.filter(user => !secretReadable(user));
+    if (lost.length) {
+        logger.warn(`The two-step login of ${lost.length} of ${users.length} accounts cannot be checked with this MFA_KEY (${lost.map(user => user.email).join(', ')}): put the old key back, or they log in with a recovery code and set it up again (ADMIN_RESET_MFA=<email> for a global admin without one)`);
+    }
+};
+
 export const bootstrap = async () => {
     const admin = await ensureGlobalAdmin();
     await resetMfaFromEnv();
+    await checkMfaKey().catch(err => logger.error(err, 'Checking the secrets of two-step login failed'));
     await runMigrations({ admin });
 };

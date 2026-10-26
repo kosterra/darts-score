@@ -121,6 +121,33 @@ export const recoveryIndex = (hashes, code) => {
     });
 };
 
+// what the API says when the secret of an account no longer opens with MFA_KEY
+export const UNREADABLE = 'Two-step login cannot check the codes of your app any more: the key of this installation changed. Use one of your recovery codes, or ask a global admin to reset your two-step login.';
+
+// whether the secret of an account can still be read (MFA_KEY changed: not)
+export const secretReadable = (user) => Boolean(decrypt(user?.mfa?.secret));
+
+/**
+ * The second factor for what needs it besides logging in (turning two-step
+ * login off, new recovery codes, deleting the account): a code of the app,
+ * or one of the recovery codes in its place, which is used up then.
+ * → { ok, step } for a code of the app, { ok, recovery: true }, or
+ * { ok: false, unreadable } (unreadable: the secret no longer opens).
+ */
+export const secondFactor = (user, code) => {
+    const token = String(code ?? '').trim();
+    const unreadable = !secretReadable(user);
+    if (/^[\d\s]+$/.test(token)) {
+        if (unreadable) return { ok: false, unreadable };
+        const step = checkCode(decrypt(user.mfa.secret), token, user.mfa.lastStep);
+        return step === null ? { ok: false, unreadable } : { ok: true, step };
+    }
+    const index = recoveryIndex(user.mfa?.recoveryHashes, token);
+    if (index < 0) return { ok: false, unreadable };
+    user.mfa.recoveryHashes.splice(index, 1);
+    return { ok: true, recovery: true };
+};
+
 // ---------------------------------------------------------------------------
 // The policy of the installation
 // ---------------------------------------------------------------------------

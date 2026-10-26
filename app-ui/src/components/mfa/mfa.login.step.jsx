@@ -21,11 +21,19 @@ const MfaLoginStep = ({ step, onRestart }) => {
     const [trust, setTrust] = useState(false);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState(false);
+    // a recovery code got in, but the app no longer matches (the key of the installation changed): set it up again
+    const [reset, setReset] = useState(false);
 
-    if (step === 'enroll') {
+    if (step === 'enroll' || reset) {
         return (
             <div className="d-flex flex-column gap-3 pt-2">
-                <Message severity="info" text={t('This installation requires two-step login: after the password, a code of an app on your phone. Set it up now to go on.')} className="w-100 justify-content-start" />
+                <Message
+                    severity="info"
+                    text={reset
+                        ? t('Your authenticator app no longer matches this installation (its key changed). Set up two-step login again now: a new QR code, and new recovery codes.')
+                        : t('This installation requires two-step login: after the password, a code of an app on your phone. Set it up now to go on.')}
+                    className="w-100 justify-content-start"
+                />
                 <MfaSetup login onDone={(answer) => completeLogin(answer)} />
                 <Button type="button" label={t('Log in with another account')} size="small" severity="secondary" text onClick={() => onRestart?.()} />
             </div>
@@ -37,10 +45,19 @@ const MfaLoginStep = ({ step, onRestart }) => {
         setBusy(true);
         setError('');
         try {
-            await completeLogin(await AuthService.loginMfa(recovery ? { recoveryCode: code, trust } : { code, trust }));
+            const answer = await AuthService.loginMfa(recovery ? { recoveryCode: code, trust } : { code, trust });
+            // set up again first (required on this installation), else logged in
+            if (answer?.mfaRequired) {
+                setReset(true);
+                setBusy(false);
+            } else {
+                await completeLogin(answer);
+            }
         } catch (err) {
             setError(err.message);
             setBusy(false);
+            // the app cannot be checked any more: only a recovery code helps
+            if (err.data?.unreadable) { setRecovery(true); setCode(''); }
             // the waiting login is gone: back to the password
             if (err.data?.expired) onRestart?.(err.message);
         }

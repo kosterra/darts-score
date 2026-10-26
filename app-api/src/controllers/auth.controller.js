@@ -14,7 +14,7 @@ import { notifySecurity } from '../utils/notify.js';
 import { claimOnRegister } from './player.contact.controller.js';
 import { finishLogin } from './mfa.controller.js';
 import { carryOutSteps, deleteAccount, deletionBlock, lastGlobalAdmin, soleAdminClubs } from '../utils/account.deletion.js';
-import { checkCode, decrypt, isMfaEnabled, mfaStateOf } from '../utils/mfa.js';
+import { UNREADABLE, isMfaEnabled, mfaStateOf, secondFactor } from '../utils/mfa.js';
 import { translate } from '../utils/translate.js';
 import { dateTimeIn } from '../utils/notify.js';
 import { getAppUrl } from '../utils/mail.utils.js';
@@ -266,8 +266,10 @@ export const deletionSteps = async (req, res) => {
 export const deleteMe = async (req, res) => {
     const user = req.user;
     if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: 'The current password is wrong.' });
-    if (isMfaEnabled(user) && checkCode(decrypt(user.mfa.secret), req.body.code, user.mfa.lastStep) === null) {
-        return res.status(403).json({ message: 'This code is not right. Check the time of your phone and try the newest code.' });
+    if (isMfaEnabled(user)) {
+        // a code of the app, or a recovery code in its place
+        const check = secondFactor(user, req.body.code);
+        if (!check.ok) return res.status(403).json({ message: check.unreadable ? UNREADABLE : 'This code is not right. Check the time of your phone and try the newest code.' });
     }
     const steps = Array.isArray(req.body.clubs) ? req.body.clubs : [];
     const block = await deletionBlock(user, steps);

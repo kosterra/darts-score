@@ -124,7 +124,7 @@ const DeleteAccount = () => {
                                 </div>}
                             <Password inputId="delete-account-password" value={password} onChange={(e) => setPassword(e.target.value)} feedback={false} placeholder={t('Current password')} aria-label={t('Current password')} autoComplete="current-password" className="w-100" inputClassName="w-100" required />
                             {user.mfaEnabled &&
-                                <InputText value={code} onChange={(e) => setCode(e.target.value.replace(/[^\d ]/g, ''))} inputMode="numeric" autoComplete="one-time-code" maxLength={7} placeholder={t('Code of the app')} aria-label={t('Code of the app')} className="mfa-code" required />}
+                                <InputText value={code} onChange={(e) => setCode(e.target.value.replace(/[^\da-zA-Z -]/g, ''))} autoComplete="one-time-code" maxLength={12} placeholder={t('Code of the app or a recovery code')} aria-label={t('Code of the app or a recovery code')} className="mfa-code-any" required />}
                             <label htmlFor="delete-account-understood" className="d-flex align-items-start gap-2">
                                 <Checkbox inputId="delete-account-understood" checked={understood} onChange={(e) => setUnderstood(Boolean(e.checked))} />
                                 <span className="fs-7">{t('I understand that my account is deleted for good and my players stay only anonymously.')}</span>
