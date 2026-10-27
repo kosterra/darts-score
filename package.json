@@ -1,7 +1,7 @@
 {
   "name": "darts-score",
   "description": "Darts Score Application",
-  "version": "2026.10.19",
+  "version": "2026.10.20",
   "private": true,
   "license": "AGPL-3.0-only",
   "author": "kosterra",
