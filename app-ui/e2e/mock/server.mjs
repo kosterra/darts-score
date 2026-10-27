@@ -10,7 +10,7 @@
 // (e.g. AS_PLAYER, CLUB_ADMIN, LOGGED_OUT, NEW_USER; DASH=0 for a club
 // without its statistics), and the tests
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
-// /__test/tournaments { scenario }, /__test/session { leftMs } and
+// /__test/tournaments { scenario }, /__test/leagues { scenario }, /__test/session { leftMs } and
 // /__test/notifications (two of them, one unread), /__test/evening (one with finished games).
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
@@ -20,6 +20,7 @@ import fs from 'fs';
 import { BADGES as realBadges, BADGE_CATEGORIES as realCategories, SHAME_BADGES } from '../../../app-api/src/utils/badges.js';
 import http from 'node:http';
 import { seedTournaments, tournamentMock } from './tournaments.mjs';
+import { leagueMock, seedLeagues } from './leagues.mjs';
 import { duelRecord, clubRatings, winChances } from '../../../app-api/src/utils/compare.js';
 import { latestClubBadges, CLUB_BADGES, GOAL_METRICS, replayClubBadges, topClubBadges, publicClubBadge, goalProgress } from '../../../app-api/src/utils/club.badges.js';
 import { clubKpis, headToHead as h2h, clubRecords, gameLog } from '../../../app-api/src/utils/club.insights.js';
@@ -140,6 +141,8 @@ http.createServer((req, res) => {
     req.on('end', async () => {
         let json = {};
         try { json = body ? JSON.parse(body) : {}; } catch { json = {}; }
+        if (path === '/__test/leagues') { seedLeagues(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
+        if (path.startsWith('/api/leagues') && leagueMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1' }) !== false) return;
         if (path === '/__test/tournaments') { seedTournaments(players, json.scenario); return send(res, 200, {}); }
         if (path.startsWith('/api/tournament') && tournamentMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', url }) !== false) return;
         if (path === '/__test/logged-out' && req.method === 'POST') { globalThis.mockLoggedOut = Boolean(json.loggedOut); return send(res, 200, {}); }

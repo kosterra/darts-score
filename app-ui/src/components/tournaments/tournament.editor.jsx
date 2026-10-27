@@ -51,7 +51,7 @@ const FORMAT_WORDS = {
  * The rules of one round: the starting score, in and out, and legs (or sets
  * of legs) as best of or first to.
  */
-const RoundRules = ({ rules, onChange, disabled }) => {
+export const RoundRules = ({ rules, onChange, disabled }) => {
     const set = (changes) => onChange({ ...rules, ...changes });
     const inSets = rules.numberOfSets > 1;
     return (

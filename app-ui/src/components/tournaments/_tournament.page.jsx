@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FaTrophy } from 'react-icons/fa';
 import { Button } from 'primereact/button';
@@ -22,7 +22,7 @@ import TournamentBracket from './tournament.bracket';
 import TournamentGroups from './tournament.groups';
 import { INVITE_WORDS, STATUS_WORDS, groupName, nameOf, roundName, rulesText } from './tournament.words';
 import BetaTag from './beta.tag';
-import { ShirtPicture } from '../shirts/shirt.art';
+import WalkOn from './tournament.walkon';
 import { Lines } from '../elements/skeletons';
 
 /**
@@ -30,24 +30,6 @@ import { Lines } from '../elements/skeletons';
  * throws first), go on with or watch a running one, see the statistics of a
  * played one, and (admins) decide it without a game.
  */
-// the walk-on: both players in their shirts, as on the stage, before a match is played
-const WalkOn = ({ tournament, match, club }) => (
-    <div className="tournament-walk-on" aria-hidden="true">
-        {match.players.map((id, index) => {
-            const player = tournament.players?.[id];
-            return (
-                <Fragment key={id ?? index}>
-                    {index === 1 && <span className="tournament-walk-on-vs">{t('vs')}</span>}
-                    <span className="tournament-walk-on-player">
-                        {player?.shirt && <ShirtPicture {...player.shirt} nickname={player.nickname} club={club} uid={`walk-on-${match.id}-${index}`} />}
-                        <span className="text-default fw-semibold fs-7 text-truncate">{player?.nickname ?? '?'}</span>
-                    </span>
-                </Fragment>
-            );
-        })}
-    </div>
-);
-
 const MatchDialog = ({ tournament, match, isAdmin, onHide, onStart, onResult, busy }) => {
     const { activeClub } = useAuth();
     const [first, setFirst] = useState(null);

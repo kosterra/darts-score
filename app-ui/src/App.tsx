@@ -72,6 +72,9 @@ const TournamentReplyPage = lazy(() => import('./components/auth/tournament.repl
 const TournamentsPage = lazy(() => import('./components/tournaments/_tournaments.page'));
 const TournamentPage = lazy(() => import('./components/tournaments/_tournament.page'));
 const TournamentEditor = lazy(() => import('./components/tournaments/tournament.editor'));
+const LeaguesPage = lazy(() => import('./components/leagues/_leagues.page'));
+const LeaguePage = lazy(() => import('./components/leagues/_league.page'));
+const LeagueEditor = lazy(() => import('./components/leagues/league.editor'));
 const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
 const SupportPage = lazy(() => import('./components/legal/_support.page'));
 const DartsTermsPage = lazy(() => import('./components/terms/_darts.terms.page'));
@@ -305,6 +308,10 @@ function AppContent() {
                     <Route path="/tournaments/new" element={<TournamentEditor />} />
                     <Route path="/tournaments/:id" element={<TournamentPage />} />
                     <Route path="/tournaments/:id/edit" element={<TournamentEditor />} />
+                    <Route path="/leagues" element={<LeaguesPage />} />
+                    <Route path="/leagues/new" element={<LeagueEditor />} />
+                    <Route path="/leagues/:id" element={<LeaguePage />} />
+                    <Route path="/leagues/:id/edit" element={<LeagueEditor />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />
                     <Route path="/my-clubs" element={<ClubsPage />} />
                     <Route path="/my-clubs/:id" element={<ClubEditPage />} />

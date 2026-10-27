@@ -349,3 +349,46 @@
 
     > :last-child { flex-basis: 100%; }
 }
+
+// ---------------------------------------------------------------------------
+// Leagues: the table beside the matchdays, a matchday at a time
+// ---------------------------------------------------------------------------
+
+.league-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: $space-4;
+
+    @media (min-width: 992px) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
+}
+
+.league-table { max-width: 32rem; }
+
+.league-matches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: $space-3;
+
+    .bracket-match { width: 100%; }
+}
+
+.league-match { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+
+.league-day-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    padding: $space-2;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+}
+
+.league-plan {
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+}
+
+// every chosen player shown, the chips wrapping
+.league-players .p-multiselect-label { display: flex; flex-wrap: wrap; gap: 0.25rem; white-space: normal; text-overflow: clip; }

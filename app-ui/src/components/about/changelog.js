@@ -10,6 +10,7 @@ const CHANGELOG = [
         version: '2026.10.20',
         changes: [
             t('Tournaments with groups first: choose Groups, then knockout when setting one up. At the draw, once it is known how many entered, the admin chooses how large the groups are and how many of each go on (the app suggests groups of 4, the top 2) and sees what follows, e.g. the quarter-finals. Everyone plays everyone of their group, the tables count points, leg difference and the match between two; the best of each group then fill the bracket, never against their own group in the first round.'),
+            t('Leagues: a club admin chooses the members who play, whether everyone plays everyone once or twice, the first matchday and a matchday every week or two, and the rules of every match. Started, the app makes the whole schedule in matchdays; each match is played any time up to its day and counts in the table (2 points a win, then leg difference). The admins move a whole matchday or a single match, e.g. a postponed one, and the players hear of it.'),
         ],
     },
     {
