@@ -878,19 +878,20 @@ $tar: #17110c;
         gap: 0.4rem;
         padding: 0.2rem 0.65rem 0.2rem 0.2rem;
         border-radius: $radius-pill;
-        // in the colours of the secondary buttons (e.g. Filters of the lists)
-        background: $secondaryButtonBg;
-        color: $secondaryButtonTextColor;
-        // the font of the page first (a button has its own), then the size of a chip
+        // as a small secondary button (e.g. Filters of the lists, see _buttons.scss): its tint,
+        // its text colour and its bold 0.8rem label
+        background: soft(var(--c-ink-color), 0.1);
+        color: $textDefaultColor;
         font: inherit;
-        font-size: $text-sm;
-        font-weight: $weight-semibold;
+        font-size: 0.8rem;
+        font-weight: $weight-bold;
         text-decoration: none;
         border: 0;
         cursor: pointer;
 
         &:hover, &:focus-visible {
-            background: $secondaryButtonHoverBg;
+            background: soft(var(--c-ink-color), 0.2);
+            color: $shade000;
         }
     }
 }
