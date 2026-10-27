@@ -132,7 +132,7 @@ const SessionsPage = () => {
                                                 </span>
                                             </span>
                                             {!session.current &&
-                                                <Button icon="pi pi-sign-out" text rounded severity="danger" size="small" aria-label={t('End session')} title={t('End session')} loading={busy === session.id} onClick={() => endOne(user, session)} />}
+                                                <Button icon="pi pi-sign-out" text severity="danger" size="small" aria-label={t('End session')} title={t('End session')} loading={busy === session.id} onClick={() => endOne(user, session)} />}
                                         </li>
                                     ))}
                                 </ul>

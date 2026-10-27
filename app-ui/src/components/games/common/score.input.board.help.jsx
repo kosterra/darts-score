@@ -10,7 +10,7 @@ import { t } from '../../../utils/i18n';
 const useEnteringHelp = (plainSingles = false) => {
     const [open, setOpen] = useState(false);
     const button = (
-        <Button type="button" icon="pi pi-question-circle" text rounded severity="secondary" className={`score-help-button ${open ? 'is-open' : ''}`} aria-label={t('How to enter darts')} aria-expanded={open} title={t('How to enter darts')} onClick={() => setOpen(!open)} />
+        <Button type="button" icon="pi pi-question-circle" text severity="secondary" className={`score-help-button ${open ? 'is-open' : ''}`} aria-label={t('How to enter darts')} aria-expanded={open} title={t('How to enter darts')} onClick={() => setOpen(!open)} />
     );
     const panel = open && (
         <div className="entering-help">

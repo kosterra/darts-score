@@ -144,7 +144,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
         <div className="row-editor player-form-inline">
             <div className="row-editor-head">
                 <span className="text-default fw-semibold">{t('Add New Player')}</span>
-                <Button type="button" icon="pi pi-times" text rounded severity="secondary" aria-label={t('Close')} onClick={resetDialog} />
+                <Button type="button" icon="pi pi-times" text severity="secondary" aria-label={t('Close')} onClick={resetDialog} />
             </div>
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-column gap-2">
                     <div className="row">

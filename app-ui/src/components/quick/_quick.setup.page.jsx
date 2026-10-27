@@ -108,7 +108,7 @@ const QuickSetupPage = () => {
                                     className="flex-grow-1"
                                 />
                                 {names.length > 1 &&
-                                    <Button type="button" icon="pi pi-times" text rounded severity="secondary" aria-label={t('Remove player {{value}}', { value: index + 1 })} onClick={() => setNames(current => current.filter((_, i) => i !== index))} />}
+                                    <Button type="button" icon="pi pi-times" text severity="secondary" aria-label={t('Remove player {{value}}', { value: index + 1 })} onClick={() => setNames(current => current.filter((_, i) => i !== index))} />}
                             </div>
                         ))}
                         <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">

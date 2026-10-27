@@ -189,8 +189,8 @@ const TournamentPage = () => {
                         <span className="text-truncate">{nameOf(tournament, entry.player)}{entry.byAdmin && <span className="text-faint fs-9 ms-2">{t('by an admin')}</span>}</span>
                         {isClubAdmin && (registration || closed) &&
                             <span className="d-flex gap-1">
-                                {entry.status !== 'in' && <Button icon="pi pi-check" text rounded size="small" aria-label={t('Enter')} title={t('Enter')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'in')} />}
-                                {entry.status !== 'out' && <Button icon="pi pi-times" text rounded size="small" severity="secondary" aria-label={t('Take out')} title={t('Take out')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'out')} />}
+                                {entry.status !== 'in' && <Button icon="pi pi-check" text size="small" aria-label={t('Enter')} title={t('Enter')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'in')} />}
+                                {entry.status !== 'out' && <Button icon="pi pi-times" text size="small" severity="secondary" aria-label={t('Take out')} title={t('Take out')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'out')} />}
                             </span>}
                     </li>
                 ))}

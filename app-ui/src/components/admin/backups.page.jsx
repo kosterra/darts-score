@@ -54,7 +54,7 @@ const BackupRow = ({ backup, busy, onRestore, onDelete }) => {
                         <i className="pi pi-download me-2" aria-hidden="true" />{t('Download')}
                     </a>
                     <Button type="button" label={t('Restore')} icon="pi pi-history" size="small" severity="warning" outlined disabled={Boolean(busy)} onClick={() => setConfirming(!confirming)} />
-                    <Button type="button" icon="pi pi-trash" size="small" severity="danger" text rounded aria-label={t('Delete')} title={t('Delete')} disabled={Boolean(busy)} onClick={() => onDelete(backup)} />
+                    <Button type="button" icon="pi pi-trash" size="small" severity="danger" text aria-label={t('Delete')} title={t('Delete')} disabled={Boolean(busy)} onClick={() => onDelete(backup)} />
                 </div>
             </div>
             {confirming &&

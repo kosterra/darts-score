@@ -9,7 +9,7 @@ const RowEditor = ({ title, onClose, children }) => (
     <div className="row-editor" role="region" aria-label={title}>
         <div className="row-editor-head">
             <span className="text-default fw-semibold">{title}</span>
-            <Button type="button" icon="pi pi-times" text rounded severity="secondary" aria-label={t('Close')} onClick={onClose} />
+            <Button type="button" icon="pi pi-times" text severity="secondary" aria-label={t('Close')} onClick={onClose} />
         </div>
         {children}
     </div>

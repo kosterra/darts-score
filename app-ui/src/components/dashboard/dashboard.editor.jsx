@@ -64,7 +64,7 @@ const EditorTile = memo(
                             className="p-selectbutton-pills dashboard-tile-sizes"
                             aria-label={t('Width of {{title}}', { title: widget.title })}
                         />
-                        <Button type="button" icon="pi pi-times" text rounded size="small" className="dashboard-tile-remove" aria-label={t('Remove {{title}}', { title: widget.title })} title={t('Remove')} onClick={() => actions.current.remove(widget.id)} />
+                        <Button type="button" icon="pi pi-times" text size="small" className="dashboard-tile-remove" aria-label={t('Remove {{title}}', { title: widget.title })} title={t('Remove')} onClick={() => actions.current.remove(widget.id)} />
                     </div>
                     {/* shown as it is, but it does not react while the dashboard is arranged */}
                     <TileContent widget={widget} renderWidget={renderWidget} />

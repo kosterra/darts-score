@@ -77,7 +77,7 @@ const PasskeysSetting = ({ onSaved }) => {
                                             {passkey.synced && <>{' · '}{t('on all your devices of the same account')}</>}
                                         </span>
                                     </span>
-                                    <Button type="button" icon="pi pi-trash" size="small" severity="danger" text rounded aria-label={t('Remove {{name}}', { name: passkey.name })} title={t('Remove')} loading={busy === passkey.id} onClick={() => remove(passkey)} />
+                                    <Button type="button" icon="pi pi-trash" size="small" severity="danger" text aria-label={t('Remove {{name}}', { name: passkey.name })} title={t('Remove')} loading={busy === passkey.id} onClick={() => remove(passkey)} />
                                 </li>
                             ))}
                         </ul>}
