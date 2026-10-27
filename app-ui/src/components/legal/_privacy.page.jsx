@@ -60,7 +60,7 @@ const PrivacyPage = () => {
                         <li><strong>{t('Players:')}</strong>{' '}{t('nickname, name, picture and country, the date of birth (entered by the club admins, also for children: for fair handicaps between ages, and to keep children out of the Hall of Shame), and the games, trainings, statistics, badges and levels. To keep score and show the statistics within the club.')}</li>
                         <li><strong>{t('Clubs and groups:')}</strong>{' '}{t('name, logo, description, country, admins and members, and what they play.')}</li>
                         <li><strong>{t('Players without a login:')}</strong>{' '}{t('an email address only when a club admin enters it with the player\'s consent, for the mails chosen there; every mail has a link to get no more.')}</li>
-                        <li><strong>{t('Quick games without an account:')}</strong>{' '}{t('only the names typed in, kept {{days}} days.', { days: keep.quickGameDays })}</li>
+                        <li><strong>{t('Quick games without an account:')}</strong>{' '}{t('only the names typed in, kept {{days}} days; a game not finished {{unfinished}} days after its last visit.', { days: keep.quickGameDays, unfinished: keep.quickUnfinishedDays ?? 3 })}</li>
                         {legal.contactForm && <li><strong>{t('Messages of the contact form:')}</strong>{' '}{t('your name, your email address and your message go by mail to the operator above, to answer you; Legmate itself keeps nothing of them.')}</li>}
                         <li><strong>{t('Protection:')}</strong>{' '}{t('the internet address (IP) of requests, to stop spam and attacks (e.g. too many failed logins); alerts with it are kept for the global admins until they remove them. Errors of the app are kept {{days}} days.', { days: keep.errorLogDays })}</li>
                     </ul>
@@ -99,7 +99,7 @@ const PrivacyPage = () => {
                 <ul className="mb-0">
                     <li>{t('Your account and your players: until you delete your account or a club admin deletes the player.')}</li>
                     <li>{t('Logins: until you log out or their time is up. The days you used the app: {{days}} days.', { days: keep.usageDays })}</li>
-                    <li>{t('Notifications: {{days}} days. Quick games: {{quick}} days. Notes of fair play: {{fair}} days. Links to take over a player: {{claim}} days.', { days: keep.notificationDays, quick: keep.quickGameDays, fair: keep.fairPlayDays, claim: keep.claimLinkDays })}</li>
+                    <li>{t('Notifications: {{days}} days. Quick games: {{quick}} days, not finished {{unfinished}} days after the last visit. Notes of fair play: {{fair}} days. Links to take over a player: {{claim}} days.', { days: keep.notificationDays, quick: keep.quickGameDays, unfinished: keep.quickUnfinishedDays ?? 3, fair: keep.fairPlayDays, claim: keep.claimLinkDays })}</li>
                 </ul>
             ),
         },

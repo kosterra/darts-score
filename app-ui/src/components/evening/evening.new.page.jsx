@@ -48,7 +48,7 @@ const EveningNewPage = () => {
             <Panel header={t('Darts evening')} className="page-narrow">
                 <form className="container" onSubmit={start}>
                     <p className="text-subtle fs-7 mt-0">
-                        {t('For a group playing together tonight: the names once, then game after game of X01, Cricket or Elimination. A table of the evening follows every game, with awards at the end, and friends follow it on their phones. No account needed; kept for 30 days.')}{' '}
+                        {t('For a group playing together tonight: the names once, then game after game of X01, Cricket or Elimination. A table of the evening follows every game, with awards at the end, and friends follow it on their phones. No account needed; kept for 30 days, a game left unfinished 3 days after its last visit.')}{' '}
                         <Link to="/quick">{t('Just one game?')}</Link>
                     </p>
 

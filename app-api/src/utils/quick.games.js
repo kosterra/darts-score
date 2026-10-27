@@ -1,7 +1,8 @@
 /**
  * Quick games: X01, Cricket and Elimination on the public start page, without
  * an account. The players are only names; the game is kept apart from the
- * clubs for 30 days, and only the browser that started it (with its key)
+ * clubs for 30 days (one never finished 3 days after its last visit), and
+ * only the browser that started it (with its key)
  * plays on. A darts evening (see evenings.js) plays its games as quick games.
  */
 import crypto from 'node:crypto';
@@ -9,6 +10,8 @@ import { viewOf } from './game.view.js';
 
 export const QUICK_KINDS = ['x01', 'cricket', 'elimination'];
 export const QUICK_KEEP_DAYS = 30;
+// a game left unfinished goes sooner: so long after its last visit
+export const QUICK_UNFINISHED_DAYS = 3;
 // a game has up to four players; a darts evening up to eight, each with the same id in all its games
 export const QUICK_PLAYER_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8'];
 // what a quick game may be set up as
