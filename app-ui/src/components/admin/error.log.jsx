@@ -131,7 +131,11 @@ const ErrorLog = () => {
             </div>
 
             <Panel header={t('Error log')}>
-                <AdminToolbar>
+                <AdminToolbar actions={<>
+                        {log?.entries && <span className="text-faint fs-7">{tn(log.entries.length, '{{count}} entry', '{{count}} entries')}</span>}
+                        <Button icon="pi pi-refresh" label={t('Refresh')} size="small" severity="secondary" onClick={loadLog} />
+                        <Button icon="pi pi-trash" label={t('Clear')} size="small" severity="danger" disabled={!log?.entries?.length} onClick={confirmClear} />
+                    </>} changed={[search, level !== 'all', !grouped].filter(Boolean).length}>
                     <span className="p-input-icon-left">
                         <i className="pi pi-search" />
                         <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search messages')} aria-label={t('Search messages')} />
@@ -141,11 +145,6 @@ const ErrorLog = () => {
                         <Checkbox inputId="error-log-grouped" checked={grouped} onChange={(e) => { setGrouped(e.checked); setExpanded(null); }} />
                         {t('The same ones together')}
                     </label>
-                    <div className="ms-auto d-flex align-items-center gap-3">
-                        {log?.entries && <span className="text-faint fs-7">{tn(log.entries.length, '{{count}} entry', '{{count}} entries')}</span>}
-                        <Button icon="pi pi-refresh" label={t('Refresh')} size="small" severity="secondary" onClick={loadLog} />
-                        <Button icon="pi pi-trash" label={t('Clear')} size="small" severity="danger" disabled={!log?.entries?.length} onClick={confirmClear} />
-                    </div>
                 </AdminToolbar>
 
                 <DataTable

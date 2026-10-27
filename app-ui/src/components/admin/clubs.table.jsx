@@ -121,13 +121,12 @@ const ClubsTable = () => {
         {/* the clubs at a glance; a club picked there shows in the list */}
         <ClubsOverview clubs={clubs} onPick={(club) => setView({ search: club.name, state: 'all', page: 1 })} />
         <Panel id="admin-list" header={t('Clubs')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<span className="text-faint fs-7">{visibleClubs.length} {visibleClubs.length === 1 ? t('club') : t('clubs')}</span>} changed={[search, state !== 'all'].filter(Boolean).length}>
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search clubs or admins')} aria-label={t('Search clubs or admins')} />
                 </span>
                 <FilterPills value={state} options={STATE_OPTIONS} onChange={setState} ariaLabel={t('Show clubs')} />
-                <span className="ms-auto text-faint fs-7">{visibleClubs.length} {visibleClubs.length === 1 ? t('club') : t('clubs')}</span>
             </AdminToolbar>
 
             <DataTable

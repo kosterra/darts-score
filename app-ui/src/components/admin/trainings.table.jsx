@@ -231,7 +231,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <ActivityInsights what="trainings" onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
-            <AdminToolbar>
+            <AdminToolbar actions={!needsClubs && <span className="text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>} changed={[acrossClubs && selectedIds.length, view.whose !== 'all', view.type !== 'all', view.mode !== 'any', view.player].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 {hasOwn && <FilterPills value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}
                 <TypeFilter groups={TRAINING_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All trainings')} ariaLabel={t('Training')} />
@@ -248,7 +248,6 @@ const TrainingsTable = ({ scope = 'club' }) => {
                     aria-label={t('Player')}
                     style={{ minWidth: '12rem' }}
                 />
-                {!needsClubs && <span className="ms-auto text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>}
             </AdminToolbar>
 
             {needsClubs

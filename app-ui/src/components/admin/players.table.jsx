@@ -232,17 +232,16 @@ const PlayersTable = ({ scope = 'club' }) => {
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <PlayersInsights onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Players of all clubs') : t('Players')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<>
+                    {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
+                    {(acrossClubs || isClubAdmin) && newPlayerButton}
+                </>} changed={[acrossClubs && selectedIds.length, view.search, view.kind !== 'all'].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search players')} aria-label={t('Search players')} />
                 </span>
                 <FilterPills value={kind} options={KIND_OPTIONS} onChange={setKind} ariaLabel={t('Members or guests')} />
-                <div className="ms-auto d-flex align-items-center gap-3">
-                    {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
-                    {(acrossClubs || isClubAdmin) && newPlayerButton}
-                </div>
             </AdminToolbar>
             {(acrossClubs || isClubAdmin) && newPlayerForm}
 

@@ -189,14 +189,13 @@ const AlertsPage = () => {
             </div>
 
             <Panel header={t('Alerts')}>
-                <AdminToolbar>
-                    <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
-                    <div className="ms-auto d-flex align-items-center gap-3">
+                <AdminToolbar actions={<>
                         {alerts && <span className="text-faint fs-7">{alerts.length} {alerts.length === 1 ? t('alert') : t('alerts')}</span>}
                         {status === 'open' &&
                             <Button icon="pi pi-check" label={t('Resolve all')} size="small" disabled={!alerts?.length}
                                 onClick={() => run(t('Resolve all'), () => AdminService.resolveAllAlerts(), t('All alerts are resolved'))} />}
-                    </div>
+                    </>} changed={[status !== 'open'].filter(Boolean).length}>
+                    <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
                 </AdminToolbar>
                 <DataTable
                     value={alerts ?? []}

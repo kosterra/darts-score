@@ -168,13 +168,12 @@ const UsersList = () => {
         {/* the users at a glance; an account picked there shows in the list */}
         <UsersOverview users={users} loading={!loaded} onPick={(user) => setView({ search: user.email, clubs: '', page: 1 })} />
         <Panel id="admin-list" header={t('Users')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<span className="text-faint fs-7">{visibleUsers.length} {visibleUsers.length === 1 ? t('user') : t('users')}</span>} changed={[view.search, view.clubs].filter(Boolean).length}>
                 <ClubFilter clubs={clubs} selectedIds={clubIds} onChange={setClubIds} optional />
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search name or email')} aria-label={t('Search users by name or email')} />
                 </span>
-                <span className="ms-auto text-faint fs-7">{visibleUsers.length} {visibleUsers.length === 1 ? t('user') : t('users')}</span>
             </AdminToolbar>
 
             {/* the look of the other admin lists: every user a card of its own */}

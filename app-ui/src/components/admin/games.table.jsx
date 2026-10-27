@@ -348,7 +348,19 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <ActivityInsights what="games" onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Games of all clubs') : t('Games')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<>
+                    {!needsClubs && <span className="text-faint fs-7">{plural(visibleGames.length, 'game')}</span>}
+                    {canManage &&
+                        <Button
+                            label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
+                            icon="pi pi-trash"
+                            severity="danger"
+                            size="small"
+                            disabled={!selection.length}
+                            onClick={confirmDeleteSelection}
+                        />
+                    }
+                </>} changed={[acrossClubs && selectedIds.length, view.type !== 'all', view.status !== 'all', view.player].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
                 <FilterPills value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
@@ -364,19 +376,6 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                     aria-label={t('Player')}
                     style={{ minWidth: '12rem' }}
                 />
-                <div className="ms-auto d-flex align-items-center gap-3">
-                    {!needsClubs && <span className="text-faint fs-7">{plural(visibleGames.length, 'game')}</span>}
-                    {canManage &&
-                        <Button
-                            label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
-                            icon="pi pi-trash"
-                            severity="danger"
-                            size="small"
-                            disabled={!selection.length}
-                            onClick={confirmDeleteSelection}
-                        />
-                    }
-                </div>
             </AdminToolbar>
 
             {needsClubs

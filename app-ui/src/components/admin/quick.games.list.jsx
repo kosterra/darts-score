@@ -126,10 +126,7 @@ const QuickGamesList = () => {
                 {t('Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started, a game never finished 3 days after its last visit.')}
             </p>
 
-            <AdminToolbar>
-                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} />
-                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
-                <div className="ms-auto d-flex align-items-center gap-3">
+            <AdminToolbar actions={<>
                     <span className="text-faint fs-7">{plural(games.length, 'game')}</span>
                     <Button
                         label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
@@ -139,7 +136,9 @@ const QuickGamesList = () => {
                         disabled={!selection.length}
                         onClick={confirmDeleteSelection}
                     />
-                </div>
+                </>} changed={[type !== 'all', status !== 'all'].filter(Boolean).length}>
+                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} />
+                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
             </AdminToolbar>
 
             {failed
