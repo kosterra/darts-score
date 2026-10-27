@@ -43,6 +43,10 @@ const FIGURES = [
     { key: 'bestLeg', label: t('Best leg'), format: (value) => t('{{value}} darts', { value: value }), lowerIsBetter: true },
     { key: 'highestVisit', label: t('Highest visit') },
     { key: 'oneEighties', label: t('180s') },
+    { key: 'ton60', label: '160+' },
+    { key: 'ton40', label: '140+' },
+    { key: 'ton20', label: '120+' },
+    { key: 'ton', label: '100+' },
     { key: 'dartsThrown', label: t('Darts thrown'), neutral: true },
 ];
 
@@ -175,10 +179,13 @@ const X01GameStats = ({ training = false, quick = false }) => {
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const bySets = game.numberOfSets > 1;
+    // two players have the whole game side by side on top already: here only set by set
+    const setsOnly = players.length === 2;
     const barsScopes = [
-        { label: t('All sets'), value: 'game' },
+        ...(setsOnly ? [] : [{ label: t('All sets'), value: 'game' }]),
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: t('Set {{value}}', { value: i + 1 }), value: `set-${i + 1}` })),
     ];
+    const shownScope = barsScopes.some(scope => scope.value === barsScope) ? barsScope : barsScopes[0]?.value;
 
     // a tournament match: on to its bracket, no rematch
     const tournamentId = game.tournament?.id;
@@ -230,14 +237,14 @@ const X01GameStats = ({ training = false, quick = false }) => {
 
                 <X01LegsPanel game={game} players={players} legs={legs} />
 
-                {players.length > 1 &&
-                    <Panel header={t('Side by side')} className="mb-4">
-                        {barsScopes.length > 2 &&
+                {players.length > 1 && (!setsOnly || barsScopes.length > 1) &&
+                    <Panel header={setsOnly ? t('Set by set') : t('Side by side')} className="mb-4">
+                        {barsScopes.length > 1 &&
                             <div className="d-flex justify-content-start mb-3">
-                                <SelectButton value={barsScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} className="p-selectbutton-pills pills-inline" aria-label={t('Whole game or set')} />
+                                <SelectButton value={shownScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} className="p-selectbutton-pills pills-inline" aria-label={t('Whole game or set')} />
                             </div>
                         }
-                        <X01StatsComparisonBars game={game} valueKey={barsScope} players={players} />
+                        <X01StatsComparisonBars game={game} valueKey={shownScope} players={players} />
                     </Panel>
                 }
 

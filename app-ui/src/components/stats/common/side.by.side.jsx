@@ -10,9 +10,10 @@ import { t } from '../../../utils/i18n';
  * rows: [{ key, label, values: [number], texts?: [string], details?: [string],
  *         lowerIsBetter?, neutral?, formatLead?(difference) }] — neutral rows
  *         mark no one as better; formatLead writes the lead, e.g. as a percentage.
- * Rows where every value is 0 are left out.
+ * Rows where every value is 0 are left out. names: false when the names are shown
+ * above already (the result of a game, under the portraits).
  */
-const SideBySide = ({ rows, players }) => {
+const SideBySide = ({ rows, players, names = true }) => {
     const shown = rows.filter(row => row.values.some(value => Number(value) > 0));
     if (!shown.length) return <p className="text-subtle m-0">{t('Nothing to compare yet.')}</p>;
 
@@ -50,23 +51,29 @@ const SideBySide = ({ rows, players }) => {
         return lead ? <span className="tape-lead">{lead}</span> : null;
     };
 
-    // the longest line is the highest value
+    // the longest line is the best value: the highest, or the lowest where fewer is better
     const share = (row, index) => {
-        const max = Math.max(...row.values.map(Number));
-        return max > 0 ? Math.max(0, Number(row.values[index])) / max : 0;
+        const values = row.values.map(Number);
+        const value = Math.max(0, values[index]);
+        if (row.lowerIsBetter) {
+            const min = Math.min(...values.filter(entry => entry > 0));
+            return value > 0 && Number.isFinite(min) ? min / value : 0;
+        }
+        const max = Math.max(...values);
+        return max > 0 ? value / max : 0;
     };
 
     if (players.length === 2) {
         return (
             <div className="tape">
-                <div className="tape-names">
+                {names && <div className="tape-names">
                     {players.map((player, index) => (
                         <span key={player.id} className={index === 0 ? 'text-start' : 'text-end'}>
                             <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />
                             {player.nickname}
                         </span>
                     ))}
-                </div>
+                </div>}
                 {shown.map(row => (
                     <div key={row.key} className="tape-row">
                         <div className="tape-values">

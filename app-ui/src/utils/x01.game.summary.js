@@ -93,6 +93,11 @@ export const playerFigures = (game, playerId, legs = legsOf(game)) => {
         bestLeg: wonLegs.length ? Math.min(...wonLegs.map(leg => leg.winnerDarts)) : null,
         highestVisit: visits.length ? Math.max(...visits.map(visit => visit.roundScore ?? 0)) : null,
         oneEighties: model.scoreRanges?.game?.['180'] ?? 0,
+        // the high scores below 180, as in the side by side of a set
+        ton60: model.scoreRanges?.game?.['160-179'] ?? 0,
+        ton40: model.scoreRanges?.game?.['140-159'] ?? 0,
+        ton20: model.scoreRanges?.game?.['120-139'] ?? 0,
+        ton: model.scoreRanges?.game?.['100-119'] ?? 0,
         dartsThrown: model.totalThrow?.game?.darts ?? visits.reduce((sum, visit) => sum + dartsIn(visit), 0),
         legsWon: model.legsWon?.game ?? wonLegs.length,
         setsWon: model.setsWon ?? 0,
