@@ -159,6 +159,18 @@
             > td:has(> .p-column-title:empty) > .p-column-title { display: none; }
         }
 
+        // the games: tick box, date and status on the top line, a thin line under the game
+        &.games-table .p-datatable-tbody > tr:not(.p-datatable-emptymessage) {
+            > td { order: 1; }
+            > td.p-selection-column { order: 0; flex: 0 0 auto; width: auto !important; }
+            > td.date-cell { order: 0; flex: 1 1 0; }
+            > td.status-cell { order: 0; flex: 0 0 auto; width: auto !important; }
+            > td.game-cell {
+                padding-bottom: $space-2;
+                border-bottom: 1px solid $surfaceHighColor !important;
+            }
+        }
+
         .p-datatable-tbody > tr:hover > td,
         .p-datatable-tbody > tr.p-highlight > td { background: transparent; }
     }

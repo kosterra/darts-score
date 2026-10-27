@@ -384,7 +384,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                     <DataTable
                         value={visibleGames}
                         dataKey="key"
-                        className="admin-table"
+                        className="admin-table games-table"
                         selectionMode={canManage ? 'checkbox' : null}
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
@@ -393,11 +393,11 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         responsiveLayout="stack" breakpoint="640px"
                     >
                         {canManage && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
-                        <Column bodyClassName="no-label" field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
+                        <Column bodyClassName="no-label date-cell" field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
                         {acrossClubs && <Column bodyClassName="no-label" field="club.name" header={t('Club')} sortable body={(game) => <ClubCell club={game.club} />} />}
-                        <Column header={t('Game')} bodyClassName="stack-block no-label" body={gameBody} />
+                        <Column header={t('Game')} bodyClassName="stack-block no-label game-cell" body={gameBody} />
                         <Column header={t('Players')} bodyClassName="stack-block no-label" body={playersBody} style={{ minWidth: '16rem' }} />
-                        <Column bodyClassName="no-label" header={t('Status')} body={statusBody} />
+                        <Column bodyClassName="no-label status-cell" header={t('Status')} body={statusBody} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )
