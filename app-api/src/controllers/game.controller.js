@@ -9,6 +9,7 @@ import { GAME_SETTINGS, RULES_KINDS, ruleViolations } from '../rules/club.rules.
 import { gameOf } from '../rules/games.js';
 import { withGameState } from '../rules/engine.js';
 import { tournamentGameDeleted, tournamentGameFinished } from '../utils/tournaments.js';
+import { leagueGameDeleted, leagueGameFinished } from '../utils/leagues.js';
 
 /**
  * A game of the rules engine with its results worked out here from its visits,
@@ -26,7 +27,7 @@ const DEFAULT_LIMIT = 100;
 
 // what a game was set up with, and stays with: its settings, the handicap, doubles, whether it is
 // friendly, and the tournament match it decides
-const SET_UP = ['handicap', 'doubles', 'friendly', 'format', 'tournament'];
+const SET_UP = ['handicap', 'doubles', 'friendly', 'format', 'tournament', 'league'];
 const keepSetUp = (game, stored, changes) => {
     const keys = RULES_KINDS.includes(game) ? ['settings', 'kind', ...SET_UP] : [...(GAME_SETTINGS[game] ?? []).map(setting => setting.key), ...SET_UP];
     const plain = typeof stored.toObject === 'function' ? stored.toObject() : stored;
@@ -152,6 +153,8 @@ export const createGameController = (Model, gameName, type = null) => {
                 checkLater(() => noteFairPlay(req.club._id, type ?? 'rules', data));
                 // the winner of a tournament match goes on
                 if (data.tournament?.id) await tournamentGameFinished(data, answer(data));
+                // likewise a league match counts in its table
+                if (data.league?.id) await leagueGameFinished(data, answer(data));
             }
             res.json(answer(data));
         } catch (err) {
@@ -169,6 +172,7 @@ export const createGameController = (Model, gameName, type = null) => {
             // the badges earned in it go along
             await removeWithBadges(Model.modelName, data);
             if (data.tournament?.id) await tournamentGameDeleted(data);
+            if (data.league?.id) await leagueGameDeleted(data);
             checkLater(() => noteDeleted(req, 'game'));
             await db.deletionRequest.updateMany({ game: id, status: 'open' }, { status: 'deleted', decidedBy: req.user._id, decidedByName: `${req.user.firstname} ${req.user.lastname}`, decidedAt: new Date() });
             res.json({ message: `${label} game deleted successfully.` });

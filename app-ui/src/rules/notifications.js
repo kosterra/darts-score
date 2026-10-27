@@ -41,12 +41,14 @@ export const NOTIFICATION_TOPICS = [
     { id: 'joining', group: 'club', kinds: ['joinAccepted', 'joinDeclined', 'clubHandedOver'], inApp: true, mail: 'instant' },
     { id: 'tournamentInvites', group: 'club', kinds: ['tournamentInvite', 'tournamentReminder', 'tournamentCancelled'], mails: ['off', 'instant'], inApp: true, mail: 'instant' },
     { id: 'tournaments', group: 'club', kinds: ['tournamentDrawn', 'tournamentMatch', 'tournamentWon'], inApp: true, mail: 'off' },
+    { id: 'leagues', group: 'club', kinds: ['leagueStarted', 'leagueMatch', 'leagueMoved', 'leagueWon'], inApp: true, mail: 'off' },
 
     { id: 'joinRequests', group: 'admin', kinds: ['joinRequested', 'clubJoined'], inApp: true, mail: 'instant' },
     { id: 'fairPlayFound', group: 'admin', kinds: ['fairPlayFound'], inApp: true, mail: 'daily' },
     { id: 'goalEnding', group: 'admin', kinds: ['goalEnding'], inApp: true, mail: 'off' },
     { id: 'inviteUnused', group: 'admin', kinds: ['inviteUnused'], inApp: true, mail: 'off' },
     { id: 'tournamentAdmin', group: 'admin', kinds: ['tournamentClosed', 'tournamentOverdue'], inApp: true, mail: 'instant' },
+    { id: 'leagueAdmin', group: 'admin', kinds: ['leagueOverdue'], inApp: true, mail: 'off' },
     { id: 'clubSummary', group: 'admin', kinds: [], mailOnly: true, mails: ['off', 'weekly'], inApp: false, mail: 'off' },
 
     { id: 'alertsCritical', group: 'global', kinds: ['alertCritical'], inApp: true, mail: 'instant' },

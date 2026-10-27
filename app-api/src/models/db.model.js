@@ -27,6 +27,7 @@ import noticeSentModel from './notice.sent.model.js';
 import sessionModel from './session.model.js';
 import usageDayModel from './usage.day.model.js';
 import tournamentModel from './tournament.model.js';
+import leagueModel from './league.model.js';
 import quickEveningModel from './quick.evening.model.js';
 import screenPairingModel from './screen.pairing.model.js';
 
@@ -61,6 +62,7 @@ const db = {
   session: sessionModel(mongoose),
   usageDay: usageDayModel(mongoose),
   tournament: tournamentModel(mongoose),
+  league: leagueModel(mongoose),
   quickEvening: quickEveningModel(mongoose),
   screenPairing: screenPairingModel(mongoose),
 };

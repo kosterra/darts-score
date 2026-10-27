@@ -45,6 +45,8 @@ tags:
     description: Games on the public start page without an account, kept for 30 days
   - name: Tournaments
     description: The tournaments of a club (knockout, or groups and then knockout), from the registration to the final
+  - name: Leagues
+    description: 'The leagues of a club: everyone against everyone in matchdays, the table from the matches'
   - name: Administration
     description: 'The installation: all clubs, players, games, trainings, banner, login length, error log, alerts and blocks (global admins only)'
   - name: Players
@@ -7178,6 +7180,388 @@ paths:
             type: string
             pattern: '^(\d+-\d+|g\d+-\d+-\d+)$'
       operationId: putTournamentsByidMatchesBymatchResult
+  /api/leagues:
+    get:
+      tags:
+        - Leagues
+      summary: 'The leagues of the club, the newest first'
+      responses:
+        '200':
+          description: '{ leagues: [ ] } each as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+    post:
+      tags:
+        - Leagues
+      summary: 'Set up a league (club admins); start: true starts it at once'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                players:
+                  type: array
+                  items:
+                    type: string
+                meetings:
+                  type: integer
+                  enum: [1, 2]
+                everyDays:
+                  type: integer
+                  enum: [7, 14]
+                firstDay:
+                  type: string
+                  format: date-time
+                rules:
+                  type: object
+                  description: 'The rules of every match: startingScore, legInMode, legOutMode, setMode, numberOfSets, legMode, numberOfLegs'
+                start:
+                  type: boolean
+      responses:
+        '201':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+  /api/leagues/{id}:
+    get:
+      tags:
+        - Leagues
+      summary: 'One league'
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+    put:
+      tags:
+        - Leagues
+      summary: 'Change a league (club admins): all of it as a draft, the name and description once it runs'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                players:
+                  type: array
+                  items:
+                    type: string
+                meetings:
+                  type: integer
+                  enum: [1, 2]
+                everyDays:
+                  type: integer
+                  enum: [7, 14]
+                firstDay:
+                  type: string
+                  format: date-time
+                rules:
+                  type: object
+                  description: 'The rules of every match: startingScore, legInMode, legOutMode, setMode, numberOfSets, legMode, numberOfLegs'
+                start:
+                  type: boolean
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+    delete:
+      tags:
+        - Leagues
+      summary: 'Delete a draft or cancelled league (club admins)'
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+  /api/leagues/{id}/start:
+    post:
+      tags:
+        - Leagues
+      summary: 'Start the season: every match in its matchday, the players told (club admins)'
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+  /api/leagues/{id}/cancel:
+    post:
+      tags:
+        - Leagues
+      summary: 'Cancel the league (club admins)'
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+  /api/leagues/{id}/matches/{match}/start:
+    post:
+      tags:
+        - Leagues
+      summary: 'Start a match as an X01 game (its players or an admin)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first:
+                  type: string
+      responses:
+        '201':
+          description: '{ game: id of the X01 game }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: match
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^d\d+-\d+$'
+  /api/leagues/{id}/matches/{match}/result:
+    put:
+      tags:
+        - Leagues
+      summary: 'Decide a match without a game (club admins)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                winner:
+                  type: string
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: match
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^d\d+-\d+$'
+  /api/leagues/{id}/matches/{match}/date:
+    put:
+      tags:
+        - Leagues
+      summary: 'Move a match to another day, or back to its matchday with null (club admins)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: match
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^d\d+-\d+$'
+  /api/leagues/{id}/matchdays/{day}/date:
+    put:
+      tags:
+        - Leagues
+      summary: 'Move a matchday (club admins)'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No such league (drafts only for the admins)
+        '409':
+          description: Not possible in the state the league is in
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: integer
   /api/tournament-reply:
     get:
       tags:
