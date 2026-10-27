@@ -22,15 +22,6 @@
     margin: 0 auto;
 }
 
-.evening-game {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.55rem 0.75rem;
-    border-radius: $radius-md;
-    background: ink(0.04);
-}
-
 // the table and who beat whom
 .evening-table-wrap { overflow-x: auto; }
 
@@ -53,45 +44,6 @@
     .evening-place { color: var(--text-faint); text-align: center; width: 2rem; }
     tr.is-leader td { background: with-alpha($podiumGold, 0.1); }
     tr.is-leader .evening-place { color: $podiumGold; font-weight: $weight-bold; }
-}
-
-.evening-h2h {
-    th, td { text-align: center; }
-    th:first-child { text-align: left; }
-    td.is-self { background: ink(0.06); }
-    td.has-wins { color: var(--text-default); font-weight: $weight-bold; }
-    th { max-width: 6rem; overflow: hidden; text-overflow: ellipsis; }
-}
-
-// the awards: a card each
-.evening-awards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-    gap: 0.75rem;
-}
-
-.evening-award {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem;
-    border-radius: $radius-md;
-    background: ink(0.04);
-
-    &.is-champion { background: with-alpha($podiumGold, 0.14); }
-    &.is-champion .evening-award-icon { background: with-alpha($podiumGold, 0.22); color: $podiumGold; }
-}
-
-.evening-award-icon {
-    display: inline-grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 50%;
-    background: with-alpha($primaryColor, 0.16);
-    color: $primaryColor;
-    font-size: $text-lg;
 }
 
 // the form: each player's X01 average game by game
