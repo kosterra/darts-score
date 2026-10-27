@@ -19,8 +19,9 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
             <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none" aria-label={t('Legmate start page')}>
                 <img alt="" src="/logo.svg" width="40" height="40" />
                 <span className="fs-5 fw-semibold text-default landing-brand-name">{t('Legmate')}</span>
-                {suffix && <span className="text-faint fs-8 d-none d-sm-inline">{suffix}</span>}
             </Link>
+            {/* the part of Legmate the page belongs to, in the place and look of the start page's sections */}
+            {suffix && <span className="landing-section">{suffix.replace(/^·\s*/, '')}</span>}
             {nav}
             <nav className="d-flex align-items-center gap-2" aria-label={t('Account')}>
                 {/* the way to support Legmate, quiet: a heart, with its word on wider screens */}

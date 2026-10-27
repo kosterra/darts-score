@@ -22,40 +22,6 @@
     margin: 0 auto;
 }
 
-// the players of the evening, tapped for the next game in the order they throw
-.evening-players {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.evening-player {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.45rem 0.85rem;
-    border: 1px solid ink(0.12);
-    border-radius: $radius-pill;
-    background: transparent;
-    color: var(--text-subtle);
-    font: inherit;
-    font-weight: $weight-semibold;
-    cursor: pointer;
-
-    &.is-chosen { border-color: $primaryColor; background: with-alpha($primaryColor, 0.18); color: var(--text-default); }
-}
-
-.evening-player-order {
-    display: inline-grid;
-    place-items: center;
-    width: 1.3rem;
-    height: 1.3rem;
-    border-radius: 50%;
-    background: $primaryColor;
-    color: $buttonTextColor;
-    font-size: $text-xs;
-}
-
 .evening-game {
     display: flex;
     align-items: center;
@@ -183,4 +149,31 @@
     color: var(--text-subtle);
     font-size: $text-xs;
     word-break: break-all;
+}
+
+// the next game: the choices as pills of a fitting size from the left, the settings of
+// the game in two columns where there is room
+.evening-next {
+    .p-selectbutton.p-selectbutton-pills {
+        justify-content: flex-start;
+
+        .p-button { max-width: 9rem; }
+    }
+
+    .setting-body .col { justify-content: flex-start !important; }
+}
+
+.evening-settings {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: $space-3;
+
+    @media (min-width: 768px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+// who plays tonight, under the date: standing out from it
+.evening-header-players {
+    color: var(--text-default);
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
 }
