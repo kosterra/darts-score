@@ -169,9 +169,10 @@ const PlayersTable = ({ scope = 'club' }) => {
     const publicBody = (player) => player.guest
         ? <span className="text-faint fs-7">–</span>
         : (
-            <span className="d-flex flex-column">
+            // on a phone both on one line (see admin-public-page)
+            <span className="d-flex flex-column admin-public-page">
                 <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? t('Nickname shown') : t('Hidden')}</span>
-                {decidesThemselves(player) && <span className="text-faint fs-8">{t('their own choice')}</span>}
+                {decidesThemselves(player) && <span className="text-faint fs-8 admin-public-page-who">{t('their own choice')}</span>}
             </span>
         );
 

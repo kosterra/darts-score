@@ -116,6 +116,14 @@
                 > :not(.p-column-title) { min-width: 0; }
             }
 
+            // whether the public page shows the player, and who chose it: one line
+            .admin-public-page {
+                flex-direction: row !important;
+                align-items: baseline;
+                gap: 0.35rem;
+            }
+            .admin-public-page-who::before { content: '· '; }
+
             // a line each, except values that go side by side (e.g. level, type and login)
             > td { flex: 1 1 100%; }
             > td.inline-cell { flex: 0 0 auto; width: auto !important; }
