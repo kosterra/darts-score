@@ -260,7 +260,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         className="admin-table"
                         {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage={rows === null ? <TableLoading /> : t('No trainings match these filters.')}
-                        responsiveLayout="scroll"
+                        responsiveLayout="stack" breakpoint="640px"
                     >
                         <Column field="createdAt" header={t('Date')} sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />
                         {acrossClubs && <Column field="club.name" header={t('Club')} sortable body={(row) => <ClubCell club={row.club} />} />}

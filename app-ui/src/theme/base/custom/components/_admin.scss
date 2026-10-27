@@ -55,6 +55,61 @@
     }
 }
 
+// on a phone (the tables stack below 640px, see responsiveLayout="stack"): every entry a
+// card of its own, each value with the name of its column beside it, the actions at the end
+@media (max-width: 639.98px) {
+    .admin-table.p-datatable-responsive-stack {
+        .p-datatable-table { border-spacing: 0; }
+
+        .p-datatable-tbody > tr:not(.p-datatable-emptymessage) {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: $space-2;
+            padding: $space-2 $space-3;
+            border-radius: $borderRadius;
+            background: $surfaceRaisedColor;
+
+            &:hover { background: $surfaceHighColor; }
+            &.p-highlight { background: with-alpha($primaryColor, 0.22); }
+
+            > td {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: $space-3;
+                width: 100% !important;
+                min-width: 0 !important;
+                padding: 0.35rem 0;
+                border: 0;
+                border-radius: 0 !important;
+                background: transparent;
+                text-align: right;
+
+                // the name of the column, quiet on the left
+                > .p-column-title {
+                    flex-shrink: 0;
+                    min-width: 5.5rem;
+                    color: var(--text-faint);
+                    font-size: $text-sm;
+                    font-weight: $weight-semibold;
+                    text-align: left;
+                }
+
+                // the value: as much room as it needs, its lines to the right
+                > :not(.p-column-title) { min-width: 0; }
+            }
+
+            // the tick box and the actions need no name: the box on top, the actions at the end
+            > td.p-selection-column { justify-content: flex-start; }
+            > td:last-child:has(.row-actions) { justify-content: flex-end; }
+            > td:has(> .p-column-title:empty) > .p-column-title { display: none; }
+        }
+
+        .p-datatable-tbody > tr:hover > td,
+        .p-datatable-tbody > tr.p-highlight > td { background: transparent; }
+    }
+}
+
 // Row actions are quiet icon buttons; only hovering shows what they do
 .row-actions {
     display: flex;
@@ -853,12 +908,23 @@ $fair-play-suspicious: $accentAmber;
 
 @media (max-width: 575.98px) {
     .admin-toolbar {
-        .p-selectbutton .p-button {
-            padding: 0.5rem 0.7rem;
+        // the pills wrap onto a second line instead of running out of sight
+        .p-selectbutton {
+            flex-wrap: wrap;
+            overflow-x: visible;
         }
 
+        .p-selectbutton .p-button {
+            padding: 0.45rem 0.8rem;
+        }
+
+        // the dropdowns, the search and the choice of clubs take the whole width
         .type-filter,
-        .p-dropdown {
+        .p-dropdown,
+        .p-multiselect,
+        .club-filter,
+        .p-input-icon-left,
+        .p-input-icon-left > .p-inputtext {
             width: 100%;
             max-width: none;
         }

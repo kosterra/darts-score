@@ -161,7 +161,7 @@ const ErrorLog = () => {
                     // a new search keeps the rows under a spinner; the first load shows the shape of the rows
                     loading={Boolean(log?.loading)}
                     emptyMessage={!log || log.loading ? <TableLoading /> : t('No warnings or errors. All good.')}
-                    responsiveLayout="scroll"
+                    responsiveLayout="stack" breakpoint="640px"
                 >
                     <Column expander={hasDetails} style={{ width: '3rem' }} />
                     <Column header={t('Time')} body={timeBody} />

@@ -269,7 +269,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                         className="admin-table"
                         {...tableState(view, setView, { sortField: 'nickname', sortOrder: 1 })}
                         emptyMessage={players === null ? <TableLoading /> : players?.length ? t('No players match these filters.') : t('No players yet.')}
-                        responsiveLayout="scroll"
+                        responsiveLayout="stack" breakpoint="640px"
                     >
                         <Column
                             field="nickname"

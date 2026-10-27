@@ -391,7 +391,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage={games === null ? <TableLoading /> : t('No games match these filters.')}
-                        responsiveLayout="scroll"
+                        responsiveLayout="stack" breakpoint="640px"
                     >
                         {canManage && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
                         <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />

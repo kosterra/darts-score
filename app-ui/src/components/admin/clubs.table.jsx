@@ -139,7 +139,7 @@ const ClubsTable = () => {
                 className="admin-table"
                 {...tableState(view, setView, { sortField: 'name', sortOrder: 1 })}
                 emptyMessage={clubs === null ? <TableLoading /> : clubs?.length ? t('No clubs match these filters.') : t('No clubs yet.')}
-                responsiveLayout="scroll"
+                responsiveLayout="stack" breakpoint="640px"
             >
                 <Column field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
                 <Column header={t('Visibility')} body={visibilityBody} />

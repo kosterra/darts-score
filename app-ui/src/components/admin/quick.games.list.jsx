@@ -123,7 +123,7 @@ const QuickGamesList = () => {
         <QuickGamesOverview data={data} days={days} />
         <Panel header={t('Quick games')}>
             <p className="text-subtle fs-7 mt-0 mb-3">
-                {t('Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started.')}
+                {t('Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started, a game never finished 3 days after its last visit.')}
             </p>
 
             <AdminToolbar>
@@ -154,7 +154,7 @@ const QuickGamesList = () => {
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage={data === null ? <TableLoading /> : data?.games?.length ? t('No quick games match these filters.') : t('No quick games yet.')}
-                        responsiveLayout="scroll"
+                        responsiveLayout="stack" breakpoint="640px"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
                         <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />

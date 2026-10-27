@@ -197,7 +197,7 @@ const UsersList = () => {
                 className="admin-table"
                 {...tableState(view, setView, { sortField: 'lastname', sortOrder: 1 })}
                 emptyMessage={!loaded ? <TableLoading /> : users.length ? t('No users match these filters.') : t('No users found.')}
-                responsiveLayout="scroll"
+                responsiveLayout="stack" breakpoint="640px"
             >
                 <Column field="lastname" header={t('Name')} sortable body={nameBody} />
                 <Column field="email" header={t('Email')} sortable body={(user) => <span className="text-default fs-7">{user.email}</span>} />
