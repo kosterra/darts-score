@@ -195,6 +195,28 @@
             }
         }
 
+        // the clubs: the club with its visibility on top, a thin line, the admins, players and
+        // games side by side, the last activity
+        &.clubs-table .p-datatable-tbody > tr:not(.p-datatable-emptymessage) {
+            > td { order: 1; }
+            > td.club-cell { order: 0; flex: 1 1 0; }
+            > td.visibility-cell { order: 0; flex: 0 0 auto; width: auto !important; align-self: flex-start; }
+            > td.admins-cell {
+                margin-top: $space-1;
+                padding-top: $space-2;
+                border-top: 1px solid $surfaceHighColor !important;
+            }
+            // a figure beside the next one: its name right before it
+            > td.figure-cell {
+                justify-content: flex-start;
+                gap: $space-2;
+
+                > .p-column-title { min-width: 0; }
+            }
+            // the line under the figures belongs to the club's top only
+            > td.inline-cell + td:not(.inline-cell) { margin-top: 0; padding-top: 0.35rem; border-top: 0 !important; }
+        }
+
         .p-datatable-tbody > tr:hover > td,
         .p-datatable-tbody > tr.p-highlight > td { background: transparent; }
     }

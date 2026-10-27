@@ -135,16 +135,16 @@ const ClubsTable = () => {
                 // the admins of a club open under its row
                 expandedRows={adminsOfClubId ? { [adminsOfClubId]: true } : null}
                 rowExpansionTemplate={(club) => <ClubAdminsEditor club={club} onHide={() => setAdminsOfClubId(null)} onChange={onAdminsChange} />}
-                className="admin-table"
+                className="admin-table clubs-table"
                 {...tableState(view, setView, { sortField: 'name', sortOrder: 1 })}
                 emptyMessage={clubs === null ? <TableLoading /> : clubs?.length ? t('No clubs match these filters.') : t('No clubs yet.')}
                 responsiveLayout="stack" breakpoint="640px"
             >
-                <Column bodyClassName="no-label" field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
-                <Column header={t('Visibility')} body={visibilityBody} />
-                <Column header={t('Admins')} body={adminsBody} />
-                <Column bodyClassName="no-label" field="playerCount" header={t('Players')} sortable />
-                <Column field="gameCount" header={t('Games')} sortable />
+                <Column bodyClassName="no-label club-cell" field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
+                <Column bodyClassName="no-label visibility-cell" header={t('Visibility')} body={visibilityBody} />
+                <Column bodyClassName="admins-cell" header={t('Admins')} body={adminsBody} />
+                <Column bodyClassName="inline-cell figure-cell" field="playerCount" header={t('Players')} sortable body={(club) => <span className="text-default fw-semibold tabular-nums">{club.playerCount ?? 0}</span>} />
+                <Column bodyClassName="inline-cell figure-cell" field="gameCount" header={t('Games')} sortable body={(club) => <span className="text-default fw-semibold tabular-nums">{club.gameCount ?? 0}</span>} />
                 <Column field="lastActivityAt" header={t('Last activity')} sortable body={(club) => <span className="text-subtle fs-7 text-nowrap">{clubDate(club.lastActivityAt)}</span>} />
                 <Column body={actionsBody} />
             </DataTable>
