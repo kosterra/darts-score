@@ -37,6 +37,7 @@ const TOPICS = {
     tournamentAdmin: { title: t('Tournaments of your club'), hint: t('The registration closed (hold the draw), and matches not played by the next round.') },
     leagues: { title: t('Leagues'), hint: t('A league you play in starts, your next match, a match moved, and who won.') },
     leagueAdmin: { title: t('Leagues of your club'), hint: t('Matches of a past matchday not played yet.') },
+    clubNights: { title: t('Club nights'), hint: t('A club night is cancelled, or takes place after all.') },
     clubSummary: { title: t('The week of the club'), hint: t('A mail on Mondays: games, players, badges, goals and what waits for an admin.') },
     alertsCritical: { title: t('Critical alerts'), hint: t('E.g. a taken-over club or much deleted at once.') },
     alertsWarning: { title: t('Warnings'), hint: t('Unusual activity, e.g. many accounts or games at once.') },

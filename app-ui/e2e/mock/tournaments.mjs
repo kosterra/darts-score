@@ -7,6 +7,9 @@ const at = (days, hour = 19, minute = 30) => { const d = new Date(Date.now() + d
 let tournaments = [];
 let next = 1;
 
+// for the calendar
+export const allTournaments = () => tournaments;
+
 const viewOf = (tr, players, me) => ({
     ...tr,
     players: Object.fromEntries(players.map(p => [p.id, { id: p.id, nickname: p.nickname, firstname: p.firstname, lastname: p.lastname, shirt: shirtOf(p) }])),

@@ -30,6 +30,8 @@ export default (mongoose) => {
       // Hash of the token from a "set your password" mail, and when it stops working
       resetTokenHash:    { type: String, default: null, index: true },
       resetTokenExpires: { type: Date, default: null },
+      // the secret in the address of the user's calendar feed (iCal); null until asked for
+      calendarToken:     { type: String, default: null, index: true, sparse: true },
       // Shown to global admins, to spot accounts nobody uses
       lastLoginAt:       { type: Date, default: null },
       // A blocked account cannot log in or use the API, e.g. one a spam rule caught
@@ -71,7 +73,7 @@ export default (mongoose) => {
 
   schema.method('toJSON', function () {
     // eslint-disable-next-line no-unused-vars
-    const { _id, passwordHash, sessionVersion, resetTokenHash, resetTokenExpires, mfa, passkeys, passkeyUserId, ...object } = this.toObject();
+    const { _id, passwordHash, sessionVersion, resetTokenHash, resetTokenExpires, calendarToken, mfa, passkeys, passkeyUserId, ...object } = this.toObject();
     object.id = _id;
     object.mfaEnabled = Boolean(mfa?.enabledAt && mfa?.secret);
     object.passkeyCount = (passkeys ?? []).length;

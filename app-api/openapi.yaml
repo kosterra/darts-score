@@ -47,6 +47,8 @@ tags:
     description: The tournaments of a club (knockout, or groups and then knockout), from the registration to the final
   - name: Leagues
     description: 'The leagues of a club: everyone against everyone in matchdays, the table from the matches'
+  - name: Calendar
+    description: 'The calendar of a club: weekly club nights, who comes, the days of tournaments and leagues, and the feed for the phone'
   - name: Administration
     description: 'The installation: all clubs, players, games, trainings, banner, login length, error log, alerts and blocks (global admins only)'
   - name: Players
@@ -7562,6 +7564,223 @@ paths:
           required: true
           schema:
             type: integer
+  /api/calendar:
+    get:
+      tags:
+        - Calendar
+      summary: 'The calendar of the club: the weekly club nights, every club night in the time with who comes, and the days of its tournaments and leagues'
+      responses:
+        '200':
+          description: '{ from, to, nights, myPlayer, clubNights: [ { day, weekday, start, end, note, cancelled, coming, notComing (admins), notComingCount, me } ], events: [ { id, type, at, name, link, round | day } ] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: from
+          in: query
+          required: false
+          description: The first day, YYYY-MM-DD (today when left out)
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: false
+          description: The last day, YYYY-MM-DD (eight weeks on when left out; at most 26 weeks)
+          schema:
+            type: string
+      operationId: getCalendar
+  /api/calendar/nights:
+    put:
+      tags:
+        - Calendar
+      summary: Set the weekly club nights (club admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nights
+              properties:
+                nights:
+                  type: array
+                  maxItems: 7
+                  items:
+                    type: object
+                    properties:
+                      weekday:
+                        type: integer
+                        minimum: 0
+                        maximum: 6
+                        description: 0 is Sunday
+                      start:
+                        type: string
+                        example: '19:30'
+                      end:
+                        type: string
+                        example: '23:00'
+                      note:
+                        type: string
+                        maxLength: 80
+      responses:
+        '200':
+          description: The calendar, as GET /api/calendar
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '422':
+          description: What was sent cannot be taken
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putCalendarNights
+  /api/calendar/nights/{day}/attendance:
+    put:
+      tags:
+        - Calendar
+      summary: Say whether you come to a club night (null takes the answer back)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answer:
+                  type: string
+                  nullable: true
+                  enum:
+                    - 'yes'
+                    - 'no'
+      responses:
+        '200':
+          description: The calendar, as GET /api/calendar
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a player of the club
+        '404':
+          description: No club night on that day
+        '409':
+          description: The club night is over or cancelled
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      operationId: putCalendarNightsBydayAttendance
+  /api/calendar/nights/{day}/cancelled:
+    put:
+      tags:
+        - Calendar
+      summary: Cancel a club night, with a reason (club admins); every member hears of it
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  maxLength: 120
+      responses:
+        '200':
+          description: The calendar, as GET /api/calendar
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No club night on that day
+        '409':
+          description: The club night is over
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      operationId: putCalendarNightsBydayCancelled
+    delete:
+      tags:
+        - Calendar
+      summary: The club night takes place after all (club admins); every member hears of it
+      responses:
+        '200':
+          description: The calendar, as GET /api/calendar
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '404':
+          description: No club night on that day
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      operationId: deleteCalendarNightsBydayCancelled
+  /api/calendar/feed-link:
+    get:
+      tags:
+        - Calendar
+      summary: 'The address of your calendar feed (iCal), made when first asked for: every club night, tournament and league day of all your clubs'
+      responses:
+        '200':
+          description: '{ url }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: getCalendarFeedLink
+    post:
+      tags:
+        - Calendar
+      summary: A new address of your calendar feed; the old one stops working
+      responses:
+        '200':
+          description: '{ url }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: postCalendarFeedLink
+  /api/calendar-feed/{token}:
+    get:
+      tags:
+        - Calendar
+      summary: The calendar feed of a user (iCal, text/calendar), without a login; the secret in the address is the key
+      security: []
+      responses:
+        '200':
+          description: The calendar as iCal
+          content:
+            text/calendar:
+              schema:
+                type: string
+        '404':
+          description: No such calendar
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: The secret, with .ics or without
+          schema:
+            type: string
+            pattern: '^[0-9a-f]{48}(\.ics)?$'
+      operationId: getCalendarFeedBytoken
   /api/tournament-reply:
     get:
       tags:

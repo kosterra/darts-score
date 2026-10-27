@@ -8,6 +8,9 @@ const RULES = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Doubl
 let leagues = [];
 let next = 1;
 
+// for the calendar
+export const allLeagues = () => leagues;
+
 const viewOf = (league, players, me) => ({
     ...league,
     names: Object.fromEntries(players.map(p => [p.id, { id: p.id, nickname: p.nickname, firstname: p.firstname, lastname: p.lastname, shirt: shirtOf(p) }])),

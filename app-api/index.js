@@ -37,6 +37,7 @@ import notificationRoutes, { unsubscribeRoutes } from './src/routes/notification
 import deletionRequestRoutes from './src/routes/deletion.request.routes.js';
 import tournamentRoutes, { tournamentReplyRoutes } from './src/routes/tournament.routes.js';
 import leagueRoutes from './src/routes/league.routes.js';
+import calendarRoutes, { calendarFeedRoutes } from './src/routes/calendar.routes.js';
 import eveningRoutes, { eveningClubRoutes } from './src/routes/evening.routes.js';
 import screenRoutes from './src/routes/screen.routes.js';
 import { isAllowedOrigin } from './src/utils/origin.utils.js';
@@ -180,6 +181,7 @@ publicRoutes(app);
 unsubscribeRoutes(app);
 claimInfoRoutes(app);
 tournamentReplyRoutes(app);
+calendarFeedRoutes(app);
 eveningRoutes(app);
 screenRoutes(app);
 clubLogoRoutes(app);
@@ -196,12 +198,13 @@ claimRoutes(app);
 eveningClubRoutes(app);
 
 // ... and players, games, training and statistics also need a selected club
-app.use(['/api/players', '/api/games', '/api/training', '/api/stats', '/api/tournaments', '/api/leagues'], requireClub);
+app.use(['/api/players', '/api/games', '/api/training', '/api/stats', '/api/tournaments', '/api/leagues', '/api/calendar'], requireClub);
 playerRoutes(app);
 statsRoutes(app);
 deletionRequestRoutes(app);
 tournamentRoutes(app);
 leagueRoutes(app);
+calendarRoutes(app);
 x01Routes(app);
 cricketRoutes(app);
 elimRoutes(app);

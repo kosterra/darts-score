@@ -392,3 +392,94 @@
 
 // every chosen player shown, the chips wrapping
 .league-players .p-multiselect-label { display: flex; flex-wrap: wrap; gap: 0.25rem; white-space: normal; text-overflow: clip; }
+
+// ---------------------------------------------------------------------------
+// The calendar of the club: the coming days beside the club nights and the link
+// ---------------------------------------------------------------------------
+
+.calendar-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: $space-4;
+
+    @media (min-width: 992px) { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+}
+
+.calendar-month {
+    margin: 0;
+    color: var(--text-subtle);
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    text-transform: capitalize;
+}
+
+.calendar-day {
+    display: flex;
+    gap: $space-3;
+    align-items: flex-start;
+
+    &.is-today .calendar-date { background: with-alpha($primaryColor, 0.18); color: $primaryColor; }
+}
+
+.calendar-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 3.4rem;
+    padding: $space-2 0;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+    color: var(--text-default);
+}
+
+.calendar-date-weekday { font-size: $text-xs; color: inherit; opacity: 0.8; text-transform: capitalize; }
+.calendar-date-number { font-size: $text-lg; font-weight: $weight-bold; line-height: 1.1; }
+
+.calendar-day-items { display: flex; flex-direction: column; gap: $space-2; flex: 1 1 auto; min-width: 0; }
+
+.calendar-item {
+    display: flex;
+    gap: $space-3;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+    color: inherit;
+    text-decoration: none;
+
+    &.is-event:hover { background: ink(0.08); }
+    &.is-cancelled .calendar-item-title,
+    &.is-cancelled .calendar-item-time { text-decoration: line-through; color: var(--text-faint); }
+}
+
+.calendar-item-icon { color: var(--text-subtle); font-size: 1.05rem; padding-top: 0.1rem; }
+.calendar-item-body { display: flex; flex-direction: column; gap: $space-2; flex: 1 1 auto; min-width: 0; }
+.calendar-item-head { display: flex; align-items: baseline; justify-content: space-between; gap: $space-2; }
+.calendar-item-title { color: var(--text-default); font-weight: $weight-semibold; font-size: $text-sm; min-width: 0; }
+.calendar-item-time { color: var(--text-subtle); font-size: $text-sm; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.calendar-coming {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-subtle);
+    font-size: $text-xs;
+
+    &:not(:disabled) { cursor: pointer; }
+    &:not(:disabled):hover { color: var(--text-default); }
+}
+
+.calendar-night-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: $space-2;
+    align-items: center;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid ink(0.06);
+
+    .calendar-note { grid-column: 1; }
+    > .p-button { grid-column: 2; grid-row: 1 / span 3; align-self: start; }
+}
+
+.calendar-time { width: 8rem; }
+.calendar-item-action.p-button { width: 1.9rem; height: 1.9rem; padding: 0; margin: -0.4rem -0.4rem -0.4rem 0; }
