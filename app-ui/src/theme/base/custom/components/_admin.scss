@@ -55,6 +55,12 @@
     }
 }
 
+// whether the public page shows a player, and who chose it: two lines (one on a phone, above)
+.admin-public-page {
+    display: flex;
+    flex-direction: column;
+}
+
 // on a phone (the tables stack below 640px, see responsiveLayout="stack"): every entry a
 // card of its own, each value with the name of its column beside it, the actions at the end
 @media (max-width: 639.98px) {
@@ -118,7 +124,7 @@
 
             // whether the public page shows the player, and who chose it: one line
             .admin-public-page {
-                flex-direction: row !important;
+                flex-direction: row;
                 align-items: baseline;
                 gap: 0.35rem;
             }
@@ -127,6 +133,12 @@
             // a line each, except values that go side by side (e.g. level, type and login)
             > td { flex: 1 1 100%; }
             > td.inline-cell { flex: 0 0 auto; width: auto !important; }
+            // a thin line under them: who it is above, the details below
+            > td.inline-cell + td:not(.inline-cell) {
+                margin-top: $space-1;
+                padding-top: $space-2;
+                border-top: 1px solid $surfaceHighColor;
+            }
             // nothing to tell ("–", or no value at all): left out
             > td:has(.empty-cell),
             > td.inline-cell:not(:has(> :not(.p-column-title))) { display: none !important; }
