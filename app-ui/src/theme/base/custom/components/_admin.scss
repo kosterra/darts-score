@@ -130,6 +130,12 @@
             }
             .admin-public-page-who::before { content: '· '; }
 
+            // a thin line under a cell: who and what above, the figures below (e.g. the game, the training)
+            > td.divider-after {
+                padding-bottom: $space-2;
+                border-bottom: 1px solid $surfaceHighColor !important;
+            }
+
             // a line each, except values that go side by side (e.g. level, type and login)
             > td { flex: 1 1 100%; }
             > td.inline-cell { flex: 0 0 auto; width: auto !important; }
@@ -165,10 +171,6 @@
             > td.p-selection-column { order: 0; flex: 0 0 auto; width: auto !important; }
             > td.date-cell { order: 0; flex: 1 1 0; }
             > td.status-cell { order: 0; flex: 0 0 auto; width: auto !important; }
-            > td.game-cell {
-                padding-bottom: $space-2;
-                border-bottom: 1px solid $surfaceHighColor !important;
-            }
         }
 
         .p-datatable-tbody > tr:hover > td,
