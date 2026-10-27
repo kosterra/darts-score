@@ -233,6 +233,77 @@
     padding-top: $space-4;
 }
 
+// two players: each figure as a duel under the two portraits (the same columns: up to
+// 14rem each, 2.5rem apart), its name in the middle above the values, and a bar from the
+// middle for each side in the player's colour (full for the one who leads)
+.result-duel {
+    display: flex;
+    flex-direction: column;
+    gap: $space-4;
+    max-width: 30.5rem;
+    margin: 0 auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.result-duel-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.5rem minmax(0, 1fr);
+    align-items: baseline;
+    row-gap: 0.15rem;
+
+    // as the portraits on a phone
+    @media (max-width: 575px) { grid-template-columns: minmax(0, 1fr) $space-3 minmax(0, 1fr); }
+}
+
+.result-duel-label {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    color: var(--text-subtle);
+    font-size: $text-sm;
+    text-align: center;
+}
+
+.result-duel-value {
+    color: var(--text-default);
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+
+    grid-row: 2;
+    text-align: center;
+
+    &.is-left { grid-column: 1; }
+    &.is-right { grid-column: 3; }
+    &.is-best { color: $accentGreen; }
+}
+
+.result-duel-detail {
+    margin-inline: 0.3rem;
+    color: var(--text-faint);
+    font-size: $text-xs;
+    font-weight: $weight-regular;
+}
+
+.result-duel-bars {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    margin-top: 0.2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+}
+
+.result-duel-bar {
+    display: flex;
+    height: 0.3rem;
+    border-radius: $radius-pill;
+    background: $surfaceHighColor;
+    overflow: hidden;
+
+    > span { display: block; height: 100%; border-radius: $radius-pill; }
+    // the left one grows from the middle to the left
+    &.is-left { justify-content: flex-end; }
+}
+
 .result-hero-figures {
     width: 100%;
     max-width: 44rem;

@@ -85,7 +85,41 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                 </dl>}
             </div>
 
-            {compare &&
+            {/* two players: the figures as a duel, each on the side of their portrait, a bar for who leads */}
+            {players.length === 2 &&
+            <div className="result-hero-figures-wrap">
+                <div className="result-duel" role="table" aria-label={t('Figures')}>
+                    {rows.map(figure => {
+                        const best = bestOf(figure);
+                        const [left, right] = players.map(player => figures[player.id] ?? {});
+                        const shown = (values) => {
+                            const value = values[figure.key];
+                            if (value == null) return '–';
+                            return <>{figure.format ? figure.format(value, values) : value}{figure.detail?.(values) && <span className="result-duel-detail">({figure.detail(values)})</span>}</>;
+                        };
+                        // the share of each side: more is better, or fewer for a figure where lower wins
+                        const a = Number(left[figure.key]) || 0;
+                        const b = Number(right[figure.key]) || 0;
+                        const leftShare = a + b === 0 ? 0 : figure.lowerIsBetter ? (a && b ? b / (a + b) : a ? 1 : 0) : a / (a + b);
+                        const rightShare = a + b === 0 ? 0 : figure.lowerIsBetter ? (a && b ? a / (a + b) : b ? 1 : 0) : b / (a + b);
+                        return (
+                            <div key={figure.key} className="result-duel-row" role="row">
+                                <span role="cell" className={`result-duel-value is-left ${best != null && left[figure.key] === best ? 'is-best' : ''}`}>{shown(left)}</span>
+                                <span role="rowheader" className="result-duel-label">{figure.label}</span>
+                                <span role="cell" className={`result-duel-value is-right ${best != null && right[figure.key] === best ? 'is-best' : ''}`}>{shown(right)}</span>
+                                {!figure.neutral &&
+                                    <span className="result-duel-bars" aria-hidden="true">
+                                        <span className="result-duel-bar is-left"><span style={{ width: `${leftShare * 100}%`, background: PLAYER_COLORS[0], opacity: best != null && left[figure.key] === best ? 1 : 0.45 }} /></span>
+                                        <span className="result-duel-bar is-right"><span style={{ width: `${rightShare * 100}%`, background: PLAYER_COLORS[1], opacity: best != null && right[figure.key] === best ? 1 : 0.45 }} /></span>
+                                    </span>}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>}
+
+            {/* three or four players: side by side in a table */}
+            {compare && players.length > 2 &&
             <div className="result-hero-figures-wrap">
                 <table className="result-hero-figures">
                     {compare &&
