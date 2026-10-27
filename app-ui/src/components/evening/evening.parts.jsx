@@ -72,12 +72,12 @@ export const EveningTable = ({ report, players }) => (
  * checkout, and the wooden spoon in good humour.
  */
 export const EveningAwards = ({ report, nameOf }) => (
-    <div className="kpi-chips">
+    <div className="kpi-chips kpi-chips-wide evening-awards">
         {report.awards.map(award => {
             const words = AWARDS[award.id];
             if (!words) return null;
-            // as the club's figures: the figure big, who holds it in the label
-            return <KpiChip key={award.id} icon={words.icon} value={words.value(award.value)} label={`${words.title} · ${nameOf(award.player)}`} color={words.gold ? ACCENT.gold : ACCENT.green} />;
+            // as the club's figures: the figure big, the award under it, who holds it on a line of its own
+            return <KpiChip key={award.id} icon={words.icon} value={words.value(award.value)} label={words.title} detail={<span title={nameOf(award.player)}>{nameOf(award.player)}</span>} color={words.gold ? ACCENT.gold : ACCENT.green} />;
         })}
     </div>
 );

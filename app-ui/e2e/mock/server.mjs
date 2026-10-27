@@ -11,7 +11,7 @@
 // without its statistics), and the tests
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
 // /__test/tournaments { scenario }, /__test/session { leftMs } and
-// /__test/notifications (two of them, one unread).
+// /__test/notifications (two of them, one unread), /__test/evening (one with finished games).
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
@@ -355,6 +355,21 @@ http.createServer((req, res) => {
                 quickGames.set(id, doc);
                 return quickGameView(doc);
             };
+            // a darts evening with finished games, for screenshots without playing them:
+            // POST /__test/evening { names? } → { id }; q1 beats q2, q3 beats q1, q2 beats q3 (301, one leg)
+            if (path === '/__test/evening' && req.method === 'POST') {
+                const names = json.names ?? ['Ralph Koster', 'Reto Kurz', 'Rene Krummenacher'];
+                const id = `e${evenings.size + 1}`;
+                const { fields } = newEvening({ name: json.name ?? '', names });
+                evenings.set(id, { _id: id, ...fields, shareToken: `share${id}xyz`, createdAt: new Date(), club: null });
+                const quickPlayers = fields.players.map(player => ({ id: player.id, nickname: player.name }));
+                const v = (player, ...darts) => ({ player, darts });
+                [['q1', 'q2'], ['q3', 'q1'], ['q2', 'q3']].forEach(([winner, loser], index) => {
+                    const visits = [v(winner, 'T20', 'T20', 'T20'), v(loser, 'S20', 'S20', 'S5'), v(winner, 'T20', 'T11', 'D14')];
+                    keep(`qt${index}`, 'x01', { players: [winner, loser], quickPlayers: quickPlayers.filter(player => [winner, loser].includes(player.id)), startingScore: 301, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 1, visits }, id);
+                });
+                return send(res, 200, { id });
+            }
             // darts evenings, with the API's own report
             const gamesOfEvening = (id) => [...quickGames.values()].filter(game => game.evening === id);
             if (path === '/api/public/evenings' && req.method === 'POST') {

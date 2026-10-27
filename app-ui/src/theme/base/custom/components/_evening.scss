@@ -107,3 +107,17 @@
         text-align: left;
     }
 }
+
+// the awards: the award on one line, who holds it standing out on the next, cut only when very long
+.evening-awards {
+    .kpi-chip-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .kpi-chip-detail {
+        color: var(--text-default);
+        font-size: $text-sm;
+        font-weight: $weight-semibold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
