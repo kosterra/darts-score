@@ -253,7 +253,7 @@ const EveningPage = ({ shared = false }) => {
                 <Panel header={t('Table of the evening')}>
                     {report.played === 0
                         ? <span className="text-faint fs-7">{t('The table fills with the first game.')}</span>
-                        : <EveningTable report={report} />}
+                        : <EveningTable report={report} players={evening.players} />}
                 </Panel>
 
                 {report.awards.length > 0 &&
