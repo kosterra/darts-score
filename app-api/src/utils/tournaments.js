@@ -3,8 +3,9 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { preferenceOf } from '../rules/notifications.js';
 import {
-    INVITE_CHANNELS, MIN_PLAYERS, MAX_PLAYERS_CHOICES, SEEDINGS, advance, bracketMatches, cleanRules, drawBracket, isDecided,
-    presetById, retract, roundSizes, rulesError,
+    FORMATS, GROUP_ROUND, INVITE_CHANNELS, MIN_PLAYERS, MAX_PLAYERS_CHOICES, SEEDINGS, advance, bracketMatches, cleanRules, drawBracket,
+    drawGroups, groupMatches, groupSetupError, groupsDone, isDecided, knockoutDraw, knockoutOfGroups, presetById, retract, roundSizes, rulesError,
+    suggestGroups,
 } from '../rules/tournaments.js';
 import { getSessionSecret } from './auth.utils.js';
 import { storedOf } from './game.view.js';
@@ -32,7 +33,7 @@ export const REMINDER_HOURS = 24;
 // ---------------------------------------------------------------------------
 
 // the name of a round by how many players are left in it, in English (translated on screen and in mails)
-export const roundName = (size) => ({ 2: 'Final', 4: 'Semi-finals', 8: 'Quarter-finals' })[size] ?? `Last ${size}`;
+export const roundName = (size) => ({ 0: 'Group stage', 2: 'Final', 4: 'Semi-finals', 8: 'Quarter-finals' })[size] ?? `Last ${size}`;
 
 // the rules of a round in words of a language: "Best of 5 legs", "First to 3 sets (Best of 5 legs)"
 export const rulesText = (rules, language = 'en') => {
@@ -116,8 +117,11 @@ export const checkSetup = (body, stored = null) => {
     if (!MAX_PLAYERS_CHOICES.includes(maxPlayers)) return { error: 'Choose how many players can play at most.' };
     const closesAt = early && body.closesAt ? new Date(body.closesAt) : new Date(stored?.closesAt ?? body.closesAt);
     if (Number.isNaN(closesAt.getTime())) return { error: 'Choose until when the members can enter.' };
+    const format = early ? body.format ?? stored?.format ?? 'knockout' : stored.format ?? 'knockout';
+    if (!FORMATS.includes(format)) return { error: 'Choose knockout, or groups and then knockout.' };
 
-    const sizes = roundSizes(maxPlayers);
+    // groups + knockout: the group stage first, a round of its own
+    const sizes = format === 'groups' ? [GROUP_ROUND, ...roundSizes(maxPlayers)] : roundSizes(maxPlayers);
     const sent = Array.isArray(body.rounds) ? body.rounds : stored?.rounds ?? [];
     const rounds = [];
     for (const size of sizes) {
@@ -139,7 +143,7 @@ export const checkSetup = (body, stored = null) => {
     const preset = body.preset === undefined ? stored?.preset ?? null : presetById(body.preset)?.id ?? null;
     const invite = body.invite === undefined || !early ? stored?.invite ?? 'mail' : body.invite;
     if (!INVITE_CHANNELS.includes(invite)) return { error: 'Choose how the members are invited.' };
-    return { setup: { name, description, maxPlayers, closesAt, rounds, preset, invite } };
+    return { setup: { name, description, format, maxPlayers, closesAt, rounds, preset, invite } };
 };
 
 /**
@@ -308,7 +312,7 @@ export const closeRegistration = async (tournament) => {
  * first seeds. Rounds the field is too small for are left out. The players
  * hear their first match.
  */
-export const holdDraw = async (tournament, { seeding = 'seeded', by = null, random = Math.random } = {}) => {
+export const holdDraw = async (tournament, { seeding = 'seeded', by = null, random = Math.random, groupSize = null, advance: goOn = null } = {}) => {
     if (tournament.status !== 'closed') throw Object.assign(new Error('Close the registration first.'), { status: 409 });
     if (!SEEDINGS.includes(seeding)) throw Object.assign(new Error('Choose how the draw is held.'), { status: 422 });
     const players = entriesIn(tournament).map(entry => String(entry.player));
@@ -317,6 +321,7 @@ export const holdDraw = async (tournament, { seeding = 'seeded', by = null, rand
     const ratings = clubRatings(await db.clubTally.find({ club: tournament.club }, 'at players winners friendly').lean());
     const tiebreak = new Map(players.map(id => [id, random()]));
     const ranked = [...players].sort((a, b) => (ratings.get(b)?.rating ?? 0) - (ratings.get(a)?.rating ?? 0) || tiebreak.get(a) - tiebreak.get(b));
+    if (tournament.format === 'groups') return drawWithGroups(tournament, ranked, { seeding, by, random, groupSize, advance: goOn });
     const draw = drawBracket(ranked, { seeding, random });
     const matches = bracketMatches(draw);
     const seeds = seeding === 'seeded' ? new Map(ranked.slice(0, Math.max(2, draw.size / 4)).map((id, index) => [id, index + 1])) : new Map();
@@ -341,6 +346,75 @@ export const holdDraw = async (tournament, { seeding = 'seeded', by = null, rand
         };
     });
     return tournament;
+};
+
+/**
+ * The draw of groups + knockout: the groups (the strongest spread over them,
+ * or at random), each played round robin, and the bracket of the best of
+ * each group set up empty; it is filled when the last group match is
+ * decided. groupSize and advance as the admin chose them at the draw (the
+ * app suggests groups of 4, the top 2 going on). The players hear their group.
+ */
+const drawWithGroups = async (tournament, ranked, { seeding, by, random, groupSize, advance: goOn }) => {
+    const suggestion = suggestGroups(ranked.length);
+    const size = Number(groupSize ?? suggestion.size);
+    const advanceCount = Number(goOn ?? suggestion.advance);
+    const problem = groupSetupError(ranked.length, size, advanceCount);
+    if (problem) throw Object.assign(new Error(problem), { status: 422 });
+    const knockout = knockoutOfGroups(ranked.length, size, advanceCount);
+    if (knockout.size > tournament.maxPlayers) throw Object.assign(new Error('More players go on than the bracket has places.'), { status: 422 });
+    const groups = drawGroups(ranked, { size, seeding, random });
+    // the bracket waits for the groups: every match of it still without players
+    const bracket = bracketMatches({ size: knockout.size, slots: Array(knockout.size).fill(null) });
+    const matches = [...groupMatches(groups), ...bracket];
+    tournament.entries = tournament.entries.map(entry => ({ ...(entry.toObject?.() ?? entry), seed: null }));
+    tournament.matches = matches.map(match => ({ ...match, players: [...match.players] }));
+    tournament.rounds = tournament.rounds.map(round => ({ ...(round.toObject?.() ?? round), skipped: round.size !== GROUP_ROUND && round.size > knockout.size }));
+    tournament.draw = { at: new Date(), by, seeding, size: knockout.size, groups, groupSize: size, advance: advanceCount, knockoutAt: null };
+    tournament.status = 'drawn';
+    await tournament.save();
+    logger.info(`Draw of the tournament ${tournament._id}: ${ranked.length} players in ${groups.length} groups, ${advanceCount} of each go on to a bracket of ${knockout.size}`);
+
+    // each player hears their group and who is in it
+    const names = await accountsOf(ranked);
+    await tellPlayers(tournament, ranked, (player) => {
+        const group = groups.findIndex(members => members.includes(String(player._id)));
+        const others = (groups[group] ?? []).filter(id => id !== String(player._id)).map(id => names.get(id)?.nickname ?? '?');
+        return {
+            kind: 'tournamentDrawn',
+            title: `The draw of ${tournament.name} is done`,
+            body: `Group ${String.fromCharCode(65 + group)}: against ${others.join(', ')}. The best ${advanceCount} of each group go on.`,
+        };
+    });
+    return tournament;
+};
+
+/**
+ * The group stage is over: the best of each group go into the bracket
+ * (winners against runners-up of another group, byes to the best winners),
+ * and every player of the first round hears their match.
+ */
+const fillKnockout = async (tournament, matches) => {
+    const groups = (tournament.draw.groups ?? []).map(members => [...members].map(String));
+    const draw = knockoutDraw(groups, matches, tournament.draw.advance);
+    const bracket = bracketMatches(draw);
+    const next = [...matches.filter(match => match.group != null), ...bracket.map(match => ({ ...match, players: [...match.players] }))];
+    tournament.matches = next;
+    tournament.draw.knockoutAt = new Date();
+    await tournament.save();
+    logger.info(`The groups of the tournament ${tournament._id} are over: ${draw.slots.filter(Boolean).length} players in a bracket of ${draw.size}`);
+    const players = draw.slots.filter(Boolean);
+    const names = await accountsOf(players);
+    const firstOf = (playerId) => bracket.find(match => match.size === draw.size && match.players.includes(playerId));
+    await tellPlayers(tournament, players, (player) => {
+        const match = firstOf(String(player._id));
+        const other = match?.players.find(id => id && id !== String(player._id));
+        return {
+            kind: 'tournamentMatch',
+            title: `${tournament.name}: you are through to the ${roundName(draw.size)}`,
+            body: match?.bye ? 'You have a bye into the next round.' : `Your match: against ${names.get(other)?.nickname ?? '?'}`,
+        };
+    });
 };
 
 // ---------------------------------------------------------------------------
@@ -401,6 +475,14 @@ const scoreOf = (view, match, rules) => {
 const decide = async (tournament, matches, match, winner, extra = {}) => {
     const byId = new Map(matches.map(entry => [entry.id, entry]));
     Object.assign(match, { winner, decidedAt: new Date(), ...extra });
+    // a match of a group: the table counts it; the last one fills the bracket
+    if (match.group != null) {
+        tournament.matches = matches;
+        if (tournament.status === 'drawn') tournament.status = 'running';
+        await tournament.save();
+        if (groupsDone(matches) && !tournament.draw?.knockoutAt) await fillKnockout(tournament, matches);
+        return;
+    }
     const next = advance(byId, match);
     tournament.matches = matches;
     if (!next) {
@@ -486,7 +568,8 @@ export const setResult = async (tournament, matchKey, winner, { by = null } = {}
     if (!match || match.bye) throw Object.assign(new Error('There is no such match.'), { status: 404 });
     if (!match.players.includes(String(winner))) throw Object.assign(new Error('The winner has to be a player of the match.'), { status: 422 });
     if (!match.players[0] || !match.players[1]) throw Object.assign(new Error('The players of this match are not known yet.'), { status: 409 });
-    if (isDecided(match) && !retract(byId, match)) throw Object.assign(new Error('The next match has started: this result stays.'), { status: 409 });
+    if (match.group != null && tournament.draw?.knockoutAt) throw Object.assign(new Error('The knockout stage is drawn from the groups: this result stays.'), { status: 409 });
+    if (match.group == null && isDecided(match) && !retract(byId, match)) throw Object.assign(new Error('The next match has started: this result stays.'), { status: 409 });
     if (match.status === 'running' && match.game) {
         // the game that was started is no longer the one that decides it
         await db.x01.updateOne({ _id: match.game }, { $unset: { tournament: '' } });

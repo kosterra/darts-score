@@ -44,7 +44,7 @@ tags:
   - name: Quick games
     description: Games on the public start page without an account, kept for 30 days
   - name: Tournaments
-    description: The knockout tournaments of a club, from the registration to the final
+    description: The tournaments of a club (knockout, or groups and then knockout), from the registration to the final
   - name: Administration
     description: 'The installation: all clubs, players, games, trainings, banner, login length, error log, alerts and blocks (global admins only)'
   - name: Players
@@ -7065,6 +7065,15 @@ paths:
                 seeding:
                   type: string
                   enum: [seeded, random]
+                groupSize:
+                  type: integer
+                  minimum: 3
+                  maximum: 6
+                  description: 'Groups + knockout: the size the groups are made of (default: 4, all in one with up to 6 players)'
+                advance:
+                  type: integer
+                  minimum: 1
+                  description: 'Groups + knockout: how many of each group go on to the bracket (default: 2)'
       responses:
         '200':
           description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'

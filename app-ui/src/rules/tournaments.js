@@ -1,6 +1,6 @@
 /**
- * Tournaments of a club: knockout brackets, their rounds and the rules each
- * round is played by. Plain data and functions without texts: the API keeps
+ * Tournaments of a club: knockout brackets (or groups first, then a bracket),
+ * their rounds and the rules each round is played by. Plain data and functions without texts: the API keeps
  * an identical copy (see shared.js) to check what is entered, hold the draw
  * and move the winners on.
  *
@@ -211,10 +211,175 @@ export const retract = (byId, match) => {
     return true;
 };
 
-// the round a tournament is in: the first with a match not decided yet
+// the round a tournament is in: the first with a match not decided yet (the groups before the bracket)
 export const currentRound = (matches) => {
     const open = matches.filter(match => !['done', 'bye', 'walkover'].includes(match.status));
+    if (open.some(match => match.group != null)) return 0;
     return open.length ? Math.max(...open.map(match => match.size)) : null;
 };
 
 export const isDecided = (match) => ['done', 'bye', 'walkover'].includes(match.status);
+
+// ---------------------------------------------------------------------------
+// Groups + knockout: round-robin groups first, the best of each group then
+// in a knockout bracket. The group stage is the "round" of size GROUP_ROUND
+// (its rules and day); its matches carry the number of their group.
+// ---------------------------------------------------------------------------
+
+export const FORMATS = ['knockout', 'groups'];
+export const GROUP_ROUND = 0;
+export const GROUP_SIZES = [3, 4, 5, 6];
+// points of a win in a group (a loss gives none)
+export const WIN_POINTS = 2;
+
+// how many groups the players make with groups of about "size": at least one
+export const groupCount = (players, size) => Math.max(1, Math.round(players / size));
+
+// the sizes of the groups: as even as possible, the larger ones first
+export const groupSizesOf = (players, size) => {
+    const count = groupCount(players, size);
+    const base = Math.floor(players / count);
+    return Array.from({ length: count }, (_, index) => base + (index < players % count ? 1 : 0));
+};
+
+/**
+ * Why the groups cannot be played like this, or null. size: the size the
+ * groups are made of; advance: how many of each group go on.
+ */
+export const groupSetupError = (players, size, advance) => {
+    if (!GROUP_SIZES.includes(Number(size))) return 'Groups have 3 to 6 players.';
+    const smallest = Math.min(...groupSizesOf(players, size));
+    if (!Number.isInteger(Number(advance)) || advance < 1 || advance >= smallest) return 'Fewer players go on than a group has.';
+    if (groupCount(players, size) * advance < 2) return 'At least two players go on to the knockout stage.';
+    return null;
+};
+
+// what the app suggests for a number of entries: groups of 4 (all in one with up to 6), the top 2 go on
+export const suggestGroups = (players) => ({ size: players <= 6 ? Math.max(3, players) : 4, advance: 2 });
+
+// the knockout bracket after the groups: how many go on, and its size
+export const knockoutOfGroups = (players, size, advance) => {
+    const qualifiers = groupCount(players, size) * advance;
+    return { qualifiers, size: bracketSize(qualifiers) };
+};
+
+/**
+ * The groups: the players in snake order, so the strongest are spread over
+ * the groups (seeded: in the order given; random: shuffled).
+ * → [[playerId]] one list per group
+ */
+export const drawGroups = (ranked, { size, seeding = 'seeded', random = Math.random }) => {
+    const count = groupCount(ranked.length, size);
+    const order = [...ranked];
+    if (seeding !== 'seeded') {
+        for (let index = order.length - 1; index > 0; index -= 1) {
+            const other = Math.floor(random() * (index + 1));
+            [order[index], order[other]] = [order[other], order[index]];
+        }
+    }
+    const groups = Array.from({ length: count }, () => []);
+    order.forEach((player, index) => {
+        const row = Math.floor(index / count);
+        const column = row % 2 === 0 ? index % count : count - 1 - (index % count);
+        groups[column].push(player);
+    });
+    return groups;
+};
+
+// a match of a group: "g0-1-3" is the first group's match of its second and fourth player
+export const groupMatchId = (group, a, b) => `g${group}-${a}-${b}`;
+
+/**
+ * Every match of the groups, each player against each other once, in an
+ * order where nobody plays twice in a row where it can be avoided.
+ * → [{ id, size: GROUP_ROUND, group, index, players, winner, status }]
+ */
+export const groupMatches = (groups) => groups.flatMap((players, group) => {
+    // the circle method: rounds where everyone plays once (one sits out with an odd number)
+    const seats = players.length % 2 ? [...players.keys(), null] : [...players.keys()];
+    const rounds = [];
+    for (let round = 0; round < seats.length - 1; round += 1) {
+        for (let pair = 0; pair < seats.length / 2; pair += 1) {
+            const a = seats[pair];
+            const b = seats[seats.length - 1 - pair];
+            if (a !== null && b !== null) rounds.push([Math.min(a, b), Math.max(a, b)]);
+        }
+        seats.splice(1, 0, seats.pop());
+    }
+    return rounds.map(([a, b], index) => ({
+        id: groupMatchId(group, a, b), size: GROUP_ROUND, group, index,
+        players: [players[a], players[b]], winner: null, status: 'ready', bye: false,
+    }));
+});
+
+/**
+ * The table of a group: played, won, lost, legs for and against, points;
+ * ranked by points, then leg difference, then legs won, then the match
+ * between two still level, then the order of the draw.
+ * players: the group's players in the order of the draw.
+ * → [{ player, played, won, lost, legsFor, legsAgainst, points }]
+ */
+export const groupTable = (players, matches) => {
+    const rows = new Map(players.map(player => [player, { player, played: 0, won: 0, lost: 0, legsFor: 0, legsAgainst: 0, points: 0 }]));
+    const decided = matches.filter(match => isDecided(match) && match.winner && match.players.every(player => rows.has(player)));
+    for (const match of decided) {
+        match.players.forEach((player, side) => {
+            const row = rows.get(player);
+            row.played += 1;
+            if (match.winner === player) {
+                row.won += 1;
+                row.points += WIN_POINTS;
+            } else {
+                row.lost += 1;
+            }
+            const legs = match.score?.legs;
+            if (legs) {
+                row.legsFor += legs[side] ?? 0;
+                row.legsAgainst += legs[1 - side] ?? 0;
+            }
+        });
+    }
+    const beat = (a, b) => decided.find(match => match.players.includes(a) && match.players.includes(b))?.winner;
+    return [...rows.values()].sort((a, b) => b.points - a.points
+        || (b.legsFor - b.legsAgainst) - (a.legsFor - a.legsAgainst)
+        || b.legsFor - a.legsFor
+        || (beat(a.player, b.player) === a.player ? -1 : beat(a.player, b.player) === b.player ? 1 : 0)
+        || players.indexOf(a.player) - players.indexOf(b.player));
+};
+
+// the group stage is over: every group match decided
+export const groupsDone = (matches) => matches.filter(match => match.group != null).every(isDecided);
+
+/**
+ * The bracket after the groups: the group winners as the first seeds, then
+ * the runners-up, …; nobody meets a player of their own group in the first
+ * round where it can be avoided (the order within a place is turned until it
+ * fits). → { size, slots }
+ */
+export const knockoutDraw = (groups, matches, advance) => {
+    const tables = groups.map(players => groupTable(players, matches.filter(match => match.group != null)));
+    const groupOf = new Map(groups.flatMap((players, group) => players.map(player => [player, group])));
+    const places = Array.from({ length: advance }, (_, place) => tables.map(table => table[place]?.player).filter(Boolean));
+    const size = bracketSize(places.flat().length);
+    const order = seedOrder(size);
+    const slotsOf = (ranked) => order.map(seed => ranked[seed - 1] ?? null);
+    const clashes = (slots) => slots.filter((player, index) => index % 2 === 0 && player && slots[index + 1] && groupOf.get(player) === groupOf.get(slots[index + 1])).length;
+    // the group winners keep their order; the places behind are turned and reversed until nobody meets their group
+    const variants = (list) => [...list.keys()].flatMap(shift => {
+        const turned = [...list.slice(shift), ...list.slice(0, shift)];
+        return [turned, [...turned].reverse()];
+    });
+    let best = null;
+    const tryPlaces = (fixed, rest) => {
+        if (best && best.clash === 0) return;
+        if (!rest.length) {
+            const slots = slotsOf(fixed.flat());
+            const clash = clashes(slots);
+            if (!best || clash < best.clash) best = { slots, clash };
+            return;
+        }
+        for (const variant of variants(rest[0])) tryPlaces([...fixed, variant], rest.slice(1));
+    };
+    tryPlaces([places[0] ?? []], places.slice(1));
+    return { size, slots: best?.slots ?? slotsOf(places.flat()) };
+};

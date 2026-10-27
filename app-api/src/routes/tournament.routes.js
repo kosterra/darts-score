@@ -25,7 +25,12 @@ export default (app) => {
     router.post('/:id/reopen', requireClubAdmin, id, body('closesAt').isISO8601().withMessage('Choose until when the members can enter.'), validate, TournamentController.reopen);
     router.post('/:id/cancel', requireClubAdmin, id, validate, TournamentController.cancel);
     router.put('/:id/entries/:playerId', requireClubAdmin, id, param('playerId').isMongoId().withMessage('Invalid player.'), answer, validate, TournamentController.answerFor);
-    router.post('/:id/draw', requireClubAdmin, id, body('seeding').optional().isIn(['seeded', 'random']).withMessage('Choose how the draw is held.'), validate, TournamentController.draw);
+    router.post('/:id/draw', requireClubAdmin, id,
+        body('seeding').optional().isIn(['seeded', 'random']).withMessage('Choose how the draw is held.'),
+        // groups + knockout: how large the groups are made and how many of each go on
+        body('groupSize').optional({ values: 'null' }).isInt({ min: 3, max: 6 }).withMessage('Groups have 3 to 6 players.').toInt(),
+        body('advance').optional({ values: 'null' }).isInt({ min: 1, max: 5 }).withMessage('Choose how many of each group go on.').toInt(),
+        validate, TournamentController.draw);
     router.put('/:id/matches/:match/result', requireClubAdmin, id, match, body('winner').isMongoId().withMessage('Choose the winner.'), validate, TournamentController.result);
 
     app.use('/api/tournaments', router);

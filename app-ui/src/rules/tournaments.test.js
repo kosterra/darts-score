@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-    PRESETS, advance, bracketMatches, bracketSize, currentRound, drawBracket, maxLegs, presetById, presetRules,
-    retract, roundSizes, roundsOfPreset, rulesError, seedOrder,
-} from './tournaments';
+import { GROUP_ROUND, PRESETS, advance, bracketMatches, bracketSize, currentRound, drawBracket, drawGroups, groupMatches, groupSetupError, groupSizesOf, groupTable, groupsDone, knockoutDraw, knockoutOfGroups, maxLegs, presetById, presetRules, retract, roundSizes, roundsOfPreset, rulesError, seedOrder, suggestGroups } from './tournaments';
 
 // a fixed "random" that keeps the order, for draws that can be checked
 const noShuffle = () => 0.999;
@@ -87,5 +84,72 @@ describe('the rules of the rounds', () => {
     it('know how many legs a round lasts at most', () => {
         expect(maxLegs(presetRules(presetById('clubNight'), 8))).toBe(3);
         expect(maxLegs(presetRules(presetById('worldChampionship'), 2))).toBe(65);
+    });
+});
+
+describe('groups + knockout', () => {
+    const ids = (count) => Array.from({ length: count }, (_, index) => `p${index + 1}`);
+
+    it('splits the players into even groups, the strongest spread in snake order', () => {
+        expect(groupSizesOf(16, 4)).toEqual([4, 4, 4, 4]);
+        expect(groupSizesOf(10, 4)).toEqual([4, 3, 3]);
+        expect(groupSizesOf(5, 6)).toEqual([5]);
+        const groups = drawGroups(ids(8), { size: 4 });
+        expect(groups).toEqual([['p1', 'p4', 'p5', 'p8'], ['p2', 'p3', 'p6', 'p7']]);
+        expect(drawGroups(ids(10), { size: 4 }).map(group => group.length).sort()).toEqual([3, 3, 4]);
+    });
+
+    it('checks how many go on and tells the bracket that follows', () => {
+        expect(groupSetupError(16, 4, 2)).toBeNull();
+        expect(groupSetupError(16, 4, 4)).toMatch(/Fewer players/);
+        expect(groupSetupError(10, 4, 3)).toMatch(/Fewer players/);
+        expect(groupSetupError(4, 4, 1)).toMatch(/two players/);
+        expect(groupSetupError(16, 7, 2)).toMatch(/3 to 6/);
+        expect(knockoutOfGroups(16, 4, 2)).toEqual({ qualifiers: 8, size: 8 });
+        expect(knockoutOfGroups(12, 4, 2)).toEqual({ qualifiers: 6, size: 8 });
+        expect(suggestGroups(16)).toEqual({ size: 4, advance: 2 });
+        expect(suggestGroups(5)).toEqual({ size: 5, advance: 2 });
+    });
+
+    it('lets everyone of a group play everyone else once', () => {
+        const matches = groupMatches([['a', 'b', 'c', 'd'], ['e', 'f', 'g']]);
+        expect(matches.filter(match => match.group === 0)).toHaveLength(6);
+        expect(matches.filter(match => match.group === 1)).toHaveLength(3);
+        const pairs = new Set(matches.filter(match => match.group === 0).map(match => [...match.players].sort().join()));
+        expect(pairs.size).toBe(6);
+        expect(matches.every(match => match.status === 'ready' && match.size === GROUP_ROUND)).toBe(true);
+        // nobody plays the first two matches of a group of four
+        const [first, second] = matches.filter(match => match.group === 0);
+        expect(first.players.some(player => second.players.includes(player))).toBe(false);
+    });
+
+    it('ranks a group by points, then leg difference, then the match between two', () => {
+        const won = (a, b, legs) => ({ id: `${a}${b}`, group: 0, players: [a, b], winner: a, status: 'done', score: { legs } });
+        const matches = [won('a', 'b', [3, 0]), won('b', 'c', [3, 1]), won('c', 'a', [3, 2])];
+        // everyone 2 points; a +2, b and c −1 each: c won more legs (4 to 3)
+        const table = groupTable(['a', 'b', 'c'], matches);
+        expect(table.map(row => row.player)).toEqual(['a', 'c', 'b']);
+        expect(table[0]).toMatchObject({ played: 2, won: 1, lost: 1, points: 2, legsFor: 5, legsAgainst: 3 });
+        // level on everything: the match between them decides
+        const level = groupTable(['x', 'y'], [won('y', 'x', [3, 2]), won('x', 'y', [3, 2])].slice(0, 1));
+        expect(level[0].player).toBe('y');
+    });
+
+    it('fills the bracket with the best of each group, never against their own group first', () => {
+        const groups = [['a1', 'a2', 'a3'], ['b1', 'b2', 'b3'], ['c1', 'c2', 'c3']];
+        // the first of each list wins all, the second beats the third
+        const matches = groupMatches(groups).map(match => {
+            const winner = [...match.players].sort()[0];
+            return { ...match, winner, status: 'done', score: { legs: match.players.map(player => (player === winner ? 3 : 1)) } };
+        });
+        expect(groupsDone(matches)).toBe(true);
+        const draw = knockoutDraw(groups, matches, 2);
+        expect(draw.size).toBe(8);
+        const pairs = [0, 2, 4, 6].map(index => [draw.slots[index], draw.slots[index + 1]]);
+        for (const [a, b] of pairs) if (a && b) expect(a[0]).not.toBe(b[0]);
+        // the group winners first: two of them get the byes
+        expect(pairs.filter(([a, b]) => !a || !b).flat().filter(Boolean).every(player => player.endsWith('1'))).toBe(true);
+        expect(currentRound([...matches, { group: undefined, size: 8, status: 'waiting' }])).toBe(8);
+        expect(currentRound([{ ...matches[0], status: 'ready' }])).toBe(0);
     });
 });
