@@ -140,10 +140,10 @@ const ClubsTable = () => {
                 emptyMessage={clubs === null ? <TableLoading /> : clubs?.length ? t('No clubs match these filters.') : t('No clubs yet.')}
                 responsiveLayout="stack" breakpoint="640px"
             >
-                <Column field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
+                <Column bodyClassName="no-label" field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
                 <Column header={t('Visibility')} body={visibilityBody} />
                 <Column header={t('Admins')} body={adminsBody} />
-                <Column field="playerCount" header={t('Players')} sortable />
+                <Column bodyClassName="no-label" field="playerCount" header={t('Players')} sortable />
                 <Column field="gameCount" header={t('Games')} sortable />
                 <Column field="lastActivityAt" header={t('Last activity')} sortable body={(club) => <span className="text-subtle fs-7 text-nowrap">{clubDate(club.lastActivityAt)}</span>} />
                 <Column body={actionsBody} />

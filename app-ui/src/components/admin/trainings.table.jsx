@@ -263,10 +263,10 @@ const TrainingsTable = ({ scope = 'club' }) => {
                         emptyMessage={rows === null ? <TableLoading /> : t('No trainings match these filters.')}
                         responsiveLayout="stack" breakpoint="640px"
                     >
-                        <Column field="createdAt" header={t('Date')} sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />
-                        {acrossClubs && <Column field="club.name" header={t('Club')} sortable body={(row) => <ClubCell club={row.club} />} />}
-                        <Column header={t('Player')} body={(row) => <PlayerCell player={playerOf(row)} />} style={{ minWidth: '14rem' }} />
-                        <Column header={t('Training')} body={typeBody} />
+                        <Column bodyClassName="no-label" field="createdAt" header={t('Date')} sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />
+                        {acrossClubs && <Column bodyClassName="no-label" field="club.name" header={t('Club')} sortable body={(row) => <ClubCell club={row.club} />} />}
+                        <Column bodyClassName="no-label" header={t('Player')} body={(row) => <PlayerCell player={playerOf(row)} />} style={{ minWidth: '14rem' }} />
+                        <Column bodyClassName="no-label" header={t('Training')} body={typeBody} />
                         <Column header={t('Played')} body={whatBody} />
                         <Column header={t('Result')} body={resultBody} />
                         <Column body={actionsBody} />

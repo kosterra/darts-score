@@ -273,6 +273,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                         <Column
                             field="nickname"
                             header={t('Player')}
+                            bodyClassName="no-label"
                             sortable
                             // in the club's own list the name opens the player's profile
                             body={(player) => {
@@ -286,14 +287,14 @@ const PlayersTable = ({ scope = 'club' }) => {
                             }}
                             style={{ minWidth: '14rem' }}
                         />
-                        {acrossClubs && <Column header={t('Clubs')} body={(player) => (
+                        {acrossClubs && <Column bodyClassName="no-label" header={t('Clubs')} body={(player) => (
                             <div className="d-flex flex-column gap-1">
                                 {(player.clubs ?? []).map(club => <ClubCell key={club.id} club={club} />)}
                             </div>
                         )} />}
                         {!acrossClubs && <Column header={t('Level')} body={(player) => player.guest ? <span className="text-faint fs-7">–</span> : <LevelBadge level={levels[player.id]} />} />}
-                        <Column header={t('Type')} body={kindBody} />
-                        {canManage && <Column header={t('Login')} body={loginBody} />}
+                        <Column bodyClassName="no-label" header={t('Type')} body={kindBody} />
+                        {canManage && <Column bodyClassName="no-label" header={t('Login')} body={loginBody} />}
                         {canManage && <Column header={t('Public page')} body={publicBody} />}
                         <Column field="createdAt" header={t('Added')} sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDate(player.createdAt)}</span>} />
                         {canManage && <Column body={actionsBody} />}

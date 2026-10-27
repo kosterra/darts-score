@@ -163,9 +163,9 @@ const ErrorLog = () => {
                     responsiveLayout="stack" breakpoint="640px"
                 >
                     <Column expander={hasDetails} style={{ width: '3rem' }} />
-                    <Column header={t('Time')} body={timeBody} />
+                    <Column bodyClassName="no-label" header={t('Time')} body={timeBody} />
                     <Column header={t('Level')} body={(entry) => <Tag {...LEVEL_TAGS[entry.level]} />} />
-                    <Column header={t('Message')} body={messageBody} style={{ minWidth: '20rem' }} />
+                    <Column bodyClassName="no-label" header={t('Message')} body={messageBody} style={{ minWidth: '20rem' }} />
                 </DataTable>
                 <span className="d-block text-faint fs-8 mt-2">
                     {t('Entries are kept for')}{' '}{log?.retentionDays ?? 30}{' '}{t('days; the newest')}{' '}{log?.limit ?? 500}{' '}{t('are shown.')}

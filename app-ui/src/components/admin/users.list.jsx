@@ -198,10 +198,10 @@ const UsersList = () => {
                 emptyMessage={!loaded ? <TableLoading /> : users.length ? t('No users match these filters.') : t('No users found.')}
                 responsiveLayout="stack" breakpoint="640px"
             >
-                <Column field="lastname" header={t('Name')} sortable body={nameBody} />
-                <Column field="email" header={t('Email')} sortable body={(user) => <span className="text-default fs-7">{user.email}</span>} />
-                <Column header={t('Role')} body={roleBody} />
-                <Column header={t('Clubs')} body={clubsBody} />
+                <Column bodyClassName="no-label" field="lastname" header={t('Name')} sortable body={nameBody} />
+                <Column bodyClassName="no-label" field="email" header={t('Email')} sortable body={(user) => <span className="text-default fs-7">{user.email}</span>} />
+                <Column bodyClassName="no-label" header={t('Role')} body={roleBody} />
+                <Column bodyClassName="no-label" header={t('Clubs')} body={clubsBody} />
                 <Column field="createdAt" header={t('Registered')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{dateOrNever(user.createdAt)}</span>} />
                 <Column field="lastLoginAt" header={t('Last login')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{dateOrNever(user.lastLoginAt)}</span>} />
                 <Column body={actionBody} />

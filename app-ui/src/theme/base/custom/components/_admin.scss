@@ -115,6 +115,16 @@
                 > :not(.p-column-title) { min-width: 0; }
             }
 
+            // a value that says what it is (a date, the game, the players, the status, a name):
+            // without the name of its column, on the left
+            > td.no-label {
+                justify-content: flex-start;
+                text-align: left;
+
+                // PrimeReact shows the names of the stacked columns with a selector of its own
+                > .p-column-title { display: none !important; }
+            }
+
             // the tick box and the actions need no name: the box on top, the actions at the end
             > td.p-selection-column { justify-content: flex-start; }
             > td:last-child:has(.row-actions) { justify-content: flex-end; }

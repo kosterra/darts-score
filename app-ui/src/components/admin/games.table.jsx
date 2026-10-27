@@ -393,11 +393,11 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         responsiveLayout="stack" breakpoint="640px"
                     >
                         {canManage && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
-                        <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
-                        {acrossClubs && <Column field="club.name" header={t('Club')} sortable body={(game) => <ClubCell club={game.club} />} />}
-                        <Column header={t('Game')} bodyClassName="stack-block" body={gameBody} />
-                        <Column header={t('Players')} bodyClassName="stack-block" body={playersBody} style={{ minWidth: '16rem' }} />
-                        <Column header={t('Status')} body={statusBody} />
+                        <Column bodyClassName="no-label" field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
+                        {acrossClubs && <Column bodyClassName="no-label" field="club.name" header={t('Club')} sortable body={(game) => <ClubCell club={game.club} />} />}
+                        <Column header={t('Game')} bodyClassName="stack-block no-label" body={gameBody} />
+                        <Column header={t('Players')} bodyClassName="stack-block no-label" body={playersBody} style={{ minWidth: '16rem' }} />
+                        <Column bodyClassName="no-label" header={t('Status')} body={statusBody} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )
