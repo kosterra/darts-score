@@ -1,7 +1,9 @@
+import { FaTrophy } from 'react-icons/fa';
 import { t, tn } from '../../utils/i18n';
 
 const AWARDS = {
-    champion: { icon: 'pi-trophy', title: t('Champion of the night'), value: (value) => tn(value, '{{count}} win', '{{count}} wins') },
+    // the cup of the whole app (react-icons), the others PrimeIcons
+    champion: { icon: FaTrophy, title: t('Champion of the night'), value: (value) => tn(value, '{{count}} win', '{{count}} wins') },
     average: { icon: 'pi-chart-line', title: t('Best average'), value: (value) => value.toFixed(2) },
     oneEighties: { icon: 'pi-bolt', title: t('Most 180s'), value: (value) => tn(value, '{{count}} × 180', '{{count}} × 180') },
     checkout: { icon: 'pi-flag', title: t('Highest checkout'), value: (value) => String(value) },
@@ -56,7 +58,7 @@ export const EveningAwards = ({ report, nameOf }) => (
             if (!words) return null;
             return (
                 <div key={award.id} className={`evening-award is-${award.id}`}>
-                    <span className="evening-award-icon" aria-hidden="true"><i className={`pi ${words.icon}`} /></span>
+                    <span className="evening-award-icon" aria-hidden="true">{typeof words.icon === 'string' ? <i className={`pi ${words.icon}`} /> : <words.icon />}</span>
                     <span className="d-flex flex-column min-w-0">
                         <span className="text-faint fs-8">{words.title}</span>
                         <span className="text-default fw-semibold text-truncate">{nameOf(award.player)}</span>

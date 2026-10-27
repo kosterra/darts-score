@@ -8,6 +8,8 @@ import { SelectButton } from 'primereact/selectbutton';
 import { Avatar } from 'primereact/avatar';
 import { Toast } from 'primereact/toast';
 import QRCode from 'qrcode';
+import dayjs from 'dayjs';
+import { FaTrophy } from 'react-icons/fa';
 import BigScreenButton from '../screen/big.screen.button';
 
 import EveningService from '../../services/evening.service';
@@ -73,7 +75,7 @@ const NextGame = ({ evening, onStart, busy }) => {
     return (
         <div className="evening-next page-narrow">
             <p className="game-setup-section-title">{t('Players')}</p>
-            <p className="text-subtle fs-8 mt-0">{chosen ? t('Tap the players in the order they throw (2 to 4).') : t('Suggested: who played least, against someone new. Tap to choose others.')}</p>
+            <p className="text-faint fs-8 mt-0">{chosen ? t('Tap the players in the order they throw (2 to 4).') : t('Suggested: who played least, against someone new. Tap to choose others.')}</p>
             {/* the cards of the setup pages, numbered in the order they throw */}
             <div className="player-picker-grid" role="group" aria-label={t('Players of the evening')}>
                 {evening.players.map(player => {
@@ -192,7 +194,8 @@ const EveningPage = ({ shared = false }) => {
                 <header className="dashboard-header hero-header rounded-2 p-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
                     <div className="d-flex flex-column gap-1 min-w-0">
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{title}</h1>
-                        <span className="text-subtle">{t('Darts evening')}{' · '}{formatDateTime(evening.createdAt)}</span>
+                        {/* the date, or only the time when the title names the date already */}
+                        <span className="text-subtle">{t('Darts evening')}{' · '}{evening.name ? formatDateTime(evening.createdAt) : dayjs(evening.createdAt).format('HH:mm')}</span>
                         <span className="evening-header-players">{evening.players.map(player => player.name).join(' · ')}</span>
                         {shared && <span className="text-faint fs-8">{t('You follow this evening: it updates on its own.')}</span>}
                     </div>
@@ -228,7 +231,7 @@ const EveningPage = ({ shared = false }) => {
 
                 <Panel header={t('Table of the evening')}>
                     {report.played === 0
-                        ? <span className="text-faint">{t('The table fills with the first game.')}</span>
+                        ? <span className="text-faint fs-7">{t('The table fills with the first game.')}</span>
                         : <EveningTable report={report} />}
                 </Panel>
 
@@ -260,7 +263,7 @@ const EveningPage = ({ shared = false }) => {
                                     <GameTypeIcon type={game.kind} />
                                     <span className="d-flex flex-column min-w-0 flex-grow-1">
                                         <span className="text-default text-truncate">
-                                            {game.players.map(playerId => <span key={playerId} className={playerId === game.winner ? 'fw-bold' : ''}>{playerId === game.winner ? '🏆 ' : ''}{nameOf(playerId)}</span>).reduce((list, item, index) => (index ? [...list, ' – ', item] : [item]), [])}
+                                            {game.players.map(playerId => <span key={playerId} className={playerId === game.winner ? 'fw-bold' : ''}>{nameOf(playerId)}{playerId === game.winner && <FaTrophy className="ms-1 text-gold" aria-label={t('Winner')} />}</span>).reduce((list, item, index) => (index ? [...list, ' – ', item] : [item]), [])}
                                         </span>
                                         <span className="text-faint fs-8">{t(GAME_NAMES[game.kind])} · {formatDateTime(game.createdAt)}{game.running ? ` · ${t('going on')}` : ''}</span>
                                     </span>
