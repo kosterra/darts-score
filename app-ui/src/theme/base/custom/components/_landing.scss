@@ -1185,3 +1185,13 @@
     height: 1px;
     opacity: 0;
 }
+
+// the games without an account under the login, where no start page comes before it
+.auth-play-now {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    margin-top: $space-5;
+
+    .auth-play-now-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -3,6 +3,7 @@ import { Button } from 'primereact/button';
 import { t } from '../../utils/i18n';
 import { BRAND, LICENCE, REPOSITORY } from '../../utils/project';
 import usePublicSite from '../../utils/use.public.site';
+import { isInstalled } from '../../utils/install';
 import LanguageSwitch from '../elements/language.switch';
 
 /**
@@ -47,7 +48,8 @@ export const PublicNav = () => {
     const publicSite = usePublicSite();
     return (
         <nav className="landing-nav" aria-label={t('Sections')}>
-            {publicSite !== false && <><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></>}
+            {/* the sections of the start page, where there is one: not in Legmate added to the home screen */}
+            {publicSite !== false && !isInstalled() && <><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></>}
             <Link to="/darts-terms">{t('Darts A–Z')}</Link>
         </nav>
     );
