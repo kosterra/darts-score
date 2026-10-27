@@ -112,7 +112,9 @@
 .evening-awards {
     .kpi-chip-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+    // the figure and the award belong together; who holds it a little apart
     .kpi-chip-detail {
+        margin-top: $space-2;
         color: var(--text-default);
         font-size: $text-sm;
         font-weight: $weight-semibold;
