@@ -76,13 +76,12 @@
     font-weight: $weight-semibold;
 }
 
-// a player of the evening in their own colour, the initials dark on it
+// a player of the evening: grey as the avatars elsewhere, with a thin ring in their own
+// colour (the colour of their line in the form), so the same initials stay apart
 .p-avatar.evening-avatar {
-    background: var(--player-colour);
-    // flat, without the ring and shadow the avatars have elsewhere
-    box-shadow: none;
-    color: #1d2126;
-    font-weight: $weight-semibold;
+    background: $surfaceHighColor;
+    box-shadow: inset 0 0 0 2px var(--player-colour);
+    color: var(--text-default);
 }
 
 // the figures of a player beside their place in the table; under the name on a phone
