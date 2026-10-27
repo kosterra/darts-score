@@ -26,11 +26,18 @@ test('a doubles game: set up in teams, the team\'s score shared', async ({ page,
     await expect(picker.locator('.player-pick-card').first()).toBeVisible();
     await page.waitForLoadState('networkidle');
     while (await picker.locator('.player-pick-card.is-chosen').count()) await picker.locator('.player-pick-card.is-chosen').first().click();
-    for (const name of ['Anna', 'Ben', 'Cleo', 'Dario']) await picker.locator('.player-pick-card', { hasText: name }).click();
 
-    // four players: doubles can be chosen; the teams follow the throwing order (first and third
-    // against second and fourth), other partners with a button that changes the order
+    // doubles are offered before the players are chosen, and say how many are missing
     await page.getByRole('button', { name: 'Doubles', exact: true }).click();
+    await expect(page.getByText('Doubles are played by four players: choose 4 more')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Start game', exact: true })).toBeDisabled();
+    for (const name of ['Anna', 'Ben']) await picker.locator('.player-pick-card', { hasText: name }).click();
+    await expect(page.getByText('Doubles are played by four players: choose 2 more')).toBeVisible();
+    await expect(page.getByText('Doubles need four players')).toBeVisible();
+    for (const name of ['Cleo', 'Dario']) await picker.locator('.player-pick-card', { hasText: name }).click();
+
+    // four players: the teams follow the throwing order (first and third against second and
+    // fourth), other partners with a button that changes the order
     const teams = page.locator('.doubles-team');
     await expect(teams).toHaveText([/Anna & Cleo/, /Ben & Dario/]);
     await page.getByRole('button', { name: 'Change partners' }).click();

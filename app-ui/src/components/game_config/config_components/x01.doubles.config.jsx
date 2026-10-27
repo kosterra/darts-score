@@ -5,14 +5,14 @@ import { changePartners, teamsOfOrder } from '../../../utils/doubles';
 import { t } from '../../../utils/i18n';
 
 /**
- * Singles or doubles, with four players: two teams of two who share their
+ * Singles or doubles, offered from the start so it is found: doubles need
+ * four players (the setup says so until there are four). two teams of two who share their
  * score, legs and sets. The teams follow the throwing order (first and third
  * against second and fourth), so the teams and partners take turns.
  * players: the chosen players in their throwing order; doubles: on or off;
  * onChange(doubles); onOrder(players): another order, for other partners.
  */
 const X01DoublesConfig = ({ players, doubles, onChange, onOrder }) => {
-    if (players.length !== 4) return null;
     const teams = teamsOfOrder(players);
     const names = (team) => team.map(player => player.nickname).join(' & ');
     return (
@@ -27,7 +27,13 @@ const X01DoublesConfig = ({ players, doubles, onChange, onOrder }) => {
                         className="p-selectbutton-pills flex-wrap"
                         aria-label={t('Format')}
                     />
-                    {doubles
+                    {doubles && !teams &&
+                        <span className="text-faint fs-8">
+                            {players.length < 4
+                                ? t('Doubles are played by four players: choose {{count}} more, two teams of two who share their score.', { count: 4 - players.length })
+                                : t('Doubles are played by four players: two teams of two who share their score.')}
+                        </span>}
+                    {doubles && teams
                         ? <>
                             <div className="doubles-teams">
                                 <span className="doubles-team"><span className="text-faint fs-8">{t('Team 1')}</span>{names(teams[0])}</span>
@@ -39,7 +45,7 @@ const X01DoublesConfig = ({ players, doubles, onChange, onOrder }) => {
                             </div>
                             <span className="text-faint fs-8">{t('Partners share their score, legs and sets; each keeps their own average and figures. The teams follow the throwing order: the first and third against the second and fourth.')}</span>
                         </>
-                        : <span className="text-faint fs-8">{t('Everyone for themselves, or two teams of two who share their score.')}</span>}
+                        : !doubles && <span className="text-faint fs-8">{t('Everyone for themselves, or with four players two teams of two who share their score.')}</span>}
                 </div>
             </div>
         </div>

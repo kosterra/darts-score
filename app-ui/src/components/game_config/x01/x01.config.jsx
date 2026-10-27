@@ -94,8 +94,8 @@ const X01Config = () => {
     const friendly = club.friendlyChoice ? friendlyChosen : Boolean(clubFormat?.friendly);
     const isDoubles = doubles && players.length === 4;
     // doubles are played from the game's own rules: a handicap would split a team's score
-    const handicapOff = club.handicap.mode === 'off' || isDoubles;
-    const ownRules = isDoubles ? null : handicap;
+    const handicapOff = club.handicap.mode === 'off' || doubles;
+    const ownRules = doubles ? null : handicap;
     const tooFarApart = ownRules && club.handicap.maxDifference > 0 && spreadOf(ownRules) > club.handicap.maxDifference;
 
     const startFresh = () => {
@@ -110,7 +110,9 @@ const X01Config = () => {
 
     const rulesOf = (playerId) => ownRules?.[playerId] ?? { startingScore: Number(game.startingScore), legInMode: game.legInMode, legOutMode: game.legOutMode };
 
-    const missing = missingPlayers(players)
+    // doubles chosen before the players: four are needed
+    const missing = (doubles && players.length !== 4 ? t('Doubles need four players') : null)
+        || missingPlayers(players)
         || (tooFarApart ? t('The starting scores may differ by {{points}} points at most.', { points: club.handicap.maxDifference }) : null);
     const summary = [
         ownRules ? 'Handicap' : `${game.startingScore} · ${game.legInMode} / ${game.legOutMode}`,
@@ -163,7 +165,7 @@ const X01Config = () => {
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
-                    <PlayerPicker selected={players} onChange={onPlayersChange} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
+                    <PlayerPicker selected={players} onChange={onPlayersChange} minPlayers={doubles ? 4 : undefined} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
 
                     <X01DoublesConfig players={players} doubles={doubles} onChange={changeDoubles} onOrder={onPlayersChange} />
 
