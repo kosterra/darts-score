@@ -173,6 +173,24 @@
             > td.status-cell { order: 0; flex: 0 0 auto; width: auto !important; }
         }
 
+        // the trainings: date and training on the top line (the training without its round
+        // icon, so it is not one round picture on top of another), the player, a thin line
+        &.trainings-table .p-datatable-tbody > tr:not(.p-datatable-emptymessage) {
+            > td { order: 1; }
+            > td.date-cell { order: 0; flex: 0 0 auto; width: auto !important; }
+            > td.training-cell {
+                order: 0;
+                flex: 1 1 0;
+                justify-content: flex-start;
+                // close to the date, as one line
+                margin-left: -$space-2;
+
+                .game-type-icon { display: none; }
+                .training-name { font-weight: $weight-semibold; white-space: normal; }
+                .training-name::before { content: '· '; color: var(--text-faint); }
+            }
+        }
+
         .p-datatable-tbody > tr:hover > td,
         .p-datatable-tbody > tr.p-highlight > td { background: transparent; }
     }

@@ -184,7 +184,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const typeBody = (row) => (
         <span className="d-flex align-items-center gap-3">
             <GameTypeIcon type={row.rules ? row.kind : row.kind === 'x01' ? 'bot' : 'atc'} />
-            <span className="text-default fs-7 text-nowrap">{row.rules ? row.rules.title : row.kind === 'x01' ? t('X01 against the bot') : t('Around the Clock')}</span>
+            <span className="text-default fs-7 text-nowrap training-name">{row.rules ? row.rules.title : row.kind === 'x01' ? t('X01 against the bot') : t('Around the Clock')}</span>
         </span>
     );
     const whatBody = (row) => <span className="text-subtle fs-7 text-nowrap">{row.what}</span>;
@@ -258,15 +258,15 @@ const TrainingsTable = ({ scope = 'club' }) => {
                     <DataTable
                         value={visibleRows}
                         dataKey="id"
-                        className="admin-table"
+                        className="admin-table trainings-table"
                         {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage={rows === null ? <TableLoading /> : t('No trainings match these filters.')}
                         responsiveLayout="stack" breakpoint="640px"
                     >
-                        <Column bodyClassName="no-label" field="createdAt" header={t('Date')} sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />
+                        <Column bodyClassName="no-label date-cell" field="createdAt" header={t('Date')} sortable body={(row) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(row.createdAt)}</span>} />
                         {acrossClubs && <Column bodyClassName="no-label" field="club.name" header={t('Club')} sortable body={(row) => <ClubCell club={row.club} />} />}
-                        <Column bodyClassName="no-label" header={t('Player')} body={(row) => <PlayerCell player={playerOf(row)} />} style={{ minWidth: '14rem' }} />
-                        <Column bodyClassName="no-label divider-after" header={t('Training')} body={typeBody} />
+                        <Column bodyClassName="no-label divider-after" header={t('Player')} body={(row) => <PlayerCell player={playerOf(row)} />} style={{ minWidth: '14rem' }} />
+                        <Column bodyClassName="no-label training-cell" header={t('Training')} body={typeBody} />
                         <Column header={t('Played')} body={whatBody} />
                         <Column header={t('Result')} body={resultBody} />
                         <Column body={actionsBody} />
