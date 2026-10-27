@@ -68,6 +68,10 @@ const addGame = async (id, kind, game) => {
 // the evening becomes a club of the logged-in user: { name, me } → { club, games }
 const makeClub = (id, setup) => request(`/api/evenings/${id}/club`, { method: 'POST', body: setup, key: eveningKeyOf(id) });
 
-const EveningService = { createEvening, loadEvening, loadShared, addGame, makeClub };
+// the big screen of the evening: a link, or sent to a TV by its code (the browser that runs it)
+const screenLink = (id) => request(`${API_URL}/${id}/screen`, { method: 'POST', key: eveningKeyOf(id) });
+const sendToTv = (id, code) => request(`${API_URL}/${id}/screen/send`, { method: 'POST', body: { code }, key: eveningKeyOf(id) });
+
+const EveningService = { createEvening, loadEvening, loadShared, addGame, makeClub, screenLink, sendToTv };
 
 export default EveningService;

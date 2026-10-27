@@ -7,12 +7,15 @@ import X01Context from '../../../utils/x01.context';
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { describeRules, hasHandicap, outModeOf, rulesOf } from '../../../utils/x01.rules';
-import { legSummaryOf } from '../../../utils/x01.live';
+import { legSummaryOf, nextOfTeam } from '../../../utils/x01.live';
+import { teamsOf } from '../../../rules/x01';
 import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../../../utils/checkout.routes';
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
 import useGameRules from '../common/game.rules';
+import CallerButton from '../common/caller.button';
+import GameScreenButton from '../../screen/game.screen.button';
 import QuickHeroBrand from '../../quick/quick.hero.brand';
 import useWaysOut from './use.ways.out';
 import { houseRuleLines } from '../../../utils/club.rules.labels';
@@ -47,10 +50,20 @@ const WonCount = ({ label, won, mode, count }) => {
  * the key figures are in a panel below, so the board stays in view.
  */
 const X01LiveHeader = () => {
-    const { game, players, checkoutProfiles = {}, getCurrentThrowScore, checkIfScoreIsBusted } = useContext(X01Context);
+    const { game, players, checkoutProfiles = {}, getCurrentThrowScore, checkIfScoreIsBusted, training, quick } = useContext(X01Context);
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
     const ordered = game.players.map(id => players.find(player => player.id === id)).filter(Boolean);
+    const playerOf = (id) => players.find(player => player.id === id);
+    // who play against each other: each player, or in doubles the two teams, shown
+    // by the partner who throws next (the other one small beside the name)
+    const teams = teamsOf(game);
+    const sides = teams
+        ? teams.map(team => {
+            const next = nextOfTeam(game, team);
+            return { player: playerOf(next), partner: playerOf(team.find(id => id !== next)), team };
+        }).filter(side => side.player)
+        : ordered.map(player => ({ player, partner: null, team: [player.id] }));
     const dartsEntered = game.currentThrow.filter(dart => dart.trim() !== '').length;
     const handicap = hasHandicap(game);
     const [rulesButton, rules] = useGameRules('x01', houseRuleLines('x01', game));
@@ -78,7 +91,7 @@ const X01LiveHeader = () => {
                 <QuickHeroBrand />
                 <div className="d-flex flex-column">
                     <span className="text-default fw-semibold">
-                        {handicap ? t('Handicap') : game.startingScore} · {game.setMode} {plural(game.numberOfSets, 'set')} · {game.legMode} {plural(game.numberOfLegs, 'leg')}
+                        {handicap ? t('Handicap') : game.startingScore}{teams && <> · {t('Doubles')}</>} · {game.setMode} {plural(game.numberOfSets, 'set')} · {game.legMode} {plural(game.numberOfLegs, 'leg')}
                     </span>
                     <span className="text-faint fs-8">
                         {handicap ? t('Own starting score and in/out per player') : `${game.legInMode} / ${game.legOutMode}`}
@@ -86,12 +99,17 @@ const X01LiveHeader = () => {
                     </span>
                 </div>
                 </div>
-                {rulesButton}
+                <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                    <CallerButton />
+                    {/* a club game, or the evening of a quick game, also on a TV or second tablet */}
+                    <GameScreenButton kind="x01" game={game} quick={quick} training={training} />
+                    {rulesButton}
+                </div>
             </div>
             {rules}
 
-            <div className={`x01-hero-players count-${ordered.length}`}>
-                {ordered.map((player, index) => {
+            <div className={`x01-hero-players count-${sides.length}`}>
+                {sides.map(({ player, partner, team }, index) => {
                     const model = game.playerModels[player.id];
                     const isTurn = game.currentPlayerTurn === player.id;
                     const score = isTurn ? model.score - getCurrentThrowScore() : model.score;
@@ -108,13 +126,14 @@ const X01LiveHeader = () => {
                     const setup = busted || !shown || routes.length ? null : setupSuggestions(score, throwing)[0];
                     const tip = busted || !shown || routes.length || setup ? null : scoringTip(score, throwing);
                     const plan = setup ?? (tip?.darts ? tip : null);
-                    const leg = legSummaryOf(game, player.id);
+                    // in doubles the team's leg: its last visit and darts
+                    const leg = legSummaryOf(game, team);
                     // on a finish that wins the match (or the set)
                     const onTheBrinkOfSet = routes[0] && model.currentSetLegsWon === needed(game.legMode, game.numberOfLegs) - 1;
                     const matchDart = onTheBrinkOfSet && (game.numberOfSets <= 1 || model.setsWon === needed(game.setMode, game.numberOfSets) - 1);
                     const setDart = onTheBrinkOfSet && !matchDart;
                     return (
-                        <div key={player.id} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${ordered.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
+                        <div key={team.join('-')} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${sides.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
                             <span className="result-hero-portrait x01-hero-portrait">
                                 {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
                                 <Avatar
@@ -128,10 +147,11 @@ const X01LiveHeader = () => {
                             <div className="x01-hero-info">
                                 <span className="x01-hero-name text-truncate" title={player.nickname}>
                                     {/* mirrored, the flight follows the name */}
-                                    {!(ordered.length === 2 && index === 1) && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
+                                    {!(sides.length === 2 && index === 1) && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
                                     {player.nickname}
-                                    {ordered.length === 2 && index === 1 && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
+                                    {sides.length === 2 && index === 1 && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
                                 </span>
+                                {partner && <span className="x01-hero-partner text-truncate" title={partner.nickname}>{t('with {{name}}', { name: partner.nickname })}</span>}
                                 <span className="x01-live-leg">
                                     {t('Last visit')}{' '}<strong>{leg.lastVisit ? (leg.lastVisit.bust ? t('Bust') : leg.lastVisit.score) : '–'}</strong> · <strong>{leg.darts}</strong>{' '}{t('darts')}
                                 </span>
@@ -153,7 +173,7 @@ const X01LiveHeader = () => {
                                 </span>
                             </div>
                             <div className="x01-hero-score">
-                                {ton?.id === player.id && <span key={ton.key} className="x01-ton-pop" aria-hidden="true">{ton.text}</span>}
+                                {team.includes(ton?.id) && <span key={ton.key} className="x01-ton-pop" aria-hidden="true">{ton.text}</span>}
                                 <span className={`result-hero-score ${busted ? 'is-bust' : ''}`}>{busted ? t('BUST') : score}</span>
                                 {/* always a line, so the legs of the players stay in line */}
                                 <span

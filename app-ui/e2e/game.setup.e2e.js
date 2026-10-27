@@ -15,7 +15,11 @@ test('a game without one\'s own player says so, and "Add me" joins it', async ({
     const picker = page.locator('.player-picker');
     await expect(picker.locator('.player-pick-card').first()).toBeVisible();
     // the players of the last game may be chosen already: start from none
-    for (const chosen of await picker.locator('.player-pick-card.is-chosen').all()) await chosen.click();
+    // the cards move when chosen: one at a time, until none is chosen
+    // the players of the last game are chosen once the list has loaded: wait for that first
+    await expect(picker.locator('.player-pick-card').first()).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    while (await picker.locator('.player-pick-card.is-chosen').count()) await picker.locator('.player-pick-card.is-chosen').first().click();
     await expect(picker.locator('.player-picker-not-me')).toHaveCount(0);
 
     await picker.locator('.player-pick-card', { hasText: 'Ben' }).click();

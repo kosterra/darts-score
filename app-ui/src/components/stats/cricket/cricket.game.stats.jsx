@@ -20,7 +20,6 @@ import { cricketRematch } from '../../../utils/cricket.rematch';
 import UpLink from '../../elements/up.link';
 import { variantOf } from '../../../utils/cricket.variants';
 import { t } from '../../../utils/i18n';
-import CompareLink from '../compare/compare.link';
 import { GAME_COLORS } from '../../../utils/palette';
 
 // the key figures of every player in the header
@@ -98,7 +97,7 @@ const CricketGameStats = ({ quick = false }) => {
     // a game of a darts evening goes back to it; others offer a rematch
     const actions = quick && game.evening
         ? <EveningGameActions eveningId={game.evening} />
-        : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} />;
+        : <GameResultActions compare={!quick && players.length > 1 ? { players, type: 'cricket' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} />;
 
     return (
         <div className="container-fluid p-4 border-0">
@@ -108,8 +107,6 @@ const CricketGameStats = ({ quick = false }) => {
                     celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
-                    // the way to the comparison of these players, in this game
-                    footer={!quick && players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type={'cricket'} /></div> : null}
                     title={variantOf(game) === 'Standard' ? t('Cricket · 15 to 20 and the bull') : t('Cricket {{variantOf}} · 15 to 20 and the bull', { variantOf: variantOf(game) })}
                     subtitle={whenPlayed(game)}
                     scoreOf={(player) => figures[player.id]?.points ?? 0}

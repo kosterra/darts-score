@@ -3,6 +3,7 @@ import { Button } from 'primereact/button';
 import { t } from '../../utils/i18n';
 import { BRAND, LICENCE, REPOSITORY } from '../../utils/project';
 import usePublicSite from '../../utils/use.public.site';
+import { isInstalled } from '../../utils/install';
 import LanguageSwitch from '../elements/language.switch';
 
 /**
@@ -19,8 +20,9 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
             <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none" aria-label={t('Legmate start page')}>
                 <img alt="" src="/logo.svg" width="40" height="40" />
                 <span className="fs-5 fw-semibold text-default landing-brand-name">{t('Legmate')}</span>
-                {suffix && <span className="text-faint fs-8 d-none d-sm-inline">{suffix}</span>}
             </Link>
+            {/* the part of Legmate the page belongs to, in the place and look of the start page's sections */}
+            {suffix && <span className="landing-section">{suffix.replace(/^·\s*/, '')}</span>}
             {nav}
             <nav className="d-flex align-items-center gap-2" aria-label={t('Account')}>
                 {/* the way to support Legmate, quiet: a heart, with its word on wider screens */}
@@ -46,7 +48,8 @@ export const PublicNav = () => {
     const publicSite = usePublicSite();
     return (
         <nav className="landing-nav" aria-label={t('Sections')}>
-            {publicSite !== false && <><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></>}
+            {/* the sections of the start page, where there is one: not in Legmate added to the home screen */}
+            {publicSite !== false && !isInstalled() && <><Link to="/#features">{t('Features')}</Link><Link to="/#faq">{t('FAQ')}</Link></>}
             <Link to="/darts-terms">{t('Darts A–Z')}</Link>
         </nav>
     );

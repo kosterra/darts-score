@@ -14,6 +14,11 @@ export const registerServiceWorker = () => {
     if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(error => console.error('The service worker could not be registered', error));
+        // what this page loaded before the worker was there, so it opens again without a network
+        navigator.serviceWorker.ready.then(registration => {
+            const urls = performance.getEntriesByType('resource').map(entry => entry.name).filter(name => new URL(name).origin === location.origin);
+            registration.active?.postMessage({ type: 'keep', urls });
+        }).catch(() => {});
     });
 };
 

@@ -57,7 +57,7 @@ const FirstSteps = () => {
                                 : t('Find your way around: {{done}} of {{count}} done.', { done, count: items.length })}
                     </span>
                 </div>
-                <Button type="button" icon="pi pi-times" text rounded severity="secondary" size="small" aria-label={t('Hide the first steps')} title={t('Hide the first steps')} onClick={hide} />
+                <Button type="button" icon="pi pi-times" text severity="secondary" size="small" aria-label={t('Hide the first steps')} title={t('Hide the first steps')} onClick={hide} />
             </div>
             <ProgressBar value={Math.round((done / items.length) * 100)} showValue={false} className="first-steps-bar" />
             {!all &&

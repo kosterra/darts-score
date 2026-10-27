@@ -1,4 +1,4 @@
-import { QUICK_KEEP_DAYS } from '../utils/quick.games.js';
+import { QUICK_KEEP_DAYS, QUICK_UNFINISHED_DAYS } from '../utils/quick.games.js';
 
 // A quick game from the public start page: no club, the players only names
 export default (mongoose) => {
@@ -22,5 +22,7 @@ export default (mongoose) => {
   );
   // gone after a month
   schema.index({ createdAt: 1 }, { expireAfterSeconds: QUICK_KEEP_DAYS * 24 * 60 * 60 });
+  // one never finished sooner, a few days after its last visit (a darts evening loses it from its table)
+  schema.index({ updatedAt: 1 }, { expireAfterSeconds: QUICK_UNFINISHED_DAYS * 24 * 60 * 60, partialFilterExpression: { hasWinner: false } });
   return mongoose.model('quickGame', schema);
 };

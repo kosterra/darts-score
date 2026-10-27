@@ -8,6 +8,7 @@ import X01InOutConfig from '../config_components/x01.inout.config';
 import SetsLegsConfig from '../config_components/sets.legs.config';
 import PlayerPicker from '../config_components/player.picker';
 import X01HandicapConfig from '../config_components/x01.handicap.config';
+import X01DoublesConfig from '../config_components/x01.doubles.config';
 import FlyingDartsConfig from '../config_components/flying.darts.config';
 import GameSetupStart from '../config_components/game.setup.start';
 import GameSetupMemory from '../config_components/game.setup.memory';
@@ -50,6 +51,8 @@ const X01Config = () => {
     const [players, setPlayers] = useState([]);
     // the own rules of every player, null without a handicap
     const [handicap, setHandicap] = useState(null);
+    // doubles with four players: the teams follow the throwing order (see utils/doubles.js)
+    const [doubles, setDoubles] = useState(Boolean(remembered?.doubles));
     const [starting, setStarting] = useState(false);
     // the handicap of the last game comes back with its players
     const pendingHandicap = useRef(remembered?.handicap ?? null);
@@ -64,7 +67,8 @@ const X01Config = () => {
 
     const onPlayersChange = (chosen) => {
         setPlayers(chosen);
-        setGame(current => fitToPlayers(current, chosen.length));
+        // doubles are two sides: "Best of" stays possible
+        setGame(current => fitToPlayers(current, doubles && chosen.length === 4 ? 2 : chosen.length));
         const restoring = pendingHandicap.current;
         pendingHandicap.current = null;
         // a player who plays without a handicap: everyone from the game's own score
@@ -74,15 +78,25 @@ const X01Config = () => {
     };
 
     const formats = club.quickFormats(X01_QUICK_FORMATS);
+    // who play against each other: the two teams in doubles, otherwise the players
+    const sides = doubles && players.length === 4 ? 2 : players.length;
+    const changeDoubles = (next) => {
+        setDoubles(next);
+        // back to everyone for themselves: four sides again
+        if (!next && players.length === 4) setGame(current => club.withLocks(fitToPlayers(current, 4)));
+    };
     const applyFormat = (settings, format) => {
-        setGame(current => club.withLocks({ ...current, ...fitToPlayers(settings, players.length) }));
+        setGame(current => club.withLocks({ ...current, ...fitToPlayers(settings, sides) }));
         if (format?.club && club.friendlyChoice) setFriendlyChosen(format.friendly);
     };
     // the club format the game is set up as, and whether it is friendly
-    const clubFormat = club.formats.find(format => isFormat(game, format, players.length)) ?? null;
+    const clubFormat = club.formats.find(format => isFormat(game, format, sides)) ?? null;
     const friendly = club.friendlyChoice ? friendlyChosen : Boolean(clubFormat?.friendly);
-    const handicapOff = club.handicap.mode === 'off';
-    const tooFarApart = handicap && club.handicap.maxDifference > 0 && spreadOf(handicap) > club.handicap.maxDifference;
+    const isDoubles = doubles && players.length === 4;
+    // doubles are played from the game's own rules: a handicap would split a team's score
+    const handicapOff = club.handicap.mode === 'off' || doubles;
+    const ownRules = doubles ? null : handicap;
+    const tooFarApart = ownRules && club.handicap.maxDifference > 0 && spreadOf(ownRules) > club.handicap.maxDifference;
 
     const startFresh = () => {
         clearSetup('x01');
@@ -90,15 +104,19 @@ const X01Config = () => {
         setGame({ ...X01Models.X01GameModel, ...club.start() });
         setPlayers([]);
         setHandicap(null);
+        setDoubles(false);
         setFriendlyChosen(false);
     };
 
-    const rulesOf = (playerId) => handicap?.[playerId] ?? { startingScore: Number(game.startingScore), legInMode: game.legInMode, legOutMode: game.legOutMode };
+    const rulesOf = (playerId) => ownRules?.[playerId] ?? { startingScore: Number(game.startingScore), legInMode: game.legInMode, legOutMode: game.legOutMode };
 
-    const missing = missingPlayers(players)
+    // doubles chosen before the players: four are needed
+    const missing = (doubles && players.length !== 4 ? t('Doubles need four players') : null)
+        || missingPlayers(players)
         || (tooFarApart ? t('The starting scores may differ by {{points}} points at most.', { points: club.handicap.maxDifference }) : null);
     const summary = [
-        handicap ? 'Handicap' : `${game.startingScore} · ${game.legInMode} / ${game.legOutMode}`,
+        ownRules ? 'Handicap' : `${game.startingScore} · ${game.legInMode} / ${game.legOutMode}`,
+        isDoubles ? t('Doubles') : null,
         setsLegsSummary(game),
         friendly ? t('Friendly') : null,
         playersSummary(players),
@@ -107,13 +125,14 @@ const X01Config = () => {
     const handleSubmit = async () => {
         if (missing) return;
         setStarting(true);
-        saveSetup('x01', { settings: Object.fromEntries(SETTINGS.map(name => [name, game[name]])), players, handicap, friendly });
+        saveSetup('x01', { settings: Object.fromEntries(SETTINGS.map(name => [name, game[name]])), players, handicap: ownRules, friendly, doubles: isDoubles });
+        // in doubles the teams follow the throwing order: a1, b1, a2, b2
         const playerIds = players.map(player => player.id);
         const playerModels = Object.fromEntries(playerIds.map(playerId => {
             const rules = rulesOf(playerId);
             return [playerId, {
                 ...X01Models.X01PlayerModel,
-                ...(handicap && rules),
+                ...(ownRules && rules),
                 score: Number(rules.startingScore),
             }];
         }));
@@ -121,6 +140,7 @@ const X01Config = () => {
             const newGame = await X01Service.createX01Game({
                 ...club.withLocks(game),
                 ...(friendly ? { friendly: true } : {}),
+                ...(isDoubles ? { doubles: true } : {}),
                 ...(clubFormat ? { format: clubFormat.id } : {}),
                 isSoloGame: false,
                 numberOfPlayers: playerIds.length,
@@ -145,10 +165,12 @@ const X01Config = () => {
                 <div className="container">
                     {remembered && <GameSetupMemory onReset={startFresh} />}
                     <p className="game-setup-section-title">{t('Players')}</p>
-                    <PlayerPicker selected={players} onChange={onPlayersChange} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
+                    <PlayerPicker selected={players} onChange={onPlayersChange} minPlayers={doubles ? 4 : undefined} initialIds={linkedPlayers ?? remembered?.playerIds} key={linkedPlayers ? `linked-${linkedPlayers.join()}` : remembered ? 'remembered' : 'fresh'} />
+
+                    <X01DoublesConfig players={players} doubles={doubles} onChange={changeDoubles} onOrder={onPlayersChange} />
 
                     <p className="game-setup-section-title mt-4">{t('Game')}</p>
-                    {formats.length > 0 && <QuickFormats game="x01" formats={formats} settings={game} playerCount={players.length} onApply={applyFormat} />}
+                    {formats.length > 0 && <QuickFormats game="x01" formats={formats} settings={game} playerCount={sides} onApply={applyFormat} />}
                     <X01ScoreConfig
                         scoreOption={game.startingScore}
                         onScoreChange={handleConfigChange}

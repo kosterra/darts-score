@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { FaTrophy } from 'react-icons/fa';
 import { Button } from 'primereact/button';
 import { Calendar } from 'primereact/calendar';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -189,8 +190,8 @@ const TournamentPage = () => {
                         <span className="text-truncate">{nameOf(tournament, entry.player)}{entry.byAdmin && <span className="text-faint fs-9 ms-2">{t('by an admin')}</span>}</span>
                         {isClubAdmin && (registration || closed) &&
                             <span className="d-flex gap-1">
-                                {entry.status !== 'in' && <Button icon="pi pi-check" text rounded size="small" aria-label={t('Enter')} title={t('Enter')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'in')} />}
-                                {entry.status !== 'out' && <Button icon="pi pi-times" text rounded size="small" severity="secondary" aria-label={t('Take out')} title={t('Take out')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'out')} />}
+                                {entry.status !== 'in' && <Button icon="pi pi-check" text size="small" aria-label={t('Enter')} title={t('Enter')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'in')} />}
+                                {entry.status !== 'out' && <Button icon="pi pi-times" text size="small" severity="secondary" aria-label={t('Take out')} title={t('Take out')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'out')} />}
                             </span>}
                     </li>
                 ))}
@@ -208,7 +209,7 @@ const TournamentPage = () => {
                         <div><dt className="text-faint fs-8 fw-normal">{t('Players')}</dt><dd className="text-default fw-semibold m-0">{tournament.counts.in} / {tournament.maxPlayers}</dd></div>
                         {playing[0]?.date && <div><dt className="text-faint fs-8 fw-normal">{t('First round')}</dt><dd className="text-default fw-semibold m-0">{formatDate(playing[0].date)}</dd></div>}
                         {isClubAdmin && !drawn && <div><dt className="text-faint fs-8 fw-normal">{t('Invited')}</dt><dd className="text-default fw-semibold m-0">{INVITE_WORDS[tournament.invite ?? 'mail'].label}</dd></div>}
-                        {tournament.status === 'finished' && <div><dt className="text-faint fs-8 fw-normal">{t('Winner')}</dt><dd className="text-default fw-semibold m-0">🏆 {nameOf(tournament, tournament.winner)}</dd></div>}
+                        {tournament.status === 'finished' && <div><dt className="text-faint fs-8 fw-normal">{t('Winner')}</dt><dd className="text-default fw-semibold m-0">{nameOf(tournament, tournament.winner)}<FaTrophy className="ms-1 text-gold" aria-hidden="true" /></dd></div>}
                     </dl>
 
                     {registration && tournament.me &&

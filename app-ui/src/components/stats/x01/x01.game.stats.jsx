@@ -30,8 +30,8 @@ import GameBadges from '../../badges/game.badges';
 import UpLink from '../../elements/up.link';
 import EveningGameActions from '../../quick/evening.game.actions';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
+import { teamsOf } from '../../../rules/x01';
 import { t } from '../../../utils/i18n';
-import CompareLink from '../compare/compare.link';
 import { ACCENT } from '../../../utils/palette';
 
 // the key figures of every player in the header; for the best leg less wins
@@ -43,6 +43,10 @@ const FIGURES = [
     { key: 'bestLeg', label: t('Best leg'), format: (value) => t('{{value}} darts', { value: value }), lowerIsBetter: true },
     { key: 'highestVisit', label: t('Highest visit') },
     { key: 'oneEighties', label: t('180s') },
+    { key: 'ton60', label: '160+' },
+    { key: 'ton40', label: '140+' },
+    { key: 'ton20', label: '120+' },
+    { key: 'ton', label: '100+' },
     { key: 'dartsThrown', label: t('Darts thrown'), neutral: true },
 ];
 
@@ -88,6 +92,9 @@ const X01GameStats = ({ training = false, quick = false }) => {
                 const playerData = quick ? quickPlayersOf(gameData) : [...(await PlayerService.findPlayersByIds(people)), ...(gameData.players.includes(BOT_ID) ? [botPlayer(gameData.bot)] : [])]
                     .filter(p => gameData.players.includes(p.id))
                     .sort((a, b) => gameData.players.indexOf(a.id) - gameData.players.indexOf(b.id));
+                // doubles: the partners side by side
+                const order = teamsOf(gameData)?.flat() ?? gameData.players;
+                playerData.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
 
                 const statsData = quick || training ? await Service.loadX01GameStats(gameData.id) : await StatsService.loadX01GameStats(gameData.id);
 
@@ -125,12 +132,22 @@ const X01GameStats = ({ training = false, quick = false }) => {
             numberOfSets: game.numberOfSets,
             numberOfLegs: game.numberOfLegs,
             numberOfPlayers: game.players.length,
-            flyingDarts: game.flyingDarts ?? 'players'
+            flyingDarts: game.flyingDarts ?? 'players',
+            // doubles stay doubles, with the same partners
+            ...(teamsOf(game) ? { doubles: true } : {}),
         };
 
         let newPlayers = [...game.players];
+        const teams = teamsOf(game);
+        // reversed, the teams stay together (b2, a2, b1, a1); shuffled too: which team and partner starts
         if (switchPlayers) newPlayers.reverse();
-        else if (shufflePlayers) newPlayers = shuffle(newPlayers);
+        else if (shufflePlayers && teams) {
+            const flip = (pair) => (Math.random() < 0.5 ? pair : [pair[1], pair[0]]);
+            do {
+                const [first, second] = flip(teams.map(flip));
+                newPlayers = [first[0], second[0], first[1], second[1]];
+            } while (newPlayers.every((id, index) => id === game.players[index]));
+        } else if (shufflePlayers) newPlayers = shuffle(newPlayers);
         newMatchSetup.players = newPlayers;
 
         const startingPlayer = newPlayers[0];
@@ -162,10 +179,13 @@ const X01GameStats = ({ training = false, quick = false }) => {
     if (!game || !players) return <GameStatsSkeleton players={game?.players?.length ?? 2} />;
 
     const bySets = game.numberOfSets > 1;
+    // two players have the whole game side by side on top already: here only set by set
+    const setsOnly = players.length === 2;
     const barsScopes = [
-        { label: t('All sets'), value: 'game' },
+        ...(setsOnly ? [] : [{ label: t('All sets'), value: 'game' }]),
         ...Array.from({ length: game.setsPlayed ?? 0 }, (_, i) => ({ label: t('Set {{value}}', { value: i + 1 }), value: `set-${i + 1}` })),
     ];
+    const shownScope = barsScopes.some(scope => scope.value === barsScope) ? barsScope : barsScopes[0]?.value;
 
     // a tournament match: on to its bracket, no rematch
     const tournamentId = game.tournament?.id;
@@ -174,7 +194,7 @@ const X01GameStats = ({ training = false, quick = false }) => {
         ? <div className="d-flex justify-content-center"><Link to={`/tournaments/${tournamentId}`} className="p-button p-button-sm text-decoration-none"><i className="pi pi-sitemap me-2" />{t('To the bracket')}</Link></div>
         : quick && game.evening
             ? <EveningGameActions eveningId={game.evening} />
-            : <GameResultActions playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
+            : <GameResultActions compare={!quick && !training && players.length > 1 ? { players, type: 'x01' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">
@@ -186,12 +206,10 @@ const X01GameStats = ({ training = false, quick = false }) => {
                     celebrate={justFinished && game.hasWinner}
                     game={game}
                     players={players}
-                    // the way to the comparison of these players, in this game
-                    footer={!quick && !training && players.length > 1 ? <div className="text-center mt-3"><CompareLink players={players} type="x01" /></div> : null}
                     title={`${hasHandicap(game) ? t('Handicap') : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
                     subtitle={hasHandicap(game)
                         ? `${players.map(player => `${player.nickname} ${describeRules(rulesOf(game, player.id))}`).join(' · ')} · ${whenPlayed(game)}`
-                        : `${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
+                        : `${teamsOf(game) ? `${t('Doubles')} · ` : ''}${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
                     // sets decide when more than one could be played, otherwise legs
                     scoreOf={(player) => bySets ? game.playerModels[player.id]?.setsWon ?? 0 : figures[player.id]?.legsWon ?? 0}
                     scoreDetailOf={(player) => bySets
@@ -219,14 +237,14 @@ const X01GameStats = ({ training = false, quick = false }) => {
 
                 <X01LegsPanel game={game} players={players} legs={legs} />
 
-                {players.length > 1 &&
-                    <Panel header={t('Side by side')} className="mb-4">
-                        {barsScopes.length > 2 &&
+                {players.length > 1 && (!setsOnly || barsScopes.length > 1) &&
+                    <Panel header={setsOnly ? t('Set by set') : t('Side by side')} className="mb-4">
+                        {barsScopes.length > 1 &&
                             <div className="d-flex justify-content-start mb-3">
-                                <SelectButton value={barsScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} className="p-selectbutton-pills pills-inline" aria-label={t('Whole game or set')} />
+                                <SelectButton value={shownScope} options={barsScopes} onChange={(e) => e.value && setBarsScope(e.value)} className="p-selectbutton-pills pills-inline" aria-label={t('Whole game or set')} />
                             </div>
                         }
-                        <X01StatsComparisonBars game={game} valueKey={barsScope} players={players} />
+                        <X01StatsComparisonBars game={game} valueKey={shownScope} players={players} />
                     </Panel>
                 }
 

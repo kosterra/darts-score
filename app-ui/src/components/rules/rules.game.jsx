@@ -11,7 +11,10 @@ import useInputMode from '../games/common/use.input.mode';
 import useBoardDarts from '../games/common/use.board.darts';
 import useDartMarkers from '../games/common/use.dart.markers';
 import { TacticsMarks } from './rules.scoreboard';
+import GameScreenButton from '../screen/game.screen.button';
 import LiveHero from '../games/common/live.hero';
+import SaveStatus from '../games/common/save.status';
+import { loadWithUnsent, useGameSaves } from '../../utils/unsent.games';
 import LiveFigures from '../games/common/live.figures';
 import OneEightyCelebration from '../games/common/one.eighty.celebration';
 import RulesService from '../../services/rules.service';
@@ -40,18 +43,20 @@ const RulesGame = () => {
     // the big moment of a visit (a Shanghai, a new killer, …) while it plays
     const [moment, setMoment] = useState(null);
     const endMoment = useCallback(() => setMoment(null), []);
-    // the saves run one after the other, in the order of the visits
-    const saving = useRef(Promise.resolve());
     const toast = useRef(null);
 
     useEffect(() => {
         const load = async () => {
             try {
-                const loaded = await RulesService.loadGame(id);
+                // the game kept on this device (not sent yet) wins over the server's
+                const playersOf = async (loaded) => {
+                    const found = await PlayerService.findPlayersByIds(loaded.players);
+                    return loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') });
+                };
+                const { game: loaded, players: found, kept } = await loadWithUnsent(`rules:${id}`, () => RulesService.loadGame(id), playersOf);
                 // a finished game shows its result
-                if (loaded.hasWinner) return navigate(`/stats/games/${loaded.kind}/${id}`, { replace: true });
-                const found = await PlayerService.findPlayersByIds(loaded.players);
-                setPlayers(loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') }));
+                if (loaded.hasWinner && !kept) return navigate(`/stats/games/${loaded.kind}/${id}`, { replace: true });
+                setPlayers(found);
                 setGame(loaded);
             } catch {
                 setFailed(true);
@@ -71,14 +76,11 @@ const RulesGame = () => {
         if (savedOver && !moment) navigate(`/stats/games/${savedOver.kind}/${savedOver.id}`, { replace: true, state: { justFinished: true } });
     }, [savedOver, moment, navigate]);
 
-    const save = useCallback((next) => {
-        saving.current = saving.current
-            .then(() => RulesService.updateGame(next))
-            .then(() => {
-                if (next.hasWinner) setSavedOver(next);
-            })
-            .catch(() => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail: t('The last visit could not be saved. Check the connection and play on: the next visit saves everything.'), life: 5000 }));
-    }, []);
+    // without a connection the game is kept on this device and sent once it is back
+    const { save: keepAndSend, unsent } = useGameSaves(`rules:${id}`, (next) => RulesService.updateGame(next), (next) => {
+        if (next.hasWinner) setSavedOver(next);
+    });
+    const save = useCallback((next) => keepAndSend(next, { players, kind: definition?.title ?? t('Game') }), [keepAndSend, players, definition]);
 
     const change = useCallback((visits) => {
         const next = withGameState(definition, { ...game, visits });
@@ -178,7 +180,8 @@ const RulesGame = () => {
 
     return (
         <div className="container-fluid bg-transparent border-0 x01-game-page">
-            <LiveHero rulesId={kind} title={title} subtitle={subtitle} rows={heroRows} houseRules={houseRuleLines(kind, game.settings)} />
+            <SaveStatus unsent={unsent} finished={Boolean(game?.hasWinner)} />
+            <LiveHero rulesId={kind} title={title} subtitle={subtitle} rows={heroRows} houseRules={houseRuleLines(kind, game.settings)} actions={<GameScreenButton kind="rules" game={game} />} />
             <VisitInput
                 nickname={nameOf(current)}
                 input={input}

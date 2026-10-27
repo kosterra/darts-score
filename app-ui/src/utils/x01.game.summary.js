@@ -1,4 +1,5 @@
 import { t } from './i18n';
+import { partnersOf } from '../rules/x01';
 
 /**
  * What the statistics page of one finished X01 game shows, worked out from
@@ -37,8 +38,9 @@ export const legsOf = (game) => {
                         visits,
                         starter: visits[0]?.playerId ?? null,
                         winner: finish?.playerId ?? null,
+                        // the darts of the winner, in doubles of the team
                         winnerDarts: finish
-                            ? visits.filter(visit => visit.playerId === finish.playerId).reduce((sum, visit) => sum + dartsIn(visit), 0)
+                            ? visits.filter(visit => [finish.playerId, ...partnersOf(game, finish.playerId)].includes(visit.playerId)).reduce((sum, visit) => sum + dartsIn(visit), 0)
                             : null,
                         checkout: finish?.roundScore ?? null,
                         highest,
@@ -77,7 +79,9 @@ export const playerFigures = (game, playerId, legs = legsOf(game)) => {
     // the first three visits of every leg
     const firstNine = visitsByLeg.flatMap(legVisits => legVisits.slice(0, 3));
     const checkout = model.checkout?.game ?? {};
-    const wonLegs = legs.filter(leg => leg.winner === playerId);
+    // the legs won, in doubles also those the partner checked out
+    const team = [playerId, ...partnersOf(game, playerId)];
+    const wonLegs = legs.filter(leg => team.includes(leg.winner));
     const checkouts = Object.keys(model.checkoutScores?.game ?? {}).map(Number).filter(Boolean);
 
     return {
@@ -89,6 +93,11 @@ export const playerFigures = (game, playerId, legs = legsOf(game)) => {
         bestLeg: wonLegs.length ? Math.min(...wonLegs.map(leg => leg.winnerDarts)) : null,
         highestVisit: visits.length ? Math.max(...visits.map(visit => visit.roundScore ?? 0)) : null,
         oneEighties: model.scoreRanges?.game?.['180'] ?? 0,
+        // the high scores below 180, as in the side by side of a set
+        ton60: model.scoreRanges?.game?.['160-179'] ?? 0,
+        ton40: model.scoreRanges?.game?.['140-159'] ?? 0,
+        ton20: model.scoreRanges?.game?.['120-139'] ?? 0,
+        ton: model.scoreRanges?.game?.['100-119'] ?? 0,
         dartsThrown: model.totalThrow?.game?.darts ?? visits.reduce((sum, visit) => sum + dartsIn(visit), 0),
         legsWon: model.legsWon?.game ?? wonLegs.length,
         setsWon: model.setsWon ?? 0,

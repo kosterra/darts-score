@@ -241,7 +241,7 @@ const ClubEditPage = () => {
                                             <span className="text-subtle fs-8 text-break">{admin.email}</span>
                                         </div>
                                         {club.admins.length > 1 &&
-                                            <Button type="button" icon="pi pi-times" text rounded severity="secondary" size="small" aria-label={t('Remove {{email}} as admin', { email: admin.email })} title={t('Remove as admin')} onClick={() => removeAdmin(admin)} />}
+                                            <Button type="button" icon="pi pi-times" text severity="secondary" size="small" aria-label={t('Remove {{email}} as admin', { email: admin.email })} title={t('Remove as admin')} onClick={() => removeAdmin(admin)} />}
                                     </div>
                                 ))}
                                 <span className="text-faint fs-8">{t('Every admin can do everything in the club. A club always keeps one.')}</span>

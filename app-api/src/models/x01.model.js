@@ -25,6 +25,8 @@ export default (mongoose, name = 'x01') => {
       players:            [String],
       // a handicap: the players' own rules, { [playerId]: { startingScore, legInMode, legOutMode } }
       handicap:           mongoose.Schema.Types.Mixed,
+      // doubles: the first and third player against the second and fourth, sharing their score
+      doubles:            { type: Boolean, default: undefined },
       // every visit in order, { player, darts: ['T20', 'D16', '0'] }: the game follows from them
       visits:             { type: [{ _id: false, player: String, darts: [String] }], default: [] },
       // worked out from the visits (the legs, sets and figures follow from them too, see utils/game.view.js)

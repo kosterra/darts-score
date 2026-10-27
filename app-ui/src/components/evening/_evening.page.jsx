@@ -1,25 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Message } from 'primereact/message';
 import { Panel } from 'primereact/panel';
+import { SelectButton } from 'primereact/selectbutton';
+import { Avatar } from 'primereact/avatar';
 import { Toast } from 'primereact/toast';
 import QRCode from 'qrcode';
+import dayjs from 'dayjs';
+import BigScreenButton from '../screen/big.screen.button';
 
 import EveningService from '../../services/evening.service';
 import QuickLayout from '../quick/quick.layout';
 import QuickSettings from '../quick/quick.settings';
 import GameTypeIcon from '../elements/game.type.icon';
+import GameTypeTag from '../elements/game.type.tag';
+import GameStatusTag from '../elements/game.status.tag';
+import GamePlayers from '../dashboard/widgets/game.players';
 import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable } from './evening.parts';
 import { suggestNext } from '../../utils/evening.next';
 import { QUICK_DEFAULTS, newQuickGame, quickSetupText } from '../../utils/quick.games';
 import { formatDate, formatDateTime } from '../../utils/dates';
+import { resolvePlayerInitials } from '../../utils/image.utils';
 import { t, tn } from '../../utils/i18n';
 import { Lines } from '../elements/skeletons';
 import usePageTitle from '../../utils/use.page.title';
 
-const GAME_NAMES = { x01: 'X01', cricket: 'Cricket', elimination: 'Elimination' };
 // the evening and the games follow on their own, for the phones following it
 const REFRESH_MS = 20 * 1000;
 
@@ -63,31 +70,48 @@ const NextGame = ({ evening, onStart, busy }) => {
     });
     const ready = players.length >= 2 && players.length <= 4;
 
+    // games played tonight by each, under their name
+    const playedBy = (id) => evening.games.filter(game => game.finished && game.players.includes(id)).length;
+
     return (
-        <div className="d-flex flex-column gap-3">
-            <div className="d-flex flex-column gap-2">
-                <span className="text-subtle fs-8">{chosen ? t('Tap the players in the order they throw (2 to 4).') : t('Suggested: who played least, against someone new. Tap to choose others.')}</span>
-                <div className="evening-players">
-                    {evening.players.map(player => {
-                        const place = players.indexOf(player.id);
-                        return (
-                            <button key={player.id} type="button" className={`evening-player ${place >= 0 ? 'is-chosen' : ''}`} onClick={() => toggle(player.id)} aria-pressed={place >= 0}>
-                                {place >= 0 && <span className="evening-player-order">{place + 1}</span>}
-                                {player.name}
-                            </button>
-                        );
-                    })}
-                </div>
-                {!chosen &&
-                    <div className="d-flex flex-wrap align-items-center gap-2">
-                        <span className="text-faint fs-8">{t('Players in a game')}</span>
-                        {[2, 3, 4].filter(count => count <= evening.players.length).map(count => (
-                            <Button key={count} type="button" label={String(count)} size="small" severity={size === count ? undefined : 'secondary'} text={size !== count} onClick={() => setSize(count)} />
-                        ))}
-                    </div>}
-                {chosen && <Button type="button" label={t('Back to the suggestion')} icon="pi pi-replay" size="small" text className="align-self-start" onClick={() => setChosen(null)} />}
+        <div className="evening-next page-narrow">
+            <p className="game-setup-section-title">{t('Players')}</p>
+            <p className="text-faint fs-8 mt-0">{chosen ? t('Tap the players in the order they throw (2 to 4).') : t('Suggested: who played least, against someone new. Tap to choose others.')}</p>
+            {/* the cards of the setup pages, numbered in the order they throw */}
+            <div className="player-picker-grid" role="group" aria-label={t('Players of the evening')}>
+                {evening.players.map(player => {
+                    const place = players.indexOf(player.id);
+                    const played = playedBy(player.id);
+                    return (
+                        <button key={player.id} type="button" className={`player-pick-card ${place >= 0 ? 'is-chosen' : ''}`} onClick={() => toggle(player.id)} aria-pressed={place >= 0}>
+                            {place >= 0 && <span className="player-pick-number" aria-label={t('Throws {{value}}.', { value: place + 1 })}>{place + 1}</span>}
+                            <Avatar label={resolvePlayerInitials(player.name, '')} shape="circle" className="avatar-md" />
+                            <span className="player-pick-name">{player.name}</span>
+                            <span className="player-pick-detail">{played ? tn(played, '{{count}} game played', '{{count}} games played') : t('Not played yet')}</span>
+                        </button>
+                    );
+                })}
             </div>
-            <QuickSettings settings={settings} onChange={change} />
+            {chosen
+                ? <Button type="button" label={t('Back to the suggestion')} icon="pi pi-replay" size="small" text className="mt-2" onClick={() => setChosen(null)} />
+                : <div className="mt-3">
+                    <p className="setting-title">{t('Players in a game')}</p>
+                    <div className="row mx-0 mt-0 setting-body">
+                        <div className="col d-flex justify-content-center">
+                            <SelectButton
+                                value={size}
+                                options={[2, 3, 4].filter(count => count <= evening.players.length).map(count => ({ label: String(count), value: count }))}
+                                onChange={(e) => e.value && setSize(e.value)}
+                                className="p-selectbutton-pills flex-wrap"
+                                aria-label={t('Players in a game')}
+                            />
+                        </div>
+                    </div>
+                </div>}
+            <p className="game-setup-section-title mt-4">{t('Game')}</p>
+            <div className="evening-settings">
+                <QuickSettings settings={settings} onChange={change} />
+            </div>
             <div className="game-setup-start">
                 <Button type="button" label={t('Start the game')} icon="pi pi-play" loading={busy} disabled={!ready} onClick={() => onStart(settings, players.map(id => ({ id, nickname: nameOf(id) })))} />
                 <span className="game-setup-summary">{ready ? `${players.map(nameOf).join(' – ')} · ${quickSetupText(settings.kind, settings)}` : t('Choose 2 to 4 players')}</span>
@@ -137,11 +161,37 @@ const EveningPage = ({ shared = false }) => {
     }
 
     const nameOf = (playerId) => evening.players.find(player => player.id === playerId)?.name ?? '?';
+    // the players as the game lists of the app read them
+    const names = new Map(evening.players.map(player => [player.id, { nickname: player.name }]));
+    // what was played, without the name of the game (its tag says it)
+    const formatOf = (game) => (game.kind === 'x01' ? quickSetupText('x01', game.setup) : quickSetupText(game.kind, game.setup).split(' · ').slice(1).join(' · '));
     const title = evening.name || t('Darts evening of {{date}}', { date: formatDate(evening.createdAt) });
     const running = evening.games.filter(game => game.running);
     const report = evening.report;
     const owner = !shared;
     const adopted = Boolean(evening.club);
+
+    // a game of the evening, as the recent games of the Dashboard: when, what, who with their result
+    const gameEntry = (game) => (
+        <li key={game.id} className={`timeline-entry ${game.running ? 'timeline-running' : ''}`}>
+            <span className="timeline-time text-faint fs-8">{dayjs(game.createdAt).format('HH:mm')}</span>
+            <GameTypeIcon type={game.kind} />
+            <div className="timeline-body">
+                <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <GameTypeTag type={game.kind} />
+                    <span className="text-faint fs-8">{formatOf(game)}</span>
+                    <GameStatusTag running={game.running} />
+                </div>
+                <GamePlayers game={{ type: game.kind, players: game.results ?? game.players.map(player => ({ player, isWinner: player === game.winner })) }} players={names} withSets={false} />
+            </div>
+            {owner &&
+                <div className="row-actions">
+                    {game.running
+                        ? <Button type="button" icon="pi pi-play" aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(`/quick/${game.kind}/${game.id}`)} />
+                        : <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/quick/stats/${game.kind}/${game.id}`)} />}
+                </div>}
+        </li>
+    );
 
     const start = async (settings, players) => {
         setBusy(true);
@@ -167,18 +217,26 @@ const EveningPage = ({ shared = false }) => {
         <QuickLayout suffix={t('· Darts evening')}>
             <Toast ref={toast} position="bottom-right" />
             <div className="evening-page d-flex flex-column gap-4">
-                <Panel header={title} icons={owner && !adopted ? <Button type="button" icon="pi pi-qrcode" label={t('Share')} size="small" text onClick={() => setSharing(true)} /> : null}>
-                    <div className="d-flex flex-column gap-2">
-                        <span className="text-subtle fs-7">
-                            {formatDateTime(evening.createdAt)}{' · '}{tn(evening.players.length, '{{count}} player', '{{count}} players')}{' · '}{tn(report.played, '{{count}} game played', '{{count}} games played')}
-                        </span>
-                        <span className="d-flex flex-wrap gap-2">
-                            {evening.players.map(player => <span key={player.id} className="filter-chip">{player.name}</span>)}
-                        </span>
+                {/* the evening on top, as the Dashboard: its name, who plays, and what it can do */}
+                <header className="dashboard-header hero-header rounded-2 p-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+                    <div className="d-flex flex-column gap-1 min-w-0">
+                        <h1 className="fs-2 fw-semibold text-default m-0 text-break">{title}</h1>
+                        {/* the date, or only the time when the title names the date already */}
+                        <span className="text-subtle">{t('Darts evening')}{' · '}{evening.name ? formatDateTime(evening.createdAt) : dayjs(evening.createdAt).format('HH:mm')}</span>
+                        <span className="evening-header-players">{evening.players.map(player => player.name).join(' · ')}</span>
                         {shared && <span className="text-faint fs-8">{t('You follow this evening: it updates on its own.')}</span>}
-                        {adopted && <Message severity="success" className="w-100 justify-content-start" text={t('This evening became a club: its players and games are there now.')} />}
                     </div>
-                </Panel>
+                    {owner && !adopted &&
+                        <div className="d-flex flex-wrap align-items-center gap-2">
+                            {/* the evening on a TV: it follows its running game, the table in between */}
+                            <BigScreenButton create={() => EveningService.screenLink(evening.id)} send={(code) => EveningService.sendToTv(evening.id, code)} />
+                            <button type="button" className="game-rules-toggle" onClick={() => setSharing(true)} title={t('Follow the evening')}>
+                                <i className="pi pi-qrcode" aria-hidden="true" />
+                                <span>{t('Share')}</span>
+                            </button>
+                        </div>}
+                    {adopted && <Message severity="success" className="w-100 justify-content-start" text={t('This evening became a club: its players and games are there now.')} />}
+                </header>
 
                 {owner && !adopted &&
                     <Panel header={t('Next game')}>
@@ -187,21 +245,15 @@ const EveningPage = ({ shared = false }) => {
 
                 {running.length > 0 &&
                     <Panel header={t('Going on')}>
-                        <ul className="list-unstyled m-0 d-flex flex-column gap-2">
-                            {running.map(game => (
-                                <li key={game.id} className="evening-game">
-                                    <GameTypeIcon type={game.kind} />
-                                    <span className="flex-grow-1 min-w-0 text-truncate">{game.players.map(nameOf).join(' – ')}</span>
-                                    {owner && <Link to={`/quick/${game.kind}/${game.id}`} className="p-button p-button-sm text-decoration-none"><i className="pi pi-play me-2" />{t('Go on')}</Link>}
-                                </li>
-                            ))}
-                        </ul>
+                        <ol className="timeline list-unstyled m-0">
+                            {running.map(gameEntry)}
+                        </ol>
                     </Panel>}
 
                 <Panel header={t('Table of the evening')}>
                     {report.played === 0
-                        ? <span className="text-faint">{t('The table fills with the first game.')}</span>
-                        : <EveningTable report={report} />}
+                        ? <span className="text-faint fs-7">{t('The table fills with the first game.')}</span>
+                        : <EveningTable report={report} players={evening.players} />}
                 </Panel>
 
                 {report.awards.length > 0 &&
@@ -226,20 +278,9 @@ const EveningPage = ({ shared = false }) => {
 
                 {evening.games.length > 0 &&
                     <Panel header={t('All games')}>
-                        <ul className="list-unstyled m-0 d-flex flex-column gap-2">
-                            {evening.games.map(game => (
-                                <li key={game.id} className="evening-game">
-                                    <GameTypeIcon type={game.kind} />
-                                    <span className="d-flex flex-column min-w-0 flex-grow-1">
-                                        <span className="text-default text-truncate">
-                                            {game.players.map(playerId => <span key={playerId} className={playerId === game.winner ? 'fw-bold' : ''}>{playerId === game.winner ? '🏆 ' : ''}{nameOf(playerId)}</span>).reduce((list, item, index) => (index ? [...list, ' – ', item] : [item]), [])}
-                                        </span>
-                                        <span className="text-faint fs-8">{t(GAME_NAMES[game.kind])} · {formatDateTime(game.createdAt)}{game.running ? ` · ${t('going on')}` : ''}</span>
-                                    </span>
-                                    {owner && game.finished && <Link to={`/quick/stats/${game.kind}/${game.id}`} className="p-button p-button-sm p-button-text text-decoration-none" aria-label={t('Statistics')}><i className="pi pi-chart-bar" /></Link>}
-                                </li>
-                            ))}
-                        </ul>
+                        <ol className="timeline list-unstyled m-0">
+                            {evening.games.map(gameEntry)}
+                        </ol>
                     </Panel>}
 
                 {owner && !adopted &&

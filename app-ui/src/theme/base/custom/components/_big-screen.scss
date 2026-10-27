@@ -1,0 +1,286 @@
+// ---------------------------------------------------------------------------
+// The big screen of a running game (a TV or a second tablet at the club):
+// the whole window, readable from across the room, the player at the oche lit
+// ---------------------------------------------------------------------------
+.big-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 2vh, 1.5rem);
+  padding: clamp(0.75rem, 2.5vh, 2rem) clamp(0.75rem, 2.5vw, 2.5rem);
+  background:
+    radial-gradient(ellipse at top, with-alpha($primaryColor, 0.18), transparent 60%),
+    $shade900;
+  color: var(--text-default);
+}
+
+.big-screen-message {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+  color: var(--text-subtle);
+  .pi { font-size: clamp(2.5rem, 6vw, 4rem); color: $primaryColor; }
+  p { max-width: 36rem; margin: 0; }
+}
+
+.big-screen-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-3;
+  // room for the controls on the right
+  padding-right: 15rem;
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+  @media (max-width: 767.98px) { padding-right: 0; padding-top: 2.75rem; }
+}
+.big-screen-club { display: flex; align-items: center; gap: $space-3; font-weight: $weight-semibold; }
+.big-screen-format { display: flex; flex-wrap: wrap; align-items: baseline; gap: $space-3; color: var(--text-subtle); }
+.big-screen-leg { color: var(--text-default); font-weight: $weight-semibold; }
+
+.big-screen-winner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-1;
+  padding: clamp(0.5rem, 2vh, 1.25rem);
+  border-radius: $radius-lg;
+  background: with-alpha($accentGold, 0.16);
+  border: 1px solid with-alpha($accentGold, 0.5);
+  text-align: center;
+}
+.big-screen-winner-label { color: $accentGold; font-weight: $weight-semibold; letter-spacing: 0.08em; text-transform: uppercase; font-size: clamp(0.9rem, 1.6vw, 1.4rem); }
+.big-screen-winner-name { font-size: clamp(2rem, 6vw, 5rem); font-weight: $weight-heavy; line-height: 1.05; }
+
+.big-screen-players {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: clamp(0.75rem, 2vw, 2rem);
+}
+.is-3-players .big-screen-players, .is-4-players .big-screen-players { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+
+.big-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.4rem, 1.5vh, 1rem);
+  padding: clamp(1rem, 3vh, 2.5rem) clamp(0.75rem, 2vw, 2rem);
+  border-radius: $radius-lg;
+  background: var(--c-shade-800);
+  border: 2px solid transparent;
+  opacity: 0.72;
+  transition: opacity 0.3s, border-color 0.3s, box-shadow 0.3s;
+  &.is-turn {
+    opacity: 1;
+    border-color: var(--player-colour);
+    box-shadow: 0 0 0 4px with-alpha(#ffffff, 0.04), 0 0 3rem -0.5rem var(--player-colour);
+  }
+}
+.big-player-head { display: flex; align-items: center; gap: $space-3; min-width: 0; max-width: 100%; }
+.big-player-avatar {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2.5rem, 4.5vw, 4rem);
+  height: clamp(2.5rem, 4.5vw, 4rem);
+  border-radius: $radius-round;
+  background: var(--player-colour);
+  color: #1d2126;
+  font-weight: $weight-heavy;
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+}
+.big-player-name { font-size: clamp(1.5rem, 3.5vw, 3rem); font-weight: $weight-bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+// doubles: the partner under the one who throws next for the team
+.big-player-partner { color: var(--text-subtle); font-size: clamp(1rem, 2.2vw, 1.8rem); }
+
+.big-player-flag { font-size: clamp(1.2rem, 2.5vw, 2rem); }
+.big-player-score {
+  font-size: clamp(5rem, 16vw, 14rem);
+  font-weight: $weight-heavy;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  .is-3-players &, .is-4-players & { font-size: clamp(4rem, 10vw, 10rem); }
+}
+.big-player-won { display: flex; flex-wrap: wrap; justify-content: center; gap: $space-4; }
+.big-won { display: inline-flex; align-items: center; gap: $space-2; }
+.big-won-label { color: var(--text-subtle); font-size: clamp(0.85rem, 1.4vw, 1.2rem); text-transform: uppercase; letter-spacing: 0.08em; }
+.big-won-dots { display: inline-flex; gap: 0.35rem; }
+.big-won-dot {
+  width: clamp(0.8rem, 1.4vw, 1.2rem);
+  height: clamp(0.8rem, 1.4vw, 1.2rem);
+  border-radius: $radius-round;
+  border: 2px solid $accentGold;
+  &.is-won { background: $accentGold; }
+}
+.big-won-number { font-size: clamp(1.2rem, 2.2vw, 2rem); font-weight: $weight-bold; color: $accentGold; }
+.big-player-figures {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.75rem, 3vw, 2.5rem);
+  margin: 0;
+  > div { display: flex; flex-direction: column; align-items: center; }
+  dt { color: var(--text-faint); font-weight: $weight-regular; font-size: clamp(0.8rem, 1.2vw, 1.1rem); }
+  dd { margin: 0; font-size: clamp(1.3rem, 2.6vw, 2.4rem); font-weight: $weight-bold; font-variant-numeric: tabular-nums; }
+}
+.big-player-turn {
+  padding: $space-1 $space-4;
+  border-radius: $radius-pill;
+  background: var(--player-colour);
+  color: #1d2126;
+  font-weight: $weight-bold;
+  font-size: clamp(1rem, 2vw, 1.8rem);
+}
+
+// the sound and full screen, quiet in the corner
+.big-screen-controls {
+  position: fixed;
+  top: clamp(0.75rem, 2.5vh, 2rem);
+  right: clamp(0.75rem, 2.5vw, 2.5rem);
+  display: flex;
+  gap: $space-2;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  &:hover, &:focus-within { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) { .big-player { transition: none; } }
+
+// the dialog with the link and its QR code
+.big-screen-dialog { width: min(28rem, calc(100vw - 2rem)); }
+.big-screen-qr { border-radius: $radius-md; background: #fff; padding: $space-2; }
+
+// a TV waiting for a game: its code, large, readable from the sofa
+.tv-waiting {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: clamp(1rem, 3vh, 2rem);
+}
+.tv-title { margin: 0; font-size: clamp(1.6rem, 3.5vw, 3rem); font-weight: $weight-semibold; }
+.tv-steps { margin: 0; max-width: 44rem; font-size: clamp(1.1rem, 2vw, 1.8rem); color: var(--text-subtle); }
+.tv-code {
+  display: inline-flex;
+  align-items: center;
+  padding: clamp(0.5rem, 2vh, 1.25rem) clamp(1.25rem, 4vw, 3rem);
+  border-radius: $radius-lg;
+  background: var(--c-shade-800);
+  border: 2px solid $primaryColor;
+  font-size: clamp(3.5rem, 12vw, 9rem);
+  font-weight: $weight-heavy;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.tv-code-gap { display: inline-block; width: 0.4em; }
+.tv-note { margin: 0; max-width: 40rem; font-size: clamp(0.95rem, 1.5vw, 1.3rem); color: var(--text-faint); }
+.tv-spinner { font-size: 3rem; color: $primaryColor; }
+.tv-corner-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: $radius-pill;
+  border: 1px solid ink(0.15);
+  color: var(--text-subtle);
+  font-size: $text-sm;
+  font-weight: $weight-semibold;
+  letter-spacing: 0.06em;
+}
+.big-screen-code-input { font-size: $text-lg; letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
+
+// Cricket: the numbers down the middle of a grid, a column per player
+.big-cricket {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(5rem, 0.6fr) repeat(var(--players), 1fr);
+  align-content: center;
+  gap: clamp(0.25rem, 1vh, 0.6rem) clamp(0.5rem, 2vw, 1.5rem);
+}
+.big-cricket-row { display: contents; }
+.big-cricket-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3;
+  border-radius: $radius-lg;
+  border: 2px solid transparent;
+  opacity: 0.75;
+  &.is-turn { opacity: 1; border-color: var(--player-colour); box-shadow: 0 0 2.5rem -0.5rem var(--player-colour); }
+}
+.big-cricket-score { font-size: clamp(2.5rem, 7vw, 6rem); font-weight: $weight-heavy; line-height: 1; font-variant-numeric: tabular-nums; }
+.big-cricket-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.5rem, 4vw, 3.5rem);
+  font-weight: $weight-heavy;
+  color: var(--text-subtle);
+}
+.big-cricket-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(2.5rem, 8vh, 5rem);
+  border-radius: $radius-md;
+  background: var(--c-shade-800);
+  font-size: clamp(1.8rem, 5vw, 4rem);
+  font-weight: $weight-bold;
+  color: var(--text-default);
+  &.is-closed { color: $primaryColor; }
+}
+
+// Elimination: the race to the target, the leader first
+.big-race { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: clamp(0.6rem, 2vh, 1.5rem); }
+.big-race-row {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 2fr auto;
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  padding: clamp(0.5rem, 1.5vh, 1rem) clamp(0.75rem, 2vw, 1.5rem);
+  border-radius: $radius-lg;
+  background: var(--c-shade-800);
+  border: 2px solid transparent;
+  opacity: 0.75;
+  &.is-turn { opacity: 1; border-color: var(--player-colour); }
+  @media (max-width: 767.98px) { grid-template-columns: 1fr auto; .big-race-bar { grid-column: 1 / -1; } }
+}
+.big-race-bar {
+  height: clamp(0.75rem, 2vh, 1.4rem);
+  border-radius: $radius-pill;
+  background: ink(0.08);
+  overflow: hidden;
+  > span { display: block; height: 100%; width: var(--share); background: var(--player-colour); border-radius: inherit; transition: width 0.4s ease; }
+}
+.big-race-score { font-size: clamp(2.5rem, 7vw, 6rem); font-weight: $weight-heavy; line-height: 1; font-variant-numeric: tabular-nums; }
+
+// the newer games: their scoreboard, large
+.big-rules {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .rules-scoreboard { width: 100%; max-width: 90rem; font-size: clamp(1.1rem, 2.6vw, 2.4rem); }
+  .rules-scoreboard th { font-size: 0.6em; }
+  .rules-scoreboard td, .rules-scoreboard th { padding: 0.4em 0.6em; }
+}
+
+// a darts evening between its games: the table of the evening
+.big-evening-table {
+  width: 100%;
+  max-width: 70rem;
+  margin: auto;
+  border-collapse: collapse;
+  font-size: clamp(1.1rem, 2.6vw, 2.4rem);
+  font-variant-numeric: tabular-nums;
+  th { color: var(--text-subtle); font-weight: $weight-semibold; font-size: 0.6em; text-align: left; padding: 0.4em 0.6em; }
+  td { padding: 0.45em 0.6em; border-top: 1px solid ink(0.08); }
+  tr.is-leader td { color: $accentGold; font-weight: $weight-bold; }
+}
+.big-screen-hint { margin: 0; text-align: center; color: var(--text-faint); font-size: clamp(0.95rem, 1.6vw, 1.4rem); }

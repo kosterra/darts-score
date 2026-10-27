@@ -61,7 +61,8 @@ const GAME_TYPES = {
     cricket: {
         load: () => CricketService.loadAllCricketGames(),
         remove: (id, clubId) => CricketService.deleteCricketGame(id, clubId),
-        describe: () => ({ title: t('Cricket') }),
+        // the tag says Cricket: only a variant other than the standard one
+        describe: (game) => ({ title: game.variant && game.variant !== 'Standard' ? t(game.variant) : '' }),
         score: (model) => t('{{value}} points', { value: model.score ?? 0 }),
     },
     elimination: {
@@ -73,7 +74,7 @@ const GAME_TYPES = {
     clock: {
         load: () => ClockService.loadAllClockGames(),
         remove: (id, clubId) => ClockService.deleteClockGame(id, clubId),
-        describe: (game) => ({ title: t('Around the Clock · {{value}}', { value: t(game.mode ?? 'All') }) }),
+        describe: (game) => ({ title: t('Mode: {{value}}', { value: t(game.mode ?? 'All') }) }),
         score: (model) => model.finished ? t('{{value}} darts', { value: model.darts ?? 0 }) : t('{{value}} of 21', { value: model.target ?? 0 }),
     },
     // Shanghai, Killer, … : loaded together, each game typed by its kind
@@ -83,7 +84,8 @@ const GAME_TYPES = {
     ...Object.fromEntries(RULES_GAMES.map(definition => [definition.id, {
         remove: (id, clubId) => RulesService.deleteGame(id, clubId),
         describe: (game) => ({
-            title: [definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === game.settings?.[option.key])?.label).filter(Boolean)].join(' · '),
+            // the tag names the game: only its options
+            title: [...(definition.options ?? []).map(option => option.values.find(value => value.value === game.settings?.[option.key])?.label).filter(Boolean)].join(' · '),
         }),
         // what its chart follows, e.g. the points, the strokes or the lives
         score: (model, game, playerId) => {
@@ -257,13 +259,14 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
             // the type at a glance: its round badge in its colour, as on the dashboard
             <div className="d-flex align-items-center gap-3">
                 <GameTypeIcon type={game.type} />
+                {/* the game on its own line, then how it was played, then the details */}
                 <div className="d-flex flex-column align-items-start gap-1">
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                         <GameTypeTag type={game.type} />
-                        <span className="text-default fs-7 fw-semibold">{title}</span>
                         {/* left out of the club's leaderboards, records and Hall of Shame */}
                         {game.friendly && <span className="quick-format-tag ms-0" title={t('A friendly game: not in the club\'s leaderboards, records and Hall of Shame')}>{t('Friendly')}</span>}
                     </div>
+                    {title && <span className="text-default fs-7 fw-semibold">{title}</span>}
                     {detail && <span className="text-faint fs-8">{detail}</span>}
                 </div>
             </div>
@@ -348,10 +351,22 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <ActivityInsights what="games" onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Games of all clubs') : t('Games')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<>
+                    {!needsClubs && <span className="text-faint fs-7">{plural(visibleGames.length, 'game')}</span>}
+                    {canManage &&
+                        <Button
+                            label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
+                            icon="pi pi-trash"
+                            severity="danger"
+                            size="small"
+                            disabled={!selection.length}
+                            onClick={confirmDeleteSelection}
+                        />
+                    }
+                </>} changed={[acrossClubs && selectedIds.length, view.type !== 'all', view.status !== 'all', view.player].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
-                <FilterPills value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
+                <FilterPills value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
@@ -364,19 +379,6 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                     aria-label={t('Player')}
                     style={{ minWidth: '12rem' }}
                 />
-                <div className="ms-auto d-flex align-items-center gap-3">
-                    {!needsClubs && <span className="text-faint fs-7">{plural(visibleGames.length, 'game')}</span>}
-                    {canManage &&
-                        <Button
-                            label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
-                            icon="pi pi-trash"
-                            severity="danger"
-                            size="small"
-                            disabled={!selection.length}
-                            onClick={confirmDeleteSelection}
-                        />
-                    }
-                </div>
             </AdminToolbar>
 
             {needsClubs
@@ -385,20 +387,20 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                     <DataTable
                         value={visibleGames}
                         dataKey="key"
-                        className="admin-table"
+                        className="admin-table games-table"
                         selectionMode={canManage ? 'checkbox' : null}
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage={games === null ? <TableLoading /> : t('No games match these filters.')}
-                        responsiveLayout="scroll"
+                        responsiveLayout="stack" breakpoint="640px"
                     >
                         {canManage && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
-                        <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
-                        {acrossClubs && <Column field="club.name" header={t('Club')} sortable body={(game) => <ClubCell club={game.club} />} />}
-                        <Column header={t('Game')} body={gameBody} />
-                        <Column header={t('Players')} body={playersBody} style={{ minWidth: '16rem' }} />
-                        <Column header={t('Status')} body={statusBody} />
+                        <Column bodyClassName="no-label date-cell" field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
+                        {acrossClubs && <Column bodyClassName="no-label" field="club.name" header={t('Club')} sortable body={(game) => <ClubCell club={game.club} />} />}
+                        <Column header={t('Game')} bodyClassName="stack-block no-label divider-after" body={gameBody} />
+                        <Column header={t('Players')} bodyClassName="stack-block no-label" body={playersBody} style={{ minWidth: '16rem' }} />
+                        <Column bodyClassName="no-label status-cell" header={t('Status')} body={statusBody} />
                         <Column body={actionsBody} />
                     </DataTable>
                 )

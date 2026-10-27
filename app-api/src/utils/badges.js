@@ -4,6 +4,7 @@ import { isRulesGame } from './rules.kinds.js';
 import { withView } from './game.view.js';
 import { gameOf } from '../rules/games.js';
 import { replayGame } from '../rules/engine.js';
+import { legScores, partnersOf, sideKeysOf } from '../rules/x01.js';
 
 /**
  * Badges players collect. Each group counts one thing (a "metric") and has
@@ -607,7 +608,12 @@ export const wonInDecidingLeg = (game, playerId) => {
     const sets = Object.entries(withView('x01', game).allSetsThrows ?? {})
         .sort(([a], [b]) => number(a) - number(b))
         .map(([, set]) => Object.entries(set ?? {}).sort(([a], [b]) => number(a) - number(b)).map(([, leg]) => leg).filter(Array.isArray));
-    const winnerOf = (leg) => leg.find(visit => visit?.scoreLeft === 0)?.playerId;
+    // the side that won a leg (in doubles the team, by its first player)
+    const keyOf = sideKeysOf(game);
+    const winnerOf = (leg) => {
+        const id = leg.find(visit => visit?.scoreLeft === 0)?.playerId;
+        return id === undefined ? undefined : keyOf[id] ?? id;
+    };
 
     const setsWon = new Map();
     sets.slice(0, -1).forEach(legs => {
@@ -615,13 +621,14 @@ export const wonInDecidingLeg = (game, playerId) => {
         if (winner) setsWon.set(winner, (setsWon.get(winner) ?? 0) + 1);
     });
     const finished = (sets.at(-1) ?? []).filter(leg => winnerOf(leg));
-    if (!finished.length || winnerOf(finished.at(-1)) !== playerId) return false;
+    const side = keyOf[playerId] ?? playerId;
+    if (!finished.length || winnerOf(finished.at(-1)) !== side) return false;
     const legsWon = new Map();
     finished.slice(0, -1).forEach(leg => legsWon.set(winnerOf(leg), (legsWon.get(winnerOf(leg)) ?? 0) + 1));
 
-    const opponents = (game.players ?? []).filter(id => id !== playerId);
+    const opponents = [...new Set((game.players ?? []).map(id => keyOf[id] ?? id))].filter(id => id !== side);
     const onTheBrink = (id) => (legsWon.get(id) ?? 0) === legsNeeded - 1 && (setsWon.get(id) ?? 0) === setsNeeded - 1;
-    return onTheBrink(playerId) && opponents.some(onTheBrink);
+    return onTheBrink(side) && opponents.some(onTheBrink);
 };
 
 /**
@@ -634,41 +641,45 @@ const applyVisits = (metrics, game, playerId, won, lost) => {
     let wasAhead = false;
     const startingScore = startingScoreOf(game, playerId);
     const doubleOut = outModeOf(game, playerId) === 'Double Out';
+    // in doubles the partner's legs are the player's too
+    const team = [playerId, ...partnersOf(game, playerId)];
+    const keyOf = sideKeysOf(game);
+    const sideOf = (id) => keyOf[id] ?? id;
 
     for (const leg of legsInOrder(game)) {
-        let left = startingScore;
         let busts = 0;
         let atDouble = 0;
-        for (const visit of leg) {
+        // what was left before each visit (in doubles the team's score, which the partner takes off too)
+        for (const { visit, before: left } of legScores(game, leg)) {
             if (visit?.playerId !== playerId) continue;
             applyX01Visit(metrics, visit, left, doubleOut);
             if (doubleOut) atDouble += dartsAtDouble(visit.darts, left);
             if (visit.scoreLeft === left && left > 0 && visitScore(visit) > 0) busts += 1;
-            if (Number.isFinite(visit.scoreLeft)) left = visit.scoreLeft;
         }
         if (busts >= BUSTS_IN_A_LEG) metrics.bustMasters += 1;
         if (atDouble >= DARTS_AT_DOUBLE) metrics.stuckOnDoubles += 1;
 
         const finish = leg.find(visit => visit?.scoreLeft === 0);
         if (!finish) continue;
-        legsWon.set(finish.playerId, (legsWon.get(finish.playerId) ?? 0) + 1);
+        legsWon.set(sideOf(finish.playerId), (legsWon.get(sideOf(finish.playerId)) ?? 0) + 1);
 
         if (finish.playerId === playerId) {
             const darts = upperDarts(finish.darts);
             if (sameDarts(finish.darts, SHANGHAI)) metrics.shanghaiFinishes += 1;
             if (darts.at(-1) === 'D1') metrics.madhouses += 1;
             if (darts.at(-1) === 'D20') metrics.doubleTops += 1;
-            const dartsInLeg = leg.filter(visit => visit?.playerId === playerId)
+            // the nine-darter and the shortest leg are a player's own: not in doubles
+            const dartsInLeg = team.length > 1 ? 0 : leg.filter(visit => visit?.playerId === playerId)
                 .reduce((sum, visit) => sum + thrownDarts(visit.darts).length, 0);
-            if (startingScore === NINE_DARTER_SCORE && dartsInLeg <= NINE_DARTS) metrics.nineDarters += 1;
+            if (startingScore === NINE_DARTER_SCORE && dartsInLeg > 0 && dartsInLeg <= NINE_DARTS) metrics.nineDarters += 1;
             if (doubleOut && atDouble === 1) metrics.firstDartCheckouts += 1;
             if (startingScore === SHORT_LEG_SCORE && dartsInLeg > 0 && (!metrics.bestLegDarts || dartsInLeg < metrics.bestLegDarts)) {
                 metrics.bestLegDarts = dartsInLeg;
             }
         }
 
-        const mine = legsWon.get(playerId) ?? 0;
-        const bestOpponent = Math.max(0, ...[...legsWon].filter(([id]) => id !== playerId).map(([, legs]) => legs));
+        const mine = legsWon.get(sideOf(playerId)) ?? 0;
+        const bestOpponent = Math.max(0, ...[...legsWon].filter(([id]) => id !== sideOf(playerId)).map(([, legs]) => legs));
         if (bestOpponent - mine >= COMEBACK_DEFICIT) wasBehind = true;
         if (mine - bestOpponent >= COMEBACK_DEFICIT) wasAhead = true;
     }

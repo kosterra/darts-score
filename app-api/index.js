@@ -37,6 +37,7 @@ import notificationRoutes, { unsubscribeRoutes } from './src/routes/notification
 import deletionRequestRoutes from './src/routes/deletion.request.routes.js';
 import tournamentRoutes, { tournamentReplyRoutes } from './src/routes/tournament.routes.js';
 import eveningRoutes, { eveningClubRoutes } from './src/routes/evening.routes.js';
+import screenRoutes from './src/routes/screen.routes.js';
 import { isAllowedOrigin } from './src/utils/origin.utils.js';
 import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
@@ -179,6 +180,7 @@ unsubscribeRoutes(app);
 claimInfoRoutes(app);
 tournamentReplyRoutes(app);
 eveningRoutes(app);
+screenRoutes(app);
 clubLogoRoutes(app);
 
 // Everything else under /api needs a logged-in user ...

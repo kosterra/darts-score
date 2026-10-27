@@ -79,7 +79,7 @@ const QuickSetupPage = () => {
                 {rules}
                 <form className="container" onSubmit={start}>
                     <p className="text-subtle fs-7 mt-0">
-                        {t('Play right away, without an account: the players only need a name. The game and its statistics stay on this device for 30 days.')}{' '}
+                        {t('Play right away, without an account: the players only need a name. The game and its statistics stay on this device for 30 days; a game not finished is deleted 3 days after its last visit.')}{' '}
                         <Link to="/register">{t('Create an account')}</Link>{' '}{t('for a club with players, their statistics over time, badges, levels and all the settings.')}
                     </p>
                     <Link to="/evening/new" className="quick-evening-link">
@@ -108,7 +108,7 @@ const QuickSetupPage = () => {
                                     className="flex-grow-1"
                                 />
                                 {names.length > 1 &&
-                                    <Button type="button" icon="pi pi-times" text rounded severity="secondary" aria-label={t('Remove player {{value}}', { value: index + 1 })} onClick={() => setNames(current => current.filter((_, i) => i !== index))} />}
+                                    <Button type="button" icon="pi pi-times" text severity="secondary" aria-label={t('Remove player {{value}}', { value: index + 1 })} onClick={() => setNames(current => current.filter((_, i) => i !== index))} />}
                             </div>
                         ))}
                         <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">

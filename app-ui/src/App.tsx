@@ -7,6 +7,7 @@ import { t } from './utils/i18n';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import UnsentGamesNote from './components/offline/unsent.games.note';
 import InstallHint from './components/install/install.hint';
 import WelcomeTour from './components/onboarding/welcome.tour';
 import SessionWatch from './components/session/session.watch';
@@ -46,6 +47,8 @@ const AboutPage = lazy(() => import('./components/about/_about.page'));
 const PlayerProfilePage = lazy(() => import('./components/players/_player.profile.page'));
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
+const ScreenPage = lazy(() => import('./components/screen/_screen.page'));
+const TvPage = lazy(() => import('./components/screen/_tv.page'));
 const AdminDashboardPage = lazy(() => import('./components/admin/admin.dashboard.page'));
 const BackupsPage = lazy(() => import('./components/admin/backups.page'));
 const AdministrationPage = lazy(() => import('./components/administration/_administration.page'));
@@ -145,6 +148,20 @@ function AppContent() {
     if (pathname === '/tournament-reply') {
         return <Suspense fallback={<PageLoader />}><TournamentReplyPage /></Suspense>;
     }
+    // the big screen of a running game, without a login (a link made from the game)
+    // a TV that shows the games sent to its code
+    if (pathname === '/tv') {
+        return <Suspense fallback={<PageLoader />}><TvPage /></Suspense>;
+    }
+    if (pathname.startsWith('/screen/')) {
+        return (
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/screen/:token" element={<ScreenPage />} />
+                </Routes>
+            </Suspense>
+        );
+    }
     // a darts evening and its games, logged in or not (making it a club needs the account)
     if (pathname.startsWith('/evening') || pathname.startsWith('/quick/')) {
         return (
@@ -241,6 +258,8 @@ function AppContent() {
                 <AppBanner />
                 <InstallHint loggedIn />
                 <MfaDueNotice />
+                {/* games scored without a connection, not sent yet */}
+                <UnsentGamesNote />
                 {/* Keyed by club so every page reloads its data after switching clubs */}
                 <ErrorBoundary key={pathname} fallback={(error, retry) => <PageFailed retry={retry} />}>
                 <Suspense fallback={<PageLoader />} key={activeClub?.id ?? 'no-club'}>

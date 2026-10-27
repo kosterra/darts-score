@@ -13,6 +13,7 @@ export default (app) => {
     router.put('/settings', NotificationController.saveSettings);
     router.put('/read', NotificationController.readAll);
     router.put('/:id/read', param('id').isMongoId(), validate, NotificationController.read);
+    router.delete('/', NotificationController.removeAll);
     router.delete('/:id', param('id').isMongoId(), validate, NotificationController.remove);
 
     app.use('/api/notifications', router);

@@ -158,19 +158,21 @@ const PlayersTable = ({ scope = 'club' }) => {
     const clubsPlayer = players?.find(player => player.id === clubsOfPlayerId) ?? null;
 
     const kindBody = (player) => player.guest
-        ? <Tag value="Guest" severity="secondary" />
-        : <Tag value="Member" severity="secondary" />;
+        ? <Tag value={t('Guest')} severity="secondary" />
+        : <Tag value={t('Member')} severity="secondary" />;
 
     const loginBody = (player) => player.user
         ? <span className="text-default fs-7"><i className="pi pi-key text-primary me-2" aria-hidden="true" />{t('Has a login')}</span>
-        : <span className="text-faint fs-7">–</span>;
+        // nothing to tell: left out on a phone
+        : <span className="text-faint fs-7 empty-cell">–</span>;
 
     const publicBody = (player) => player.guest
         ? <span className="text-faint fs-7">–</span>
         : (
-            <span className="d-flex flex-column">
+            // on a phone both on one line (see admin-public-page)
+            <span className="admin-public-page">
                 <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? t('Nickname shown') : t('Hidden')}</span>
-                {decidesThemselves(player) && <span className="text-faint fs-8">{t('their own choice')}</span>}
+                {decidesThemselves(player) && <span className="text-faint fs-8 admin-public-page-who">{t('their own choice')}</span>}
             </span>
         );
 
@@ -232,17 +234,16 @@ const PlayersTable = ({ scope = 'club' }) => {
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <PlayersInsights onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Players of all clubs') : t('Players')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<>
+                    {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
+                    {(acrossClubs || isClubAdmin) && newPlayerButton}
+                </>} changed={[acrossClubs && selectedIds.length, view.search, view.kind !== 'all'].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search players')} aria-label={t('Search players')} />
                 </span>
                 <FilterPills value={kind} options={KIND_OPTIONS} onChange={setKind} ariaLabel={t('Members or guests')} />
-                <div className="ms-auto d-flex align-items-center gap-3">
-                    {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
-                    {(acrossClubs || isClubAdmin) && newPlayerButton}
-                </div>
             </AdminToolbar>
             {(acrossClubs || isClubAdmin) && newPlayerForm}
 
@@ -269,11 +270,12 @@ const PlayersTable = ({ scope = 'club' }) => {
                         className="admin-table"
                         {...tableState(view, setView, { sortField: 'nickname', sortOrder: 1 })}
                         emptyMessage={players === null ? <TableLoading /> : players?.length ? t('No players match these filters.') : t('No players yet.')}
-                        responsiveLayout="scroll"
+                        responsiveLayout="stack" breakpoint="640px"
                     >
                         <Column
                             field="nickname"
                             header={t('Player')}
+                            bodyClassName="no-label"
                             sortable
                             // in the club's own list the name opens the player's profile
                             body={(player) => {
@@ -287,14 +289,15 @@ const PlayersTable = ({ scope = 'club' }) => {
                             }}
                             style={{ minWidth: '14rem' }}
                         />
-                        {acrossClubs && <Column header={t('Clubs')} body={(player) => (
+                        {acrossClubs && <Column bodyClassName="no-label" header={t('Clubs')} body={(player) => (
                             <div className="d-flex flex-column gap-1">
                                 {(player.clubs ?? []).map(club => <ClubCell key={club.id} club={club} />)}
                             </div>
                         )} />}
-                        {!acrossClubs && <Column header={t('Level')} body={(player) => player.guest ? <span className="text-faint fs-7">–</span> : <LevelBadge level={levels[player.id]} />} />}
-                        <Column header={t('Type')} body={kindBody} />
-                        {canManage && <Column header={t('Login')} body={loginBody} />}
+                        {/* on a phone the level, the type and the login side by side, without names */}
+                        {!acrossClubs && <Column header={t('Level')} bodyClassName="no-label inline-cell" body={(player) => player.guest ? <span className="text-faint fs-7 empty-cell">–</span> : <LevelBadge level={levels[player.id]} />} />}
+                        <Column bodyClassName="no-label inline-cell" header={t('Type')} body={kindBody} />
+                        {canManage && <Column bodyClassName="no-label inline-cell" header={t('Login')} body={loginBody} />}
                         {canManage && <Column header={t('Public page')} body={publicBody} />}
                         <Column field="createdAt" header={t('Added')} sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDate(player.createdAt)}</span>} />
                         {canManage && <Column body={actionsBody} />}

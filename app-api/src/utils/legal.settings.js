@@ -1,6 +1,6 @@
 import db from '../models/db.model.js';
 import { getSessionSettings } from './session.settings.js';
-import { QUICK_KEEP_DAYS } from './quick.games.js';
+import { QUICK_KEEP_DAYS, QUICK_UNFINISHED_DAYS } from './quick.games.js';
 import { LOG_RETENTION_DAYS } from '../models/log.entry.model.js';
 import { USAGE_KEEP_DAYS } from '../models/usage.day.model.js';
 import { isMailConfigured } from './mail.utils.js';
@@ -53,6 +53,7 @@ export const legalPage = async (language = 'en') => {
         sessionHours: (await getSessionSettings()).timeoutHours,
         trustedDeviceDays: 30,
         quickGameDays: QUICK_KEEP_DAYS,
+        quickUnfinishedDays: QUICK_UNFINISHED_DAYS,
         notificationDays: 365,
         fairPlayDays: 31,
         errorLogDays: LOG_RETENTION_DAYS,

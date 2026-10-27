@@ -58,6 +58,18 @@ const validateX01Handicap = body('handicap')
         return true;
     });
 
+// doubles: four players in two teams, all from the game's own rules
+const validateX01Doubles = body('doubles')
+    .optional({ values: 'null' })
+    .isBoolean({ strict: true }).withMessage('doubles must be true or false.')
+    .bail()
+    .custom((doubles, { req }) => {
+        if (!doubles) return true;
+        if (!Array.isArray(req.body.players) || req.body.players.length !== 4) throw new Error('Doubles are played by four players.');
+        if (req.body.handicap && Object.keys(req.body.handicap).length) throw new Error('Doubles are played without a handicap.');
+        return true;
+    });
+
 // the visits of X01, Cricket, Elimination and Around the Clock: the game follows from them
 const VISIT_DART = /^(0|[SDT]([1-9]|1\d|20)|[SD]25)$/;
 const validateVisits = body('visits')
@@ -98,6 +110,7 @@ export const validateX01Create = [
     validatePlayers,
     validateX01Handicaps,
     validateX01Handicap,
+    validateX01Doubles,
     validateVisits,
     validateFlyingDarts,
 ];

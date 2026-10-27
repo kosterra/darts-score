@@ -189,14 +189,13 @@ const AlertsPage = () => {
             </div>
 
             <Panel header={t('Alerts')}>
-                <AdminToolbar>
-                    <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
-                    <div className="ms-auto d-flex align-items-center gap-3">
+                <AdminToolbar actions={<>
                         {alerts && <span className="text-faint fs-7">{alerts.length} {alerts.length === 1 ? t('alert') : t('alerts')}</span>}
                         {status === 'open' &&
                             <Button icon="pi pi-check" label={t('Resolve all')} size="small" disabled={!alerts?.length}
                                 onClick={() => run(t('Resolve all'), () => AdminService.resolveAllAlerts(), t('All alerts are resolved'))} />}
-                    </div>
+                    </>} changed={[status !== 'open'].filter(Boolean).length}>
+                    <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
                 </AdminToolbar>
                 <DataTable
                     value={alerts ?? []}
@@ -204,12 +203,12 @@ const AlertsPage = () => {
                     className="admin-table"
                     {...tableState(view, setView)}
                     emptyMessage={alerts === null ? <TableLoading /> : status === 'open' ? t('No open alerts. Nothing suspicious happened.') : t('No alerts.')}
-                    responsiveLayout="scroll"
+                    responsiveLayout="stack" breakpoint="640px"
                 >
-                    <Column header={t('When')} body={whenBody} />
-                    <Column header={t('Severity')} body={(alert) => <Tag {...SEVERITY_TAGS[alert.severity]} />} />
-                    <Column header={t('Alert')} body={alertBody} style={{ minWidth: '16rem' }} />
-                    <Column header={t('Who')} body={whoBody} style={{ minWidth: '12rem' }} />
+                    <Column bodyClassName="no-label" header={t('When')} body={whenBody} />
+                    <Column bodyClassName="no-label" header={t('Severity')} body={(alert) => <Tag {...SEVERITY_TAGS[alert.severity]} />} />
+                    <Column bodyClassName="no-label" header={t('Alert')} body={alertBody} style={{ minWidth: '16rem' }} />
+                    <Column bodyClassName="no-label" header={t('Who')} body={whoBody} style={{ minWidth: '12rem' }} />
                     <Column header={t('Done by the rules')} body={actionTakenBody} />
                     <Column body={actionsBody} />
                 </DataTable>
@@ -219,8 +218,8 @@ const AlertsPage = () => {
                 <div className="col-12 col-xl-6">
                     <Panel header={t('Blocked accounts')} className="h-100">
                         <span className="d-block text-subtle fs-7 mb-3">{t('A blocked account is logged out and cannot log in. Global admins are never blocked.')}</span>
-                        <DataTable value={blocks.users} dataKey="id" className="admin-table" emptyMessage={t('No blocked accounts.')} responsiveLayout="scroll">
-                            <Column header={t('Account')} body={(user) => (
+                        <DataTable value={blocks.users} dataKey="id" className="admin-table" emptyMessage={t('No blocked accounts.')} responsiveLayout="stack" breakpoint="640px">
+                            <Column bodyClassName="no-label" header={t('Account')} body={(user) => (
                                 <div className="d-flex flex-column min-w-0">
                                     <span className="text-default fw-semibold fs-7 text-break">{user.firstname} {user.lastname}</span>
                                     <span className="text-faint fs-8 text-break">{user.email}</span>
@@ -256,8 +255,8 @@ const AlertsPage = () => {
                             <Dropdown value={newIpHours} options={DURATION_OPTIONS} onChange={(e) => setNewIpHours(e.value)} aria-label={t('Block for')} />
                             <Button type="submit" icon="pi pi-ban" label={t('Block')} size="small" severity="danger" disabled={!newIp.trim()} />
                         </form>
-                        <DataTable value={blocks.ips} dataKey="id" className="admin-table" emptyMessage={t('No blocked addresses.')} responsiveLayout="scroll">
-                            <Column header={t('Address')} body={(block) => <span className="text-default fw-semibold fs-7">{block.ip}</span>} />
+                        <DataTable value={blocks.ips} dataKey="id" className="admin-table" emptyMessage={t('No blocked addresses.')} responsiveLayout="stack" breakpoint="640px">
+                            <Column bodyClassName="no-label" header={t('Address')} body={(block) => <span className="text-default fw-semibold fs-7">{block.ip}</span>} />
                             <Column header={t('Why')} body={(block) => (
                                 <div className="d-flex flex-column">
                                     <span className="text-subtle fs-8">{block.reason || '–'}</span>

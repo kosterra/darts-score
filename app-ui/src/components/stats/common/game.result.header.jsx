@@ -2,6 +2,7 @@ import { Avatar } from 'primereact/avatar';
 import { FaTrophy } from 'react-icons/fa6';
 
 import { PLAYER_COLORS } from '../charts/chart.theme';
+import SideBySide from './side.by.side';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { t } from '../../../utils/i18n';
 
@@ -15,7 +16,9 @@ import { t } from '../../../utils/i18n';
  * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral? }]
  */
 const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, footer = null, celebrate = false, className = 'mb-4' }) => {
-    const winner = players.find(player => game.playerModels?.[player.id]?.hasWonGame);
+    // the winner, or in doubles both partners
+    const won = (player) => Boolean(game.playerModels?.[player.id]?.hasWonGame);
+    const winner = players.find(won);
     const compare = players.length > 1;
 
     // the best value of a figure, to mark it; none when all are the same
@@ -39,9 +42,9 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
             <div className={`result-hero-body ${compare ? '' : 'is-solo'}`}>
             <div className={`result-hero-players count-${players.length}`}>
                 {players.map((player, index) => (
-                        <div key={player.id} className={`result-hero-player ${player === winner ? 'is-winner' : ''} ${player === winner && celebrate ? 'is-celebrated' : ''}`}>
+                        <div key={player.id} className={`result-hero-player ${won(player) ? 'is-winner' : ''} ${won(player) && celebrate ? 'is-celebrated' : ''}`}>
                             <span className="result-hero-portrait">
-                                {player === winner && <span className="result-hero-halo" aria-hidden="true" />}
+                                {won(player) && <span className="result-hero-halo" aria-hidden="true" />}
                                 <Avatar
                                     label={resolvePlayerInitials(player.firstname, player.lastname)}
                                     image={resolvePlayerImg(player.profileImg)}
@@ -49,14 +52,14 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                                     className="avatar-lg bg-surface-high result-hero-avatar"
                                     style={{ '--player-colour': PLAYER_COLORS[index] }}
                                 />
-                                {player === winner &&
+                                {won(player) &&
                                     <span className="result-hero-trophy" aria-hidden="true"><FaTrophy /></span>
                                 }
                             </span>
                             <span className="result-hero-name fw-semibold text-default text-center text-truncate" title={player.nickname}>{player.nickname}</span>
                             {/* the others keep the space, so every score stays at the same height */}
                             {winner &&
-                                <span className={`result-hero-winner ${player === winner ? '' : 'is-placeholder'}`} aria-hidden={player !== winner}>{t('Winner')}</span>
+                                <span className={`result-hero-winner ${won(player) ? '' : 'is-placeholder'}`} aria-hidden={!won(player)}>{t('Winner')}</span>
                             }
                             <span className="result-hero-score">{scoreOf(player)}</span>
                             <span className="text-faint fs-8">{scoreDetailOf(player)}</span>
@@ -83,7 +86,28 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                 </dl>}
             </div>
 
-            {compare &&
+            {/* two players: the figures side by side, as everywhere in the statistics, under the portraits */}
+            {players.length === 2 &&
+            <div className="result-hero-figures-wrap">
+                <SideBySide players={players} names={false} rows={rows.map(figure => {
+                    const values = players.map(player => figures[player.id] ?? {});
+                    const texts = values.map(own => own[figure.key] == null ? '–' : String(figure.format ? figure.format(own[figure.key], own) : own[figure.key]));
+                    return {
+                        key: figure.key,
+                        label: figure.label,
+                        values: values.map(own => Number(own[figure.key]) || 0),
+                        texts,
+                        details: values.map(own => (own[figure.key] != null && figure.detail?.(own)) || ''),
+                        lowerIsBetter: figure.lowerIsBetter,
+                        neutral: figure.neutral,
+                        // a percentage leads in percentage points
+                        ...(texts.some(text => text.endsWith(' %')) ? { formatLead: (difference) => `${Math.round(difference)} %` } : {}),
+                    };
+                })} />
+            </div>}
+
+            {/* three or four players: side by side in a table */}
+            {compare && players.length > 2 &&
             <div className="result-hero-figures-wrap">
                 <table className="result-hero-figures">
                     {compare &&

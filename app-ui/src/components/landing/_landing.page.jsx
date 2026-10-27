@@ -13,6 +13,7 @@ import { locale, t } from '../../utils/i18n';
 import { PublicHeader, PublicFooter } from './public.frame';
 import usePageTitle from '../../utils/use.page.title';
 import usePublicSite from '../../utils/use.public.site';
+import { isInstalled } from '../../utils/install';
 import { BRAND } from '../../utils/project';
 
 const REFRESH_MS = 15 * 1000;
@@ -176,7 +177,8 @@ const LandingPage = () => {
     const results = overview?.results ?? [];
     const clubs = overview?.clubs ?? [];
 
-    if (publicSite === false) return <Navigate to="/login" replace />;
+    // an installation that opens with the login, and Legmate added to the home screen: straight to it
+    if (publicSite === false || isInstalled()) return <Navigate to="/login" replace />;
     // nothing of the page about Legmate shows before it is known that there is one
     if (publicSite === null) return null;
 

@@ -67,6 +67,12 @@
   font-weight: $weight-semibold;
 }
 
+// doubles: the partner beside the one who throws next for the team
+.x01-hero-partner {
+  color: var(--text-subtle);
+  font-size: $text-sm;
+}
+
 .x01-hero-score {
   display: flex;
   flex-direction: column;
@@ -459,6 +465,7 @@
   .x01-hero-portrait, .is-mirrored .x01-hero-portrait { order: 0; margin: 0 0 0.6rem; }
   .x01-hero-avatar.p-avatar { width: 4.5rem; height: 4.5rem; font-size: 1.5rem; }
   .x01-hero-name { order: 1; max-width: 100%; }
+  .x01-hero-partner { order: 1; max-width: 100%; }
   .x01-live-leg { order: 2; }
   .x01-live-tags, .is-mirrored .x01-live-tags { order: 3; justify-content: center; }
   .x01-hero-score .result-hero-score { order: 4; }

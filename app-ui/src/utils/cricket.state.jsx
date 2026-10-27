@@ -8,6 +8,8 @@ import ClubCricketService from '../services/cricket.service';
 import { QuickCricketService, quickPlayersOf } from '../services/quick.game.service';
 import { allClosed, closedForAll, replayCricket, scoreAfter, scoreWins, sectionHitAfter } from '../rules/cricket';
 import PlayerService from '../services/player.service';
+import { loadWithUnsent, useGameSaves } from './unsent.games';
+import SaveStatus from '../components/games/common/save.status';
 import OneEightyCelebration from '../components/games/common/one.eighty.celebration';
 import WhiteHorse from '../components/games/common/white.horse';
 import { HatTrick, ShutOut } from '../components/games/cricket/cricket.moments';
@@ -54,54 +56,27 @@ const CricketState = props => {
     // a visit (or an undo) asks for a save of the game as it is afterwards;
     // the saves run one after the other, so they arrive in order
     const [saveRequest, setSaveRequest] = useState(0);
-    const saving = useRef(Promise.resolve());
     // the winning visit is saved: the statistics page can show the finished game
     const [winnerSaved, setWinnerSaved] = useState(false);
 
+    // without a connection the game is kept on this device and sent once it is back
+    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'cricket'}:${id}`, (game) => CricketService.updateCricketGame(game), (game) => { if (game.hasWinner) setWinnerSaved(true); });
+
     useEffect(() => {
         if (!saveRequest) return;
-        const game = state.game;
-        saving.current = saving.current
-            .then(() => CricketService.updateCricketGame(game))
-            .catch(() => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail: t('The last visit could not be saved. Check the connection: the next visit saves everything.'), life: 4000 }))
-            .then(() => { if (game.hasWinner) setWinnerSaved(true); });
+        save(state.game, { players: state.players, kind: 'Cricket' });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [saveRequest]);
 
     // fetch a cricket game from the API
     useEffect(() => {
         setLoading('initGameLoading', true);
-        async function fetchCricket() {
-            try {
-                let cricket = await CricketService.loadCricketGameById(id);
-                dispatch({ type: FETCH_GAME_SUCCESS, payload: cricket });
-                return cricket;
-            } catch (error) {
-                throw new Error(error);
-            }
-        }
+        const playersOf = async (game) => quick ? quickPlayersOf(game) : Promise.all(game.players.map(playerId => PlayerService.getPlayer(playerId)));
 
-        async function fetchPlayers(game) {
-            try {
-                if (quick) {
-                    dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: quickPlayersOf(game) });
-                    return;
-                }
-                let players = [];
-                await Promise.all(game.players.map(async (playerId) => {
-                    let player = await PlayerService.getPlayer(playerId);
-                    players.push(player);
-                }));
-                dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
-            } catch (error) {
-                throw new Error(error);
-            }
-        }
-
-        fetchCricket().then((game) => {
-            fetchPlayers(game).then(() => {
-                setLoading('initGameLoading', false);
-            });
+        loadWithUnsent(`${quick ? 'quick' : 'cricket'}:${id}`, () => CricketService.loadCricketGameById(id), playersOf).then(({ game, players }) => {
+            dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
+            dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
+            setLoading('initGameLoading', false);
         }).catch(error => {
             toast.current.show(
                 {
@@ -271,6 +246,7 @@ const CricketState = props => {
                     players: state.players,
                     loading: state.loading,
                     winnerSaved,
+                    unsent,
                     celebrating,
                     quick,
                     onClickValidateThrow,
@@ -284,6 +260,7 @@ const CricketState = props => {
                     checkIfAllSectionsClosed
                 }}
             >
+                <SaveStatus unsent={unsent} finished={Boolean(state.game.hasWinner)} />
                 {props.children}
             </CricketContext.Provider>
             <OneEightyCelebration celebration={nineMarks} onDone={endNineMarks} />

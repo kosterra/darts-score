@@ -148,6 +148,13 @@ const gameSummary = (game) => {
         kind: game.kind,
         players: data.players ?? [],
         winner,
+        // each player's result: the legs won in X01, the score in Cricket and Elimination
+        results: (data.players ?? []).map(id => {
+            const model = view.playerModels?.[id] ?? {};
+            return game.kind === 'x01'
+                ? { player: id, legs: model.legsWon?.game ?? 0, isWinner: id === winner }
+                : { player: id, score: model.score ?? null, isWinner: id === winner };
+        }),
         finished: Boolean(game.hasWinner),
         running: Boolean(game.gameIsRunning) && !game.hasWinner,
         setup: game.kind === 'x01'

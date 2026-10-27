@@ -15,14 +15,15 @@ import PageLoader from '../../elements/page.loader';
 import { t } from '../../../utils/i18n';
 
 const X01Game = () => {
-    const { game, players, loading, celebrating, training, quick } = useContext(X01Context);
+    const { game, players, loading, celebrating, winnerSaved, training, quick } = useContext(X01Context);
     const navigate = useNavigate();
     const [more, setMore] = useState(false);
 
     // a moment of the winning visit (e.g. the big fish) plays to its end first; a
-    // training also stays a moment on the finish, so a win of the bot is seen too
+    // training also stays a moment on the finish, so a win of the bot is seen too.
+    // Scored without a connection, the result waits until the game is sent.
     useEffect(() => {
-        if (!game?.hasWinner || celebrating) return undefined;
+        if (!game?.hasWinner || !winnerSaved || celebrating) return undefined;
         const open = () => navigate(quick ? `/quick/stats/x01/${game.id}` : `/stats/${training ? 'training' : 'games'}/x01/${game.id}`, { replace: true, state: { justFinished: true } });
         if (!training) {
             open();
@@ -30,7 +31,7 @@ const X01Game = () => {
         }
         const timer = setTimeout(open, 2200);
         return () => clearTimeout(timer);
-    }, [game?.hasWinner, game?.id, celebrating, navigate, training, quick]);
+    }, [game?.hasWinner, winnerSaved, game?.id, celebrating, navigate, training, quick]);
 
     if (loading?.initGameLoading) {
         return <PageLoader />;

@@ -167,3 +167,46 @@
   background: ink(0.04);
   > .pi { color: $primaryColor; font-size: $text-lg; }
 }
+
+// games scored without a connection, not on the server yet (see unsent.games.note.jsx)
+.unsent-games {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin: 1.5rem 1.5rem 0;
+  padding: 0.6rem 1rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  border-left: 3px solid var(--accent-amber);
+  color: var(--text-default);
+  font-size: $text-sm;
+}
+
+.unsent-games-head,
+.unsent-game {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2 $space-3;
+}
+
+// on top of a running game while a visit waits for the connection: stays in
+// view when scrolling, without covering the input below
+.save-status {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-3;
+  padding: 0.5rem 1rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  border-left: 3px solid var(--accent-amber);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.35);
+  color: var(--text-default);
+  font-size: $text-sm;
+
+  &.is-finished { border-left-color: var(--accent-green); }
+}

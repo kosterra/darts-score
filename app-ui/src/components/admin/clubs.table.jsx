@@ -121,13 +121,12 @@ const ClubsTable = () => {
         {/* the clubs at a glance; a club picked there shows in the list */}
         <ClubsOverview clubs={clubs} onPick={(club) => setView({ search: club.name, state: 'all', page: 1 })} />
         <Panel id="admin-list" header={t('Clubs')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<span className="text-faint fs-7">{visibleClubs.length} {visibleClubs.length === 1 ? t('club') : t('clubs')}</span>} changed={[search, state !== 'all'].filter(Boolean).length}>
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search clubs or admins')} aria-label={t('Search clubs or admins')} />
                 </span>
                 <FilterPills value={state} options={STATE_OPTIONS} onChange={setState} ariaLabel={t('Show clubs')} />
-                <span className="ms-auto text-faint fs-7">{visibleClubs.length} {visibleClubs.length === 1 ? t('club') : t('clubs')}</span>
             </AdminToolbar>
 
             <DataTable
@@ -136,16 +135,16 @@ const ClubsTable = () => {
                 // the admins of a club open under its row
                 expandedRows={adminsOfClubId ? { [adminsOfClubId]: true } : null}
                 rowExpansionTemplate={(club) => <ClubAdminsEditor club={club} onHide={() => setAdminsOfClubId(null)} onChange={onAdminsChange} />}
-                className="admin-table"
+                className="admin-table clubs-table"
                 {...tableState(view, setView, { sortField: 'name', sortOrder: 1 })}
                 emptyMessage={clubs === null ? <TableLoading /> : clubs?.length ? t('No clubs match these filters.') : t('No clubs yet.')}
-                responsiveLayout="scroll"
+                responsiveLayout="stack" breakpoint="640px"
             >
-                <Column field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
-                <Column header={t('Visibility')} body={visibilityBody} />
-                <Column header={t('Admins')} body={adminsBody} />
-                <Column field="playerCount" header={t('Players')} sortable />
-                <Column field="gameCount" header={t('Games')} sortable />
+                <Column bodyClassName="no-label club-cell" field="name" header={t('Club')} sortable body={clubBody} style={{ minWidth: '14rem' }} />
+                <Column bodyClassName="no-label visibility-cell" header={t('Visibility')} body={visibilityBody} />
+                <Column bodyClassName="admins-cell" header={t('Admins')} body={adminsBody} />
+                <Column bodyClassName="inline-cell figure-cell" field="playerCount" header={t('Players')} sortable body={(club) => <span className="text-default fw-semibold tabular-nums">{club.playerCount ?? 0}</span>} />
+                <Column bodyClassName="inline-cell figure-cell" field="gameCount" header={t('Games')} sortable body={(club) => <span className="text-default fw-semibold tabular-nums">{club.gameCount ?? 0}</span>} />
                 <Column field="lastActivityAt" header={t('Last activity')} sortable body={(club) => <span className="text-subtle fs-7 text-nowrap">{clubDate(club.lastActivityAt)}</span>} />
                 <Column body={actionsBody} />
             </DataTable>

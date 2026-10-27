@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import AdminService from '../../services/admin.service';
 import DeletePopup from '../elements/delete.popup';
 import GameTypeTag from '../elements/game.type.tag';
+import GameTypeIcon from '../elements/game.type.icon';
 import GameStatusTag from '../elements/game.status.tag';
 import { AdminToolbar } from './admin.common';
 import QuickGamesOverview from './quick.games.overview';
@@ -86,13 +87,15 @@ const QuickGamesList = () => {
         accept: () => deleteGames(selection.map(game => game.id)),
     });
 
+    // as in the games of the clubs: the round badge, the game on its own line, how it was played, the details
     const gameBody = (game) => (
-        <div className="d-flex flex-column align-items-start gap-1">
-            <div className="d-flex align-items-center gap-2 flex-wrap">
+        <div className="d-flex align-items-center gap-3">
+            <GameTypeIcon type={game.kind} />
+            <div className="d-flex flex-column align-items-start gap-1">
                 <GameTypeTag type={game.kind} />
                 <span className="text-default fs-7 fw-semibold">{game.format}</span>
+                <span className="text-faint fs-8">{t('Quick game · no account')}</span>
             </div>
-            <span className="text-faint fs-8">{t('Quick game · no account')}</span>
         </div>
     );
 
@@ -123,13 +126,10 @@ const QuickGamesList = () => {
         <QuickGamesOverview data={data} days={days} />
         <Panel header={t('Quick games')}>
             <p className="text-subtle fs-7 mt-0 mb-3">
-                {t('Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started.')}
+                {t('Games of the public start page, played without an account: the players are only names. They never count for a club or a player, and are deleted 30 days after they were started, a game never finished 3 days after its last visit.')}
             </p>
 
-            <AdminToolbar>
-                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} />
-                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
-                <div className="ms-auto d-flex align-items-center gap-3">
+            <AdminToolbar actions={<>
                     <span className="text-faint fs-7">{plural(games.length, 'game')}</span>
                     <Button
                         label={selection.length ? t('Delete {{length}}', { length: selection.length }) : t('Delete')}
@@ -139,7 +139,9 @@ const QuickGamesList = () => {
                         disabled={!selection.length}
                         onClick={confirmDeleteSelection}
                     />
-                </div>
+                </>} changed={[type !== 'all', status !== 'all'].filter(Boolean).length}>
+                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} dropdownOnPhone />
+                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
             </AdminToolbar>
 
             {failed
@@ -148,19 +150,19 @@ const QuickGamesList = () => {
                     <DataTable
                         value={games}
                         dataKey="id"
-                        className="admin-table"
+                        className="admin-table games-table"
                         selectionMode="checkbox"
                         selection={selection}
                         onSelectionChange={(e) => setSelection(e.value)}
                         {...tableState(view, setView, { sortField: 'createdAt' })}
                         emptyMessage={data === null ? <TableLoading /> : data?.games?.length ? t('No quick games match these filters.') : t('No quick games yet.')}
-                        responsiveLayout="scroll"
+                        responsiveLayout="stack" breakpoint="640px"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
-                        <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
-                        <Column header={t('Game')} body={gameBody} />
-                        <Column header={t('Players')} body={playersBody} style={{ minWidth: '14rem' }} />
-                        <Column header={t('Status')} body={(game) => <GameStatusTag running={!game.finished} />} />
+                        <Column bodyClassName="no-label date-cell" field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
+                        <Column header={t('Game')} bodyClassName="stack-block no-label divider-after" body={gameBody} />
+                        <Column header={t('Players')} bodyClassName="stack-block no-label" body={playersBody} style={{ minWidth: '14rem' }} />
+                        <Column bodyClassName="no-label status-cell" header={t('Status')} body={(game) => <GameStatusTag running={!game.finished} />} />
                         <Column field="updatedAt" header={t('Last visit')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.updatedAt)}</span>} />
                         <Column body={actionsBody} />
                     </DataTable>

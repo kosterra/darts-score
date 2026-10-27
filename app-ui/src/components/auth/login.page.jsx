@@ -9,10 +9,14 @@ import AuthLayout from './auth.layout';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import MfaLoginStep from '../mfa/mfa.login.step';
+import usePublicSite from '../../utils/use.public.site';
+import { isInstalled } from '../../utils/install';
 import { cancelPasskey, isCancelled, loginWithPasskey, passkeyAutofillSupported, passkeysSupported } from '../../utils/passkeys';
 
 const LoginPage = () => {
     const { login, completeLogin, mailEnabled, sessionEnded } = useAuth();
+    // false: the installation opens with the login, without a start page
+    const publicSite = usePublicSite();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -114,6 +118,16 @@ const LoginPage = () => {
                     {t('No account yet?')}{' '}<Link to="/register">{t('Register')}</Link>{' '}{t('to set up your own club.')}
                 </span>
             </form>
+            {/* without a start page before it (the app on the home screen, or an installation that opens
+                with the login): the games without an account from here */}
+            {(isInstalled() || publicSite === false) &&
+                <div className="auth-play-now">
+                    <span className="game-setup-section-title">{t('Play without an account')}</span>
+                    <div className="d-grid gap-2 auth-play-now-buttons">
+                        <Link to="/quick" className="p-button p-button-secondary text-decoration-none justify-content-center"><i className="pi pi-bolt me-2" aria-hidden="true" />{t('Quick game')}</Link>
+                        <Link to="/evening/new" className="p-button p-button-secondary text-decoration-none justify-content-center"><i className="pi pi-users me-2" aria-hidden="true" />{t('Darts evening')}</Link>
+                    </div>
+                </div>}
         </AuthLayout>
     );
 };

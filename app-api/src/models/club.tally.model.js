@@ -19,6 +19,8 @@ export default (mongoose) => {
       // who won it and whether it was friendly, for the club's rating
       winners:    { type: [String], default: [] },
       friendly:   { type: Boolean, default: false },
+      // doubles: the two teams [[a1, a2], [b1, b2]]; partners are no opponents
+      teams:      { type: [[String]], default: undefined },
       // each player's own share: { [playerId]: { num180s } }
       byPlayer:   { type: mongoose.Schema.Types.Mixed, default: {} },
       version:    { type: Number, default: 1 },

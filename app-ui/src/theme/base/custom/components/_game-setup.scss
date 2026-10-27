@@ -25,9 +25,14 @@
   &:focus-visible { @include focus-ring(2px); }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  // chosen: tinted in the green of the chosen pills (and numbered), no border
+  // the picture plain on the card, without the ring of the page's colour the avatars have elsewhere
+  .p-avatar.p-avatar-circle { box-shadow: none; }
+
+  // chosen: tinted in the green of the chosen pills (and numbered), the initials on green too; no border
   &.is-chosen {
     background: color-mix(in srgb, var(--primary-color) 32%, var(--surface-raised));
+
+    .p-avatar { background: var(--primary-color); color: var(--primary-color-text); }
 
     &:hover:not(:disabled) { background: color-mix(in srgb, var(--primary-color) 40%, var(--surface-raised)); }
   }
@@ -640,4 +645,26 @@
   color: var(--text-default);
   font-size: $text-sm;
   > .pi { color: $accentBlue; }
+}
+
+// doubles in the X01 setup: the two teams, and the button to change partners
+.doubles-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: $space-2;
+}
+
+.doubles-against { text-align: center; }
+
+.doubles-team {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.4rem 0.75rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  color: var(--text-default);
+  font-weight: $weight-semibold;
 }

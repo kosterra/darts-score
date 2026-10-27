@@ -19,7 +19,7 @@ const OVER_100 = ['101-120', '121-140', '141-160', '161-180', '180'];
  * (and saved) the statistics page takes over and celebrates.
  */
 const EliminationGame = () => {
-    const { game, players, loading, winnerSaved, celebrating, quick } = useContext(EliminationContext);
+    const { game, players, loading, winnerSaved, unsent, celebrating, quick } = useContext(EliminationContext);
     const navigate = useNavigate();
 
     // only a game won on this page is celebrated; a finished game opened later just shows its statistics
@@ -31,9 +31,10 @@ const EliminationGame = () => {
             return;
         }
         const stats = quick ? `/quick/stats/elimination/${game.id}` : `/stats/games/elimination/${game.id}`;
-        if (!wasRunning.current) navigate(stats, { replace: true });
+        // (one finished without a connection waits until it is sent)
+        if (!wasRunning.current) { if (!unsent) navigate(stats, { replace: true }); }
         else if (winnerSaved && !celebrating) navigate(stats, { replace: true, state: { justFinished: true } });
-    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, celebrating, navigate, quick]);
+    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, unsent, celebrating, navigate, quick]);
 
     if (loading.initGameLoading || !players?.length || !game.playerModels || !game.players?.length) {
         return <PageLoader />;

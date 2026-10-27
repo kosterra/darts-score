@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Avatar } from 'primereact/avatar';
+import { Button } from 'primereact/button';
 
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
+import useMediaQuery from '../../utils/use.media.query';
 import CountryFlag from '../elements/country.flag';
 
 /**
@@ -25,6 +28,36 @@ export const PlayerCell = ({ player, size = 'sm', children }) => (
 /**
  * Filters above an admin table, wrapping on small screens.
  */
-export const AdminToolbar = ({ children }) => (
-    <div className="admin-toolbar d-flex flex-wrap align-items-center gap-3 mb-3">{children}</div>
-);
+export const AdminToolbar = ({ children, actions = null, changed = 0, startOpen = false }) => {
+    // on a phone the filters fold away behind a button, as the filters of the statistics;
+    // what the list holds and what can be done with it stays in sight
+    const phone = useMediaQuery('(max-width: 575.98px)');
+    const [open, setOpen] = useState(startOpen);
+    if (!phone) {
+        return (
+            <div className="admin-toolbar d-flex flex-wrap align-items-center gap-3 mb-3">
+                {children}
+                {actions && <div className="ms-auto d-flex align-items-center gap-3">{actions}</div>}
+            </div>
+        );
+    }
+    return (
+        <div className="admin-toolbar d-flex flex-wrap align-items-center gap-3 mb-3">
+            <div className="d-flex align-items-center gap-3 w-100">
+                <Button
+                    type="button"
+                    icon={changed ? 'pi pi-filter-fill' : 'pi pi-filter'}
+                    label={t('Filters')}
+                    badge={changed ? String(changed) : undefined}
+                    severity="secondary"
+                    size="small"
+                    className={`filter-panel-toggle ${open ? 'is-open' : ''}`}
+                    aria-expanded={open}
+                    onClick={() => setOpen(!open)}
+                />
+                {actions && <div className="ms-auto d-flex align-items-center gap-3">{actions}</div>}
+            </div>
+            {open && children}
+        </div>
+    );
+};

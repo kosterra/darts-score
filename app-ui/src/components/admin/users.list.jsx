@@ -168,13 +168,12 @@ const UsersList = () => {
         {/* the users at a glance; an account picked there shows in the list */}
         <UsersOverview users={users} loading={!loaded} onPick={(user) => setView({ search: user.email, clubs: '', page: 1 })} />
         <Panel id="admin-list" header={t('Users')}>
-            <AdminToolbar>
+            <AdminToolbar actions={<span className="text-faint fs-7">{visibleUsers.length} {visibleUsers.length === 1 ? t('user') : t('users')}</span>} changed={[view.search, view.clubs].filter(Boolean).length}>
                 <ClubFilter clubs={clubs} selectedIds={clubIds} onChange={setClubIds} optional />
                 <span className="p-input-icon-left">
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search name or email')} aria-label={t('Search users by name or email')} />
                 </span>
-                <span className="ms-auto text-faint fs-7">{visibleUsers.length} {visibleUsers.length === 1 ? t('user') : t('users')}</span>
             </AdminToolbar>
 
             {/* the look of the other admin lists: every user a card of its own */}
@@ -197,12 +196,12 @@ const UsersList = () => {
                 className="admin-table"
                 {...tableState(view, setView, { sortField: 'lastname', sortOrder: 1 })}
                 emptyMessage={!loaded ? <TableLoading /> : users.length ? t('No users match these filters.') : t('No users found.')}
-                responsiveLayout="scroll"
+                responsiveLayout="stack" breakpoint="640px"
             >
-                <Column field="lastname" header={t('Name')} sortable body={nameBody} />
-                <Column field="email" header={t('Email')} sortable body={(user) => <span className="text-default fs-7">{user.email}</span>} />
-                <Column header={t('Role')} body={roleBody} />
-                <Column header={t('Clubs')} body={clubsBody} />
+                <Column bodyClassName="no-label" field="lastname" header={t('Name')} sortable body={nameBody} />
+                <Column bodyClassName="no-label" field="email" header={t('Email')} sortable body={(user) => <span className="text-default fs-7">{user.email}</span>} />
+                <Column bodyClassName="no-label" header={t('Role')} body={roleBody} />
+                <Column bodyClassName="no-label" header={t('Clubs')} body={clubsBody} />
                 <Column field="createdAt" header={t('Registered')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{dateOrNever(user.createdAt)}</span>} />
                 <Column field="lastLoginAt" header={t('Last login')} sortable body={(user) => <span className="text-subtle fs-7 text-nowrap">{dateOrNever(user.lastLoginAt)}</span>} />
                 <Column body={actionBody} />

@@ -102,4 +102,14 @@ describe('rivals', () => {
         expect(rivals.best.playerId).toBe(B);
         expect(rivals.worst).toMatchObject({ playerId: C, wins: 1, losses: 2 });
     });
+
+    it('counts the partner of doubles as no opponent, and leaves doubles out of the rating', async () => {
+        const { rivalsOf } = await import('./compare.js');
+        // A and C against B and 'd', won by A and C
+        const doubles = { at: at(), players: [A, B, C, 'd'], winners: [A, C], teams: [[A, C], [B, 'd']], sourceType: 'x01' };
+        expect(rivalsOf([doubles], A).opponents.map(entry => entry.playerId)).toEqual([B, 'd']);
+        expect(rivalsOf([doubles], A).mostPlayed).toMatchObject({ wins: 1, losses: 0 });
+        expect(opponentsOf([doubles], A).map(entry => entry.playerId)).toEqual([B, 'd']);
+        expect(clubRatings([doubles]).size).toBe(0);
+    });
 });

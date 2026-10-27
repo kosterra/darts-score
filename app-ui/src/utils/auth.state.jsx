@@ -27,6 +27,31 @@ const markClubChosenInTab = () => {
     }
 };
 
+// a copy of the session on this device: a running game opens again after a
+// reload without a connection (the API still asks for the login once it is back)
+const OFFLINE_SESSION_KEY = 'darts-score.offline-session';
+const keepOfflineSession = (user, clubs) => {
+    try {
+        localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify({ user, clubs }));
+    } catch {
+        // storage unavailable: without a connection the app starts at the login
+    }
+};
+const offlineSession = () => {
+    try {
+        return JSON.parse(localStorage.getItem(OFFLINE_SESSION_KEY) || 'null');
+    } catch {
+        return null;
+    }
+};
+const forgetOfflineSession = () => {
+    try {
+        localStorage.removeItem(OFFLINE_SESSION_KEY);
+    } catch {
+        // nothing kept
+    }
+};
+
 /**
  * The language after logging in: one picked before (on the start page or the
  * login), or the app's when the account has none yet, is saved on the
@@ -95,6 +120,9 @@ const AuthState = ({ children }) => {
         return true;
     }, [refreshClubs, selectClub]);
 
+    // started from the copy on this device, without a connection
+    const [offline, setOffline] = useState(false);
+
     useEffect(() => {
         const restoreSession = async () => {
             // the app starts again in the account's language: it keeps loading until then
@@ -104,13 +132,53 @@ const AuthState = ({ children }) => {
                 const current = await AuthService.getCurrentUser();
                 if (current) reloading = !(await startSession(current));
             } catch (error) {
-                console.error('Failed to restore the session', error);
+                // no connection: the copy of the session kept on this device, until it is back
+                const kept = error.offline && offlineSession();
+                if (kept?.user) {
+                    setClubs(kept.clubs ?? []);
+                    setUser(kept.user);
+                    setOffline(true);
+                } else {
+                    console.error('Failed to restore the session', error);
+                }
             } finally {
                 if (!reloading) setLoading(false);
             }
         };
         restoreSession();
     }, [startSession]);
+
+    // the connection is back: the server says whether the session still is
+    useEffect(() => {
+        if (!offline) return undefined;
+        const check = async () => {
+            try {
+                const current = await AuthService.getCurrentUser();
+                setOffline(false);
+                if (current) await startSession(current);
+                else {
+                    forgetOfflineSession();
+                    setReturnTo(`${window.location.pathname}${window.location.search}${window.location.hash}`);
+                    setSessionEnded(true);
+                    setUser(null);
+                    setClubs([]);
+                }
+            } catch {
+                // still without a connection
+            }
+        };
+        window.addEventListener('online', check);
+        const timer = setInterval(check, 15000);
+        return () => {
+            window.removeEventListener('online', check);
+            clearInterval(timer);
+        };
+    }, [offline, startSession]);
+
+    // the copy follows the account and its clubs
+    useEffect(() => {
+        if (user && !offline) keepOfflineSession(user, clubs);
+    }, [user, clubs, offline]);
 
     // with two-step login the answer asks for its next step ({ mfaRequired, step }),
     // handed back to the page; otherwise the session starts and null comes back
@@ -139,6 +207,7 @@ const AuthState = ({ children }) => {
     const completeLogin = useCallback((loggedInUser) => startSession(loggedInUser, true), [startSession]);
 
     const logout = useCallback(async () => {
+        forgetOfflineSession();
         await AuthService.logout().catch(() => {});
         setReturnTo(null);
         setLoggedOut(true);
@@ -148,6 +217,7 @@ const AuthState = ({ children }) => {
 
     // the session timed out (or was ended elsewhere): back to the login, with a note
     const endSession = useCallback(async () => {
+        forgetOfflineSession();
         await AuthService.logout().catch(() => {});
         setReturnTo(`${window.location.pathname}${window.location.search}${window.location.hash}`);
         setSessionEnded(true);

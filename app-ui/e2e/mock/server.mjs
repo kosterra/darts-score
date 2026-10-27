@@ -10,11 +10,12 @@
 // (e.g. AS_PLAYER, CLUB_ADMIN, LOGGED_OUT, NEW_USER; DASH=0 for a club
 // without its statistics), and the tests
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
-// /__test/tournaments { scenario } and /__test/session { leftMs }.
+// /__test/tournaments { scenario }, /__test/session { leftMs } and
+// /__test/notifications (two of them, one unread), /__test/evening (one with finished games).
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
-import { checkBirthChange, checkTraining, checkX01, checkCricket, checkElimination, checkClock, compact, levelOf, repairX01, x01Legs } from '../../../app-api/src/utils/integrity.js';
+import { checkBirthChange, checkTraining, checkX01, checkCricket, checkElimination, checkClock, compact, levelOf, repairX01, x01Legs, THRESHOLDS } from '../../../app-api/src/utils/integrity.js';
 import fs from 'fs';
 import { BADGES as realBadges, BADGE_CATEGORIES as realCategories, SHAME_BADGES } from '../../../app-api/src/utils/badges.js';
 import http from 'node:http';
@@ -159,7 +160,7 @@ http.createServer((req, res) => {
         if (path === '/api/auth/onboarding') { const now = new Date().toISOString(); if (json.tour) user.onboarding.tourDoneAt = json.tour === 'done' ? now : null; if (json.firstSteps) user.onboarding.firstStepsHiddenAt = json.firstSteps === 'hidden' ? now : null; return send(res, 200, user); }
         if (path === '/api/stats/first-steps') return send(res, 200, process.env.AS_PLAYER ? { role: 'member', items: [{ id: 'you', done: true }, { id: 'firstGame', done: false }, { id: 'training', done: false }, { id: 'notifications', done: true }, { id: 'app', done: null }] } : { role: 'admin', items: [{ id: 'clubProfile', done: false }, { id: 'players', done: true }, { id: 'rules', done: false }, { id: 'firstGame', done: false }, { id: 'you', done: true }] });
         if (path === '/api/public/site') return send(res, 200, { publicSite: !process.env.PRIVATE_SITE });
-        if (path === '/api/public/legal') return send(res, 200, { ...legal, notes: typeof legal.notes === 'object' ? (legal.notes[(req.headers['accept-language'] || 'en').slice(0, 2)] || legal.notes.en || '') : legal.notes, mailEnabled: true, keep: { sessionHours: 5, trustedDeviceDays: 30, quickGameDays: 30, notificationDays: 365, fairPlayDays: 31, errorLogDays: 30, claimLinkDays: 30 } });
+        if (path === '/api/public/legal') return send(res, 200, { ...legal, notes: typeof legal.notes === 'object' ? (legal.notes[(req.headers['accept-language'] || 'en').slice(0, 2)] || legal.notes.en || '') : legal.notes, mailEnabled: true, keep: { sessionHours: 5, trustedDeviceDays: 30, quickGameDays: 30, quickUnfinishedDays: 3, notificationDays: 365, fairPlayDays: 31, errorLogDays: 30, claimLinkDays: 30 } });
         if (path === '/api/admin/legal') { if (typeof legal.notes !== 'object') legal.notes = { en: legal.notes, de: '', fr: '', it: '', es: '' }; if (req.method === 'PUT') legal = { ...legal, ...json }; return send(res, 200, { ...legal, limits: { operator: 200, address: 500, email: 254, notes: 2000 } }); }
         if (path === '/api/auth/delete-account' && req.method === 'GET') return send(res, 200, { globalAdmin: null, clubs: process.env.SOLE_ADMIN ? [{ id: 'c1', name: 'Red Lion Darts', members: 6, candidates: [{ id: 'u2', name: 'Ben Huber' }, { id: 'u3', name: 'Lena Frei' }] }, { id: 'c9', name: 'Garage Darts', members: 1, candidates: [] }] : [] });
         if (path === '/api/auth/delete-account' && process.env.SOLE_ADMIN && (json.clubs ?? []).length !== 2) return send(res, 409, { message: 'Hand Garage Darts over or delete it first.' });
@@ -333,6 +334,12 @@ http.createServer((req, res) => {
             if (action === '/decide') { r.note = json.note; close(r, json.delete ? 'deleted' : 'kept', false); return send(res, 200, view(r)); }
             if (req.method === 'DELETE') { r.status = 'withdrawn'; return send(res, 200, view(r)); }
         }
+        if (path === '/__test/notifications' && req.method === 'POST') {
+            notifications.splice(0, notifications.length,
+                { id: 'nt1', kind: 'badgeEarned', title: 'You earned the badge Champion', body: 'Win a tournament of your club', link: '/badges', at: new Date().toISOString(), read: false },
+                { id: 'nt2', kind: 'tournamentWon', title: 'Patch Panther wins Autumn Cup', link: '/tournaments', at: new Date().toISOString(), read: true });
+            return send(res, 200, {});
+        }
         if (path === '/__test/session' && req.method === 'POST') { session.expiresAt = Date.now() + json.leftMs; session.loggedIn = true; return send(res, 200, session); }
         if (path === '/api/auth/session') return session.loggedIn && session.expiresAt > Date.now() ? send(res, 200, { expiresAt: session.expiresAt, timeoutHours: sessionHours }) : send(res, 401, { message: 'Please log in.' });
         if (path === '/api/auth/session/extend') { session.expiresAt = Date.now() + sessionHours * 3600e3; return send(res, 200, { expiresAt: session.expiresAt }); }
@@ -348,6 +355,21 @@ http.createServer((req, res) => {
                 quickGames.set(id, doc);
                 return quickGameView(doc);
             };
+            // a darts evening with finished games, for screenshots without playing them:
+            // POST /__test/evening { names? } → { id }; q1 beats q2, q3 beats q1, q2 beats q3 (301, one leg)
+            if (path === '/__test/evening' && req.method === 'POST') {
+                const names = json.names ?? ['Ralph Koster', 'Reto Kurz', 'Rene Krummenacher'];
+                const id = `e${evenings.size + 1}`;
+                const { fields } = newEvening({ name: json.name ?? '', names });
+                evenings.set(id, { _id: id, ...fields, shareToken: `share${id}xyz`, createdAt: new Date(), club: null });
+                const quickPlayers = fields.players.map(player => ({ id: player.id, nickname: player.name }));
+                const v = (player, ...darts) => ({ player, darts });
+                [['q1', 'q2'], ['q3', 'q1'], ['q2', 'q3']].forEach(([winner, loser], index) => {
+                    const visits = [v(winner, 'T20', 'T20', 'T20'), v(loser, 'S20', 'S20', 'S5'), v(winner, 'T20', 'T11', 'D14')];
+                    keep(`qt${index}`, 'x01', { players: [winner, loser], quickPlayers: quickPlayers.filter(player => [winner, loser].includes(player.id)), startingScore: 301, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 1, visits }, id);
+                });
+                return send(res, 200, { id });
+            }
             // darts evenings, with the API's own report
             const gamesOfEvening = (id) => [...quickGames.values()].filter(game => game.evening === id);
             if (path === '/api/public/evenings' && req.method === 'POST') {
@@ -369,6 +391,22 @@ http.createServer((req, res) => {
                     return send(res, 201, { game: keep(id, json.kind, clean(json.game), ev[1]) });
                 }
                 return send(res, 200, eveningView(evening, gamesOfEvening(ev[1]), { owner: true }));
+            }
+            const evScreen = path.match(/^\/api\/public\/evenings\/(e\d+)\/screen(\/send)?$/);
+            if (evScreen && evenings.has(evScreen[1])) {
+                const token = `screen-token-for-evening--${evScreen[1]}`;
+                if (!evScreen[2]) return send(res, 200, { token, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+                const pairing = [...(globalThis.mockPairings ?? new Map()).values()].find(entry => entry.code === json.code);
+                if (!pairing) return send(res, 404, { message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+                pairing.token = token;
+                return send(res, 200, { sent: true });
+            }
+            const evShow = path.match(/^\/api\/screen\/screen-token-for-evening--(e\d+)$/);
+            if (evShow && evenings.has(evShow[1])) {
+                const evening = evenings.get(evShow[1]);
+                const games = gamesOfEvening(evShow[1]);
+                const running = [...games].sort((x, y) => new Date(y.createdAt) - new Date(x.createdAt)).find(game => game.gameIsRunning && !game.hasWinner);
+                return send(res, 200, { kind: 'evening', evening: eveningView(evening, games), game: running ? quickGameView(running) : null, club: null, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
             }
             const sh = path.match(/^\/api\/public\/evenings\/shared\/(.+)$/);
             if (sh) {
@@ -726,6 +764,36 @@ http.createServer((req, res) => {
             const kind = url.searchParams.get('kind');
             return send(res, 200, list.filter(e => !kind || e.kind === kind));
         }
+        // the big screen: a link from the game, and the game for the screen (the token is the game's id, padded)
+        const screenLink = path.match(/^\/api\/games\/(x01|cricket|elimination|clock|rules)\/([^/]+)\/screen$/);
+        // the token says the kind (X01 as before: just the id)
+        const tokenFor = (kind, id) => (kind === 'x01' ? `screen-token-for-${id}` : `screen-token-for-${kind}--${id}`);
+        if (screenLink && req.method === 'POST') return send(res, 200, { token: tokenFor(screenLink[1], screenLink[2]), expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+        // a TV paired by its code
+        globalThis.mockPairings ??= new Map();
+        if (path === '/api/screen/pairings' && req.method === 'POST') {
+            const pairing = { secret: `tv-secret-${Date.now()}-${Math.random().toString(36).slice(2)}`, code: String(100000 + globalThis.mockPairings.size + 23456).slice(0, 6), expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString(), token: null };
+            globalThis.mockPairings.set(pairing.secret, pairing);
+            return send(res, 201, pairing);
+        }
+        const pairingShow = path.match(/^\/api\/screen\/pairings\/([^/]+)$/);
+        if (pairingShow) {
+            const pairing = globalThis.mockPairings.get(decodeURIComponent(pairingShow[1]));
+            return pairing ? send(res, 200, { code: pairing.code, expiresAt: pairing.expiresAt, token: pairing.token }) : send(res, 404, { message: 'This TV is not paired any more.', expired: true });
+        }
+        const screenSend = path.match(/^\/api\/games\/(?:x01|cricket|elimination|clock|rules)\/([^/]+)\/screen\/send$/);
+        if (screenSend) {
+            const pairing = [...globalThis.mockPairings.values()].find(entry => entry.code === json.code);
+            if (!pairing) return send(res, 404, { message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+            pairing.token = `screen-token-for-${screenSend[1]}`;
+            return send(res, 200, { sent: true });
+        }
+        const screenShow = path.match(/^\/api\/screen\/screen-token-for-(?:(cricket|elimination|clock|rules)--)?([^/]+)$/);
+        if (screenShow) {
+            const game = games.get(screenShow[2]);
+            if (!game) return send(res, 404, { message: 'This big screen link is not valid any more. Open a new one from the game.', expired: true });
+            return send(res, 200, { kind: screenShow[1] ?? 'x01', game, players: players.filter(p => (game.players ?? []).includes(p.id)).map(p => ({ id: p.id, nickname: p.nickname, country: p.country, shirt: shirtOf(p) })), club: { name: CLUB_NAME, logo: '', accent: null }, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+        }
         const clock = path.match(/^\/api\/games\/(?:clock|x01|cricket|elimination)(?:\/([^/]+))?$/);
         if (clock) {
             const [, id] = clock;
@@ -771,6 +839,7 @@ http.createServer((req, res) => {
             if (req.method === 'DELETE') contactOf = null;
             return send(res, 200, { contact: contactOf, claims: { count: claimCount, until: claimCount ? new Date(Date.now() + 30 * 864e5).toISOString() : null }, mailEnabled: !process.env.NO_MAIL });
         }
+        if (path === '/api/notifications' && req.method === 'DELETE') { const deleted = notifications.length; notifications.length = 0; return send(res, 200, { deleted }); }
         if (path === '/api/notifications') return send(res, 200, { notifications, unread: notifications.filter(n => !n.read).length });
         if (path === '/api/notifications/unread') return send(res, 200, { unread: notifications.filter(n => !n.read).length });
         if (path === '/api/notifications/read') { notifications.forEach(n => { n.read = true; }); return send(res, 200, {}); }
@@ -786,7 +855,7 @@ http.createServer((req, res) => {
             list.forEach(e => { if (e.level === 'impossible' && e.review?.status !== 'ok') count.impossible++; else if (e.level === 'error' && !e.review) count.errors++; else if (e.level === 'suspicious' && !e.review) count.suspicious++; });
             return send(res, 200, { ...count, open: count.impossible + count.errors + count.suspicious });
         }
-        if (path === '/api/integrity' && req.method === 'GET') return send(res, 200, { entries: await listEntries(url), thresholds: {} });
+        if (path === '/api/integrity' && req.method === 'GET') return send(res, 200, { entries: await listEntries(url), thresholds: THRESHOLDS });
         if (path === '/api/integrity/birth/b1/restore') { birthRestored = true; return send(res, 200, { restored: true }); }
         if (path === '/api/integrity/birth/b1' && req.method === 'GET') return send(res, 200, { type: 'birth', findings: checkBirthChange(birthChange, { minAge: 16, gameDates: [] }), facts: [['Before', birthChange.from.toISOString()], ['Changed to', birthChange.to.toISOString()], ['Changed on', birthChange.at.toISOString()], ['Age limit of the club', '16 years']] });
         const repairPath = path.match(/^\/api\/integrity\/x01\/([^/]+)\/repair$/);

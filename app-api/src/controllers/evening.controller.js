@@ -3,6 +3,7 @@ import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { adoptEvening, eveningError, eveningGameError, eveningView, newEvening } from '../utils/evenings.js';
 import { keyMatches, quickGameView, winnerOf } from '../utils/quick.games.js';
+import { screenToken, sendToPairing } from '../utils/screens.js';
 import { storedOf } from '../utils/game.view.js';
 import { checkLater, noteQuickGame } from '../utils/spam.guard.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS } from '../utils/global.admins.js';
@@ -50,6 +51,32 @@ export const shared = async (req, res) => {
     const evening = await db.quickEvening.findOne({ shareToken: String(req.params.token) });
     if (!evening) return res.status(404).json({ message: 'This evening is not there (any more).' });
     res.json(eveningView(evening, await gamesOf(evening)));
+};
+
+// ---------------------------------------------------------------------------
+// The big screen of an evening: it follows the game running now, the table
+// between games; only the browser that runs the evening makes its link
+// ---------------------------------------------------------------------------
+
+export const screenLink = async (req, res) => {
+    const evening = await loadOwn(req, res);
+    if (evening) res.json(screenToken('evening', evening._id));
+};
+
+export const screenSend = async (req, res) => {
+    const evening = await loadOwn(req, res);
+    if (!evening) return;
+    if (!(await sendToPairing(req.body.code, 'evening', evening._id))) return res.status(404).json({ message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+    res.json({ sent: true });
+};
+
+// what a big screen of an evening shows: the evening (its table) and the game running now, or null
+export const screenOfEvening = async (eveningId) => {
+    const evening = await db.quickEvening.findById(eveningId);
+    if (!evening) return null;
+    const games = await gamesOf(evening);
+    const running = [...games].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).find(game => game.gameIsRunning && !game.hasWinner);
+    return { evening: eveningView(evening, games), game: running ? quickGameView(running) : null };
 };
 
 /**

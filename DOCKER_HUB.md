@@ -1,217 +1,123 @@
-# darts-score
+# Legmate – the darts scoreboard
 
-A self-hosted darts scoring application. The image bundles an **Express 5** REST API together with the **React** frontend — a single container is all you need to run the full application.
+**Legmate** is a self-hosted darts scoreboard for clubs, pub teams, friends and flatshares. One image holds the whole app: the API (Express 5) and the web app (React), installable on phones as an app. All it needs next to it is MongoDB.
 
-**Source:** [github.com/kosterra/darts-score](https://github.com/kosterra/darts-score)
+**Source and documentation:** [github.com/kosterra/darts-score](https://github.com/kosterra/darts-score) · **Licence:** AGPLv3
 
 ---
 
-## Features
+## What it does
 
-- Clickable dartboard for score input
-- Game types: **X01** (101 / 301 / 501 / 701 / 1001), **Cricket**, **Elimination**, **Around the Clock**
-- Configurable in/out modes, sets and legs for X01
-- Real-time best-finish suggestions
-- Player statistics with charts (averages, score ranges, checkout rates)
-- Player vs player comparison
-- Player profile image upload
-- Admin panel for managing players and game history
-- OpenAPI / Swagger UI at `/api-docs`
+- **Games:** X01 (101 to 1001, in/out modes, sets and legs, handicap), Cricket, Elimination, Around the Clock, and Shanghai, Killer, Halve-It, Golf and Tactics. Darts are tapped on the board or on a keypad, with checkout suggestions and a caller that calls the scores aloud.
+- **Trainings:** X01 against a bot as strong as you, Around the Clock and more.
+- **Statistics:** averages, checkout rates, form, records and head to head; badges, levels, flights and shirts to collect.
+- **Clubs:** several admins, players with or without a login, tournaments (knockout, from 8 to 64 players), notifications by app and mail.
+- **Without an account:** quick games and darts evenings with friends, shared by a link.
+- **Accounts:** two-step login, passkeys (fingerprint, face or PIN), deleting the own account.
+- **For the operator:**
+  - an overview that checks the installation and names what to fix;
+  - backups of the whole installation, by hand or on a schedule;
+  - alerts for unusual activity, an error log, the usage per week;
+  - a public start page that can be switched off.
+- **Languages:** English, German, French, Italian and Spanish.
 
 ---
 
 ## Quick start
 
-Requires a running **MongoDB 7 / 8** instance.
+The repository has a ready-to-copy [`docker-compose.yml`](https://github.com/kosterra/darts-score/blob/main/docker-compose.yml) with MongoDB, and [`.env.sample`](https://github.com/kosterra/darts-score/blob/main/.env.sample) for the settings.
 
-```bash
-docker run -d \
-  -p 3001:3001 \
-  -e DB_HOST=your-mongo-host \
-  -e DB_PORT=27017 \
-  -e DB_USER=admin \
-  -e DB_PASSWORD=yourpassword \
-  -e DB_NAME=darts_score \
-  -v darts_score_data:/app/data \
-  kosterra/darts-score:latest
-```
+1. Copy both into a folder. Rename `.env.sample` to `.env` and fill in at least:
+   - `DB_USER` and `DB_PASSWORD` (MongoDB is created with them);
+   - `SESSION_SECRET` and `MFA_KEY` (two long random values);
+   - `ADMIN_EMAIL` and `ADMIN_PASSWORD` (the first global admin);
+   - `APP_URL` (the public address).
+   - In Portainer, enter them as the stack's environment variables instead.
+2. Start it: `docker compose up -d`.
+3. Open `http://<server>:3001` and log in as the global admin. The overview says what is still missing, e.g. mail.
 
-Open `http://localhost:3001` in your browser.
+For HTTPS put a reverse proxy (or a Cloudflare Tunnel) in front of port 3001. The login cookie becomes secure by itself when the proxy sends `X-Forwarded-Proto: https`.
 
----
-
-## Docker Compose
-
-A ready-to-copy setup is [`docker-compose.yml`](https://github.com/kosterra/darts-score/blob/main/docker-compose.yml) in the repository, with [`.env.sample`](https://github.com/kosterra/darts-score/blob/main/.env.sample) for the settings. Put them in a `.env` file next to it, or in Portainer as the stack's environment variables. In short:
+A minimal service, next to a MongoDB 7 or 8 that only it can reach:
 
 ```yaml
 services:
-
-  # ---------------------------------------------------------------------------
-  # Darts Score: the API and the app in one container
-  # ---------------------------------------------------------------------------
-  darts_score:
+  legmate:
     image: kosterra/darts-score:latest
-    container_name: darts_score
     restart: unless-stopped
     ports:
       - "3001:3001"
-    # The settings come from the variables of the stack (Portainer) or a .env
-    # file next to this file (docker compose). Settings marked "?" are required:
-    # without them the stack is not started and says which one is missing.
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      DB_HOST: ${DB_HOST:-mongo}
-      DB_PORT: ${DB_PORT:-27017}
-      DB_NAME: ${DB_NAME:-darts_score}
-      DB_USER: ${DB_USER:?set DB_USER, the database user}
-      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD, the database password}
-      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET to a long random value}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      APP_URL: ${APP_URL:-}
-      UI_URL: ${UI_URL:-}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_SECURE: ${SMTP_SECURE:-}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-}
-      IMG_DIR: ${IMG_DIR:-data/img}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DB_HOST: mongo
+      DB_PORT: 27017
+      DB_NAME: darts_score
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
+      MFA_KEY: ${MFA_KEY}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      APP_URL: https://darts.example.com
     volumes:
-      # uploaded player pictures and club logos, in a Docker volume the app may
-      # write to. To keep them in a folder of your own instead, use e.g.
-      # "/opt/darts-score/data:/app/data" and give that folder to user 1000
-      # ("chown -R 1000:1000 /opt/darts-score/data"), the user the app runs as.
-      - darts_score_data:/app/data
-    depends_on:
-      mongo:
-        condition: service_healthy
-    healthcheck:
-      # the image has no curl or wget, so Node itself asks the health endpoint
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-
-  # ---------------------------------------------------------------------------
-  # MongoDB: only reachable by Darts Score, through the internal network
-  # ---------------------------------------------------------------------------
-  mongo:
-    image: mongo:8.0
-    container_name: darts_score_db
-    restart: unless-stopped
-    environment:
-      # the database's administrator is the user Darts Score logs in with;
-      # it is created on the database's very first start
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:?set DB_USER, the database user}
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD, the database password}
-      MONGO_INITDB_DATABASE: ${DB_NAME:-darts_score}
-      # mongod < 8.0.35 refuses to start on Ubuntu 7.0.0-x kernels (SERVER-131779).
-      # Letting glibc own rseq makes TCMalloc skip per-CPU caches, which passes the check.
-      # Remove once mongo:8.0 resolves to >= 8.0.35.
-      GLIBC_TUNABLES: glibc.pthread.rseq=1
-    volumes:
-      - darts_score_db:/data/db
-    # no "ports": the database stays private. To reach it from the server
-    # itself (e.g. with MongoDB Compass), add: ports: ["127.0.0.1:27017:27017"]
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-volumes:
-  darts_score_db:
-    name: darts_score_db
-  darts_score_data:
-    name: darts_score_data
+      - legmate_data:/app/data
 ```
 
-MongoDB has no published port: only Darts Score reaches it, through the internal network. For HTTPS put a reverse proxy in front of port 3001; the login cookie becomes secure automatically when the proxy sends `X-Forwarded-Proto: https`.
-
-**.env** (or the stack's environment variables in Portainer; MongoDB is created with `DB_USER` and `DB_PASSWORD`)
-
-```dotenv
-DB_USER=admin
-DB_PASSWORD=yourpassword
-SESSION_SECRET=long-random-string
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=at-least-8-chars
-APP_URL=https://darts.example.com
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=darts@example.com
-SMTP_PASSWORD=yourmailpassword
-SMTP_FROM=Legmate <darts@example.com>
-IMG_DIR=data/img
-LOG_LEVEL=info
-```
+The full file in the repository adds MongoDB, the mail settings and the rest.
 
 ---
 
 ## Environment variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DB_HOST` | yes | — | MongoDB hostname or IP |
-| `DB_PORT` | yes | — | MongoDB port |
-| `DB_USER` | yes | — | MongoDB username |
-| `DB_PASSWORD` | yes | — | MongoDB password |
-| `DB_NAME` | yes | — | MongoDB database name |
-| `IMG_DIR` | no | `data/img` | Path for uploaded player images |
-| `PORT` | no | `3001` | HTTP port the server listens on |
-| `NODE_ENV` | no | `production` | `production` hides error details from the browser; anything else (e.g. `test`) shows them and appears as the environment on the administration page |
-| `UI_URL` | no | — | Allowed CORS origin (only needed when the UI is served separately) |
-| `SESSION_SECRET` | recommended | random per start | Signs the login cookie. Without it every restart logs all users out |
-| `MFA_KEY` | recommended | from `SESSION_SECRET` | Encrypts the secrets of two-step login. Without it they depend on `SESSION_SECRET`: changing that turns two-step login off for everyone |
-| `ADMIN_RESET_MFA` | no | — | Email of an account whose two-step login is turned off at the next start (a global admin who lost phone and recovery codes); remove it afterwards |
-| `ADMIN_EMAIL` | first start | — | Email of the first global admin, created on startup when no global admin exists |
-| `ADMIN_PASSWORD` | first start | — | Password of that account (at least 8 characters) |
-| `APP_URL` | for email | — | Public address of the app, used for links in mails |
-| `SMTP_HOST` | for email | — | SMTP server. Without it password reset and invitations by mail are off |
-| `SMTP_PORT` | no | `587` | SMTP port (`465` implies TLS) |
-| `SMTP_USER` / `SMTP_PASSWORD` | no | — | SMTP login, if the server needs one |
-| `SMTP_FROM` | no | `Legmate <no-reply@darts-score.local>` | Sender of the mails |
-| `SMTP_SECURE` | no | `true` on port 465 | `true` for TLS from the start on another port |
+| Variable | Required | Default | What it is for |
+|----------|----------|---------|----------------|
+| `DB_HOST`, `DB_PORT`, `DB_NAME` | yes | — | Where MongoDB is |
+| `DB_USER`, `DB_PASSWORD` | yes | — | The MongoDB login |
+| `SESSION_SECRET` | yes | — | Signs the login cookie. Changing it logs everyone out |
+| `MFA_KEY` | recommended | from `SESSION_SECRET` | Encrypts the secrets of two-step login. Set it once and keep it: changing it ends every two-step login (recovery codes still let people in, to set it up again) |
+| `APP_URL` | recommended | — | The public address: links in mails, link previews, the sitemap, and the domain passkeys belong to (HTTPS) |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | first start | — | The first global admin, created when there is none |
+| `ADMIN_RESET_MFA` | no | — | Email of an account whose two-step login is turned off at the next start (a global admin without phone and recovery codes); remove it afterwards |
+| `SMTP_HOST` | for mail | — | The mail server. Without it password reset, invitations and mail notifications are off |
+| `SMTP_PORT` | no | `587` | `465` means TLS from the start |
+| `SMTP_SECURE` | no | `true` on 465 | `true` for TLS from the start on another port |
+| `SMTP_USER`, `SMTP_PASSWORD` | no | — | The login at the mail server |
+| `SMTP_FROM` | recommended | `Legmate <no-reply@darts-score.local>` | The sender; many mail servers only send from the address of the login |
+| `ENVIRONMENT_LABEL` | no | — | For a test server, e.g. `TEST`: in front of the subject and on a yellow strip on every mail it sends |
+| `NODE_ENV` | no | `production` | Anything else (e.g. `test`) shows error details in the browser |
 | `LOG_LEVEL` | no | `debug` | `error`, `warn`, `info` or `debug` |
-
-The app requires a login. Anyone can register and create clubs with their own players and games. A club can have several admins, and an admin can give players a login so they can play and train on their own. The global admin looks after all clubs and users on the *Administration* page and is meant for that only; play with a normal account.
-
-**Upgrading:** database migrations run automatically on startup. Back up the database first, set `SESSION_SECRET`, `ADMIN_EMAIL` and `ADMIN_PASSWORD`, then start the new version: existing players and games are moved into a "Default Club" looked after by the global admin. Then hand it over: give your own player a login with your personal email (*Club → Players*) and add that email as admin (*Admin → Administration*, Admins button of the club). From then on the club is run by your own account and the global admin is no longer one of its admins.
+| `IMG_DIR` | no | `data/img` | Where uploaded pictures go |
+| `BACKUP_DIR` | no | `data/backups` | Where backups go |
+| `PORT` | no | `3001` | The port inside the container |
+| `UI_URL` | no | — | Only when the web app runs on an address of its own (development) |
 
 ---
 
-## Persistent data
+## Data, backups and health
 
-Player pictures and club logos are written to `/app/data` (`IMG_DIR`, default `data/img`). The app runs as user `node` (ID 1000), so `/app/data` must be writable for that user:
-
-- **A named volume** (as in the compose file above) works out of the box: Docker creates it with the right owner.
-- **A folder of your own** must belong to user 1000, otherwise uploads fail and the log says "Pictures cannot be saved":
-
-```bash
-mkdir -p /opt/darts-score/data && chown -R 1000:1000 /opt/darts-score/data
-```
-
-```yaml
-volumes:
-  - /opt/darts-score/data:/app/data
-```
+- **`/app/data`** holds the uploaded pictures (`data/img`) and the backups (`data/backups`). Keep it on a volume.
+  - The app runs as user `node` (ID 1000). A named volume works as it is.
+  - A folder of your own must belong to that user: `chown -R 1000:1000 /opt/legmate/data`.
+- **Backups:** under *Administration → Backups*:
+  - by hand, or daily or weekly at an hour, keeping the newest 1 to 60;
+  - downloaded, uploaded again, and restored after a confirmation. A restore restarts the container, so keep `restart: unless-stopped`.
+  - To keep them off the server's disk, mount another disk or a network share (e.g. NFS) at `/app/data/backups`, writable for user 1000.
+- **Health:** the image has a `HEALTHCHECK` on `/api/health`.
+  - It is healthy once the API reaches MongoDB; the endpoint answers `503` while it does not.
+  - Docker and Portainer show the state.
+- **Upgrading:** database migrations run by themselves at startup. Make a backup first, then pull the new image.
 
 ---
 
 ## Tags
 
-| Tag | Description |
-|-----|-------------|
-| `latest` | Most recent release |
-| `YYYY.MM.PATCH` | Specific release (e.g. `2026.10.0`) |
+| Tag | What it is |
+|-----|------------|
+| `latest` | The newest release |
+| `YYYY.MM.N` | A release, e.g. `2026.10.18` |
+| `develop` | The newest state of development, built after every change that passes all checks: for a test server, not for production |
 
 ---
 
-## License
+## Licence
 
-[AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html): run it, change it and share it; whoever offers a changed Legmate to others over the network shares its source code too.
+[AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html): run it, change it and share it. Whoever offers a changed Legmate to others over the network shares its source code too. Forks are welcome; please give a changed version you offer to others a name and logo of its own, so nobody mistakes it for this project.

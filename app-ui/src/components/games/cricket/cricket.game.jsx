@@ -19,7 +19,7 @@ import { t } from '../../../utils/i18n';
  */
 const CricketGame = () => {
     const navigate = useNavigate();
-    const { game, players, loading, winnerSaved, celebrating, quick } = useContext(CricketContext);
+    const { game, players, loading, winnerSaved, unsent, celebrating, quick } = useContext(CricketContext);
 
     // only a game won on this page is celebrated; a finished game opened later just shows its statistics
     const wasRunning = useRef(false);
@@ -30,10 +30,11 @@ const CricketGame = () => {
             return;
         }
         const stats = quick ? `/quick/stats/cricket/${game.id}` : `/stats/games/cricket/${game.id}`;
-        if (!wasRunning.current) navigate(stats, { replace: true });
+        // (one finished without a connection waits until it is sent)
+        if (!wasRunning.current) { if (!unsent) navigate(stats, { replace: true }); }
         // a moment of the winning visit (e.g. the shut-out) plays to its end first
         else if (winnerSaved && !celebrating) navigate(stats, { replace: true, state: { justFinished: true } });
-    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, celebrating, navigate, quick]);
+    }, [loading.initGameLoading, game?.hasWinner, game?.id, winnerSaved, unsent, celebrating, navigate, quick]);
 
     if (loading.initGameLoading) return <PageLoader />;
 

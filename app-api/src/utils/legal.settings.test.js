@@ -7,7 +7,7 @@ vi.mock('../models/db.model.js', () => ({ default: { setting: {
 } } }));
 vi.mock('../models/user.model.js', () => ({ LANGUAGES: ['en', 'de', 'fr', 'it', 'es'] }));
 vi.mock('./session.settings.js', () => ({ getSessionSettings: async () => ({ timeoutHours: 5 }) }));
-vi.mock('./quick.games.js', () => ({ QUICK_KEEP_DAYS: 30 }));
+vi.mock('./quick.games.js', () => ({ QUICK_KEEP_DAYS: 30, QUICK_UNFINISHED_DAYS: 3 }));
 vi.mock('../models/log.entry.model.js', () => ({ LOG_RETENTION_DAYS: 30 }));
 vi.mock('../models/usage.day.model.js', () => ({ USAGE_KEEP_DAYS: 400 }));
 vi.mock('./mail.utils.js', () => ({ isMailConfigured: () => true }));
