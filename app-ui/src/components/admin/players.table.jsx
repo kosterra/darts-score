@@ -158,12 +158,13 @@ const PlayersTable = ({ scope = 'club' }) => {
     const clubsPlayer = players?.find(player => player.id === clubsOfPlayerId) ?? null;
 
     const kindBody = (player) => player.guest
-        ? <Tag value="Guest" severity="secondary" />
-        : <Tag value="Member" severity="secondary" />;
+        ? <Tag value={t('Guest')} severity="secondary" />
+        : <Tag value={t('Member')} severity="secondary" />;
 
     const loginBody = (player) => player.user
         ? <span className="text-default fs-7"><i className="pi pi-key text-primary me-2" aria-hidden="true" />{t('Has a login')}</span>
-        : <span className="text-faint fs-7">–</span>;
+        // nothing to tell: left out on a phone
+        : <span className="text-faint fs-7 empty-cell">–</span>;
 
     const publicBody = (player) => player.guest
         ? <span className="text-faint fs-7">–</span>
@@ -292,9 +293,10 @@ const PlayersTable = ({ scope = 'club' }) => {
                                 {(player.clubs ?? []).map(club => <ClubCell key={club.id} club={club} />)}
                             </div>
                         )} />}
-                        {!acrossClubs && <Column header={t('Level')} body={(player) => player.guest ? <span className="text-faint fs-7">–</span> : <LevelBadge level={levels[player.id]} />} />}
-                        <Column bodyClassName="no-label" header={t('Type')} body={kindBody} />
-                        {canManage && <Column bodyClassName="no-label" header={t('Login')} body={loginBody} />}
+                        {/* on a phone the level, the type and the login side by side, without names */}
+                        {!acrossClubs && <Column header={t('Level')} bodyClassName="no-label inline-cell" body={(player) => player.guest ? <span className="text-faint fs-7 empty-cell">–</span> : <LevelBadge level={levels[player.id]} />} />}
+                        <Column bodyClassName="no-label inline-cell" header={t('Type')} body={kindBody} />
+                        {canManage && <Column bodyClassName="no-label inline-cell" header={t('Login')} body={loginBody} />}
                         {canManage && <Column header={t('Public page')} body={publicBody} />}
                         <Column field="createdAt" header={t('Added')} sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDate(player.createdAt)}</span>} />
                         {canManage && <Column body={actionsBody} />}

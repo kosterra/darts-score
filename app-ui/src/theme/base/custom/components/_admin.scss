@@ -79,7 +79,8 @@
 
         .p-datatable-tbody > tr:not(.p-datatable-emptymessage) {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
+            column-gap: $space-3;
             margin-bottom: $space-2;
             padding: $space-2 $space-3;
             border-radius: $borderRadius;
@@ -114,6 +115,13 @@
                 // the value: as much room as it needs, its lines to the right
                 > :not(.p-column-title) { min-width: 0; }
             }
+
+            // a line each, except values that go side by side (e.g. level, type and login)
+            > td { flex: 1 1 100%; }
+            > td.inline-cell { flex: 0 0 auto; width: auto !important; }
+            // nothing to tell ("–", or no value at all): left out
+            > td:has(.empty-cell),
+            > td.inline-cell:not(:has(> :not(.p-column-title))) { display: none !important; }
 
             // a value that says what it is (a date, the game, the players, the status, a name):
             // without the name of its column, on the left
