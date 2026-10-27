@@ -61,7 +61,8 @@ const GAME_TYPES = {
     cricket: {
         load: () => CricketService.loadAllCricketGames(),
         remove: (id, clubId) => CricketService.deleteCricketGame(id, clubId),
-        describe: () => ({ title: t('Cricket') }),
+        // the tag says Cricket: only a variant other than the standard one
+        describe: (game) => ({ title: game.variant && game.variant !== 'Standard' ? t(game.variant) : '' }),
         score: (model) => t('{{value}} points', { value: model.score ?? 0 }),
     },
     elimination: {
@@ -73,7 +74,7 @@ const GAME_TYPES = {
     clock: {
         load: () => ClockService.loadAllClockGames(),
         remove: (id, clubId) => ClockService.deleteClockGame(id, clubId),
-        describe: (game) => ({ title: t('Around the Clock · {{value}}', { value: t(game.mode ?? 'All') }) }),
+        describe: (game) => ({ title: t('Mode: {{value}}', { value: t(game.mode ?? 'All') }) }),
         score: (model) => model.finished ? t('{{value}} darts', { value: model.darts ?? 0 }) : t('{{value}} of 21', { value: model.target ?? 0 }),
     },
     // Shanghai, Killer, … : loaded together, each game typed by its kind
@@ -83,7 +84,8 @@ const GAME_TYPES = {
     ...Object.fromEntries(RULES_GAMES.map(definition => [definition.id, {
         remove: (id, clubId) => RulesService.deleteGame(id, clubId),
         describe: (game) => ({
-            title: [definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === game.settings?.[option.key])?.label).filter(Boolean)].join(' · '),
+            // the tag names the game: only its options
+            title: [...(definition.options ?? []).map(option => option.values.find(value => value.value === game.settings?.[option.key])?.label).filter(Boolean)].join(' · '),
         }),
         // what its chart follows, e.g. the points, the strokes or the lives
         score: (model, game, playerId) => {
@@ -257,13 +259,14 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
             // the type at a glance: its round badge in its colour, as on the dashboard
             <div className="d-flex align-items-center gap-3">
                 <GameTypeIcon type={game.type} />
+                {/* the game on its own line, then how it was played, then the details */}
                 <div className="d-flex flex-column align-items-start gap-1">
                     <div className="d-flex align-items-center gap-2 flex-wrap">
                         <GameTypeTag type={game.type} />
-                        <span className="text-default fs-7 fw-semibold">{title}</span>
                         {/* left out of the club's leaderboards, records and Hall of Shame */}
                         {game.friendly && <span className="quick-format-tag ms-0" title={t('A friendly game: not in the club\'s leaderboards, records and Hall of Shame')}>{t('Friendly')}</span>}
                     </div>
+                    {title && <span className="text-default fs-7 fw-semibold">{title}</span>}
                     {detail && <span className="text-faint fs-8">{detail}</span>}
                 </div>
             </div>
