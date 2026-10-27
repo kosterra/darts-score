@@ -59,7 +59,23 @@
 // card of its own, each value with the name of its column beside it, the actions at the end
 @media (max-width: 639.98px) {
     .admin-table.p-datatable-responsive-stack {
-        .p-datatable-table { border-spacing: 0; }
+        // the cards keep to the width of the screen, whatever their content
+        .p-datatable-wrapper { overflow-x: hidden; }
+        .p-datatable-table { border-spacing: 0; table-layout: fixed; width: 100%; }
+        .p-datatable-tbody > tr > td > :not(.p-column-title) { max-width: 100%; }
+
+        // a value of several lines (the game, the players): its name above it, the full width below
+        .p-datatable-tbody > tr > td.stack-block {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.3rem;
+            text-align: left;
+
+            .text-nowrap { white-space: normal !important; }
+
+            > .p-column-title { align-self: flex-start; }
+            > :not(.p-column-title) { width: 100%; }
+        }
 
         .p-datatable-tbody > tr:not(.p-datatable-emptymessage) {
             display: flex;

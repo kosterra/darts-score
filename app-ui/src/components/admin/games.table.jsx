@@ -363,7 +363,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                 </>} changed={[acrossClubs && selectedIds.length, view.type !== 'all', view.status !== 'all', view.player].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 <TypeFilter groups={GAME_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
-                <FilterPills value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
+                <FilterPills value={status} options={acrossClubs ? STATUS_OPTIONS : CLUB_STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
@@ -395,8 +395,8 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                         {canManage && <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />}
                         <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
                         {acrossClubs && <Column field="club.name" header={t('Club')} sortable body={(game) => <ClubCell club={game.club} />} />}
-                        <Column header={t('Game')} body={gameBody} />
-                        <Column header={t('Players')} body={playersBody} style={{ minWidth: '16rem' }} />
+                        <Column header={t('Game')} bodyClassName="stack-block" body={gameBody} />
+                        <Column header={t('Players')} bodyClassName="stack-block" body={playersBody} style={{ minWidth: '16rem' }} />
                         <Column header={t('Status')} body={statusBody} />
                         <Column body={actionsBody} />
                     </DataTable>

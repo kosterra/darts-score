@@ -96,7 +96,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const { mode, whose } = view;
     // the kinds of training chosen, none for all
     const types = useMemo(() => typesFrom(view.type, TRAINING_TYPE_GROUPS), [view.type]);
-    const withAtc = !types.length || types.includes('atc');
+    // the mode (single, double, …) belongs to Around the Clock: offered when only it is chosen
+    const withAtc = types.length === 1 && types[0] === 'atc';
+    const shownMode = withAtc ? mode : 'any';
     const playerId = view.player || null;
     const setTypes = (values) => setView({ type: typesText(values), page: 1 });
     const setMode = (value) => setView({ mode: value, page: 1 });
@@ -155,10 +157,10 @@ const TrainingsTable = ({ scope = 'club' }) => {
     const visibleRows = useMemo(() => (rows ?? [])
         .filter(row => whose === 'all' || isMine(row))
         .filter(row => !types.length || types.includes(row.kind))
-        .filter(row => row.kind !== 'atc' || mode === 'any' || row.mode === mode)
+        .filter(row => row.kind !== 'atc' || shownMode === 'any' || row.mode === shownMode)
         .filter(row => !playerId || row.player?.id === playerId),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rows, types, mode, playerId, whose, playersById, user]);
+    [rows, types, shownMode, playerId, whose, playersById, user]);
 
     // admins delete every training, the players their own
     const mayDelete = (row) => canManage || isMine(row);
@@ -231,11 +233,11 @@ const TrainingsTable = ({ scope = 'club' }) => {
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <ActivityInsights what="trainings" onPickClub={(id) => select([id])} />}
         <Panel id="admin-list" header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
-            <AdminToolbar actions={!needsClubs && <span className="text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>} changed={[acrossClubs && selectedIds.length, view.whose !== 'all', view.type !== 'all', view.mode !== 'any', view.player].filter(Boolean).length} startOpen={needsClubs}>
+            <AdminToolbar actions={!needsClubs && <span className="text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>} changed={[acrossClubs && selectedIds.length, view.whose !== 'all', view.type !== 'all', shownMode !== 'any', view.player].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
                 {hasOwn && <FilterPills value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}
                 <TypeFilter groups={TRAINING_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All trainings')} ariaLabel={t('Training')} />
-                {withAtc && <FilterPills value={mode} options={MODE_OPTIONS} onChange={setMode} ariaLabel={t('Mode of Around the Clock')} />}
+                {withAtc && <FilterPills value={mode} options={MODE_OPTIONS} onChange={setMode} ariaLabel={t('Mode of Around the Clock')} dropdownOnPhone />}
                 <Dropdown
                     value={playerId}
                     options={playerOptions}

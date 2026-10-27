@@ -137,8 +137,8 @@ const QuickGamesList = () => {
                         onClick={confirmDeleteSelection}
                     />
                 </>} changed={[type !== 'all', status !== 'all'].filter(Boolean).length}>
-                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} />
-                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
+                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} dropdownOnPhone />
+                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
             </AdminToolbar>
 
             {failed
@@ -157,8 +157,8 @@ const QuickGamesList = () => {
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
                         <Column field="createdAt" header={t('Date')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.createdAt)}</span>} />
-                        <Column header={t('Game')} body={gameBody} />
-                        <Column header={t('Players')} body={playersBody} style={{ minWidth: '14rem' }} />
+                        <Column header={t('Game')} bodyClassName="stack-block" body={gameBody} />
+                        <Column header={t('Players')} bodyClassName="stack-block" body={playersBody} style={{ minWidth: '14rem' }} />
                         <Column header={t('Status')} body={(game) => <GameStatusTag running={!game.finished} />} />
                         <Column field="updatedAt" header={t('Last visit')} sortable body={(game) => <span className="text-subtle fs-7 text-nowrap">{formatDateTime(game.updatedAt)}</span>} />
                         <Column body={actionsBody} />
