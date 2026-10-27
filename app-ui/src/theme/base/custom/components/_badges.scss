@@ -880,11 +880,12 @@ $tar: #17110c;
         border-radius: $radius-pill;
         background: $surfaceHighColor;
         color: inherit;
-        font-size: $text-sm;
-        text-decoration: none;
-        border: 0;
+        // the font of the page first (a button has its own), then the size of a chip
         font: inherit;
         font-size: $text-sm;
+        font-weight: $weight-semibold;
+        text-decoration: none;
+        border: 0;
         cursor: pointer;
 
         &:hover, &:focus-visible {
