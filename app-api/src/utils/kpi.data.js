@@ -1,4 +1,5 @@
 import { legsInOrder, thrownDarts } from './badges.js';
+import { legScores } from '../rules/x01.js';
 import { startingScoreOf } from './x01.rules.js';
 import { withView } from './game.view.js';
 
@@ -14,15 +15,10 @@ const min = (values) => values.length ? Math.min(...values) : null;
  * The player's visits in one X01 leg with what each really scored: the
  * points it took off, so a busted visit scores 0.
  */
-export const legVisits = (game, leg, playerId) => {
-    let left = startingScoreOf(game, playerId);
-    return leg.filter(visit => visit?.playerId === playerId).map(visit => {
-        const scoreLeft = Number(visit.scoreLeft);
-        const score = Math.max(0, left - scoreLeft);
-        left = scoreLeft;
-        return { score, darts: thrownDarts(visit.darts).length };
-    });
-};
+export const legVisits = (game, leg, playerId) => legScores(game, leg)
+    // (in doubles from the team's score, which the partner's visits take off too)
+    .filter(({ visit }) => visit?.playerId === playerId)
+    .map(({ visit, taken }) => ({ score: taken, darts: thrownDarts(visit.darts).length }));
 
 /**
  * X01: average of the first three visits of a leg ("first 9"), the fewest

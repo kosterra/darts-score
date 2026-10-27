@@ -4,6 +4,7 @@ import { GAME_SETTINGS, ruleViolations } from '../rules/club.rules.js';
 import { gameOf } from '../rules/games.js';
 import { withGameState } from '../rules/engine.js';
 import { storedOf } from './game.view.js';
+import { partnersOf, teamsOf } from '../rules/x01.js';
 
 /**
  * A player's favourites in a club: the games they played most lately, each
@@ -31,7 +32,9 @@ const settingsOf = (type, game) => {
         const keys = (definition?.options ?? []).map(option => option.key);
         return Object.fromEntries(keys.filter(key => game.settings?.[key] !== undefined).map(key => [key, game.settings[key]]));
     }
-    return Object.fromEntries((GAME_SETTINGS[type] ?? []).map(setting => setting.key).filter(key => game[key] !== undefined).map(key => [key, game[key]]));
+    const settings = Object.fromEntries((GAME_SETTINGS[type] ?? []).map(setting => setting.key).filter(key => game[key] !== undefined).map(key => [key, game[key]]));
+    // doubles stay doubles
+    return type === 'x01' && teamsOf(game) ? { ...settings, doubles: true } : settings;
 };
 
 const idOf = (key) => createHash('sha256').update(key).digest('base64url').slice(0, 16);
@@ -57,7 +60,9 @@ export const favouritesOf = async (clubId, playerId, now = new Date()) => {
             const kind = type === 'rules' ? game.kind : null;
             const settings = settingsOf(type, game);
             const opponents = players.filter(id => id !== me).sort();
-            const key = JSON.stringify([type, kind, Object.entries(settings).sort(([a], [b]) => a.localeCompare(b)), opponents]);
+            // in doubles also with the same partner (the order of the last game keeps the teams)
+            const partner = type === 'x01' ? partnersOf(game, me) : [];
+            const key = JSON.stringify([type, kind, Object.entries(settings).sort(([a], [b]) => a.localeCompare(b)), opponents, partner]);
             const at = new Date(game.updatedAt);
             const group = groups.get(key) ?? { id: idOf(key), type, kind, settings, opponents, count: 0, lastAt: at, last: game };
             group.count += 1;

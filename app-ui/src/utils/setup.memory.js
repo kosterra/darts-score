@@ -29,11 +29,13 @@ export const loadSetup = (type) => {
 };
 
 // setup: { settings, playerIds, handicap, friendly }; guests play one game only and are left out
-export const saveSetup = (type, { settings, players = [], handicap = null, friendly = false }) => {
+export const saveSetup = (type, { settings, players = [], handicap = null, friendly = false, doubles = false }) => {
     const members = players.filter(player => !player.guest).map(player => player.id);
     const setup = {
         settings,
         friendly,
+        // X01 doubles (the teams follow the order of the players)
+        ...(doubles ? { doubles: true } : {}),
         playerIds: members,
         handicap: handicap && Object.fromEntries(Object.entries(handicap).filter(([id]) => members.includes(id))),
         savedAt: Date.now(),

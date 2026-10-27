@@ -1,5 +1,6 @@
 import { gameFeats } from './badges.js';
 import { isRulesGame } from './rules.kinds.js';
+import { teamsOf } from '../rules/x01.js';
 
 /**
  * Badges a club earns together: every game and training of its members adds
@@ -137,6 +138,8 @@ export const tallyOf = (type, game) => {
         // for the club's rating: who won, and whether the game was friendly
         winners: (game.players ?? []).map(String).filter(id => game.playerModels?.[id]?.hasWonGame === true),
         friendly: game.friendly === true,
+        // doubles: who played together
+        ...(teamsOf(game) ? { teams: teamsOf(game) } : {}),
         // each player's own share, e.g. for their 180s in all the club's games
         byPlayer: {},
         version: TALLY_VERSION,

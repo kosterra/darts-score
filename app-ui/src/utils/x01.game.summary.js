@@ -1,4 +1,5 @@
 import { t } from './i18n';
+import { partnersOf } from '../rules/x01';
 
 /**
  * What the statistics page of one finished X01 game shows, worked out from
@@ -37,8 +38,9 @@ export const legsOf = (game) => {
                         visits,
                         starter: visits[0]?.playerId ?? null,
                         winner: finish?.playerId ?? null,
+                        // the darts of the winner, in doubles of the team
                         winnerDarts: finish
-                            ? visits.filter(visit => visit.playerId === finish.playerId).reduce((sum, visit) => sum + dartsIn(visit), 0)
+                            ? visits.filter(visit => [finish.playerId, ...partnersOf(game, finish.playerId)].includes(visit.playerId)).reduce((sum, visit) => sum + dartsIn(visit), 0)
                             : null,
                         checkout: finish?.roundScore ?? null,
                         highest,
@@ -77,7 +79,9 @@ export const playerFigures = (game, playerId, legs = legsOf(game)) => {
     // the first three visits of every leg
     const firstNine = visitsByLeg.flatMap(legVisits => legVisits.slice(0, 3));
     const checkout = model.checkout?.game ?? {};
-    const wonLegs = legs.filter(leg => leg.winner === playerId);
+    // the legs won, in doubles also those the partner checked out
+    const team = [playerId, ...partnersOf(game, playerId)];
+    const wonLegs = legs.filter(leg => team.includes(leg.winner));
     const checkouts = Object.keys(model.checkoutScores?.game ?? {}).map(Number).filter(Boolean);
 
     return {

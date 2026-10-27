@@ -24,9 +24,9 @@ const withRulesResult = (changes) => {
 
 const DEFAULT_LIMIT = 100;
 
-// what a game was set up with, and stays with: its settings, the handicap, whether it is
+// what a game was set up with, and stays with: its settings, the handicap, doubles, whether it is
 // friendly, and the tournament match it decides
-const SET_UP = ['handicap', 'friendly', 'format', 'tournament'];
+const SET_UP = ['handicap', 'doubles', 'friendly', 'format', 'tournament'];
 const keepSetUp = (game, stored, changes) => {
     const keys = RULES_KINDS.includes(game) ? ['settings', 'kind', ...SET_UP] : [...(GAME_SETTINGS[game] ?? []).map(setting => setting.key), ...SET_UP];
     const plain = typeof stored.toObject === 'function' ? stored.toObject() : stored;

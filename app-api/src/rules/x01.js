@@ -20,6 +20,43 @@ export const X01_SETTINGS = ['startingScore', 'setMode', 'legMode', 'legInMode',
 const PLAYER_RULES = ['startingScore', 'legInMode', 'legOutMode'];
 
 const own = (game, playerId) => game?.playerModels?.[playerId] ?? {};
+
+/**
+ * Doubles: two teams of two, who share their score, legs and sets; each
+ * player keeps their own figures. The players are in the order they throw,
+ * the teams taking turns: the first and third player against the second and
+ * fourth. → [[a1, a2], [b1, b2]], or null for a game of single players.
+ */
+export const teamsOf = (game) => (game?.doubles && game.players?.length === 4
+    ? [[game.players[0], game.players[2]], [game.players[1], game.players[3]]]
+    : null);
+// the partner of a player in doubles (none otherwise)
+export const partnersOf = (game, playerId) => (teamsOf(game)?.find(team => team.includes(playerId)) ?? [playerId]).filter(id => id !== playerId);
+// who play as one: the teams in doubles, otherwise each player alone
+export const sidesOf = (game) => teamsOf(game) ?? (game?.players ?? []).map(id => [id]);
+
+// each player's side, by its first player: { [playerId]: sideId } (in doubles both partners → the team's first)
+export const sideKeysOf = (game) => Object.fromEntries(sidesOf(game).flatMap(side => side.map(id => [id, side[0]])));
+
+/**
+ * The visits of one leg ([{ playerId, scoreLeft, … }]) with what was left
+ * before each and what it took off (0 for a bust), from the score of its
+ * side: in doubles a partner's visit counts on the same score.
+ * → [{ visit, before, scoreLeft, taken }]
+ */
+
+export const legScores = (game, leg) => {
+    const keyOf = sideKeysOf(game);
+    const left = {};
+    return (leg ?? []).map(visit => {
+        const id = visit?.playerId;
+        const key = keyOf[id] ?? id;
+        const before = left[key] ?? startingScoreOf(game, id);
+        const scoreLeft = Number(visit?.scoreLeft);
+        if (Number.isFinite(scoreLeft)) left[key] = scoreLeft;
+        return { visit, before, scoreLeft, taken: Number.isFinite(scoreLeft) ? Math.max(0, before - scoreLeft) : 0 };
+    });
+};
 export const startingScoreOf = (game, playerId) => Number(own(game, playerId).startingScore ?? game?.startingScore);
 export const inModeOf = (game, playerId) => own(game, playerId).legInMode ?? game?.legInMode;
 export const outModeOf = (game, playerId) => own(game, playerId).legOutMode ?? game?.legOutMode;
@@ -80,11 +117,14 @@ export const newX01Player = (rules = null, startingScore) => ({
  * player throws first.
  */
 export const newX01State = (settings, players) => {
-    const handicap = settings.handicap ?? null;
+    // doubles: four players, all from the game's own rules (a handicap would split a team's score)
+    const doubles = Boolean(settings.doubles) && players.length === 4;
+    const handicap = doubles ? null : settings.handicap ?? null;
     // who throws first: the first player, unless the game says otherwise
     const starter = players.includes(settings.starter) ? settings.starter : players[0] ?? '';
     return {
         ...Object.fromEntries(X01_SETTINGS.map(key => [key, settings[key]])),
+        ...(doubles ? { doubles: true } : {}),
         numberOfPlayers: players.length,
         isSoloGame: false,
         gameIsRunning: true,
@@ -210,6 +250,10 @@ const winLeg = (game, winnerId, set, leg, legThrows) => {
     } else {
         game.currentSetLeg += 1;
     }
+    // doubles: the partner won the leg too
+    for (const partner of partnersOf(game, winnerId)) {
+        Object.assign(game.playerModels[partner], { legsWon: { ...model.legsWon }, currentSetLegsWon: model.currentSetLegsWon, setsWon: model.setsWon });
+    }
     game.currentLegThrows = [];
     return { wonSet, wonGame };
 };
@@ -223,9 +267,11 @@ const roundLimitWinner = (game) => {
     const limit = Number(game.roundLimit) || 0;
     const visits = game.currentLegThrows.length;
     if (!limit || visits % game.players.length !== 0 || visits / game.players.length < limit) return null;
-    const scores = game.players.map(id => game.playerModels[id].score);
+    // in doubles the teams compare their one score
+    const sides = sidesOf(game);
+    const scores = sides.map(([id]) => game.playerModels[id].score);
     const fewest = Math.min(...scores);
-    return scores.filter(score => score === fewest).length === 1 ? game.players[scores.indexOf(fewest)] : null;
+    return scores.filter(score => score === fewest).length === 1 ? sides[scores.indexOf(fewest)][0] : null;
 };
 
 /**
@@ -262,6 +308,8 @@ export const x01Visit = (game, darts) => {
         countVisit(game, model, currentThrow, points, false);
         model.score = scoreLeft;
     }
+    // doubles: the team's score is one
+    for (const partner of partnersOf(game, playerId)) game.playerModels[partner].score = model.score;
 
     const [bestGame, bestSet, bestLeg] = levels(model.bestThreeDarts, set, leg, () => ({ value: 0 }));
     [bestGame, bestSet, bestLeg].forEach(entry => { if (points > entry.value) entry.value = points; });
@@ -294,7 +342,7 @@ export const x01Visit = (game, darts) => {
 
     if (wonGame) {
         Object.assign(game, { gameIsRunning: false, hasWinner: true, currentSet: 0, currentSetLeg: 0 });
-        game.playerModels[legWinner].hasWonGame = true;
+        [legWinner, ...partnersOf(game, legWinner)].forEach(id => { game.playerModels[id].hasWonGame = true; });
         return game;
     }
     if (legWinner) game.players.forEach(id => { game.playerModels[id].score = startingScoreOf(game, id); });
@@ -336,6 +384,7 @@ export const X01 = {
 export const x01SettingsOf = (game) => ({
     ...Object.fromEntries(X01_SETTINGS.map(key => [key, game[key]])),
     ...(game.handicap ? { handicap: game.handicap } : {}),
+    ...(game.doubles ? { doubles: true } : {}),
     ...(game.starter ? { starter: game.starter } : {}),
 });
 

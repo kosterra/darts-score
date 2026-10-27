@@ -12,6 +12,7 @@ const CHANGELOG = [
             t('The big screen: a TV opens /tv once and shows a code; Big screen in a running game sends it there by that code (or gives a link and QR code for a laptop or tablet). X01, Cricket, Elimination, Around the Clock and the newer games, large and live without logging in, with the caller and the 180 celebration; a darts evening shows its running game, and its table in between.'),
             t('The caller for X01: switch it on with the speaker in the game, and the device calls the score of every visit, Game shot with the leg, set or match, and what a player on a finish requires, in your language.'),
             t('Scoring without a connection: when the Wi-Fi of the club drops, a running game goes on. It is kept on the device and sent as soon as the connection is back, even after a reload; a finished game waits for it before its result opens, and a note elsewhere in the app leads back to games not sent yet.'),
+            t('Doubles in X01: with four players, choose Doubles in the setup, and the first and third in the throwing order play against the second and fourth, the teams and partners taking turns. Partners share their score, legs and sets and both win; each keeps their own average, checkouts and figures. Shown as two teams on top of the game and on the big screen; left out of the club rating, and partners are no rivals.'),
             t('Notifications: clear all of them at once.'),
             t('Fair play: the rules of the checks, with their limits, at the bottom of the page.'),
         ],

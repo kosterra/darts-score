@@ -94,6 +94,10 @@
   font-size: clamp(1rem, 1.8vw, 1.6rem);
 }
 .big-player-name { font-size: clamp(1.5rem, 3.5vw, 3rem); font-weight: $weight-bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+// doubles: the partner under the one who throws next for the team
+.big-player-partner { color: var(--text-subtle); font-size: clamp(1rem, 2.2vw, 1.8rem); }
+
 .big-player-flag { font-size: clamp(1.2rem, 2.5vw, 2rem); }
 .big-player-score {
   font-size: clamp(5rem, 16vw, 14rem);

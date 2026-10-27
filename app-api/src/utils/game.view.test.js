@@ -10,6 +10,21 @@ const x01 = {
 };
 
 describe('games stored as their visits', () => {
+    it('stores X01 doubles with the results of the teams worked out', () => {
+        const visit = (player, ...darts) => ({ player, darts });
+        const stored = storedOf('x01', {
+            players: ['a1', 'b1', 'a2', 'b2'], doubles: true, startingScore: 101, legInMode: 'Straight In', legOutMode: 'Double Out',
+            setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 1,
+            visits: [visit('a1', 'T20', 'S1', '0'), visit('b1', 'S20', '0', '0'), visit('a2', 'D20')],
+            // what the app sends is worked out again here
+            playerModels: { a1: { score: 101 }, b1: { score: 101 }, a2: { score: 101 }, b2: { score: 101 } },
+        });
+        expect(stored.doubles).toBe(true);
+        expect(stored.hasWinner).toBe(true);
+        expect(['a1', 'b1', 'a2', 'b2'].filter(id => stored.playerModels[id].hasWonGame)).toEqual(['a1', 'a2']);
+        expect(stored.handicap).toBeUndefined();
+    });
+
     it('keep their results, worked out here whatever the app sent', () => {
         const stored = storedOf('x01', { ...x01, hasWinner: false, playerModels: {}, currentSet: 7 });
         expect(stored.hasWinner).toBe(true);

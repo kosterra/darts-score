@@ -15,7 +15,9 @@ import { t } from '../../../utils/i18n';
  * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral? }]
  */
 const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, footer = null, celebrate = false, className = 'mb-4' }) => {
-    const winner = players.find(player => game.playerModels?.[player.id]?.hasWonGame);
+    // the winner, or in doubles both partners
+    const won = (player) => Boolean(game.playerModels?.[player.id]?.hasWonGame);
+    const winner = players.find(won);
     const compare = players.length > 1;
 
     // the best value of a figure, to mark it; none when all are the same
@@ -39,9 +41,9 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
             <div className={`result-hero-body ${compare ? '' : 'is-solo'}`}>
             <div className={`result-hero-players count-${players.length}`}>
                 {players.map((player, index) => (
-                        <div key={player.id} className={`result-hero-player ${player === winner ? 'is-winner' : ''} ${player === winner && celebrate ? 'is-celebrated' : ''}`}>
+                        <div key={player.id} className={`result-hero-player ${won(player) ? 'is-winner' : ''} ${won(player) && celebrate ? 'is-celebrated' : ''}`}>
                             <span className="result-hero-portrait">
-                                {player === winner && <span className="result-hero-halo" aria-hidden="true" />}
+                                {won(player) && <span className="result-hero-halo" aria-hidden="true" />}
                                 <Avatar
                                     label={resolvePlayerInitials(player.firstname, player.lastname)}
                                     image={resolvePlayerImg(player.profileImg)}
@@ -49,14 +51,14 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                                     className="avatar-lg bg-surface-high result-hero-avatar"
                                     style={{ '--player-colour': PLAYER_COLORS[index] }}
                                 />
-                                {player === winner &&
+                                {won(player) &&
                                     <span className="result-hero-trophy" aria-hidden="true"><FaTrophy /></span>
                                 }
                             </span>
                             <span className="result-hero-name fw-semibold text-default text-center text-truncate" title={player.nickname}>{player.nickname}</span>
                             {/* the others keep the space, so every score stays at the same height */}
                             {winner &&
-                                <span className={`result-hero-winner ${player === winner ? '' : 'is-placeholder'}`} aria-hidden={player !== winner}>{t('Winner')}</span>
+                                <span className={`result-hero-winner ${won(player) ? '' : 'is-placeholder'}`} aria-hidden={!won(player)}>{t('Winner')}</span>
                             }
                             <span className="result-hero-score">{scoreOf(player)}</span>
                             <span className="text-faint fs-8">{scoreDetailOf(player)}</span>

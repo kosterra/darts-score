@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { replayX01 } from '../rules/x01.js';
 import { BADGES, BADGE_CATEGORIES, BADGE_GROUPS, SHAME_BADGES, countBadges, currentWeekStreak, isLast, replayBadges, wonInDecidingLeg } from './badges.js';
 
 const P = 'player-1';
@@ -205,6 +206,32 @@ describe('replayBadges', () => {
             const top = [v(['T20', 'T20', 'T20'], 180, 321), v(['T20', 'T20', 'T20'], 180, 141), v(['T20', 'S41', 'D20'], 141, 0)];
             expect(replayBadges([game({ 'leg-1': top })], P).metrics.doubleTops).toBe(1);
         });
+    });
+
+    it('counts the legs of the partner in doubles, and no nine-darter or short leg of a team', () => {
+        const A2 = 'player-3';
+        const B2 = 'player-4';
+        const leg = (winner) => [{ playerId: winner, darts: ['D20'], scoreLeft: 0 }];
+        // a1 (P) and a2 against b1 (O) and b2: the legs won by O, a2, b2, P (2–2), then P
+        const match = { players: [P, O, A2, B2], doubles: true, legMode: 'Best of', numberOfLegs: 5, setMode: 'Best of', numberOfSets: 1,
+            allSetsThrows: { 'set-1': Object.fromEntries([O, A2, B2, P, P].map((w, i) => [`leg-${i + 1}`, leg(w)])) } };
+        expect(wonInDecidingLeg(match, P)).toBe(true);
+        expect(wonInDecidingLeg(match, A2)).toBe(true);
+
+        const nine = [
+            { player: P, darts: ['T20', 'T20', 'T20'] }, { player: O, darts: ['0', '0', '0'] },
+            { player: A2, darts: ['T20', 'T20', 'T20'] }, { player: B2, darts: ['0', '0', '0'] },
+            { player: P, darts: ['T20', 'T19', 'D12'] },
+        ];
+        // as the server stores it: with the results worked out from the visits
+        const doubles = { type: 'x01', id: `d${clock}`, at: at(), data: replayX01({
+            players: [P, O, A2, B2], doubles: true, visits: nine, startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out',
+            setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 1,
+        }) };
+        const { metrics } = replayBadges([doubles], P);
+        expect(metrics.wins).toBe(1);
+        expect(metrics.nineDarters).toBe(0);
+        expect(metrics.bestLegDarts ?? 0).toBe(0);
     });
 
     it('knows a win in the deciding leg', () => {

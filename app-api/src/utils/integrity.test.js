@@ -35,6 +35,19 @@ describe('trainings', () => {
 });
 
 describe('X01', () => {
+    it('counts the score left of a team in doubles', () => {
+        // a1 and a2 against b1 and b2: a2 checks out what a1 left
+        const visit = (player, ...darts) => ({ player, darts });
+        const doubles = {
+            _id: 'g2', players: ['a1', 'b1', 'a2', 'b2'], doubles: true, startingScore: 101, legInMode: 'Straight In', legOutMode: 'Double Out',
+            setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 1,
+            createdAt: new Date(2026, 0, 1, 20, 0), updatedAt: new Date(2026, 0, 1, 21, 0),
+            visits: [visit('a1', 'T20', 'S1', '0'), visit('b1', 'S20', '0', '0'), visit('a2', 'D20')],
+        };
+        expect(checkX01(doubles)).toEqual([]);
+        expect(repairX01(doubles)).toMatchObject({ possible: true, changed: 0 });
+    });
+
     it('lets a normal leg through', () => {
         const leg = [v('a', ['T20', 'T20', 'S20'], 140, 361), v('b', ['S20', 'S1', 'S5'], 26, 475), v('a', ['T20', 'T19', 'D20'], 157, 204)];
         expect(checkX01(x01([leg]))).toEqual([]);

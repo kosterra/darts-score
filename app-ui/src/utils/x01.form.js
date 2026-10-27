@@ -1,7 +1,7 @@
 // How a player is doing in a running X01 game: every visit's score in order,
 // recent and overall averages, and whether they are getting better or worse.
 
-import { startingScoreOf } from './x01.rules';
+import { legScores } from '../rules/x01';
 
 const RECENT_VISITS = 3;
 const TREND_VISITS = 5;
@@ -34,12 +34,9 @@ export const legsInOrder = (game) => {
 export const visitsOf = (game, playerId) => {
     const visits = [];
     for (const { set, leg, throws, running } of legsInOrder(game)) {
-        let left = startingScoreOf(game, playerId);
-        for (const visit of throws) {
-            if (visit.playerId !== playerId) continue;
-            const scoreLeft = Number(visit.scoreLeft);
-            visits.push({ score: Math.max(0, left - scoreLeft), set, leg, running: !!running });
-            left = scoreLeft;
+        // (in doubles from the team's score, which the partner's visits take off too)
+        for (const { visit, taken } of legScores(game, throws)) {
+            if (visit.playerId === playerId) visits.push({ score: taken, set, leg, running: !!running });
         }
     }
     return visits;

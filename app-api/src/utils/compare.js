@@ -10,6 +10,8 @@ import { wonInDecidingLeg } from './badges.js';
 
 const time = (game) => new Date(game.updatedAt ?? game.createdAt ?? 0).getTime();
 const won = (game, playerId) => game.playerModels?.[playerId]?.hasWonGame === true;
+// partners of doubles, by the teams kept with a tally: they played together, not against each other
+const partners = (tally, a, b) => (tally.teams ?? []).some(team => team.includes(a) && team.includes(b));
 const round = (value, decimals = 1) => (Number.isFinite(value) ? Math.round(value * 10 ** decimals) / 10 ** decimals : null);
 
 /**
@@ -200,7 +202,7 @@ export const opponentsOf = (tallies, playerId, count = 5) => {
     for (const tally of tallies) {
         const players = (tally.players ?? []).map(String);
         if (!players.includes(id)) continue;
-        for (const other of new Set(players)) if (other !== id) counts.set(other, (counts.get(other) ?? 0) + 1);
+        for (const other of new Set(players)) if (other !== id && !partners(tally, id, other)) counts.set(other, (counts.get(other) ?? 0) + 1);
     }
     return [...counts].sort((a, b) => b[1] - a[1]).slice(0, count).map(([other, games]) => ({ playerId: other, games }));
 };
@@ -225,7 +227,7 @@ export const rivalsOf = (tallies, playerId, { minGames = RIVAL_MIN_GAMES } = {})
         if (!players.includes(id)) continue;
         const winners = (tally.winners ?? []).map(String);
         for (const other of players) {
-            if (other === id) continue;
+            if (other === id || partners(tally, id, other)) continue;
             const entry = byOpponent.get(other) ?? { playerId: other, games: 0, wins: 0, losses: 0, types: new Map() };
             entry.games += 1;
             if (winners.includes(id)) entry.wins += 1;

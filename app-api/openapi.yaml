@@ -8161,6 +8161,9 @@ components:
         handicap:
           type: object
           description: 'The players'' own rules: { [playerId]: { startingScore, legInMode, legOutMode } }'
+        doubles:
+          type: boolean
+          description: 'Doubles: four players in their throwing order, the first and third against the second and fourth, sharing their score, legs and sets. Not with a handicap.'
         starter:
           type: string
           description: Who throws first when not the first player (games of earlier versions of the app)

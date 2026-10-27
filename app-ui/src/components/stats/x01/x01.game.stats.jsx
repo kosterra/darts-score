@@ -30,6 +30,7 @@ import GameBadges from '../../badges/game.badges';
 import UpLink from '../../elements/up.link';
 import EveningGameActions from '../../quick/evening.game.actions';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
+import { teamsOf } from '../../../rules/x01';
 import { t } from '../../../utils/i18n';
 import { ACCENT } from '../../../utils/palette';
 
@@ -87,6 +88,9 @@ const X01GameStats = ({ training = false, quick = false }) => {
                 const playerData = quick ? quickPlayersOf(gameData) : [...(await PlayerService.findPlayersByIds(people)), ...(gameData.players.includes(BOT_ID) ? [botPlayer(gameData.bot)] : [])]
                     .filter(p => gameData.players.includes(p.id))
                     .sort((a, b) => gameData.players.indexOf(a.id) - gameData.players.indexOf(b.id));
+                // doubles: the partners side by side
+                const order = teamsOf(gameData)?.flat() ?? gameData.players;
+                playerData.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
 
                 const statsData = quick || training ? await Service.loadX01GameStats(gameData.id) : await StatsService.loadX01GameStats(gameData.id);
 
@@ -124,12 +128,22 @@ const X01GameStats = ({ training = false, quick = false }) => {
             numberOfSets: game.numberOfSets,
             numberOfLegs: game.numberOfLegs,
             numberOfPlayers: game.players.length,
-            flyingDarts: game.flyingDarts ?? 'players'
+            flyingDarts: game.flyingDarts ?? 'players',
+            // doubles stay doubles, with the same partners
+            ...(teamsOf(game) ? { doubles: true } : {}),
         };
 
         let newPlayers = [...game.players];
+        const teams = teamsOf(game);
+        // reversed, the teams stay together (b2, a2, b1, a1); shuffled too: which team and partner starts
         if (switchPlayers) newPlayers.reverse();
-        else if (shufflePlayers) newPlayers = shuffle(newPlayers);
+        else if (shufflePlayers && teams) {
+            const flip = (pair) => (Math.random() < 0.5 ? pair : [pair[1], pair[0]]);
+            do {
+                const [first, second] = flip(teams.map(flip));
+                newPlayers = [first[0], second[0], first[1], second[1]];
+            } while (newPlayers.every((id, index) => id === game.players[index]));
+        } else if (shufflePlayers) newPlayers = shuffle(newPlayers);
         newMatchSetup.players = newPlayers;
 
         const startingPlayer = newPlayers[0];
@@ -188,7 +202,7 @@ const X01GameStats = ({ training = false, quick = false }) => {
                     title={`${hasHandicap(game) ? t('Handicap') : game.startingScore} · ${game.setMode} ${plural(game.numberOfSets, 'set')} · ${game.legMode} ${plural(game.numberOfLegs, 'leg')}`}
                     subtitle={hasHandicap(game)
                         ? `${players.map(player => `${player.nickname} ${describeRules(rulesOf(game, player.id))}`).join(' · ')} · ${whenPlayed(game)}`
-                        : `${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
+                        : `${teamsOf(game) ? `${t('Doubles')} · ` : ''}${game.legInMode} / ${game.legOutMode} · ${whenPlayed(game)}`}
                     // sets decide when more than one could be played, otherwise legs
                     scoreOf={(player) => bySets ? game.playerModels[player.id]?.setsWon ?? 0 : figures[player.id]?.legsWon ?? 0}
                     scoreDetailOf={(player) => bySets

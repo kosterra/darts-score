@@ -641,3 +641,25 @@
   font-size: $text-sm;
   > .pi { color: $accentBlue; }
 }
+
+// doubles in the X01 setup: the two teams, and the button to change partners
+.doubles-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: $space-2;
+}
+
+.doubles-against { text-align: center; }
+
+.doubles-team {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.4rem 0.75rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+  color: var(--text-default);
+  font-weight: $weight-semibold;
+}

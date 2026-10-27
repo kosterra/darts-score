@@ -5,6 +5,7 @@ import { gameOf } from '../rules/games.js';
 import { trainingOf } from '../rules/trainings.js';
 import { replayGame, replayTraining, withGameState } from '../rules/engine.js';
 import { withView } from './game.view.js';
+import { sideKeysOf } from '../rules/x01.js';
 
 /**
  * Fair play: games and trainings that cannot be real (impossible: the data
@@ -110,7 +111,8 @@ const median = (values) => {
 const padding = (game, visitsOf, scored, winnerId) => {
     const found = [];
     for (const id of game.players ?? []) {
-        if (id === winnerId) continue;
+        // the winner, and in doubles their partner
+        if (id === winnerId || game.playerModels?.[id]?.hasWonGame) continue;
         const visits = visitsOf(id);
         if (visits.length < THRESHOLDS.paddingVisits) continue;
         const empty = visits.filter(visit => !scored(visit)).length;
@@ -144,6 +146,8 @@ export const legEntries = (game) =>
             .map(([legKey, visits]) => ({ setKey, legKey, set: keyNumber(setKey), leg: keyNumber(legKey), visits })));
 
 const winnerOf = (game) => (game.players ?? []).find(id => game.playerModels?.[id]?.hasWonGame);
+// whose score a visit of X01 counts on: the player's own, or in doubles their team's (kept under its first player)
+const scoreKeysOf = sideKeysOf;
 
 /**
  * X01. usualAverage(playerId): the player's usual 3-dart average from their
@@ -157,27 +161,30 @@ export const checkX01 = (stored, { usualAverage = () => null } = {}) => {
     const legs = entries.map(entry => entry.visits);
     let visitCount = 0;
 
+    const keyOf = scoreKeysOf(game);
     entries.forEach(({ set, leg: legNumber, visits: leg }, legIndex) => {
-        const left = Object.fromEntries((game.players ?? []).map(id => [id, startingScoreOf(game, id)]));
-        const darts = Object.fromEntries((game.players ?? []).map(id => [id, 0]));
+        // per player, or in doubles per team: what is left and the darts thrown
+        const left = Object.fromEntries((game.players ?? []).map(id => [keyOf[id], startingScoreOf(game, id)]));
+        const darts = Object.fromEntries((game.players ?? []).map(id => [keyOf[id], 0]));
         leg.forEach((visit, visitIndex) => {
             const id = visit?.playerId;
-            if (!(id in left)) return;
+            const key = keyOf[id];
+            if (!(key in left)) return;
             visitCount += 1;
             const where = `in leg ${legIndex + 1}`;
             const place = { set, leg: legNumber, visit: visitIndex };
             found.push(...visitProblems(visit, id, where, place));
             const thrown = thrownDarts(visit.darts);
-            darts[id] += thrown.length;
+            darts[key] += thrown.length;
             const sum = thrown.filter(isDart).reduce((total, dart) => total + dartValue(dart), 0);
             if (Number.isFinite(visit.roundScore) && visit.roundScore !== sum) {
                 found.push(finding('impossible', 'scoreMismatch', 'The score does not match the darts', `${visit.roundScore} entered for ${thrown.join(' ')} (${sum}) ${where}`, id, place));
             }
             const scoreLeft = Number(visit.scoreLeft);
-            const bust = scoreLeft === left[id];
-            if (!bust && Number.isFinite(scoreLeft) && left[id] - sum !== scoreLeft) {
+            const bust = scoreLeft === left[key];
+            if (!bust && Number.isFinite(scoreLeft) && left[key] - sum !== scoreLeft) {
                 // no cheat: nobody gains from it, and an undo of the app wrote such rests
-                found.push(finding('error', 'leftMismatch', 'A score left that does not add up', `${left[id]} − ${sum} leaves ${left[id] - sum}, ${scoreLeft} was saved ${where}`, id, place));
+                found.push(finding('error', 'leftMismatch', 'A score left that does not add up', `${left[key]} − ${sum} leaves ${left[key] - sum}, ${scoreLeft} was saved ${where}`, id, place));
             }
             if (scoreLeft === 0) {
                 const last = String(thrown.at(-1) ?? '').toUpperCase();
@@ -186,13 +193,13 @@ export const checkX01 = (stored, { usualAverage = () => null } = {}) => {
                 if (!allowed) found.push(finding('impossible', 'wrongFinish', `Checked out without a ${mode === 'Master Out' ? 'double or treble' : 'double'}`, `${last || 'no dart'} ${where} with ${mode}`, id, place));
                 const start = startingScoreOf(game, id);
                 const fewest = Math.ceil(start / 60);
-                if (darts[id] < fewest) {
-                    found.push(finding('impossible', 'tooFewDarts', 'A leg won with too few darts', `${start} checked out with ${darts[id]} darts ${where}: at least ${fewest} are needed`, id, place));
-                } else if (start === 501 && darts[id] <= 9) {
+                if (darts[key] < fewest) {
+                    found.push(finding('impossible', 'tooFewDarts', 'A leg won with too few darts', `${start} checked out with ${darts[key]} darts ${where}: at least ${fewest} are needed`, id, place));
+                } else if (start === 501 && darts[key] <= 9) {
                     found.push(finding('suspicious', 'nineDarter', 'A nine-darter', `the perfect leg ${where}: worth a look`, id, place));
                 }
             }
-            if (Number.isFinite(scoreLeft)) left[id] = scoreLeft;
+            if (Number.isFinite(scoreLeft)) left[key] = scoreLeft;
         });
     });
 
@@ -388,15 +395,17 @@ export const repairX01 = (stored) => {
     const game = withView('x01', stored);
     const allSetsThrows = structuredClone(game.allSetsThrows ?? {});
     let changed = 0;
+    const keyOf = scoreKeysOf(game);
     for (const { setKey, legKey, set, leg, visits } of legEntries({ allSetsThrows })) {
-        const left = Object.fromEntries((game.players ?? []).map(id => [id, startingScoreOf(game, id)]));
+        const left = Object.fromEntries((game.players ?? []).map(id => [keyOf[id], startingScoreOf(game, id)]));
         for (const [index, visit] of visits.entries()) {
             const id = visit?.playerId;
-            if (!(id in left)) continue;
+            const key = keyOf[id];
+            if (!(key in left)) continue;
             const thrown = thrownDarts(visit.darts);
             if (!thrown.every(isDart)) return { possible: false, reason: `A dart that is not on the board in set ${set}, leg ${leg}` };
-            const rest = left[id] - thrown.reduce((total, dart) => total + dartValue(dart), 0);
-            const scoreLeft = isBust(rest, thrown.at(-1), outModeOf(game, id)) ? left[id] : rest;
+            const rest = left[key] - thrown.reduce((total, dart) => total + dartValue(dart), 0);
+            const scoreLeft = isBust(rest, thrown.at(-1), outModeOf(game, id)) ? left[key] : rest;
             const last = index === visits.length - 1;
             if (scoreLeft === 0 && !last) return { possible: false, reason: `Set ${set}, leg ${leg} would have ended earlier` };
             if (last && scoreLeft !== 0) return { possible: false, reason: `The darts do not finish set ${set}, leg ${leg}` };
@@ -404,7 +413,7 @@ export const repairX01 = (stored) => {
                 allSetsThrows[setKey][legKey][index] = { ...visit, scoreLeft };
                 changed += 1;
             }
-            left[id] = scoreLeft;
+            left[key] = scoreLeft;
         }
     }
     return { possible: true, changed, allSetsThrows };
@@ -419,19 +428,20 @@ export const repairX01 = (stored) => {
 export const x01Legs = (stored) => {
     const game = withView('x01', stored);
     const repair = repairX01(game);
+    const keyOf = scoreKeysOf(game);
     return legEntries(game).map(({ setKey, legKey, set, leg, visits }) => {
-        const left = Object.fromEntries((game.players ?? []).map(id => [id, startingScoreOf(game, id)]));
+        const left = Object.fromEntries((game.players ?? []).map(id => [keyOf[id], startingScoreOf(game, id)]));
         return {
             set,
             leg,
             visits: visits.map((visit, index) => {
                 const id = visit?.playerId;
                 const thrown = thrownDarts(visit?.darts);
-                const before = left[id];
+                const before = left[keyOf[id]];
                 const rest = before - thrown.filter(isDart).reduce((total, dart) => total + dartValue(dart), 0);
                 const expected = Number.isFinite(before) ? (isBust(rest, thrown.at(-1), outModeOf(game, id)) ? before : rest) : null;
                 const scoreLeft = Number(visit?.scoreLeft);
-                if (Number.isFinite(scoreLeft) && id in left) left[id] = scoreLeft;
+                if (Number.isFinite(scoreLeft) && keyOf[id] in left) left[keyOf[id]] = scoreLeft;
                 return {
                     playerId: id,
                     darts: thrown,

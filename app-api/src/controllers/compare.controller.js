@@ -237,7 +237,7 @@ export const getSideBySide = async (req, res) => {
  * comparison: [{ playerId, games }].
  */
 export const getOpponents = async (req, res) => {
-    const tallies = await db.clubTally.find({ club: req.club._id, players: String(req.params.id) }, 'players').lean();
+    const tallies = await db.clubTally.find({ club: req.club._id, players: String(req.params.id) }, 'players teams').lean();
     res.json(opponentsOf(tallies, req.params.id));
 };
 
@@ -249,7 +249,7 @@ export const getOpponents = async (req, res) => {
  */
 export const getRivals = async (req, res) => {
     const playerId = String(req.params.id);
-    const tallies = await db.clubTally.find({ club: req.club._id, players: playerId }, 'players winners sourceType').lean();
+    const tallies = await db.clubTally.find({ club: req.club._id, players: playerId }, 'players winners sourceType teams').lean();
     const rivals = rivalsOf(tallies, playerId);
     const ids = [rivals.mostPlayed, rivals.leastPlayed, rivals.best, rivals.worst].filter(Boolean).map(entry => entry.playerId);
     const players = await db.player.find({ _id: { $in: ids.filter(id => db.mongoose.isValidObjectId(id)) } }, 'nickname firstname lastname profileImg').lean();

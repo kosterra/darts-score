@@ -3,7 +3,7 @@ import { Panel } from 'primereact/panel';
 import { Dropdown } from 'primereact/dropdown';
 
 import { PLAYER_COLORS } from '../../stats/charts/chart.theme';
-import { startingScoreOf } from '../../../utils/x01.rules';
+import { legScores } from '../../../rules/x01';
 import { legsInOrder } from '../../../utils/x01.form';
 import { t } from '../../../utils/i18n';
 
@@ -25,15 +25,10 @@ const X01VisitsPanel = ({ game, players }) => {
     const leg = legs[Math.min(index, legs.length - 1)];
 
     // each player's visits in this leg, with busts marked
-    const visitsOf = (playerId) => {
-        let left = startingScoreOf(game, playerId);
-        return leg.throws.filter(visit => visit.playerId === playerId).map(visit => {
-            const scoreLeft = Number(visit.scoreLeft);
-            const bust = left === scoreLeft && Number(visit.roundScore) > 0;
-            left = scoreLeft;
-            return { ...visit, scoreLeft, bust };
-        });
-    };
+    // (in doubles from the team's score, which the partner's visits take off too)
+    const visitsOf = (playerId) => legScores(game, leg.throws)
+        .filter(({ visit }) => visit.playerId === playerId)
+        .map(({ visit, before, scoreLeft }) => ({ ...visit, scoreLeft, bust: before === scoreLeft && Number(visit.roundScore) > 0 }));
     const columns = players.map(player => visitsOf(player.id));
     const turns = Math.max(0, ...columns.map(visits => visits.length));
 
