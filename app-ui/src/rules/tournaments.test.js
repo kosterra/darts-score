@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GROUP_ROUND, PRESETS, advance, bracketMatches, bracketSize, currentRound, drawBracket, drawGroups, groupMatches, groupSetupError, groupSizesOf, groupTable, groupsDone, knockoutDraw, knockoutOfGroups, maxLegs, presetById, presetRules, retract, roundSizes, roundsOfPreset, rulesError, seedOrder, suggestGroups } from './tournaments';
+import { GROUP_ROUND, MATCH_ID, PRESETS, advance, bracketMatches, bracketSize, currentRound, drawBracket, drawGroups, groupMatches, groupSetupError, groupSizesOf, groupTable, groupsDone, knockoutDraw, knockoutOfGroups, maxLegs, presetById, presetRules, retract, roundSizes, roundsOfPreset, rulesError, seedOrder, suggestGroups } from './tournaments';
 
 // a fixed "random" that keeps the order, for draws that can be checked
 const noShuffle = () => 0.999;
@@ -111,6 +111,12 @@ describe('groups + knockout', () => {
         expect(knockoutOfGroups(6, 6, 2)).toEqual({ qualifiers: 2, size: 2 });
         expect(suggestGroups(16)).toEqual({ size: 4, advance: 2 });
         expect(suggestGroups(5)).toEqual({ size: 5, advance: 2 });
+    });
+
+    it('gives every match an id the API takes', () => {
+        const ids = [...groupMatches([['a', 'b', 'c']]), ...bracketMatches({ size: 8, slots: Array(8).fill(null) })].map(match => match.id);
+        expect(ids.every(id => MATCH_ID.test(id))).toBe(true);
+        expect(MATCH_ID.test('8-0; drop')).toBe(false);
     });
 
     it('lets everyone of a group play everyone else once', () => {

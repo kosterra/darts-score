@@ -7133,7 +7133,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^\d+-\d+$'
+            pattern: '^(\d+-\d+|g\d+-\d+-\d+)$'
       operationId: postTournamentsByidMatchesBymatchStart
   /api/tournaments/{id}/matches/{match}/result:
     put:
@@ -7176,7 +7176,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^\d+-\d+$'
+            pattern: '^(\d+-\d+|g\d+-\d+-\d+)$'
       operationId: putTournamentsByidMatchesBymatchResult
   /api/tournament-reply:
     get:

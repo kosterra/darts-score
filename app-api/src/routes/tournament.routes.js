@@ -3,12 +3,14 @@ import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import * as TournamentController from '../controllers/tournament.controller.js';
+import { MATCH_ID } from '../rules/tournaments.js';
 
 // the tournaments of the selected club: its admins run them, its members enter and play
 export default (app) => {
     const router = Router();
     const id = param('id').isMongoId().withMessage('Invalid tournament.');
-    const match = param('match').matches(/^\d+-\d+$/).withMessage('Invalid match.');
+    // a match of the bracket ("8-0") or of a group ("g0-1-2")
+    const match = param('match').matches(MATCH_ID).withMessage('Invalid match.');
     const answer = body('status').isIn(['in', 'out']).withMessage('Answer in or out.');
 
     router.get('/', TournamentController.list);

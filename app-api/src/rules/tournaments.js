@@ -292,6 +292,9 @@ export const drawGroups = (ranked, { size, seeding = 'seeded', random = Math.ran
 // a match of a group: "g0-1-3" is the first group's match of its second and fourth player
 export const groupMatchId = (group, a, b) => `g${group}-${a}-${b}`;
 
+// what the id of a match looks like, of the bracket or of a group (the API checks it)
+export const MATCH_ID = /^(\d+-\d+|g\d+-\d+-\d+)$/;
+
 /**
  * Every match of the groups, each player against each other once, in an
  * order where nobody plays twice in a row where it can be avoided.
