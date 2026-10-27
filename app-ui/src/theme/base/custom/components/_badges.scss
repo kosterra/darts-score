@@ -878,8 +878,9 @@ $tar: #17110c;
         gap: 0.4rem;
         padding: 0.2rem 0.65rem 0.2rem 0.2rem;
         border-radius: $radius-pill;
-        background: $surfaceHighColor;
-        color: inherit;
+        // in the colours of the secondary buttons (e.g. Filters of the lists)
+        background: $secondaryButtonBg;
+        color: $secondaryButtonTextColor;
         // the font of the page first (a button has its own), then the size of a chip
         font: inherit;
         font-size: $text-sm;
@@ -889,7 +890,7 @@ $tar: #17110c;
         cursor: pointer;
 
         &:hover, &:focus-visible {
-            background: color-mix(in srgb, $surfaceHighColor 70%, var(--c-ink-color) 8%);
+            background: $secondaryButtonHoverBg;
         }
     }
 }
