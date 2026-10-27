@@ -32,7 +32,7 @@ const PlayerRow = ({ tournament, match, side }) => {
     );
 };
 
-const MatchCard = ({ tournament, match, onSelect }) => {
+export const MatchCard = ({ tournament, match, onSelect }) => {
     const state = stateOf(match);
     const clickable = onSelect && !match.bye && (match.players[0] || match.players[1]);
     const Tag = clickable ? 'button' : 'div';
@@ -53,7 +53,9 @@ const MatchCard = ({ tournament, match, onSelect }) => {
  */
 const TournamentBracket = ({ tournament, onSelect }) => {
     const sizes = useMemo(() => roundSizes(tournament.draw?.size ?? 2), [tournament.draw?.size]);
-    const current = currentRound(tournament.matches ?? []) ?? 2;
+    // during the groups the first round of the bracket is shown
+    const round = currentRound(tournament.matches ?? []);
+    const current = round === 0 ? sizes[0] : round ?? 2;
     const [shown, setShown] = useState(current);
     useEffect(() => setShown(current), [current]);
     const dayOf = (size) => tournament.rounds?.find(round => round.size === size)?.date;

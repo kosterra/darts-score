@@ -15,7 +15,7 @@ import TournamentService from '../../services/tournament.service';
 import { useAuth } from '../../utils/auth.context';
 import { calendarFormat } from '../../utils/dates';
 import { t } from '../../utils/i18n';
-import { INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
+import { GROUP_ROUND, INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
 import { INVITE_WORDS, PRESET_WORDS, roundName, rulesText } from './tournament.words';
 import { Lines } from '../elements/skeletons';
 import BetaTag from './beta.tag';
@@ -32,11 +32,20 @@ const defaultCloses = () => {
     return at;
 };
 
-// the rounds of a bracket, keeping the days and rules already chosen, the preset's rules for new ones
-const roundsFor = (maxPlayers, presetId, current = []) => roundSizes(maxPlayers).map(size => {
+// the rules of a preset for a round; the group stage is played like the first round of the bracket
+const rulesOf = (presetId, size, maxPlayers) => presetRules(presetById(presetId), size === GROUP_ROUND ? maxPlayers : size);
+
+// the rounds of a tournament, keeping the days and rules already chosen, the preset's rules for new
+// ones; with groups first the group stage is the first round
+const roundsFor = (maxPlayers, presetId, current = [], format = 'knockout') => [...(format === 'groups' ? [GROUP_ROUND] : []), ...roundSizes(maxPlayers)].map(size => {
     const known = current.find(round => round.size === size);
-    return known ?? { size, date: null, rules: presetRules(presetById(presetId), size) };
+    return known ?? { size, date: null, rules: rulesOf(presetId, size, maxPlayers) };
 });
+
+const FORMAT_WORDS = {
+    knockout: { label: t('Knockout'), hint: t('Every match decides: the winner goes on, the loser is out.') },
+    groups: { label: t('Groups, then knockout'), hint: t('Everyone first plays everyone of their group; the best of each group go on to the knockout rounds. How large the groups are and how many go on is chosen at the draw, when it is known how many entered.') },
+};
 
 /**
  * The rules of one round: the starting score, in and out, and legs (or sets
@@ -106,13 +115,13 @@ const TournamentEditor = () => {
 
     useEffect(() => {
         if (!id) {
-            setForm({ name: '', description: '', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), invite: 'mail', rounds: roundsFor(16, 'clubClassic') });
+            setForm({ name: '', description: '', format: 'knockout', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), invite: 'mail', rounds: roundsFor(16, 'clubClassic') });
             return;
         }
         TournamentService.loadTournament(id).then(loaded => {
             setStored(loaded);
             setForm({
-                name: loaded.name, description: loaded.description ?? '', maxPlayers: loaded.maxPlayers, preset: loaded.preset ?? null,
+                name: loaded.name, description: loaded.description ?? '', format: loaded.format ?? 'knockout', maxPlayers: loaded.maxPlayers, preset: loaded.preset ?? null,
                 closesAt: new Date(loaded.closesAt),
                 invite: loaded.invite ?? 'mail',
                 rounds: loaded.rounds.map(round => ({ ...round, date: round.date ? new Date(round.date) : null })),
@@ -129,8 +138,9 @@ const TournamentEditor = () => {
     const early = !stored || ['draft', 'registration'].includes(stored.status);
     const set = (changes) => setForm(current => ({ ...current, ...changes }));
     const setRound = (size, changes) => set({ rounds: form.rounds.map(round => (round.size === size ? { ...round, ...changes } : round)) });
-    const choosePreset = (presetId) => set({ preset: presetId, rounds: form.rounds.map(round => (played.has(round.size) ? round : { ...round, rules: presetRules(presetById(presetId), round.size) })) });
-    const chooseSize = (maxPlayers) => set({ maxPlayers, rounds: roundsFor(maxPlayers, form.preset, form.rounds) });
+    const choosePreset = (presetId) => set({ preset: presetId, rounds: form.rounds.map(round => (played.has(round.size) ? round : { ...round, rules: rulesOf(presetId, round.size, form.maxPlayers) })) });
+    const chooseSize = (maxPlayers) => set({ maxPlayers, rounds: roundsFor(maxPlayers, form.preset, form.rounds, form.format) });
+    const chooseFormat = (format) => set({ format, rounds: roundsFor(form.maxPlayers, form.preset, form.rounds, format) });
     // one round a week, the first a week after the registration ends
     const weekly = () => {
         const first = new Date(form.closesAt.getTime() + 7 * DAY);
@@ -142,14 +152,14 @@ const TournamentEditor = () => {
         const rounds = current.rounds.map(round => (round.size === size ? { ...round, rules } : round));
         const preset = presetById(current.preset);
         const same = (a, b) => JSON.stringify(cleanRules(a)) === JSON.stringify(cleanRules(b));
-        return { ...current, rounds, preset: preset && rounds.every(round => same(round.rules, presetRules(preset, round.size))) ? current.preset : null };
+        return { ...current, rounds, preset: preset && rounds.every(round => same(round.rules, rulesOf(current.preset, round.size, current.maxPlayers))) ? current.preset : null };
     });
     const problems = form.rounds.map(round => rulesError(round.rules)).filter(Boolean);
 
     const save = async (open) => {
         setError('');
         setBusy(open ? 'open' : 'save');
-        const setup = { name: form.name, description: form.description, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, invite: form.invite, rounds: form.rounds };
+        const setup = { name: form.name, description: form.description, format: form.format, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, invite: form.invite, rounds: form.rounds };
         try {
             let saved;
             if (!stored) saved = await TournamentService.createTournament({ ...setup, open });
@@ -176,6 +186,19 @@ const TournamentEditor = () => {
                         <span className="fs-7 text-default fw-semibold">{t('Description')}</span>
                         <InputTextarea id="tournament-description" value={form.description} onChange={(event) => set({ description: event.target.value })} maxLength={1000} rows={3} autoResize placeholder={t('Optional: where you play, prizes, anything the players should know')} />
                     </label>
+
+                    <div className="d-flex flex-column gap-1">
+                        <span className="fs-7 text-default fw-semibold">{t('Tournament type')}</span>
+                        <SelectButton
+                            value={form.format}
+                            options={['knockout', 'groups'].map(format => ({ label: FORMAT_WORDS[format].label, value: format }))}
+                            onChange={(event) => event.value && chooseFormat(event.value)}
+                            className="p-selectbutton-pills flex-wrap"
+                            disabled={!early}
+                            aria-label={t('Tournament type')}
+                        />
+                        <span className="text-faint fs-8">{FORMAT_WORDS[form.format].hint}</span>
+                    </div>
 
                     <div className="d-flex flex-column gap-1">
                         <span className="fs-7 text-default fw-semibold">{t('Players at most')}</span>

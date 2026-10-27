@@ -283,3 +283,69 @@
 @media (prefers-reduced-motion: reduce) {
     .bracket-reveal .bracket-match { animation: none; }
 }
+
+// groups + knockout: each group a card with its table and its matches
+.tournament-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: $space-4;
+}
+
+.tournament-group {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+}
+
+.tournament-group-name {
+    margin: 0;
+    color: var(--text-default);
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+}
+
+.tournament-group-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $text-sm;
+    font-variant-numeric: tabular-nums;
+    table-layout: fixed;
+
+    th, td { padding: 0.3rem 0.25rem; text-align: center; }
+    th { color: var(--text-faint); font-weight: $weight-semibold; font-size: $text-xs; }
+    th:nth-child(1), td:nth-child(1) { width: 1.6rem; }
+    th:nth-child(2), td:nth-child(2) { width: auto; }
+    th:nth-child(n+3), td:nth-child(n+3) { width: 2.1rem; }
+    td { color: var(--text-subtle); border-top: 1px solid $surfaceHighColor; }
+
+    .tournament-group-player { color: var(--text-default); font-weight: $weight-semibold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tournament-group-place { color: var(--text-faint); }
+
+    // the places that go on to the knockout stage
+    tr.goes-on .tournament-group-place { color: $accentGreen; font-weight: $weight-bold; box-shadow: inset 3px 0 0 $accentGreen; }
+    tr.is-mine td { background: with-alpha($primaryColor, 0.12); }
+}
+
+.tournament-group-matches {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+
+    .bracket-match { width: 100%; }
+}
+
+// the draw of groups: their size, how many go on, and what that gives
+.tournament-group-plan {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: $space-3 $space-5;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+
+    > :last-child { flex-basis: 100%; }
+}

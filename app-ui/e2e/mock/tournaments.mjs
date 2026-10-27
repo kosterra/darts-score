@@ -1,6 +1,6 @@
 import { shirtOf } from '../../../app-api/src/utils/shirts.js';
 // tournaments for the mock API, with the real bracket rules
-import { MIN_PLAYERS, advance, bracketMatches, drawBracket, isDecided, retract, roundsOfPreset } from '../../src/rules/tournaments.js';
+import { MIN_PLAYERS, advance, bracketMatches, drawBracket, drawGroups, groupMatches, groupsDone, isDecided, knockoutDraw, knockoutOfGroups, retract, roundsOfPreset } from '../../src/rules/tournaments.js';
 
 const DAY = 864e5;
 const at = (days, hour = 19, minute = 30) => { const d = new Date(Date.now() + days * DAY); d.setHours(hour, minute, 0, 0); return d; };
@@ -19,6 +19,13 @@ export const seedTournaments = (players, scenario) => {
     tournaments = [];
     const ids = players.map(p => p.id);
     const base = (fields) => ({ id: `t${next++}`, club: 'c1', description: '', format: 'knockout', preset: 'clubClassic', maxPlayers: 8, closesAt: at(3, 20, 0), rounds: roundsOfPreset('clubClassic', 8).map((r, i) => ({ ...r, date: at(10 + i * 7) })), entries: ids.map(p => ({ player: p, status: 'invited' })), matches: [], draw: {}, winner: null, ...fields });
+    // groups first: the registration closed with everyone in, ready for the draw
+    if (scenario === 'groups') {
+        const rounds = [{ size: 0, date: at(5), rules: roundsOfPreset('clubNight', 8)[0].rules }, ...roundsOfPreset('clubNight', 8).map((r, i) => ({ ...r, date: at(12 + i * 7) }))];
+        const t = base({ name: 'Group Cup', status: 'closed', format: 'groups', preset: 'clubNight', closesAt: at(-1), rounds });
+        t.entries = ids.map(p => ({ player: p, status: 'in' }));
+        tournaments.push(t);
+    }
     if (scenario === 'registration' || scenario === 'all') {
         const t = base({ name: 'Autumn Cup', status: 'registration', description: 'In the back room of the Red Lion. The winner gets the golden dart.' });
         t.entries = t.entries.map((e, i) => ({ ...e, status: i === 0 ? 'invited' : i < 4 ? 'in' : i === 4 ? 'out' : 'invited' }));
@@ -108,6 +115,17 @@ export const tournamentMock = (req, res, path, json, send, { players, me, isAdmi
     if (rest === '/draw') {
         const ids = t.entries.filter(e => e.status === 'in').map(e => e.player);
         if (ids.length < MIN_PLAYERS) return send(res, 409, { message: `A tournament needs at least ${MIN_PLAYERS} players.` });
+        if (t.format === 'groups') {
+            const size = json.groupSize ?? 4;
+            const goOn = json.advance ?? 2;
+            const groups = drawGroups(ids, { size, seeding: json.seeding });
+            const knockout = knockoutOfGroups(ids.length, size, goOn);
+            t.matches = [...groupMatches(groups), ...bracketMatches({ size: knockout.size, slots: Array(knockout.size).fill(null) })];
+            t.draw = { at: new Date(), seeding: json.seeding, size: knockout.size, groups, groupSize: size, advance: goOn, knockoutAt: null };
+            t.rounds = t.rounds.map(r => ({ ...r, skipped: r.size !== 0 && r.size > knockout.size }));
+            t.status = 'drawn';
+            return view(t);
+        }
         const draw = drawBracket(ids, { seeding: json.seeding });
         t.matches = bracketMatches(draw);
         t.draw = { at: new Date(), seeding: json.seeding, size: draw.size };
@@ -115,11 +133,23 @@ export const tournamentMock = (req, res, path, json, send, { players, me, isAdmi
         t.status = 'drawn';
         return view(t);
     }
-    const start = rest.match(/^\/matches\/([\d-]+)\/start$/);
+    const start = rest.match(/^\/matches\/([\w-]+)\/start$/);
     if (start) { const x = byId.get(start[1]); x.status = 'running'; x.game = 'x9'; t.status = 'running'; return send(res, 201, { game: 'x9' }); }
-    const result = rest.match(/^\/matches\/([\d-]+)\/result$/);
+    const result = rest.match(/^\/matches\/([\w-]+)\/result$/);
     if (result) {
         const x = byId.get(result[1]);
+        // a match of a group: counted in its table; the last one fills the bracket
+        if (x.group != null) {
+            if (t.draw.knockoutAt) return send(res, 409, { message: 'The knockout stage is drawn from the groups: this result stays.' });
+            Object.assign(x, { status: 'walkover', winner: json.winner, score: null });
+            t.status = 'running';
+            if (groupsDone(t.matches)) {
+                const draw = knockoutDraw(t.draw.groups, t.matches, t.draw.advance);
+                t.matches = [...t.matches.filter(m => m.group != null), ...bracketMatches(draw)];
+                t.draw.knockoutAt = new Date();
+            }
+            return view(t);
+        }
         if (isDecided(x) && !retract(byId, x)) return send(res, 409, { message: 'The next match has started: this result stays.' });
         x.status = 'walkover'; x.winner = json.winner; x.score = null;
         if (!advance(byId, x)) { t.status = 'finished'; t.winner = json.winner; t.finishedAt = new Date(); }

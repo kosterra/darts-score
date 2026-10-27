@@ -7,6 +7,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.20',
+        changes: [
+            t('Tournaments with groups first: choose Groups, then knockout when setting one up. At the draw, once it is known how many entered, the admin chooses how large the groups are and how many of each go on (the app suggests groups of 4, the top 2) and sees what follows, e.g. the quarter-finals. Everyone plays everyone of their group, the tables count points, leg difference and the match between two; the best of each group then fill the bracket, never against their own group in the first round.'),
+        ],
+    },
+    {
         version: '2026.10.19',
         changes: [
             t('The big screen: a TV opens /tv once and shows a code; Big screen in a running game sends it there by that code (or gives a link and QR code for a laptop or tablet). X01, Cricket, Elimination, Around the Clock and the newer games, large and live without logging in, with the caller and the 180 celebration; a darts evening shows its running game, and its table in between.'),

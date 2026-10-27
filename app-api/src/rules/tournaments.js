@@ -257,10 +257,13 @@ export const groupSetupError = (players, size, advance) => {
 // what the app suggests for a number of entries: groups of 4 (all in one with up to 6), the top 2 go on
 export const suggestGroups = (players) => ({ size: players <= 6 ? Math.max(3, players) : 4, advance: 2 });
 
+// the bracket of those who go on from the groups: two play the final at once
+const knockoutSize = (qualifiers) => (qualifiers <= 2 ? 2 : bracketSize(qualifiers));
+
 // the knockout bracket after the groups: how many go on, and its size
 export const knockoutOfGroups = (players, size, advance) => {
     const qualifiers = groupCount(players, size) * advance;
-    return { qualifiers, size: bracketSize(qualifiers) };
+    return { qualifiers, size: knockoutSize(qualifiers) };
 };
 
 /**
@@ -360,7 +363,7 @@ export const knockoutDraw = (groups, matches, advance) => {
     const tables = groups.map(players => groupTable(players, matches.filter(match => match.group != null)));
     const groupOf = new Map(groups.flatMap((players, group) => players.map(player => [player, group])));
     const places = Array.from({ length: advance }, (_, place) => tables.map(table => table[place]?.player).filter(Boolean));
-    const size = bracketSize(places.flat().length);
+    const size = knockoutSize(places.flat().length);
     const order = seedOrder(size);
     const slotsOf = (ranked) => order.map(seed => ranked[seed - 1] ?? null);
     const clashes = (slots) => slots.filter((player, index) => index % 2 === 0 && player && slots[index + 1] && groupOf.get(player) === groupOf.get(slots[index + 1])).length;

@@ -1,7 +1,10 @@
 import { t } from '../../utils/i18n';
 
 // the name of a round by how many players are left in it
-export const roundName = (size) => ({ 2: t('Final'), 4: t('Semi-finals'), 8: t('Quarter-finals') })[size] ?? t('Last {{count}}', { count: size });
+export const roundName = (size) => ({ 0: t('Group stage'), 2: t('Final'), 4: t('Semi-finals'), 8: t('Quarter-finals') })[size] ?? t('Last {{count}}', { count: size });
+
+// "Group A", "Group B", … of a tournament with groups
+export const groupName = (group) => t('Group {{letter}}', { letter: String.fromCharCode(65 + group) });
 
 // the rules of a round in words: "Best of 5 legs", "First to 3 sets (Best of 5 legs)"
 export const rulesText = (rules) => {

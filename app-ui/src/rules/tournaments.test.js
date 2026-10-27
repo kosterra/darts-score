@@ -107,6 +107,8 @@ describe('groups + knockout', () => {
         expect(groupSetupError(16, 7, 2)).toMatch(/3 to 6/);
         expect(knockoutOfGroups(16, 4, 2)).toEqual({ qualifiers: 8, size: 8 });
         expect(knockoutOfGroups(12, 4, 2)).toEqual({ qualifiers: 6, size: 8 });
+        // one group, the top two: straight into the final
+        expect(knockoutOfGroups(6, 6, 2)).toEqual({ qualifiers: 2, size: 2 });
         expect(suggestGroups(16)).toEqual({ size: 4, advance: 2 });
         expect(suggestGroups(5)).toEqual({ size: 5, advance: 2 });
     });

@@ -17,7 +17,8 @@ const cancelTournament = (id) => requestJSON(`${API_URL}/${id}/cancel`, { method
 const answer = (id, status) => requestJSON(`${API_URL}/${id}/entry`, { method: 'PUT', body: { status } });
 // an admin for a member
 const answerFor = (id, playerId, status) => requestJSON(`${API_URL}/${id}/entries/${playerId}`, { method: 'PUT', body: { status } });
-const holdDraw = (id, seeding) => requestJSON(`${API_URL}/${id}/draw`, { method: 'POST', body: { seeding } });
+// groups: { groupSize, advance } for a tournament with groups first
+const holdDraw = (id, seeding, groups = {}) => requestJSON(`${API_URL}/${id}/draw`, { method: 'POST', body: { seeding, ...groups } });
 // → { game }: the X01 game of the match
 const startMatch = (id, match, first) => requestJSON(`${API_URL}/${id}/matches/${match}/start`, { method: 'POST', body: { first } });
 const setResult = (id, match, winner) => requestJSON(`${API_URL}/${id}/matches/${match}/result`, { method: 'PUT', body: { winner } });
