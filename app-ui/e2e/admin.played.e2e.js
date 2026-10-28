@@ -63,3 +63,11 @@ test('a game of another club opens as its admins see it, with the way back', asy
     await expect(page).toHaveURL(/\/admin\/games/);
     await expect(bar).toHaveCount(0);
 });
+
+test('a player of another club opens as its admins see the profile', async ({ page }) => {
+    await page.goto('/admin/players');
+    const name = page.locator('.player-link').first();
+    await name.click();
+    await expect(page).toHaveURL(/\/players\/p\d+$/);
+    await expect(page.locator('.visit-bar')).toContainText('Bullseye Bern');
+});

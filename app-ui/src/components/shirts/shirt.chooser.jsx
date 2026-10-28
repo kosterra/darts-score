@@ -9,7 +9,7 @@ import { t } from '../../utils/i18n';
 // the tiles framed as the flights: the club shirt as a starter, those of the levels as master, the Legend's as legendary
 const rarityOf = (design) => (design.level === 1 ? 'starter' : design.level >= 8 ? 'legendary' : 'master');
 
-const Swatches = ({ label, value, onChange }) => (
+export const Swatches = ({ label, value, onChange }) => (
     <div className="d-flex flex-column gap-2">
         <span className="text-subtle fs-8">{label}</span>
         <div className="d-flex flex-wrap gap-2" role="radiogroup" aria-label={label}>

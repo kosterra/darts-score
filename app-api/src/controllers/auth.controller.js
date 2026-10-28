@@ -18,6 +18,7 @@ import { UNREADABLE, isMfaEnabled, mfaStateOf, secondFactor } from '../utils/mfa
 import { translate } from '../utils/translate.js';
 import { dateTimeIn } from '../utils/notify.js';
 import { getAppUrl } from '../utils/mail.utils.js';
+import { clubShirtOf } from '../utils/shirts.js';
 
 export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
@@ -157,11 +158,11 @@ export const updateMe = async (req, res) => {
 /**
  * The players the user plays as, with their clubs, for the player profile:
  * [{ id, nickname, firstname, lastname, profileImg, dateOfBirth, publicProfile,
- * preferences, clubs: [{ id, name, logo, isPublic, accent }] }].
+ * preferences, clubs: [{ id, name, logo, isPublic, accent, shirt }] }].
  */
 export const myPlayers = async (req, res) => {
     const players = await db.player.find({ user: req.user._id, guest: { $ne: true } })
-        .populate('clubs', 'name logo isPublic shameMinAge accent')
+        .populate('clubs', 'name logo isPublic shameMinAge accent shirt')
         .lean();
     res.json(players.map(player => ({
         id: String(player._id),
@@ -178,7 +179,7 @@ export const myPlayers = async (req, res) => {
         // adults correct their date of birth themselves once the admins set it
         birthMinAge: selfBirthAge(player.clubs ?? []),
         birthEditable: Boolean(player.dateOfBirth) && ageOn(player.dateOfBirth) >= selfBirthAge(player.clubs ?? []),
-        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic), accent: club.accent ?? null })),
+        clubs: (player.clubs ?? []).filter(Boolean).map(club => ({ id: String(club._id), name: club.name, logo: club.logo ?? '', isPublic: Boolean(club.isPublic), accent: club.accent ?? null, shirt: clubShirtOf(club) })),
     })));
 };
 

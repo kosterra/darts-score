@@ -21,13 +21,13 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.10.20
+  version: 2026.10.21
   license:
     name: AGPL-3.0-only
     url: https://www.gnu.org/licenses/agpl-3.0.html
 servers:
-  - url: http://localhost:3001
-    description: Local development
+  - url: /
+    description: The installation this description comes from
 security:
   - sessionCookie: []
 tags:
@@ -91,6 +91,8 @@ paths:
       summary: Health probe, for Docker and monitoring
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: '{ status: ok, database: ok, version, uptime: seconds }'
         '503':
@@ -211,6 +213,8 @@ paths:
       security: []
       operationId: getPublicSite
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: The setting
           content:
@@ -269,6 +273,8 @@ paths:
         - Public
       summary: The ways to support Legmate with a gift, for the page /support
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: '{ url: a donation page of this installation, twint: its TWINT link, project: the sponsoring page of the project (empty when url is the same) }'
       operationId: getPublicSupport
@@ -280,6 +286,8 @@ paths:
       description: Who runs the installation (as its global admins entered it), whether it sends mails, and how long what is kept on it.
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: The details
           content:
@@ -754,6 +762,8 @@ paths:
       summary: Log out
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: Session cookie cleared
       operationId: postAuthLogout
@@ -764,6 +774,8 @@ paths:
       summary: Whether the server can send mails (password reset, invitations)
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: OK
       operationId: getAuthConfig
@@ -998,6 +1010,8 @@ paths:
       description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public. Each club comes with its figures (players, games played in all and in the last 30 days, the last game, the busiest weekday, the X01 average and the 180s); the totals count the games of the last 7 days too, and are null while the global admins keep the numbers off the start page (System settings).
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: OK
       operationId: getPublicOverview
@@ -1268,6 +1282,8 @@ paths:
       summary: The banner shown on top of every page while it is switched on ({ enabled, text, color })
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: OK
       operationId: getPublicBanner
@@ -1333,6 +1349,46 @@ paths:
         '409':
           description: The club still has players (only for club admins)
       operationId: deleteClubsByid
+  /api/clubs/{id}/shirt:
+    put:
+      tags:
+        - Clubs
+      summary: The club shirt its members play in (club admins)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pattern:
+                  type: string
+                  enum: [plain, stripes, vertical, hoops, halves, sash, chevrons]
+                color:
+                  type: [string, 'null']
+                  description: The main colour from the shirt palette; null for the club's accent colour
+                accent:
+                  type: string
+                  description: The second colour from the shirt palette
+                logo:
+                  type: boolean
+                  description: The club's logo on the chest
+      responses:
+        '200':
+          description: The club
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '422':
+          description: A pattern or colour that is not offered
+      operationId: putClubsByidShirt
   /api/clubs/{id}/game-rules:
     parameters:
       - $ref: '#/components/parameters/Id'
@@ -4954,6 +5010,28 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: getStatsPlayerByidGames
+  /api/stats/player/{id}/year:
+    get:
+      tags:
+        - Statistics
+      summary: "Your year in darts: a look back at a year of a player, in all their clubs"
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+        - name: year
+          in: query
+          required: false
+          description: The year (this one when left out)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '{ year, years (those with a look back), player, games: { total, together, wins, winRate, byType }, x01: { games, average, bestGame, darts, oneEighties, tonPlus, highestCheckout, bestLeg } | null, days, busiestMonth, firstGameAt, opponent, trainings, badges: { count, latest } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getStatsPlayerByidYear
   /api/stats/games/x01/{id}:
     get:
       tags:
@@ -7876,6 +7954,49 @@ paths:
             type: string
             pattern: '^\d{4}-\d{2}-\d{2}$'
       operationId: deleteCalendarNightsBydayCancelled
+  /api/calendar/nights/{day}/evening:
+    get:
+      tags:
+        - Calendar
+      summary: The club evening of a club night, as a darts evening has it, from the club games among the chosen players
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: from
+          in: query
+          required: true
+          description: The start of the evening, an instant (the page knows the club's time)
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          description: Its end, at most two days later
+          schema:
+            type: string
+            format: date-time
+        - name: players
+          in: query
+          required: true
+          description: The players of the evening, ids separated by commas (members of the club, at most 20)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '{ players: [{ id, name, profileImg }], games: [{ id, kind, players, winner, results, finished, running, setup, createdAt }], report: { table, awards, headToHead, form, played, running } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '422':
+          description: The time of the evening is missing or too long
+      operationId: getCalendarNightsBydayEvening
   /api/calendar/feed-link:
     get:
       tags:
@@ -8046,6 +8167,12 @@ components:
                       type: string
     InternalError:
       description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+    TooManyRequests:
+      description: Too many requests from this network in a short time
       content:
         application/json:
           schema:

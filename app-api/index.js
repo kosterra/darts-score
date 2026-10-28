@@ -78,15 +78,16 @@ app.set('trust proxy', process.env.TRUST_PROXY || 'loopback, linklocal, uniquelo
 // ---------------------------------------------------------------------------
 // The app and the API share one address in production, and browsers send an
 // Origin header on same-origin POSTs too, so the app's own address is allowed
-// besides APP_URL and UI_URL (a UI running on its own address)
+// besides APP_URL and UI_URL (a UI running on its own address). Only the API is
+// checked: the pages and files of the app are public, whoever links to them.
 const allowedOrigins = [UI_URL, process.env.APP_URL].filter(Boolean);
-app.use(cors((req, callback) => {
+app.use('/api', cors((req, callback) => {
     const origin = req.get('origin');
     if (isAllowedOrigin({ origin, host: req.get('host'), forwardedHost: req.get('x-forwarded-host'), allowedOrigins })) {
         callback(null, { origin: true, optionsSuccessStatus: 200 });
     } else {
         logger.warn(`CORS blocked: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        callback(Object.assign(new Error('Not allowed by CORS'), { status: 403, cors: true }));
     }
 }));
 
@@ -244,6 +245,8 @@ app.use(async (req, res) => {
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
     const status = err.status || err.statusCode || 500;
+    // a request from an address that may not use the API: said once as a warning already (CORS blocked)
+    if (err.cors) return res.status(403).json({ message: 'This address may not use the API.' });
     // what failed, for the error log; client mistakes (bad JSON, too large) are only warnings
     const request = { method: req.method, url: req.originalUrl, user: req.user?.email, ip: clientIp(req) };
     logger[status >= 500 ? 'error' : 'warn']({ err, request }, `${req.method} ${req.originalUrl} failed: ${err.message}`);

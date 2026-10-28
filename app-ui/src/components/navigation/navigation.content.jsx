@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaUserGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaUserGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaStar, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -21,6 +21,7 @@ import { ALERTS_CHANGED } from '../admin/alert.events';
 import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.service';
 import NotificationService, { NOTIFICATIONS_CHANGED } from '../../services/notification.service';
 import { t } from '../../utils/i18n';
+import { yearInDartsSeason } from '../../utils/year.in.darts';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -123,6 +124,8 @@ const useSections = () => {
             items: [
                 { label: t('Dashboard'), icon: MdDashboard, to: '/', end: true, tour: 'dashboard' },
                 { label: t('My statistics'), icon: FaChartSimple, to: myPlayer ? `/players/${myPlayer.id}` : '/me', visible: Boolean(myPlayer) },
+                // the look back only in its season (as the note on the dashboard); else from My statistics
+                { label: t('Year in darts'), icon: FaStar, to: '/year', visible: Boolean(myPlayer) && yearInDartsSeason() },
             ],
         },
         // playing: the games the club plays and the trainings in groups, and the tournaments
@@ -158,17 +161,22 @@ const useSections = () => {
             items: [
                 { label: t('My club'), icon: FaPeopleGroup, to: '/club', tour: 'my-club' },
                 { label: t('Calendar'), icon: FaCalendarDays, to: '/calendar' },
-                // on the own player "My statistics" is the one that is marked
-                { label: t('Players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
                 {
-                    label: t('Games and trainings'), icon: FaTrophy,
+                    label: t('Players'), icon: FaUserPen,
+                    children: [
+                        // on the own player "My statistics" is the one that is marked
+                        { label: t('All players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
+                        { label: t('Compare'), icon: FaChartLine, to: '/stats/players' },
+                    ],
+                },
+                {
+                    label: t('Results'), icon: FaTrophy,
                     children: [
                         { label: t('Games'), icon: FaTrophy, to: '/games' },
                         { label: t('Trainings'), icon: BsPersonFillCheck, to: '/trainings' },
+                        { label: t('Badges'), icon: FaMedal, to: '/badges' },
                     ],
                 },
-                { label: t('Badges'), icon: FaMedal, to: '/badges' },
-                { label: t('Player comparison'), icon: FaChartLine, to: '/stats/players' },
                 // for the club's admins: games and trainings that cannot be real or are worth a look
                 ...(isClubAdmin ? [{
                     label: t('Fair play'),
@@ -310,7 +318,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
 const PROFILE_PATHS = ['/profile', '/player-profile', '/my-clubs', '/notifications'];
 
 const isInside = (item, pathname) =>
-    item.children?.some(child => child.to && (pathname === child.to || pathname.startsWith(child.to + '/')));
+    item.children?.some(child => child.to && !child.notActiveOn?.includes(pathname) && (pathname === child.to || pathname.startsWith(child.to + '/')));
 
 // what the menu has open or folded, remembered on this device: a list of keys
 const remembered = (key, fallback) => {

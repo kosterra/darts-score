@@ -38,6 +38,23 @@ export const isDayKey = (key) => typeof key === 'string' && DAY_KEY.test(key) &&
 
 export const addDays = (key, days) => keyOfNoon(new Date(noonOf(key).getTime() + days * DAY));
 
+// the days the grid of a month shows: from the Monday of its first week to the Sunday of its last
+export const monthGrid = (month) => {
+    const first = `${month}-01`;
+    const from = addDays(first, -((noonOf(first).getUTCDay() + 6) % 7));
+    const [year, number] = month.split('-').map(Number);
+    const last = new Date(Date.UTC(year, number, 0, 12)).toISOString().slice(0, 10);
+    const to = addDays(last, (7 - noonOf(last).getUTCDay()) % 7);
+    return { from, to };
+};
+
+// the month before or after: "2026-11" → "2026-12"
+export const otherMonth = (month, by) => {
+    const [year, number] = month.split('-').map(Number);
+    const at = new Date(Date.UTC(year, number - 1 + by, 1, 12));
+    return at.toISOString().slice(0, 7);
+};
+
 // 0 Sunday … 6 Saturday, as Date.getDay()
 export const weekdayOf = (key) => noonOf(key).getUTCDay();
 

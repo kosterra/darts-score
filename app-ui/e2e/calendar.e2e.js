@@ -44,6 +44,16 @@ test('the club nights, who comes, and the days of tournaments and leagues', asyn
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByText('The club nights are saved.')).toBeVisible();
 
+    // the same as a month: the club nights in their days; a day shows what is on below
+    await page.getByRole('button', { name: 'Month', exact: true }).click();
+    await expect(page.locator('.calendar-grid-day')).toHaveCount(await page.locator('.calendar-grid-day').count());
+    await expect(page.locator('.calendar-grid-item.is-night').first()).toBeAttached();
+    await page.locator('.calendar-grid-day', { has: page.locator('.calendar-grid-item.is-event') }).first().click();
+    await expect(page.locator('.calendar-day-items .calendar-item.is-event').first()).toBeVisible();
+    await page.screenshot({ path: `test-results/calendar-month-${test.info().project.name}.png`, fullPage: true });
+    await page.getByRole('button', { name: 'Later month' }).click();
+    await page.getByRole('button', { name: 'List', exact: true }).click();
+
     // the link for the calendar of the phone
     await page.getByRole('button', { name: 'Show my calendar link' }).click();
     await expect(page.locator('input[aria-label="Calendar link"]')).toHaveValue(/\/api\/calendar-feed\/a{48}\.ics$/);

@@ -1,7 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { CLUB_ROLES } from '../models/user.model.js';
-import { answerNight, calendarView, cancelNight, feedOf, feedTokenOf, feedUrlOf, rangeOf, restoreNight, saveNights } from '../utils/calendar.js';
+import { CLUB_EVENING_MAX_PLAYERS, answerNight, calendarView, cancelNight, clubEvening, feedOf, feedTokenOf, feedUrlOf, rangeOf, restoreNight, saveNights } from '../utils/calendar.js';
 
 /**
  * The calendar of the selected club: everyone sees it and says whether they
@@ -61,6 +61,19 @@ export const attend = async (req, res) => {
         await answerWith(req, res);
     } catch (err) {
         fail(res, err, 'save the answer');
+    }
+};
+
+// the club evening of a night: ?from, ?to (instants), ?players=id,id
+export const evening = async (req, res) => {
+    try {
+        const from = new Date(req.query.from);
+        const to = new Date(req.query.to);
+        if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || to <= from || to - from > 2 * 24 * 60 * 60 * 1000) return res.status(422).json({ message: 'Choose the time of the evening.' });
+        const players = String(req.query.players ?? '').split(',').filter(id => db.mongoose.isValidObjectId(id)).slice(0, CLUB_EVENING_MAX_PLAYERS);
+        res.json(await clubEvening(req.club, { from, to, players }));
+    } catch (err) {
+        fail(res, err, 'load the club evening');
     }
 };
 

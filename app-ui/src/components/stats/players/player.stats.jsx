@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
@@ -207,6 +208,8 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                     </div>
                     <PlayerLevel level={stats.level} />
                     {!isOwn && <CompareLink vs={player.id} label={t('Compare with you')} className="align-self-start fs-8" />}
+                    {/* the look back at the year, all year long (in the menu only in December and January) */}
+                    {isOwn && <Link to="/year" className="align-self-start fs-8"><i className="pi pi-star me-1" aria-hidden="true" />{t('Your year in darts')}</Link>}
                     <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         {facts.map(([label, value]) => (
                             <div key={label}>

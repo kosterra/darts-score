@@ -483,3 +483,125 @@
 
 .calendar-time { width: 8rem; }
 .calendar-item-action.p-button { width: 1.9rem; height: 1.9rem; padding: 0; margin: -0.4rem -0.4rem -0.4rem 0; }
+
+// the calendar as a month: a week a row, Monday first; a tap on a day shows it below
+.calendar-month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    padding: $space-2;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin-top: $space-2;
+}
+
+.calendar-grid-weekday {
+    padding: 0.25rem 0;
+    color: var(--text-faint);
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+.calendar-grid-day {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.2rem;
+    min-height: 5.5rem;
+    min-width: 0;
+    padding: 0.35rem;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    background: $surfaceRaisedColor;
+    color: var(--text-default);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover { background: ink(0.08); }
+    &:focus-visible { @include focus-ring(2px); }
+    &.is-outside { opacity: 0.45; }
+    &.is-past .calendar-grid-number { color: var(--text-faint); }
+    &.is-today .calendar-grid-number { color: $primaryColor; font-weight: $weight-bold; }
+    &.is-selected { border-color: $primaryColor; }
+}
+
+.calendar-grid-number { font-size: $text-sm; font-variant-numeric: tabular-nums; }
+.calendar-grid-items { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+
+.calendar-grid-item {
+    display: block;
+    min-width: 0;
+    padding: 0.05rem 0.3rem;
+    border-radius: 0.25rem;
+    font-size: $text-xs;
+    line-height: 1.35;
+
+    &.is-night { background: with-alpha($primaryColor, 0.22); }
+    &.is-night.is-cancelled { background: ink(0.06); color: var(--text-faint); text-decoration: line-through; }
+    &.is-event { background: with-alpha($accentBlue, 0.22); }
+}
+
+.calendar-grid-label { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.calendar-grid-label .pi { font-size: 0.65rem; }
+
+// on a phone the days are small: a coloured bar for each thing on, the words below the grid
+@media (max-width: 575.98px) {
+    .calendar-grid-day { min-height: 3.2rem; padding: 0.25rem; align-items: center; }
+    .calendar-grid-items { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0.15rem; }
+    .calendar-grid-item { width: 0.45rem; height: 0.45rem; padding: 0; border-radius: 50%; }
+    .calendar-grid-item.is-night { background: $primaryColor; }
+    .calendar-grid-item.is-night.is-cancelled { background: var(--text-faint); }
+    .calendar-grid-item.is-event { background: $accentBlue; }
+    .calendar-grid-label { display: none; }
+}
+
+// the club evening: the players of tonight as chips, to take out or add
+.club-night-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.4rem 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: var(--c-shade-700);
+    color: var(--text-default);
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+
+    button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.4rem;
+        height: 1.4rem;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--text-subtle);
+        cursor: pointer;
+
+        &:hover { background: ink(0.1); color: var(--text-default); }
+        &:focus-visible { @include focus-ring(1px); }
+        .pi { font-size: 0.7rem; }
+    }
+}
+
+.club-night-add { min-width: 12rem; }
+
+// "Your year in darts": the badges of the year, a medal beside its name
+.year-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-4;
+
+    li { display: flex; align-items: center; gap: $space-3; min-width: 0; }
+}

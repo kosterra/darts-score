@@ -7,6 +7,7 @@ import ClubEliminationService from '../../../services/elimination.service';
 import { QuickEliminationService, quickPlayersOf } from '../../../services/quick.game.service';
 import QuickGameInvite from '../../quick/quick.game.invite';
 import EveningGameActions from '../../quick/evening.game.actions';
+import { nightOfGame } from '../../../utils/club.night';
 import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import GameResultHeader from '../common/game.result.header';
@@ -106,7 +107,9 @@ const EliminationGameStats = ({ quick = false }) => {
     // a game of a darts evening goes back to it; others offer a rematch
     const actions = quick && game.evening
         ? <EveningGameActions eveningId={game.evening} />
-        : <GameResultActions compare={!quick && players.length > 1 ? { players, type: 'elimination' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/elimination', { replace: true })} />;
+        : !quick && game.hasWinner && nightOfGame(game.id)
+            ? <EveningGameActions clubNight={nightOfGame(game.id)} />
+            : <GameResultActions goOnTo={game.hasWinner ? null : quick ? `/quick/elimination/${game.id}` : `/elimination/${game.id}`} compare={!quick && players.length > 1 ? { players, type: 'elimination' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/elimination', { replace: true })} />;
 
     const Who = ({ playerId }) => (
         <span className="d-inline-flex align-items-center text-nowrap">

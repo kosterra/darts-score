@@ -83,7 +83,7 @@ const RulesGameStats = () => {
         navigate(`/play/${kind}/${created.id}`);
     };
 
-    const actions = <GameResultActions compare={players.length > 1 ? { players, type: game.kind } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(`/play/${kind}`, { replace: true })} />;
+    const actions = <GameResultActions goOnTo={game.hasWinner ? null : `/play/${kind}/${game.id}`} compare={players.length > 1 ? { players, type: game.kind } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(`/play/${kind}`, { replace: true })} />;
     const winners = players.filter(player => game.playerModels?.[player.id]?.hasWonGame);
     const options = (definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean);
 

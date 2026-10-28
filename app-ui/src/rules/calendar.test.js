@@ -48,3 +48,14 @@ describe('the days of tournaments and leagues', () => {
         expect(events[2]).toMatchObject({ round: 4, link: '/tournaments/t1' });
     });
 });
+
+describe('the month view', () => {
+    it('shows whole weeks, Monday first', async () => {
+        const { monthGrid, otherMonth } = await import('./calendar');
+        // November 2026 starts on a Sunday and ends on a Monday
+        expect(monthGrid('2026-11')).toEqual({ from: '2026-10-26', to: '2026-12-06' });
+        expect(monthGrid('2026-02')).toEqual({ from: '2026-01-26', to: '2026-03-01' });
+        expect(otherMonth('2026-12', 1)).toBe('2027-01');
+        expect(otherMonth('2026-01', -1)).toBe('2025-12');
+    });
+});

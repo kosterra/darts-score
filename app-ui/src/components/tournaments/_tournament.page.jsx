@@ -24,6 +24,7 @@ import { INVITE_WORDS, STATUS_WORDS, groupName, nameOf, roundName, rulesText } f
 import BetaTag from './beta.tag';
 import WalkOn from './tournament.walkon';
 import { Lines } from '../elements/skeletons';
+import { shareCard } from '../../utils/share.card';
 
 /**
  * What can be done with a match: start it (its players or an admin, with who
@@ -90,7 +91,7 @@ const TournamentPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const toast = useRef(null);
-    const { isClubAdmin } = useAuth();
+    const { isClubAdmin, activeClub } = useAuth();
     const [tournament, setTournament] = useState(null);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
@@ -165,6 +166,28 @@ const TournamentPage = () => {
         const result = await run('start', () => TournamentService.startMatch(tournament.id, match.id, first));
         if (result?.game) navigate(`/x01/${result.game}`);
     };
+    // the win as a picture: the final's score, the field, the matches and legs won
+    const shareWin = () => {
+        const champion = tournament.winner;
+        const own = tournament.matches.filter(match => match.winner === champion && !match.bye && match.players.includes(champion));
+        const scoreOf = (match, side) => match.score?.sets?.[side] ?? match.score?.legs?.[side];
+        const final = tournament.matches.find(match => match.size === 2);
+        const side = final ? final.players.indexOf(champion) : -1;
+        const finalScore = final && side >= 0 && scoreOf(final, side) != null ? `${scoreOf(final, side)}–${scoreOf(final, 1 - side)}` : null;
+        const legs = own.reduce((sum, match) => sum + (match.score?.legs?.[match.players.indexOf(champion)] ?? 0), 0);
+        const opponent = final && side >= 0 ? nameOf(tournament, final.players[1 - side]) : '';
+        shareCard({
+            eyebrow: t('Tournament winner'),
+            title: nameOf(tournament, champion),
+            subtitle: [tournament.name, activeClub?.name].filter(Boolean).join(' · '),
+            hero: finalScore ? { value: finalScore, label: t('in the final against {{name}}', { name: opponent }) } : { value: t('Winner'), label: tournament.name },
+            figures: [
+                { value: String(tournament.counts?.in ?? tournament.entries.filter(entry => entry.status === 'in').length), label: t('players') },
+                { value: String(own.length), label: t('matches won') },
+                ...(legs ? [{ value: String(legs), label: t('legs won') }] : []),
+            ],
+        }, { gold: true, filename: `legmate-${tournament.name}.png`, text: t('{{name}} wins {{tournament}}!', { name: nameOf(tournament, champion), tournament: tournament.name }) });
+    };
     const decide = async (match, winner) => {
         const result = await run('result', () => TournamentService.setResult(tournament.id, match.id, winner), t('{{name}} goes on.', { name: nameOf(tournament, winner) }));
         if (result) setSelected(null);
@@ -215,7 +238,8 @@ const TournamentPage = () => {
                     {tournament.status === 'finished' &&
                         <div className="tournament-champion">
                             <i className="pi pi-trophy" aria-hidden="true" />
-                            <span>{t('{{name}} wins {{tournament}}!', { name: nameOf(tournament, tournament.winner), tournament: tournament.name })}</span>
+                            <span className="flex-grow-1">{t('{{name}} wins {{tournament}}!', { name: nameOf(tournament, tournament.winner), tournament: tournament.name })}</span>
+                            <Button label={t('Share')} icon="pi pi-share-alt" size="small" severity="secondary" onClick={shareWin} />
                         </div>}
 
                     {isClubAdmin && !over &&

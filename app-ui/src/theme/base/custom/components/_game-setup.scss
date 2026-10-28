@@ -556,6 +556,18 @@
 .x01-hero-name .player-flight { margin-right: 0.35rem; vertical-align: -0.1rem; }
 .x01-hero-player.is-mirrored .x01-hero-name .player-flight { margin-right: 0; margin-left: 0.35rem; }
 
+// the shirt a player plays in, small, before the flight in the game headers
+.player-shirt {
+  display: inline-flex;
+  flex-shrink: 0;
+  vertical-align: middle;
+
+  .shirt-picture { width: 1.35rem; height: 1.35rem; }
+}
+
+.x01-hero-name .player-shirt { margin-right: 0.25rem; vertical-align: -0.2rem; }
+.x01-hero-player.is-mirrored .x01-hero-name .player-shirt { margin-right: 0; margin-left: 0.25rem; }
+
 // the flights and barrels a player has collected, small, as in an album
 .flight-album {
   display: flex;
@@ -667,4 +679,24 @@
   background: var(--surface-raised);
   color: var(--text-default);
   font-weight: $weight-semibold;
+}
+
+// the club shirt as its admins design it: the shirt beside the choices
+.club-shirt-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-4;
+  align-items: start;
+
+  @media (min-width: 768px) { grid-template-columns: 12rem minmax(0, 1fr); }
+}
+
+.club-shirt-preview {
+  display: flex;
+  justify-content: center;
+  padding: $space-3;
+  border-radius: $radius-md;
+  background: $surfaceRaisedColor;
+
+  .shirt-picture { width: 10rem; height: 10rem; }
 }

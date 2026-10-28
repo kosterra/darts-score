@@ -98,6 +98,9 @@
         box-shadow: 0 0 0 2px $surfaceColor, 0 0.4rem 1rem -0.35rem shadow(0.85);
     }
 
+    // in the lists the pictures stay flat on their rows, without the ring and the shadow
+    .p-datatable .p-avatar.p-avatar-circle { box-shadow: none; }
+
     // Switches: this PrimeReact version marks the checked state with p-highlight
     // and expects the layout rules below, which the base theme predates
     .p-inputswitch {

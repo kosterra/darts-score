@@ -12,6 +12,7 @@ import { normalizeLayout } from '../utils/dashboard.layout.js';
 import { ACCENTS, normalizeClubRules } from '../rules/club.rules.js';
 import { GOAL_METRICS, topClubBadges } from '../utils/club.badges.js';
 import { syncClubBadges } from '../utils/club.badge.service.js';
+import { clubShirtCheck } from '../utils/shirts.js';
 
 const Club = db.club;
 const Player = db.player;
@@ -89,6 +90,19 @@ export const create = async (req, res) => {
     logger.info(`Club "${club.name}" created by ${req.user.email}`);
     checkLater(() => noteCreated(req, 'club', { id: club._id, name: club.name, club }));
     res.status(201).json({ ...(await withAdmins(club)), role: CLUB_ROLES.ADMIN, playerCount: 0 });
+};
+
+/**
+ * The club shirt (club admins): { pattern, color, accent, logo }.
+ */
+export const updateShirt = async (req, res) => {
+    const club = await loadManagedClub(req, res);
+    if (!club) return;
+    const { shirt, error } = clubShirtCheck(req.body);
+    if (error) return res.status(422).json({ message: error });
+    club.shirt = shirt;
+    await club.save();
+    res.json(await withAdmins(club));
 };
 
 export const update = async (req, res) => {

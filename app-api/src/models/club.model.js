@@ -44,6 +44,9 @@ export default (mongoose) => {
         nights:    { type: [{ _id: false, weekday: Number, start: String, end: String, note: String }], default: [] },
         cancelled: { type: [{ _id: false, day: String, reason: String }], default: [] },
       },
+      // the club shirt its members play in: a pattern, the main colour (null: the accent colour),
+      // a second colour and the logo on the chest (see utils/shirts.js)
+      shirt: { pattern: String, color: String, accent: String, logo: Boolean },
       // Users who manage the club; always at least one
       admins: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }], index: true },
       // when each admin was made one, for the alert on a taken-over club

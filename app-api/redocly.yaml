@@ -1,0 +1,8 @@
+# Redocly's checks of openapi.yaml (npx @redocly/cli lint openapi.yaml, also in CI)
+extends:
+  - recommended
+rules:
+  # /api/public/evenings/shared/{token} and /api/public/evenings/{id}/… look alike to it,
+  # but "shared" is a word of its own: Express takes that route first, and an evening id
+  # is never "shared"
+  no-ambiguous-paths: off

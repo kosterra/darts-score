@@ -1,7 +1,7 @@
 import db from '../models/db.model.js';
 import logger from '../models/logger.model.js';
 import { answerOf, hasRules } from '../utils/game.view.js';
-import { shirtOf } from '../utils/shirts.js';
+import { clubShirtOf, shirtOf } from '../utils/shirts.js';
 import { screenOfEvening } from './evening.controller.js';
 import { newPairing, pairingOf, readScreenToken, screenToken, sendToPairing } from '../utils/screens.js';
 
@@ -25,7 +25,7 @@ export const link = (kind) => async (req, res) => {
 
 /**
  * The game of a screen link: { kind, game, players: [{ id, nickname, country, shirt }] (no pictures:
- * they need a login), club: { name, logo, accent }, expiresAt }; 404 for a link that is not valid (any more).
+ * they need a login), club: { name, logo, accent, shirt }, expiresAt }; 404 for a link that is not valid (any more).
  */
 export const show = async (req, res) => {
     const screen = readScreenToken(req.params.token);
@@ -41,14 +41,14 @@ export const show = async (req, res) => {
     const game = hasRules(screen.kind) ? answerOf(screen.kind, doc) : doc.toJSON();
     const [players, club] = await Promise.all([
         db.player.find({ _id: { $in: (doc.players ?? []).filter(id => db.mongoose.isValidObjectId(id)) } }, 'nickname country shirt bestLevel notifiedLevel').lean(),
-        db.club.findById(doc.club, 'name logo accent').lean(),
+        db.club.findById(doc.club, 'name logo accent shirt').lean(),
     ]);
     res.set('Cache-Control', 'no-store');
     res.json({
         kind: screen.kind,
         game,
         players: players.map(player => ({ id: String(player._id), nickname: player.nickname, country: player.country ?? '', shirt: shirtOf(player) })),
-        club: club ? { name: club.name, logo: club.logo ?? '', accent: club.accent ?? null } : null,
+        club: club ? { name: club.name, logo: club.logo ?? '', accent: club.accent ?? null, shirt: clubShirtOf(club) } : null,
         expiresAt: screen.expiresAt,
     });
 };

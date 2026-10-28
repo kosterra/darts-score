@@ -6,6 +6,7 @@ import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import useGameRules from './game.rules';
 import PlayerFlight from '../../flights/player.flight';
+import PlayerShirt from '../../shirts/player.shirt';
 import QuickHeroBrand from '../../quick/quick.hero.brand';
 import { t } from '../../../utils/i18n';
 
@@ -58,9 +59,9 @@ const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [], actions = n
                         </span>
                         <div className="x01-hero-info">
                             <span className="x01-hero-name text-truncate" title={player.nickname}>
-                                {!(rows.length === 2 && index === 1) && <PlayerFlight player={player} seat={index} />}
+                                {!(rows.length === 2 && index === 1) && <><PlayerShirt player={player} /><PlayerFlight player={player} seat={index} /></>}
                                 {player.nickname}
-                                {rows.length === 2 && index === 1 && <PlayerFlight player={player} seat={index} />}
+                                {rows.length === 2 && index === 1 && <><PlayerFlight player={player} seat={index} /><PlayerShirt player={player} /></>}
                             </span>
                             {line && <span className="x01-live-leg">{line}</span>}
                             <span className="x01-live-tags">

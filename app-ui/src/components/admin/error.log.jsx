@@ -140,7 +140,7 @@ const ErrorLog = () => {
                         <i className="pi pi-search" />
                         <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search messages')} aria-label={t('Search messages')} />
                     </span>
-                    <FilterPills value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level')} />
+                    <FilterPills label={t('Level')} value={level} options={LEVEL_OPTIONS} onChange={setLevel} ariaLabel={t('Level')} />
                     <label className="d-flex align-items-center gap-2 fs-7 text-subtle" htmlFor="error-log-grouped">
                         <Checkbox inputId="error-log-grouped" checked={grouped} onChange={(e) => { setGrouped(e.checked); setExpanded(null); }} />
                         {t('The same ones together')}

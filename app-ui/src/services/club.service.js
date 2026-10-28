@@ -12,6 +12,8 @@ const createClub = (name) => requestJSON(API_URL, { method: 'POST', body: { name
  * { name, isPublic, publicLiveGames, publicResults }.
  */
 const updateClub = (clubId, settings) => requestJSON(`${API_URL}/${clubId}`, { method: 'PUT', body: settings });
+// the club shirt (club admins): { pattern, color, accent, logo }
+const updateShirt = (clubId, shirt) => requestJSON(`${API_URL}/${clubId}/shirt`, { method: 'PUT', body: shirt });
 // the club's own rules for its games (see rules/club.rules.js)
 const updateGameRules = (clubId, rules) => requestJSON(`${API_URL}/${clubId}/game-rules`, { method: 'PUT', body: rules });
 
@@ -90,6 +92,7 @@ const ClubService = {
     loadClubs,
     createClub,
     updateClub,
+    updateShirt,
     updateGameRules,
     deleteClub,
     findPlayerOfUser,

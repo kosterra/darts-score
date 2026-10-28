@@ -35,7 +35,7 @@ import { activityInsights, playersInsights } from '../../../app-api/src/utils/ad
 import { quickGameView } from '../../../app-api/src/utils/quick.games.js';
 import { x01StatsOf } from '../../../app-api/src/controllers/x01.stats.controller.js';
 import { storedOf } from '../../../app-api/src/utils/game.view.js';
-import { eveningView, newEvening, eveningGameError, eveningError } from '../../../app-api/src/utils/evenings.js';
+import { eveningView, eveningReport, gameSummary, newEvening, eveningGameError, eveningError } from '../../../app-api/src/utils/evenings.js';
 import { normalizeClubRules, normalizeGamePreferences, ruleViolations } from '../../../app-api/src/rules/club.rules.js';
 const quickGames = new Map();
 const evenings = new Map();
@@ -144,6 +144,17 @@ http.createServer((req, res) => {
         let json = {};
         try { json = body ? JSON.parse(body) : {}; } catch { json = {}; }
         if (path === '/__test/calendar') { seedCalendar(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
+        // the club evening of a night: the club games among its players, with the API's own report
+        const clubNight = path.match(/^\/api\/calendar\/nights\/(\d{4}-\d{2}-\d{2})\/evening$/);
+        if (clubNight) {
+            const ids = (url.searchParams.get('players') ?? '').split(',').filter(Boolean);
+            const from = new Date(url.searchParams.get('from'));
+            const to = new Date(url.searchParams.get('to'));
+            const chosen = ids.map(id => players.find(p => p.id === id)).filter(Boolean).map(p => ({ id: p.id, name: p.nickname, profileImg: '' }));
+            const own = [...games.values()].filter(g => ['x01', 'cricket', 'elimination'].includes(g.kind) && new Date(g.createdAt) >= from && new Date(g.createdAt) <= to && (g.players ?? []).length >= 2 && g.players.every(id => ids.includes(id)))
+                .map(g => ({ ...g, _id: g.id, data: g }));
+            return send(res, 200, { players: chosen, games: own.map(gameSummary), report: eveningReport({ players: chosen }, own) });
+        }
         if (path.startsWith('/api/calendar') && calendarMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', url }) !== false) return;
         if (path === '/__test/leagues') { seedLeagues(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
         if (path.startsWith('/api/leagues') && leagueMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1' }) !== false) return;
@@ -409,6 +420,7 @@ http.createServer((req, res) => {
                 games.set('gv1', { id: 'gv1', startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3, players: ['p1', 'p2'], gameIsRunning: true, hasWinner: false, visits: [], createdAt: ago(0.1), updatedAt: ago(0.1) });
                 return send(res, 200, [{ ...games.get('gv1'), type: 'x01', club: { id: 'k3', name: 'Bullseye Bern', logo: '' } }]);
             }
+            if (path === '/api/admin/players' && !process.env.ADMIN_OVERVIEWS) return send(res, 200, players.filter(p => !p.guest).slice(1, 3).map(p => ({ ...p, clubs: [{ id: 'k3', name: 'Bullseye Bern', logo: '' }] })));
             if (path === '/api/admin/clubs/k3/visit') return send(res, 200, { id: 'k3', name: 'Bullseye Bern', country: 'CH', accent: null, joinPolicy: 'closed', admins: [], role: 'admin', visiting: true, playerCount: 4 });
             if (path === '/api/public/evenings' && req.method === 'POST') {
                 const error = eveningError(json);
@@ -535,6 +547,21 @@ http.createServer((req, res) => {
             const nick = body.match(/name="nickname"\r\n\r\n([^\r]*)/); if (nick) p.nickname = nick[1];
             if (/name="profileImg"; filename=/.test(body)) p.profileImg = 'uploaded.png';
             return send(res, 200, { message: 'Player was updated successfully.' });
+        }
+        const yearPath = path.match(/^\/api\/stats\/player\/(p\d+)\/year$/);
+        if (yearPath) {
+            const year = Number(url.searchParams.get('year')) || new Date().getFullYear();
+            const nickname = players.find(p => p.id === yearPath[1])?.nickname ?? '?';
+            if (year < new Date().getFullYear() - 1) return send(res, 200, { year, years: [new Date().getFullYear(), new Date().getFullYear() - 1], player: { id: yearPath[1], nickname }, games: { total: 0, together: 0, wins: 0, winRate: 0, byType: {} }, x01: null, days: 0, busiestMonth: null, firstGameAt: null, opponent: null, trainings: 0, badges: { count: 0, latest: [] } });
+            return send(res, 200, {
+                year, years: [new Date().getFullYear(), new Date().getFullYear() - 1], player: { id: yearPath[1], nickname },
+                games: { total: 214, together: 198, wins: 117, winRate: 59, byType: { x01: 160, cricket: 31, elimination: 12, clock: 11 } },
+                x01: { games: 160, average: 54.37, bestGame: { average: 78.4, game: 'g801', at: `${year}-03-14T20:12:00Z` }, darts: 20412, oneEighties: 23, tonPlus: 612, highestCheckout: 141, bestLeg: 15 },
+                days: 61, busiestMonth: { month: 3, games: 34 }, firstGameAt: `${year}-01-09T19:40:00Z`,
+                opponent: { id: 'p2', nickname: players.find(p => p.id === 'p2')?.nickname ?? 'Ben', games: 48, wins: 27 },
+                trainings: 37,
+                badges: { count: 9, latest: [{ id: 'max180-10', group: 'max180', title: 'Maximum Collector', description: 'Throw 10 180s', tier: 2, tiers: 4, earnedAt: `${year}-11-02T21:00:00Z` }, { id: 'max180-1', group: 'max180', title: 'One Hundred and Eighty!', description: 'Throw your first 180', tier: 1, tiers: 4, earnedAt: `${year}-02-11T21:00:00Z` }] },
+            });
         }
         if (/^\/api\/stats\/player\/p\d+$/.test(path)) return send(res, 200, { ...(process.env.FORM_CHART ? (() => {
             const months = ['2023-12', '2024-01', '2024-02', '2024-03', '2025-03', '2025-10', '2025-12', '2026-10'];
@@ -676,6 +703,8 @@ http.createServer((req, res) => {
             globalThis.clubBadgeData.goals = json.goals.map((g, i) => ({ id: g.id ?? `goal-new-${i}`, metric: g.metric, target: g.target, from: new Date(2026, 6, 1), until: g.until, reachedAt: null }));
             return send(res, 200, clubOwn().goals);
         }
+        const clubShirt = path.match(/^\/api\/clubs\/(c\d)\/shirt$/);
+        if (clubShirt && req.method === 'PUT') { club.shirt = json; return send(res, 200, club); }
         if (path === '/api/clubs') return send(res, 200, [process.env.SHAME_DASH ? { ...club, dashboardWidgets: ['hallOfShame'] } : club, { ...club, id: 'c2', name: 'Testclub 2', country: 'IT' }]);
         if (path === '/api/stats/club' && process.env.DASH !== '0') {
             const members = players.map(p => ({ _id: p.id, ...p }));
@@ -782,7 +811,7 @@ http.createServer((req, res) => {
         }
         const one = path.match(/^\/api\/players\/(p\d+)$/);
         if (one) { const p = players.find(x => x.id === one[1]); p.bestLevel ??= Number(process.env.SHIRT_LEVEL ?? 6); return send(res, 200, { ...p, shirt: shirtOf(p) }); }
-        if (path === '/api/players/find') return send(res, 200, players.filter(p => (json.playerIds ?? []).includes(p.id)));
+        if (path === '/api/players/find') return send(res, 200, players.filter(p => (json.playerIds ?? []).includes(p.id)).map(p => ({ ...p, shirt: shirtOf(p) })));
         // the rules engine: Shanghai, Killer, … and Bob's 27, …
         const rg = path.match(/^\/api\/games\/rules(?:\/([^/]+))?$/);
         if (rg) {
@@ -842,7 +871,7 @@ http.createServer((req, res) => {
         const clock = path.match(/^\/api\/games\/(?:clock|x01|cricket|elimination)(?:\/([^/]+))?$/);
         if (clock) {
             const [, id] = clock;
-            if (req.method === 'POST' && !id) { const game = { ...json, id: `g${++seq}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; games.set(game.id, game); return send(res, 201, game); }
+            if (req.method === 'POST' && !id) { const game = { ...json, kind: path.split('/')[3], id: `g${++seq}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; games.set(game.id, game); return send(res, 201, game); }
             if (req.method === 'GET' && id) return games.has(id) ? send(res, 200, games.get(id)) : send(res, 404, {});
             if (req.method === 'PUT' && id) { const game = { ...games.get(id), ...json, updatedAt: new Date().toISOString() }; games.set(id, game); return send(res, 200, game); }
             if (req.method === 'GET') return send(res, 200, path.includes('/x01') ? [...games.values()].filter(g => !g.deleted) : []);

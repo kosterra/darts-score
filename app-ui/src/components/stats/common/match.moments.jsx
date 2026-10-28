@@ -1,5 +1,6 @@
 import { FaArrowRotateLeft, FaBolt, FaBullseye, FaCrosshairs, FaFire, FaFlagCheckered, FaScaleBalanced, FaSkull, FaStopwatch, FaXmark } from 'react-icons/fa6';
 
+import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
 
 import { PLAYER_COLORS } from '../charts/chart.theme';
@@ -18,9 +19,10 @@ const ICONS = {
 /**
  * The moments of a game as the figure chips of the dashboard and profile,
  * e.g. the highest visit or the best round, each with the player and when it
- * happened. "color" is the colour of the game type.
+ * happened. "color" is the colour of the game type. shares: the moments
+ * worth a picture, [{ id, label, onShare }], each a button below.
  */
-const MatchMoments = ({ moments, players, color }) => {
+const MatchMoments = ({ moments, players, color, shares = [] }) => {
     if (!moments.length) return null;
     const byId = new Map(players.map((player, index) => [player.id, { player, color: PLAYER_COLORS[index] }]));
 
@@ -44,6 +46,10 @@ const MatchMoments = ({ moments, players, color }) => {
                     );
                 })}
             </div>
+            {shares.length > 0 &&
+                <div className="d-flex flex-wrap gap-2 mt-3">
+                    {shares.map(share => <Button key={share.id} label={share.label} icon="pi pi-share-alt" size="small" severity="secondary" onClick={share.onShare} />)}
+                </div>}
         </Panel>
     );
 };

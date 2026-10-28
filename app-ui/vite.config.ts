@@ -69,14 +69,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // only React in a chunk of its own; PrimeReact and the charts are split by the pages
+          // that use them, so the first page does not load them all (a third less on the start page)
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
             return 'vendor-react';
-          }
-          if (id.includes('node_modules/primereact') || id.includes('node_modules/primeicons')) {
-            return 'vendor-primereact';
-          }
-          if (id.includes('node_modules/recharts')) {
-            return 'vendor-charts';
           }
         },
       },

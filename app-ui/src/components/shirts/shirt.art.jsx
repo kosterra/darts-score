@@ -1,4 +1,5 @@
 import { t } from '../../utils/i18n';
+import { resolveClubLogo } from '../../utils/image.utils';
 
 /**
  * The shirts of the players, drawn: the club shirt from the front (the
@@ -10,6 +11,27 @@ import { t } from '../../utils/i18n';
 // the accent colours of a club (as in the theme), for its shirt; none chosen: Legmate green
 const CLUB_SHIRT_COLORS = { green: '#528b6e', red: '#b4473e', blue: '#3a76a8', gold: '#a7802a', purple: '#7d5aa8' };
 const GOLD = '#d9b44a';
+const CLUB_SECOND = '#f2f2f2';
+
+// the patterns of a club shirt, from the front, in its second colour (clipped to the shirt)
+const ClubPattern = ({ pattern, second }) => {
+    switch (pattern) {
+        case 'stripes':
+            return <g fill={second}><rect x="33" y="40" width="5" height="72" /><rect x="82" y="40" width="5" height="72" /></g>;
+        case 'vertical':
+            return <g fill={second}>{[30, 44, 58, 72, 86].map(x => <rect key={x} x={x} y="0" width="6" height="120" />)}</g>;
+        case 'hoops':
+            return <g fill={second}>{[44, 66, 88].map(y => <rect key={y} x="0" y={y} width="120" height="10" />)}</g>;
+        case 'halves':
+            return <rect x="60" y="0" width="60" height="120" fill={second} />;
+        case 'sash':
+            return <path d="M28 40 L44 40 L92 112 L76 112 Z" fill={second} />;
+        case 'chevrons':
+            return <g fill="none" stroke={second} strokeWidth="5">{[66, 82].map(y => <path key={y} d={`M28 ${y - 12} L60 ${y} L92 ${y - 12}`} />)}</g>;
+        default:
+            return null;
+    }
+};
 
 // the shirt: body with short sleeves, the neck open at the top
 const BODY = 'M40 13 L50 9 Q60 15 70 9 L80 13 L106 27 L97 48 L87 43 L87 109 Q60 113 33 109 L33 43 L23 48 L14 27 Z';
@@ -146,16 +168,20 @@ const Pattern = ({ design, accent }) => {
 /**
  * One shirt. design: 'club' (from the front, the club's colour and name) or
  * a design of one's own (from the back, with the nickname); color, accent:
- * its two colours; club: { name, accent } for the club shirt; uid: unique
- * on the page, for the clip path.
+ * its two colours; club: { name, accent, logo, shirt } for the club shirt
+ * (shirt: { pattern, color, accent, logo } as its admins designed it); uid:
+ * unique on the page, for the clip path.
  */
-export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758', nickname = '', club = null, uid }) => {
+export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758', nickname = '', club = null, uid, small = false }) => {
     const clip = `${uid}-clip`;
     const isClub = design === 'club';
-    const main = isClub ? (CLUB_SHIRT_COLORS[club?.accent] ?? CLUB_SHIRT_COLORS.green) : color;
+    const clubShirt = club?.shirt ?? {};
+    const main = isClub ? (clubShirt.color ?? CLUB_SHIRT_COLORS[club?.accent] ?? CLUB_SHIRT_COLORS.green) : color;
+    const logo = isClub && clubShirt.logo && club?.logo ? resolveClubLogo(club.logo) : '';
     const ink = inkOn(main);
     // the name across the chest, or the nickname across the back, narrowed to fit
-    const text = (isClub ? (club?.name ?? '') : nickname).toUpperCase();
+    // (too small to read next to a name: none)
+    const text = small ? '' : (isClub ? (club?.name ?? '') : nickname).toUpperCase();
     const width = Math.min(48, Math.max(12, text.length * (isClub ? 4.6 : 6.4)));
     return (
         <svg viewBox="0 0 120 120" role="img" aria-label={isClub ? t('Club shirt of {{club}}', { club: club?.name ?? '' }) : t('Shirt with {{nickname}} on the back', { nickname })}>
@@ -165,6 +191,7 @@ export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758
             <path d={BODY} fill={main} />
             <g clipPath={`url(#${clip})`}>
                 {!isClub && <Pattern design={design} accent={accent} />}
+                {isClub && <ClubPattern pattern={clubShirt.pattern} second={clubShirt.accent ?? CLUB_SECOND} />}
                 {/* the sleeves a shade darker, as the seams show them */}
                 <path d={SLEEVES} fill="#000" opacity="0.12" />
                 {isClub && <path d="M14 27 L18 25 L27 46 L23 48 Z M106 27 L102 25 L93 46 L97 48 Z" fill={darker(main, 0.35)} />}
@@ -179,6 +206,8 @@ export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758
                 </g>
                 // the back: just the neckband
                 : <path d="M50 9 Q60 15 70 9 L70 12 Q60 18 50 12 Z" fill={darker(main, 0.35)} />}
+            {/* the club's logo on the chest, left of the buttons as the wearer sees it */}
+            {logo && <image href={logo} x="66" y="25" width="12" height="12" preserveAspectRatio="xMidYMid meet" />}
             {text &&
                 <text
                     x="60"
@@ -191,8 +220,9 @@ export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758
                     textLength={width}
                     lengthAdjust="spacingAndGlyphs"
                     style={{ fontFamily: 'inherit' }}
-                    stroke={isClub ? 'none' : darker(main, 0.5)}
-                    strokeWidth={isClub ? 0 : 0.4}
+                    // on a pattern the name keeps a thin outline, so it reads on both colours
+                    stroke={isClub && (clubShirt.pattern ?? 'plain') === 'plain' ? 'none' : darker(main, 0.5)}
+                    strokeWidth={isClub && (clubShirt.pattern ?? 'plain') === 'plain' ? 0 : 0.4}
                     paintOrder="stroke"
                 >
                     {text}

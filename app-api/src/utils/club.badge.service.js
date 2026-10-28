@@ -97,6 +97,9 @@ const notifyGoals = async (club, goals) => {
     }
 };
 
+// a club, or the club of an id (an ObjectId has an _id too, which is itself: a club is told apart by the badges every club has)
+export const clubOf = async (clubOrId) => (Array.isArray(clubOrId?.badges) ? clubOrId : db.club.findById(clubOrId));
+
 /**
  * Brings a club's badges and goals up to date with what it played. Badges are
  * only ever added. With "notify" the members hear about new ones (not when
@@ -104,7 +107,7 @@ const notifyGoals = async (club, goals) => {
  * Resolves to { fresh: [club badge entries], metrics, progress: { [goalId]: value } }.
  */
 export const syncClubBadges = async (clubOrId, { notify = true } = {}) => {
-    const club = clubOrId?._id ? clubOrId : await db.club.findById(clubOrId);
+    const club = await clubOf(clubOrId);
     if (!club) return { fresh: [], metrics: {}, progress: {} };
     const [{ games, trainings, tallies }, members] = await Promise.all([loadClubEvents(club._id), memberCount(club._id)]);
     const { earned, metrics } = replayClubBadges([...games, ...trainings], { members, createdAt: club.createdAt });
