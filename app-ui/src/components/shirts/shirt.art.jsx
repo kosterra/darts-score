@@ -172,7 +172,7 @@ const Pattern = ({ design, accent }) => {
  * (shirt: { pattern, color, accent, logo } as its admins designed it); uid:
  * unique on the page, for the clip path.
  */
-export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758', nickname = '', club = null, uid }) => {
+export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758', nickname = '', club = null, uid, small = false }) => {
     const clip = `${uid}-clip`;
     const isClub = design === 'club';
     const clubShirt = club?.shirt ?? {};
@@ -180,7 +180,8 @@ export const ShirtArt = ({ design = 'club', color = '#2b2f36', accent = '#46a758
     const logo = isClub && clubShirt.logo && club?.logo ? resolveClubLogo(club.logo) : '';
     const ink = inkOn(main);
     // the name across the chest, or the nickname across the back, narrowed to fit
-    const text = (isClub ? (club?.name ?? '') : nickname).toUpperCase();
+    // (too small to read next to a name: none)
+    const text = small ? '' : (isClub ? (club?.name ?? '') : nickname).toUpperCase();
     const width = Math.min(48, Math.max(12, text.length * (isClub ? 4.6 : 6.4)));
     return (
         <svg viewBox="0 0 120 120" role="img" aria-label={isClub ? t('Club shirt of {{club}}', { club: club?.name ?? '' }) : t('Shirt with {{nickname}} on the back', { nickname })}>

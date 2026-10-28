@@ -22,9 +22,10 @@ test('the club evening of tonight\'s club night', async ({ page }) => {
     await expect(page.getByText('A club game: it counts for the statistics, badges and levels of the club.')).toBeVisible();
     await page.screenshot({ path: `test-results/club-night-${test.info().project.name}.png`, fullPage: true });
 
-    // the next game is a club game; back on the evening it is listed
+    // the next game is a club game; back on the evening it is listed (other checks may have played tonight too)
+    const before = await page.locator('.timeline-entry').count();
     await page.getByRole('button', { name: 'Start the game' }).click();
     await expect(page).toHaveURL(/\/x01\/g\d+$/);
     await page.goBack();
-    await expect(page.locator('.timeline-entry')).toHaveCount(1);
+    await expect(page.locator('.timeline-entry')).toHaveCount(before + 1);
 });

@@ -14,8 +14,8 @@ const PlayerShirt = ({ player, className = '' }) => {
     const { activeClub } = useAuth();
     if (!player?.shirt) return null;
     return (
-        <span className={`player-shirt ${className}`} title={t('{{nickname}}\'s shirt', { nickname: player.nickname })}>
-            <ShirtPicture {...player.shirt} nickname={player.nickname} club={activeClub} uid={uid} />
+        <span className={`player-shirt ${className}`} title={t('{{nickname}}\'s shirt', { nickname: player.nickname })} aria-hidden="true">
+            <ShirtPicture {...player.shirt} nickname={player.nickname} club={activeClub} uid={uid} small />
         </span>
     );
 };
