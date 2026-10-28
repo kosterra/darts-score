@@ -26,8 +26,8 @@ info:
     name: AGPL-3.0-only
     url: https://www.gnu.org/licenses/agpl-3.0.html
 servers:
-  - url: http://localhost:3001
-    description: Local development
+  - url: /
+    description: The installation this description comes from
 security:
   - sessionCookie: []
 tags:
@@ -91,6 +91,8 @@ paths:
       summary: Health probe, for Docker and monitoring
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: '{ status: ok, database: ok, version, uptime: seconds }'
         '503':
@@ -211,6 +213,8 @@ paths:
       security: []
       operationId: getPublicSite
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: The setting
           content:
@@ -269,6 +273,8 @@ paths:
         - Public
       summary: The ways to support Legmate with a gift, for the page /support
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: '{ url: a donation page of this installation, twint: its TWINT link, project: the sponsoring page of the project (empty when url is the same) }'
       operationId: getPublicSupport
@@ -280,6 +286,8 @@ paths:
       description: Who runs the installation (as its global admins entered it), whether it sends mails, and how long what is kept on it.
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: The details
           content:
@@ -754,6 +762,8 @@ paths:
       summary: Log out
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: Session cookie cleared
       operationId: postAuthLogout
@@ -764,6 +774,8 @@ paths:
       summary: Whether the server can send mails (password reset, invitations)
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: OK
       operationId: getAuthConfig
@@ -998,6 +1010,8 @@ paths:
       description: Needs no login. Only public clubs appear, and players are named only when their nickname is set to public. Each club comes with its figures (players, games played in all and in the last 30 days, the last game, the busiest weekday, the X01 average and the 180s); the totals count the games of the last 7 days too, and are null while the global admins keep the numbers off the start page (System settings).
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: OK
       operationId: getPublicOverview
@@ -1268,6 +1282,8 @@ paths:
       summary: The banner shown on top of every page while it is switched on ({ enabled, text, color })
       security: []
       responses:
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '200':
           description: OK
       operationId: getPublicBanner
@@ -8046,6 +8062,12 @@ components:
                       type: string
     InternalError:
       description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+    TooManyRequests:
+      description: Too many requests from this network in a short time
       content:
         application/json:
           schema:
