@@ -135,12 +135,15 @@ const EveningsList = () => {
     );
 
     const playersBody = (evening) => (
-        <div className="d-flex flex-wrap gap-2">
+        <div className="d-flex flex-column gap-2">
             {evening.players.map(name => (
-                <span key={name} className="d-inline-flex align-items-center gap-2 min-w-0">
+                <div key={name} className="d-flex align-items-center gap-2 min-w-0">
                     <Avatar label={initials(name)} shape="circle" className="avatar-sm bg-surface-high flex-shrink-0" />
-                    <span className="text-default fs-7 text-truncate">{name}</span>
-                </span>
+                    <span className="text-default fw-semibold text-truncate">
+                        {name}
+                        {evening.leader?.name === name && <FaTrophy className="ms-2 text-gold" aria-label={t('Leading')} />}
+                    </span>
+                </div>
             ))}
         </div>
     );
