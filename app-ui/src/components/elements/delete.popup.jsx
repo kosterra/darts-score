@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-import { FaQuestionCircle } from "react-icons/fa";
 import { t } from '../../utils/i18n';
 
 const DeletePopup = (props) => {
@@ -19,38 +18,27 @@ const DeletePopup = (props) => {
 
     return (
         <div>
+            {/* as the confirm dialogs of the app: the question beside a warning, Cancel and Delete */}
             <Dialog
                 header={header}
                 visible={showDialog}
                 blockScroll={true}
                 onHide={() => setShowDialog(false)}
                 draggable={false}
+                className="p-confirm-dialog"
+                footer={(
+                    <>
+                        <Button label={t('Cancel')} severity="secondary" size="small" onClick={() => setShowDialog(false)} />
+                        <Button label={t('Delete')} severity="danger" size="small" onClick={() => {
+                            handleDelete(data);
+                            setShowDialog(false);
+                        }} />
+                    </>
+                )}
             >
-                <div className="col-12 d-flex flex-column justify-content-center align-items-center gap-4 pb-4">
-                    <FaQuestionCircle className="display-4 text-blue" />
-                    <span className="fs-6">
-                        {t('Are you sure you want to delete')}{' '}{message}?
-                    </span>
-                </div>
-                <div className="col-12 d-flex justify-content-end align-items-center gap-3 mt-4">
-                    <Button
-                        severity="secondary"
-                        size="small"
-                        onClick={() => setShowDialog(false)}
-                    >
-                        {t('Cancel')}
-                    </Button>
-                    <Button
-                        severity="danger"
-                        size="small"
-                        onClick={() => {
-                                handleDelete(data);
-                                setShowDialog(false);
-                            }
-                        }
-                    >
-                        {t('Sure!')}
-                    </Button>
+                <div className="d-flex align-items-start">
+                    <i className="p-confirm-dialog-icon pi pi-exclamation-triangle" aria-hidden="true" />
+                    <span className="p-confirm-dialog-message">{t('Are you sure you want to delete')}{' '}{message}?</span>
                 </div>
             </Dialog>
 

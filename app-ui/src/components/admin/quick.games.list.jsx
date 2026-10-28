@@ -93,7 +93,8 @@ const QuickGamesList = () => {
         icon: 'pi pi-exclamation-triangle',
         acceptLabel: t('Delete'),
         rejectLabel: t('Cancel'),
-        acceptClassName: 'p-button-danger',
+        acceptClassName: 'p-button-danger p-button-sm',
+        rejectClassName: 'p-button-secondary p-button-sm',
         accept: () => deleteGames(selection.map(game => game.id)),
     });
 

@@ -39,7 +39,7 @@ test('quick games and darts evenings: counted all time, listed, opened', async (
     await expect(page.locator('.kpi-headline')).toContainText('57');
     const row = page.locator('tr', { hasText: 'Friday at Lena\'s' }).first();
     await expect(row).toContainText('3 games');
-    await expect(row).toContainText('Played');
+    await expect(row).toContainText('Running');
     await page.screenshot({ path: `test-results/admin-evenings-${test.info().project.name}.png`, fullPage: true });
     await row.locator('.row-action-link[title="Open the evening"]').click();
     await expect(page).toHaveURL(/\/evening\/shared\//);

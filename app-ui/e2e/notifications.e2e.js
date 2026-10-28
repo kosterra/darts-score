@@ -14,7 +14,7 @@ test('clears all notifications after asking', async ({ page }) => {
 
     await page.getByRole('button', { name: 'Clear all notifications' }).click();
     await expect(page.getByText('Are you sure you want to delete all 2 notifications?')).toBeVisible();
-    await page.getByRole('button', { name: 'Sure!' }).click();
+    await page.locator('.p-confirm-dialog').getByRole('button', { name: 'Delete', exact: true }).click();
     await expect(page.locator('li.notification')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Mark all as read' })).toHaveCount(0);
 

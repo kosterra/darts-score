@@ -386,7 +386,7 @@ http.createServer((req, res) => {
                     const own = gamesOfEvening(evening._id);
                     const finished = own.filter(game => game.hasWinner).length;
                     const leader = finished ? eveningView(evening, own).report.table[0] : null;
-                    return { id: evening._id, name: evening.name, players: evening.players.map(player => player.name), games: own.length, finished, running: own.some(game => game.gameIsRunning && !game.hasWinner),
+                    return { id: evening._id, name: evening.name, players: evening.players.map(player => player.name), games: own.length, finished, running: !evening.endedAt, endedAt: evening.endedAt ?? null,
                         leader: leader ? { name: leader.name, wins: leader.wins } : null, club: null, shareToken: evening.shareToken, createdAt: evening.createdAt, lastGameAt: own.at(-1)?.updatedAt ?? null };
                 });
                 return send(res, 200, { total: list.length, allTime: { played: 57, since: '2026-09-01T10:00:00Z' }, perDay: [{ day: new Date().toISOString().slice(0, 10), evenings: list.length }], evenings: list });
