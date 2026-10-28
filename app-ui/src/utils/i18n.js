@@ -137,12 +137,21 @@ const storedLanguage = () => {
     }
 };
 
+// the texts of each language in two parts (scripts/vite.split.texts.mjs): all
+// the app needs, and those only the About, What's new, legal and terms pages show
 const LOADERS = {
-    de: () => import('../locales/de.json'),
-    fr: () => import('../locales/fr.json'),
-    it: () => import('../locales/it.json'),
-    es: () => import('../locales/es.json'),
+    de: () => import('virtual:texts/de.main'),
+    fr: () => import('virtual:texts/fr.main'),
+    it: () => import('virtual:texts/it.main'),
+    es: () => import('virtual:texts/es.main'),
 };
+const PAGE_LOADERS = {
+    de: () => import('virtual:texts/de.pages'),
+    fr: () => import('virtual:texts/fr.pages'),
+    it: () => import('virtual:texts/it.pages'),
+    es: () => import('virtual:texts/es.pages'),
+};
+let pageTexts = null;
 
 /**
  * Picks the language and loads its texts; the app starts after this.
@@ -159,6 +168,19 @@ export const initLanguage = async () => {
         }
     }
     return language;
+};
+
+/**
+ * Loads the texts of the About, What's new, legal and terms pages; each of
+ * them waits for it before it shows (only the first one opened loads).
+ */
+export const loadPageTexts = () => {
+    if (language === 'en') return Promise.resolve();
+    pageTexts ??= PAGE_LOADERS[language]()
+        .then(module => { dictionary = { ...dictionary, ...(module.default ?? {}) }; })
+        // in English then, rather than not at all
+        .catch(() => { pageTexts = null; });
+    return pageTexts;
 };
 
 // a language picked before logging in, to be saved on the account after it

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { existsSync, readFileSync } from 'fs'
+import splitTexts from './scripts/vite.split.texts.mjs'
 
 // The app's version lives in the repository's root package.json
 // (in the dev container it is mounted elsewhere, see ROOT_PACKAGE in docker-compose.dev.yml)
@@ -39,7 +40,8 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react(), restartOnVersionChange()],
+  // the texts of each language in a main part and one for the About, legal and terms pages
+  plugins: [react(), restartOnVersionChange(), splitTexts(path.resolve(import.meta.dirname, 'src'))],
   // dayjs and its locales pre-bundled together: found apart, the locales point
   // at an older dayjs bundle and the app does not start
   optimizeDeps: {

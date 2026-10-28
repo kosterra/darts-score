@@ -17,7 +17,7 @@ const THEMES = {
     contrast: { ...dark, ...colorsOf(blockOf('contrast')) },
     light: colorsOf(blockOf('light')),
 };
-const ACCENTS = Object.fromEntries([...source.matchAll(/\n\s*(\w+): \(primary: (#\w+), dark: (#\w+), light: (#\w+), lighter: (#\w+), lightest: (#\w+)\)/g)]
+const ACCENTS = Object.fromEntries([...source.matchAll(/\n\s*'?(\w+)'?: \(primary: (#\w+), dark: (#\w+), light: (#\w+), lighter: (#\w+), lightest: (#\w+)\)/g)]
     .map(([, name, primary, darkShade, light, lighter, lightest]) => [name, { primary, dark: darkShade, light, lighter, lightest }]));
 
 // WCAG relative luminance and contrast ratio
