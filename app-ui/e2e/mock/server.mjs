@@ -479,6 +479,9 @@ http.createServer((req, res) => {
                 const id = `q${quickGames.size + 1}`;
                 return send(res, 201, { game: keep(id, json.kind, clean(json.game)), key: 'mock-key' });
             }
+            // the statistics of a quick X01 game, worked out by the API
+            const qgStats = path.match(/^\/api\/public\/quick-games\/([^/]+)\/stats$/);
+            if (qgStats && quickGames.has(qgStats[1])) return send(res, 200, x01StatsOf({ ...quickGames.get(qgStats[1]).data, _id: qgStats[1] }));
             const qg = path.match(/^\/api\/public\/quick-games\/([^/]+)$/);
             if (qg && quickGames.has(qg[1])) {
                 if (req.method === 'PUT') return send(res, 200, keep(qg[1], quickGames.get(qg[1]).kind, clean(json)));
@@ -699,6 +702,15 @@ http.createServer((req, res) => {
             };
         };
         if (path === '/api/stats/club-badges' && process.env.CLUB_BADGES) return send(res, 200, clubOwn());
+        // without CLUB_BADGES: a club that earned none yet
+        if (path === '/api/stats/club-badges') return send(res, 200, { earnedCount: 0, total: CLUB_BADGES.length, badges: CLUB_BADGES.map(b => ({ ...publicClubBadge(b), earned: null, progress: 0 })), goals: [] });
+        // the levels of the players: everyone a Rookie (the real ones need their games)
+        if (path === '/api/stats/levels' && !process.env.PLAYERS_PAGE) return send(res, 200, Object.fromEntries(players.map(p => [p.id, { id: 'rookie', name: 'Rookie', index: 0, xp: 0 }])));
+        // the banner on top of every page: off
+        if (path === '/api/public/banner') return send(res, 200, { enabled: false });
+        // the insights of the admin lists without ADMIN_OVERVIEWS: nothing yet
+        if (path === '/api/admin/insights/games' || path === '/api/admin/insights/trainings') return send(res, 200, { ...activityInsights([]), clubsById: {} });
+        if (path === '/api/admin/insights/players') return send(res, 200, { ...playersInsights([]), clubsById: {} });
         if (path === '/api/clubs/c1/goals' && req.method === 'PUT') {
             globalThis.clubBadgeData.goals = json.goals.map((g, i) => ({ id: g.id ?? `goal-new-${i}`, metric: g.metric, target: g.target, from: new Date(2026, 6, 1), until: g.until, reachedAt: null }));
             return send(res, 200, clubOwn().goals);
@@ -734,7 +746,7 @@ http.createServer((req, res) => {
             });
         }
         if (path === '/api/auth/me' && req.method === 'GET') return send(res, 200, user);
-        if (path === '/api/auth/language' && req.method === 'PUT') { user.language = json.language; console.log('LANGUAGE', json.language, req.headers['accept-language']); return send(res, 200, user); }
+        if (path === '/api/auth/language' && req.method === 'PUT') { user.language = json.language; return send(res, 200, user); }
         const dash = path.match(/^\/api\/auth\/dashboard\/(c\d+)$/);
         if (dash && req.method === 'PUT') { user.dashboards = [...(user.dashboards ?? []).filter(d => d.club !== dash[1]), ...(Array.isArray(json.layout) ? [{ club: dash[1], layout: json.layout }] : [])]; return send(res, 200, user); }
         const clubPut = path.match(/^\/api\/clubs\/(c\d+)$/);
