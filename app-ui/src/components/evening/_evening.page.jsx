@@ -276,7 +276,7 @@ const EveningPage = ({ shared = false }) => {
                         <NextGame evening={evening} onStart={start} busy={busy} />
                         <div className="evening-end">
                             <span className="text-faint fs-8">{t('Done for tonight? End the evening; otherwise it ends by itself 12 hours after the last game ({{time}}).', { time: formatDateTime(evening.endsAt) })}</span>
-                            <Button type="button" label={t('End the evening')} icon="pi pi-flag" size="small" text severity="secondary" onClick={endEvening} />
+                            <Button type="button" label={t('End the evening')} icon="pi pi-flag" size="small" severity="secondary" onClick={endEvening} />
                         </div>
                     </Panel>}
 

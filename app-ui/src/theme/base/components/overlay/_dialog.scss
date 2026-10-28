@@ -63,18 +63,32 @@
     }
     
 
+    // a question before doing something: as the text of the other dialogs (small, subtle),
+    // the icon in the accent colour, at the size of a heading
     &.p-confirm-dialog {
+        // next to the first line of a message running over several (PrimeReact centres it)
+        .p-dialog-content { align-items: flex-start !important; }
+
         .p-confirm-dialog-icon {
-            font-size: $primeIconFontSize * 2;
-            
+            flex-shrink: 0;
+            margin-top: 0.05rem;
+            font-size: $text-xl;
+            color: $primaryColor;
+
             &.p-icon {
-                width: $primeIconFontSize * 2;
-                height: $primeIconFontSize * 2;
+                width: $text-xl;
+                height: $text-xl;
             }
         }
 
+        // deleting or cancelling something: the icon in red, as its button
+        &:has(.p-button-danger) .p-confirm-dialog-icon { color: $accentRed; }
+
         .p-confirm-dialog-message {
             margin-left: $inlineSpacing * 2;
+            color: var(--text-subtle);
+            font-size: $text-md;
+            line-height: 1.5;
         }
     }
 }
