@@ -11,6 +11,8 @@ export default [
   react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'],
   reactRefresh.configs.vite,
+  // the React version for every file the React rules see (the .mjs of the checks too)
+  { settings: { react: { version: 'detect' } } },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -24,7 +26,6 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       'react/prop-types': 'off',
     },
-    settings: { react: { version: 'detect' } },
   },
   // the browser checks and their stand-in for the API run in Node
   {
