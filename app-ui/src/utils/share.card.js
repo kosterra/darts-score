@@ -27,6 +27,15 @@ const fit = (context, text, width) => {
     return `${line}…`;
 };
 
+// the largest font (from size down to min) at which the text fits the width; shortened only below that
+const fitFont = (context, text, width, { weight, size, min }) => {
+    for (let at = size; at >= min; at -= 2) {
+        context.font = `${weight} ${at}px ${FONT}`;
+        if (context.measureText(String(text ?? '')).width <= width) return String(text ?? '');
+    }
+    return fit(context, text, width);
+};
+
 const roundedRect = (context, x, y, width, height, radius) => {
     context.beginPath();
     context.moveTo(x + radius, y);
@@ -80,8 +89,7 @@ export const drawShareCard = async (card, { gold = false } = {}) => {
         y += 84;
     }
     context.fillStyle = COLORS.text;
-    context.font = `800 76px ${FONT}`;
-    context.fillText(fit(context, card.title, WIDTH - 160), 80, y);
+    context.fillText(fitFont(context, card.title, WIDTH - 160, { weight: 800, size: 76, min: 44 }), 80, y);
     y += 62;
     if (card.subtitle) {
         context.fillStyle = COLORS.subtle;
@@ -93,8 +101,7 @@ export const drawShareCard = async (card, { gold = false } = {}) => {
     if (card.hero) {
         context.textAlign = 'center';
         context.fillStyle = accent;
-        context.font = `800 230px ${FONT}`;
-        context.fillText(fit(context, card.hero.value, WIDTH - 160), WIDTH / 2, 680);
+        context.fillText(fitFont(context, card.hero.value, WIDTH - 160, { weight: 800, size: 230, min: 110 }), WIDTH / 2, 680);
         context.fillStyle = COLORS.subtle;
         context.font = `600 42px ${FONT}`;
         context.fillText(fit(context, card.hero.label, WIDTH - 160), WIDTH / 2, 750);
@@ -114,8 +121,7 @@ export const drawShareCard = async (card, { gold = false } = {}) => {
         roundedRect(context, x, top, tileWidth, tileHeight, 22);
         context.fill();
         context.fillStyle = COLORS.text;
-        context.font = `800 64px ${FONT}`;
-        context.fillText(fit(context, figure.value, tileWidth - 48), x + 24, top + 88);
+        context.fillText(fitFont(context, figure.value, tileWidth - 48, { weight: 800, size: 64, min: 34 }), x + 24, top + 88);
         context.fillStyle = COLORS.subtle;
         context.font = `400 30px ${FONT}`;
         context.fillText(fit(context, figure.label, tileWidth - 48), x + 24, top + 136);

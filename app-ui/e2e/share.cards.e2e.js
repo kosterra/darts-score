@@ -8,7 +8,7 @@ const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', head
 test('a nine-darter and a high checkout to share', async ({ page }) => {
     const v = (player, ...darts) => ({ player, darts });
     const game = {
-        players: ['q1', 'q2'], quickPlayers: [{ id: 'q1', nickname: 'Pris' }, { id: 'q2', nickname: 'Pathan' }],
+        players: ['q1', 'q2'], quickPlayers: [{ id: 'q1', nickname: 'Pris' }, { id: 'q2', nickname: 'Patch Panther' }],
         startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 1,
         // 180, 180, 141: nine darts
         visits: [v('q1', 'T20', 'T20', 'T20'), v('q2', 'S1', 'S1', 'S1'), v('q1', 'T20', 'T20', 'T20'), v('q2', 'S1', 'S1', 'S1'), v('q1', 'T20', 'T19', 'D12')],
