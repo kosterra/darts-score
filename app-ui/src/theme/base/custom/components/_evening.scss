@@ -37,6 +37,35 @@
     > .flex-grow-1 { flex: 1 1 16rem; }
 }
 
+// the evening is over: its winner, in gold
+.evening-over {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: $radius-md;
+    border: 1px solid with-alpha($accentGold, 0.45);
+    background: with-alpha($accentGold, 0.1);
+
+    > .pi { color: $accentGold; font-size: $text-2xl; }
+    > .min-w-0 { flex: 1 1 16rem; }
+}
+
+// below the next game: ending the evening, and when it ends by itself
+.evening-end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    margin-top: $space-3;
+    padding-top: $space-3;
+    border-top: 1px solid ink(0.06);
+
+    > span { flex: 1 1 16rem; }
+}
+
 .evening-share { width: min(26rem, calc(100vw - 2rem)); }
 
 .evening-share-link {

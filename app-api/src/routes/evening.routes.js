@@ -23,6 +23,7 @@ export default (app) => {
     // the big screen of the evening (the browser that runs it): a link, or sent to a TV by its code
     router.post('/:id/screen', games, id, validate, EveningController.screenLink);
     router.post('/:id/screen/send', sendLimiter, id, tvCode, validate, EveningController.screenSend);
+    router.post('/:id/end', games, id, validate, EveningController.end);
     router.post('/:id/games', games, id, body('kind').isIn(['x01', 'cricket', 'elimination']).withMessage('A game of the evening is X01, Cricket or Elimination.'), validate, EveningController.addGame);
 
     app.use('/api/public/evenings', router);

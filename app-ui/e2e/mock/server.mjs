@@ -419,10 +419,17 @@ http.createServer((req, res) => {
                 evenings.set(id, evening);
                 return send(res, 201, { evening: eveningView(evening, [], { owner: true }), key: 'mock-key' });
             }
+            const evEnd = path.match(/^\/api\/public\/evenings\/(e\d+)\/end$/);
+            if (evEnd && evenings.has(evEnd[1]) && req.method === 'POST') {
+                const evening = evenings.get(evEnd[1]);
+                evening.endedAt ??= new Date();
+                return send(res, 200, eveningView(evening, gamesOfEvening(evEnd[1]), { owner: true }));
+            }
             const ev = path.match(/^\/api\/public\/evenings\/(e\d+)(\/games)?$/);
             if (ev && evenings.has(ev[1])) {
                 const evening = evenings.get(ev[1]);
                 if (ev[2] && req.method === 'POST') {
+                    if (evening.endedAt) return send(res, 409, { message: 'This evening is over. Start a new one for the next.' });
                     const error = eveningGameError(evening, json.kind, json.game);
                     if (error) return send(res, 422, { errors: [error] });
                     const id = `q${quickGames.size + 1}`;

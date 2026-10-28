@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 // the quick games and the settings, in memory
 let games = [];
 let setting = null;
+let evenings = [];
 const lean = (value) => ({ lean: async () => value });
 const matches = (game, query) => Object.entries(query).every(([key, value]) => {
     if (value && typeof value === 'object' && '$ne' in value) return game[key] !== value.$ne;
@@ -22,6 +23,14 @@ vi.mock('../models/db.model.js', () => ({
                 return { modifiedCount: game ? 1 : 0 };
             },
         },
+        quickEvening: {
+            updateMany: async (query, update) => { evenings.filter(evening => query._id.$in.includes(evening._id)).forEach(evening => Object.assign(evening, update.$set)); },
+            updateOne: async (query, update) => {
+                const evening = evenings.find(entry => entry._id === query._id && entry.counted !== true);
+                if (evening) Object.assign(evening, update.$set);
+                return { modifiedCount: evening ? 1 : 0 };
+            },
+        },
         setting: {
             findOne: () => lean(setting),
             updateOne: async (query, update) => {
@@ -35,10 +44,11 @@ vi.mock('../models/db.model.js', () => ({
     },
 }));
 
-const { countQuickGame, quickTally } = await import('./quick.tally.js');
+const { countEvening, countQuickGame, quickTally } = await import('./quick.tally.js');
 
 beforeEach(() => {
     setting = null;
+    evenings = [{ _id: 'e1' }, { _id: 'e2' }, { _id: 'e3' }];
     games = [
         { _id: 'g1', hasWinner: true, evening: null, createdAt: new Date('2026-10-01') },
         { _id: 'g2', hasWinner: true, evening: 'e1', createdAt: new Date('2026-10-05') },
@@ -60,17 +70,17 @@ describe('the all-time tally of quick games and darts evenings', () => {
         expect((await quickTally()).quickGames).toBe(3);
     });
 
-    it('counts a darts evening with its first finished game only', async () => {
+    it('counts a darts evening once when it ends, only with a finished game', async () => {
         await quickTally();
-        const first = { _id: 'g5', hasWinner: true, evening: 'e2', createdAt: new Date() };
-        const second = { _id: 'g6', hasWinner: true, evening: 'e2', createdAt: new Date() };
-        games.push(first, second);
-        await countQuickGame({ ...first });
-        await countQuickGame({ ...second });
-        // a game of an evening counted already does not count the evening again
-        games[2].hasWinner = true;
-        await countQuickGame({ ...games[2] });
-        expect(await quickTally()).toMatchObject({ quickGames: 5, eveningGames: 4, evenings: 2 });
+        // e1 had a finished game when counting began: counted then
+        expect(evenings[0].counted).toBe(true);
+        await countEvening({ ...evenings[0] });
+        games.push({ _id: 'g5', hasWinner: true, evening: 'e2', createdAt: new Date() });
+        await countEvening({ _id: 'e2' });
+        await countEvening({ _id: 'e2' });
+        // e3 ended without a finished game
+        await countEvening({ _id: 'e3' });
+        expect(await quickTally()).toMatchObject({ evenings: 2 });
     });
 
     it('leaves games not finished out', async () => {

@@ -28,7 +28,7 @@ const GREEN = ACCENT.green;
 const DAY = 24 * 60 * 60 * 1000;
 const STATUS_OPTIONS = [
     { label: t('All'), value: 'all' },
-    { label: t('Running'), value: 'running', icon: 'pi pi-play' },
+    { label: t('Going on'), value: 'running', icon: 'pi pi-play' },
     { label: t('Played'), value: 'played', icon: 'pi pi-check-circle' },
     { label: t('Became a club'), value: 'club', icon: 'pi pi-sitemap' },
 ];
@@ -50,7 +50,7 @@ const EveningsOverview = ({ data, days }) => {
             <div className="kpi-headline">
                 <KpiHero label={t('Kept now')} value={formatNumber(data.total ?? evenings.length)} detail={t('the last 30 days')} color={GREEN} />
                 <KpiHero label={t('In the last 7 days')} value={formatNumber(evenings.filter(evening => Date.now() - new Date(evening.createdAt).getTime() < 7 * DAY).length)} color={GREEN} />
-                <KpiHero label={t('Running now')} value={formatNumber(evenings.filter(evening => evening.running).length)} color={GREEN} />
+                <KpiHero label={t('Going on now')} value={formatNumber(evenings.filter(evening => evening.running).length)} color={GREEN} />
                 <KpiHero label={t('Played, all time')} value={formatNumber(data.allTime?.played ?? 0)} detail={data.allTime ? t('since {{date}}', { date: formatDate(data.allTime.since) }) : null} color={GREEN} />
                 <KpiHero label={t('Became a club')} value={formatNumber(evenings.filter(evening => evening.club).length)} color={GREEN} />
             </div>
@@ -61,7 +61,7 @@ const EveningsOverview = ({ data, days }) => {
                     </span>
                 ))}
             </div>
-            <p className="text-faint fs-8 mt-1 mb-0">{t('Darts evenings started per day, the last 30 days. An evening counts as played with its first finished game.')}</p>
+            <p className="text-faint fs-8 mt-1 mb-0">{t('Darts evenings started per day, the last 30 days. An evening counts as played when it ends with at least one finished game: ended by hand, or by itself 12 hours after its last game.')}</p>
         </Panel>
     );
 };
@@ -92,7 +92,7 @@ const EveningsList = () => {
     const evenings = useMemo(() => (data?.evenings ?? []).filter(evening => ({
         all: true,
         running: evening.running,
-        played: evening.finished > 0,
+        played: !evening.running && evening.finished > 0,
         club: Boolean(evening.club),
     })[status]), [data, status]);
     // the last 30 days, the days without an evening too
@@ -154,7 +154,7 @@ const EveningsList = () => {
 
     const statusBody = (evening) => (
         <div className="d-flex flex-column align-items-start gap-1">
-            {evening.running && <Tag value={t('Running')} severity="info" />}
+            {evening.running && <Tag value={t('Going on')} severity="info" />}
             {!evening.running && evening.finished > 0 && <Tag value={t('Played')} severity="success" />}
             {!evening.running && evening.finished === 0 && <Tag value={t('Not played')} severity="secondary" />}
             {evening.club && <Tag value={t('Club: {{name}}', { name: evening.club.name ?? '?' })} severity="warning" />}

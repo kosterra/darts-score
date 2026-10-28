@@ -1045,7 +1045,7 @@ paths:
             type: string
       responses:
         '200':
-          description: '{ id, name, players: [{ id, name }], games: [{ id, kind, players, winner, finished, running, setup, createdAt }], report: { table, awards, headToHead, form, played, running }, createdAt, club, shareToken (only with the key) }'
+          description: '{ id, name, players: [{ id, name }], games: [{ id, kind, players, winner, finished, running, setup, createdAt }], report: { table, awards, headToHead, form, played, running }, createdAt, club, endedAt (null while it goes on), endsAt (when it ends by itself, 12 hours after its last game), shareToken (only with the key) }'
         '404':
           description: Not found on this device
       operationId: getPublicEveningsByid
@@ -1081,10 +1081,27 @@ paths:
         '404':
           description: Not found on this device
         '409':
-          description: The evening became a club
+          description: The evening is over, or became a club
         '422':
           $ref: '#/components/responses/ValidationError'
       operationId: postPublicEveningsByidGames
+  /api/public/evenings/{id}/end:
+    post:
+      tags:
+        - Quick games
+      summary: "End the evening, with the evening's key: no more games, the table and the awards are final"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The evening, as GET /api/public/evenings/{id}
+        '404':
+          description: Not found on this device
+      operationId: postPublicEveningsByidEnd
   /api/public/evenings/shared/{token}:
     get:
       tags:
@@ -2318,7 +2335,7 @@ paths:
             default: 200
       responses:
         '200':
-          description: '{ total, allTime: { played, since }, perDay: [{ day, evenings }], evenings: [{ id, name, players, games, finished, running, leader, club, shareToken, createdAt, lastGameAt }] }'
+          description: '{ total, allTime: { played, since }, perDay: [{ day, evenings }], evenings: [{ id, name, players, games, finished, running (not ended yet), endedAt, leader, club, shareToken, createdAt, lastGameAt }] }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Dialog } from 'primereact/dialog';
 import { Message } from 'primereact/message';
 import { Panel } from 'primereact/panel';
@@ -170,6 +171,9 @@ const EveningPage = ({ shared = false }) => {
     const report = evening.report;
     const owner = !shared;
     const adopted = Boolean(evening.club);
+    // over: ended by hand, by itself 12 hours after the last game, or made a club
+    const ended = Boolean(evening.endedAt);
+    const champion = report.awards.find(award => award.id === 'champion');
 
     // a game of the evening, as the recent games of the Dashboard: when, what, who with their result
     const gameEntry = (game) => (
@@ -212,6 +216,22 @@ const EveningPage = ({ shared = false }) => {
         }
     };
     const makeClub = () => navigate(`/evening/${evening.id}/club`);
+    const endEvening = () => confirmDialog({
+        header: t('End the evening'),
+        message: t('No more games after that: the table and the awards are final. A game going on can still be played to its end.'),
+        icon: 'pi pi-flag',
+        acceptLabel: t('End the evening'),
+        rejectLabel: t('Cancel'),
+        acceptClassName: 'p-button-sm',
+        rejectClassName: 'p-button-secondary p-button-sm',
+        accept: async () => {
+            try {
+                setEvening(await EveningService.endEvening(evening.id));
+            } catch (err) {
+                toast.current?.show({ severity: 'error', summary: t('End the evening'), detail: err.message, life: 5000 });
+            }
+        },
+    });
 
     return (
         <QuickLayout suffix={t('· Darts evening')}>
@@ -224,7 +244,7 @@ const EveningPage = ({ shared = false }) => {
                         {/* the date, or only the time when the title names the date already */}
                         <span className="text-subtle">{t('Darts evening')}{' · '}{evening.name ? formatDateTime(evening.createdAt) : dayjs(evening.createdAt).format('HH:mm')}</span>
                         <span className="evening-header-players">{evening.players.map(player => player.name).join(' · ')}</span>
-                        {shared && <span className="text-faint fs-8">{t('You follow this evening: it updates on its own.')}</span>}
+                        {shared && !ended && <span className="text-faint fs-8">{t('You follow this evening: it updates on its own.')}</span>}
                     </div>
                     {owner && !adopted &&
                         <div className="d-flex flex-wrap align-items-center gap-2">
@@ -238,9 +258,26 @@ const EveningPage = ({ shared = false }) => {
                     {adopted && <Message severity="success" className="w-100 justify-content-start" text={t('This evening became a club: its players and games are there now.')} />}
                 </header>
 
-                {owner && !adopted &&
+                {/* over: the winner of the evening, the table and the awards final */}
+                {ended && !adopted &&
+                    <div className="evening-over" role="status">
+                        <i className="pi pi-flag-fill" aria-hidden="true" />
+                        <span className="d-flex flex-column gap-1 min-w-0">
+                            <span className="text-default fw-semibold">
+                                {champion ? t('The evening is over: {{name}} wins it!', { name: nameOf(champion.player) }) : t('The evening is over.')}
+                            </span>
+                            <span className="text-subtle fs-7">{t('Ended {{time}}. The table and the awards below are final.', { time: formatDateTime(evening.endedAt) })}</span>
+                        </span>
+                        {owner && <Button type="button" label={t('New darts evening')} icon="pi pi-plus" size="small" outlined onClick={() => navigate('/evening/new')} />}
+                    </div>}
+
+                {owner && !adopted && !ended &&
                     <Panel header={t('Next game')}>
                         <NextGame evening={evening} onStart={start} busy={busy} />
+                        <div className="evening-end">
+                            <span className="text-faint fs-8">{t('Done for tonight? End the evening; otherwise it ends by itself 12 hours after the last game ({{time}}).', { time: formatDateTime(evening.endsAt) })}</span>
+                            <Button type="button" label={t('End the evening')} icon="pi pi-flag" size="small" text severity="secondary" onClick={endEvening} />
+                        </div>
                     </Panel>}
 
                 {running.length > 0 &&
@@ -294,6 +331,7 @@ const EveningPage = ({ shared = false }) => {
                     </div>}
             </div>
 
+            <ConfirmDialog />
             <Dialog header={t('Follow the evening')} visible={sharing} onHide={() => setSharing(false)} className="evening-share" dismissableMask>
                 <div className="d-flex flex-column align-items-center gap-3 text-center">
                     <span className="text-subtle fs-7">{t('Friends scan the code or open the link: they see the table, the awards and the games on their phones, as it goes on. Only this device plays.')}</span>
