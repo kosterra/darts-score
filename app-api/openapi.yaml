@@ -7202,6 +7202,7 @@ paths:
           description: What was sent cannot be taken
       parameters:
         - $ref: '#/components/parameters/ClubId'
+      operationId: getLeagues
     post:
       tags:
         - Leagues
@@ -7250,6 +7251,7 @@ paths:
           description: What was sent cannot be taken
       parameters:
         - $ref: '#/components/parameters/ClubId'
+      operationId: postLeagues
   /api/leagues/{id}:
     get:
       tags:
@@ -7275,6 +7277,7 @@ paths:
           required: true
           schema:
             type: string
+      operationId: getLeaguesByid
     put:
       tags:
         - Leagues
@@ -7328,6 +7331,7 @@ paths:
           required: true
           schema:
             type: string
+      operationId: putLeaguesByid
     delete:
       tags:
         - Leagues
@@ -7352,6 +7356,7 @@ paths:
           required: true
           schema:
             type: string
+      operationId: deleteLeaguesByid
   /api/leagues/{id}/start:
     post:
       tags:
@@ -7377,6 +7382,7 @@ paths:
           required: true
           schema:
             type: string
+      operationId: postLeaguesByidStart
   /api/leagues/{id}/cancel:
     post:
       tags:
@@ -7402,6 +7408,7 @@ paths:
           required: true
           schema:
             type: string
+      operationId: postLeaguesByidCancel
   /api/leagues/{id}/matches/{match}/start:
     post:
       tags:
@@ -7442,6 +7449,7 @@ paths:
           schema:
             type: string
             pattern: '^d\d+-\d+$'
+      operationId: postLeaguesByidMatchesBymatchStart
   /api/leagues/{id}/matches/{match}/result:
     put:
       tags:
@@ -7482,6 +7490,7 @@ paths:
           schema:
             type: string
             pattern: '^d\d+-\d+$'
+      operationId: putLeaguesByidMatchesBymatchResult
   /api/leagues/{id}/matches/{match}/date:
     put:
       tags:
@@ -7495,9 +7504,8 @@ paths:
               type: object
               properties:
                 date:
-                  type: string
+                  type: [string, 'null']
                   format: date-time
-                  nullable: true
       responses:
         '200':
           description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
@@ -7524,6 +7532,7 @@ paths:
           schema:
             type: string
             pattern: '^d\d+-\d+$'
+      operationId: putLeaguesByidMatchesBymatchDate
   /api/leagues/{id}/matchdays/{day}/date:
     put:
       tags:
@@ -7564,6 +7573,7 @@ paths:
           required: true
           schema:
             type: integer
+      operationId: putLeaguesByidMatchdaysBydayDate
   /api/calendar:
     get:
       tags:
@@ -7650,11 +7660,11 @@ paths:
               type: object
               properties:
                 answer:
-                  type: string
-                  nullable: true
+                  type: [string, 'null']
                   enum:
                     - 'yes'
                     - 'no'
+                    - null
       responses:
         '200':
           description: The calendar, as GET /api/calendar
