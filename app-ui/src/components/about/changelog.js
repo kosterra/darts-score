@@ -9,6 +9,7 @@ const CHANGELOG = [
     {
         version: '2026.10.21',
         changes: [
+            t('A shorter menu: the player comparison is under Players, the badges under Results with the games and trainings, and Your year in darts is in the menu in December and January (all year long on My statistics).'),
             t('A new logo: two boards, a green and a red ring hooked into each other, gold where they meet – the mates of Legmate. On the home screen, in the browser tab and in shared links too.'),
             t('The filter pills of every list say what they filter: Status, Players, Level, Whose and more.'),
             t('For global admins: a player of any club opens as its admins see the profile, as games and trainings do.'),
