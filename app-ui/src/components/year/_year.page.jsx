@@ -12,11 +12,16 @@ import { playerInClub, useMyPlayers } from '../../utils/use.my.players';
 import { locale, t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 import { shareCard } from '../../utils/share.card';
-import { KpiHero } from '../stats/players/kpi';
+import { KpiChip, KpiHero } from '../stats/players/kpi';
+import { FaBullseye, FaCalendarDays, FaCrosshairs, FaFire, FaHashtag, FaStopwatch, FaUserGroup } from 'react-icons/fa6';
+import { MdSportsCricket } from 'react-icons/md';
+import { BiTargetLock } from 'react-icons/bi';
+import { PiClockClockwiseBold } from 'react-icons/pi';
+import { rulesIcon } from '../rules/rules.icons';
 import BadgeMedal from '../badges/badge.medal';
 import { gameTitle } from '../admin/kind.titles';
 import { Lines } from '../elements/skeletons';
-import { ACCENT } from '../../utils/palette';
+import { ACCENT, GAME_COLORS } from '../../utils/palette';
 import usePageTitle from '../../utils/use.page.title';
 import { defaultYear } from '../../utils/year.in.darts';
 
@@ -57,7 +62,7 @@ const YearPage = () => {
     const own = !id || id === mine?.id;
     const nothing = review.games.total === 0;
     const x01 = review.x01;
-    const opponentLine = review.opponent && t('{{games}} games against {{name}}, {{wins}} of them won', { games: review.opponent.games, name: review.opponent.nickname, wins: review.opponent.wins });
+    const opponentLine = review.opponent && t('{{games}} games · {{wins}} won', { games: review.opponent.games, wins: review.opponent.wins });
 
     const share = async () => {
         setSharing(true);
@@ -83,15 +88,35 @@ const YearPage = () => {
         }
     };
 
+    // the games of each type, as chips with the icon and colour of the game
+    const TYPE_ICONS = { x01: FaBullseye, cricket: MdSportsCricket, elimination: BiTargetLock, clock: PiClockClockwiseBold };
+    const facts = [
+        ...(review.firstGameAt ? [[t('First game of the year'), formatDate(review.firstGameAt)]] : []),
+        [t('Days at the board'), number(review.days)],
+        [t('Trainings'), number(review.trainings)],
+        [t('Badges earned'), number(review.badges.count)],
+    ];
+
     return (
         <div className="container-fluid p-4">
             <Toast ref={toast} position="bottom-right" />
-            <div className="year-page d-flex flex-column gap-4">
+            <div className="d-flex flex-column gap-4">
+                {/* as the header of a player's statistics: the title, then a line of facts */}
                 <header className="dashboard-header hero-header rounded-2 p-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
-                    <div className="d-flex flex-column gap-1 min-w-0">
-                        <span className="year-eyebrow">{own ? t('Your year in darts') : t('Year in darts')}</span>
-                        <h1 className="fs-2 fw-semibold text-default m-0">{review.year}{!own && ` · ${review.player.nickname}`}</h1>
-                        {review.firstGameAt && <span className="text-subtle">{t('First game of the year: {{date}}', { date: formatDate(review.firstGameAt) })}</span>}
+                    <div className="d-flex flex-column gap-3 min-w-0">
+                        <div className="d-flex flex-column gap-1">
+                            <h1 className="fs-2 fw-semibold text-default m-0">{own ? t('Your year in darts {{year}}', { year: review.year }) : t('Year in darts {{year}}', { year: review.year })}</h1>
+                            <span className="text-subtle">{review.player.nickname}{activeClub?.name ? ` · ${activeClub.name}` : ''}</span>
+                        </div>
+                        {!nothing &&
+                            <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                                {facts.map(([label, value]) => (
+                                    <div key={label}>
+                                        <dt className="text-faint fs-8 fw-normal">{label}</dt>
+                                        <dd className="text-default fw-semibold m-0 tabular-nums">{value}</dd>
+                                    </div>
+                                ))}
+                            </dl>}
                     </div>
                     <div className="d-flex flex-wrap align-items-center gap-2">
                         {review.years.length > 1 &&
@@ -101,66 +126,71 @@ const YearPage = () => {
                 </header>
 
                 {nothing
-                    ? <Message severity="info" className="w-100 justify-content-start" text={t('No finished game in {{year}} yet.', { year: review.year })} />
+                    ? <p className="text-subtle m-0">{t('No finished game in {{year}} yet.', { year: review.year })}</p>
                     : <>
-                        <Panel header={t('The year at a glance')}>
-                            <div className="kpi-headline">
-                                <KpiHero label={tn(review.games.total, 'game played', 'games played')} value={number(review.games.total)} color={ACCENT.green} />
-                                <KpiHero label={t('wins')} value={number(review.games.wins)} detail={review.games.together ? t('{{percent}} % of the games with others', { percent: review.games.winRate }) : null} color={ACCENT.gold} />
-                                <KpiHero label={t('days at the board')} value={number(review.days)} color={ACCENT.green} />
-                                <KpiHero label={t('trainings')} value={number(review.trainings)} color={ACCENT.green} />
-                            </div>
-                            <ul className="year-types list-unstyled m-0 mt-4">
-                                {Object.entries(review.games.byType).sort((a, b) => b[1] - a[1]).map(([kind, count]) => (
-                                    <li key={kind}><span className="text-default fw-semibold">{gameTitle(kind)}</span><span className="text-subtle">{number(count)}</span></li>
-                                ))}
-                            </ul>
-                        </Panel>
-
-                        {x01 &&
-                            <Panel header={t('X01: the best of the year')}>
-                                <div className="kpi-headline">
-                                    <KpiHero label={t('3-dart average')} value={number(x01.average, 1)} detail={tn(x01.games, '{{count}} game', '{{count}} games')} color={ACCENT.green} />
-                                    <KpiHero label={t('Best game')} value={x01.bestGame ? number(x01.bestGame.average, 1) : '–'} detail={x01.bestGame ? formatDate(x01.bestGame.at) : null} color={ACCENT.gold} />
-                                    <KpiHero label={t('180s')} value={number(x01.oneEighties)} detail={t('{{count}} visits of 100 or more', { count: number(x01.tonPlus) })} color={ACCENT.gold} />
-                                    <KpiHero label={t('Highest checkout')} value={number(x01.highestCheckout)} color={ACCENT.green} />
-                                    <KpiHero label={t('Best leg (501)')} value={x01.bestLeg ? t('{{count}} darts', { count: x01.bestLeg }) : '–'} color={ACCENT.green} />
-                                    <KpiHero label={t('Darts thrown')} value={number(x01.darts)} color={ACCENT.green} />
-                                </div>
-                            </Panel>}
-
                         <div className="row g-4">
-                            {review.busiestMonth &&
-                                <div className="col-12 col-lg-6">
-                                    <Panel header={t('The busiest month')} className="h-100">
-                                        <span className="year-big text-capitalize">{monthName(review.busiestMonth.month)}</span>
-                                        <span className="text-subtle d-block">{tn(review.busiestMonth.games, '{{count}} game', '{{count}} games')}</span>
-                                    </Panel>
-                                </div>}
-                            {review.opponent &&
-                                <div className="col-12 col-lg-6">
-                                    <Panel header={t('Your rival of the year')} className="h-100">
-                                        <Link to={`/players/${review.opponent.id}`} className="year-big text-decoration-none">{review.opponent.nickname}</Link>
-                                        <span className="text-subtle d-block">{opponentLine}</span>
-                                    </Panel>
-                                </div>}
+                        <div className={x01 ? 'col-12 col-xl-6' : 'col-12'}>
+                        <Panel header={t('Games')} className="h-100">
+                            <div className="kpi-headline mb-4">
+                                <KpiHero label={t('Games played')} value={number(review.games.total)} color={ACCENT.green} />
+                                <KpiHero label={t('Wins')} value={number(review.games.wins)} detail={review.games.together ? t('{{percent}} % of the games with others', { percent: review.games.winRate }) : null} color={ACCENT.green} />
+                            </div>
+                            <div className="kpi-chips">
+                                {Object.entries(review.games.byType).sort((a, b) => b[1] - a[1]).map(([kind, count]) => (
+                                    <KpiChip key={kind} icon={TYPE_ICONS[kind] ?? rulesIcon(kind)} label={gameTitle(kind)} value={number(count)} color={GAME_COLORS[kind] ?? GAME_COLORS.rules ?? ACCENT.green} />
+                                ))}
+                            </div>
+                        </Panel>
                         </div>
 
+                        {x01 &&
+                            <div className="col-12 col-xl-6">
+                            <Panel header={t('X01')} className="h-100">
+                                <div className="kpi-headline mb-4">
+                                    <KpiHero label={t('3-dart average')} value={number(x01.average, 1)} detail={tn(x01.games, '{{count}} game', '{{count}} games')} color={GAME_COLORS.x01} />
+                                    <KpiHero label={t('Best game')} value={x01.bestGame ? number(x01.bestGame.average, 1) : null} detail={x01.bestGame ? formatDate(x01.bestGame.at) : null} color={GAME_COLORS.x01} />
+                                </div>
+                                <div className="kpi-chips">
+                                    <KpiChip icon={FaFire} label={t('180s')} value={number(x01.oneEighties)} color={GAME_COLORS.x01} />
+                                    <KpiChip icon={FaHashtag} label="100+" value={number(x01.tonPlus)} color={GAME_COLORS.x01} />
+                                    <KpiChip icon={FaCrosshairs} label={t('Highest checkout')} value={x01.highestCheckout ? number(x01.highestCheckout) : null} color={GAME_COLORS.x01} />
+                                    <KpiChip icon={FaStopwatch} label={t('Best 501 leg')} value={x01.bestLeg ? t('{{bestLeg}} darts', { bestLeg: x01.bestLeg }) : null} color={GAME_COLORS.x01} />
+                                    <KpiChip icon={FaBullseye} label={t('Darts thrown')} value={number(x01.darts)} color={GAME_COLORS.x01} />
+                                </div>
+                            </Panel>
+                            </div>}
+                        </div>
+
+                        <div className="row g-4">
+                        {(review.busiestMonth || review.opponent) &&
+                            <div className={review.badges.count > 0 ? 'col-12 col-xl-6' : 'col-12'}>
+                        <Panel header={t('Highlights')} className="h-100">
+                            <div className="kpi-chips">
+                                {review.busiestMonth && <KpiChip icon={FaCalendarDays} label={t('The busiest month')} value={<span className="text-capitalize">{monthName(review.busiestMonth.month)}</span>} detail={tn(review.busiestMonth.games, '{{count}} game', '{{count}} games')} color={ACCENT.green} />}
+                                {review.opponent && <KpiChip icon={FaUserGroup} label={t('Your rival of the year')} value={<Link to={`/players/${review.opponent.id}`}>{review.opponent.nickname}</Link>} detail={opponentLine} color={ACCENT.green} />}
+                            </div>
+                        </Panel>
+                            </div>}
+
                         {review.badges.count > 0 &&
-                            <Panel header={tn(review.badges.count, '{{count}} badge earned', '{{count}} badges earned')}>
+                            <div className={review.busiestMonth || review.opponent ? 'col-12 col-xl-6' : 'col-12'}>
+                            <Panel header={t('Badges')} className="h-100">
+                                <span className="text-subtle fs-7 d-block mb-3">{tn(review.badges.count, '{{count}} badge earned', '{{count}} badges earned')}{review.badges.count > review.badges.latest.length ? ` · ${t('the latest')}` : ''}</span>
                                 <ul className="year-badges list-unstyled m-0">
                                     {review.badges.latest.map(badge => (
                                         <li key={badge.id}>
-                                            <BadgeMedal badge={badge} size="md" />
+                                            <BadgeMedal badge={badge} size="sm" />
                                             <span className="d-flex flex-column min-w-0">
-                                                <span className="text-default fw-semibold">{badge.title}</span>
+                                                <span className="text-default fs-7 fw-semibold">{badge.title}</span>
                                                 <span className="text-faint fs-8">{formatDate(badge.earnedAt)}</span>
                                             </span>
                                         </li>
                                     ))}
                                 </ul>
-                                {review.badges.count > review.badges.latest.length && <Link to="/badges" className="d-inline-block mt-3">{t('All badges')}</Link>}
-                            </Panel>}
+                                {review.badges.count > review.badges.latest.length && <Link to="/badges" className="d-inline-block mt-3 fs-7">{t('All badges')}</Link>}
+                            </Panel>
+                            </div>}
+                        </div>
                     </>}
             </div>
         </div>
