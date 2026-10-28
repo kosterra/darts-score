@@ -15,11 +15,21 @@ import { Toast } from 'primereact/toast';
 import CalendarService from '../../services/calendar.service';
 import { useAuth } from '../../utils/auth.context';
 import { locale, t } from '../../utils/i18n';
-import { MAX_CLUB_NIGHTS, NOTE_MAX, REASON_MAX, addDays, dayKey, nightsError } from '../../rules/calendar';
+import { MAX_CLUB_NIGHTS, NOTE_MAX, REASON_MAX, addDays, dayKey, monthGrid, nightsError } from '../../rules/calendar';
 import { roundName } from '../tournaments/tournament.words';
 import { Lines } from '../elements/skeletons';
+import CalendarMonth from './calendar.month';
 
 const WEEKS = 8;
+// the view chosen last on this device: the coming weeks as a list, or a month
+const VIEW_KEY = 'darts-score.calendarView';
+const storedView = () => {
+    try {
+        return localStorage.getItem(VIEW_KEY) === 'month' ? 'month' : 'list';
+    } catch {
+        return 'list';
+    }
+};
 
 // the name of a weekday (0 Sunday) in the language of the app; 4 January 2026 was a Sunday
 const weekdayName = (weekday, style = 'long') => new Intl.DateTimeFormat(locale(), { weekday: style, timeZone: 'UTC' }).format(new Date(Date.UTC(2026, 0, 4 + weekday)));
@@ -42,7 +52,7 @@ const eventWords = (event) => ({
  * A club night in the list: when, whether it is cancelled, and who comes;
  * the member answers, the admins cancel it or take that back.
  */
-const ClubNight = ({ night, canAnswer, isAdmin, busy, onAnswer, onCancel, onRestore }) => {
+const ClubNight = ({ night, canAnswer, isAdmin, busy, onAnswer, onCancel, onRestore, past = false }) => {
     const [open, setOpen] = useState(false);
     const others = night.notComingCount;
     return (
@@ -53,7 +63,7 @@ const ClubNight = ({ night, canAnswer, isAdmin, busy, onAnswer, onCancel, onRest
                     <span className="calendar-item-title">{t('Club night')}</span>
                     <span className="d-flex align-items-center gap-1">
                         <span className="calendar-item-time">{hours(night)}</span>
-                        {isAdmin && (night.cancelled
+                        {isAdmin && !past && (night.cancelled
                             ? <Button icon="pi pi-replay" text rounded size="small" className="calendar-item-action" aria-label={t('Takes place after all')} title={t('Takes place after all')} loading={busy === `restore-${night.day}`} onClick={() => onRestore(night)} />
                             : <Button icon="pi pi-ban" text rounded size="small" severity="danger" className="calendar-item-action" aria-label={t('Cancel this club night')} title={t('Cancel this club night')} onClick={() => onCancel(night)} />)}
                     </span>
@@ -68,7 +78,7 @@ const ClubNight = ({ night, canAnswer, isAdmin, busy, onAnswer, onCancel, onRest
                     )
                     : (
                         <>
-                            {canAnswer &&
+                            {canAnswer && !past &&
                                 <SelectButton
                                     value={night.me}
                                     options={[{ label: t('I\'m coming'), value: 'yes' }, { label: t('Not this time'), value: 'no' }]}
@@ -203,10 +213,24 @@ const CalendarPage = () => {
     const [busy, setBusy] = useState('');
     const [cancelling, setCancelling] = useState(null);
     const [reason, setReason] = useState('');
+    const [view, setView] = useState(storedView);
+    const [month, setMonth] = useState(today.slice(0, 7));
+    const [selected, setSelected] = useState(today);
 
     const to = addDays(today, weeks * 7 - 1);
-    const load = useCallback(() => CalendarService.loadCalendar(today, to).then(setCalendar).catch(err => setError(err.message)), [today, to]);
+    // the days the view shows: the coming weeks, or the weeks of the month
+    const grid = monthGrid(month);
+    const range = useMemo(() => (view === 'month' ? { from: grid.from, to: grid.to } : { from: today, to }), [view, grid.from, grid.to, today, to]);
+    const load = useCallback(() => CalendarService.loadCalendar(range.from, range.to).then(setCalendar).catch(err => setError(err.message)), [range]);
     useEffect(() => { load(); }, [load]);
+    const chooseView = (value) => {
+        setView(value);
+        try {
+            localStorage.setItem(VIEW_KEY, value);
+        } catch {
+            // without storage the list opens next time
+        }
+    };
 
     const run = async (key, action, done) => {
         setBusy(key);
@@ -222,6 +246,18 @@ const CalendarPage = () => {
             setBusy('');
         }
     };
+
+    // everything shown, by day
+    const byDay = useMemo(() => {
+        const map = new Map();
+        if (!calendar) return map;
+        const items = [
+            ...calendar.clubNights.map(night => ({ key: `night-${night.day}`, day: night.day, sort: night.start, night })),
+            ...calendar.events.map(event => ({ key: event.id, day: dayKey(event.at), sort: timeOf(event.at), event })),
+        ].sort((a, b) => a.day.localeCompare(b.day) || a.sort.localeCompare(b.sort));
+        for (const item of items) map.set(item.day, [...(map.get(item.day) ?? []), item]);
+        return map;
+    }, [calendar]);
 
     // the days with something on, month by month
     const months = useMemo(() => {
@@ -244,45 +280,69 @@ const CalendarPage = () => {
 
     if (!calendar) return <div className="container-fluid p-4">{error ? <Message severity="error" text={error} /> : <Lines count={8} />}</div>;
 
-    const answer = (night, value) => run(`answer-${night.day}`, () => CalendarService.answer(night.day, value));
+    const answer = (night, value) => run(`answer-${night.day}`, () => CalendarService.answer(night.day, value, range));
     const cancel = async () => {
-        if (await run(`cancel-${cancelling.day}`, () => CalendarService.cancelNight(cancelling.day, reason.trim()), t('The members are told.'))) setCancelling(null);
+        if (await run(`cancel-${cancelling.day}`, () => CalendarService.cancelNight(cancelling.day, reason.trim(), range), t('The members are told.'))) setCancelling(null);
     };
     const canAnswer = Boolean(calendar.myPlayer);
+    // a club night or a tournament or league day; past: no more answers or changes
+    const renderItem = (item, past) => (item.night
+        ? <ClubNight key={item.key} night={item.night} past={past} canAnswer={canAnswer} isAdmin={isClubAdmin} busy={busy} onAnswer={answer} onCancel={(night) => { setReason(''); setCancelling(night); }} onRestore={(night) => run(`restore-${night.day}`, () => CalendarService.restoreNight(night.day, range), t('The members are told.'))} />
+        : <EventItem key={item.key} event={item.event} />);
 
     return (
         <div className="container-fluid p-4">
             <div className="calendar-columns">
-                <Panel header={t('Calendar')}>
-                    {months.length === 0 &&
-                        <p className="text-faint fs-7 m-0">{isClubAdmin ? t('Nothing in the coming weeks. Add the club nights, and tournaments and leagues with dates show here by themselves.') : t('Nothing in the coming weeks.')}</p>}
-                    <div className="d-flex flex-column gap-4">
-                        {months.map(month => (
-                            <section key={month.month} className="d-flex flex-column gap-2">
-                                <h3 className="calendar-month">{monthName(`${month.month}-01`)}</h3>
-                                {month.days.map(day => (
-                                    <div key={day.day} className={`calendar-day ${day.day === today ? 'is-today' : ''}`}>
-                                        <span className="calendar-date">
-                                            <span className="calendar-date-weekday">{day.day === today ? t('Today') : weekdayName(noonOf(day.day).getUTCDay(), 'short')}</span>
-                                            <span className="calendar-date-number">{Number(day.day.slice(8))}</span>
-                                        </span>
-                                        <div className="calendar-day-items">
-                                            {day.items.map(item => (item.night
-                                                ? <ClubNight key={item.key} night={item.night} canAnswer={canAnswer} isAdmin={isClubAdmin} busy={busy} onAnswer={answer} onCancel={(night) => { setReason(''); setCancelling(night); }} onRestore={(night) => run(`restore-${night.day}`, () => CalendarService.restoreNight(night.day), t('The members are told.'))} />
-                                                : <EventItem key={item.key} event={item.event} />))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </section>
-                        ))}
-                    </div>
-                    {weeks < 26 && <Button label={t('Show more weeks')} icon="pi pi-angle-down" size="small" text className="mt-3" onClick={() => setWeeks(Math.min(26, weeks + WEEKS))} />}
+                <Panel header={t('Calendar')} icons={
+                    <SelectButton
+                        value={view}
+                        options={[{ label: t('List'), value: 'list' }, { label: t('Month'), value: 'month' }]}
+                        onChange={(event) => event.value && chooseView(event.value)}
+                        className="p-selectbutton-pills pills-inline"
+                        aria-label={t('View')}
+                    />
+                }>
+                    {view === 'month'
+                        ? (
+                            <div className="d-flex flex-column gap-3">
+                                <CalendarMonth month={month} byDay={byDay} today={today} selected={selected} onSelect={setSelected} onMonth={(next) => { setMonth(next); setSelected(next === today.slice(0, 7) ? today : `${next}-01`); }} eventName={(event) => `${event.name} · ${eventWords(event).what}`} />
+                                <section className="d-flex flex-column gap-2" aria-live="polite">
+                                    <h3 className="calendar-month">{new Intl.DateTimeFormat(locale(), { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(noonOf(selected))}</h3>
+                                    {(byDay.get(selected) ?? []).length
+                                        ? <div className="calendar-day-items">{byDay.get(selected).map(item => renderItem(item, selected < today))}</div>
+                                        : <span className="text-faint fs-7">{t('Nothing on this day.')}</span>}
+                                </section>
+                            </div>
+                        )
+                        : (
+                            <>
+                                {months.length === 0 &&
+                                    <p className="text-faint fs-7 m-0">{isClubAdmin ? t('Nothing in the coming weeks. Add the club nights, and tournaments and leagues with dates show here by themselves.') : t('Nothing in the coming weeks.')}</p>}
+                                <div className="d-flex flex-column gap-4">
+                                    {months.map(entry => (
+                                        <section key={entry.month} className="d-flex flex-column gap-2">
+                                            <h3 className="calendar-month">{monthName(`${entry.month}-01`)}</h3>
+                                            {entry.days.map(day => (
+                                                <div key={day.day} className={`calendar-day ${day.day === today ? 'is-today' : ''}`}>
+                                                    <span className="calendar-date">
+                                                        <span className="calendar-date-weekday">{day.day === today ? t('Today') : weekdayName(noonOf(day.day).getUTCDay(), 'short')}</span>
+                                                        <span className="calendar-date-number">{Number(day.day.slice(8))}</span>
+                                                    </span>
+                                                    <div className="calendar-day-items">{day.items.map(item => renderItem(item, false))}</div>
+                                                </div>
+                                            ))}
+                                        </section>
+                                    ))}
+                                </div>
+                                {weeks < 26 && <Button label={t('Show more weeks')} icon="pi pi-angle-down" size="small" text className="mt-3" onClick={() => setWeeks(Math.min(26, weeks + WEEKS))} />}
+                            </>
+                        )}
                 </Panel>
 
                 <div className="d-flex flex-column gap-4">
                     <Panel header={t('Club nights')}>
                         {isClubAdmin
-                            ? <NightsEditor nights={calendar.nights} busy={busy} onSave={(nights) => run('nights', () => CalendarService.saveNights(nights), t('The club nights are saved.'))} />
+                            ? <NightsEditor nights={calendar.nights} busy={busy} onSave={(nights) => run('nights', () => CalendarService.saveNights(nights, range), t('The club nights are saved.'))} />
                             : calendar.nights.length
                                 ? (
                                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
