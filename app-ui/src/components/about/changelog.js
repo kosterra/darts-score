@@ -14,6 +14,7 @@ const CHANGELOG = [
             t('Calendar: the month as a grid besides the list, the club nights in green and the days of tournaments and leagues in blue; a tap on a day shows what is on.'),
             t('The statistics of a game not finished yet say so and lead back into the game, instead of offering to play it again.'),
             t('Your year in darts: in the menu, and on the dashboard from December to the middle of January. The games and wins of the year, days at the board, the X01 records (average, best game, 180s, highest checkout, best leg), the busiest month, the rival and the badges, with a picture to share.'),
+            t('Pictures to share: a nine-darter and a checkout of 100 or more from the statistics of an X01 game, and the win of a tournament from its page, as a card in the look of Legmate.'),
             t('The club evening: Club evening on tonight\'s club night opens it with the members who said they come (add others who came anyway). The next game is suggested as in a darts evening, but it is a club game that counts for statistics, badges and levels; the table, the awards, who beat whom and the form of the evening come from those games. A past club night shows its table.'),
         ],
     },

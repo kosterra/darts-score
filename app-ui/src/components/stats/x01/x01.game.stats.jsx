@@ -34,6 +34,9 @@ import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 import { teamsOf } from '../../../rules/x01';
 import { t } from '../../../utils/i18n';
 import { ACCENT } from '../../../utils/palette';
+import { useAuth } from '../../../utils/auth.context';
+import { formatDate } from '../../../utils/dates';
+import { shareCard } from '../../../utils/share.card';
 
 // the key figures of every player in the header; for the best leg less wins
 const FIGURES = [
@@ -116,6 +119,31 @@ const X01GameStats = ({ training = false, quick = false }) => {
         ? Object.fromEntries(players.map(player => [player.id, playerFigures(game, player.id, legs)]))
         : {}, [game, players, legs]);
     const moments = useMemo(() => game ? matchMoments(game, legs) : [], [game, legs]);
+    const { activeClub } = useAuth();
+    // the moments worth a picture: a nine-darter, a checkout of 100 or more
+    const shares = useMemo(() => {
+        if (!game || !players?.length) return [];
+        const nameOf = (playerId) => players.find(player => player.id === playerId)?.nickname ?? '?';
+        const startOf = (playerId) => Number(hasHandicap(game) ? rulesOf(game, playerId).startingScore : game.startingScore);
+        const against = (playerId) => players.filter(player => player.id !== playerId).map(player => player.nickname).join(', ');
+        const when = formatDate(game.createdAt);
+        const list = [];
+        const nine = legs.find(leg => leg.winner && leg.winnerDarts === 9 && startOf(leg.winner) === 501);
+        if (nine) {
+            list.push({
+                id: 'nine', label: t('Share the nine-darter'),
+                onShare: () => shareCard({ eyebrow: t('Nine-darter'), title: nameOf(nine.winner), subtitle: [quick ? null : activeClub?.name, when].filter(Boolean).join(' · '), hero: { value: '9', label: t('darts for 501') }, figures: [{ value: '167', label: t('3-dart average in the leg') }, ...(against(nine.winner) ? [{ value: against(nine.winner), label: t('against') }] : [])] }, { gold: true, filename: `legmate-nine-darter-${nameOf(nine.winner)}.png`, text: t('A nine-darter!') }),
+            });
+        }
+        const best = legs.filter(leg => leg.winner && leg.checkout >= 100).sort((a, b) => b.checkout - a.checkout)[0];
+        if (best) {
+            list.push({
+                id: 'checkout', label: t('Share the {{value}} checkout', { value: best.checkout }),
+                onShare: () => shareCard({ eyebrow: t('High checkout'), title: nameOf(best.winner), subtitle: [quick ? null : activeClub?.name, when].filter(Boolean).join(' · '), hero: { value: String(best.checkout), label: t('checkout') }, figures: [{ value: String(best.winnerDarts), label: t('darts in the leg') }, ...(against(best.winner) ? [{ value: against(best.winner), label: t('against') }] : [])] }, { gold: true, filename: `legmate-checkout-${best.checkout}.png`, text: t('A {{value}} checkout!', { value: best.checkout }) }),
+            });
+        }
+        return list;
+    }, [game, players, legs, activeClub?.name, quick]);
 
     const onNewGame = () => navigate(quick ? '/quick' : training ? '/training/x01' : '/x01', { replace: true });
 
@@ -236,7 +264,7 @@ const X01GameStats = ({ training = false, quick = false }) => {
                     />
                 }
 
-                <MatchMoments moments={moments} players={players} color={GAME_COLOR} />
+                <MatchMoments moments={moments} players={players} color={GAME_COLOR} shares={shares} />
 
                 <X01LegsPanel game={game} players={players} legs={legs} />
 
