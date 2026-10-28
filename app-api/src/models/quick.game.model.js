@@ -15,6 +15,8 @@ export default (mongoose) => {
       winner:        { type: String, default: null },
       gameIsRunning: { type: Boolean, default: true },
       hasWinner:     { type: Boolean, default: false },
+      // counted in the all-time tally of finished quick games (once, even after an undo)
+      counted:       { type: Boolean, default: false },
       // only the browser with the key plays on: its hash
       keyHash:       { type: String, required: true },
     },

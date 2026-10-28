@@ -1,6 +1,6 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { ROLES } from '../models/user.model.js';
+import { CLUB_ROLES, ROLES } from '../models/user.model.js';
 import { isMailConfigured } from '../utils/mail.utils.js';
 import { addToClub, removeFromClub } from './player.controller.js';
 import { removeProfileImageIfUnused } from '../utils/player.images.js';
@@ -91,6 +91,17 @@ export const overview = async (req, res) => {
 export const clubs = async (req, res) => {
     const all = await db.club.find({}, 'name logo country').sort({ name: 1 });
     res.json(all.map(club => ({ id: club._id, name: club.name, logo: club.logo })));
+};
+
+/**
+ * A club as its admins have it in the app, for a global admin to look at it
+ * (they are admins of every club): what the app needs to work in it.
+ */
+export const visitClub = async (req, res) => {
+    const club = await db.club.findById(req.params.id).populate('admins', 'firstname lastname email');
+    if (!club) return res.status(404).json({ message: 'Club not found.' });
+    const playerCount = await db.player.countDocuments({ clubs: club._id, guest: { $ne: true } });
+    res.json({ ...club.toJSON(), role: CLUB_ROLES.ADMIN, playerCount, visiting: true });
 };
 
 /**

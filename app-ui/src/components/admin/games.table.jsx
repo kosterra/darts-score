@@ -35,6 +35,7 @@ import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDateTime } from './admin.format';
 import useClubSelection from './use.club.selection';
+import { VisitLink } from './visit.club';
 import ActivityInsights from './activity.insights';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dialogs';
@@ -314,14 +315,18 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         await loadGames();
     };
 
-    // games open in the club the app works in, so across clubs only that club's games link there
-    const canOpen = (game) => !acrossClubs || game.club?.id === activeClub?.id;
+    // games open in the club the app works in; across clubs a global admin looks at the game's club
+    const opensHere = (game) => !acrossClubs || game.club?.id === activeClub?.id;
 
     const actionsBody = (game) => (
         <div className="row-actions">
-            {canOpen(game) && (game.gameIsRunning
+            {opensHere(game) && (game.gameIsRunning
                 ? <Link to={playPath(game.type, game.id)} className="row-action-link" title={t('Continue playing')} aria-label={t('Continue playing')}><GiDart /></Link>
                 : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title={t('Show statistics')} aria-label={t('Show statistics')}><FaChartColumn /></Link>
+            )}
+            {!opensHere(game) && game.club?.id && (game.gameIsRunning
+                ? <VisitLink clubId={game.club.id} to={playPath(game.type, game.id)} className="row-action-link" title={t('Open the game')}><GiDart /></VisitLink>
+                : <VisitLink clubId={game.club.id} to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title={t('Show statistics')}><FaChartColumn /></VisitLink>
             )}
             {game.deletion &&
                 <Button type="button" icon="pi pi-flag" severity="danger" aria-label={t('The request to delete this game')} title={t('Request to delete')} onClick={() => setShownRequest(game.deletion)} />}

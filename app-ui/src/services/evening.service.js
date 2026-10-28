@@ -72,6 +72,9 @@ const makeClub = (id, setup) => request(`/api/evenings/${id}/club`, { method: 'P
 const screenLink = (id) => request(`${API_URL}/${id}/screen`, { method: 'POST', key: eveningKeyOf(id) });
 const sendToTv = (id, code) => request(`${API_URL}/${id}/screen/send`, { method: 'POST', body: { code }, key: eveningKeyOf(id) });
 
-const EveningService = { createEvening, loadEvening, loadShared, addGame, makeClub, screenLink, sendToTv };
+// the end of the evening (the browser that runs it): no more games → the evening
+const endEvening = (id) => request(`${API_URL}/${id}/end`, { method: 'POST', key: eveningKeyOf(id) });
+
+const EveningService = { createEvening, loadEvening, loadShared, addGame, makeClub, screenLink, sendToTv, endEvening };
 
 export default EveningService;

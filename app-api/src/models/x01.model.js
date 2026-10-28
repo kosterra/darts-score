@@ -45,6 +45,8 @@ export default (mongoose, name = 'x01') => {
       bull:              { type: String, enum: ['split', 'fifty'], default: 'split' },
       // a match of a tournament: set by the server when the match is started, never by the app
       tournament:        { id: { type: mongoose.Schema.Types.ObjectId, ref: 'tournament' }, match: String },
+      // a match of a league, likewise set by the server
+      league:            { id: { type: mongoose.Schema.Types.ObjectId, ref: 'league' }, match: String },
     },
     { timestamps: true }
   );

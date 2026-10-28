@@ -48,12 +48,24 @@ const createQuickGame = async (kind, game) => {
     return gameOf(kind, created);
 };
 
+// without the key on this device, a global admin still reads the game (and nobody else)
+const ADMIN_URL = '/api/admin/quick-games';
+const readQuick = async (path, id) => {
+    const key = keyOf(id)?.key;
+    try {
+        return await request(`${API_URL}/${id}${path}`, { key });
+    } catch (error) {
+        if (key) throw error;
+        return request(`${ADMIN_URL}/${id}${path}`).catch(() => { throw error; });
+    }
+};
+
 const loadQuickGame = async (id) => {
-    const game = await request(`${API_URL}/${id}`, { key: keyOf(id)?.key });
+    const game = await readQuick('', id);
     return gameOf(game.kind, game);
 };
 
-const loadQuickGameStats = (id) => request(`${API_URL}/${id}/stats`, { key: keyOf(id)?.key });
+const loadQuickGameStats = (id) => readQuick('/stats', id);
 
 const updateQuickGame = (game) => request(`${API_URL}/${game.id}`, { method: 'PUT', body: storedOf(game.kind, game), key: keyOf(game.id)?.key });
 

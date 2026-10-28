@@ -7,9 +7,20 @@ import useMediaQuery from '../../utils/use.media.query';
  * The short filters of the lists as pills, the same everywhere: one choice
  * of a few, each with an icon where it helps.
  * options: [{ label, value, icon (a PrimeIcons class, e.g. 'pi pi-play') }];
- * dropdownOnPhone: a dropdown on a phone instead (for a choice of several)
+ * dropdownOnPhone: a dropdown on a phone instead (for a choice of several);
+ * label: a name shown before the group (e.g. "Status"), when the pills alone are not clear
  */
-const FilterPills = ({ value, options, onChange, ariaLabel, className = '', disabled = false, dropdownOnPhone = false }) => {
+const FilterPills = ({ label, ...props }) => {
+    if (!label) return <FilterPillsField {...props} />;
+    return (
+        <span className="filter-labelled">
+            <span className="filter-label" aria-hidden="true">{label}</span>
+            <FilterPillsField {...props} />
+        </span>
+    );
+};
+
+const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '', disabled = false, dropdownOnPhone = false }) => {
     // on a phone a choice of several (e.g. the status of games) is a dropdown, as the other filters there
     const phone = useMediaQuery('(max-width: 575.98px)');
     if (dropdownOnPhone && phone) {

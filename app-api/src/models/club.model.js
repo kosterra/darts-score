@@ -38,6 +38,12 @@ export default (mongoose) => {
       badges: { type: [{ _id: false, badge: String, earnedAt: Date, sourceType: String, sourceId: String, player: String, nickname: String }], default: [] },
       // the goals the club admins set: { id, metric, target, from, until, reachedAt, reachedBy, nickname }
       goals:  { type: [{ _id: false, id: String, metric: String, target: Number, from: Date, until: Date, reachedAt: Date, reachedBy: String, nickname: String }], default: [] },
+      // The calendar: the weekly club nights { weekday (0 Sunday), start and end "HH:MM", note }
+      // and the nights cancelled { day "YYYY-MM-DD", reason }. See rules/calendar.js
+      calendar: {
+        nights:    { type: [{ _id: false, weekday: Number, start: String, end: String, note: String }], default: [] },
+        cancelled: { type: [{ _id: false, day: String, reason: String }], default: [] },
+      },
       // Users who manage the club; always at least one
       admins: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }], index: true },
       // when each admin was made one, for the alert on a taken-over club

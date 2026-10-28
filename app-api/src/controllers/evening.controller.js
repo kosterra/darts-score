@@ -1,12 +1,13 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
-import { adoptEvening, eveningError, eveningGameError, eveningView, newEvening } from '../utils/evenings.js';
+import { adoptEvening, endOf, eveningError, eveningGameError, eveningReport, eveningView, newEvening } from '../utils/evenings.js';
 import { keyMatches, quickGameView, winnerOf } from '../utils/quick.games.js';
 import { screenToken, sendToPairing } from '../utils/screens.js';
 import { storedOf } from '../utils/game.view.js';
 import { checkLater, noteQuickGame } from '../utils/spam.guard.js';
 import { NO_CLUB_FOR_GLOBAL_ADMINS } from '../utils/global.admins.js';
+import { countEvening, countQuickGame, quickTally } from '../utils/quick.tally.js';
 
 /**
  * Darts evenings without an account (see utils/evenings.js): set up with the
@@ -87,6 +88,7 @@ export const addGame = async (req, res) => {
     const evening = await loadOwn(req, res);
     if (!evening) return;
     if (evening.club) return res.status(409).json({ message: 'This evening is a club now: play on there.' });
+    if (endOf(evening, await gamesOf(evening)).endedAt) return res.status(409).json({ message: 'This evening is over. Start a new one for the next.' });
     const { kind } = req.body ?? {};
     const sent = req.body?.game && typeof req.body.game === 'object' ? req.body.game : null;
     const error = eveningGameError(evening, kind, sent);
@@ -97,7 +99,25 @@ export const addGame = async (req, res) => {
         names: data.quickPlayers.map(player => player.nickname.trim()), winner: winnerOf(data),
         gameIsRunning: data.gameIsRunning !== false, hasWinner: Boolean(data.hasWinner),
     });
+    await countQuickGame(game);
     res.status(201).json({ game: quickGameView(game) });
+};
+
+/**
+ * Ends the evening (the browser that runs it): no more games, the table and
+ * the awards are final. A game going on can still be played to its end.
+ */
+export const end = async (req, res) => {
+    const evening = await loadOwn(req, res);
+    if (!evening) return;
+    const games = await gamesOf(evening);
+    if (!endOf(evening, games).endedAt) {
+        evening.endedAt = new Date();
+        await evening.save();
+        await countEvening(evening);
+        logger.info(`Darts evening ${evening._id} ended with ${games.length} games`);
+    }
+    res.json(eveningView(evening, games, { owner: true }));
 };
 
 /**
@@ -109,6 +129,7 @@ export const adopt = async (req, res) => {
         const evening = await loadOwn(req, res);
         if (!evening) return;
         const result = await adoptEvening(evening, req.user, { name: req.body?.name, me: req.body?.me ?? null });
+        await countEvening(evening);
         logger.info(`Darts evening ${evening._id} became the club "${result.club.name}" of ${req.user.email}, ${result.games} games taken over`);
         res.status(201).json({ club: { id: String(result.club._id), name: result.club.name }, games: result.games });
     } catch (err) {
@@ -116,4 +137,68 @@ export const adopt = async (req, res) => {
         logger.error(err, 'Failed to make an evening a club');
         res.status(500).json({ message: 'The evening could not be made a club.' });
     }
+};
+
+// ---------------------------------------------------------------------------
+// For the global admins
+// ---------------------------------------------------------------------------
+
+/**
+ * The darts evenings kept now, newest first (?limit, at most 500), with the
+ * counts per day of the last 30 days and how many were played since
+ * counting began.
+ */
+export const adminList = async (req, res) => {
+    const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 200));
+    const [evenings, total, perDay, tally] = await Promise.all([
+        db.quickEvening.find({}).sort({ createdAt: -1 }).limit(limit).lean(),
+        db.quickEvening.countDocuments(),
+        db.quickEvening.aggregate([
+            { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, evenings: { $sum: 1 } } },
+            { $sort: { _id: -1 } },
+            { $limit: 30 },
+        ]),
+        quickTally(),
+    ]);
+    const games = await db.quickGame.find({ evening: { $in: evenings.map(evening => evening._id) } }).lean();
+    const byEvening = new Map();
+    for (const game of games) byEvening.set(String(game.evening), [...(byEvening.get(String(game.evening)) ?? []), game]);
+    const clubs = await db.club.find({ _id: { $in: evenings.map(evening => evening.club).filter(Boolean) } }, 'name').lean();
+    const clubNames = new Map(clubs.map(club => [String(club._id), club.name]));
+    res.json({
+        total,
+        allTime: { played: tally.evenings, since: tally.since },
+        perDay: perDay.map(day => ({ day: day._id, evenings: day.evenings })),
+        evenings: evenings.map(evening => {
+            const own = byEvening.get(String(evening._id)) ?? [];
+            const { table } = eveningReport(evening, own);
+            const finished = own.filter(game => game.hasWinner).length;
+            const leader = finished ? table[0] : null;
+            const { endedAt } = endOf(evening, own);
+            return {
+                id: String(evening._id),
+                name: evening.name,
+                players: evening.players.map(player => player.name),
+                games: own.length,
+                finished,
+                // going on (games can still be added), or over: ended by hand, by itself or as a club
+                running: !endedAt,
+                endedAt,
+                leader: leader ? { name: leader.name, wins: leader.wins } : null,
+                club: evening.club ? { id: String(evening.club), name: clubNames.get(String(evening.club)) ?? null } : null,
+                shareToken: evening.shareToken,
+                createdAt: evening.createdAt,
+                lastGameAt: own.reduce((latest, game) => (!latest || game.updatedAt > latest ? game.updatedAt : latest), null),
+            };
+        }),
+    });
+};
+
+// deletes darts evenings with their games, { ids }
+export const adminRemove = async (req, res) => {
+    const ids = (req.body?.ids ?? []).filter(id => db.mongoose.isValidObjectId(id));
+    const { deletedCount: games } = await db.quickGame.deleteMany({ evening: { $in: ids } });
+    const { deletedCount } = await db.quickEvening.deleteMany({ _id: { $in: ids } });
+    logger.info(`${deletedCount} darts evenings with ${games} games deleted by ${req.user.email}`);
+    res.json({ deleted: deletedCount });
 };

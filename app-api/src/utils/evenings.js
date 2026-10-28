@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import db from '../models/db.model.js';
 import { NAME, QUICK_PLAYER_IDS, hashKey, newKey, quickGameError } from './quick.games.js';
 import { storedOf, viewOf } from './game.view.js';
+import { countEvening } from './quick.tally.js';
 
 /**
  * A darts evening without an account: a group plays game after game (X01,
@@ -138,6 +139,44 @@ export const eveningReport = (evening, games) => {
     return { table, awards, headToHead, form, played: ordered.filter(game => game.hasWinner).length, running };
 };
 
+// ---------------------------------------------------------------------------
+// The end of the evening
+// ---------------------------------------------------------------------------
+
+// an evening nobody ends ends by itself so long after its last game (or its start)
+export const EVENING_ENDS_AFTER_HOURS = 12;
+const HOUR = 60 * 60 * 1000;
+
+// the last time anything happened: its start, or a game started or played on
+export const lastActivityOf = (evening, games) => new Date(Math.max(new Date(evening.createdAt).getTime(), ...games.map(game => new Date(game.updatedAt ?? game.createdAt).getTime())));
+
+/**
+ * When the evening ends: { endedAt (null while it goes on), endsAt (when it
+ * will end by itself) }. An evening made a club ends with it.
+ */
+export const endOf = (evening, games, now = new Date()) => {
+    if (evening.endedAt) return { endedAt: new Date(evening.endedAt), endsAt: null };
+    if (evening.adoptedAt) return { endedAt: new Date(evening.adoptedAt), endsAt: null };
+    const endsAt = new Date(lastActivityOf(evening, games).getTime() + EVENING_ENDS_AFTER_HOURS * HOUR);
+    return endsAt <= now ? { endedAt: endsAt, endsAt: null } : { endedAt: null, endsAt };
+};
+
+/**
+ * Once an hour: the evenings nobody ended end by themselves, 12 hours after
+ * their last game, and count as played when a game of them was finished.
+ */
+export const runEveningJobs = async (now = new Date()) => {
+    const open = await db.quickEvening.find({ endedAt: null, club: null, createdAt: { $lte: new Date(now.getTime() - EVENING_ENDS_AFTER_HOURS * HOUR) } });
+    for (const evening of open) {
+        const games = await db.quickGame.find({ evening: evening._id }, 'createdAt updatedAt').lean();
+        const { endedAt } = endOf(evening, games, now);
+        if (!endedAt) continue;
+        evening.endedAt = endedAt;
+        await evening.save();
+        await countEvening(evening);
+    }
+};
+
 // a game of the evening in its list: what was played by whom, and how it went
 const gameSummary = (game) => {
     const data = game.data ?? {};
@@ -167,7 +206,8 @@ const gameSummary = (game) => {
 };
 
 /**
- * The evening as the app shows it: its players and games with the report;
+ * The evening as the app shows it: its players and games with the report,
+ * when it ended (or ends by itself);
  * the link to share it only for the browser that runs it (owner).
  */
 export const eveningView = (evening, games, { owner = false } = {}) => ({
@@ -178,6 +218,8 @@ export const eveningView = (evening, games, { owner = false } = {}) => ({
     report: eveningReport(evening, games),
     createdAt: evening.createdAt,
     club: evening.club ? String(evening.club) : null,
+    // when it ended (null: it goes on), or when it ends by itself
+    ...endOf(evening, games),
     ...(owner ? { shareToken: evening.shareToken } : {}),
 });
 

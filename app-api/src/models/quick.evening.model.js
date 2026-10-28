@@ -17,6 +17,10 @@ export default (mongoose) => {
       // the club it became, and when
       club:       { type: mongoose.Schema.Types.ObjectId, ref: 'club', default: null },
       adoptedAt:  { type: Date, default: null },
+      // when it ended: by hand, or by itself 12 hours after its last game (see utils/evenings.js)
+      endedAt:    { type: Date, default: null },
+      // counted in the all-time tally of darts evenings played (see utils/quick.tally.js)
+      counted:    { type: Boolean, default: false },
     },
     { timestamps: true }
   );

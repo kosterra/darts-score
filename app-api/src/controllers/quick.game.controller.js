@@ -4,6 +4,7 @@ import { x01StatsOf } from './x01.stats.controller.js';
 import { hashKey, keyMatches, newKey, quickGameError, quickGameView, winnerOf } from '../utils/quick.games.js';
 import { storedOf } from '../utils/game.view.js';
 import { checkLater, noteQuickGame } from '../utils/spam.guard.js';
+import { countQuickGame, quickTally } from '../utils/quick.tally.js';
 
 const QuickGame = db.quickGame;
 
@@ -50,6 +51,7 @@ export const create = async (req, res) => {
     const created = await QuickGame.create({ kind, keyHash: hashKey(key), ...fields(kind, game) });
     logger.info(`Quick ${kind} game started with ${created.names.length} players`);
     checkLater(() => noteQuickGame(req, created));
+    await countQuickGame(created);
     res.status(201).json({ game: quickGameView(created), key });
 };
 
@@ -81,6 +83,7 @@ export const update = async (req, res) => {
     Object.assign(game, fields(game.kind, data));
     game.markModified('data');
     await game.save();
+    await countQuickGame(game);
     res.json(quickGameView(game));
 };
 
@@ -90,8 +93,8 @@ export const update = async (req, res) => {
  */
 export const list = async (req, res) => {
     const limit = Math.min(500, Math.max(1, Number(req.query.limit) || 200));
-    const [games, total, perDay] = await Promise.all([
-        QuickGame.find({}, 'kind names winner gameIsRunning hasWinner createdAt updatedAt data.startingScore data.legOutMode data.numberOfLegs data.variant data.targetScore data.gameOutMode')
+    const [games, total, perDay, tally] = await Promise.all([
+        QuickGame.find({}, 'kind evening names winner gameIsRunning hasWinner createdAt updatedAt data.startingScore data.legOutMode data.numberOfLegs data.variant data.targetScore data.gameOutMode')
             .sort({ createdAt: -1 }).limit(limit).lean(),
         QuickGame.countDocuments(),
         QuickGame.aggregate([
@@ -99,9 +102,15 @@ export const list = async (req, res) => {
             { $sort: { _id: -1 } },
             { $limit: 30 },
         ]),
+        quickTally(),
     ]);
+    // the darts evenings the games belong to, by name
+    const eveningIds = [...new Set(games.map(game => game.evening).filter(Boolean).map(String))];
+    const evenings = eveningIds.length ? await db.quickEvening.find({ _id: { $in: eveningIds } }, 'name createdAt').lean() : [];
+    const eveningOf = new Map(evenings.map(evening => [String(evening._id), { id: String(evening._id), name: evening.name, createdAt: evening.createdAt }]));
     res.json({
         total,
+        allTime: { finished: tally.quickGames, inEvenings: tally.eveningGames ?? 0, since: tally.since },
         perDay: perDay.map(day => ({ day: day._id, games: day.games, finished: day.finished })),
         games: games.map(game => ({
             id: String(game._id),
@@ -111,6 +120,8 @@ export const list = async (req, res) => {
                 : game.kind === 'elimination'
                     ? `Elimination · ${game.data?.targetScore} · ${game.data?.gameOutMode}`
                     : `Cricket · ${game.data?.variant ?? 'Standard'}`,
+            // played in a darts evening: { id, name, createdAt } (null: on its own)
+            evening: game.evening ? eveningOf.get(String(game.evening)) ?? { id: String(game.evening), name: '', createdAt: null } : null,
             names: game.names,
             winner: game.winner,
             finished: game.hasWinner,
@@ -128,4 +139,26 @@ export const remove = async (req, res) => {
     const { deletedCount } = await QuickGame.deleteMany({ _id: { $in: ids } });
     logger.info(`${deletedCount} quick games deleted by ${req.user.email}`);
     res.json({ deleted: deletedCount });
+};
+
+/**
+ * For the global admins: a quick game without its key, read only, and the
+ * statistics of a quick X01 game.
+ */
+const loadAny = async (req, res) => {
+    const game = db.mongoose.isValidObjectId(req.params.id) ? await QuickGame.findById(req.params.id) : null;
+    if (!game) res.status(404).json({ message: 'This quick game is not there (any more).' });
+    return game;
+};
+
+export const adminFindOne = async (req, res) => {
+    const game = await loadAny(req, res);
+    if (game) res.json(quickGameView(game));
+};
+
+export const adminStats = async (req, res) => {
+    const game = await loadAny(req, res);
+    if (!game) return;
+    if (game.kind !== 'x01') return res.status(404).json({ message: 'Only X01 games have these statistics.' });
+    res.json(x01StatsOf({ ...game.data, _id: game._id }));
 };

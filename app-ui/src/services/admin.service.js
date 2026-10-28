@@ -29,6 +29,14 @@ const loadRulesTrainings = (clubIds) => requestJSON(`${API_URL}/rules-trainings$
 // the quick games of the public start page: { total, perDay, games }, and deleting some
 const loadQuickGames = () => requestJSON(`${API_URL}/quick-games`);
 const deleteQuickGames = (ids) => requestJSON(`${API_URL}/quick-games`, { method: 'DELETE', body: { ids } });
+// a quick game and its statistics, without its key
+const loadQuickGame = (id) => requestJSON(`${API_URL}/quick-games/${id}`);
+const loadQuickGameStats = (id) => requestJSON(`${API_URL}/quick-games/${id}/stats`);
+// the darts evenings without an account
+const loadEvenings = () => requestJSON(`${API_URL}/evenings`);
+const deleteEvenings = (ids) => requestJSON(`${API_URL}/evenings`, { method: 'DELETE', body: { ids } });
+// a club as its admins have it, to look at it
+const visitClub = (id) => requestJSON(`${API_URL}/clubs/${id}/visit`);
 
 // a player's clubs, and deleting a player from every club
 const addPlayerToClub = (playerId, clubId) => requestJSON(`${API_URL}/players/${playerId}/clubs`, { method: 'POST', body: { club: clubId } });
@@ -129,6 +137,11 @@ const AdminService = {
     uploadBackup,
     loadQuickGames,
     deleteQuickGames,
+    loadQuickGame,
+    loadQuickGameStats,
+    loadEvenings,
+    deleteEvenings,
+    visitClub,
     loadLogs,
     clearLogs,
     loadAlerts,

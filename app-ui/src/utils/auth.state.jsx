@@ -4,7 +4,8 @@ import AuthContext from './auth.context';
 import AuthService from '../services/auth.service';
 import ClubService from '../services/club.service';
 import { ROLES, CLUB_ROLES } from '../services/user.service';
-import { SESSION_ENDED, getActiveClubId, setActiveClubId } from './service.utils';
+import { SESSION_ENDED, getActiveClubId, getVisit, setActiveClubId, setVisit } from './service.utils';
+import AdminService from '../services/admin.service';
 import { currentLanguage, setLanguage, takeLanguageChosenBeforeLogin } from './i18n';
 import { connectGamePreferences } from './game.preferences';
 import { accountSaver } from './use.game.preferences';
@@ -95,7 +96,16 @@ const AuthState = ({ children }) => {
     }, []);
 
     const refreshClubs = useCallback(async () => {
-        const loaded = await ClubService.loadClubs();
+        let loaded = await ClubService.loadClubs();
+        // a global admin looking at a club in this tab goes on looking at it after a reload
+        const visit = getVisit();
+        if (visit?.id && !loaded.some(club => club.id === visit.id)) {
+            try {
+                loaded = [...loaded, await AdminService.visitClub(visit.id)];
+            } catch {
+                setVisit(null);
+            }
+        }
         setClubs(loaded);
         // Keep the stored choice when it is still valid, otherwise fall back to the first club
         const current = getActiveClubId();
@@ -206,7 +216,29 @@ const AuthState = ({ children }) => {
     // after the second step of logging in: the account the server answered
     const completeLogin = useCallback((loggedInUser) => startSession(loggedInUser, true), [startSession]);
 
+    /**
+     * A global admin looks at a club as its admins do, in this tab: the app
+     * works in it until they leave it. from: the page to go back to.
+     */
+    const visitClub = useCallback(async (clubId, from) => {
+        const club = await AdminService.visitClub(clubId);
+        setVisit({ id: club.id, from });
+        setClubs(current => [...current.filter(entry => !entry.visiting && entry.id !== club.id), club]);
+        setActiveClub(club.id);
+        return club;
+    }, []);
+
+    // back to looking after the app: → the page the visit started from
+    const leaveVisit = useCallback(() => {
+        const from = getVisit()?.from ?? '/admin/dashboard';
+        setVisit(null);
+        setClubs(current => current.filter(entry => !entry.visiting));
+        setActiveClub(getActiveClubId());
+        return from;
+    }, []);
+
     const logout = useCallback(async () => {
+        setVisit(null);
         forgetOfflineSession();
         await AuthService.logout().catch(() => {});
         setReturnTo(null);
@@ -267,8 +299,10 @@ const AuthState = ({ children }) => {
         returnTo,
         loggedOut,
         refreshClubs,
-        selectClub
-    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, completeLogin, login, register, logout, endSession, sessionEnded, returnTo, loggedOut, refreshClubs, selectClub]);
+        selectClub,
+        visitClub,
+        leaveVisit,
+    }), [user, clubs, activeClub, loading, mailEnabled, resetPassword, completeLogin, login, register, logout, endSession, sessionEnded, returnTo, loggedOut, refreshClubs, selectClub, visitClub, leaveVisit]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

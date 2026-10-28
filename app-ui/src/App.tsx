@@ -7,6 +7,7 @@ import { t } from './utils/i18n';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import { VisitBar } from './components/admin/visit.club';
 import UnsentGamesNote from './components/offline/unsent.games.note';
 import InstallHint from './components/install/install.hint';
 import WelcomeTour from './components/onboarding/welcome.tour';
@@ -72,6 +73,10 @@ const TournamentReplyPage = lazy(() => import('./components/auth/tournament.repl
 const TournamentsPage = lazy(() => import('./components/tournaments/_tournaments.page'));
 const TournamentPage = lazy(() => import('./components/tournaments/_tournament.page'));
 const TournamentEditor = lazy(() => import('./components/tournaments/tournament.editor'));
+const LeaguesPage = lazy(() => import('./components/leagues/_leagues.page'));
+const LeaguePage = lazy(() => import('./components/leagues/_league.page'));
+const LeagueEditor = lazy(() => import('./components/leagues/league.editor'));
+const CalendarPage = lazy(() => import('./components/calendar/_calendar.page'));
 const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
 const SupportPage = lazy(() => import('./components/legal/_support.page'));
 const DartsTermsPage = lazy(() => import('./components/terms/_darts.terms.page'));
@@ -93,7 +98,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/dashboard', '/admin/backups', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play', '/admin/sessions', '/admin/usage'];
+const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/dashboard', '/admin/backups', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/evenings', '/admin/alerts', '/admin/logs', '/admin/fair-play', '/admin/sessions', '/admin/usage'];
 
 function AppContent() {
     // a new theme or accent colour: drawn again, for the colours set from scripts (charts, levels)
@@ -255,6 +260,7 @@ function AppContent() {
             <WelcomeTour />
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
+                <VisitBar />
                 <AppBanner />
                 <InstallHint loggedIn />
                 <MfaDueNotice />
@@ -305,6 +311,11 @@ function AppContent() {
                     <Route path="/tournaments/new" element={<TournamentEditor />} />
                     <Route path="/tournaments/:id" element={<TournamentPage />} />
                     <Route path="/tournaments/:id/edit" element={<TournamentEditor />} />
+                    <Route path="/leagues" element={<LeaguesPage />} />
+                    <Route path="/leagues/new" element={<LeagueEditor />} />
+                    <Route path="/leagues/:id" element={<LeaguePage />} />
+                    <Route path="/leagues/:id/edit" element={<LeagueEditor />} />
+                    <Route path="/calendar" element={<CalendarPage />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />
                     <Route path="/my-clubs" element={<ClubsPage />} />
                     <Route path="/my-clubs/:id" element={<ClubEditPage />} />

@@ -10,7 +10,7 @@
 // (e.g. AS_PLAYER, CLUB_ADMIN, LOGGED_OUT, NEW_USER; DASH=0 for a club
 // without its statistics), and the tests
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
-// /__test/tournaments { scenario }, /__test/session { leftMs } and
+// /__test/tournaments { scenario }, /__test/leagues { scenario }, /__test/calendar { scenario }, /__test/session { leftMs } and
 // /__test/notifications (two of them, one unread), /__test/evening (one with finished games).
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
@@ -20,6 +20,8 @@ import fs from 'fs';
 import { BADGES as realBadges, BADGE_CATEGORIES as realCategories, SHAME_BADGES } from '../../../app-api/src/utils/badges.js';
 import http from 'node:http';
 import { seedTournaments, tournamentMock } from './tournaments.mjs';
+import { leagueMock, seedLeagues } from './leagues.mjs';
+import { calendarMock, seedCalendar } from './calendar.mjs';
 import { duelRecord, clubRatings, winChances } from '../../../app-api/src/utils/compare.js';
 import { latestClubBadges, CLUB_BADGES, GOAL_METRICS, replayClubBadges, topClubBadges, publicClubBadge, goalProgress } from '../../../app-api/src/utils/club.badges.js';
 import { clubKpis, headToHead as h2h, clubRecords, gameLog } from '../../../app-api/src/utils/club.insights.js';
@@ -31,6 +33,7 @@ import { clubBadgeOverview } from '../../../app-api/src/controllers/badge.contro
 import { gamesOverview } from '../../../app-api/src/utils/games.overview.js';
 import { activityInsights, playersInsights } from '../../../app-api/src/utils/admin.insights.js';
 import { quickGameView } from '../../../app-api/src/utils/quick.games.js';
+import { x01StatsOf } from '../../../app-api/src/controllers/x01.stats.controller.js';
 import { storedOf } from '../../../app-api/src/utils/game.view.js';
 import { eveningView, newEvening, eveningGameError, eveningError } from '../../../app-api/src/utils/evenings.js';
 import { normalizeClubRules, normalizeGamePreferences, ruleViolations } from '../../../app-api/src/rules/club.rules.js';
@@ -140,6 +143,10 @@ http.createServer((req, res) => {
     req.on('end', async () => {
         let json = {};
         try { json = body ? JSON.parse(body) : {}; } catch { json = {}; }
+        if (path === '/__test/calendar') { seedCalendar(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
+        if (path.startsWith('/api/calendar') && calendarMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', url }) !== false) return;
+        if (path === '/__test/leagues') { seedLeagues(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
+        if (path.startsWith('/api/leagues') && leagueMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1' }) !== false) return;
         if (path === '/__test/tournaments') { seedTournaments(players, json.scenario); return send(res, 200, {}); }
         if (path.startsWith('/api/tournament') && tournamentMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', url }) !== false) return;
         if (path === '/__test/logged-out' && req.method === 'POST') { globalThis.mockLoggedOut = Boolean(json.loggedOut); return send(res, 200, {}); }
@@ -372,6 +379,37 @@ http.createServer((req, res) => {
             }
             // darts evenings, with the API's own report
             const gamesOfEvening = (id) => [...quickGames.values()].filter(game => game.evening === id);
+            // for the global admins: the darts evenings, a quick game read without its key, a game of
+            // another club (Bullseye Bern) to open, and that club to look at
+            if (path === '/api/admin/evenings' && req.method === 'GET') {
+                const list = [...evenings.values()].map(evening => {
+                    const own = gamesOfEvening(evening._id);
+                    const finished = own.filter(game => game.hasWinner).length;
+                    const leader = finished ? eveningView(evening, own).report.table[0] : null;
+                    return { id: evening._id, name: evening.name, players: evening.players.map(player => player.name), games: own.length, finished, running: !evening.endedAt, endedAt: evening.endedAt ?? null,
+                        leader: leader ? { name: leader.name, wins: leader.wins } : null, club: null, shareToken: evening.shareToken, createdAt: evening.createdAt, lastGameAt: own.at(-1)?.updatedAt ?? null };
+                });
+                return send(res, 200, { total: list.length, allTime: { played: 57, since: '2026-09-01T10:00:00Z' }, perDay: [{ day: new Date().toISOString().slice(0, 10), evenings: list.length }], evenings: list });
+            }
+            if (path === '/api/admin/evenings' && req.method === 'DELETE') {
+                json.ids.forEach(id => { evenings.delete(id); gamesOfEvening(id).forEach(game => quickGames.delete(game._id)); });
+                return send(res, 200, { deleted: json.ids.length });
+            }
+            const adminQuick = path.match(/^\/api\/admin\/quick-games\/([^/]+)(\/stats)?$/);
+            if (adminQuick) {
+                const game = quickGames.get(adminQuick[1]);
+                if (!game) return send(res, 404, { message: 'This quick game is not there (any more).' });
+                return send(res, 200, adminQuick[2] ? x01StatsOf({ ...game.data, _id: game._id }) : quickGameView(game));
+            }
+            if (path === '/api/admin/quick-games' && req.method === 'GET' && !process.env.ADMIN_OVERVIEWS) {
+                const list = [...quickGames.values()].map(game => ({ id: game._id, kind: game.kind, format: '301 · Double Out', evening: game.evening ? { id: game.evening, name: evenings.get(game.evening)?.name ?? '', createdAt: evenings.get(game.evening)?.createdAt } : null, names: game.data.quickPlayers.map(player => player.nickname), winner: null, finished: game.hasWinner, createdAt: game.createdAt, updatedAt: game.updatedAt }));
+                return send(res, 200, { total: list.length, allTime: { finished: 1234, inEvenings: 321, since: '2026-09-01T10:00:00Z' }, perDay: [], games: list });
+            }
+            if (path === '/api/admin/games') {
+                games.set('gv1', { id: 'gv1', startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3, players: ['p1', 'p2'], gameIsRunning: true, hasWinner: false, visits: [], createdAt: ago(0.1), updatedAt: ago(0.1) });
+                return send(res, 200, [{ ...games.get('gv1'), type: 'x01', club: { id: 'k3', name: 'Bullseye Bern', logo: '' } }]);
+            }
+            if (path === '/api/admin/clubs/k3/visit') return send(res, 200, { id: 'k3', name: 'Bullseye Bern', country: 'CH', accent: null, joinPolicy: 'closed', admins: [], role: 'admin', visiting: true, playerCount: 4 });
             if (path === '/api/public/evenings' && req.method === 'POST') {
                 const error = eveningError(json);
                 if (error) return send(res, 422, { errors: [error] });
@@ -381,10 +419,17 @@ http.createServer((req, res) => {
                 evenings.set(id, evening);
                 return send(res, 201, { evening: eveningView(evening, [], { owner: true }), key: 'mock-key' });
             }
+            const evEnd = path.match(/^\/api\/public\/evenings\/(e\d+)\/end$/);
+            if (evEnd && evenings.has(evEnd[1]) && req.method === 'POST') {
+                const evening = evenings.get(evEnd[1]);
+                evening.endedAt ??= new Date();
+                return send(res, 200, eveningView(evening, gamesOfEvening(evEnd[1]), { owner: true }));
+            }
             const ev = path.match(/^\/api\/public\/evenings\/(e\d+)(\/games)?$/);
             if (ev && evenings.has(ev[1])) {
                 const evening = evenings.get(ev[1]);
                 if (ev[2] && req.method === 'POST') {
+                    if (evening.endedAt) return send(res, 409, { message: 'This evening is over. Start a new one for the next.' });
                     const error = eveningGameError(evening, json.kind, json.game);
                     if (error) return send(res, 422, { errors: [error] });
                     const id = `q${quickGames.size + 1}`;

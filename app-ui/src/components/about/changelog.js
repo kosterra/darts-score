@@ -7,6 +7,17 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.20',
+        changes: [
+            t('Darts evenings have an end: End the evening on the device that runs it, or it ends by itself 12 hours after its last game. Then no more games are added, the table and the awards are final and the winner of the evening is named, also for those who follow it.'),
+            t('Lists on a phone show every entry as a card again: since the last release their columns were squeezed side by side.'),
+            t('For global admins: quick games count how many were finished all time, those of darts evenings marked with their evening and shown alone with a filter. Darts evenings have their own list, with how many were played all time, to open or delete. And a game or training of any club opens as its admins see it (a quick game without its key too), with a bar on top that leads back to the administration.'),
+            t('Tournaments with groups first: choose Groups, then knockout when setting one up. At the draw, once it is known how many entered, the admin chooses how large the groups are and how many of each go on (the app suggests groups of 4, the top 2) and sees what follows, e.g. the quarter-finals. Everyone plays everyone of their group, the tables count points, leg difference and the match between two; the best of each group then fill the bracket, never against their own group in the first round.'),
+            t('Leagues: a club admin chooses the members who play, whether everyone plays everyone once or twice, the first matchday and a matchday every week or two, and the rules of every match. Started, the app makes the whole schedule in matchdays; each match is played any time up to its day and counts in the table (2 points a win, then leg difference). The admins move a whole matchday or a single match, e.g. a postponed one, and the players hear of it.'),
+            t('Calendar: the club nights every week, with who is coming (I\'m coming or Not this time) and the nights a club admin cancelled, together with the rounds of tournaments, the ends of registrations and the matchdays of leagues. Admins set the weekly nights and cancel single ones; the members hear of it. Under In your calendar app, a link puts all of it into the calendar of your phone, kept up to date.'),
+        ],
+    },
+    {
         version: '2026.10.19',
         changes: [
             t('The big screen: a TV opens /tv once and shows a code; Big screen in a running game sends it there by that code (or gives a link and QR code for a laptop or tablet). X01, Cricket, Elimination, Around the Clock and the newer games, large and live without logging in, with the caller and the 180 celebration; a darts evening shows its running game, and its table in between.'),

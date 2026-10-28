@@ -249,6 +249,72 @@ describe('the draw and the matches', () => {
     });
 });
 
+describe('groups + knockout', () => {
+    const closedGroups = (count) => {
+        players = Array.from({ length: count }, (_, index) => ({ _id: id(index + 1), nickname: `P${index + 1}`, user: id(100 + index + 1) }));
+        users = players.map(player => ({ _id: player.user, email: `${player.nickname}@example.ch`, language: 'en' }));
+        const rounds = [{ size: 0, date: later(9), rules: roundsOfPreset('clubNight', 8)[0].rules }, ...roundsOfPreset('clubNight', 16).map((round, index) => ({ ...round, date: later(10 + index) }))];
+        const tournament = tournamentDoc({ status: 'closed', format: 'groups', maxPlayers: 16, rounds });
+        tournament.entries = players.map(player => ({ player: player._id, status: 'in' }));
+        return tournament;
+    };
+
+    it('takes the format and the group stage as a round of its own at the setup', () => {
+        const rounds = [{ size: 0, rules: roundsOfPreset('clubNight', 8)[0].rules }, ...roundsOfPreset('clubNight', 8)];
+        const { setup } = service.checkSetup({ name: 'Groups Cup', format: 'groups', maxPlayers: 8, closesAt: later(7), rounds });
+        expect(setup.format).toBe('groups');
+        expect(setup.rounds.map(round => round.size)).toEqual([0, 8, 4, 2]);
+        expect(service.checkSetup({ name: 'X', format: 'league', maxPlayers: 8, closesAt: later(7), rounds }).error).toMatch(/knockout/);
+        expect(service.roundName(0)).toBe('Group stage');
+    });
+
+    it('draws the groups as the admin chose, plays them round robin and fills the bracket with the best', async () => {
+        const db = (await import('../models/db.model.js')).default;
+        const tournament = closedGroups(12);
+        db.tournament = { findById: async () => tournament };
+        // groups of 4, the top 2 go on: 3 groups, 6 players in a bracket of 8
+        await service.holdDraw(tournament, { groupSize: 4, advance: 2, random: () => 0.5 });
+        expect(tournament.draw).toMatchObject({ size: 8, groupSize: 4, advance: 2 });
+        expect(tournament.draw.groups.map(group => group.length)).toEqual([4, 4, 4]);
+        const groupMatches = tournament.matches.filter(match => match.group != null);
+        expect(groupMatches).toHaveLength(18);
+        expect(tournament.matches.filter(match => match.size === 8).every(match => match.status === 'waiting')).toBe(true);
+        expect(tournament.rounds.find(round => round.size === 16).skipped).toBe(true);
+        expect(tournament.rounds.find(round => round.size === 0).skipped).toBe(false);
+        expect(notices.filter(notice => notice.kind === 'tournamentDrawn')[0].body).toMatch(/^Group [ABC]: against/);
+
+        // a group match is played as a game with the rules of the group stage
+        const first = groupMatches[0];
+        const game = await service.startMatch(tournament, first.id);
+        expect(game.numberOfLegs).toBe(3);
+        const [a, b] = first.players;
+        await service.tournamentGameFinished(game, { playerModels: { [a]: { hasWonGame: true, legsWon: { game: 2 } }, [b]: { hasWonGame: false, legsWon: { game: 1 } } } });
+        expect(tournament.matches.find(match => match.id === first.id)).toMatchObject({ status: 'done', winner: a, score: { legs: [2, 1] } });
+        expect(tournament.draw.knockoutAt).toBeFalsy();
+
+        // the rest decided by the admin: the first of each pair wins
+        for (const match of tournament.matches.filter(entry => entry.group != null && entry.status === 'ready')) {
+            await service.setResult(tournament, match.id, match.players[0], { by: 'admin1' });
+        }
+        expect(tournament.draw.knockoutAt).toBeTruthy();
+        const firstRound = tournament.matches.filter(match => match.size === 8);
+        const placed = firstRound.flatMap(match => match.players).filter(Boolean);
+        // 6 went on: two winners with a bye straight into the semi-finals, nobody against their own group
+        expect(firstRound.filter(match => match.bye)).toHaveLength(2);
+        const groupOf = (player) => tournament.draw.groups.findIndex(group => group.includes(player));
+        for (const match of firstRound.filter(entry => !entry.bye)) expect(groupOf(match.players[0])).not.toBe(groupOf(match.players[1]));
+        expect(new Set(placed).size).toBe(6);
+        expect(notices.some(notice => notice.title?.includes('you are through to the Quarter-finals'))).toBe(true);
+        // a group result stays once the bracket is drawn from it
+        await expect(service.setResult(tournament, first.id, b)).rejects.toMatchObject({ status: 409 });
+    });
+
+    it('refuses groups that cannot be played', async () => {
+        const tournament = closedGroups(8);
+        await expect(service.holdDraw(tournament, { groupSize: 4, advance: 4 })).rejects.toMatchObject({ status: 422 });
+    });
+});
+
 describe('the words of a round', () => {
     it('name the rounds and their rules', () => {
         expect([2, 4, 8, 16].map(service.roundName)).toEqual(['Final', 'Semi-finals', 'Quarter-finals', 'Last 16']);

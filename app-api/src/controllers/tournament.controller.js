@@ -192,7 +192,7 @@ export const draw = async (req, res) => {
     try {
         const tournament = await load(req, res);
         if (!tournament) return;
-        await holdDraw(tournament, { seeding: req.body.seeding ?? 'seeded', by: req.user._id });
+        await holdDraw(tournament, { seeding: req.body.seeding ?? 'seeded', by: req.user._id, groupSize: req.body.groupSize ?? null, advance: req.body.advance ?? null });
         await answerWith(req, res, tournament);
     } catch (err) {
         fail(res, err, 'hold the draw');

@@ -20,7 +20,7 @@ export const dashboard = async (req, res) => {
         const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - back);
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     });
-    const [numbers, users, usersNew, sessions, week, alerts, errors, quickGames, mail, backups, schedule, health] = await Promise.all([
+    const [numbers, users, usersNew, sessions, week, alerts, errors, quickGames, evenings, mail, backups, schedule, health] = await Promise.all([
         installationNumbers(),
         db.user.countDocuments(),
         db.user.countDocuments({ createdAt: { $gte: new Date(now - 7 * DAY) } }),
@@ -29,6 +29,7 @@ export const dashboard = async (req, res) => {
         db.alert.aggregate([{ $match: { status: 'open' } }, { $group: { _id: '$severity', count: { $sum: 1 } } }]),
         db.logEntry.countDocuments({ level: { $in: ['error', 'fatal'] }, time: { $gte: new Date(now - DAY) } }),
         db.quickGame.countDocuments({ createdAt: { $gte: new Date(now - 7 * DAY) } }),
+        db.quickEvening.countDocuments({ createdAt: { $gte: new Date(now - 7 * DAY) } }),
         mailDays(1, now),
         listBackups(),
         getBackupSettings(),
@@ -36,7 +37,7 @@ export const dashboard = async (req, res) => {
     ]);
     const open = Object.fromEntries(alerts.map(entry => [entry._id, entry.count]));
     res.json({
-        numbers: { ...numbers, users, usersNew, quickGames },
+        numbers: { ...numbers, users, usersNew, quickGames, evenings },
         now: { sessions: sessions.length, users: new Set(sessions.map(entry => String(entry.user))).size },
         week: { users: new Set(week.flatMap(entry => entry.users.map(String))).size },
         attention: { critical: open.critical ?? 0, warning: open.warning ?? 0, errors },

@@ -12,6 +12,8 @@ import { sendTemplateMail } from './mail.service.js';
 import { tr, translate } from './translate.js';
 import { lastWeeks, usageLines } from './usage.stats.js';
 import { runTournamentJobs } from './tournaments.js';
+import { runLeagueJobs } from './leagues.js';
+import { runEveningJobs } from './evenings.js';
 
 /**
  * What the app does once an hour for the notifications: the mails of the
@@ -366,7 +368,7 @@ export const sendUsageReports = async (now = new Date()) => {
 export const runNotificationJobs = async (now = new Date()) => {
     for (const [name, job] of Object.entries({
         remindRunningGames, remindUnusedInvites, remindEndingGoals, remindErrorSpike,
-        sendDigests, sendWeeklySummaries, runTournamentJobs,
+        sendDigests, sendWeeklySummaries, runTournamentJobs, runLeagueJobs, runEveningJobs,
     })) {
         try {
             await job(now);

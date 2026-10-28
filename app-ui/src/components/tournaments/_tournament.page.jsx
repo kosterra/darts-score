@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FaTrophy } from 'react-icons/fa';
 import { Button } from 'primereact/button';
@@ -17,11 +17,12 @@ import PlayerService from '../../services/player.service';
 import { useAuth } from '../../utils/auth.context';
 import { calendarFormat, formatDate, formatDateTime } from '../../utils/dates';
 import { t, tn } from '../../utils/i18n';
-import { MIN_PLAYERS, isDecided, nextOf } from '../../rules/tournaments';
+import { GROUP_SIZES, MIN_PLAYERS, groupSetupError, groupSizesOf, isDecided, knockoutOfGroups, nextOf, suggestGroups } from '../../rules/tournaments';
 import TournamentBracket from './tournament.bracket';
-import { INVITE_WORDS, STATUS_WORDS, nameOf, roundName, rulesText } from './tournament.words';
+import TournamentGroups from './tournament.groups';
+import { INVITE_WORDS, STATUS_WORDS, groupName, nameOf, roundName, rulesText } from './tournament.words';
 import BetaTag from './beta.tag';
-import { ShirtPicture } from '../shirts/shirt.art';
+import WalkOn from './tournament.walkon';
 import { Lines } from '../elements/skeletons';
 
 /**
@@ -29,24 +30,6 @@ import { Lines } from '../elements/skeletons';
  * throws first), go on with or watch a running one, see the statistics of a
  * played one, and (admins) decide it without a game.
  */
-// the walk-on: both players in their shirts, as on the stage, before a match is played
-const WalkOn = ({ tournament, match, club }) => (
-    <div className="tournament-walk-on" aria-hidden="true">
-        {match.players.map((id, index) => {
-            const player = tournament.players?.[id];
-            return (
-                <Fragment key={id ?? index}>
-                    {index === 1 && <span className="tournament-walk-on-vs">{t('vs')}</span>}
-                    <span className="tournament-walk-on-player">
-                        {player?.shirt && <ShirtPicture {...player.shirt} nickname={player.nickname} club={club} uid={`walk-on-${match.id}-${index}`} />}
-                        <span className="text-default fw-semibold fs-7 text-truncate">{player?.nickname ?? '?'}</span>
-                    </span>
-                </Fragment>
-            );
-        })}
-    </div>
-);
-
 const MatchDialog = ({ tournament, match, isAdmin, onHide, onStart, onResult, busy }) => {
     const { activeClub } = useAuth();
     const [first, setFirst] = useState(null);
@@ -59,10 +42,12 @@ const MatchDialog = ({ tournament, match, isAdmin, onHide, onStart, onResult, bu
     const options = match.players.filter(Boolean).map(id => ({ label: nameOf(tournament, id), value: id }));
     const next = nextOf(match);
     const nextStarted = next && ['running', 'done', 'walkover'].includes(tournament.matches.find(entry => entry.id === next.id)?.status);
-    const canDecide = isAdmin && match.players[0] && match.players[1] && !match.bye && (!isDecided(match) || !nextStarted);
+    // a group result can change until the bracket is filled from the groups
+    const changeable = match.group != null ? !tournament.draw?.knockoutAt : !isDecided(match) || !nextStarted;
+    const canDecide = isAdmin && match.players[0] && match.players[1] && !match.bye && changeable;
 
     return (
-        <Dialog header={`${roundName(match.size)} · ${options.map(option => option.label).join(' – ')}`} visible onHide={onHide} className="tournament-dialog" dismissableMask>
+        <Dialog header={`${match.group != null ? groupName(match.group) : roundName(match.size)} · ${options.map(option => option.label).join(' – ')}`} visible onHide={onHide} className="tournament-dialog" dismissableMask>
             <div className="d-flex flex-column gap-3">
                 {match.players[0] && match.players[1] && !match.bye && ['ready', 'running'].includes(match.status) &&
                     <WalkOn tournament={tournament} match={match} club={activeClub} />}
@@ -111,6 +96,8 @@ const TournamentPage = () => {
     const [busy, setBusy] = useState('');
     const [selected, setSelected] = useState(null);
     const [seeding, setSeeding] = useState('seeded');
+    // groups + knockout: how large the groups are made and how many of each go on (null: the suggestion)
+    const [groupChoice, setGroupChoice] = useState(null);
     const [extendTo, setExtendTo] = useState(null);
     const [members, setMembers] = useState([]);
     const [revealing, setRevealing] = useState(false);
@@ -167,8 +154,11 @@ const TournamentPage = () => {
         acceptClassName: `${danger ? 'p-button-danger ' : ''}p-button-sm`, rejectClassName: 'p-button-secondary p-button-sm',
         accept,
     });
+    const withGroups = tournament.format === 'groups';
+    const groupPlan = withGroups ? (groupChoice ?? suggestGroups(tournament.counts.in)) : null;
+    const groupProblem = groupPlan && groupSetupError(tournament.counts.in, groupPlan.size, groupPlan.advance);
     const draw = async () => {
-        const result = await run('draw', () => TournamentService.holdDraw(tournament.id, seeding), t('The draw is done.'));
+        const result = await run('draw', () => TournamentService.holdDraw(tournament.id, seeding, groupPlan ? { groupSize: groupPlan.size, advance: groupPlan.advance } : {}), t('The draw is done.'));
         if (result) setRevealing(true);
     };
     const start = async (match, first) => {
@@ -249,16 +239,39 @@ const TournamentPage = () => {
                     {tournament.counts.in >= MIN_PLAYERS
                         ? (
                             <div className="d-flex flex-column gap-3">
-                                <span className="text-subtle fs-7">{tn(tournament.counts.in, '{{count}} player entered.', '{{count}} players entered.')} {t('The draw places them in the bracket; with fewer players than places, the first seeds get a bye.')}</span>
+                                <span className="text-subtle fs-7">{tn(tournament.counts.in, '{{count}} player entered.', '{{count}} players entered.')} {withGroups ? t('The draw places them in groups; the best of each group go on to the knockout rounds.') : t('The draw places them in the bracket; with fewer players than places, the first seeds get a bye.')}</span>
+                                {withGroups &&
+                                    <div className="tournament-group-plan">
+                                        <label className="d-flex flex-column gap-1">
+                                            <span className="text-subtle fs-8">{t('Groups of')}</span>
+                                            <SelectButton value={groupPlan.size} options={GROUP_SIZES.map(size => ({ label: String(size), value: size }))} onChange={(event) => event.value && setGroupChoice({ ...groupPlan, size: event.value })} className="p-selectbutton-pills pills-inline" aria-label={t('Groups of')} />
+                                        </label>
+                                        <label className="d-flex flex-column gap-1">
+                                            <span className="text-subtle fs-8">{t('Go on from each group')}</span>
+                                            <SelectButton value={groupPlan.advance} options={[1, 2, 3, 4].map(count => ({ label: String(count), value: count }))} onChange={(event) => event.value && setGroupChoice({ ...groupPlan, advance: event.value })} className="p-selectbutton-pills pills-inline" aria-label={t('Go on from each group')} />
+                                        </label>
+                                        {groupProblem
+                                            ? <Message severity="warn" className="w-100 justify-content-start" text={t(groupProblem)} />
+                                            : <span className="text-default fs-7">{t('{{players}} players: {{groups}}, the top {{advance}} of each go on → {{round}}.', {
+                                                players: tournament.counts.in,
+                                                groups: groupSizesOf(tournament.counts.in, groupPlan.size).length === 1
+                                                    ? t('one group of {{count}}', { count: tournament.counts.in })
+                                                    : t('{{count}} groups of {{sizes}}', { count: groupSizesOf(tournament.counts.in, groupPlan.size).length, sizes: [...new Set(groupSizesOf(tournament.counts.in, groupPlan.size))].join(t(' or ')) }),
+                                                advance: groupPlan.advance,
+                                                round: roundName(knockoutOfGroups(tournament.counts.in, groupPlan.size, groupPlan.advance).size),
+                                            })}</span>}
+                                    </div>}
                                 <SelectButton
                                     value={seeding}
                                     options={[{ label: t('Seeded'), value: 'seeded' }, { label: t('At random'), value: 'random' }]}
                                     onChange={(event) => event.value && setSeeding(event.value)}
                                     className="p-selectbutton-pills"
                                 />
-                                <span className="text-faint fs-8">{seeding === 'seeded' ? t('The best quarter by the club rating are placed apart, so they do not meet early; the others are drawn at random.') : t('Everyone is drawn at random.')}</span>
+                                <span className="text-faint fs-8">{seeding === 'seeded'
+                                    ? (withGroups ? t('The strongest by the club rating are spread over the groups, so they do not meet there.') : t('The best quarter by the club rating are placed apart, so they do not meet early; the others are drawn at random.'))
+                                    : t('Everyone is drawn at random.')}</span>
                                 <div className="d-flex justify-content-end">
-                                    <Button label={t('Hold the draw')} icon="pi pi-sitemap" size="small" loading={busy === 'draw'} onClick={() => confirm(t('Hold the draw'), t('The bracket is final once drawn, and every player hears their first match.'), draw)} />
+                                    <Button label={t('Hold the draw')} icon="pi pi-sitemap" size="small" loading={busy === 'draw'} disabled={Boolean(groupProblem)} onClick={() => confirm(t('Hold the draw'), withGroups ? t('The groups are final once drawn, and every player hears their group.') : t('The bracket is final once drawn, and every player hears their first match.'), draw)} />
                                 </div>
                             </div>
                         )
@@ -271,6 +284,12 @@ const TournamentPage = () => {
                                 </div>
                             </div>
                         )}
+                </Panel>}
+
+            {drawn && withGroups &&
+                <Panel header={t('Group stage')}>
+                    <TournamentGroups tournament={tournament} onSelect={setSelected} />
+                    <p className="text-faint fs-8 mt-3 mb-0">{tn(tournament.draw?.advance ?? 2, 'Everyone plays everyone of their group once; the best of each group goes on to the knockout rounds. Ranked by points (2 for a win), then leg difference, legs won and the match between them.', 'Everyone plays everyone of their group once; the best {{count}} of each group go on to the knockout rounds. Ranked by points (2 for a win), then leg difference, legs won and the match between them.')}</p>
                 </Panel>}
 
             {drawn &&

@@ -24,6 +24,7 @@ import { useAuth } from '../../utils/auth.context';
 import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import useClubSelection from './use.club.selection';
+import { useVisit } from './use.visit';
 import ActivityInsights from './activity.insights';
 import { formatDateTime } from './admin.format';
 import { formatScore, scoreOf } from '../../utils/atc.scoreboard';
@@ -85,6 +86,7 @@ const rulesRow = (entry) => {
 const TrainingsTable = ({ scope = 'club' }) => {
     const toast = useRef(null);
     const navigate = useNavigate();
+    const visit = useVisit();
     const { isClubAdmin, user } = useAuth();
     const acrossClubs = scope === 'all';
     const { clubs, selectedIds, select } = useClubSelection(acrossClubs);
@@ -219,8 +221,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
 
     const actionsBody = (row) => (
         <div className="row-actions">
-            {row.kind === 'x01' && (!acrossClubs || !row.club) && row.finished &&
-                <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('The statistics of this training')} title={t('Statistics')} onClick={() => navigate(`/stats/training/x01/${row.id}`)} />}
+            {row.kind === 'x01' && row.finished && (!acrossClubs || !row.club
+                ? <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('The statistics of this training')} title={t('Statistics')} onClick={() => navigate(`/stats/training/x01/${row.id}`)} />
+                : <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('The statistics of this training')} title={t('Statistics')} onClick={() => visit(row.club.id, `/stats/training/x01/${row.id}`)} />)}
             {canManage && <JSONViewer data={row.raw} header={t('Training _RAW Data')} />}
             {mayDelete(row) && <DeletePopup data={row} header={t('Delete Training')} message={t('this training and the badges earned in it')} handleDelete={onDelete} />}
         </div>

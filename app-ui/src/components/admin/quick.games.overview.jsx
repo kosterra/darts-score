@@ -34,6 +34,7 @@ const QuickGamesOverview = ({ data, days }) => {
                     <KpiHero label={t('In the last 7 days')} value={formatNumber(overview.last7Days)} color={GREEN} />
                     <KpiHero label={t('Running now')} value={formatNumber(overview.running)} color={GREEN} />
                     <KpiHero label={t('Finished')} value={formatNumber(overview.finished)} detail={t('{{percent}} % of them', { percent: overview.finishRate })} color={GREEN} />
+                    {data.allTime && <KpiHero label={t('Finished, all time')} value={formatNumber(data.allTime.finished)} detail={t('since {{date}} · {{count}} in darts evenings', { date: formatDate(data.allTime.since), count: formatNumber(data.allTime.inEvenings ?? 0) })} color={GREEN} />}
                 </div>
 
                 <div className="quick-games-days mt-4" aria-label={t('Quick games started per day, the last 30 days')}>

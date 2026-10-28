@@ -3,12 +3,14 @@ import { body, param } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import { requireClubAdmin } from '../middleware/auth.middleware.js';
 import * as TournamentController from '../controllers/tournament.controller.js';
+import { MATCH_ID } from '../rules/tournaments.js';
 
 // the tournaments of the selected club: its admins run them, its members enter and play
 export default (app) => {
     const router = Router();
     const id = param('id').isMongoId().withMessage('Invalid tournament.');
-    const match = param('match').matches(/^\d+-\d+$/).withMessage('Invalid match.');
+    // a match of the bracket ("8-0") or of a group ("g0-1-2")
+    const match = param('match').matches(MATCH_ID).withMessage('Invalid match.');
     const answer = body('status').isIn(['in', 'out']).withMessage('Answer in or out.');
 
     router.get('/', TournamentController.list);
@@ -25,7 +27,12 @@ export default (app) => {
     router.post('/:id/reopen', requireClubAdmin, id, body('closesAt').isISO8601().withMessage('Choose until when the members can enter.'), validate, TournamentController.reopen);
     router.post('/:id/cancel', requireClubAdmin, id, validate, TournamentController.cancel);
     router.put('/:id/entries/:playerId', requireClubAdmin, id, param('playerId').isMongoId().withMessage('Invalid player.'), answer, validate, TournamentController.answerFor);
-    router.post('/:id/draw', requireClubAdmin, id, body('seeding').optional().isIn(['seeded', 'random']).withMessage('Choose how the draw is held.'), validate, TournamentController.draw);
+    router.post('/:id/draw', requireClubAdmin, id,
+        body('seeding').optional().isIn(['seeded', 'random']).withMessage('Choose how the draw is held.'),
+        // groups + knockout: how large the groups are made and how many of each go on
+        body('groupSize').optional({ values: 'null' }).isInt({ min: 3, max: 6 }).withMessage('Groups have 3 to 6 players.').toInt(),
+        body('advance').optional({ values: 'null' }).isInt({ min: 1, max: 5 }).withMessage('Choose how many of each group go on.').toInt(),
+        validate, TournamentController.draw);
     router.put('/:id/matches/:match/result', requireClubAdmin, id, match, body('winner').isMongoId().withMessage('Choose the winner.'), validate, TournamentController.result);
 
     app.use('/api/tournaments', router);
