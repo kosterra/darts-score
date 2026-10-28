@@ -16,6 +16,9 @@ const restoreNight = (day, range) => requestJSON(inRange(`/nights/${day}/cancell
 const feedLink = () => requestJSON(`${API_URL}/feed-link`);
 const renewFeedLink = () => requestJSON(`${API_URL}/feed-link`, { method: 'POST' });
 
-const CalendarService = { loadCalendar, saveNights, answer, cancelNight, restoreNight, feedLink, renewFeedLink };
+// the club evening of a night: the club games among its players between from and to (instants)
+const loadEvening = (day, from, to, players) => requestJSON(`${API_URL}/nights/${day}/evening?${new URLSearchParams({ from: from.toISOString(), to: to.toISOString(), players: players.join(',') })}`);
+
+const CalendarService = { loadCalendar, loadEvening, saveNights, answer, cancelNight, restoreNight, feedLink, renewFeedLink };
 
 export default CalendarService;

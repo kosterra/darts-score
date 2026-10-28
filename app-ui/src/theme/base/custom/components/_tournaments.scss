@@ -563,3 +563,36 @@
     .calendar-grid-item.is-event { background: $accentBlue; }
     .calendar-grid-label { display: none; }
 }
+
+// the club evening: the players of tonight as chips, to take out or add
+.club-night-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.4rem 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: var(--c-shade-700);
+    color: var(--text-default);
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+
+    button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.4rem;
+        height: 1.4rem;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--text-subtle);
+        cursor: pointer;
+
+        &:hover { background: ink(0.1); color: var(--text-default); }
+        &:focus-visible { @include focus-ring(1px); }
+        .pi { font-size: 0.7rem; }
+    }
+}
+
+.club-night-add { min-width: 12rem; }

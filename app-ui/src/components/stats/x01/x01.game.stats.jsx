@@ -29,6 +29,7 @@ import { GameStatsSkeleton } from '../../elements/skeletons';
 import GameBadges from '../../badges/game.badges';
 import UpLink from '../../elements/up.link';
 import EveningGameActions from '../../quick/evening.game.actions';
+import { nightOfGame } from '../../../utils/club.night';
 import { describeRules, hasHandicap, rulesOf } from '../../../utils/x01.rules';
 import { teamsOf } from '../../../rules/x01';
 import { t } from '../../../utils/i18n';
@@ -194,7 +195,9 @@ const X01GameStats = ({ training = false, quick = false }) => {
         ? <div className="d-flex justify-content-center"><Link to={`/tournaments/${tournamentId}`} className="p-button p-button-sm text-decoration-none"><i className="pi pi-sitemap me-2" />{t('To the bracket')}</Link></div>
         : quick && game.evening
             ? <EveningGameActions eveningId={game.evening} />
-            : <GameResultActions goOnTo={game.hasWinner ? null : quick ? `/quick/x01/${game.id}` : training ? `/training/x01/${game.id}` : `/x01/${game.id}`} compare={!quick && !training && players.length > 1 ? { players, type: 'x01' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
+            : !quick && game.hasWinner && nightOfGame(game.id)
+                ? <EveningGameActions clubNight={nightOfGame(game.id)} />
+                : <GameResultActions goOnTo={game.hasWinner ? null : quick ? `/quick/x01/${game.id}` : training ? `/training/x01/${game.id}` : `/x01/${game.id}`} compare={!quick && !training && players.length > 1 ? { players, type: 'x01' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={onNewGame} />;
 
     return (
         <div className="container-fluid p-4 border-0">

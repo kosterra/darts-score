@@ -99,6 +99,11 @@ const ClubNight = ({ night, canAnswer, isAdmin, busy, onAnswer, onCancel, onRest
                                 </div>}
                         </>
                     )}
+                {/* tonight: the club evening; a past night: its table */}
+                {!night.cancelled && (night.day === dayKey(new Date()) || past) &&
+                    <Link to={`/club-night/${night.day}`} className={`p-button p-button-sm text-decoration-none align-self-start ${past ? 'p-button-secondary p-button-text' : ''}`}>
+                        <i className={`pi ${past ? 'pi-list' : 'pi-users'} me-2`} aria-hidden="true" />{past ? t('Table of the night') : t('Club evening')}
+                    </Link>}
             </div>
         </div>
     );

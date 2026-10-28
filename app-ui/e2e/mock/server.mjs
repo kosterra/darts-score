@@ -35,7 +35,7 @@ import { activityInsights, playersInsights } from '../../../app-api/src/utils/ad
 import { quickGameView } from '../../../app-api/src/utils/quick.games.js';
 import { x01StatsOf } from '../../../app-api/src/controllers/x01.stats.controller.js';
 import { storedOf } from '../../../app-api/src/utils/game.view.js';
-import { eveningView, newEvening, eveningGameError, eveningError } from '../../../app-api/src/utils/evenings.js';
+import { eveningView, eveningReport, gameSummary, newEvening, eveningGameError, eveningError } from '../../../app-api/src/utils/evenings.js';
 import { normalizeClubRules, normalizeGamePreferences, ruleViolations } from '../../../app-api/src/rules/club.rules.js';
 const quickGames = new Map();
 const evenings = new Map();
@@ -144,6 +144,17 @@ http.createServer((req, res) => {
         let json = {};
         try { json = body ? JSON.parse(body) : {}; } catch { json = {}; }
         if (path === '/__test/calendar') { seedCalendar(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
+        // the club evening of a night: the club games among its players, with the API's own report
+        const clubNight = path.match(/^\/api\/calendar\/nights\/(\d{4}-\d{2}-\d{2})\/evening$/);
+        if (clubNight) {
+            const ids = (url.searchParams.get('players') ?? '').split(',').filter(Boolean);
+            const from = new Date(url.searchParams.get('from'));
+            const to = new Date(url.searchParams.get('to'));
+            const chosen = ids.map(id => players.find(p => p.id === id)).filter(Boolean).map(p => ({ id: p.id, name: p.nickname, profileImg: '' }));
+            const own = [...games.values()].filter(g => ['x01', 'cricket', 'elimination'].includes(g.kind) && new Date(g.createdAt) >= from && new Date(g.createdAt) <= to && (g.players ?? []).length >= 2 && g.players.every(id => ids.includes(id)))
+                .map(g => ({ ...g, _id: g.id, data: g }));
+            return send(res, 200, { players: chosen, games: own.map(gameSummary), report: eveningReport({ players: chosen }, own) });
+        }
         if (path.startsWith('/api/calendar') && calendarMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', url }) !== false) return;
         if (path === '/__test/leagues') { seedLeagues(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
         if (path.startsWith('/api/leagues') && leagueMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1' }) !== false) return;
@@ -843,7 +854,7 @@ http.createServer((req, res) => {
         const clock = path.match(/^\/api\/games\/(?:clock|x01|cricket|elimination)(?:\/([^/]+))?$/);
         if (clock) {
             const [, id] = clock;
-            if (req.method === 'POST' && !id) { const game = { ...json, id: `g${++seq}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; games.set(game.id, game); return send(res, 201, game); }
+            if (req.method === 'POST' && !id) { const game = { ...json, kind: path.split('/')[3], id: `g${++seq}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; games.set(game.id, game); return send(res, 201, game); }
             if (req.method === 'GET' && id) return games.has(id) ? send(res, 200, games.get(id)) : send(res, 404, {});
             if (req.method === 'PUT' && id) { const game = { ...games.get(id), ...json, updatedAt: new Date().toISOString() }; games.set(id, game); return send(res, 200, game); }
             if (req.method === 'GET') return send(res, 200, path.includes('/x01') ? [...games.values()].filter(g => !g.deleted) : []);

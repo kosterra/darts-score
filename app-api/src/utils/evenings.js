@@ -178,7 +178,7 @@ export const runEveningJobs = async (now = new Date()) => {
 };
 
 // a game of the evening in its list: what was played by whom, and how it went
-const gameSummary = (game) => {
+export const gameSummary = (game) => {
     const data = game.data ?? {};
     const view = viewOf(game.kind, data);
     const winner = (view.players ?? []).find(id => view.playerModels?.[id]?.hasWonGame) ?? null;

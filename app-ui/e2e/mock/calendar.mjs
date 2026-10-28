@@ -11,6 +11,12 @@ export const seedCalendar = (players, scenario) => {
     nights = [];
     cancelled = [];
     answers = [];
+    // a club night tonight, three members coming
+    if (scenario === 'tonight') {
+        const day = dayKey(new Date());
+        nights = [{ weekday: new Date(`${day}T12:00:00Z`).getUTCDay(), start: '19:30', end: '23:00', note: 'Back room' }];
+        answers = players.slice(1, 4).map(p => ({ day, player: p.id, answer: 'yes' }));
+    }
     // club nights on Tuesdays and Fridays, the second Tuesday cancelled, some members coming
     if (scenario === 'nights') {
         nights = [{ weekday: 2, start: '19:30', end: '23:00', note: 'Back room of the Red Lion' }, { weekday: 5, start: '20:00', end: '', note: '' }];

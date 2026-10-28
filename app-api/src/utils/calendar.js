@@ -5,6 +5,7 @@ import { REASON_MAX, WEEKS_AHEAD, addDays, clubNightsBetween, competitionEvents,
 import { getAppUrl } from './mail.utils.js';
 import { deliverQuietly } from './notify.js';
 import { translate } from './translate.js';
+import { eveningReport, gameSummary } from './evenings.js';
 
 /**
  * The calendar of a club (see rules/calendar.js): its weekly club nights,
@@ -103,6 +104,36 @@ export const answerNight = async (club, day, playerId, answer) => {
     if (!playerId) throw failure('Only players of the club answer.', 403);
     if (answer === null) await db.attendance.deleteOne({ club: club._id, day, player: playerId });
     else await db.attendance.updateOne({ club: club._id, day, player: playerId }, { $set: { answer } }, { upsert: true });
+};
+
+// ---------------------------------------------------------------------------
+// The club evening: the games of a club night among the players there
+// ---------------------------------------------------------------------------
+
+const EVENING_KINDS = ['x01', 'cricket', 'elimination'];
+export const CLUB_EVENING_MAX_PLAYERS = 20;
+
+/**
+ * The club evening of a night, as a darts evening has it: the club games
+ * played between from and to (the page knows the club's time) with only the
+ * chosen players, newest first, and the table, awards, who beat whom and the
+ * form from them. Players who are not members of the club are left out.
+ * → { players: [{ id, name }], games, report }
+ */
+export const clubEvening = async (club, { from, to, players }) => {
+    const members = await db.player.find({ _id: { $in: players }, clubs: club._id }, 'nickname profileImg').lean();
+    const chosen = players.map(id => members.find(member => String(member._id) === String(id))).filter(Boolean)
+        .map(member => ({ id: String(member._id), name: member.nickname, profileImg: member.profileImg ?? '' }));
+    const ids = new Set(chosen.map(player => player.id));
+    const found = await Promise.all(EVENING_KINDS.map(kind => db[kind].find({ club: club._id, createdAt: { $gte: from, $lte: to }, players: { $in: [...ids] } }).lean()
+        .then(list => list.map(doc => ({ ...doc, kind, data: doc })))));
+    // only the games among the players of the evening
+    const games = found.flat().filter(game => (game.players ?? []).length >= 2 && game.players.every(id => ids.has(String(id))));
+    return {
+        players: chosen,
+        games: [...games].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(gameSummary),
+        report: eveningReport({ players: chosen }, games),
+    };
 };
 
 // ---------------------------------------------------------------------------

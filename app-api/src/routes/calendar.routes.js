@@ -12,6 +12,7 @@ export default (app) => {
 
     router.get('/', CalendarController.show);
     router.put('/nights/:day/attendance', day, body('answer').optional({ values: 'null' }).isIn(ATTENDANCE_ANSWERS).withMessage('Answer yes or no.'), validate, CalendarController.attend);
+    router.get('/nights/:day/evening', day, validate, CalendarController.evening);
     router.get('/feed-link', CalendarController.feedLink);
     router.post('/feed-link', CalendarController.feedLink);
 

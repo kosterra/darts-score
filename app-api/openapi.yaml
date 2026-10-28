@@ -7892,6 +7892,49 @@ paths:
             type: string
             pattern: '^\d{4}-\d{2}-\d{2}$'
       operationId: deleteCalendarNightsBydayCancelled
+  /api/calendar/nights/{day}/evening:
+    get:
+      tags:
+        - Calendar
+      summary: The club evening of a club night, as a darts evening has it, from the club games among the chosen players
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: from
+          in: query
+          required: true
+          description: The start of the evening, an instant (the page knows the club's time)
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          description: Its end, at most two days later
+          schema:
+            type: string
+            format: date-time
+        - name: players
+          in: query
+          required: true
+          description: The players of the evening, ids separated by commas (members of the club, at most 20)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '{ players: [{ id, name, profileImg }], games: [{ id, kind, players, winner, results, finished, running, setup, createdAt }], report: { table, awards, headToHead, form, played, running } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '422':
+          description: The time of the evening is missing or too long
+      operationId: getCalendarNightsBydayEvening
   /api/calendar/feed-link:
     get:
       tags:
