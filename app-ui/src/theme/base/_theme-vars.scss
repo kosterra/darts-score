@@ -125,19 +125,19 @@ $theme-light: (
 );
 
 $themes: (
-    dark: $theme-dark,
-    black: $theme-black,
-    contrast: $theme-contrast,
-    light: $theme-light,
+    'dark': $theme-dark,
+    'black': $theme-black,
+    'contrast': $theme-contrast,
+    'light': $theme-light,
 );
 
 // the accent colours: dark (filled buttons, white text 4.5:1 or more) to lightest
 $accents: (
-    green: (primary: #528b6e, dark: #46785e, light: #60a382, lighter: #7ecca5, lightest: #a8dcc2),
-    red: (primary: #b4473e, dark: #a13e36, light: #c85a50, lighter: #f08f84, lightest: #f6bcb5),
-    blue: (primary: #3a76a8, dark: #2f6693, light: #4b8bc0, lighter: #7fb8ea, lightest: #b2d5f3),
-    gold: (primary: #a7802a, dark: #8a6820, light: #bf9638, lighter: #edc463, lightest: #f5dd9f),
-    purple: (primary: #7d5aa8, dark: #6a4b93, light: #9070bc, lighter: #bb9ee3, lightest: #d8c6f2),
+    'green': (primary: #528b6e, dark: #46785e, light: #60a382, lighter: #7ecca5, lightest: #a8dcc2),
+    'red': (primary: #b4473e, dark: #a13e36, light: #c85a50, lighter: #f08f84, lightest: #f6bcb5),
+    'blue': (primary: #3a76a8, dark: #2f6693, light: #4b8bc0, lighter: #7fb8ea, lightest: #b2d5f3),
+    'gold': (primary: #a7802a, dark: #8a6820, light: #bf9638, lighter: #edc463, lightest: #f5dd9f),
+    'purple': (primary: #7d5aa8, dark: #6a4b93, light: #9070bc, lighter: #bb9ee3, lightest: #d8c6f2),
 );
 
 @function rgb-of($color) {
@@ -186,11 +186,11 @@ $accents: (
 // the default: dark, Legmate green
 :root {
     @include theme-vars($theme-dark);
-    @include accent-vars(map.get($accents, green));
+    @include accent-vars(map.get($accents, 'green'));
 }
 
 @each $name, $theme in $themes {
-    @if $name != dark {
+    @if $name != 'dark' {
         :root[data-theme="#{$name}"] {
             @include theme-vars($theme);
         }
@@ -199,7 +199,7 @@ $accents: (
 
 // the accent colours, and on the light theme their versions for light surfaces
 @each $name, $accent in $accents {
-    @if $name != green {
+    @if $name != 'green' {
         :root[data-accent="#{$name}"] {
             @include accent-vars($accent);
         }
@@ -207,7 +207,7 @@ $accents: (
 }
 
 :root[data-theme="light"]:not([data-accent]) {
-    @include accent-vars(map.get($accents, green), true);
+    @include accent-vars(map.get($accents, 'green'), true);
 }
 
 @each $name, $accent in $accents {

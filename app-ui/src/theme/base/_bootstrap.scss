@@ -15,7 +15,7 @@ $green: map.get($colors,"green");
 
 // Bootstrap builds its classes from real colours: the default theme's; the
 // themes change them through its CSS variables (see _theme-vars.scss)
-$primary:       map.get(map.get($accents, green), primary);
+$primary:       map.get(map.get($accents, 'green'), primary);
 $secondary:     map.get($theme-dark, shade-900);
 $tertiary:      map.get($theme-dark, shade-800);
 $success:       $green;
