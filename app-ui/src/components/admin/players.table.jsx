@@ -24,6 +24,7 @@ import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDate } from '../../utils/dates';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import useClubSelection from './use.club.selection';
+import { VisitLink } from './visit.club';
 import { t } from '../../utils/i18n';
 import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
@@ -277,15 +278,18 @@ const PlayersTable = ({ scope = 'club' }) => {
                             header={t('Player')}
                             bodyClassName="no-label"
                             sortable
-                            // in the club's own list the name opens the player's profile
+                            // the name opens the player's profile
                             body={(player) => {
                                 // members still without a date of birth are marked for the club's admins
                                 const missingBirth = canManage && !player.guest && !player.dateOfBirth && (
                                     <i className="pi pi-calendar-times text-warning ms-2 fs-8" title={t('No date of birth yet: edit the player to add it, it is needed for handicap suggestions')} aria-label={t('No date of birth yet')} />
                                 );
-                                return acrossClubs
-                                    ? <PlayerCell player={player}>{missingBirth}</PlayerCell>
-                                    : <Link to={`/players/${player.id}`} className="player-link"><PlayerCell player={player}>{missingBirth}</PlayerCell></Link>;
+                                if (!acrossClubs) return <Link to={`/players/${player.id}`} className="player-link"><PlayerCell player={player}>{missingBirth}</PlayerCell></Link>;
+                                // across clubs: the profile as the admins of one of the chosen clubs see it
+                                const club = (player.clubs ?? []).find(entry => selectedIds.includes(entry.id)) ?? player.clubs?.[0];
+                                return club
+                                    ? <VisitLink clubId={club.id} to={`/players/${player.id}`} className="player-link" title={t('Open the player in {{club}}', { club: club.name })} ariaLabel={null}><PlayerCell player={player}>{missingBirth}</PlayerCell></VisitLink>
+                                    : <PlayerCell player={player}>{missingBirth}</PlayerCell>;
                             }}
                             style={{ minWidth: '14rem' }}
                         />

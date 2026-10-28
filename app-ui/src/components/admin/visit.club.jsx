@@ -7,11 +7,12 @@ import { t } from '../../utils/i18n';
 import { useVisit } from './use.visit';
 
 // a link to a page of a club, for the lists across clubs
-export const VisitLink = ({ clubId, to, className, title, children }) => {
+// ariaLabel: the name of an icon link (its title by default); null when the content names it
+export const VisitLink = ({ clubId, to, className, title, ariaLabel = title, children }) => {
     const visit = useVisit();
     const [busy, setBusy] = useState(false);
     return (
-        <a href={to} className={className} title={title} aria-label={title} aria-busy={busy}
+        <a href={to} className={className} title={title} aria-label={ariaLabel ?? undefined} aria-busy={busy}
             onClick={async (event) => {
                 event.preventDefault();
                 setBusy(true);

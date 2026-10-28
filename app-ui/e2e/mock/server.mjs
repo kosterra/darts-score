@@ -409,6 +409,7 @@ http.createServer((req, res) => {
                 games.set('gv1', { id: 'gv1', startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3, players: ['p1', 'p2'], gameIsRunning: true, hasWinner: false, visits: [], createdAt: ago(0.1), updatedAt: ago(0.1) });
                 return send(res, 200, [{ ...games.get('gv1'), type: 'x01', club: { id: 'k3', name: 'Bullseye Bern', logo: '' } }]);
             }
+            if (path === '/api/admin/players' && !process.env.ADMIN_OVERVIEWS) return send(res, 200, players.filter(p => !p.guest).slice(1, 3).map(p => ({ ...p, clubs: [{ id: 'k3', name: 'Bullseye Bern', logo: '' }] })));
             if (path === '/api/admin/clubs/k3/visit') return send(res, 200, { id: 'k3', name: 'Bullseye Bern', country: 'CH', accent: null, joinPolicy: 'closed', admins: [], role: 'admin', visiting: true, playerCount: 4 });
             if (path === '/api/public/evenings' && req.method === 'POST') {
                 const error = eveningError(json);

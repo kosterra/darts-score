@@ -7,6 +7,13 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.21',
+        changes: [
+            t('The filter pills of every list say what they filter: Status, Players, Level, Whose and more.'),
+            t('For global admins: a player of any club opens as its admins see the profile, as games and trainings do.'),
+        ],
+    },
+    {
         version: '2026.10.20',
         changes: [
             t('Darts evenings have an end: End the evening on the device that runs it, or it ends by itself 12 hours after its last game. Then no more games are added, the table and the awards are final and the winner of the evening is named, also for those who follow it.'),
