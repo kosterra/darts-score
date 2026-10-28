@@ -8,6 +8,8 @@ const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', head
 test('the club shirt, designed and worn', async ({ page }) => {
     await post('/__test/logged-out', { loggedOut: false });
     await post('/__test/role', { admin: true });
+    // a plain shirt to start from (the mock keeps what an earlier run saved)
+    await fetch(`${MOCK}/api/clubs/c1/shirt`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pattern: 'plain', color: null, accent: '#f2f2f2', logo: false }) });
     await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
     await page.goto('/my-clubs/c1');
 
