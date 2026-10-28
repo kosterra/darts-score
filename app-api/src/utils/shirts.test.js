@@ -38,3 +38,19 @@ describe('the shirts', () => {
         expect(shirtCheck({ shirt: { design: 'flames' } }, { design: 'club' }, 1)).toMatchObject({ ok: true });
     });
 });
+
+describe('the club shirt', async () => {
+    const { CLUB_SHIRT_DEFAULTS, SHIRT_COLORS, clubShirtCheck, clubShirtOf } = await import('./shirts.js');
+
+    it('takes a pattern, the colours of the palette and the logo', () => {
+        expect(clubShirtCheck({ pattern: 'hoops', color: SHIRT_COLORS[0], accent: SHIRT_COLORS[1], logo: true })).toEqual({ shirt: { pattern: 'hoops', color: SHIRT_COLORS[0], accent: SHIRT_COLORS[1], logo: true } });
+        expect(clubShirtCheck({})).toEqual({ shirt: { pattern: 'plain', color: null, accent: CLUB_SHIRT_DEFAULTS.accent, logo: false } });
+        expect(clubShirtCheck({ pattern: 'polkadots' }).error).toBeTruthy();
+        expect(clubShirtCheck({ color: '#123456' }).error).toBeTruthy();
+    });
+
+    it('falls back to the defaults for a club that chose none', () => {
+        expect(clubShirtOf({})).toEqual(CLUB_SHIRT_DEFAULTS);
+        expect(clubShirtOf({ shirt: { pattern: 'sash' } }).pattern).toBe('sash');
+    });
+});

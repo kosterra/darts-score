@@ -13,6 +13,7 @@ import { checkoutRoutes, formatRoute, scoringTip, setupSuggestions } from '../..
 import { heldBy, useClubShame } from '../../badges/hall.of.shame.data';
 import ShameMedal from '../../badges/shame.medal';
 import PlayerFlight from '../../flights/player.flight';
+import PlayerShirt from '../../shirts/player.shirt';
 import useGameRules from '../common/game.rules';
 import CallerButton from '../common/caller.button';
 import GameScreenButton from '../../screen/game.screen.button';
@@ -147,9 +148,9 @@ const X01LiveHeader = () => {
                             <div className="x01-hero-info">
                                 <span className="x01-hero-name text-truncate" title={player.nickname}>
                                     {/* mirrored, the flight follows the name */}
-                                    {!(sides.length === 2 && index === 1) && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
+                                    {!(sides.length === 2 && index === 1) && <><PlayerShirt player={player} /><PlayerFlight player={player} seat={game.players.indexOf(player.id)} /></>}
                                     {player.nickname}
-                                    {sides.length === 2 && index === 1 && <PlayerFlight player={player} seat={game.players.indexOf(player.id)} />}
+                                    {sides.length === 2 && index === 1 && <><PlayerFlight player={player} seat={game.players.indexOf(player.id)} /><PlayerShirt player={player} /></>}
                                 </span>
                                 {partner && <span className="x01-hero-partner text-truncate" title={partner.nickname}>{t('with {{name}}', { name: partner.nickname })}</span>}
                                 <span className="x01-live-leg">

@@ -61,6 +61,13 @@ export default (app) => {
         validate,
         ClubController.update
     );
+    // the club shirt (club admins)
+    router.put('/:id/shirt',
+        param('id').isMongoId().withMessage('Invalid club.'),
+        body('logo').optional().isBoolean({ strict: true }).withMessage('logo must be true or false.'),
+        validate,
+        ClubController.updateShirt
+    );
     // the club's own rules for its games (club admins)
     router.put('/:id/game-rules',
         param('id').isMongoId().withMessage('Invalid club.'),

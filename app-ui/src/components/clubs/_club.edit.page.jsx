@@ -22,6 +22,7 @@ import { useAuth } from '../../utils/auth.context';
 import { resolveClubLogo } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
 import { ACCENT_OPTIONS } from '../../utils/accents';
+import ClubShirtEditor from './club.shirt.editor';
 
 const DESCRIPTION_MAX = 500;
 const EMPTY_ADMIN = { email: '', firstname: '', lastname: '', password: '' };
@@ -372,6 +373,8 @@ const ClubEditPage = () => {
                     </div>
                 </div>
             </Panel>
+            {/* the club shirt its members play in */}
+            <ClubShirtEditor club={club} key={`shirt-${club.id}`} onSaved={async (detail) => { await refreshClubs(); showSaved(detail); }} onError={showError} />
             {/* what the club earned together, and the goals its admins set */}
             <ClubGoalsEditor club={club} key={`goals-${club.id}`} onError={showError} />
             {/* the club's own rules for its games */}

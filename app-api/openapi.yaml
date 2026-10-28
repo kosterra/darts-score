@@ -1349,6 +1349,46 @@ paths:
         '409':
           description: The club still has players (only for club admins)
       operationId: deleteClubsByid
+  /api/clubs/{id}/shirt:
+    put:
+      tags:
+        - Clubs
+      summary: The club shirt its members play in (club admins)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pattern:
+                  type: string
+                  enum: [plain, stripes, vertical, hoops, halves, sash, chevrons]
+                color:
+                  type: [string, 'null']
+                  description: The main colour from the shirt palette; null for the club's accent colour
+                accent:
+                  type: string
+                  description: The second colour from the shirt palette
+                logo:
+                  type: boolean
+                  description: The club's logo on the chest
+      responses:
+        '200':
+          description: The club
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '422':
+          description: A pattern or colour that is not offered
+      operationId: putClubsByidShirt
   /api/clubs/{id}/game-rules:
     parameters:
       - $ref: '#/components/parameters/Id'

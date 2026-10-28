@@ -703,6 +703,8 @@ http.createServer((req, res) => {
             globalThis.clubBadgeData.goals = json.goals.map((g, i) => ({ id: g.id ?? `goal-new-${i}`, metric: g.metric, target: g.target, from: new Date(2026, 6, 1), until: g.until, reachedAt: null }));
             return send(res, 200, clubOwn().goals);
         }
+        const clubShirt = path.match(/^\/api\/clubs\/(c\d)\/shirt$/);
+        if (clubShirt && req.method === 'PUT') { club.shirt = json; return send(res, 200, club); }
         if (path === '/api/clubs') return send(res, 200, [process.env.SHAME_DASH ? { ...club, dashboardWidgets: ['hallOfShame'] } : club, { ...club, id: 'c2', name: 'Testclub 2', country: 'IT' }]);
         if (path === '/api/stats/club' && process.env.DASH !== '0') {
             const members = players.map(p => ({ _id: p.id, ...p }));
@@ -809,7 +811,7 @@ http.createServer((req, res) => {
         }
         const one = path.match(/^\/api\/players\/(p\d+)$/);
         if (one) { const p = players.find(x => x.id === one[1]); p.bestLevel ??= Number(process.env.SHIRT_LEVEL ?? 6); return send(res, 200, { ...p, shirt: shirtOf(p) }); }
-        if (path === '/api/players/find') return send(res, 200, players.filter(p => (json.playerIds ?? []).includes(p.id)));
+        if (path === '/api/players/find') return send(res, 200, players.filter(p => (json.playerIds ?? []).includes(p.id)).map(p => ({ ...p, shirt: shirtOf(p) })));
         // the rules engine: Shanghai, Killer, … and Bob's 27, …
         const rg = path.match(/^\/api\/games\/rules(?:\/([^/]+))?$/);
         if (rg) {

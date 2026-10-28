@@ -28,6 +28,26 @@ export const SHIRT_DESIGNS = [
 export const PRO_LEVEL = 6;
 export const SHIRT_DEFAULTS = { design: 'club', color: '#2b2f36', accent: '#46a758' };
 
+// the club shirt, as its admins design it: a pattern from the front, the main
+// colour (null: the club's accent colour), a second colour, and the club's
+// logo on the chest
+export const CLUB_SHIRT_PATTERNS = ['plain', 'stripes', 'vertical', 'hoops', 'halves', 'sash', 'chevrons'];
+export const CLUB_SHIRT_DEFAULTS = { pattern: 'plain', color: null, accent: '#f2f2f2', logo: false };
+
+// the club shirt as it is stored, checked: { shirt } or { error }
+export const clubShirtCheck = (body = {}) => {
+    const pattern = body.pattern ?? CLUB_SHIRT_DEFAULTS.pattern;
+    if (!CLUB_SHIRT_PATTERNS.includes(pattern)) return { error: 'Choose a pattern for the club shirt.' };
+    const color = body.color ?? null;
+    if (color !== null && !SHIRT_COLORS.includes(color)) return { error: 'Choose the colour of the club shirt.' };
+    const accent = body.accent ?? CLUB_SHIRT_DEFAULTS.accent;
+    if (!SHIRT_COLORS.includes(accent)) return { error: 'Choose the second colour of the club shirt.' };
+    return { shirt: { pattern, color, accent, logo: body.logo === true } };
+};
+
+// the club shirt of a club, with the defaults for what it has not chosen
+export const clubShirtOf = (club) => ({ ...CLUB_SHIRT_DEFAULTS, ...(club?.shirt ?? {}) });
+
 const designOf = (id) => SHIRT_DESIGNS.find(design => design.id === id) ?? null;
 
 /**
