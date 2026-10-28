@@ -638,6 +638,21 @@ $navRailWidth: 4.75rem;
     line-height: 1.3;
 }
 
+// a global admin looking at a club: which one, and the way back
+.visit-bar {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 0.35rem 1rem;
+    background: with-alpha($accentAmber, 0.16);
+    color: var(--text-default);
+    font-size: $text-sm;
+    line-height: 1.3;
+
+    > .pi { color: $accentAmber; }
+    .p-button { flex-shrink: 0; }
+}
+
 // the pages next to the menu, with the banner on top
 .app-content {
     flex: 1 1 0;

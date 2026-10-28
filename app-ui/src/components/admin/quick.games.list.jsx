@@ -6,7 +6,8 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { DataTable } from 'primereact/datatable';
 import { Panel } from 'primereact/panel';
 import { Toast } from 'primereact/toast';
-import { FaTrophy } from 'react-icons/fa6';
+import { FaChartColumn, FaTrophy } from 'react-icons/fa6';
+import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 import AdminService from '../../services/admin.service';
@@ -18,11 +19,17 @@ import { AdminToolbar } from './admin.common';
 import QuickGamesOverview from './quick.games.overview';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { formatDateTime } from './admin.format';
+import { formatDate } from '../../utils/dates';
 import { t } from '../../utils/i18n';
 import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
+import TypeFilter from '../elements/type.filter';
+import { GAME_TYPE_GROUPS, typesFrom } from '../elements/type.groups';
 
-const TYPE_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('X01'), value: 'x01' }, { label: t('Cricket'), value: 'cricket' }, { label: t('Elimination'), value: 'elimination' }];
+// the games quick games are played in, as in the type filter of the other lists
+const QUICK_TYPE_GROUPS = [{ ...GAME_TYPE_GROUPS[0], items: GAME_TYPE_GROUPS[0].items.filter(item => ['x01', 'cricket', 'elimination'].includes(item.value)) }];
+// where a game was played: on its own, or in a darts evening
+const WHERE_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('On their own'), value: 'single', icon: 'pi pi-bolt' }, { label: t('Darts evenings'), value: 'evening', icon: 'pi pi-users' }];
 const STATUS_OPTIONS = [{ label: t('All'), value: 'all' }, { label: t('Running'), value: 'running', icon: 'pi pi-play' }, { label: t('Finished'), value: 'finished', icon: 'pi pi-check-circle' }];
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
@@ -39,9 +46,11 @@ const QuickGamesList = () => {
     const [data, setData] = useState(null);
     const [failed, setFailed] = useState(false);
     // the filters, page and order live in the address
-    const [view, setView] = useUrlState({ type: 'all', status: 'all', ...TABLE_DEFAULTS });
-    const { type, status } = view;
-    const setType = (value) => setView({ type: value, page: 1 });
+    const [view, setView] = useUrlState({ type: 'all', status: 'all', where: 'all', ...TABLE_DEFAULTS });
+    const { type, status, where } = view;
+    const setWhere = (value) => setView({ where: value, page: 1 });
+    const types = typesFrom(type, QUICK_TYPE_GROUPS);
+    const setTypes = (values) => setView({ type: values.length ? values.join(',') : 'all', page: 1 });
     const setStatus = (value) => setView({ status: value, page: 1 });
     const [selection, setSelection] = useState([]);
 
@@ -56,8 +65,9 @@ const QuickGamesList = () => {
     useEffect(() => { load(); }, [load]);
 
     const games = useMemo(() => (data?.games ?? [])
-        .filter(game => type === 'all' || game.kind === type)
-        .filter(game => status === 'all' || (status === 'finished') === game.finished), [data, type, status]);
+        .filter(game => type === 'all' || type.split(',').includes(game.kind))
+        .filter(game => status === 'all' || (status === 'finished') === game.finished)
+        .filter(game => where === 'all' || (where === 'evening') === Boolean(game.evening)), [data, type, status, where]);
     // the last 30 days, the days without a game too
     const days = useMemo(() => {
         const byDay = new Map((data?.perDay ?? []).map(day => [day.day, day]));
@@ -94,7 +104,9 @@ const QuickGamesList = () => {
             <div className="d-flex flex-column align-items-start gap-1">
                 <GameTypeTag type={game.kind} />
                 <span className="text-default fs-7 fw-semibold">{game.format}</span>
-                <span className="text-faint fs-8">{t('Quick game · no account')}</span>
+                {game.evening
+                    ? <span className="quick-format-tag ms-0" title={t('Played in a darts evening')}><i className="pi pi-users me-1" aria-hidden="true" />{game.evening.name || t('Darts evening of {{date}}', { date: formatDate(game.evening.createdAt ?? game.createdAt) })}</span>
+                    : <span className="text-faint fs-8">{t('Quick game · no account')}</span>}
             </div>
         </div>
     );
@@ -116,6 +128,7 @@ const QuickGamesList = () => {
 
     const actionsBody = (game) => (
         <div className="row-actions">
+            <Link to={`/quick/stats/${game.kind}/${game.id}`} className="row-action-link" title={t('Show statistics')} aria-label={t('Show statistics')}><FaChartColumn /></Link>
             <DeletePopup data={game} header={t('Delete Quick Game')} message={t('the quick game of {{join}}', { join: game.names.join(', ') })} handleDelete={(row) => deleteGames([row.id])} />
         </div>
     );
@@ -139,9 +152,10 @@ const QuickGamesList = () => {
                         disabled={!selection.length}
                         onClick={confirmDeleteSelection}
                     />
-                </>} changed={[type !== 'all', status !== 'all'].filter(Boolean).length}>
-                <FilterPills value={type} options={TYPE_OPTIONS} onChange={setType} ariaLabel={t('Game type')} dropdownOnPhone />
-                <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
+                </>} changed={[type !== 'all', status !== 'all', where !== 'all'].filter(Boolean).length}>
+                <TypeFilter groups={QUICK_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All game types')} ariaLabel={t('Game type')} />
+                <FilterPills label={t('Status')} value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} dropdownOnPhone />
+                <FilterPills label={t('Played')} value={where} options={WHERE_OPTIONS} onChange={setWhere} ariaLabel={t('Played')} dropdownOnPhone />
             </AdminToolbar>
 
             {failed

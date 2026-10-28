@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaUserGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -208,6 +208,7 @@ const useSections = () => {
                 { label: t('Games'), icon: GiDart, to: '/admin/games' },
                 { label: t('Trainings'), icon: BsPersonFillCheck, to: '/admin/trainings' },
                 { label: t('Quick games'), icon: FaBolt, to: '/admin/quick-games' },
+                { label: t('Darts evenings'), icon: FaUserGroup, to: '/admin/evenings' },
             ],
         },
         {

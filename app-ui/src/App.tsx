@@ -7,6 +7,7 @@ import { t } from './utils/i18n';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
+import { VisitBar } from './components/admin/visit.club';
 import UnsentGamesNote from './components/offline/unsent.games.note';
 import InstallHint from './components/install/install.hint';
 import WelcomeTour from './components/onboarding/welcome.tour';
@@ -97,7 +98,7 @@ function GameListRedirect() {
 }
 
 // Pages that work without a selected club
-const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/dashboard', '/admin/backups', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/alerts', '/admin/logs', '/admin/fair-play', '/admin/sessions', '/admin/usage'];
+const CLUBLESS_PATHS = ['/my-clubs', '/player-profile', '/clubs', '/profile', '/about', '/notifications', '/system-settings', '/administration', '/admin/dashboard', '/admin/backups', '/admin/clubs', '/admin/users', '/admin/players', '/admin/games', '/admin/trainings', '/admin/quick-games', '/admin/evenings', '/admin/alerts', '/admin/logs', '/admin/fair-play', '/admin/sessions', '/admin/usage'];
 
 function AppContent() {
     // a new theme or accent colour: drawn again, for the colours set from scripts (charts, levels)
@@ -259,6 +260,7 @@ function AppContent() {
             <WelcomeTour />
             {/* the banner sits on top of the pages, next to the menu */}
             <div className="app-content">
+                <VisitBar />
                 <AppBanner />
                 <InstallHint loggedIn />
                 <MfaDueNotice />

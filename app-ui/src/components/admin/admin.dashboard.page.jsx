@@ -151,6 +151,7 @@ const AdminDashboardPage = () => {
                     <Tile icon="pi-users" label={t('Players')} value={formatNumber(numbers.players)} to="/admin/players" />
                     <Tile icon="pi-trophy" label={t('Games played')} value={formatNumber(numbers.gamesPlayed)} to="/admin/games" detail={tn(numbers.gamesThisWeek, '{{count}} this week', '{{count}} this week')} />
                     <Tile icon="pi-bolt" label={t('Quick games')} value={formatNumber(numbers.quickGames)} to="/admin/quick-games" detail={t('in the last 7 days')} />
+                    <Tile icon="pi-users" label={t('Darts evenings')} value={formatNumber(numbers.evenings ?? 0)} to="/admin/evenings" detail={t('in the last 7 days')} />
                 </div>
             </section>
         </div>

@@ -9,9 +9,29 @@ const ACTIVE_CLUB_KEY = 'darts-score.activeClub';
  */
 export const getActiveClubId = () => {
     try {
-        return localStorage.getItem(ACTIVE_CLUB_KEY) || '';
+        // a global admin looking at a club does so in this tab only
+        return getVisitedClubId() || localStorage.getItem(ACTIVE_CLUB_KEY) || '';
     } catch {
         return '';
+    }
+};
+
+// the club a global admin looks at in this tab ({ id, from: the page to go back to }), or null
+const VISIT_KEY = 'darts-score.visitClub';
+export const getVisit = () => {
+    try {
+        return JSON.parse(sessionStorage.getItem(VISIT_KEY) ?? 'null');
+    } catch {
+        return null;
+    }
+};
+export const getVisitedClubId = () => getVisit()?.id ?? '';
+export const setVisit = (visit) => {
+    try {
+        if (visit) sessionStorage.setItem(VISIT_KEY, JSON.stringify(visit));
+        else sessionStorage.removeItem(VISIT_KEY);
+    } catch {
+        // storage unavailable: the visit lasts until reload
     }
 };
 

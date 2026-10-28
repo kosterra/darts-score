@@ -46,6 +46,6 @@ test('the club nights, who comes, and the days of tournaments and leagues', asyn
 
     // the link for the calendar of the phone
     await page.getByRole('button', { name: 'Show my calendar link' }).click();
-    await expect(page.getByLabel('Calendar link')).toHaveValue(/\/api\/calendar-feed\/a{48}\.ics$/);
+    await expect(page.locator('input[aria-label="Calendar link"]')).toHaveValue(/\/api\/calendar-feed\/a{48}\.ics$/);
     await expect(page.getByRole('link', { name: 'Add to my calendar' })).toHaveAttribute('href', /^webcal:/);
 });

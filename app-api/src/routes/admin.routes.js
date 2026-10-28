@@ -4,6 +4,7 @@ import { body, param, query } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as AdminController from '../controllers/admin.controller.js';
 import * as QuickGameController from '../controllers/quick.game.controller.js';
+import * as EveningController from '../controllers/evening.controller.js';
 import * as MailTemplateController from '../controllers/mail.template.controller.js';
 import * as UsageController from '../controllers/usage.controller.js';
 import { getBannerSettings, updateBanner, BANNER_COLOR } from '../controllers/banner.controller.js';
@@ -76,6 +77,19 @@ export default (app) => {
         validate,
         QuickGameController.remove,
     );
+    // a quick game read without its key, and its statistics
+    router.get('/quick-games/:id', param('id').isMongoId().withMessage('Invalid game.'), validate, QuickGameController.adminFindOne);
+    router.get('/quick-games/:id/stats', param('id').isMongoId().withMessage('Invalid game.'), validate, QuickGameController.adminStats);
+    // the darts evenings without an account
+    router.get('/evenings', EveningController.adminList);
+    router.delete('/evenings',
+        body('ids').isArray({ min: 1, max: 500 }).withMessage('Choose the evenings to delete.'),
+        body('ids.*').isMongoId().withMessage('Invalid evening.'),
+        validate,
+        EveningController.adminRemove,
+    );
+    // a club, to look at it as its admins do (the global admins are admins of every club)
+    router.get('/clubs/:id/visit', param('id').isMongoId().withMessage('Invalid club.'), validate, AdminController.visitClub);
 
     // the banner on top of every page
     router.get('/banner', getBannerSettings);

@@ -1869,7 +1869,7 @@ paths:
       summary: What the global admins see first
       responses:
         '200':
-          description: '{ numbers: { clubs, players, gamesPlayed, gamesThisWeek, users, usersNew, quickGames }, now: { sessions, users }, week: { users }, attention: { critical, warning, errors }, mail: { configured, today, limit }, backups: { latest, count, enabled, nextAt, lastError } }'
+          description: '{ numbers: { clubs, players, gamesPlayed, gamesThisWeek, users, usersNew, quickGames, evenings }, now: { sessions, users }, week: { users }, attention: { critical, warning, errors }, mail: { configured, today, limit }, backups: { latest, count, enabled, nextAt, lastError } }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2258,6 +2258,123 @@ paths:
           description: Global admin rights required
       description: Global admins only.
       operationId: getAdminTrainings
+  /api/admin/quick-games/{id}:
+    get:
+      tags:
+        - Administration
+      summary: A quick game, read without its key
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The quick game
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The game as its page reads it
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: No such quick game (any more)
+      operationId: getAdminQuickGamesByid
+  /api/admin/quick-games/{id}/stats:
+    get:
+      tags:
+        - Administration
+      summary: The statistics of a quick X01 game, read without its key
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The quick game
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The statistics, as those of a club game
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: No such quick game, or not an X01 game
+      operationId: getAdminQuickGamesByidStats
+  /api/admin/evenings:
+    get:
+      tags:
+        - Administration
+      summary: The darts evenings without an account, newest first, with the counts per day and how many were played all time
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 200
+      responses:
+        '200':
+          description: '{ total, allTime: { played, since }, perDay: [{ day, evenings }], evenings: [{ id, name, players, games, finished, running, leader, club, shareToken, createdAt, lastGameAt }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+      operationId: getAdminEvenings
+    delete:
+      tags:
+        - Administration
+      summary: Delete darts evenings with their games
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: '{ deleted }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: deleteAdminEvenings
+  /api/admin/clubs/{id}/visit:
+    get:
+      tags:
+        - Administration
+      summary: A club as its admins have it in the app, for a global admin to look at it
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The club
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The club with role admin and visiting true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Global admin rights required
+        '404':
+          description: No such club
+      operationId: getAdminClubsByidVisit
   /api/admin/quick-games:
     get:
       tags:
@@ -2274,7 +2391,7 @@ paths:
             default: 200
       responses:
         '200':
-          description: '{ total, perDay: [{ day, games, finished }], games: [{ id, kind, format, names, winner, finished, createdAt, updatedAt }] }'
+          description: '{ total, allTime: { finished, inEvenings, since }, perDay: [{ day, games, finished }], games: [{ id, kind, format, evening, names, winner, finished, createdAt, updatedAt }] }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

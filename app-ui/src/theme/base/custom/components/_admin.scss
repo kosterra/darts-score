@@ -1196,3 +1196,18 @@ $fair-play-suspicious: $accentAmber;
 .mail-day.is-reached .mail-day-bar span { background: soft($accentRed, 0.7); }
 .mail-day-count { color: var(--text-default); font-variant-numeric: tabular-nums; }
 .mail-day-label { color: var(--text-faint); }
+
+// a group of filter pills with its name before it, e.g. "Status"
+.filter-labelled {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    min-width: 0;
+}
+
+.filter-label {
+    color: var(--text-subtle);
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+}
