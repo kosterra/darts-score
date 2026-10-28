@@ -97,7 +97,7 @@ const CricketGameStats = ({ quick = false }) => {
     // a game of a darts evening goes back to it; others offer a rematch
     const actions = quick && game.evening
         ? <EveningGameActions eveningId={game.evening} />
-        : <GameResultActions compare={!quick && players.length > 1 ? { players, type: 'cricket' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} />;
+        : <GameResultActions goOnTo={game.hasWinner ? null : quick ? `/quick/cricket/${game.id}` : `/cricket/${game.id}`} compare={!quick && players.length > 1 ? { players, type: 'cricket' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/cricket', { replace: true })} />;
 
     return (
         <div className="container-fluid p-4 border-0">

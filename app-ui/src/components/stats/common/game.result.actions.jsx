@@ -7,9 +7,21 @@ import { t } from '../../../utils/i18n';
  * players switched, with more shuffled), set up a new one, or compare its
  * players (compare: { players, type }, when there is something to compare);
  * home is in the menu. onRestart(switchPlayers, shufflePlayers), onNewGame().
+ * goOnTo: the game is not finished yet; the page of the game, to go on with it
+ * instead of playing it again.
  */
-const GameResultActions = ({ playerCount, onRestart, onNewGame, compare = null }) => {
+const GameResultActions = ({ playerCount, onRestart, onNewGame, compare = null, goOnTo = null }) => {
     const params = compare ? new URLSearchParams({ players: compare.players.map(player => player.id ?? player).join(','), ...(compare.type && { type: compare.type }) }) : null;
+    if (goOnTo) {
+        return (
+            <>
+                <div className="result-hero-again">
+                    <Link to={goOnTo} className="p-button p-button-sm text-decoration-none"><i className="pi pi-play me-2" aria-hidden="true" />{t('Go on with the game')}</Link>
+                </div>
+                <span className="text-subtle fs-7">{t('Not finished yet: nobody has won.')}</span>
+            </>
+        );
+    }
     return (
         <>
             <div className="result-hero-again">

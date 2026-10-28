@@ -80,7 +80,7 @@ const ClockGameStats = () => {
         navigate(`/clock/${created.id}`);
     };
 
-    const actions = <GameResultActions compare={players.length > 1 ? { players, type: 'clock' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/clock', { replace: true })} />;
+    const actions = <GameResultActions goOnTo={game.hasWinner ? null : `/clock/${id}`} compare={players.length > 1 ? { players, type: 'clock' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate('/clock', { replace: true })} />;
 
     const winners = players.filter(player => game.playerModels?.[player.id]?.hasWonGame);
 

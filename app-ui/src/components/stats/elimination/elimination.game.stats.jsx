@@ -106,7 +106,7 @@ const EliminationGameStats = ({ quick = false }) => {
     // a game of a darts evening goes back to it; others offer a rematch
     const actions = quick && game.evening
         ? <EveningGameActions eveningId={game.evening} />
-        : <GameResultActions compare={!quick && players.length > 1 ? { players, type: 'elimination' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/elimination', { replace: true })} />;
+        : <GameResultActions goOnTo={game.hasWinner ? null : quick ? `/quick/elimination/${game.id}` : `/elimination/${game.id}`} compare={!quick && players.length > 1 ? { players, type: 'elimination' } : null} playerCount={game.players.length} onRestart={onRestartGame} onNewGame={() => navigate(quick ? '/quick' : '/elimination', { replace: true })} />;
 
     const Who = ({ playerId }) => (
         <span className="d-inline-flex align-items-center text-nowrap">

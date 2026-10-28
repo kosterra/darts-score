@@ -11,6 +11,8 @@ const CHANGELOG = [
         changes: [
             t('The filter pills of every list say what they filter: Status, Players, Level, Whose and more.'),
             t('For global admins: a player of any club opens as its admins see the profile, as games and trainings do.'),
+            t('Calendar: the month as a grid besides the list, the club nights in green and the days of tournaments and leagues in blue; a tap on a day shows what is on.'),
+            t('The statistics of a game not finished yet say so and lead back into the game, instead of offering to play it again.'),
         ],
     },
     {
