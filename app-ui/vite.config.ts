@@ -41,7 +41,9 @@ export default defineConfig({
     },
   },
   // the texts of each language in a main part and one for the About, legal and terms pages
-  plugins: [react(), restartOnVersionChange(), splitTexts(path.resolve(import.meta.dirname, 'src'))],
+  plugins: [react(), restartOnVersionChange(), splitTexts(path.resolve(import.meta.dirname, 'src')),
+    // the logo with the version, as in the app (src/utils/logo.js), so a new one is fetched at once
+    { name: 'logo-version', transformIndexHtml: (html: string) => html.replace('href="/logo.svg"', `href="/logo.svg?v=${appVersion}"`) }],
   // dayjs and its locales pre-bundled together: found apart, the locales point
   // at an older dayjs bundle and the app does not start
   optimizeDeps: {

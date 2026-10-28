@@ -22,6 +22,7 @@ import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.se
 import NotificationService, { NOTIFICATIONS_CHANGED } from '../../services/notification.service';
 import { t } from '../../utils/i18n';
 import { yearInDartsSeason } from '../../utils/year.in.darts';
+import { LOGO } from '../../utils/logo';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -481,7 +482,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                     ? <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
                     : (
                         <Link to="/" className="nav-brand" onClick={onNavigate} aria-label={t('Legmate')}>
-                            <img alt="" src="/logo.svg" width="40" height="40" />
+                            <img alt="" src={LOGO} width="40" height="40" />
                             <span className="nav-label fw-semibold">{t('Legmate')}</span>
                         </Link>
                     )
@@ -511,7 +512,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
                 <NavLink to="/about" data-tour="about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Legmate') : undefined} onClick={onNavigate}>
-                    <img alt="" src="/logo.svg" width="24" height="24" />
+                    <img alt="" src={LOGO} width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column min-w-0">
                             <span className="text-subtle fw-semibold fs-7">{t('Legmate')}</span>
