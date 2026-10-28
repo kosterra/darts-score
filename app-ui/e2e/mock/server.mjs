@@ -548,6 +548,21 @@ http.createServer((req, res) => {
             if (/name="profileImg"; filename=/.test(body)) p.profileImg = 'uploaded.png';
             return send(res, 200, { message: 'Player was updated successfully.' });
         }
+        const yearPath = path.match(/^\/api\/stats\/player\/(p\d+)\/year$/);
+        if (yearPath) {
+            const year = Number(url.searchParams.get('year')) || new Date().getFullYear();
+            const nickname = players.find(p => p.id === yearPath[1])?.nickname ?? '?';
+            if (year < new Date().getFullYear() - 1) return send(res, 200, { year, years: [new Date().getFullYear(), new Date().getFullYear() - 1], player: { id: yearPath[1], nickname }, games: { total: 0, together: 0, wins: 0, winRate: 0, byType: {} }, x01: null, days: 0, busiestMonth: null, firstGameAt: null, opponent: null, trainings: 0, badges: { count: 0, latest: [] } });
+            return send(res, 200, {
+                year, years: [new Date().getFullYear(), new Date().getFullYear() - 1], player: { id: yearPath[1], nickname },
+                games: { total: 214, together: 198, wins: 117, winRate: 59, byType: { x01: 160, cricket: 31, elimination: 12, clock: 11 } },
+                x01: { games: 160, average: 54.37, bestGame: { average: 78.4, game: 'g801', at: `${year}-03-14T20:12:00Z` }, darts: 20412, oneEighties: 23, tonPlus: 612, highestCheckout: 141, bestLeg: 15 },
+                days: 61, busiestMonth: { month: 3, games: 34 }, firstGameAt: `${year}-01-09T19:40:00Z`,
+                opponent: { id: 'p2', nickname: players.find(p => p.id === 'p2')?.nickname ?? 'Ben', games: 48, wins: 27 },
+                trainings: 37,
+                badges: { count: 9, latest: [{ id: 'max180-10', group: 'max180', title: 'Maximum Collector', description: 'Throw 10 180s', tier: 2, tiers: 4, earnedAt: `${year}-11-02T21:00:00Z` }, { id: 'max180-1', group: 'max180', title: 'One Hundred and Eighty!', description: 'Throw your first 180', tier: 1, tiers: 4, earnedAt: `${year}-02-11T21:00:00Z` }] },
+            });
+        }
         if (/^\/api\/stats\/player\/p\d+$/.test(path)) return send(res, 200, { ...(process.env.FORM_CHART ? (() => {
             const months = ['2023-12', '2024-01', '2024-02', '2024-03', '2025-03', '2025-10', '2025-12', '2026-10'];
             const rates = [100, 67, 100, 100, 67, 100, 67, 43]; const avgs = [41, 36, 43, 49, 54, 44, 43, 43]; const games = [3, 3, 1, 3, 9, 1, 3, 7];

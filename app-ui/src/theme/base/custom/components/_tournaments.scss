@@ -596,3 +596,44 @@
 }
 
 .club-night-add { min-width: 12rem; }
+
+// "Your year in darts": the year big, the games per type, the month and the rival large
+.year-eyebrow {
+    color: $accentGold;
+    font-size: $text-sm;
+    font-weight: $weight-bold;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.year-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+    gap: $space-2;
+
+    li {
+        display: flex;
+        justify-content: space-between;
+        gap: $space-2;
+        padding: $space-2 $space-3;
+        border-radius: $radius-md;
+        background: $surfaceRaisedColor;
+        font-size: $text-sm;
+    }
+}
+
+.year-big {
+    display: block;
+    color: var(--text-default);
+    font-size: $text-3xl;
+    font-weight: $weight-heavy;
+    line-height: 1.15;
+}
+
+.year-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-4;
+
+    li { display: flex; align-items: center; gap: $space-3; min-width: 0; }
+}

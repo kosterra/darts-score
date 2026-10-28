@@ -15,6 +15,7 @@ import DashboardEditor from './dashboard.editor';
 import DashboardWidget from './dashboard.widget';
 import { t } from '../../utils/i18n';
 import FirstSteps from '../onboarding/first.steps';
+import { defaultYear, yearInDartsSeason } from '../../utils/year.in.darts';
 
 // a greeting by the time of day
 const greeting = (name, hour = new Date().getHours()) => {
@@ -97,6 +98,17 @@ const Dashboard = () => {
 
             {/* a new account: what to do first, ticked as it is done */}
             {!editing && <FirstSteps />}
+
+            {/* in December and early January: the look back at the year */}
+            {!editing && me && yearInDartsSeason() &&
+                <section className="tournament-banner is-finished mb-4" aria-label={t('Your year in darts')}>
+                    <i className="pi pi-star-fill tournament-banner-icon" aria-hidden="true" />
+                    <div className="d-flex flex-column min-w-0 flex-grow-1">
+                        <span className="tournament-banner-title">{t('Your year in darts {{year}} is here', { year: defaultYear() })}</span>
+                        <span className="text-subtle fs-7">{t('Your games, records, rival and badges of the year, to look back at and share.')}</span>
+                    </div>
+                    <Link to="/year" className="p-button p-button-sm text-decoration-none">{t('Look back')}</Link>
+                </section>}
 
             {editing && (
                 <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging your dashboard')}>

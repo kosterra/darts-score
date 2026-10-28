@@ -12,6 +12,7 @@ import { playersKnownInClub } from '../controllers/game.controller.js';
 import db from '../models/db.model.js';
 import * as FavouritesController from '../controllers/favourites.controller.js';
 import { firstStepsOf } from '../utils/first.steps.js';
+import { getYearReview } from '../controllers/year.review.controller.js';
 import { param } from 'express-validator';
 
 // Statistics are only given for players and games of the request's club,
@@ -58,6 +59,8 @@ export default (app) => {
     // Retrieve stats for a player
     router.get('/player/:id', playerInClub, getPlayerStats);
     router.get('/player/:id/games', playerInClub, getPlayerGames);
+    // "Your year in darts": a look back at a year (?year)
+    router.get('/player/:id/year', playerInClub, getYearReview);
     // Retrieve stats for a x01 game
     router.get('/games/x01/:id', x01GameInClub, getX01Stats);
     // Retrieve X01 stats for multiple players

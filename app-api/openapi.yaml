@@ -4970,6 +4970,28 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: getStatsPlayerByidGames
+  /api/stats/player/{id}/year:
+    get:
+      tags:
+        - Statistics
+      summary: "Your year in darts: a look back at a year of a player, in all their clubs"
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+        - name: year
+          in: query
+          required: false
+          description: The year (this one when left out)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '{ year, years (those with a look back), player, games: { total, together, wins, winRate, byType }, x01: { games, average, bestGame, darts, oneEighties, tonPlus, highestCheckout, bestLeg } | null, days, busiestMonth, firstGameAt, opponent, trainings, badges: { count, latest } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getStatsPlayerByidYear
   /api/stats/games/x01/{id}:
     get:
       tags:
