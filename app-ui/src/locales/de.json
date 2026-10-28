@@ -3127,6 +3127,7 @@
  "Scoring average": "Scoring-Average",
  "Scoring only starts with a double. Rare, but played in some leagues.": "Gezählt wird erst ab einem Double. Selten, aber in manchen Ligen gespielt.",
  "Scoring vs. finishing": "Scoring vs. Finishing",
+ "Scoring without a connection on every game: logged in, the app keeps the pages to set up, play and finish a game in the background, so they open without the Wi-Fi of the club even if they were never opened on the device.": "Zählen ohne Verbindung bei jedem Spiel: Angemeldet hält die App die Seiten zum Einrichten, Spielen und Abschliessen eines Spiels im Hintergrund bereit, sodass sie ohne das WLAN des Clubs öffnen, auch wenn sie auf dem Gerät noch nie geöffnet wurden.",
  "Scoring without a connection: when the Wi-Fi of the club drops, a running game goes on. It is kept on the device and sent as soon as the connection is back, even after a reload; a finished game waits for it before its result opens, and a note elsewhere in the app leads back to games not sent yet.": "Zählen ohne Verbindung: Fällt das WLAN im Club aus, läuft ein Spiel einfach weiter. Es wird auf dem Gerät gespeichert und gesendet, sobald die Verbindung zurück ist, auch nach einem Neuladen; ein beendetes Spiel wartet darauf, bevor sein Ergebnis aufgeht, und ein Hinweis an anderer Stelle der App führt zu Spielen zurück, die noch nicht gesendet sind.",
  "Scotland": "Schottland",
  "Search a term": "Begriff suchen",

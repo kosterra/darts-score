@@ -7,6 +7,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.22',
+        changes: [
+            t('Scoring without a connection on every game: logged in, the app keeps the pages to set up, play and finish a game in the background, so they open without the Wi-Fi of the club even if they were never opened on the device.'),
+        ],
+    },
+    {
         version: '2026.10.21',
         changes: [
             t('A shorter menu: the player comparison is under Players, the badges under Results with the games and trainings, and Your year in darts is in the menu in December and January (all year long on My statistics).'),

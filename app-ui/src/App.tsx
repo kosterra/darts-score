@@ -92,6 +92,7 @@ const EveningClubPage = lazy(() => import('./components/evening/evening.club.pag
 
 import 'primeicons/primeicons.css';
 import "./theme/dark/green/theme.scss";
+import { prefetchGamePages } from './utils/prefetch.games';
 
 // The old per-type game lists are one list with a type filter now
 function GameListRedirect() {
@@ -119,6 +120,10 @@ function AppContent() {
     useEffect(() => {
         startHandled.current = Boolean(user);
     }, [user]);
+    // the pages to play, kept by the service worker for games without a connection
+    useEffect(() => {
+        if (user && activeClub && !isGlobalAdmin) prefetchGamePages();
+    }, [user, activeClub, isGlobalAdmin]);
 
     // a new page starts at the top, e.g. a game after its long setup; going back
     // keeps where the browser was, and a link to a part of a page goes there
