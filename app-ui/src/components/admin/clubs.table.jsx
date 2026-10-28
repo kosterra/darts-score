@@ -126,7 +126,7 @@ const ClubsTable = () => {
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search clubs or admins')} aria-label={t('Search clubs or admins')} />
                 </span>
-                <FilterPills value={state} options={STATE_OPTIONS} onChange={setState} ariaLabel={t('Show clubs')} />
+                <FilterPills label={t('Show')} value={state} options={STATE_OPTIONS} onChange={setState} ariaLabel={t('Show clubs')} />
             </AdminToolbar>
 
             <DataTable

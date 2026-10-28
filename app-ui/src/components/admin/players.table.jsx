@@ -243,7 +243,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                     <i className="pi pi-search" />
                     <InputText value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('Search players')} aria-label={t('Search players')} />
                 </span>
-                <FilterPills value={kind} options={KIND_OPTIONS} onChange={setKind} ariaLabel={t('Members or guests')} />
+                <FilterPills label={t('Players')} value={kind} options={KIND_OPTIONS} onChange={setKind} ariaLabel={t('Members or guests')} />
             </AdminToolbar>
             {(acrossClubs || isClubAdmin) && newPlayerForm}
 

@@ -195,7 +195,7 @@ const AlertsPage = () => {
                             <Button icon="pi pi-check" label={t('Resolve all')} size="small" disabled={!alerts?.length}
                                 onClick={() => run(t('Resolve all'), () => AdminService.resolveAllAlerts(), t('All alerts are resolved'))} />}
                     </>} changed={[status !== 'open'].filter(Boolean).length}>
-                    <FilterPills value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
+                    <FilterPills label={t('Status')} value={status} options={STATUS_OPTIONS} onChange={setStatus} ariaLabel={t('Status')} />
                 </AdminToolbar>
                 <DataTable
                     value={alerts ?? []}

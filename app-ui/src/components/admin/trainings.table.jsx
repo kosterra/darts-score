@@ -238,9 +238,9 @@ const TrainingsTable = ({ scope = 'club' }) => {
         <Panel id="admin-list" header={acrossClubs ? t('Trainings of all clubs') : t('Trainings')}>
             <AdminToolbar actions={!needsClubs && <span className="text-faint fs-7">{visibleRows.length} {visibleRows.length === 1 ? t('training') : t('trainings')}</span>} changed={[acrossClubs && selectedIds.length, view.whose !== 'all', view.type !== 'all', shownMode !== 'any', view.player].filter(Boolean).length} startOpen={needsClubs}>
                 {acrossClubs && <ClubFilter clubs={clubs} selectedIds={selectedIds} onChange={select} />}
-                {hasOwn && <FilterPills value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}
+                {hasOwn && <FilterPills label={t('Whose')} value={whose} options={WHOSE_OPTIONS} onChange={setWhose} ariaLabel={t('Whose trainings')} />}
                 <TypeFilter groups={TRAINING_TYPE_GROUPS} value={types} onChange={setTypes} allLabel={t('All trainings')} ariaLabel={t('Training')} />
-                {withAtc && <FilterPills value={mode} options={MODE_OPTIONS} onChange={setMode} ariaLabel={t('Mode of Around the Clock')} dropdownOnPhone />}
+                {withAtc && <FilterPills label={t('Mode')} value={mode} options={MODE_OPTIONS} onChange={setMode} ariaLabel={t('Mode of Around the Clock')} dropdownOnPhone />}
                 <Dropdown
                     value={playerId}
                     options={playerOptions}
