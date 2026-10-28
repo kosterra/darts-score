@@ -166,7 +166,7 @@ const useSections = () => {
                     children: [
                         // on the own player "My statistics" is the one that is marked
                         { label: t('All players'), icon: FaUserPen, to: '/players', notActiveOn: myPlayer ? [`/players/${myPlayer.id}`] : [] },
-                        { label: t('Player comparison'), icon: FaChartLine, to: '/stats/players' },
+                        { label: t('Compare'), icon: FaChartLine, to: '/stats/players' },
                     ],
                 },
                 {
