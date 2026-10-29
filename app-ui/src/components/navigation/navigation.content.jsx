@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaUserGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaStar, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaUserGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaStar, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase, FaRankingStar } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -129,7 +129,7 @@ const useSections = () => {
                 { label: t('Year in darts'), icon: FaStar, to: '/year', visible: Boolean(myPlayer) && yearInDartsSeason() },
             ],
         },
-        // playing: the games the club plays and the trainings in groups, and the tournaments
+        // playing: the games the club plays, the trainings and the competitions in groups
         {
             id: 'play',
             title: t('Play'),
@@ -150,8 +150,14 @@ const useSections = () => {
                         { label: t('More trainings'), icon: GiStairsGoal, to: '/training/more' },
                     ],
                 },
-                { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments', tag: t('Beta') },
-                { label: t('Leagues'), icon: FaListOl, to: '/leagues', tag: t('Beta') },
+                // what the club plays for: the tournaments and the leagues (their dates are in the club's calendar)
+                {
+                    label: t('Competitions'), icon: FaRankingStar,
+                    children: [
+                        { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments', tag: t('Beta') },
+                        { label: t('Leagues'), icon: FaListOl, to: '/leagues', tag: t('Beta') },
+                    ],
+                },
             ],
         },
         // the club
@@ -421,6 +427,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             <NavLink key={child.label} to={child.to} end className={linkClass} onClick={onNavigate}>
                 {child.icon && <child.icon className="nav-icon nav-child-icon" aria-hidden="true" />}
                 <span className="nav-label">{child.label}</span>
+                {child.tag && <span className="nav-tag">{child.tag}</span>}
                 <Ripple />
             </NavLink>
         )
