@@ -87,7 +87,7 @@ const DartboardHeatmap = ({ valueOf, describe, tooltip, color = '#5fa883', onlyD
                     </path>
                 ))}
                 {fields.map((field, index) => values[index] > 0 && (
-                    <path key={`h-${field.key}`} d={field.path} fill={heatColor(heatOf(values[index]))} pointerEvents="none" />
+                    <path key={`h-${field.key}`} d={field.path} fill={heatColor(heatOf(values[index]), color)} pointerEvents="none" />
                 ))}
                 {(onlyDoubles ? [['D', DOUBLES_ONLY.bull]] : [['S', R.outerBull], ['D', R.bull]]).map(([ring, radius]) => {
                     const value = ring === 'S' ? bullValues[0] : bullValues[1];
@@ -96,7 +96,7 @@ const DartboardHeatmap = ({ valueOf, describe, tooltip, color = '#5fa883', onlyD
                             <circle r={radius} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5" {...hoverProps(25, ring)}>
                                 {!tooltip && <title>{describe(25, ring)}</title>}
                             </circle>
-                            {value > 0 && <circle r={radius} fill={heatColor(heatOf(value))} pointerEvents="none" />}
+                            {value > 0 && <circle r={radius} fill={heatColor(heatOf(value), color)} pointerEvents="none" />}
                         </g>
                     );
                 })}

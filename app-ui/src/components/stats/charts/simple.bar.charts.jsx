@@ -113,27 +113,45 @@ export const DartsPerLegChart = ({ data = [], players = [], description = t('Dar
     );
 };
 
-// on a phone the form of the last year: more months make the bars too thin to read
-const PHONE_MONTHS = 12;
+// the months added up per quarter: the games and wins summed, the average weighted by the games
+const byQuarter = (months) => {
+    const quarters = new Map();
+    for (const entry of months) {
+        const [year, month] = entry.month.split('-').map(Number);
+        const key = `${year}-${Math.ceil(month / 3)}`;
+        const quarter = quarters.get(key) ?? { label: `Q${Math.ceil(month / 3)} ${String(year).slice(2)}`, games: 0, wins: 0, points: 0, weight: 0 };
+        quarter.games += entry.games ?? 0;
+        quarter.wins += entry.wins ?? 0;
+        if (entry.average != null) {
+            quarter.points += entry.average * (entry.games || 1);
+            quarter.weight += entry.games || 1;
+        }
+        quarters.set(key, quarter);
+    }
+    return [...quarters.values()].map(({ label, games, wins, points, weight }) => ({
+        label, games, wins,
+        winRate: games ? Math.round((wins / games) * 100) : 0,
+        average: weight ? Math.round((points / weight) * 10) / 10 : null,
+    }));
+};
 
 /**
- * Win rate and X01 average per month. On a phone the last 12 months, without
- * the dots and the win rate's scale, and the games played switched off at
- * first (a tap on their name shows them).
+ * Win rate and X01 average per month. On a phone per quarter (the months are
+ * too many for thin bars), without the dots and the win rate's scale, and the
+ * games played switched off at first (a tap on their name shows them).
  * data: [{ month: 'YYYY-MM', games, wins, winRate, average }]
  */
 export const FormChart = ({ data = [] }) => {
     const phone = useMediaQuery('(max-width: 575.98px)');
-    const shown = phone ? data.slice(-PHONE_MONTHS) : data;
-    const rows = shown.map(entry => ({ ...entry, label: dayjs(`${entry.month}-01`).format('MMM YY') }));
+    const rows = phone ? byQuarter(data) : data.map(entry => ({ ...entry, label: dayjs(`${entry.month}-01`).format('MMM YY') }));
     const series = useHiddenSeries(phone ? ['games'] : []);
     const dot = (fill) => (phone ? false : { r: 2.5, fill, strokeWidth: 0 });
 
     return (
         <ChartCard
             title={t('Form')}
-            description={phone && data.length > PHONE_MONTHS
-                ? t('Win rate (bars) and X01 average (line) per month of the last year. Tap an entry below the chart to show or hide it, Games played too.')
+            description={phone
+                ? t('Win rate (bars) and X01 average (line) per quarter. Tap an entry below the chart to show or hide it, Games played too.')
                 : t('Win rate (bars), X01 average and games played (lines) per month: how the form goes with how often you play. Click an entry below the chart to show or hide it.')}
         >
             {rows.length === 0

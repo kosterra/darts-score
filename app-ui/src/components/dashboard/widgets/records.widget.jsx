@@ -10,7 +10,7 @@ import { formatDate } from '../../../utils/dates';
 const RECORDS = [
     { key: 'bestLeg', label: t('Best 501 leg'), icon: FaStopwatch, format: (value) => t('{{value}} darts', { value: value }) },
     { key: 'highestCheckout', label: t('Highest checkout'), icon: FaCrosshairs, format: (value) => value },
-    { key: 'most180sInGame', label: t('Most 180s in a game'), icon: FaFire, format: (value) => `${value} × 180` },
+    { key: 'most180sInGame', label: t('Most 180s in a game'), icon: FaFire, format: (value) => value },
     { key: 'bestGameAverage', label: t('Best game average'), icon: FaChartLine, format: (value) => value.toFixed(1) },
 ];
 

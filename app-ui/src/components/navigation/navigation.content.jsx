@@ -274,6 +274,7 @@ const useSections = () => {
  */
 const ClubSwitcher = ({ collapsed, onNavigate }) => {
     const menu = useRef(null);
+    const button = useRef(null);
     const navigate = useNavigate();
     const { clubs, activeClub, selectClub } = useAuth();
 
@@ -283,8 +284,15 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
             label: t('Your clubs'),
             items: clubs.map(club => ({
                 label: club.name,
-                icon: club.id === activeClub?.id ? 'pi pi-check' : 'pi pi-fw',
                 className: club.id === activeClub?.id ? 'club-switcher-current' : '',
+                // each club with its logo, the current one marked with a check on the right
+                template: (item, options) => (
+                    <a className={`${options.className} club-switcher-item`} onClick={options.onClick} role="menuitem" aria-current={club.id === activeClub?.id ? 'true' : undefined}>
+                        <ClubLogo club={club} size="xs" />
+                        <span className="p-menuitem-text text-truncate">{club.name}</span>
+                        {club.id === activeClub?.id && <i className="pi pi-check club-switcher-check" aria-hidden="true" />}
+                    </a>
+                ),
                 command: () => {
                     if (club.id !== activeClub?.id) {
                         selectClub(club.id);
@@ -301,6 +309,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
     return (
         <div className="club-switcher">
             <button
+                ref={button}
                 type="button"
                 className="club-switcher-button"
                 onClick={(event) => menu.current.toggle(event)}
@@ -317,7 +326,8 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
                     <span className="club-switcher-name text-default fw-semibold">{activeClub?.name ?? t('Choose a club')}</span>
                 }
             </button>
-            <Menu model={model} popup ref={menu} className="club-switcher-menu" />
+            {/* as wide as the switcher, when the menu is wide; at least 15rem in the icon rail */}
+            <Menu model={model} popup ref={menu} className="club-switcher-menu" onShow={() => { const list = menu.current?.getElement?.(); if (list && button.current && !collapsed) list.style.minWidth = `${button.current.offsetWidth}px`; }} />
         </div>
     );
 };

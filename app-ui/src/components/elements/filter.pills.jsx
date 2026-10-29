@@ -11,7 +11,9 @@ import useMediaQuery from '../../utils/use.media.query';
  * label: a name shown before the group (e.g. "Status"), when the pills alone are not clear
  */
 const FilterPills = ({ label, ...props }) => {
-    if (!label) return <FilterPillsField {...props} />;
+    const phone = useMediaQuery('(max-width: 575.98px)');
+    // a dropdown on a phone carries its name inside: "Status: All"
+    if (!label || (props.dropdownOnPhone && phone)) return <FilterPillsField {...props} label={label} />;
     return (
         <span className="filter-labelled">
             <span className="filter-label" aria-hidden="true">{label}</span>
@@ -20,7 +22,7 @@ const FilterPills = ({ label, ...props }) => {
     );
 };
 
-const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '', disabled = false, dropdownOnPhone = false }) => {
+const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '', disabled = false, dropdownOnPhone = false, label = null }) => {
     // on a phone a choice of several (e.g. the status of games) is a dropdown, as the other filters there
     const phone = useMediaQuery('(max-width: 575.98px)');
     if (dropdownOnPhone && phone) {
@@ -31,6 +33,9 @@ const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '',
                 onChange={(e) => e.value != null && onChange(e.value)}
                 disabled={disabled}
                 itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-2">{option.icon && <i className={option.icon} aria-hidden="true" />}{option.label}</span>}
+                valueTemplate={(option) => (label && option
+                    ? <span><span className="text-faint">{label}:</span> {option.label}</span>
+                    : option?.label)}
                 className={`filter-dropdown ${className}`}
                 aria-label={ariaLabel}
             />

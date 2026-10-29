@@ -17,9 +17,10 @@ const rulesOfGame = (game) => ({ startingScore: Number(game.startingScore), legI
 
 /**
  * A handicap for players of different strength: each player gets their own
- * starting score and in/out mode. A suggestion from each player's recent
- * average, level and age is applied with one click; every value can still
- * be changed. Players without a date of birth (guests) get an age field.
+ * starting score and in/out mode. The suggestion from each player's recent
+ * average, level and age is filled in by itself, when it is switched on and
+ * when the players change, until a value is changed by hand; then one click
+ * goes back to it. Players without a date of birth (guests) get an age field.
  *
  * game: the game's settings, players: the chosen players
  * rules: { [playerId]: { startingScore, legInMode, legOutMode } } or null when off
@@ -32,6 +33,9 @@ const X01HandicapConfig = ({ game, players, rules, onChange, suggest = true, max
     const [form, setForm] = useState({});
     const [levels, setLevels] = useState({});
     const [ages, setAges] = useState({});
+    // the players whose figures are in (the suggestion waits for them), and whether a value was changed by hand
+    const [loadedFor, setLoadedFor] = useState('');
+    const [byHand, setByHand] = useState(false);
     const enabled = rules !== null;
     const playerIds = players.map(player => player.id).join(',');
 
@@ -46,6 +50,7 @@ const X01HandicapConfig = ({ game, players, rules, onChange, suggest = true, max
             if (!current) return;
             setForm(loadedForm ?? {});
             setLevels(loadedLevels ?? {});
+            setLoadedFor(playerIds);
         });
         return () => { current = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,7 +71,10 @@ const X01HandicapConfig = ({ game, players, rules, onChange, suggest = true, max
     // a player chosen after switching it on starts with the game's settings
     const ruleOf = (playerId) => rules?.[playerId] ?? rulesOfGame(game);
 
-    const setRule = (playerId, name, value) => onChange({ ...rules, [playerId]: { ...ruleOf(playerId), [name]: value } });
+    const setRule = (playerId, name, value) => {
+        setByHand(true);
+        onChange({ ...rules, [playerId]: { ...ruleOf(playerId), [name]: value } });
+    };
 
     const apply = () => onChange(Object.fromEntries(players.map(player => {
         const { startingScore, legInMode, legOutMode } = suggestion[player.id];
@@ -79,6 +87,15 @@ const X01HandicapConfig = ({ game, players, rules, onChange, suggest = true, max
         return suggested && rule.startingScore === suggested.startingScore
             && rule.legInMode === suggested.legInMode && rule.legOutMode === suggested.legOutMode;
     });
+
+    // other players: the suggestion counts again
+    useEffect(() => { setByHand(false); }, [playerIds]);
+    // the suggestion filled in by itself, once the players' figures are in, unless changed by hand
+    const ready = suggest && enabled && players.length >= 2 && loadedFor === playerIds && players.every(player => suggestion[player.id]);
+    useEffect(() => {
+        if (ready && !byHand && !isSuggested) apply();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [ready, byHand, isSuggested]);
 
     return (
         <div className="x01-handicap mb-4">
@@ -105,16 +122,13 @@ const X01HandicapConfig = ({ game, players, rules, onChange, suggest = true, max
             {enabled && players.length >= 2 &&
                 <div className="x01-handicap-players mt-3">
                     {suggest && <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                        <span className="text-faint fs-8">{t('Suggested from each player\'s recent average, level and age.')}</span>
-                        <Button
-                            type="button"
-                            icon={isSuggested ? 'pi pi-check' : 'pi pi-sparkles'}
-                            label={isSuggested ? t('Suggestion applied') : t('Apply suggestion')}
-                            size="small"
-                            outlined={isSuggested}
-                            disabled={isSuggested}
-                            onClick={apply}
-                        />
+                        <span className="text-faint fs-8">
+                            {isSuggested || !byHand
+                                ? t('Suggested from each player\'s recent average, level and age.')
+                                : t('Changed by hand.')}
+                        </span>
+                        {byHand && !isSuggested &&
+                            <Button type="button" icon="pi pi-sparkles" label={t('Back to the suggestion')} size="small" severity="secondary" onClick={() => { setByHand(false); apply(); }} />}
                     </div>}
                     {players.map(player => {
                         const rule = ruleOf(player.id);

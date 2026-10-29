@@ -21,6 +21,20 @@ import { formatDate } from '../../../utils/dates';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../../utils/image.utils';
 import { t, tn } from '../../../utils/i18n';
 
+// the shame badges of a comparison as rows: each badge once, with how often each player got it
+// and when last, the most frequent first
+const shameRows = (shame) => {
+    const rows = new Map();
+    for (const entry of shame) {
+        const row = rows.get(entry.id) ?? { id: entry.id, title: entry.title, badge: entry, counts: {}, total: 0, at: entry.at };
+        row.counts[entry.playerId] = (row.counts[entry.playerId] ?? 0) + (entry.count ?? 1);
+        row.total += entry.count ?? 1;
+        if (new Date(entry.at) > new Date(row.at)) row.at = entry.at;
+        rows.set(entry.id, row);
+    }
+    return [...rows.values()].sort((a, b) => b.total - a.total || a.title.localeCompare(b.title));
+};
+
 const CHART_TABS = [
     { value: 'trend', label: t('Trend') },
     { value: 'scoring', label: t('Scoring') },
@@ -167,7 +181,6 @@ export const CompareInsights = ({ rows, players, colours = [] }) => {
  */
 const DuelHighlights = ({ data, players, colours }) => {
     const highlights = data.highlights;
-    const nicknameOf = (id) => players.find(player => player.id === id)?.nickname ?? '';
     // the same badge of the same player once: how often, and the last time
     const shame = Object.values((data.shame ?? []).reduce((groups, entry) => {
         const key = `${entry.playerId}-${entry.id}`;
@@ -242,20 +255,35 @@ const DuelHighlights = ({ data, players, colours }) => {
                 {shame.length > 0 &&
                     <div className={tiles ? 'col-12 col-xl-5' : 'col-12'}>
                         <span className="d-block text-faint fs-8 mb-2">{t('Hall of Shame in these games')}</span>
-                        <ul className="duel-shame list-unstyled m-0">
-                            {shame.map(entry => (
-                                <li key={`${entry.playerId}-${entry.id}`}>
-                                    <ShameMedal badge={entry} size="sm" />
-                                    <span className="d-flex flex-column min-w-0">
-                                        <span className="text-default fs-7 fw-semibold text-truncate">
-                                            <span style={{ color: colours[players.findIndex(player => player.id === entry.playerId)] }}>{nicknameOf(entry.playerId)}</span>
-                                            {' · '}{entry.title}{entry.count > 1 ? ` × ${entry.count}` : ''}
-                                        </span>
-                                        <span className="text-faint fs-8">{entry.count > 1 ? t('Last {{date}}', { date: formatDate(entry.at) }) : formatDate(entry.at)}</span>
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
+                        {/* a badge a row, how often each player got it in their colour, the most frequent first */}
+                        <table className="duel-shame-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col"><span className="visually-hidden">{t('Badge')}</span></th>
+                                    {players.map((player, index) => <th key={player.id} scope="col" className="text-truncate" style={{ color: colours[index] }}>{player.nickname}</th>)}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {shameRows(shame).map(row => (
+                                    <tr key={row.id}>
+                                        <th scope="row">
+                                            <span className="d-flex align-items-center gap-2 min-w-0">
+                                                <ShameMedal badge={row.badge} size="sm" />
+                                                <span className="d-flex flex-column min-w-0">
+                                                    <span className="text-default fs-7 fw-semibold">{row.title}</span>
+                                                    <span className="text-faint fs-8">{t('Last {{date}}', { date: formatDate(row.at) })}</span>
+                                                </span>
+                                            </span>
+                                        </th>
+                                        {players.map((player, index) => (
+                                            <td key={player.id} className="tabular-nums" style={row.counts[player.id] ? { color: colours[index] } : undefined}>
+                                                {row.counts[player.id] ?? <span className="text-faint">–</span>}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>}
             </div>
         </Panel>

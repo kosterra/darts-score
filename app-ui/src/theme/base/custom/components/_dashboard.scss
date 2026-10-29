@@ -594,8 +594,8 @@
 
 .record-value {
     color: $shade000;
-    font-size: $text-2xl;
-    font-weight: $weight-heavy;
+    font-size: $text-xl;
+    font-weight: $weight-bold;
     line-height: 1.15;
     font-variant-numeric: tabular-nums;
 }
@@ -1344,23 +1344,6 @@
     }
 }
 
-// the Hall of Shame of the duel, in columns
-.duel-shame {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
-    gap: $space-2 $space-3;
-
-    li {
-        display: flex;
-        align-items: center;
-        gap: $space-3;
-        min-width: 0;
-        padding: $space-2;
-        border-radius: $radius-md;
-        background: $surfaceRaisedColor;
-    }
-}
-
 // three or four players: each in a column, side by side, "vs." between them; on a
 // narrow screen two by two
 .compare-field {
@@ -1800,4 +1783,53 @@ a.admin-tile:hover, a.admin-tile:focus-visible { border-color: ink(0.2); transfo
   overflow: hidden;
 
   > span { display: block; height: 100%; background: $primaryColor; }
+}
+
+// the way from choosing players to their comparison: at the bottom of the picker, and in view
+// while scrolling (above the menu bar of a phone)
+.compare-picker-done {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+
+  .p-button { box-shadow: 0 0.5rem 1.5rem -0.5rem shadow(0.8); }
+
+  // the menu bar shows below the md breakpoint (app.navigation.jsx)
+  @media (max-width: 767.98px) {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+
+    .p-button { width: 100%; justify-content: center; }
+  }
+}
+
+// the Hall of Shame of a comparison: a badge a row, a column per player in their colour
+.duel-shame-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.35rem;
+  table-layout: fixed;
+
+  thead th {
+    padding: 0 0.5rem 0.25rem;
+    font-size: $text-xs;
+    font-weight: $weight-semibold;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:first-child { width: 58%; }
+  }
+
+  tbody th, tbody td {
+    padding: 0.5rem;
+    background: ink(0.04);
+    font-weight: $weight-semibold;
+  }
+
+  tbody th { border-radius: $radius-md 0 0 $radius-md; text-align: left; font-weight: normal; }
+  tbody td { text-align: right; font-size: $text-md; }
+  tbody td:last-child { border-radius: 0 $radius-md $radius-md 0; }
 }
