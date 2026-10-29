@@ -154,8 +154,8 @@ const useSections = () => {
                 {
                     label: t('Competitions'), icon: FaRankingStar,
                     children: [
-                        { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments', tag: t('Beta') },
-                        { label: t('Leagues'), icon: FaListOl, to: '/leagues', tag: t('Beta') },
+                        { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments' },
+                        { label: t('Leagues'), icon: FaListOl, to: '/leagues' },
                     ],
                 },
             ],

@@ -353,8 +353,16 @@
     }
 }
 
-.tournament-group-name {
+.tournament-group-head {
     grid-area: name;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.tournament-group-name {
     margin: 0;
     color: var(--text-default);
     font-size: $text-md;
@@ -688,7 +696,7 @@
     // the round as the title of the tile; its day under it as a value is read in the header (the
     // text's colour and weight, 13px), the rules as the small faint line
     .kpi-chip-value { font-size: $text-md; font-weight: $weight-semibold; }
-    .kpi-chip-label { color: $textDefaultColor; font-size: $text-sm; font-weight: $weight-semibold; }
+    .kpi-chip-label { color: $textDefaultColor; font-size: $text-md; font-weight: $weight-semibold; }
     .kpi-chip-detail { color: $textFaintColor; }
 }
 
@@ -709,3 +717,11 @@
 // the description under the name: a readable width, never wider than the header (on a phone its
 // full width)
 .tournament-description { max-width: min(70ch, 100%); }
+
+// the group table: a row is tapped to see the player's matches; the picked one marked, the
+// matches without them faded
+.tournament-group-row { cursor: pointer; }
+.tournament-group-row:hover td { background: ink(0.06); }
+.tournament-group-row.is-picked td { background: with-alpha($primaryColor, 0.2); }
+.tournament-group-row:focus-visible { outline: 2px solid $accentBlue; outline-offset: -2px; }
+.tournament-match-dimmed { opacity: 0.35; transition: opacity 0.15s; }

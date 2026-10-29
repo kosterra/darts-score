@@ -15,7 +15,6 @@ import { t } from '../../utils/i18n';
 import { GROUP_ROUND, INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
 import { INVITE_WORDS, PRESET_WORDS, roundName, rulesText } from './tournament.words';
 import { Lines } from '../elements/skeletons';
-import BetaTag from './beta.tag';
 import SetsLegsConfigOptions from '../game_config/config_options/sets.legs.config.options';
 import DateTimeField from '../elements/date.time.field';
 import SetupBox from '../elements/setup.box';
@@ -202,7 +201,7 @@ const TournamentEditor = () => {
 
     return (
         <div className="container-fluid p-4">
-            <Panel header={stored ? t('Change the tournament') : t('New tournament')} icons={<BetaTag />} className="page-narrow">
+            <Panel header={stored ? t('Change the tournament') : t('New tournament')} className="page-narrow">
                 <div className="d-flex flex-column gap-3">
                     <div className="row g-3">
                         <div className="col-12">

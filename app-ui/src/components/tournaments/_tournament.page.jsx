@@ -20,7 +20,6 @@ import { GROUP_SIZES, MIN_PLAYERS, groupSetupError, groupSizesOf, isDecided, kno
 import TournamentBracket from './tournament.bracket';
 import TournamentGroups from './tournament.groups';
 import { INVITE_WORDS, STATUS_WORDS, groupName, nameOf, roundName, rulesText } from './tournament.words';
-import BetaTag from './beta.tag';
 import WalkOn from './tournament.walkon';
 import { Lines } from '../elements/skeletons';
 import { shareCard } from '../../utils/share.card';
@@ -238,7 +237,7 @@ const TournamentPage = () => {
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{tournament.name}</h1>
                         {tournament.description && <p className="text-subtle m-0 text-break tournament-description" style={{ whiteSpace: 'pre-line' }}>{tournament.description}</p>}
                     </div>
-                    <span className="d-inline-flex align-items-center gap-2 tournament-header-tags"><BetaTag /><Tag value={status.label} severity={status.severity} /></span>
+                    <Tag value={status.label} severity={status.severity} className="tournament-header-tags" />
                 </div>
                 <div className="d-flex flex-column gap-3">
                     <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
