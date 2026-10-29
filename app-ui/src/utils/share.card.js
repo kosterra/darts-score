@@ -125,8 +125,7 @@ export const drawShareCard = async (card, { gold = false } = {}) => {
         context.fillStyle = COLORS.text;
         context.fillText(fitFont(context, figure.value, tileWidth - 48, { weight: 800, size: 64, min: 34 }), x + 24, top + 88);
         context.fillStyle = COLORS.subtle;
-        context.font = `400 30px ${FONT}`;
-        context.fillText(fit(context, figure.label, tileWidth - 48), x + 24, top + 136);
+        context.fillText(fitFont(context, figure.label, tileWidth - 48, { weight: 400, size: 30, min: 22 }), x + 24, top + 136);
     });
 
     // where it comes from

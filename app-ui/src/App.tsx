@@ -81,6 +81,7 @@ const LeagueEditor = lazy(() => import('./components/leagues/league.editor'));
 const CalendarPage = lazy(() => import('./components/calendar/_calendar.page'));
 const ClubNightPage = lazy(() => import('./components/calendar/_club.night.page'));
 const YearPage = lazy(() => import('./components/year/_year.page'));
+const ClubYearPage = lazy(() => import('./components/year/_club.year.page'));
 const PrivacyPage = lazy(() => withPageTexts(import('./components/legal/_privacy.page')));
 const SupportPage = lazy(() => withPageTexts(import('./components/legal/_support.page')));
 const DartsTermsPage = lazy(() => withPageTexts(import('./components/terms/_darts.terms.page')));
@@ -327,6 +328,7 @@ function AppContent() {
                     <Route path="/calendar" element={<CalendarPage />} />
                     <Route path="/club-night/:day" element={<ClubNightPage />} />
                     <Route path="/year" element={<YearPage />} />
+                    <Route path="/club/year" element={<ClubYearPage />} />
                     <Route path="/players/:id/year" element={<YearPage />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />
                     <Route path="/my-clubs" element={<ClubsPage />} />

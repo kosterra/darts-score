@@ -108,6 +108,10 @@ const ClubPage = () => {
                             </div>
                         ))}
                     </dl>
+                    {/* the look back at a year: the figures and awards of the club */}
+                    <Link to="/club/year" className="p-button p-button-sm p-button-secondary text-decoration-none align-self-start">
+                        <i className="pi pi-star me-2" aria-hidden="true" />{t('The club\'s year')}
+                    </Link>
                 </div>
                 </div>
                 {/* the club's latest badges, as in a player's header */}

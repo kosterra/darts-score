@@ -551,6 +551,21 @@ http.createServer((req, res) => {
             if (/name="profileImg"; filename=/.test(body)) p.profileImg = 'uploaded.png';
             return send(res, 200, { message: 'Player was updated successfully.' });
         }
+        // the club's year: its figures and awards (an old year without games)
+        if (path === '/api/stats/club/year') {
+            const year = Number(url.searchParams.get('year')) || new Date().getFullYear();
+            const years = [new Date().getFullYear(), new Date().getFullYear() - 1];
+            const who = (id) => ({ id, nickname: players.find(p => p.id === id)?.nickname ?? '?' });
+            if (year < new Date().getFullYear() - 1) return send(res, 200, { year, years, club: { id: 'c1', name: 'Test Club' }, games: { total: 0, byType: {} }, players: 0, days: 0, darts: 0, oneEighties: 0, clubNights: 0, awards: [] });
+            return send(res, 200, {
+                year, years, club: { id: 'c1', name: 'Test Club' },
+                games: { total: 1284, byType: { x01: 902, cricket: 211, elimination: 96, clock: 75 } }, players: 23, days: 104, darts: 241330, oneEighties: 131, clubNights: 46,
+                awards: [
+                    { id: 'champion', player: who('p2'), value: 118 }, { id: 'mostGames', player: who('p1'), value: 214 }, { id: 'average', player: who('p3'), value: 61.42 },
+                    { id: 'oneEighties', player: who('p2'), value: 23 }, { id: 'checkout', player: who('p4'), value: 161 }, { id: 'clubNights', player: who('p1'), value: 41 }, { id: 'woodenSpoon', player: who('p5'), value: 9 },
+                ],
+            });
+        }
         const yearPath = path.match(/^\/api\/stats\/player\/(p\d+)\/year$/);
         if (yearPath) {
             const year = Number(url.searchParams.get('year')) || new Date().getFullYear();

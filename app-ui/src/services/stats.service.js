@@ -50,6 +50,8 @@ const loadX01GameStats = async (gameId) => {
  * Club dashboard data: facts about the club, leaderboards and recent games.
  */
 // "Your year in darts" of a player: the look back at a year (this one when left out), with the years there are
+// "The club's year" of the active club: its figures and awards
+const loadClubYear = (year) => requestJSON(`${API_URL}stats/club/year${year ? `?year=${year}` : ''}`);
 const loadYear = (playerId, year) => requestJSON(`${API_URL}stats/player/${playerId}/year${year ? `?year=${year}` : ''}`);
 const loadClubStats = () => requestJSON(API_URL + 'stats/club');
 // the games the user plays most lately: [{ id, type, kind, settings, players, opponents, count, lastAt }]
@@ -117,6 +119,7 @@ const loadGameBadges = (gameType, gameId) => requestJSON(`${API_URL}stats/badges
 
 const StatsService = {
     loadYear,
+    loadClubYear,
     loadClubBadges,
     loadClubOwnBadges,
     loadClubShame,

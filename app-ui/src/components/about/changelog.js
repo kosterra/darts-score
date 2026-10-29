@@ -14,6 +14,7 @@ const CHANGELOG = [
             t('Tournaments and leagues together under Competitions in the menu.'),
             t('Tonight\'s club night on the dashboard under Up next: who is coming, your answer with one tap, and the way to the club evening.'),
             t('A reminder on the day of a club night you said you come to, a few hours before it starts (turn it off under Notifications, Club nights).'),
+            t('The club\'s year: the games of the year and its awards – the champion, the most games, the best average, the most 180s, the highest checkout, the most club nights and the wooden spoon – as a picture to share. On My club, and on the dashboard in December.'),
         ],
     },
     {

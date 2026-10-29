@@ -5032,6 +5032,27 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: getStatsPlayerByidYear
+  /api/stats/club/year:
+    get:
+      tags:
+        - Statistics
+      summary: "The club's year: the figures and awards of a year of the active club"
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: year
+          in: query
+          required: false
+          description: The year (this one when left out)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: '{ year, years (those with a look back), club: { id, name }, games: { total, byType }, players, days, darts, oneEighties, clubNights, awards: [{ id (champion, mostGames, average, oneEighties, checkout, clubNights, woodenSpoon), player: { id, nickname }, value }] }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: getStatsClubYear
   /api/stats/games/x01/{id}:
     get:
       tags:

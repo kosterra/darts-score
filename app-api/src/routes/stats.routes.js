@@ -12,7 +12,7 @@ import { playersKnownInClub } from '../controllers/game.controller.js';
 import db from '../models/db.model.js';
 import * as FavouritesController from '../controllers/favourites.controller.js';
 import { firstStepsOf } from '../utils/first.steps.js';
-import { getYearReview } from '../controllers/year.review.controller.js';
+import { getClubYear, getYearReview } from '../controllers/year.review.controller.js';
 import { param } from 'express-validator';
 
 // Statistics are only given for players and games of the request's club,
@@ -43,6 +43,8 @@ export default (app) => {
 
     // Club dashboard: club facts, leaderboards and recent games
     router.get('/club', getClubStats);
+    // "The club's year": the figures and awards of a year (?year)
+    router.get('/club/year', getClubYear);
     // the games the user plays most lately, to start again with one tap
     router.get('/favourites', FavouritesController.list);
     // the first steps of a new user in the club, ticked from what is there
