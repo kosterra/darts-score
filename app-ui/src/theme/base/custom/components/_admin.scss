@@ -1239,3 +1239,17 @@ $fair-play-suspicious: $accentAmber;
     .my-club-join { display: none; }
   }
 }
+
+// a day and a time side by side: the day takes the room, the time as wide as "20:00"
+.date-time-field {
+  display: inline-flex;
+  gap: 0.4rem;
+  max-width: 100%;
+
+  .date-time-day { flex: 1 1 9rem; min-width: 0; }
+  .date-time-day .p-inputtext { min-width: 0; }
+  .date-time-time { flex: 0 0 6.5rem; }
+}
+
+// a message in a form (what is missing, what went wrong): the size of the form's text, not body text
+.p-message .p-message-text { font-size: $text-md; }

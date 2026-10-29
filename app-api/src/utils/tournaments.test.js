@@ -88,12 +88,15 @@ describe('setting up a tournament', () => {
         expect(setup.rounds.map(round => round.size)).toEqual([8, 4, 2]);
     });
 
-    it('wants every round on a day of its own after the registration', () => {
+    it('wants every round after the registration, each after the one before', () => {
         const rounds = (days) => roundsOfPreset('clubNight', 8).map((round, index) => ({ ...round, date: days[index] === null ? null : later(days[index]) }));
         expect(service.scheduleError({ closesAt: later(-1), rounds: rounds([5, 6, 7]) }, now)).toMatch(/future/);
         expect(service.scheduleError({ closesAt: later(3), rounds: rounds([5, null, 7]) }, now)).toMatch(/day of every round/);
         expect(service.scheduleError({ closesAt: later(3), rounds: rounds([2, 6, 7]) }, now)).toMatch(/after the registration/);
-        expect(service.scheduleError({ closesAt: later(3), rounds: rounds([5, 5, 7]) }, now)).toMatch(/day of its own/);
+        expect(service.scheduleError({ closesAt: later(3), rounds: rounds([5, 5, 7]) }, now)).toMatch(/after the one before/);
+        expect(service.scheduleError({ closesAt: later(3), rounds: rounds([6, 5, 7]) }, now)).toMatch(/after the one before/);
+        // a tournament of one evening: the rounds an hour apart on the same day
+        expect(service.scheduleError({ closesAt: later(3), rounds: rounds([5, 5 + 1 / 24, 5 + 2 / 24]) }, now)).toBeNull();
         expect(service.scheduleError({ closesAt: later(3), rounds: rounds([5, 6, 7]) }, now)).toBeNull();
     });
 });

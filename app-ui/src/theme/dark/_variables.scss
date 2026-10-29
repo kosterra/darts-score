@@ -106,7 +106,8 @@ $actionIconBorderRadius: 50% !default;
 
 //input field (e.g. inputtext, spinner, inputmask)
 $inputPadding: 0.8rem 0.75rem !default;
-$inputTextFontSize: 0.9rem !default;
+// on the type scale of the style guide (base/_tokens.scss: $text-md, 14px)
+$inputTextFontSize: 0.875rem !default;
 $inputTextFontWeight: 600 !default;
 $inputBg: $shade900 !default;
 $inputTextColor: $shade000 !default;

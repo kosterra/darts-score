@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FaTrophy } from 'react-icons/fa';
 import { Button } from 'primereact/button';
-import { Calendar } from 'primereact/calendar';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
@@ -15,7 +14,7 @@ import { Toast } from 'primereact/toast';
 import TournamentService from '../../services/tournament.service';
 import PlayerService from '../../services/player.service';
 import { useAuth } from '../../utils/auth.context';
-import { calendarFormat, formatDate, formatDateTime } from '../../utils/dates';
+import { formatDate, formatDateTime } from '../../utils/dates';
 import { t, tn } from '../../utils/i18n';
 import { GROUP_SIZES, MIN_PLAYERS, groupSetupError, groupSizesOf, isDecided, knockoutOfGroups, nextOf, suggestGroups } from '../../rules/tournaments';
 import TournamentBracket from './tournament.bracket';
@@ -25,6 +24,7 @@ import BetaTag from './beta.tag';
 import WalkOn from './tournament.walkon';
 import { Lines } from '../elements/skeletons';
 import { shareCard } from '../../utils/share.card';
+import DateTimeField from '../elements/date.time.field';
 
 /**
  * What can be done with a match: start it (its players or an admin, with who
@@ -303,7 +303,7 @@ const TournamentPage = () => {
                             <div className="d-flex flex-column gap-3">
                                 <Message severity="warn" className="w-100 justify-content-start" text={t('Only {{count}} of at least {{min}} players entered. Extend the registration, enter members yourself, or cancel the tournament.', { count: tournament.counts.in, min: MIN_PLAYERS })} />
                                 <div className="d-flex flex-wrap align-items-center gap-2">
-                                    <Calendar value={extendTo} onChange={(event) => setExtendTo(event.value)} dateFormat={calendarFormat()} showTime hourFormat="24" showIcon icon="pi pi-calendar" minDate={new Date()} placeholder={t('New end of the registration')} />
+                                    <DateTimeField value={extendTo} onChange={setExtendTo} minDate={new Date()} placeholder={t('New end of the registration')} />
                                     <Button label={t('Extend the registration')} icon="pi pi-calendar-plus" size="small" disabled={!extendTo} loading={busy === 'reopen'} onClick={() => run('reopen', () => TournamentService.reopenRegistration(tournament.id, extendTo), t('The registration is open again.'))} />
                                 </div>
                             </div>

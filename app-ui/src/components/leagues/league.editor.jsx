@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { Calendar } from 'primereact/calendar';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
@@ -12,13 +11,14 @@ import { SelectButton } from 'primereact/selectbutton';
 import LeagueService from '../../services/league.service';
 import PlayerService from '../../services/player.service';
 import { useAuth } from '../../utils/auth.context';
-import { calendarFormat, formatDate } from '../../utils/dates';
+import { formatDate } from '../../utils/dates';
 import { t, tn } from '../../utils/i18n';
 import { EVERY_DAYS, MAX_LEAGUE_PLAYERS, MEETINGS, leagueSetupError, matchdayCount, matchdayDates } from '../../rules/leagues';
 import { rulesError } from '../../rules/tournaments';
 import { RoundRules } from '../tournaments/tournament.editor';
 import { rulesText } from '../tournaments/tournament.words';
 import { Lines } from '../elements/skeletons';
+import DateTimeField from '../elements/date.time.field';
 
 // a match of a club league: 501 double out, best of 5 legs
 const DEFAULT_RULES = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 5 };
@@ -129,7 +129,7 @@ const LeagueEditor = () => {
 
                         <div className="d-flex flex-column gap-1">
                             <span className="fs-7 text-default fw-semibold">{t('First matchday')}</span>
-                            <Calendar value={form.firstDay} onChange={(event) => event.value && set({ firstDay: event.value })} dateFormat={calendarFormat()} showTime hourFormat="24" showIcon icon="pi pi-calendar" minDate={new Date()} />
+                            <DateTimeField value={form.firstDay} onChange={(value) => value && set({ firstDay: value })} minDate={new Date()} />
                         </div>
 
                         <div className="d-flex flex-column gap-1">

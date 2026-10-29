@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
-import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
@@ -13,17 +11,36 @@ import { Tag } from 'primereact/tag';
 
 import TournamentService from '../../services/tournament.service';
 import { useAuth } from '../../utils/auth.context';
-import { calendarFormat } from '../../utils/dates';
 import { t } from '../../utils/i18n';
 import { GROUP_ROUND, INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
 import { INVITE_WORDS, PRESET_WORDS, roundName, rulesText } from './tournament.words';
 import { Lines } from '../elements/skeletons';
 import BetaTag from './beta.tag';
+import SetsLegsConfigOptions from '../game_config/config_options/sets.legs.config.options';
+import DateTimeField from '../elements/date.time.field';
+
+// the numbers a mode offers, as in the setup of an X01 game: Best of only odd ones (an even one could
+// end in a draw), First to any; the one set keeps its place when it is not among them
+const COUNTS = {
+    legs: { 'Best of': SetsLegsConfigOptions.boLegsNumberOptions.values, 'First to': SetsLegsConfigOptions.ftLegsNumberOptions.values },
+    sets: { 'Best of': SetsLegsConfigOptions.boSetsNumberOptions.values, 'First to': SetsLegsConfigOptions.ftSetsNumberOptions.values },
+};
+const countsOf = (kind, mode, value) => {
+    const list = COUNTS[kind][mode] ?? COUNTS[kind]['First to'];
+    return list.some(option => option.value === value) || (mode === 'Best of' && value % 2 === 0) ? list : [...list, { name: String(value), value }].sort((a, b) => a.value - b.value);
+};
+// a mode chosen: the number kept if it fits, else the next one that does (Best of 4 becomes Best of 5)
+const fitCount = (kind, mode, value) => {
+    const list = COUNTS[kind][mode] ?? COUNTS[kind]['First to'];
+    if (list.some(option => option.value === value)) return value;
+    return (list.find(option => option.value >= value) ?? list[list.length - 1]).value;
+};
 
 const MODES = ['Best of', 'First to'];
 const IN_MODES = ['Straight In', 'Double In', 'Master In'];
 const OUT_MODES = ['Straight Out', 'Double Out', 'Master Out'];
-const DAY = 24 * 60 * 60 * 1000;
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
 
 // a week from now at 20:00, when nothing is chosen yet
 const defaultCloses = () => {
@@ -82,16 +99,16 @@ export const RoundRules = ({ rules, onChange, disabled }) => {
                 <div className="d-flex align-items-end gap-2 tournament-rules-wide">
                     <label className="d-flex flex-column gap-1">
                         <span className="text-subtle fs-8">{t('Sets')}</span>
-                        <Dropdown value={rules.setMode} options={MODES.map(mode => ({ label: t(mode), value: mode }))} onChange={(event) => set({ setMode: event.value })} disabled={disabled} />
+                        <Dropdown value={rules.setMode} options={MODES.map(mode => ({ label: t(mode), value: mode }))} onChange={(event) => set({ setMode: event.value, numberOfSets: fitCount('sets', event.value, rules.numberOfSets) })} disabled={disabled} />
                     </label>
-                    <InputNumber value={rules.numberOfSets} onValueChange={(event) => set({ numberOfSets: event.value ?? 1 })} min={1} max={13} showButtons inputClassName="tournament-count" disabled={disabled} aria-label={t('Number of sets')} />
+                    <Dropdown value={rules.numberOfSets} options={countsOf('sets', rules.setMode, rules.numberOfSets)} optionLabel="name" optionValue="value" onChange={(event) => set({ numberOfSets: event.value })} disabled={disabled} aria-label={t('Number of sets')} />
                 </div>}
             <div className="d-flex align-items-end gap-2 tournament-rules-wide">
                 <label className="d-flex flex-column gap-1">
                     <span className="text-subtle fs-8">{inSets ? t('Legs per set') : t('Legs')}</span>
-                    <Dropdown value={rules.legMode} options={MODES.map(mode => ({ label: t(mode), value: mode }))} onChange={(event) => set({ legMode: event.value })} disabled={disabled} />
+                    <Dropdown value={rules.legMode} options={MODES.map(mode => ({ label: t(mode), value: mode }))} onChange={(event) => set({ legMode: event.value, numberOfLegs: fitCount('legs', event.value, rules.numberOfLegs) })} disabled={disabled} />
                 </label>
-                <InputNumber value={rules.numberOfLegs} onValueChange={(event) => set({ numberOfLegs: event.value ?? 1 })} min={1} max={35} showButtons inputClassName="tournament-count" disabled={disabled} aria-label={t('Number of legs')} />
+                <Dropdown value={rules.numberOfLegs} options={countsOf('legs', rules.legMode, rules.numberOfLegs)} optionLabel="name" optionValue="value" onChange={(event) => set({ numberOfLegs: event.value })} disabled={disabled} aria-label={t('Number of legs')} />
             </div>
         </div>
     );
@@ -144,8 +161,16 @@ const TournamentEditor = () => {
     // one round a week, the first a week after the registration ends
     const weekly = () => {
         const first = new Date(form.closesAt.getTime() + 7 * DAY);
-        first.setHours(19, 30, 0, 0);
+        first.setHours(12, 0, 0, 0);
         set({ rounds: form.rounds.map((round, index) => (played.has(round.size) ? round : { ...round, date: new Date(first.getTime() + index * 7 * DAY) })) });
+    };
+    // a tournament of one evening: the rounds an hour apart, from the first round's day (or the day after the registration)
+    const oneEvening = () => {
+        const firstRound = form.rounds.find(round => !played.has(round.size) && round.date)?.date;
+        const first = new Date(firstRound ?? form.closesAt.getTime() + DAY);
+        first.setHours(19, 0, 0, 0);
+        let next = 0;
+        set({ rounds: form.rounds.map(round => (played.has(round.size) ? round : { ...round, date: new Date(first.getTime() + (next++) * HOUR) })) });
     };
     // rules of their own: the format is no longer a preset once a round differs from it
     const changeRules = (size, rules) => setForm(current => {
@@ -225,7 +250,7 @@ const TournamentEditor = () => {
 
                     <div className="d-flex flex-column gap-1">
                         <span className="fs-7 text-default fw-semibold">{t('Registration until')}</span>
-                        <Calendar value={form.closesAt} onChange={(event) => event.value && set({ closesAt: event.value })} dateFormat={calendarFormat()} showTime hourFormat="24" showIcon icon="pi pi-calendar" disabled={!early} minDate={new Date()} />
+                        <DateTimeField value={form.closesAt} onChange={(value) => value && set({ closesAt: value })} disabled={!early} minDate={new Date()} />
                         <span className="text-faint fs-8">{t('Until then the members enter or decline; after it the registration closes by itself and the draw can be held.')}</span>
                     </div>
 
@@ -244,7 +269,10 @@ const TournamentEditor = () => {
 
                     <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
                         <span className="fs-7 text-default fw-semibold">{t('Rounds')}</span>
-                        <Button label={t('One round a week')} icon="pi pi-calendar-plus" size="small" text onClick={weekly} />
+                        <span className="d-flex flex-wrap gap-1">
+                            <Button label={t('All on one evening')} icon="pi pi-clock" size="small" text onClick={oneEvening} />
+                            <Button label={t('One round a week')} icon="pi pi-calendar-plus" size="small" text onClick={weekly} />
+                        </span>
                     </div>
                     <ol className="list-unstyled m-0 d-flex flex-column gap-2">
                         {form.rounds.map(round => {
@@ -253,7 +281,7 @@ const TournamentEditor = () => {
                                 <li key={round.size} className="tournament-round">
                                     <div className="d-flex flex-wrap align-items-center gap-3">
                                         <span className="tournament-round-name">{roundName(round.size)}</span>
-                                        <Calendar value={round.date} onChange={(event) => setRound(round.size, { date: event.value ?? null })} dateFormat={calendarFormat()} showTime hourFormat="24" placeholder={t('Day')} showIcon icon="pi pi-calendar" disabled={fixed} className="tournament-round-date" />
+                                        <DateTimeField value={round.date} onChange={(value) => setRound(round.size, { date: value })} placeholder={t('Day')} disabled={fixed} className="tournament-round-date" minDate={form.closesAt ? new Date(form.closesAt.getFullYear(), form.closesAt.getMonth(), form.closesAt.getDate()) : undefined} />
                                         <span className="d-flex flex-column flex-grow-1 min-w-0">
                                             <span className="text-default fs-7">{rulesText(round.rules)}</span>
                                             <span className="text-faint fs-8">{round.skipped ? t('Left out: the field is smaller') : t('up to {{count}} legs a match', { count: maxLegs(round.rules) })}</span>

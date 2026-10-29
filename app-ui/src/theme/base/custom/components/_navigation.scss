@@ -565,8 +565,12 @@ $navRailWidth: 4.75rem;
 
         .club-logo { box-shadow: none; }
         .p-menuitem-text { color: $textDefaultColor; }
-        &:hover { text-decoration: none; }
+        // the clubs are drawn by the switcher itself: the hover of the menu's items, as on My clubs
+        &:hover { text-decoration: none; background: $menuitemHoverBg; }
     }
+
+    // every item rounded alike, the clubs and My clubs
+    .p-menuitem-content { border-radius: $radius-md; }
 
     // the current club: soft green, a check on the right
     .club-switcher-current .p-menuitem-link {

@@ -22,6 +22,7 @@ import { rulesText } from '../tournaments/tournament.words';
 import WalkOn from '../tournaments/tournament.walkon';
 import { LEAGUE_STATUS_WORDS, asTournament, leagueName } from './league.words';
 import { Lines } from '../elements/skeletons';
+import DateTimeField from '../elements/date.time.field';
 
 // the table of the league: points (2 a win), then leg difference, legs won, the match between them
 const LeagueTable = ({ league }) => {
@@ -140,7 +141,7 @@ const MoveMatchdayDialog = ({ matchday, onHide, onMove, busy }) => {
         <Dialog header={t('Move matchday {{day}}', { day: matchday.day })} visible onHide={onHide} className="tournament-dialog" dismissableMask>
             <div className="d-flex flex-column gap-3">
                 <span className="text-faint fs-8">{t('Its matches are then due on the new day (those moved on their own keep their day). The players hear of it; the other matchdays stay.')}</span>
-                <Calendar value={date} onChange={(event) => setDate(event.value)} dateFormat={calendarFormat()} showTime hourFormat="24" showIcon icon="pi pi-calendar" aria-label={t('New day')} />
+                <DateTimeField value={date} onChange={setDate} ariaLabel={t('New day')} />
                 <div className="d-flex justify-content-end gap-2">
                     <Button label={t('Cancel')} size="small" text onClick={onHide} />
                     <Button label={t('Move')} icon="pi pi-calendar" size="small" disabled={!date} loading={busy === 'moveDay'} onClick={() => onMove(matchday, date)} />
