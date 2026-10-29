@@ -155,6 +155,9 @@
     --game-type-color: #{$accentPink};
 
     &.game-type-x01, &.game-type-bot { --game-type-color: #{$accentGreen}; }
+    // the competitions: a tournament or a league in the app's green, a finished one with the cup in the soft gold
+    &.game-type-tournament, &.game-type-league { --game-type-color: #{$accentGreen}; }
+    &.game-type-won { --game-type-color: var(--c-game-cricket); }
     &.game-type-atc { --game-type-color: #{$gameColorClock}; }
     &.game-type-cricket { --game-type-color: #{$gameColorCricket}; }
     &.game-type-elimination { --game-type-color: #{$gameColorElimination}; }

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Message } from 'primereact/message';
 import { Panel } from 'primereact/panel';
 import { Tag } from 'primereact/tag';
-import { FaListOl } from 'react-icons/fa6';
+import { FaListOl, FaTrophy } from 'react-icons/fa6';
 
 import LeagueService from '../../services/league.service';
 import { useAuth } from '../../utils/auth.context';
@@ -26,7 +26,7 @@ const LeagueRow = ({ league }) => {
     return (
         <li>
             <Link to={`/leagues/${league.id}`} className="tournament-row">
-                <span className="tournament-row-icon" aria-hidden="true"><FaListOl /></span>
+                <span className={`game-type-icon ${league.status === 'finished' ? 'game-type-won' : 'game-type-league'}`} aria-hidden="true">{league.status === 'finished' ? <FaTrophy /> : <FaListOl />}</span>
                 <span className="tournament-row-text">
                     <span className="text-default fw-semibold text-truncate">{league.name}</span>
                     <span className="text-subtle fs-8 text-truncate">{line}</span>

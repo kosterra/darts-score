@@ -11,6 +11,7 @@ import { t } from '../../utils/i18n';
 import { STATUS_WORDS, nameOf } from './tournament.words';
 import BetaTag from './beta.tag';
 import { Lines } from '../elements/skeletons';
+import { FaSitemap, FaTrophy } from 'react-icons/fa6';
 
 const CURRENT = ['draft', 'registration', 'closed', 'drawn', 'running'];
 
@@ -30,7 +31,8 @@ const TournamentRow = ({ tournament }) => {
     return (
         <li>
             <Link to={`/tournaments/${tournament.id}`} className="tournament-row">
-                <i className={`pi ${tournament.status === 'finished' ? 'pi-trophy' : 'pi-sitemap'} tournament-row-icon`} aria-hidden="true" />
+                {/* as the type of a game in the lists: a round tile, the cup for a finished one */}
+                <span className={`game-type-icon ${tournament.status === 'finished' ? 'game-type-won' : 'game-type-tournament'}`} aria-hidden="true">{tournament.status === 'finished' ? <FaTrophy /> : <FaSitemap />}</span>
                 <span className="tournament-row-text">
                     <span className="text-default fw-semibold text-truncate">{tournament.name}</span>
                     <span className="text-subtle fs-8 text-truncate">{line}</span>
@@ -75,14 +77,15 @@ const TournamentsPage = () => {
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {current.map(tournament => <TournamentRow key={tournament.id} tournament={tournament} />)}
                     </ul>
+                    {/* the past ones below, in the same panel, under a title of their own */}
+                    {past.length > 0 && <>
+                        <p className="game-setup-section-title m-0 mt-2">{t('Past tournaments')}</p>
+                        <ul className="list-unstyled m-0 d-flex flex-column gap-2">
+                            {past.map(tournament => <TournamentRow key={tournament.id} tournament={tournament} />)}
+                        </ul>
+                    </>}
                 </div>
             </Panel>
-            {past.length > 0 &&
-                <Panel header={t('Past tournaments')}>
-                    <ul className="list-unstyled m-0 d-flex flex-column gap-2">
-                        {past.map(tournament => <TournamentRow key={tournament.id} tournament={tournament} />)}
-                    </ul>
-                </Panel>}
         </div>
     );
 };
