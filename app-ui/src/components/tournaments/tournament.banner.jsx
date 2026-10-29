@@ -1,3 +1,4 @@
+import { FaTrophy } from 'react-icons/fa6';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'primereact/button';
@@ -73,7 +74,9 @@ const TournamentBanner = () => {
                 const drawn = ['drawn', 'running', 'finished'].includes(tournament.status);
                 return (
                     <section key={tournament.id} className={`tournament-banner is-${tournament.status}`} aria-label={tournament.name}>
-                        <i className={`pi ${tournament.status === 'finished' ? 'pi-trophy' : 'pi-sitemap'} tournament-banner-icon`} aria-hidden="true" />
+                        {tournament.status === 'finished'
+                            ? <span className="tournament-banner-icon" aria-hidden="true"><FaTrophy /></span>
+                            : <i className="pi pi-sitemap tournament-banner-icon" aria-hidden="true" />}
                         <div className="d-flex flex-column min-w-0 flex-grow-1">
                             <span className="tournament-banner-title">{lines.title}<BetaTag className="ms-2 align-middle" /></span>
                             <span className="text-subtle fs-7">{lines.detail}</span>

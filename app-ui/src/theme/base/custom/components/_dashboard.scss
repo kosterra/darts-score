@@ -588,8 +588,9 @@
     width: 2.4rem;
     height: 2.4rem;
     border-radius: $radius-round;
-    background: with-alpha($momentGoldColor, 0.16);
-    color: $momentGoldColor;
+    // the softer gold of the game tiles (Cricket's)
+    background: color-mix(in srgb, var(--c-game-cricket) 16%, transparent);
+    color: var(--c-game-cricket);
 }
 
 .record-value {

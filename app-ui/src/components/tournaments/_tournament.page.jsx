@@ -1,6 +1,6 @@
+import { FaTrophy } from 'react-icons/fa6';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FaTrophy } from 'react-icons/fa';
 import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Dialog } from 'primereact/dialog';
@@ -214,15 +214,21 @@ const TournamentPage = () => {
 
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
-            <Panel header={tournament.name} icons={<span className="d-inline-flex align-items-center gap-2"><BetaTag /><Tag value={status.label} severity={status.severity} /></span>}>
+            {/* as the header of every page: the name as its title, the facts under it, the tags in the corner */}
+            <header className="dashboard-header hero-header tournament-header rounded-2 p-4 d-flex flex-column gap-3">
+                <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                    <div className="d-flex flex-column gap-1 min-w-0">
+                        <h1 className="fs-2 fw-semibold text-default m-0 text-break">{tournament.name}</h1>
+                        {tournament.description && <p className="text-subtle m-0 text-break" style={{ whiteSpace: 'pre-line', maxWidth: '70ch' }}>{tournament.description}</p>}
+                    </div>
+                    <span className="d-inline-flex align-items-center gap-2 tournament-header-tags"><BetaTag /><Tag value={status.label} severity={status.severity} /></span>
+                </div>
                 <div className="d-flex flex-column gap-3">
-                    {tournament.description && <p className="text-subtle m-0 text-break" style={{ whiteSpace: 'pre-line', maxWidth: '70ch' }}>{tournament.description}</p>}
                     <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         <div><dt className="text-faint fs-8 fw-normal">{t('Registration until')}</dt><dd className="text-default fw-semibold m-0">{formatDateTime(tournament.closesAt)}</dd></div>
                         <div><dt className="text-faint fs-8 fw-normal">{t('Players')}</dt><dd className="text-default fw-semibold m-0">{tournament.counts.in} / {tournament.maxPlayers}</dd></div>
                         {playing[0]?.date && <div><dt className="text-faint fs-8 fw-normal">{t('First round')}</dt><dd className="text-default fw-semibold m-0">{formatDate(playing[0].date)}</dd></div>}
                         {isClubAdmin && !drawn && <div><dt className="text-faint fs-8 fw-normal">{t('Invited')}</dt><dd className="text-default fw-semibold m-0">{INVITE_WORDS[tournament.invite ?? 'mail'].label}</dd></div>}
-                        {tournament.status === 'finished' && <div><dt className="text-faint fs-8 fw-normal">{t('Winner')}</dt><dd className="text-default fw-semibold m-0">{nameOf(tournament, tournament.winner)}<FaTrophy className="ms-1 text-gold" aria-hidden="true" /></dd></div>}
                     </dl>
 
                     {registration && tournament.me &&
@@ -237,13 +243,14 @@ const TournamentPage = () => {
                         </div>}
                     {tournament.status === 'finished' &&
                         <div className="tournament-champion">
-                            <i className="pi pi-trophy" aria-hidden="true" />
+                            <FaTrophy className="tournament-champion-icon" aria-hidden="true" />
                             <span className="flex-grow-1">{t('{{name}} wins {{tournament}}!', { name: nameOf(tournament, tournament.winner), tournament: tournament.name })}</span>
                             <Button label={t('Share')} icon="pi pi-share-alt" size="small" severity="secondary" onClick={shareWin} />
                         </div>}
 
+                    {/* the admin's actions, as the bar of a header (see My club) */}
                     {isClubAdmin && !over &&
-                        <div className="d-flex flex-wrap gap-2 justify-content-end">
+                        <div className="filter-panel-bar flex-wrap justify-content-end">
                             <Link to={`/tournaments/${tournament.id}/edit`} className="p-button p-button-sm p-button-text text-decoration-none"><i className="pi pi-pencil me-2" />{t('Change')}</Link>
                             {tournament.status === 'draft' &&
                                 <Button label={t('Open the registration')} icon="pi pi-send" size="small" loading={busy === 'open'} onClick={() => confirm(t('Open the registration'), INVITE_WORDS[tournament.invite ?? 'mail'].opening, () => run('open', () => TournamentService.openRegistration(tournament.id), t('The members are invited.')))} />}
@@ -252,11 +259,11 @@ const TournamentPage = () => {
                             <Button label={t('Cancel the tournament')} icon="pi pi-ban" size="small" severity="danger" text loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the tournament'), t('Everyone invited or entered hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => TournamentService.cancelTournament(tournament.id)), true)} />
                         </div>}
                     {isClubAdmin && ['draft', 'cancelled'].includes(tournament.status) &&
-                        <div className="d-flex justify-content-end">
+                        <div className="filter-panel-bar flex-wrap justify-content-end">
                             <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" text loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The tournament goes for good.'), async () => { if (await run('delete', () => TournamentService.deleteTournament(tournament.id))) navigate('/tournaments'); }, true)} />
                         </div>}
                 </div>
-            </Panel>
+            </header>
 
             {closed && isClubAdmin &&
                 <Panel header={t('The draw')}>
@@ -289,7 +296,7 @@ const TournamentPage = () => {
                                     value={seeding}
                                     options={[{ label: t('Seeded'), value: 'seeded' }, { label: t('At random'), value: 'random' }]}
                                     onChange={(event) => event.value && setSeeding(event.value)}
-                                    className="p-selectbutton-pills"
+                                    className="p-selectbutton-pills pills-inline"
                                 />
                                 <span className="text-faint fs-8">{seeding === 'seeded'
                                     ? (withGroups ? t('The strongest by the club rating are spread over the groups, so they do not meet there.') : t('The best quarter by the club rating are placed apart, so they do not meet early; the others are drawn at random.'))
