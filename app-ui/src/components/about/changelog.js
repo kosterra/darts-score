@@ -16,6 +16,7 @@ const CHANGELOG = [
             t('A reminder on the day of a club night you said you come to, a few hours before it starts (turn it off under Notifications, Club nights).'),
             t('The club\'s year: the games of the year and its awards – the champion, the most games, the best average, the most 180s, the highest checkout, the most club nights and the wooden spoon – as a picture to share. On My club, and on the dashboard in December.'),
             t('Tidier on the phone: the keypad no longer touches the edge, Caller, Big screen and Rules as icons in a game, Play beside each favourite, the Hall of Shame on the dashboard with only the badges someone holds, the pages of a list in one row, and no more sideways scrolling from the form in You.'),
+            t('Easier to read: where the darts land and the favourite doubles in colours from green to orange, the form of the last year on a phone with its win rate scale back, head to head on a phone as a list of duels, and the club\'s header without the number of admins.'),
         ],
     },
     {

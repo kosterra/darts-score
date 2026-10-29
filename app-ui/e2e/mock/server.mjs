@@ -57,6 +57,8 @@ const ref = (p) => ({ id: p.id, nickname: p.nickname, firstname: p.firstname, la
 
 let seq = 0;
 const ago = (days) => new Date(Date.now() - days * 86400000).toISOString();
+// the months before this one, oldest first: 'YYYY-MM' (i months after 30 months ago)
+const dayjsLike = (i) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 29 + i); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
 const perTarget = (darts) => { const t = Array(21).fill(1); let rest = darts - 21; let i = 0; while (rest-- > 0) { t[(i * 7) % 21] += 1; i++; } return t; };
 const entries = [];
 const reviews = new Map();
@@ -593,7 +595,13 @@ http.createServer((req, res) => {
         if (/^\/api\/stats\/player\/p\d+$/.test(path)) return send(res, 200, { ...(process.env.FORM_CHART ? (() => {
             const months = ['2023-12', '2024-01', '2024-02', '2024-03', '2025-03', '2025-10', '2025-12', '2026-10'];
             const rates = [100, 67, 100, 100, 67, 100, 67, 43]; const avgs = [41, 36, 43, 49, 54, 44, 43, 43]; const games = [3, 3, 1, 3, 9, 1, 3, 7];
-            return { form: months.map((month, i) => ({ month, games: games[i], wins: Math.round(games[i] * rates[i] / 100), winRate: rates[i], average: avgs[i] })) };
+            // the hits of a player who aims at the 20: most around it, a few everywhere else
+            const near = { 20: 1, 1: 0.45, 5: 0.42, 18: 0.2, 12: 0.18, 19: 0.14, 3: 0.08, 17: 0.07, 7: 0.06, 16: 0.06, 8: 0.05, 2: 0.05, 4: 0.05, 15: 0.04, 9: 0.04, 14: 0.04, 11: 0.03, 6: 0.03, 10: 0.03, 13: 0.03 };
+            const sectionHits = [...Object.entries(near).map(([section, share]) => ({ section, S: Math.round(1400 * share), D: Math.round(70 * share), T: Math.round(300 * share) })), { section: '25', S: 40, D: 9 }];
+            // many months, so a phone shows the last year only
+            const many = process.env.FORM_CHART === 'many';
+            const list = many ? Array.from({ length: 30 }, (_, i) => dayjsLike(i)) : months;
+            return { sectionHits, form: list.map((month, i) => ({ month, games: games[i % 8], wins: Math.round(games[i % 8] * rates[i % 8] / 100), winRate: rates[i % 8], average: avgs[i % 8] })) };
         })() : {}), playedGames: { total: 48 }, wonGames: { total: 27 }, avg: { overallX01: 52.4 }, kpis: {}, checkouts: {}, level: { level: { id: 'countyPlayer', name: 'County Player', index: 5 }, xp: 1520, progress: 31, next: { id: 'pro', name: 'Pro', missing: [{ id: 'xp', label: '480 more XP' }, { id: 'average', label: 'an X01 average of 60' }] }, breakdown: [], ladder: [], rules: {} }, trainingSummary: { total: 23, last30Days: 9, lastAt: ago(1), streak: 4,
             atc: { count: 11, fastest: { timeMs: 9842, mode: 'Double' }, fewestDarts: { darts: 34, mode: 'All' } },
             bot: { count: 6, finished: 5, wins: 3, average: 47.8, bestAverage: 58.2, recent: [41.2, 44.8, 47.1, 52.3, 58.2], checkout: { hit: 14, total: 52, rate: 26.9 }, bestDouble: { section: 16, hit: 6, total: 15, rate: 40 }, oneEighties: 2, tonPlus: 31, highestCheckout: 104, scoring: 55.1, finishing: 31.4 },

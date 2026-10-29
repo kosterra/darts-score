@@ -3,6 +3,7 @@ import DartboardHeatmap from './dartboard.heatmap';
 import { PLAYER_COLORS } from './chart.theme';
 import { hitFields, formatShare } from '../../../utils/hit.fields';
 import { t, tn } from '../../../utils/i18n';
+import { HEAT_GRADIENT } from '../../../utils/heat.scale';
 
 const RING_NAMES = { S: 'Single', D: 'Double', T: 'Treble' };
 const TOP_FIELDS = 5;
@@ -69,7 +70,7 @@ const HitsHeatmapChart = ({ hitsByPlayer = [], players = [], gameName = 'X01' })
         </div>
         <div className="hit-scale" aria-hidden="true">
             <span>{t('rarely')}</span>
-            <span className="hit-scale-bar" />
+            <span className="hit-scale-bar" style={{ background: HEAT_GRADIENT }} />
             <span>{t('often')}</span>
         </div>
     </ChartCard>
