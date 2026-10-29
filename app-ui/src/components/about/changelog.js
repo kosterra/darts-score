@@ -12,6 +12,7 @@ const CHANGELOG = [
             t('Scoring without a connection on every game: logged in, the app keeps the pages to set up, play and finish a game in the background, so they open without the Wi-Fi of the club even if they were never opened on the device.'),
             t('A faster start in German, French, Italian and Spanish: the texts of What\'s new, About, the legal pages and Darts A–Z load only when one of them opens.'),
             t('Tournaments and leagues together under Competitions in the menu.'),
+            t('Tonight\'s club night on the dashboard under Up next: who is coming, your answer with one tap, and the way to the club evening.'),
         ],
     },
     {

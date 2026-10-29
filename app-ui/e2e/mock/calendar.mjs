@@ -14,7 +14,9 @@ export const seedCalendar = (players, scenario) => {
     // a club night tonight, three members coming
     if (scenario === 'tonight') {
         const day = dayKey(new Date());
-        nights = [{ weekday: new Date(`${day}T12:00:00Z`).getUTCDay(), start: '19:30', end: '23:00', note: 'Back room' }];
+        // starting this hour, so whenever the checks run the night is on and its games count for the evening
+        const start = `${String(new Date().getHours()).padStart(2, '0')}:00`;
+        nights = [{ weekday: new Date(`${day}T12:00:00Z`).getUTCDay(), start, end: '', note: 'Back room' }];
         answers = players.slice(1, 4).map(p => ({ day, player: p.id, answer: 'yes' }));
     }
     // club nights on Tuesdays and Fridays, the second Tuesday cancelled, some members coming

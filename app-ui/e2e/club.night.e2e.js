@@ -29,3 +29,17 @@ test('the club evening of tonight\'s club night', async ({ page }) => {
     await page.goBack();
     await expect(page.locator('.timeline-entry')).toHaveCount(before + 1);
 });
+
+test('tonight\'s club night on the dashboard: coming, then the way to the club evening', async ({ page }) => {
+    await post('/__test/logged-out', { loggedOut: false });
+    await post('/__test/role', { admin: false });
+    await post('/__test/calendar', { scenario: 'tonight' });
+    await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
+    await page.goto('/');
+    const night = page.locator('.up-next').filter({ hasText: 'Club night tonight' });
+    await expect(night).toContainText('3 coming');
+    await night.getByRole('button', { name: 'I\'m coming' }).click();
+    await expect(night).toContainText('4 coming');
+    await night.getByRole('link', { name: 'Club evening' }).click();
+    await expect(page).toHaveURL(/\/club-night\/\d{4}-\d{2}-\d{2}$/);
+});
