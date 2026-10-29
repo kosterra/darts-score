@@ -355,19 +355,21 @@ const TournamentPage = () => {
                 </Panel>}
 
             <Panel header={t('Rounds')}>
-                {/* a tile a round, as the figures of the other pages: when, and how it is played; the final in gold */}
-                <div className="kpi-chips kpi-chips-wide">
-                    {(drawn ? playing : tournament.rounds).map(round => (
-                        <KpiChip
-                            key={round.size}
-                            icon={round.size === 2 ? FaTrophy : FaSitemap}
-                            value={roundName(round.size)}
-                            label={round.date ? formatDateTime(round.date) : t('Day open')}
-                            detail={rulesText(round.rules)}
-                            color={round.size === 2 ? 'var(--c-game-cricket)' : ACCENT.green}
-                        />
+                {/* the way to the final: a step a round with an arrow to the next, each with its day and how it is played; the final in gold */}
+                <ol className="tournament-path list-unstyled m-0">
+                    {(drawn ? playing : tournament.rounds).map((round, index) => (
+                        <li key={round.size} className="tournament-path-step">
+                            {index > 0 && <i className="pi pi-arrow-right tournament-path-arrow" aria-hidden="true" />}
+                            <KpiChip
+                                icon={round.size === 2 ? FaTrophy : FaSitemap}
+                                value={roundName(round.size)}
+                                label={round.date ? formatDateTime(round.date) : t('Day open')}
+                                detail={rulesText(round.rules)}
+                                color={round.size === 2 ? 'var(--c-game-cricket)' : ACCENT.green}
+                            />
+                        </li>
                     ))}
-                </div>
+                </ol>
                 {!drawn && <p className="text-faint fs-8 mt-3 mb-0">{t('With fewer players the first rounds are left out at the draw.')}</p>}
             </Panel>
 

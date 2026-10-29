@@ -651,3 +651,35 @@
 
     li { display: flex; align-items: center; gap: $space-3; min-width: 0; }
 }
+
+// the rounds as the way to the final: the steps in a row with arrows between them, every step
+// as wide as the others; on a phone one under another, the arrows pointing down
+.tournament-path {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.75rem 0;
+}
+
+.tournament-path-step {
+    display: flex;
+    align-items: center;
+    flex: 1 1 14rem;
+    min-width: 0;
+
+    .kpi-chip { flex: 1 1 auto; min-width: 0; }
+}
+
+.tournament-path-arrow {
+    flex-shrink: 0;
+    width: 2.25rem;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: $text-md;
+}
+
+@media (max-width: 575.98px) {
+    .tournament-path { flex-direction: column; gap: 0; }
+    .tournament-path-step { flex-direction: column; align-items: stretch; flex-basis: auto; }
+    .tournament-path-arrow { width: auto; padding: 0.4rem 0; transform: rotate(90deg); }
+}

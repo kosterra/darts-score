@@ -51,10 +51,11 @@ export const INVITE_WORDS = {
 export const STATUS_WORDS = {
     draft: { label: t('Draft'), severity: 'secondary' },
     registration: { label: t('Registration open'), severity: 'success' },
-    closed: { label: t('Registration closed'), severity: 'warning' },
-    drawn: { label: t('Drawn'), severity: 'info' },
-    running: { label: t('Running'), severity: 'info' },
-    finished: { label: t('Finished'), severity: 'secondary' },
+    closed: { label: t('Registration closed'), severity: 'secondary' },
+    drawn: { label: t('Drawn'), severity: 'secondary' },
+    // as the status of a game: running orange, finished blue
+    running: { label: t('Running'), severity: 'warning' },
+    finished: { label: t('Finished'), severity: 'info' },
     cancelled: { label: t('Cancelled'), severity: 'danger' },
 };
 
