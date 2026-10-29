@@ -538,6 +538,8 @@
   // the board over the whole width, the column without its side padding
   .x01-board-plain { padding-right: 0; padding-left: 0; }
   .x01-board-col .dartboard-img { height: auto; width: 100%; max-width: none; }
+  // the keypad does not: its outer keys would touch the edge of the screen
+  .x01-board-plain .x01-keypad { padding: 0 0.5rem; }
 
   .x01-darts { flex-direction: row; }
   .x01-dart-field { flex: 1 1 0; min-width: 0; }
@@ -974,4 +976,15 @@
   font-size: $text-base;
 
   .pi { color: $accentAmber; }
+}
+
+// the header of a game on a phone: the buttons as icons (their names stay for screen readers),
+// and the shame badges left out, so the board and the keypad come up higher
+@media (max-width: 575.98px) {
+  .game-rules-toggle {
+    padding-inline: 0.6rem;
+
+    .game-rules-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  }
+  .x01-shames { display: none; }
 }

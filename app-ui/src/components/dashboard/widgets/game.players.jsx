@@ -16,11 +16,11 @@ const GamePlayers = ({ game, players, withSets = true }) => {
                     {entry.isWinner && <FaTrophy className="ms-1 text-gold" aria-label={t('Winner')} />}
                     {game.type === 'x01'
                         ? (
-                            <span className="ms-2 text-faint fs-8 fw-normal">
+                            <span className="ms-2 text-faint fs-8 fw-normal text-nowrap">
                                 {withSets && <><span className="text-default fs-7 fw-semibold">{entry.sets}</span> {entry.sets === 1 ? t('set') : t('sets')} · </>}<span className="text-default fs-7 fw-semibold">{entry.legs}</span> {entry.legs === 1 ? t('leg') : t('legs')}
                             </span>
                         )
-                        : <span className="ms-2 text-default fw-semibold tabular-nums">{entry.score ?? '–'}</span>
+                        : <span className="ms-2 text-default fw-semibold tabular-nums text-nowrap">{entry.score ?? '–'}</span>
                     }
                 </span>
             ))}

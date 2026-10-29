@@ -92,7 +92,7 @@ const FavouritesWidget = ({ widget, players }) => {
                         <span className="text-default fw-semibold">{t('X01 against the bot')}</span>
                         <span className="text-faint fs-8">{t('At your own level, whenever nobody else is at the board')}</span>
                     </span>
-                    <Link to="/training/x01" className="p-button p-button-sm p-button-secondary text-decoration-none flex-shrink-0"><i className="pi pi-play me-2" />{t('Train')}</Link>
+                    <Link to="/training/x01" className="p-button p-button-sm p-button-secondary text-decoration-none flex-shrink-0"><i className="pi pi-play me-2" aria-hidden="true" /><span className="favourite-action-label">{t('Train')}</span></Link>
                 </li>
             </ul>
         </Panel>

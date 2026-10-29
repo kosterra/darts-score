@@ -29,7 +29,7 @@ const CallerButton = () => {
             onClick={toggle}
         >
             <i className={`pi ${on ? 'pi-volume-up' : 'pi-volume-off'}`} aria-hidden="true" />
-            <span>{t('Caller')}</span>
+            <span className="game-rules-label">{t('Caller')}</span>
         </button>
     );
 };

@@ -8,6 +8,7 @@ import { useAuth } from '../../../utils/auth.context';
 import { useMyPlayers, playerInClub } from '../../../utils/use.my.players';
 import { Lines } from '../../elements/skeletons';
 import { locale, t, tn } from '../../../utils/i18n';
+import { formatTrainingTime } from '../../../utils/training.time';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 const oneDecimal = (value) => new Intl.NumberFormat(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
@@ -44,6 +45,31 @@ const TrainingWidget = ({ widget }) => {
         if (!stats) return <Lines count={3} />;
         if (!summary?.total) {
             return <p className="m-0 text-subtle fs-7">{t('No trainings yet. Train X01 against the bot, Around the Clock or Bob\'s 27: your training figures show up here.')}</p>;
+        }
+        // trainings, but none against the bot: what there is, and what the bot would add
+        if (!bot.count) {
+            const atc = summary.atc;
+            return (
+                <>
+                    <div className="me-widget-tiles">
+                        <div className="me-widget-tile">
+                            <span className="me-widget-label">{t('Trainings')}</span>
+                            <span className="me-widget-value">{formatNumber(summary.total)}</span>
+                        </div>
+                        <div className="me-widget-tile">
+                            <span className="me-widget-label">{t('In the last 30 days')}</span>
+                            <span className="me-widget-value">{formatNumber(summary.last30Days)}</span>
+                        </div>
+                        {atc?.fastest &&
+                            <div className="me-widget-tile">
+                                <span className="me-widget-label">{t('Around the Clock')}</span>
+                                <span className="me-widget-value">{formatTrainingTime(atc.fastest.timeMs)}</span>
+                                <span className="text-faint fs-8">{t('fastest in {{mode}}', { mode: t(atc.fastest.mode) })}</span>
+                            </div>}
+                    </div>
+                    <span className="text-subtle fs-8">{t('Train X01 against the bot for your training average and checkout rate, side by side with your games.')}</span>
+                </>
+            );
         }
         return (
             <>

@@ -218,8 +218,12 @@
 
 @media (max-width: 575.98px) {
   .x01-handicap-fields { width: 100%; }
-  .x01-handicap-fields .p-dropdown,
-  .x01-handicap-fields .p-dropdown.x01-handicap-score { flex: 1 1 6.5rem; width: auto; min-width: 0; }
+  // the age (when it is missing) and the score share a line; the in and the checkout get one each,
+  // so "Straight In" and "Double Out" are not cut off
+  .x01-handicap-fields .p-dropdown { flex: 1 1 100%; width: auto; min-width: 0; }
+  .x01-handicap-fields .p-dropdown.x01-handicap-score,
+  .x01-handicap-fields .x01-handicap-age { flex: 1 1 0; width: auto; min-width: 0; }
+  .x01-handicap-age .p-inputnumber-input { width: 100%; }
   .player-order-item { width: 100%; }
   .player-order-name { flex: 1 1 auto; max-width: none; }
 

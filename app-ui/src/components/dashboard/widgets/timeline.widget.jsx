@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 
 import GamePlayers from './game.players';
 import GameTypeTag from '../../elements/game.type.tag';
+import { formatBesideType } from '../../../utils/game.format';
 import GameTypeIcon from '../../elements/game.type.icon';
 import { playPath } from '../../../utils/game.paths';
 import GameStatusTag from '../../elements/game.status.tag';
@@ -54,7 +55,7 @@ const TimelineWidget = ({ widget, games, players }) => {
                                             <div className="timeline-body">
                                                 <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                     <GameTypeTag type={game.type} />
-                                                    <span className="text-faint fs-8">{game.format}</span>
+                                                    {formatBesideType(game.type, game.format) && <span className="text-faint fs-8">{game.format}</span>}
                                                     <GameStatusTag running={game.running} />
                                                 </div>
                                                 <GamePlayers game={game} players={players} />

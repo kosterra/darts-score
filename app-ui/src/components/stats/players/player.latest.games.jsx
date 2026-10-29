@@ -7,6 +7,7 @@ import { GiDart } from 'react-icons/gi';
 import StatsService from '../../../services/stats.service';
 import GamePlayers from '../../dashboard/widgets/game.players';
 import GameTypeTag from '../../elements/game.type.tag';
+import { formatBesideType } from '../../../utils/game.format';
 import GameStatusTag from '../../elements/game.status.tag';
 import { t } from '../../../utils/i18n';
 import { formatDate } from '../../../utils/dates';
@@ -47,7 +48,7 @@ const PlayerLatestGames = ({ player }) => {
                                         <div className="timeline-body">
                                             <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                 <GameTypeTag type={game.type} />
-                                                <span className="text-faint fs-8">{game.format}</span>
+                                                {formatBesideType(game.type, game.format) && <span className="text-faint fs-8">{game.format}</span>}
                                                 {result
                                                     ? <span className={`game-result game-result-${result}`}>{result === 'won' ? t('Won') : t('Lost')}</span>
                                                     : <GameStatusTag running />
