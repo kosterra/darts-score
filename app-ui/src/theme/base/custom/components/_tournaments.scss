@@ -156,8 +156,8 @@
 .bracket {
     // the room between the rounds, where the lines run
     --bracket-gap: 2.5rem;
-    // the soft gold of the game tiles, a little lighter and not at full strength: pale, not glaring
-    --bracket-line: color-mix(in srgb, color-mix(in srgb, var(--c-game-cricket) 85%, #fff) 70%, transparent);
+    // the muted gold of the Share button on a winner's banner: a third of the soft gold over the panel
+    --bracket-line: color-mix(in srgb, var(--c-game-cricket) 32%, transparent);
 
     display: flex;
     gap: var(--bracket-gap);
