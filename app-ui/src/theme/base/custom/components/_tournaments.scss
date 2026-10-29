@@ -684,6 +684,12 @@
     min-width: 0;
 
     .kpi-chip { flex: 1 1 auto; min-width: 0; }
+
+    // the name of a round is a word, not a figure: the size of a title; its day under it as the
+    // secondary line of the lists (subtle, 13px), the rules as the small faint line
+    .kpi-chip-value { font-size: $text-md; font-weight: $weight-semibold; }
+    .kpi-chip-label { color: $textSubtleColor; font-size: $text-sm; }
+    .kpi-chip-detail { color: $textFaintColor; }
 }
 
 .tournament-path-arrow {
