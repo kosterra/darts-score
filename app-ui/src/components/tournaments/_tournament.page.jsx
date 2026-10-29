@@ -1,4 +1,4 @@
-import { FaTrophy } from 'react-icons/fa6';
+import { FaSitemap, FaTrophy } from 'react-icons/fa6';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
@@ -25,6 +25,9 @@ import WalkOn from './tournament.walkon';
 import { Lines } from '../elements/skeletons';
 import { shareCard } from '../../utils/share.card';
 import DateTimeField from '../elements/date.time.field';
+import UpLink from '../elements/up.link';
+import { KpiChip } from '../stats/players/kpi';
+import { ACCENT } from '../../utils/palette';
 
 /**
  * What can be done with a match: start it (its players or an admin, with who
@@ -214,6 +217,7 @@ const TournamentPage = () => {
 
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
+            <UpLink to="/tournaments" label={t('Tournaments')} />
             {/* as the header of every page: the name as its title, the facts under it, the tags in the corner */}
             <header className="dashboard-header hero-header tournament-header rounded-2 p-4 d-flex flex-column gap-3">
                 <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
@@ -351,19 +355,22 @@ const TournamentPage = () => {
                 </Panel>}
 
             <Panel header={t('Rounds')}>
-                <ol className="list-unstyled m-0 d-flex flex-column gap-2">
+                {/* a tile a round, as the figures of the other pages: when, and how it is played; the final in gold */}
+                <div className="kpi-chips kpi-chips-wide">
                     {(drawn ? playing : tournament.rounds).map(round => (
-                        <li key={round.size} className="d-flex flex-wrap align-items-baseline justify-content-between gap-2 tournament-schedule-row">
-                            <span className="text-default fw-semibold fs-7">{roundName(round.size)}</span>
-                            <span className="text-subtle fs-7">{round.date ? formatDateTime(round.date) : t('Day open')}</span>
-                            <span className="text-faint fs-8 flex-grow-1 text-md-end">{rulesText(round.rules)}</span>
-                        </li>
+                        <KpiChip
+                            key={round.size}
+                            icon={round.size === 2 ? FaTrophy : FaSitemap}
+                            value={roundName(round.size)}
+                            label={round.date ? formatDateTime(round.date) : t('Day open')}
+                            detail={rulesText(round.rules)}
+                            color={round.size === 2 ? 'var(--c-game-cricket)' : ACCENT.green}
+                        />
                     ))}
-                </ol>
+                </div>
                 {!drawn && <p className="text-faint fs-8 mt-3 mb-0">{t('With fewer players the first rounds are left out at the draw.')}</p>}
             </Panel>
 
-            <p className="m-0"><Link to="/tournaments">{t('All tournaments')}</Link></p>
             <MatchDialog tournament={tournament} match={selected && tournament.matches.find(match => match.id === selected.id)} isAdmin={isClubAdmin} onHide={() => setSelected(null)} onStart={start} onResult={decide} busy={busy} />
             <ConfirmDialog />
             <Toast ref={toast} position="bottom-right" />
