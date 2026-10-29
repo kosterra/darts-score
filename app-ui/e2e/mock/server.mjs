@@ -551,6 +551,15 @@ http.createServer((req, res) => {
             if (/name="profileImg"; filename=/.test(body)) p.profileImg = 'uploaded.png';
             return send(res, 200, { message: 'Player was updated successfully.' });
         }
+        // a player's latest games, for the profile
+        if (/^\/api\/stats\/player\/p\d+\/games$/.test(path)) {
+            const me = path.split('/')[4];
+            return send(res, 200, { total: 3, players: players.map(p => ({ id: p.id, nickname: p.nickname })), games: [
+                { id: 'g901', type: 'cricket', format: 'Cricket', playedAt: ago(1), running: false, players: [{ player: 'p2', isWinner: true, score: 36 }, { player: me, isWinner: false, score: 0 }] },
+                { id: 'g902', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', playedAt: ago(1), running: false, players: [{ player: 'p2', isWinner: false, sets: 1, legs: 3 }, { player: me, isWinner: true, sets: 2, legs: 4 }] },
+                { id: 'g903', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', playedAt: ago(2), running: true, players: [{ player: me, isWinner: false, sets: 1, legs: 1 }, { player: 'p3', isWinner: false, sets: 0, legs: 2 }] },
+            ] });
+        }
         // the club's year: its figures and awards (an old year without games)
         if (path === '/api/stats/club/year') {
             const year = Number(url.searchParams.get('year')) || new Date().getFullYear();

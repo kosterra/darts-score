@@ -56,16 +56,18 @@ const TimelineWidget = ({ widget, games, players }) => {
                                                 <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                     <GameTypeTag type={game.type} />
                                                     {formatBesideType(game.type, game.format) && <span className="text-faint fs-8">{game.format}</span>}
-                                                    <GameStatusTag running={game.running} />
                                                 </div>
                                                 <GamePlayers game={game} players={players} />
                                             </div>
-                                            {/* the icon buttons of the lists: green to continue, grey for the statistics */}
-                                            <div className="row-actions">
-                                                {game.running
-                                                    ? <Button type="button" icon="pi pi-play" aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(playPath(game.type, game.id))} />
-                                                    : <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
-                                                }
+                                            {/* the status at the top; the icon buttons of the lists, green to continue, grey for the statistics, at the bottom */}
+                                            <div className="timeline-side">
+                                                <GameStatusTag running={game.running} />
+                                                <div className="row-actions">
+                                                    {game.running
+                                                        ? <Button type="button" icon="pi pi-play" aria-label={t('Continue this game')} title={t('Continue playing')} onClick={() => navigate(playPath(game.type, game.id))} />
+                                                        : <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('Statistics of this game')} title={t('Show statistics')} onClick={() => navigate(`/stats/games/${game.type}/${game.id}`)} />
+                                                    }
+                                                </div>
                                             </div>
                                         </li>
                                     ))}

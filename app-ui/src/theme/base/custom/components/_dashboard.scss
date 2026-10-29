@@ -106,6 +106,37 @@
         flex-grow: 1;
         min-width: 0;
     }
+
+    // on a phone the type's tag names the game: its icon makes room for the names and figures
+    @media (max-width: 575.98px) {
+        .game-type-icon { display: none; }
+        gap: $space-2;
+    }
+
+    // on the right: the status (or the result) at the top, the button at the bottom
+    .timeline-side {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: $space-2;
+        align-self: stretch;
+        flex-shrink: 0;
+    }
+}
+
+// the players of a game in columns: the names, then the sets and the legs (or the score), aligned
+.game-players {
+    display: grid;
+    // the names keep room for a short one; longer ones are shortened, the figures never
+    grid-template-columns: minmax(4.5rem, max-content) repeat(var(--figures, 1), max-content);
+    column-gap: 0.75rem;
+    row-gap: 0.15rem;
+    align-items: baseline;
+
+    .game-players-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    @media (max-width: 575.98px) { column-gap: 0.5rem; }
 }
 
 // a game's type as a tile in its colour with its icon, at the start of a row
@@ -847,9 +878,19 @@
   gap: 0.1rem;
   max-width: 100%;
 
-  // in a narrow tile (three in a row on a phone) the change goes under the trend
-  .form-trend { flex-wrap: wrap; row-gap: 0; font-size: $text-base; }
+  .form-trend { font-size: $text-base; }
   .recharts-wrapper { max-width: 100%; }
+}
+
+// on a phone the arrow and the change say it: the word (rising, steady, falling) stays for
+// screen readers and in the title, and the trend fits a narrow tile on one line
+@media (max-width: 575.98px) {
+  .form-trend {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+
+    .form-trend-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  }
 }
 
 // the Dashboard's header: one's picture (to one's statistics) and nickname by the greeting
@@ -1694,5 +1735,15 @@ a.admin-tile:hover, a.admin-tile:focus-visible { border-color: ink(0.2); transfo
     .duel-score-name:nth-child(3) { grid-area: second; justify-self: end; }
     .duel-score-figure { grid-area: figure; justify-self: center; }
     .duel-score-sub { grid-area: sub; }
+  }
+}
+
+// the facts of a header (a player, the club, a year, a tournament): on a phone in two columns,
+// so a label starts where the one above it does, whatever the length of the values
+@media (max-width: 575.98px) {
+  .hero-facts.d-flex {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: $space-4 !important;
   }
 }

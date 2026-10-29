@@ -49,18 +49,21 @@ const PlayerLatestGames = ({ player }) => {
                                             <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                                                 <GameTypeTag type={game.type} />
                                                 {formatBesideType(game.type, game.format) && <span className="text-faint fs-8">{game.format}</span>}
-                                                {result
-                                                    ? <span className={`game-result game-result-${result}`}>{result === 'won' ? t('Won') : t('Lost')}</span>
-                                                    : <GameStatusTag running />
-                                                }
                                             </div>
                                             <GamePlayers game={game} players={playersById} />
                                         </div>
-                                        <div className="row-actions">
-                                            {game.running
-                                                ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title={t('Continue playing')} aria-label={t('Continue playing')}><GiDart /></Link>
-                                                : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title={t('Show statistics')} aria-label={t('Show statistics')}><FaChartColumn /></Link>
+                                        {/* the result (or the status) at the top, the way to the game at the bottom */}
+                                        <div className="timeline-side">
+                                            {result
+                                                ? <span className={`game-result game-result-${result}`}>{result === 'won' ? t('Won') : t('Lost')}</span>
+                                                : <GameStatusTag running />
                                             }
+                                            <div className="row-actions">
+                                                {game.running
+                                                    ? <Link to={`/${game.type}/${game.id}`} className="row-action-link" title={t('Continue playing')} aria-label={t('Continue playing')}><GiDart /></Link>
+                                                    : <Link to={`/stats/games/${game.type}/${game.id}`} className="row-action-link" title={t('Show statistics')} aria-label={t('Show statistics')}><FaChartColumn /></Link>
+                                                }
+                                            </div>
                                         </div>
                                     </li>
                                 );

@@ -217,7 +217,7 @@ const TournamentPage = () => {
             <Panel header={tournament.name} icons={<span className="d-inline-flex align-items-center gap-2"><BetaTag /><Tag value={status.label} severity={status.severity} /></span>}>
                 <div className="d-flex flex-column gap-3">
                     {tournament.description && <p className="text-subtle m-0 text-break" style={{ whiteSpace: 'pre-line', maxWidth: '70ch' }}>{tournament.description}</p>}
-                    <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                    <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         <div><dt className="text-faint fs-8 fw-normal">{t('Registration until')}</dt><dd className="text-default fw-semibold m-0">{formatDateTime(tournament.closesAt)}</dd></div>
                         <div><dt className="text-faint fs-8 fw-normal">{t('Players')}</dt><dd className="text-default fw-semibold m-0">{tournament.counts.in} / {tournament.maxPlayers}</dd></div>
                         {playing[0]?.date && <div><dt className="text-faint fs-8 fw-normal">{t('First round')}</dt><dd className="text-default fw-semibold m-0">{formatDate(playing[0].date)}</dd></div>}

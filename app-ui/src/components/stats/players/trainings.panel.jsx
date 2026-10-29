@@ -76,7 +76,7 @@ const TrainingsPanel = ({ summary }) => {
             <div className="kpi-headline mb-4">
                 <KpiHero label={t('Trainings')} value={formatNumber(summary.total)} color={COLORS.bot} />
                 <KpiHero label={t('In the last 30 days')} value={formatNumber(summary.last30Days)} color={COLORS.bot} />
-                <KpiHero label={t('Last training')} value={summary.lastAt ? formatDate(summary.lastAt, { year: 'none' }) : '–'} detail={summary.lastAt ? dayjs(summary.lastAt).fromNow() : null} color={COLORS.bot} />
+                <KpiHero label={t('Last training')} value={summary.lastAt ? formatDate(summary.lastAt, { year: dayjs(summary.lastAt).year() === dayjs().year() ? 'none' : 'short' }) : '–'} detail={summary.lastAt ? dayjs(summary.lastAt).fromNow() : null} color={COLORS.bot} />
             </div>
             <div className="training-cards">
                 {atc.count > 0 &&

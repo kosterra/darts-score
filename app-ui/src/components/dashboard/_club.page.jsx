@@ -100,7 +100,7 @@ const ClubPage = () => {
                         <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />
                     </div>
                     {club.description && <p className="text-subtle m-0" style={{ maxWidth: '60ch' }}>{club.description}</p>}
-                    <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                    <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         {facts.map(([label, value]) => (
                             <div key={label}>
                                 <dt className="text-faint fs-8 fw-normal">{label}</dt>

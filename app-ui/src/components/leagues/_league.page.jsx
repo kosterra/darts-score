@@ -235,7 +235,7 @@ const LeaguePage = () => {
             <Panel header={league.name} icons={<Tag value={status.label} severity={status.severity} />}>
                 <div className="d-flex flex-column gap-3">
                     {league.description && <p className="text-subtle m-0 text-break" style={{ whiteSpace: 'pre-line', maxWidth: '70ch' }}>{league.description}</p>}
-                    <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                    <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         <div><dt className="text-faint fs-8 fw-normal">{t('Players')}</dt><dd className="text-default fw-semibold m-0">{league.players.length}</dd></div>
                         <div><dt className="text-faint fs-8 fw-normal">{t('Everyone plays everyone')}</dt><dd className="text-default fw-semibold m-0">{league.meetings === 2 ? t('Twice') : t('Once')}</dd></div>
                         {started && <div><dt className="text-faint fs-8 fw-normal">{t('Played')}</dt><dd className="text-default fw-semibold m-0">{t('{{played}} of {{count}} matches', { played, count: league.matches.length })}</dd></div>}

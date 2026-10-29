@@ -9,6 +9,17 @@
     justify-items: center;
 }
 
+// three big figures on a phone: in one row, a size smaller, rather than two and one left over
+@media (max-width: 575.98px) {
+    .kpi-headline:has(> :nth-child(3):last-child) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: $space-2;
+
+        .kpi-hero-value { font-size: 1.6rem; }
+        .kpi-label, .kpi-detail { text-align: center; }
+    }
+}
+
 .kpi-label {
     color: $textSubtleColor;
     font-size: $text-sm;
