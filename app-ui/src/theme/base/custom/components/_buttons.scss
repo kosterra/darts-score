@@ -76,6 +76,18 @@ $softGreenTextHover: var(--c-soft-green-text-hover);
   color: $buttonTextColor;
 }
 
+// on a phone the buttons a size smaller (about 40 and 33 pixels high instead of 50 and 44):
+// still easy to tap, without taking half the width of a card; buttons with a size of their
+// own (the keypad, the icons of the lists) keep it
+@media (max-width: 575.98px) {
+  :root {
+    --button-padding: 0.55rem 0.95rem;
+    --button-font-size: 0.9375rem;
+    --button-padding-sm: 0.4rem 0.7rem;
+    --button-font-size-sm: 0.8125rem;
+  }
+}
+
 // on a phone the pagination fits one row: the pages, back and forward, without first and last
 @media (max-width: 575.98px) {
   .p-paginator {

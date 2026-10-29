@@ -1662,12 +1662,20 @@ a.admin-tile:hover, a.admin-tile:focus-visible { border-color: ink(0.2); transfo
   .p-selectbutton.p-selectbutton-pills.dashboard-tile-sizes { display: none; }
 }
 
-// a favourite on a phone: Play as a round button beside the text, not on a line of its own
+// a favourite, or what waits with one action, on a phone: the button beside the text, not on a
+// line of its own (with two actions, as coming to a club night or not, they still go under it)
 @media (max-width: 575.98px) {
-  .favourite {
+  .favourite,
+  .up-next:not(:has(.p-button + .p-button)) {
     flex-wrap: nowrap;
 
     > .flex-grow-1 { flex: 1 1 0; }
+  }
+}
+
+// a favourite on a phone: Play and Train as round icons, so the opponents' names keep their room
+@media (max-width: 575.98px) {
+  .favourite {
     .p-button { padding: 0.55rem 0.65rem; }
     .p-button .p-button-icon-left, .p-button .pi.me-2 { margin: 0; }
     .p-button-label, .favourite-action-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
