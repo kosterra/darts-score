@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 
@@ -22,6 +23,9 @@ const timeOf = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
  */
 const DateTimeField = ({ value, onChange, minDate, disabled = false, placeholder, ariaLabel, className = '', defaultTime = '12:00' }) => {
     const time = value ? timeOf(value) : null;
+    // without a day yet the calendar opens at the month of the first day offered, not at today
+    const [viewed, setViewed] = useState(null);
+    const viewDate = value ?? viewed ?? minDate ?? new Date();
     // a time that is not on a quarter (set elsewhere) stays choosable
     const times = time && !TIMES.includes(time) ? [...TIMES, time].sort() : TIMES;
     const withTime = (day, hhmm) => {
@@ -39,6 +43,8 @@ const DateTimeField = ({ value, onChange, minDate, disabled = false, placeholder
                 showIcon
                 icon="pi pi-calendar"
                 minDate={minDate}
+                viewDate={viewDate}
+                onViewDateChange={(event) => setViewed(event.value)}
                 disabled={disabled}
                 placeholder={placeholder}
                 aria-label={ariaLabel}

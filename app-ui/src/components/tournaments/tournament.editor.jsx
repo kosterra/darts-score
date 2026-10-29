@@ -18,6 +18,7 @@ import { Lines } from '../elements/skeletons';
 import BetaTag from './beta.tag';
 import SetsLegsConfigOptions from '../game_config/config_options/sets.legs.config.options';
 import DateTimeField from '../elements/date.time.field';
+import SetupBox from '../elements/setup.box';
 
 // the numbers a mode offers, as in the setup of an X01 game: Best of only odd ones (an even one could
 // end in a draw), First to any; the one set keeps its place when it is not among them
@@ -203,97 +204,97 @@ const TournamentEditor = () => {
         <div className="container-fluid p-4">
             <Panel header={stored ? t('Change the tournament') : t('New tournament')} icons={<BetaTag />} className="page-narrow">
                 <div className="d-flex flex-column gap-3">
-                    <label className="d-flex flex-column gap-1" htmlFor="tournament-name">
-                        <span className="fs-7 text-default fw-semibold">{t('Name')}</span>
-                        <InputText id="tournament-name" value={form.name} onChange={(event) => set({ name: event.target.value })} maxLength={80} placeholder={t('e.g. Autumn Cup')} />
-                    </label>
-                    <label className="d-flex flex-column gap-1" htmlFor="tournament-description">
-                        <span className="fs-7 text-default fw-semibold">{t('Description')}</span>
-                        <InputTextarea id="tournament-description" value={form.description} onChange={(event) => set({ description: event.target.value })} maxLength={1000} rows={3} autoResize placeholder={t('Optional: where you play, prizes, anything the players should know')} />
-                    </label>
-
-                    <div className="d-flex flex-column gap-1">
-                        <span className="fs-7 text-default fw-semibold">{t('Tournament type')}</span>
-                        <SelectButton
-                            value={form.format}
-                            options={['knockout', 'groups'].map(format => ({ label: FORMAT_WORDS[format].label, value: format }))}
-                            onChange={(event) => event.value && chooseFormat(event.value)}
-                            className="p-selectbutton-pills flex-wrap"
-                            disabled={!early}
-                            aria-label={t('Tournament type')}
-                        />
-                        <span className="text-faint fs-8">{FORMAT_WORDS[form.format].hint}</span>
-                    </div>
-
-                    <div className="d-flex flex-column gap-1">
-                        <span className="fs-7 text-default fw-semibold">{t('Players at most')}</span>
-                        <SelectButton value={form.maxPlayers} options={MAX_PLAYERS_CHOICES.map(count => ({ label: String(count), value: count }))} onChange={(event) => event.value && chooseSize(event.value)} className="p-selectbutton-pills" disabled={!early} />
-                        <span className="text-faint fs-8">{t('With fewer players the first rounds are left out at the draw, and some players get a bye.')}</span>
-                    </div>
-
-                    <div className="d-flex flex-column gap-1">
-                        <span className="fs-7 text-default fw-semibold">{t('Format')}</span>
-                        <Dropdown
-                            value={form.preset}
-                            options={PRESETS.map(preset => ({ value: preset.id, label: PRESET_WORDS[preset.id].label, hint: PRESET_WORDS[preset.id].hint, pdc: preset.pdc }))}
-                            onChange={(event) => choosePreset(event.value)}
-                            placeholder={t('Your own rules')}
-                            itemTemplate={(option) => (
-                                <span className="d-flex flex-column gap-1 tournament-preset-option">
-                                    <span className="d-flex align-items-center gap-2">{option.label}{option.pdc && <Tag value="PDC" severity="info" />}</span>
-                                    <span className="text-faint fs-8 text-wrap">{option.hint}</span>
-                                </span>
-                            )}
-                        />
-                        <span className="text-faint fs-8">{form.preset ? PRESET_WORDS[form.preset]?.hint : t('The rules of every round as you set them below.')}{presetById(form.preset)?.pdc ? ` ${t('The PDC formats are long for a club evening.')}` : ''}</span>
-                    </div>
-
-                    <div className="d-flex flex-column gap-1">
-                        <span className="fs-7 text-default fw-semibold">{t('Registration until')}</span>
-                        <DateTimeField value={form.closesAt} onChange={(value) => value && set({ closesAt: value })} disabled={!early} minDate={new Date()} />
-                        <span className="text-faint fs-8">{t('Until then the members enter or decline; after it the registration closes by itself and the draw can be held.')}</span>
-                    </div>
-
-                    <div className="d-flex flex-column gap-1">
-                        <span className="fs-7 text-default fw-semibold">{t('Invite the members')}</span>
-                        <SelectButton
-                            value={form.invite}
-                            options={INVITE_CHANNELS.map(channel => ({ label: INVITE_WORDS[channel].label, value: channel }))}
-                            onChange={(event) => event.value && set({ invite: event.value })}
-                            className="p-selectbutton-pills flex-wrap"
-                            disabled={!early}
-                            aria-label={t('Invite the members')}
-                        />
-                        <span className="text-faint fs-8">{INVITE_WORDS[form.invite].hint}</span>
-                    </div>
-
-                    <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
-                        <span className="fs-7 text-default fw-semibold">{t('Rounds')}</span>
-                        <span className="d-flex flex-wrap gap-1">
-                            <Button label={t('All on one evening')} icon="pi pi-clock" size="small" text onClick={oneEvening} />
-                            <Button label={t('One round a week')} icon="pi pi-calendar-plus" size="small" text onClick={weekly} />
-                        </span>
-                    </div>
-                    <ol className="list-unstyled m-0 d-flex flex-column gap-2">
-                        {form.rounds.map(round => {
-                            const fixed = played.has(round.size) || round.skipped;
-                            return (
-                                <li key={round.size} className="tournament-round">
-                                    <div className="d-flex flex-wrap align-items-center gap-3">
-                                        <span className="tournament-round-name">{roundName(round.size)}</span>
-                                        <DateTimeField value={round.date} onChange={(value) => setRound(round.size, { date: value })} placeholder={t('Day')} disabled={fixed} className="tournament-round-date" minDate={form.closesAt ? new Date(form.closesAt.getFullYear(), form.closesAt.getMonth(), form.closesAt.getDate()) : undefined} />
-                                        <span className="d-flex flex-column flex-grow-1 min-w-0">
-                                            <span className="text-default fs-7">{rulesText(round.rules)}</span>
-                                            <span className="text-faint fs-8">{round.skipped ? t('Left out: the field is smaller') : t('up to {{count}} legs a match', { count: maxLegs(round.rules) })}</span>
+                    <div className="row g-3">
+                        <div className="col-12">
+                            <SetupBox title={t('Name')}>
+                                <InputText id="tournament-name" value={form.name} onChange={(event) => set({ name: event.target.value })} maxLength={80} placeholder={t('e.g. Autumn Cup')} aria-label={t('Name')} />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12">
+                            <SetupBox title={t('Description')}>
+                                <InputTextarea id="tournament-description" value={form.description} onChange={(event) => set({ description: event.target.value })} maxLength={1000} rows={3} autoResize placeholder={t('Optional: where you play, prizes, anything the players should know')} aria-label={t('Description')} />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12 col-md-6">
+                            <SetupBox title={t('Tournament type')} hint={FORMAT_WORDS[form.format].hint}>
+                                <SelectButton
+                                    value={form.format}
+                                    options={['knockout', 'groups'].map(format => ({ label: FORMAT_WORDS[format].label, value: format }))}
+                                    onChange={(event) => event.value && chooseFormat(event.value)}
+                                    className="p-selectbutton-pills pills-inline flex-wrap"
+                                    disabled={!early}
+                                    aria-label={t('Tournament type')}
+                                />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12 col-md-6">
+                            <SetupBox title={t('Players at most')} hint={t('With fewer players the first rounds are left out at the draw, and some players get a bye.')}>
+                                <SelectButton value={form.maxPlayers} options={MAX_PLAYERS_CHOICES.map(count => ({ label: String(count), value: count }))} onChange={(event) => event.value && chooseSize(event.value)} className="p-selectbutton-pills pills-inline" disabled={!early} aria-label={t('Players at most')} />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12 col-md-6">
+                            <SetupBox title={t('Format')} hint={<>{form.preset ? PRESET_WORDS[form.preset]?.hint : t('The rules of every round as you set them below.')}{presetById(form.preset)?.pdc ? ` ${t('The PDC formats are long for a club evening.')}` : ''}</>}>
+                                <Dropdown
+                                    value={form.preset}
+                                    options={PRESETS.map(preset => ({ value: preset.id, label: PRESET_WORDS[preset.id].label, hint: PRESET_WORDS[preset.id].hint, pdc: preset.pdc }))}
+                                    onChange={(event) => choosePreset(event.value)}
+                                    placeholder={t('Your own rules')}
+                                    aria-label={t('Format')}
+                                    itemTemplate={(option) => (
+                                        <span className="d-flex flex-column gap-1 tournament-preset-option">
+                                            <span className="d-flex align-items-center gap-2">{option.label}{option.pdc && <Tag value="PDC" severity="info" />}</span>
+                                            <span className="text-faint fs-8 text-wrap">{option.hint}</span>
                                         </span>
-                                        {!fixed && <Button label={openRound === round.size ? t('Done') : t('Change')} size="small" text onClick={() => setOpenRound(openRound === round.size ? null : round.size)} />}
-                                    </div>
-                                    {openRound === round.size && <RoundRules rules={round.rules} onChange={(rules) => changeRules(round.size, rules)} disabled={fixed} />}
-                                    {rulesError(round.rules) && <span className="text-danger fs-8">{t(rulesError(round.rules))}</span>}
-                                </li>
-                            );
-                        })}
-                    </ol>
+                                    )}
+                                />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12 col-md-6">
+                            <SetupBox title={t('Registration until')} hint={t('Until then the members enter or decline; after it the registration closes by itself and the draw can be held.')}>
+                                <DateTimeField value={form.closesAt} onChange={(value) => value && set({ closesAt: value })} disabled={!early} minDate={new Date()} ariaLabel={t('Registration until')} />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12">
+                            <SetupBox title={t('Invite the members')} hint={INVITE_WORDS[form.invite].hint}>
+                                <SelectButton
+                                    value={form.invite}
+                                    options={INVITE_CHANNELS.map(channel => ({ label: INVITE_WORDS[channel].label, value: channel }))}
+                                    onChange={(event) => event.value && set({ invite: event.value })}
+                                    className="p-selectbutton-pills pills-inline flex-wrap"
+                                    disabled={!early}
+                                    aria-label={t('Invite the members')}
+                                />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12">
+                            <SetupBox title={t('Rounds')}>
+                                <div className="d-flex flex-wrap justify-content-center gap-1">
+                                    <Button label={t('All on one evening')} icon="pi pi-clock" size="small" text onClick={oneEvening} />
+                                    <Button label={t('One round a week')} icon="pi pi-calendar-plus" size="small" text onClick={weekly} />
+                                </div>
+                            <ol className="list-unstyled m-0 d-flex flex-column gap-2 w-100 text-start">
+                                {form.rounds.map(round => {
+                                    const fixed = played.has(round.size) || round.skipped;
+                                    return (
+                                        <li key={round.size} className="tournament-round">
+                                            <div className="d-flex flex-wrap align-items-center gap-3">
+                                                <span className="tournament-round-name">{roundName(round.size)}</span>
+                                                <DateTimeField value={round.date} onChange={(value) => setRound(round.size, { date: value })} placeholder={t('Day')} disabled={fixed} className="tournament-round-date" minDate={form.closesAt ? new Date(form.closesAt.getFullYear(), form.closesAt.getMonth(), form.closesAt.getDate()) : undefined} />
+                                                <span className="d-flex flex-column flex-grow-1 min-w-0">
+                                                    <span className="text-default fs-7">{rulesText(round.rules)}</span>
+                                                    <span className="text-faint fs-8">{round.skipped ? t('Left out: the field is smaller') : t('up to {{count}} legs a match', { count: maxLegs(round.rules) })}</span>
+                                                </span>
+                                                {!fixed && <Button label={openRound === round.size ? t('Done') : t('Change')} size="small" text onClick={() => setOpenRound(openRound === round.size ? null : round.size)} />}
+                                            </div>
+                                            {openRound === round.size && <RoundRules rules={round.rules} onChange={(rules) => changeRules(round.size, rules)} disabled={fixed} />}
+                                            {rulesError(round.rules) && <span className="text-danger fs-8">{t(rulesError(round.rules))}</span>}
+                                        </li>
+                                    );
+                                })}
+                            </ol>
+                            </SetupBox>
+                        </div>
+                    </div>
 
                     {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
                     <div className="d-flex flex-wrap justify-content-end gap-2">

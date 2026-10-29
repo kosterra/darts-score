@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SelectButton } from 'primereact/selectbutton';
+import { Avatar } from 'primereact/avatar';
+
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 
 import { currentRound, roundSizes } from '../../rules/tournaments';
 import { t } from '../../utils/i18n';
@@ -21,10 +24,13 @@ const PlayerRow = ({ tournament, match, side }) => {
     const lost = match.winner && id && match.winner !== id;
     const score = match.score?.sets?.[side] ?? match.score?.legs?.[side];
     const mine = id && id === tournament.myPlayer;
+    const player = id ? tournament.players?.[id] : null;
     return (
         <span className={`bracket-player ${won ? 'is-winner' : ''} ${lost ? 'is-loser' : ''} ${mine ? 'is-mine' : ''}`}>
-            <span className="bracket-name text-truncate">
-                {id ? nameOf(tournament, id) : <span className="text-faint">{match.bye ? '–' : t('to come')}</span>}
+            <span className="bracket-name d-flex align-items-center gap-2 min-w-0">
+                {/* the player's picture, small; a place still to be filled has none */}
+                {player && <Avatar label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname, player.lastname)} image={resolvePlayerImg(player.profileImg)} shape="circle" className="avatar-xs bg-surface-high flex-shrink-0 bracket-avatar" />}
+                <span className="text-truncate">{id ? nameOf(tournament, id) : <span className="text-faint">{match.bye ? '–' : t('to come')}</span>}</span>
                 {seed && <span className="bracket-seed" title={t('Seed {{seed}}', { seed })}>{seed}</span>}
             </span>
             {score !== undefined && <span className="bracket-score">{score}</span>}

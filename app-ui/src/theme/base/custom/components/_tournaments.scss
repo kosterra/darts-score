@@ -103,11 +103,10 @@
         align-items: center;
         justify-content: space-between;
         gap: 0.5rem;
-        min-height: 2.25rem;
-        padding: 0 0.6rem;
-        border-radius: $radius-sm;
+        min-height: 2.75rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: $radius-md;
         background: ink(0.04);
-        font-size: $text-sm;
 
         &.is-mine { background: with-alpha($primaryColor, 0.16); }
     }
@@ -332,26 +331,37 @@
 
 // groups + knockout: each group a card with its table and its matches
 .tournament-groups {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    display: flex;
+    flex-direction: column;
     gap: $space-4;
 }
 
+// a group: its name on top, the table on the left, its matches in columns beside it over the
+// rest of the width; on a narrow screen the matches under the table
 .tournament-group {
-    display: flex;
-    flex-direction: column;
-    gap: $space-3;
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    grid-template-areas: 'name name' 'table matches';
+    gap: $space-3 $space-4;
     padding: $space-3;
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
+
+    @media (max-width: 767.98px) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: 'name' 'table' 'matches';
+    }
 }
 
 .tournament-group-name {
+    grid-area: name;
     margin: 0;
     color: var(--text-default);
     font-size: $text-md;
     font-weight: $weight-semibold;
 }
+
+.tournament-group-table { grid-area: table; align-self: start; }
 
 .tournament-group-table {
     width: 100%;
@@ -376,9 +386,11 @@
 }
 
 .tournament-group-matches {
-    display: flex;
-    flex-direction: column;
-    gap: $space-2;
+    grid-area: matches;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    align-content: start;
+    gap: $space-2 $space-3;
 
     .bracket-match { width: 100%; }
 }

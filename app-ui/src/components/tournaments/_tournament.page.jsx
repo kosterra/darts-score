@@ -27,6 +27,8 @@ import { shareCard } from '../../utils/share.card';
 import DateTimeField from '../elements/date.time.field';
 import UpLink from '../elements/up.link';
 import { KpiChip } from '../stats/players/kpi';
+import { Avatar } from 'primereact/avatar';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { ACCENT } from '../../utils/palette';
 
 /**
@@ -196,14 +198,25 @@ const TournamentPage = () => {
         if (result) setSelected(null);
     };
 
+    // a player of the tournament with their picture, as in the other lists
+    const avatarOf = (playerId) => {
+        const player = tournament.players?.[playerId];
+        return <Avatar label={player?.profileImg ? undefined : resolvePlayerInitials(player?.firstname, player?.lastname)} image={resolvePlayerImg(player?.profileImg)} shape="circle" className="avatar-sm bg-surface-high flex-shrink-0" />;
+    };
     const EntryList = ({ list, title, empty }) => (
         <div className="d-flex flex-column gap-2">
-            <span className="text-subtle fs-8">{title} · {list.length}</span>
+            <span className="text-subtle fs-7 fw-semibold">{title} · {list.length}</span>
             {!list.length && <span className="text-faint fs-8">{empty}</span>}
             <ul className="list-unstyled m-0 tournament-entries">
                 {list.map(entry => (
                     <li key={entry.player} className={entry.player === tournament.myPlayer ? 'is-mine' : ''}>
-                        <span className="text-truncate">{nameOf(tournament, entry.player)}{entry.byAdmin && <span className="text-faint fs-9 ms-2">{t('by an admin')}</span>}</span>
+                        <span className="d-flex align-items-center gap-2 min-w-0">
+                            {avatarOf(entry.player)}
+                            <span className="d-flex flex-column min-w-0">
+                                <span className="text-default fs-7 fw-semibold text-truncate">{nameOf(tournament, entry.player)}</span>
+                                {entry.byAdmin && <span className="text-faint fs-8">{t('by an admin')}</span>}
+                            </span>
+                        </span>
                         {isClubAdmin && (registration || closed) &&
                             <span className="d-flex gap-1">
                                 {entry.status !== 'in' && <Button icon="pi pi-check" text size="small" aria-label={t('Enter')} title={t('Enter')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'in')} />}
@@ -237,7 +250,7 @@ const TournamentPage = () => {
 
                     {registration && tournament.me &&
                         <div className="tournament-answer">
-                            <span className="text-default fs-7">
+                            <span className="text-default fw-semibold">
                                 {tournament.me.status === 'in' ? t('You are in.') : tournament.me.status === 'out' ? t('You are out of this one.') : t('Will you play?')}
                             </span>
                             <span className="d-flex flex-wrap gap-2">
@@ -255,16 +268,16 @@ const TournamentPage = () => {
                     {/* the admin's actions, as the bar of a header (see My club) */}
                     {isClubAdmin && !over &&
                         <div className="filter-panel-bar flex-wrap justify-content-end">
-                            <Link to={`/tournaments/${tournament.id}/edit`} className="p-button p-button-sm p-button-text text-decoration-none"><i className="pi pi-pencil me-2" />{t('Change')}</Link>
+                            <Link to={`/tournaments/${tournament.id}/edit`} className="p-button p-button-sm p-button-secondary text-decoration-none"><i className="pi pi-pencil me-2" aria-hidden="true" />{t('Change')}</Link>
                             {tournament.status === 'draft' &&
                                 <Button label={t('Open the registration')} icon="pi pi-send" size="small" loading={busy === 'open'} onClick={() => confirm(t('Open the registration'), INVITE_WORDS[tournament.invite ?? 'mail'].opening, () => run('open', () => TournamentService.openRegistration(tournament.id), t('The members are invited.')))} />}
                             {registration &&
-                                <Button label={t('Close the registration now')} icon="pi pi-lock" size="small" severity="secondary" loading={busy === 'close'} onClick={() => confirm(t('Close the registration now'), t('Nobody can enter after this; then you hold the draw.'), () => run('close', () => TournamentService.closeRegistration(tournament.id)))} />}
-                            <Button label={t('Cancel the tournament')} icon="pi pi-ban" size="small" severity="danger" text loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the tournament'), t('Everyone invited or entered hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => TournamentService.cancelTournament(tournament.id)), true)} />
+                                <Button label={t('Close the registration now')} icon="pi pi-lock" size="small" loading={busy === 'close'} onClick={() => confirm(t('Close the registration now'), t('Nobody can enter after this; then you hold the draw.'), () => run('close', () => TournamentService.closeRegistration(tournament.id)))} />}
+                            <Button label={t('Cancel the tournament')} icon="pi pi-ban" size="small" severity="danger" loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the tournament'), t('Everyone invited or entered hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => TournamentService.cancelTournament(tournament.id)), true)} />
                         </div>}
                     {isClubAdmin && ['draft', 'cancelled'].includes(tournament.status) &&
                         <div className="filter-panel-bar flex-wrap justify-content-end">
-                            <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" text loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The tournament goes for good.'), async () => { if (await run('delete', () => TournamentService.deleteTournament(tournament.id))) navigate('/tournaments'); }, true)} />
+                            <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The tournament goes for good.'), async () => { if (await run('delete', () => TournamentService.deleteTournament(tournament.id))) navigate('/tournaments'); }, true)} />
                         </div>}
                 </div>
             </header>

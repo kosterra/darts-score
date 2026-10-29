@@ -260,15 +260,15 @@ const LeaguePage = () => {
 
                     {isClubAdmin && !over &&
                         <div className="filter-panel-bar flex-wrap justify-content-end">
-                            <Link to={`/leagues/${league.id}/edit`} className="p-button p-button-sm p-button-text text-decoration-none"><i className="pi pi-pencil me-2" />{t('Change')}</Link>
+                            <Link to={`/leagues/${league.id}/edit`} className="p-button p-button-sm p-button-secondary text-decoration-none"><i className="pi pi-pencil me-2" aria-hidden="true" />{t('Change')}</Link>
                             {league.status === 'draft' &&
                                 <Button label={t('Start the league')} icon="pi pi-play" size="small" loading={busy === 'startLeague'} onClick={() => confirm(t('Start the league'), t('The schedule is made and every player hears their first match. The players and rules then stay.'), () => run('startLeague', () => LeagueService.startLeague(league.id), t('The league has started.')))} />}
                             {running &&
-                                <Button label={t('Cancel the league')} icon="pi pi-ban" size="small" severity="danger" text loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the league'), t('Every player hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => LeagueService.cancelLeague(league.id)), true)} />}
+                                <Button label={t('Cancel the league')} icon="pi pi-ban" size="small" severity="danger" loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the league'), t('Every player hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => LeagueService.cancelLeague(league.id)), true)} />}
                         </div>}
                     {isClubAdmin && ['draft', 'cancelled'].includes(league.status) &&
                         <div className="filter-panel-bar flex-wrap justify-content-end">
-                            <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" text loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The league goes for good.'), async () => { if (await run('delete', () => LeagueService.deleteLeague(league.id))) navigate('/leagues'); }, true)} />
+                            <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The league goes for good.'), async () => { if (await run('delete', () => LeagueService.deleteLeague(league.id))) navigate('/leagues'); }, true)} />
                         </div>}
                 </div>
             </header>

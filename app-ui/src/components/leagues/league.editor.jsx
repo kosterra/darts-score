@@ -19,6 +19,7 @@ import { RoundRules } from '../tournaments/tournament.editor';
 import { rulesText } from '../tournaments/tournament.words';
 import { Lines } from '../elements/skeletons';
 import DateTimeField from '../elements/date.time.field';
+import SetupBox from '../elements/setup.box';
 
 // a match of a club league: 501 double out, best of 5 legs
 const DEFAULT_RULES = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 5 };
@@ -95,65 +96,66 @@ const LeagueEditor = () => {
         <div className="container-fluid p-4">
             <Panel header={stored ? t('Change the league') : t('New league')} className="page-narrow">
                 <div className="d-flex flex-column gap-3">
-                    <label className="d-flex flex-column gap-1" htmlFor="league-name">
-                        <span className="fs-7 text-default fw-semibold">{t('Name')}</span>
-                        <InputText id="league-name" value={form.name} onChange={(event) => set({ name: event.target.value })} maxLength={80} placeholder={t('e.g. Winter League')} />
-                    </label>
-                    <label className="d-flex flex-column gap-1" htmlFor="league-description">
-                        <span className="fs-7 text-default fw-semibold">{t('Description')}</span>
-                        <InputTextarea id="league-description" value={form.description} onChange={(event) => set({ description: event.target.value })} maxLength={1000} rows={3} autoResize placeholder={t('Optional: where you play, prizes, anything the players should know')} />
-                    </label>
-
-                    {draft && <>
-                        <div className="d-flex flex-column gap-1">
-                            <span className="fs-7 text-default fw-semibold">{t('Players')}</span>
-                            <MultiSelect
-                                value={form.players}
-                                options={members.map(member => ({ label: member.nickname, value: member.id }))}
-                                onChange={(event) => set({ players: event.value })}
-                                placeholder={t('Choose the members who play')}
-                                filter
-                                display="chip"
-                                selectionLimit={MAX_LEAGUE_PLAYERS}
-                                className="w-100 league-players"
-                                aria-label={t('Players')}
-                            />
-                            <span className="text-faint fs-8">{t('From 3 to 20 members of the club.')}</span>
+                    <div className="row g-3">
+                        <div className="col-12">
+                            <SetupBox title={t('Name')}>
+                                <InputText id="league-name" value={form.name} onChange={(event) => set({ name: event.target.value })} maxLength={80} placeholder={t('e.g. Winter League')} aria-label={t('Name')} />
+                            </SetupBox>
                         </div>
-
-                        <div className="d-flex flex-column gap-1">
-                            <span className="fs-7 text-default fw-semibold">{t('Everyone plays everyone')}</span>
-                            <SelectButton value={form.meetings} options={MEETINGS.map(count => ({ label: count === 1 ? t('Once') : t('Twice'), value: count }))} onChange={(event) => event.value && set({ meetings: event.value })} className="p-selectbutton-pills" aria-label={t('Everyone plays everyone')} />
-                            <span className="text-faint fs-8">{form.meetings === 2 ? t('A second time in the second half of the season, the other one throwing first.') : t('One match against each of the others.')}</span>
+                        <div className="col-12">
+                            <SetupBox title={t('Description')}>
+                                <InputTextarea id="league-description" value={form.description} onChange={(event) => set({ description: event.target.value })} maxLength={1000} rows={3} autoResize placeholder={t('Optional: where you play, prizes, anything the players should know')} aria-label={t('Description')} />
+                            </SetupBox>
                         </div>
-
-                        <div className="d-flex flex-column gap-1">
-                            <span className="fs-7 text-default fw-semibold">{t('First matchday')}</span>
-                            <DateTimeField value={form.firstDay} onChange={(value) => value && set({ firstDay: value })} minDate={new Date()} />
-                        </div>
-
-                        <div className="d-flex flex-column gap-1">
-                            <span className="fs-7 text-default fw-semibold">{t('A matchday')}</span>
-                            <SelectButton value={form.everyDays} options={EVERY_DAYS.map(count => ({ label: count === 7 ? t('Every week') : t('Every two weeks'), value: count }))} onChange={(event) => event.value && set({ everyDays: event.value })} className="p-selectbutton-pills" aria-label={t('A matchday')} />
-                            <span className="text-faint fs-8">{t('A match is played any time up to its matchday. Once the league runs, you can move a matchday or a single match on its page.')}</span>
-                        </div>
-
-                        <div className="d-flex flex-column gap-2 tournament-round">
-                            <div className="d-flex align-items-center gap-3">
-                                <span className="tournament-round-name">{t('Every match')}</span>
-                                <span className="text-default fs-7 flex-grow-1 min-w-0">{rulesText(form.rules)}</span>
-                                <Button label={rulesOpen ? t('Done') : t('Change')} size="small" text onClick={() => setRulesOpen(!rulesOpen)} />
+                        {draft && <>
+                            <div className="col-12">
+                                <SetupBox title={t('Players')} hint={t('From 3 to 20 members of the club.')}>
+                                    <MultiSelect
+                                        value={form.players}
+                                        options={members.map(member => ({ label: member.nickname, value: member.id }))}
+                                        onChange={(event) => set({ players: event.value })}
+                                        placeholder={t('Choose the members who play')}
+                                        filter
+                                        display="chip"
+                                        selectionLimit={MAX_LEAGUE_PLAYERS}
+                                        className="w-100 league-players"
+                                        aria-label={t('Players')}
+                                    />
+                                </SetupBox>
                             </div>
-                            {rulesOpen && <RoundRules rules={form.rules} onChange={(rules) => set({ rules })} />}
-                            {rulesError(form.rules) && <span className="text-danger fs-8">{t(rulesError(form.rules))}</span>}
-                        </div>
-
-                        {form.players.length >= 3 &&
-                            <span className="text-default fs-7 league-plan">
-                                {t('{{players}} players: {{matches}} matches each, on {{days}} matchdays from {{first}} to {{last}}.', { players: form.players.length, matches: matchesEach, days, first: formatDate(form.firstDay), last: formatDate(last) })}
-                                {form.players.length % 2 === 1 && ` ${t('With an odd number, one player sits out each matchday.')}`}
-                            </span>}
-                    </>}
+                            <div className="col-12 col-md-6">
+                                <SetupBox title={t('Everyone plays everyone')} hint={form.meetings === 2 ? t('A second time in the second half of the season, the other one throwing first.') : t('One match against each of the others.')}>
+                                    <SelectButton value={form.meetings} options={MEETINGS.map(count => ({ label: count === 1 ? t('Once') : t('Twice'), value: count }))} onChange={(event) => event.value && set({ meetings: event.value })} className="p-selectbutton-pills pills-inline" aria-label={t('Everyone plays everyone')} />
+                                </SetupBox>
+                            </div>
+                            <div className="col-12 col-md-6">
+                                <SetupBox title={t('A matchday')} hint={t('A match is played any time up to its matchday. Once the league runs, you can move a matchday or a single match on its page.')}>
+                                    <SelectButton value={form.everyDays} options={EVERY_DAYS.map(count => ({ label: count === 7 ? t('Every week') : t('Every two weeks'), value: count }))} onChange={(event) => event.value && set({ everyDays: event.value })} className="p-selectbutton-pills pills-inline" aria-label={t('A matchday')} />
+                                </SetupBox>
+                            </div>
+                            <div className="col-12 col-md-6">
+                                <SetupBox title={t('First matchday')}>
+                                    <DateTimeField value={form.firstDay} onChange={(value) => value && set({ firstDay: value })} minDate={new Date()} ariaLabel={t('First matchday')} />
+                                </SetupBox>
+                            </div>
+                            <div className="col-12 col-md-6">
+                                <SetupBox title={t('Every match')} hint={rulesError(form.rules) ? <span className="text-danger">{t(rulesError(form.rules))}</span> : null}>
+                                    <div className="d-flex align-items-center justify-content-center gap-2 w-100">
+                                        <span className="text-default fs-7 min-w-0">{rulesText(form.rules)}</span>
+                                        <Button label={rulesOpen ? t('Done') : t('Change')} size="small" text onClick={() => setRulesOpen(!rulesOpen)} />
+                                    </div>
+                                    {rulesOpen && <div className="w-100 text-start"><RoundRules rules={form.rules} onChange={(rules) => set({ rules })} /></div>}
+                                </SetupBox>
+                            </div>
+                            {form.players.length >= 3 &&
+                                <div className="col-12">
+                                    <span className="text-default fs-7 league-plan">
+                                        {t('{{players}} players: {{matches}} matches each, on {{days}} matchdays from {{first}} to {{last}}.', { players: form.players.length, matches: matchesEach, days, first: formatDate(form.firstDay), last: formatDate(last) })}
+                                        {form.players.length % 2 === 1 && ` ${t('With an odd number, one player sits out each matchday.')}`}
+                                    </span>
+                                </div>}
+                        </>}
+                    </div>
                     {!draft && <span className="text-faint fs-8">{t('The league runs: the players, the rules and the schedule stay. Move matchdays and matches on its page.')}</span>}
 
                     {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
