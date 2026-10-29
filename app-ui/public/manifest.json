@@ -12,15 +12,15 @@
   "background_color": "#222121",
   "categories": ["sports", "games", "utilities"],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "/icons/icon-192.png?v=2026.10.21", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png?v=2026.10.21", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png?v=2026.10.21", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png?v=2026.10.21", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/logo.svg?v=2026.10.21", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
-    { "name": "X01", "url": "/x01", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Cricket", "url": "/cricket", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Around the Clock", "url": "/training/atc", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "X01", "url": "/x01", "icons": [{ "src": "/icons/icon-192.png?v=2026.10.21", "sizes": "192x192" }] },
+    { "name": "Cricket", "url": "/cricket", "icons": [{ "src": "/icons/icon-192.png?v=2026.10.21", "sizes": "192x192" }] },
+    { "name": "Around the Clock", "url": "/training/atc", "icons": [{ "src": "/icons/icon-192.png?v=2026.10.21", "sizes": "192x192" }] }
   ]
 }
