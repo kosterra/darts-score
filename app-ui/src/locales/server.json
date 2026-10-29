@@ -216,6 +216,7 @@
  "Club life",
  "Club night",
  "Club night of {{name}}",
+ "Club night today at {{time}}",
  "Club not found.",
  "Club shirt",
  "Clubs that played: {{count}}",

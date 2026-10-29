@@ -14,6 +14,7 @@ import { lastWeeks, usageLines } from './usage.stats.js';
 import { runTournamentJobs } from './tournaments.js';
 import { runLeagueJobs } from './leagues.js';
 import { runEveningJobs } from './evenings.js';
+import { clubNightsBetween, dayKey } from '../rules/calendar.js';
 
 /**
  * What the app does once an hour for the notifications: the mails of the
@@ -69,6 +70,7 @@ export const RUNNING_DAYS = 3;
 export const INVITE_DAYS = 7;
 export const GOAL_DAYS = 7;
 export const ERROR_SPIKE = 20;
+export const CLUB_NIGHT_HOURS = 3;
 
 /**
  * A game left running for RUNNING_DAYS days (and not older than a month):
@@ -92,6 +94,37 @@ export const remindRunningGames = async (now = new Date()) => {
                 club: game.club,
             })));
         }
+    }
+};
+
+/**
+ * A club night today, starting within CLUB_NIGHT_HOURS hours: the members
+ * who said they come hear it once, with the place (the note) if there is one.
+ * A cancelled night is told when it is cancelled, not reminded of.
+ */
+export const remindClubNights = async (now = new Date()) => {
+    const today = dayKey(now);
+    const clubs = await db.club.find({ 'calendar.nights.0': { $exists: true } }, 'calendar').lean();
+    for (const club of clubs) {
+        const [night] = clubNightsBetween(club.calendar.nights, club.calendar.cancelled ?? [], today, today);
+        if (!night || night.cancelled) continue;
+        const [hours, minutes] = night.start.split(':').map(Number);
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+        if (now >= start || start - now > CLUB_NIGHT_HOURS * HOUR) continue;
+        const coming = await db.attendance.find({ club: club._id, day: today, answer: 'yes' }, 'player').lean();
+        const due = [];
+        for (const entry of coming) {
+            if (await once(`clubNight:${club._id}:${today}:${entry.player}`)) due.push(String(entry.player));
+        }
+        const users = await accountsOf(due);
+        await deliverQuietly(users.map(user => ({
+            user,
+            kind: 'clubNightReminder',
+            title: `Club night today at ${night.start}`,
+            body: night.note,
+            link: `/club-night/${today}`,
+            club: club._id,
+        })));
     }
 };
 
@@ -367,7 +400,7 @@ export const sendUsageReports = async (now = new Date()) => {
 
 export const runNotificationJobs = async (now = new Date()) => {
     for (const [name, job] of Object.entries({
-        remindRunningGames, remindUnusedInvites, remindEndingGoals, remindErrorSpike,
+        remindRunningGames, remindUnusedInvites, remindEndingGoals, remindErrorSpike, remindClubNights,
         sendDigests, sendWeeklySummaries, runTournamentJobs, runLeagueJobs, runEveningJobs,
     })) {
         try {

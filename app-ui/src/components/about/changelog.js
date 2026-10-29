@@ -13,6 +13,7 @@ const CHANGELOG = [
             t('A faster start in German, French, Italian and Spanish: the texts of What\'s new, About, the legal pages and Darts A–Z load only when one of them opens.'),
             t('Tournaments and leagues together under Competitions in the menu.'),
             t('Tonight\'s club night on the dashboard under Up next: who is coming, your answer with one tap, and the way to the club evening.'),
+            t('A reminder on the day of a club night you said you come to, a few hours before it starts (turn it off under Notifications, Club nights).'),
         ],
     },
     {
