@@ -417,7 +417,11 @@
     grid-template-columns: minmax(0, 1fr);
     gap: $space-4;
 
-    @media (min-width: 992px) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
+    // side by side the two panels are equally tall, whatever each holds
+    @media (min-width: 992px) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: stretch; }
+
+    > .p-panel { height: 100%; display: flex; flex-direction: column; }
+    > .p-panel .p-toggleable-content, > .p-panel .p-panel-content { flex-grow: 1; }
 }
 
 .league-table { max-width: 32rem; }
