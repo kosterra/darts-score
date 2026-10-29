@@ -69,8 +69,9 @@ const TournamentBracket = ({ tournament, onSelect }) => {
     const column = (size) => (
         <div key={size} className="bracket-round">
             <div className="bracket-round-head">
-                <span className="text-default fw-semibold fs-7">{roundName(size)}</span>
-                {dayOf(size) && <span className="text-faint fs-8">{formatDate(dayOf(size))}</span>}
+                {/* as the facts of a header: the round as the small label, its day as the value */}
+                <span className="text-faint fs-8">{roundName(size)}</span>
+                <span className="text-default fw-semibold">{dayOf(size) ? formatDate(dayOf(size)) : t('Day open')}</span>
             </div>
             <div className="bracket-round-matches">
                 {tournament.matches.filter(match => match.size === size).sort((a, b) => a.index - b.index).map(match => (

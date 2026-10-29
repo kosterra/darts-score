@@ -240,7 +240,7 @@ const LeaguePage = () => {
                 <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
                     <div className="d-flex flex-column gap-1 min-w-0">
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{league.name}</h1>
-                        {league.description && <p className="text-subtle m-0 text-break" style={{ whiteSpace: 'pre-line', maxWidth: '70ch' }}>{league.description}</p>}
+                        {league.description && <p className="text-subtle m-0 text-break tournament-description" style={{ whiteSpace: 'pre-line' }}>{league.description}</p>}
                     </div>
                     <Tag value={status.label} severity={status.severity} />
                 </div>

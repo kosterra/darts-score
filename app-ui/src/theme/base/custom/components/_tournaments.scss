@@ -685,10 +685,10 @@
 
     .kpi-chip { flex: 1 1 auto; min-width: 0; }
 
-    // the name of a round is a word, not a figure: the size of a title; its day under it as the
-    // secondary line of the lists (subtle, 13px), the rules as the small faint line
+    // the round as the title of the tile; its day under it as a value is read in the header (the
+    // text's colour and weight, 13px), the rules as the small faint line
     .kpi-chip-value { font-size: $text-md; font-weight: $weight-semibold; }
-    .kpi-chip-label { color: $textSubtleColor; font-size: $text-sm; }
+    .kpi-chip-label { color: $textDefaultColor; font-size: $text-sm; font-weight: $weight-semibold; }
     .kpi-chip-detail { color: $textFaintColor; }
 }
 
@@ -705,3 +705,7 @@
     .tournament-path-step { flex-direction: column; align-items: stretch; flex-basis: auto; }
     .tournament-path-arrow { width: auto; padding: 0.4rem 0; transform: rotate(90deg); }
 }
+
+// the description under the name: a readable width, never wider than the header (on a phone its
+// full width)
+.tournament-description { max-width: min(70ch, 100%); }
