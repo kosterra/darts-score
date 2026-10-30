@@ -14,6 +14,9 @@ const CHANGELOG = [
             t('Every list of players to pick from shows their picture and their level: the player filter of the games and trainings, the players of a league, a member added to a club night or entered into a tournament.'),
             t('Calendar: the matchdays of every league, also one not started yet (as planned) or finished; the club nights\' times as a list of quarter hours, in 24 hours.'),
             t('The mails of Legmate in the look of the app, in its light theme: the logo, the subject as the title with its green line, the text and the green button on a white card.'),
+            t('Connected clubs: the admins of two clubs connect them (one asks, the other accepts) and play shared tournaments – the host club runs the tournament, each connected club enters its own players, and every game counts for the player\'s own club. Under Edit club, Connected clubs; a club chooses whether other clubs find it there.'),
+            t('A new club opens a short walk-through of the few things worth setting first: its look, how members join and the public page. Every step can be skipped, everything else stays under Edit club, and "Don\'t show this when I create a club" skips it next time.'),
+            t('Safer under the bonnet: the pictures you upload are checked by their content, the pages carry stricter security rules, and passwords are stored with a stronger protection. Nothing to do on your side.'),
         ],
     },
     {
