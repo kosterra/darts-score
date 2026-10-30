@@ -10247,7 +10247,7 @@ components:
     DashboardLayout:
       type: array
       maxItems: 40
-      description: 'The widgets of a dashboard in their order, each with its width: S a third, M half, L two thirds, F the full width'
+      description: 'The widgets of a dashboard in their order, each with its width (S a third, M half, L two thirds, F the full width) and, when capped, its height (S, M, L: the content scrolls inside; left out, the widget is as tall as its content)'
       items:
         type: object
         required:
@@ -10265,3 +10265,9 @@ components:
               - M
               - L
               - F
+          height:
+            type: string
+            enum:
+              - S
+              - M
+              - L

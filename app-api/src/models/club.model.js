@@ -21,9 +21,9 @@ export default (mongoose) => {
       shameWithoutChildren: { type: Boolean, default: false },
       // ... children being the players under this age
       shameMinAge:          { type: Number, min: 6, max: 21, default: 16 },
-      // The club's dashboard: the widgets in display order, each with its width
+      // The club's dashboard: the widgets in display order, each with its width (and a height when capped)
       // (S, M, L, F). Empty means the default set; the UI owns the list of widgets.
-      dashboardLayout: { type: [{ _id: false, id: String, size: String }], default: undefined },
+      dashboardLayout: { type: [{ _id: false, id: String, size: String, height: String }], default: undefined },
       // the widget ids clubs stored before widths could be chosen (moved to dashboardLayout)
       dashboardWidgets: { type: [String], default: undefined },
       // Who can become a member on their own: 'open' (anyone with an account joins at

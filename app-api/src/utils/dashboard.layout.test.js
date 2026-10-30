@@ -7,6 +7,9 @@ describe('dashboard layout', () => {
             { id: 'timeline', size: 'L' }, { id: 'me', size: 'S' }, { id: 'timeline', size: 'F' },
             { id: 'bad id!', size: 'S' }, { id: 'records', size: 'XXL' }, { size: 'M' }, 'totals',
         ])).toEqual([{ id: 'timeline', size: 'L' }, { id: 'me', size: 'S' }, { id: 'records', size: 'M' }]);
+        // a height only when it is one of the capped ones
+        expect(normalizeLayout([{ id: 'timeline', size: 'L', height: 'M' }, { id: 'me', size: 'S', height: 'auto' }, { id: 'records', size: 'M', height: 'XXL' }]))
+            .toEqual([{ id: 'timeline', size: 'L', height: 'M' }, { id: 'me', size: 'S' }, { id: 'records', size: 'M' }]);
         expect(normalizeLayout(null)).toEqual([]);
         expect(normalizeLayout(Array.from({ length: 50 }, (_, index) => ({ id: `w${index}`, size: 'S' })))).toHaveLength(MAX_WIDGETS);
     });

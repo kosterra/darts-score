@@ -3,6 +3,7 @@ import { Skeleton } from 'primereact/skeleton';
 
 import ClubLogo from './club.logo';
 import { t } from '../../utils/i18n';
+import { DashboardCell, DashboardGrid } from '../dashboard/dashboard.grid';
 
 /**
  * Placeholders in the shape of a page while its data loads: the layout stands
@@ -126,13 +127,13 @@ export const DashboardSkeleton = ({ club, widgets }) => (
                 </div>
             </div>
         </header>
-        <div className="row g-4">
+        <DashboardGrid>
             {widgets.map(widget => (
-                <div className={widget.cols} key={widget.id}>
+                <DashboardCell widget={widget} key={widget.id}>
                     <CardSkeleton title={widget.title} chart={['activityCalendar', 'whenWePlay', 'gamesPerMonth', 'clubForm'].includes(widget.kind)} />
-                </div>
+                </DashboardCell>
             ))}
-        </div>
+        </DashboardGrid>
     </div>
 );
 

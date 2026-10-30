@@ -9,6 +9,7 @@ import { useAuth } from '../../utils/auth.context';
 import ClubService from '../../services/club.service';
 import { DEFAULT_LAYOUT, clubLayout as layoutOfClub, resolveLayout, toLayout } from './dashboard.widgets';
 import DashboardEditor from './dashboard.editor';
+import { DashboardCell, DashboardGrid } from './dashboard.grid';
 import DashboardWidget from './dashboard.widget';
 import ClubLogo from '../elements/club.logo';
 import TournamentBanner from '../tournaments/tournament.banner';
@@ -152,13 +153,13 @@ const ClubPage = () => {
             {editing
                 ? <DashboardEditor layout={draft} onChange={setDraft} renderWidget={renderWidget} shameBadges={shameBadges} />
                 : (
-                    <div className="row g-4">
+                    <DashboardGrid>
                         {widgets.map(widget => (
-                            <div className={widget.cols} key={widget.id}>
+                            <DashboardCell widget={widget} key={widget.id}>
                                 {renderWidget(widget)}
-                            </div>
+                            </DashboardCell>
                         ))}
-                    </div>
+                    </DashboardGrid>
                 )
             }
             <Toast ref={toast} position="bottom-right" />

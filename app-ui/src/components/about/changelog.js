@@ -7,6 +7,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.10.23',
+        changes: [
+            t('The dashboards pack like masonry: a short widget beside a tall one leaves no empty panel, the next ones move up into the room. When arranging, each widget also gets a height (auto, or capped with the content scrolling inside), and the place a dragged widget will land shows as a dashed frame.'),
+        ],
+    },
+    {
         version: '2026.10.22',
         changes: [
             t('Scoring without a connection on every game: logged in, the app keeps the pages to set up, play and finish a game in the background, so they open without the Wi-Fi of the club even if they were never opened on the device.'),
