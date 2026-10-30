@@ -1262,11 +1262,17 @@ $fair-play-suspicious: $accentAmber;
   min-width: 0;
   max-width: 100%;
 
-  .player-option-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+  .player-option-text { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; line-height: 1.25; }
   .player-option-name { min-width: 0; font-weight: $weight-semibold; }
-  .player-option-fullname { margin-left: 0.4rem; color: $textFaintColor; font-size: $text-sm; font-weight: $weight-regular; }
-  .level-badge { margin-top: 0.1rem; }
+  .player-option-fullname { color: $textFaintColor; font-size: $text-xs; }
+  // the level in a column of its own at the right, centred on the two lines
+  .player-option-level { display: inline-flex; align-items: center; flex-shrink: 0; margin-left: auto; padding-left: 0.75rem; }
 }
+
+// in the items of a list the names take a column of the same width, so the levels line up
+.p-dropdown-item .player-option-text, .p-multiselect-item .player-option-text { flex: 0 0 11rem; max-width: 11rem; }
+// the value of a dropdown takes its whole width, the level at the right edge
+.p-dropdown-label .player-option { display: flex; width: 100%; }
 
 // the chosen players of a multiselect, in its field: the picture small, the nickname alone
 .p-multiselect-label .player-option {
