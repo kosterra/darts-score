@@ -5,8 +5,10 @@ import path         from 'path';
 import favicon      from 'serve-favicon';
 import cookieParser from 'cookie-parser';
 import cors         from 'cors';
+import helmet       from 'helmet';
 import rateLimit    from 'express-rate-limit';
 import swaggerUi    from 'swagger-ui-express';
+import { randomBytes } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import { load as loadYaml } from 'js-yaml';
 import db           from './src/models/db.model.js';
@@ -68,6 +70,47 @@ process.on('uncaughtException', (err) => {
 
 const app = express();
 
+// Don't advertise the framework
+app.disable('x-powered-by');
+
+// ---------------------------------------------------------------------------
+// Security headers (helmet)
+// ---------------------------------------------------------------------------
+// A per-request nonce lets the one inline script in index.html (the no-flash
+// theme) run under a strict script-src without opening the door to injected
+// scripts; renderIndex puts the same nonce on that tag. Styles need
+// 'unsafe-inline' (React sets style attributes); images allow data:/blob:
+// (avatars) and the service worker needs worker-src.
+app.use((req, res, next) => {
+    res.locals.cspNonce = randomBytes(16).toString('base64');
+    next();
+});
+app.use(helmet({
+    contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            fontSrc: ["'self'"],
+            connectSrc: ["'self'"],
+            workerSrc: ["'self'", 'blob:'],
+            manifestSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            frameAncestors: ["'self'"],
+        },
+    },
+    // the app loads its own fonts and avatars; these would block legitimate cross-origin use
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // sent only over HTTPS; 180 days
+    hsts: { maxAge: 15552000, includeSubDomains: true },
+}));
+
 // The address of the client is needed by the spam rules. Behind a reverse
 // proxy it comes from X-Forwarded-For, trusted from proxies on the local or
 // private network (Docker, a proxy on the same server) unless TRUST_PROXY says otherwise.
@@ -92,11 +135,14 @@ app.use('/api', cors((req, callback) => {
 }));
 
 // ---------------------------------------------------------------------------
-// Rate limiting — 100k req / 15 min (effectively disabled; tune as needed)
+// Rate limiting — a generous per-IP backstop against crude floods. It is set
+// high so a busy club on one network (shared NAT, the app polling live scores)
+// is never caught; login, registration and the other credential endpoints
+// have their own far stricter limits where it matters.
 // ---------------------------------------------------------------------------
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 100_000,
+    limit: 50_000,
     standardHeaders: true,
     legacyHeaders: false
 }));
@@ -152,10 +198,16 @@ db.mongoose
 // ---------------------------------------------------------------------------
 // Swagger UI — served at /api-docs, and at the root when there is no UI build
 // ---------------------------------------------------------------------------
-app.use('/api-docs', swaggerUi.serve);
+// Swagger UI runs its own inline scripts and styles, so it needs a looser CSP
+// than the app; it is a developer/admin page, not part of the SPA.
+const swaggerCsp = (req, res, next) => {
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'");
+    next();
+};
+app.use('/api-docs', swaggerCsp, swaggerUi.serve);
 app.get('/api-docs', swaggerUi.setup(swaggerDocument));
 if (!HAS_UI) {
-    app.use('/', swaggerUi.serve);
+    app.use('/', swaggerCsp, swaggerUi.serve);
     app.get('/', swaggerUi.setup(swaggerDocument));
 }
 
@@ -232,7 +284,7 @@ app.use(async (req, res) => {
         const evening = token ? (await db.quickEvening.findOne({ shareToken: token }, 'name').lean())?.name : undefined;
         const meta = metaOf(req.path, language, { evening, publicSite: (await getStartPageSettings()).publicSite });
         res.set('Cache-Control', 'no-cache');
-        res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: req.path, language }));
+        res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: req.path, language, nonce: res.locals.cspNonce }));
     } catch (err) {
         logger.error(err, 'Failed to serve the app');
         res.status(500).send('Legmate could not be loaded. Please try again in a moment.');

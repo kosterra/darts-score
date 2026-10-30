@@ -6,6 +6,12 @@ import { recordSession } from './sessions.js';
 
 const scryptAsync = promisify(scrypt);
 const KEY_LENGTH = 64;
+// scrypt work factors. N is raised from Node's default 2^14 to 2^15; maxmem is
+// set explicitly because that cost needs more than scrypt's default 32 MB
+// ceiling. Older hashes (the salt:hash format) still verify with the defaults
+// and are re-hashed to this format on the next login (see needsRehash).
+const SCRYPT = { N: 1 << 15, r: 8, p: 1, maxmem: 96 * 1024 * 1024 };
+const maxmemFor = ({ N, r, p }) => Math.max(SCRYPT.maxmem, 256 * N * r * p);
 
 export const SESSION_COOKIE = 'ds_session';
 
@@ -26,17 +32,47 @@ export const getSessionSecret = () => {
 
 export const hashPassword = async (password) => {
     const salt = randomBytes(16).toString('hex');
-    const key = await scryptAsync(password, salt, KEY_LENGTH);
-    return `${salt}:${key.toString('hex')}`;
+    const key = await scryptAsync(password, salt, KEY_LENGTH, SCRYPT);
+    return `scrypt$${SCRYPT.N}$${SCRYPT.r}$${SCRYPT.p}$${salt}$${key.toString('hex')}`;
 };
 
 export const verifyPassword = async (password, stored) => {
-    const [salt, hash] = (stored || '').split(':');
-    if (!salt || !hash) return false;
+    const value = stored || '';
+    let salt, hash, opts;
+    if (value.startsWith('scrypt$')) {
+        const parts = value.split('$'); // scrypt, N, r, p, salt, hash
+        if (parts.length !== 6) return false;
+        const [, N, r, p, s, h] = parts;
+        if (!s || !h) return false;
+        opts = { N: Number(N), r: Number(r), p: Number(p) };
+        if (![opts.N, opts.r, opts.p].every(Number.isInteger)) return false;
+        opts.maxmem = maxmemFor(opts);
+        salt = s; hash = h;
+    } else {
+        // the earlier format: salt:hash, hashed with scrypt's defaults (N=2^14)
+        [salt, hash] = value.split(':');
+        if (!salt || !hash) return false;
+    }
     const expected = Buffer.from(hash, 'hex');
     if (expected.length !== KEY_LENGTH) return false;
-    const key = await scryptAsync(password, salt, KEY_LENGTH);
-    return timingSafeEqual(key, expected);
+    let key;
+    try {
+        key = opts ? await scryptAsync(password, salt, KEY_LENGTH, opts) : await scryptAsync(password, salt, KEY_LENGTH);
+    } catch {
+        return false;
+    }
+    return key.length === expected.length && timingSafeEqual(key, expected);
+};
+
+/**
+ * Whether a stored hash is older or weaker than the ones we make now, so it
+ * should be re-hashed on the next successful login.
+ */
+export const needsRehash = (stored) => {
+    const value = stored || '';
+    if (!value.startsWith('scrypt$')) return true;
+    const [, N, r, p] = value.split('$');
+    return Number(N) < SCRYPT.N || Number(r) < SCRYPT.r || Number(p) < SCRYPT.p;
 };
 
 export const cookieOptions = (req) => ({

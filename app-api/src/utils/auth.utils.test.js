@@ -1,10 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { hashPassword, verifyPassword, readSession, SESSION_COOKIE } from './auth.utils.js';
+import { scryptSync } from 'crypto';
+import { hashPassword, verifyPassword, needsRehash, readSession, SESSION_COOKIE } from './auth.utils.js';
 
 describe('password hashing', () => {
     it('verifies the password it was created from', async () => {
         const hash = await hashPassword('correct horse');
         expect(await verifyPassword('correct horse', hash)).toBe(true);
+    });
+    it('makes the current scrypt$ format, which needs no re-hash', async () => {
+        const hash = await hashPassword('correct horse');
+        expect(hash.startsWith('scrypt$')).toBe(true);
+        expect(needsRehash(hash)).toBe(false);
+    });
+    it('still verifies the earlier salt:hash format and flags it for re-hashing', async () => {
+        const salt = 'abcdef0123456789';
+        const legacy = `${salt}:${scryptSync('correct horse', salt, 64).toString('hex')}`;
+        expect(await verifyPassword('correct horse', legacy)).toBe(true);
+        expect(await verifyPassword('wrong horse', legacy)).toBe(false);
+        expect(needsRehash(legacy)).toBe(true);
     });
     it('rejects a wrong password', async () => {
         const hash = await hashPassword('correct horse');

@@ -2,7 +2,7 @@ import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { LANGUAGES, ROLES } from '../models/user.model.js';
-import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
+import { hashPassword, verifyPassword, needsRehash, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
 import { endSession } from '../utils/sessions.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
@@ -64,6 +64,16 @@ export const login = async (req, res) => {
         return res.status(401).json({ message: 'Email or password is wrong.' });
     }
     if (user.blockedAt) return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
+
+    // the password was right: bring an older hash up to the current strength
+    if (needsRehash(user.passwordHash)) {
+        try {
+            user.passwordHash = await hashPassword(password);
+            await user.save();
+        } catch (err) {
+            logger.warn({ err }, 'Could not re-hash the password on login');
+        }
+    }
 
     // the code of two-step login next, or the session
     await finishLogin(req, res, user);
