@@ -1,9 +1,17 @@
 # syntax=docker/dockerfile:1
 
+# The base image, pinned by digest so every build — and every Snyk/scanner pass —
+# uses the exact same, known-current Node, not whatever a floating tag happens to
+# resolve to. This is node:24.22.2-slim (Debian) as of 2026-10-30. Bump it (tag +
+# digest together) when a High/Critical advisory hits the Node binary or the Debian
+# base; the dependency-management skill says how and when to check. `docker buildx
+# imagetools inspect node:24-slim` prints the current digest.
+ARG NODE_IMAGE=node:24.22.2-slim@sha256:c86ecead9e55a5210ac1727de38a4ca840bf03dcaf34dc9749addbf383b1920c
+
 # ---------------------------------------------------------------------------
 # Stage 1 – UI Builder: install deps and compile the Vite bundle
 # ---------------------------------------------------------------------------
-FROM node:24-slim AS ui-builder
+FROM ${NODE_IMAGE} AS ui-builder
 
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
@@ -25,7 +33,7 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 # Stage 2 – API Builder: install deps and compile the esbuild bundle
 # ---------------------------------------------------------------------------
-FROM node:24-slim AS builder
+FROM ${NODE_IMAGE} AS builder
 
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
@@ -41,7 +49,7 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 # Stage 3 – UI Development: Vite HMR dev server
 # ---------------------------------------------------------------------------
-FROM node:24-slim AS ui-development
+FROM ${NODE_IMAGE} AS ui-development
 
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
@@ -64,7 +72,7 @@ CMD ["npm", "run", "dev"]
 # ---------------------------------------------------------------------------
 # Stage 4 – API Development: hot-reload with nodemon, full source mounted
 # ---------------------------------------------------------------------------
-FROM node:24-slim AS development
+FROM ${NODE_IMAGE} AS development
 
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /app/data \
@@ -85,7 +93,7 @@ CMD ["npm", "run", "dev"]
 # ---------------------------------------------------------------------------
 # Stage 5 – Production: compiled API bundle + React static files
 # ---------------------------------------------------------------------------
-FROM node:24-slim AS production
+FROM ${NODE_IMAGE} AS production
 
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /app/data \
