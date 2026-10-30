@@ -1,0 +1,572 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:861ea000-c489-4be7-9d8a-5ee71147f2dd",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-30T09:50:14.570Z",
+    "tools": [
+      {
+        "vendor": "Legmate security review",
+        "name": "cbom-inventory",
+        "version": "1.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "darts-score",
+      "name": "darts-score (Legmate)",
+      "version": "2026.10.23",
+      "purl": "pkg:npm/darts-score@2026.10.23"
+    },
+    "properties": [
+      {
+        "name": "cbom:scope",
+        "value": "Application cryptographic assets (API). TLS/cipher suites of the reverse proxy are out of scope."
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/scrypt",
+      "name": "scrypt",
+      "description": "Password hashing. N raised to 2^15 (versioned scrypt$ format, explicit maxmem); 16-byte random salt; verified with timingSafeEqual; older salt:hash values still verify and re-hash on next login.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "kdf",
+          "parameterSetIdentifier": "N=32768, r=8, p=1, dkLen=64B, salt=16B",
+          "executionEnvironment": "software-plain-ram",
+          "implementationPlatform": "generic",
+          "cryptoFunctions": [
+            "keyderive"
+          ],
+          "classicalSecurityLevel": 128,
+          "nistQuantumSecurityLevel": 1
+        },
+        "oid": "1.3.6.1.4.1.11591.4.11"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/auth.utils.js#L29"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/hmac-sha256",
+      "name": "HMAC-SHA-256",
+      "description": "Integrity of signed cookies (session ds_session, passkey challenge ds_pk, screen tokens) via cookie-signature; screen-pairing token signing.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "mac",
+          "parameterSetIdentifier": "256",
+          "cryptoFunctions": [
+            "tag",
+            "verify"
+          ],
+          "classicalSecurityLevel": 128,
+          "nistQuantumSecurityLevel": 2
+        },
+        "oid": "1.2.840.113549.2.9"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/auth.utils.js#L42 (cookie-parser signed cookies)"
+          },
+          {
+            "location": "app-api/src/utils/screens.js#L16"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/sha-256",
+      "name": "SHA-256",
+      "description": "Hashing of reset/verify/share/claim tokens and quick-game & screen keys at rest; recovery-code hashing; favourite ids.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "hash",
+          "parameterSetIdentifier": "256",
+          "cryptoFunctions": [
+            "digest"
+          ],
+          "classicalSecurityLevel": 128,
+          "nistQuantumSecurityLevel": 2
+        },
+        "oid": "2.16.840.1.101.3.4.2.1"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/auth.tokens.js#L8"
+          },
+          {
+            "location": "app-api/src/utils/mfa.js#L103 (recovery codes)"
+          },
+          {
+            "location": "app-api/src/utils/quick.games.js#L28"
+          },
+          {
+            "location": "app-api/src/utils/screens.js#L47"
+          },
+          {
+            "location": "app-api/src/utils/favourites.js#L40"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/hkdf-sha256",
+      "name": "HKDF-SHA-256",
+      "description": "Derives the AES-256-GCM key that encrypts TOTP secrets from MFA_KEY, with a context label. Older secrets keyed by SHA-256(MFA_KEY) still decrypt (fallback).",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "kdf",
+          "parameterSetIdentifier": "256",
+          "cryptoFunctions": [
+            "keyderive"
+          ],
+          "classicalSecurityLevel": 128,
+          "nistQuantumSecurityLevel": 2
+        },
+        "oid": "1.2.840.113549.2.9"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/mfa.js (hkdfKey)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/aes-256-gcm",
+      "name": "AES-256-GCM",
+      "description": "Authenticated encryption of TOTP secrets at rest. 96-bit random IV, 128-bit auth tag; key = SHA-256(MFA_KEY).",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "ae",
+          "parameterSetIdentifier": "256",
+          "mode": "gcm",
+          "cryptoFunctions": [
+            "encrypt",
+            "decrypt",
+            "tag"
+          ],
+          "classicalSecurityLevel": 256,
+          "nistQuantumSecurityLevel": 5
+        },
+        "oid": "2.16.840.1.101.3.4.1.46"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/mfa.js#L42-L45"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/hmac-sha1-totp",
+      "name": "HMAC-SHA-1 (TOTP)",
+      "description": "Two-step login codes (RFC 6238 TOTP, otplib default SHA-1, 6 digits, 30s step, ±1 window). SHA-1 here is the TOTP standard, not a weakness of the design.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "mac",
+          "parameterSetIdentifier": "160",
+          "cryptoFunctions": [
+            "tag",
+            "verify"
+          ],
+          "classicalSecurityLevel": 80,
+          "nistQuantumSecurityLevel": 1
+        },
+        "oid": "1.2.840.113549.2.7"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/mfa.js (otplib authenticator)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/ecdsa-p256",
+      "name": "ECDSA P-256 (ES256)",
+      "description": "Accepted passkey/WebAuthn public-key algorithm; assertions verified server-side with SHA-256. Not quantum-safe.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "parameterSetIdentifier": "256",
+          "curve": "P-256",
+          "cryptoFunctions": [
+            "verify"
+          ],
+          "classicalSecurityLevel": 128,
+          "nistQuantumSecurityLevel": 0
+        },
+        "oid": "1.2.840.10045.4.3.2"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/controllers/passkey.controller.js (WebAuthn)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/eddsa-ed25519",
+      "name": "EdDSA (Ed25519)",
+      "description": "Accepted passkey/WebAuthn public-key algorithm (@simplewebauthn default set). Not quantum-safe.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "parameterSetIdentifier": "256",
+          "curve": "Ed25519",
+          "cryptoFunctions": [
+            "verify"
+          ],
+          "classicalSecurityLevel": 128,
+          "nistQuantumSecurityLevel": 0
+        },
+        "oid": "1.3.101.112"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/controllers/passkey.controller.js (WebAuthn)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/rsa-rs256",
+      "name": "RSASSA-PKCS1-v1_5 with SHA-256 (RS256)",
+      "description": "Accepted passkey/WebAuthn public-key algorithm (@simplewebauthn default set). Not quantum-safe.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "parameterSetIdentifier": "2048",
+          "padding": "pkcs1v15",
+          "cryptoFunctions": [
+            "verify"
+          ],
+          "classicalSecurityLevel": 112,
+          "nistQuantumSecurityLevel": 0
+        },
+        "oid": "1.2.840.113549.1.1.11"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/controllers/passkey.controller.js (WebAuthn)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/csprng",
+      "name": "CSPRNG (OpenSSL RAND, via node:crypto)",
+      "description": "crypto.randomBytes / randomInt (OpenSSL CSPRNG) for salts, IVs, session ids, tokens, recovery codes, passkey user ids and WebAuthn challenges.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "drbg",
+          "cryptoFunctions": [
+            "generate"
+          ],
+          "classicalSecurityLevel": 128,
+          "nistQuantumSecurityLevel": 2
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/auth.utils.js#L28 (salts)"
+          },
+          {
+            "location": "app-api/src/utils/sessions.js#L18 (session ids)"
+          },
+          {
+            "location": "app-api/src/utils/mfa.js#L42 (IV)"
+          },
+          {
+            "location": "app-api/src/utils/auth.tokens.js#L15"
+          },
+          {
+            "location": "app-api/src/utils/passkeys.js#L30"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/scram-sha-256",
+      "name": "SCRAM-SHA-256",
+      "description": "MongoDB client authentication (driver default SCRAM-SHA-256).",
+      "cryptoProperties": {
+        "assetType": "protocol",
+        "protocolProperties": {
+          "type": "other",
+          "cryptoRefArray": [
+            "crypto/sha-256",
+            "crypto/hmac-sha256"
+          ]
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/config/db.config.js (MongoDB authSource=admin)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/tls",
+      "name": "TLS (terminated upstream)",
+      "description": "HTTPS is terminated by the reverse proxy in front of the app; not configured in application code. Cookies are marked Secure only on an HTTPS request. TLS version/cipher suites are a property of the proxy, out of this CBOM’s scope.",
+      "cryptoProperties": {
+        "assetType": "protocol",
+        "protocolProperties": {
+          "type": "tls"
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/auth.utils.js#L45 (secure cookie when x-forwarded-proto=https)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/session-secret",
+      "name": "Session signing secret (SESSION_SECRET)",
+      "description": "HMAC key for signed cookies; also derives the MFA fallback key when MFA_KEY is unset. Long-lived, from the environment.",
+      "cryptoProperties": {
+        "assetType": "related-crypto-material",
+        "relatedCryptoMaterialProperties": {
+          "type": "secret-key",
+          "size": 256
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/.env SESSION_SECRET"
+          },
+          {
+            "location": "app-api/src/utils/auth.utils.js#L18"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/mfa-key",
+      "name": "MFA encryption key (MFA_KEY)",
+      "description": "HKDF-SHA-256 derives a 256-bit AES-GCM key that encrypts TOTP secrets at rest. A legacy SHA-256(MFA_KEY) key still decrypts older secrets.",
+      "cryptoProperties": {
+        "assetType": "related-crypto-material",
+        "relatedCryptoMaterialProperties": {
+          "type": "secret-key",
+          "size": 256
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/.env MFA_KEY"
+          },
+          {
+            "location": "app-api/src/utils/mfa.js#L38"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/password-hash",
+      "name": "Stored password hashes",
+      "description": "salt:scrypt(dkLen=64B) per account, stored on the user document.",
+      "cryptoProperties": {
+        "assetType": "related-crypto-material",
+        "relatedCryptoMaterialProperties": {
+          "type": "digest",
+          "size": 512
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/models/user.model.js (passwordHash)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/totp-secret",
+      "name": "TOTP secrets",
+      "description": "Per-account authenticator secret, stored AES-256-GCM encrypted.",
+      "cryptoProperties": {
+        "assetType": "related-crypto-material",
+        "relatedCryptoMaterialProperties": {
+          "type": "secret-key",
+          "size": 160
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/models/user.model.js (mfa.secret)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/webauthn-pubkey",
+      "name": "WebAuthn credential public keys",
+      "description": "Per-passkey public key (ES256/EdDSA/RS256), stored; the private key never leaves the authenticator.",
+      "cryptoProperties": {
+        "assetType": "related-crypto-material",
+        "relatedCryptoMaterialProperties": {
+          "type": "public-key"
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/models/user.model.js (passkeys[].publicKey)"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
+      "bom-ref": "crypto/bearer-tokens",
+      "name": "Single-use & share tokens",
+      "description": "High-entropy random tokens (randomBytes 12–32B, base64url/hex); stored only as SHA-256 hashes, compared in constant time.",
+      "cryptoProperties": {
+        "assetType": "related-crypto-material",
+        "relatedCryptoMaterialProperties": {
+          "type": "token"
+        }
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "password reset/verify"
+          },
+          {
+            "location": "quick-game keys"
+          },
+          {
+            "location": "evening share"
+          },
+          {
+            "location": "player claim"
+          },
+          {
+            "location": "screen pairing"
+          }
+        ]
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "darts-score",
+      "dependsOn": [
+        "crypto/scrypt",
+        "crypto/hmac-sha256",
+        "crypto/sha-256",
+        "crypto/hkdf-sha256",
+        "crypto/aes-256-gcm",
+        "crypto/hmac-sha1-totp",
+        "crypto/ecdsa-p256",
+        "crypto/eddsa-ed25519",
+        "crypto/rsa-rs256",
+        "crypto/csprng",
+        "crypto/scram-sha-256",
+        "crypto/tls",
+        "crypto/session-secret",
+        "crypto/mfa-key",
+        "crypto/password-hash",
+        "crypto/totp-secret",
+        "crypto/webauthn-pubkey",
+        "crypto/bearer-tokens"
+      ]
+    },
+    {
+      "ref": "crypto/scram-sha-256",
+      "dependsOn": [
+        "crypto/sha-256",
+        "crypto/hmac-sha256"
+      ]
+    },
+    {
+      "ref": "crypto/password-hash",
+      "dependsOn": [
+        "crypto/scrypt",
+        "crypto/csprng"
+      ]
+    },
+    {
+      "ref": "crypto/totp-secret",
+      "dependsOn": [
+        "crypto/aes-256-gcm",
+        "crypto/hmac-sha1-totp",
+        "crypto/csprng"
+      ]
+    },
+    {
+      "ref": "crypto/webauthn-pubkey",
+      "dependsOn": [
+        "crypto/ecdsa-p256",
+        "crypto/eddsa-ed25519",
+        "crypto/rsa-rs256"
+      ]
+    },
+    {
+      "ref": "crypto/bearer-tokens",
+      "dependsOn": [
+        "crypto/sha-256",
+        "crypto/csprng"
+      ]
+    },
+    {
+      "ref": "crypto/mfa-key",
+      "dependsOn": [
+        "crypto/hkdf-sha256"
+      ]
+    }
+  ]
+}
