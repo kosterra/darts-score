@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
+import { Checkbox } from 'primereact/checkbox';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 import { Toast } from 'primereact/toast';
 
 import ClubService from '../../services/club.service';
+import AuthService from '../../services/auth.service';
 import { CLUB_ROLES } from '../../services/user.service';
 import CountryPicker from '../elements/country.picker';
 import ImageUploader from '../elements/image.uploader';
@@ -39,11 +41,12 @@ const ClubSetupWizard = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const toast = useRef(null);
-    const { clubs, refreshClubs, selectClub } = useAuth();
+    const { clubs, user, setUser, refreshClubs, selectClub } = useAuth();
     const club = clubs.find(entry => entry.id === id);
 
     const [step, setStep] = useState(0);
     const [busy, setBusy] = useState(false);
+    const [dontShow, setDontShow] = useState(Boolean(user?.onboarding?.clubSetupHiddenAt));
     // step 1 — basics
     const [description, setDescription] = useState(club?.description ?? '');
     const [country, setCountry] = useState(club?.country ?? '');
@@ -90,6 +93,18 @@ const ClubSetupWizard = () => {
     };
     const skip = () => setStep(current => current + 1);
     const back = () => setStep(current => Math.max(0, current - 1));
+
+    // remember, on the account, whether the guided setup opens next time a club is created
+    const toggleDontShow = (value) => {
+        setDontShow(value);
+        AuthService.setOnboarding({ clubSetup: value ? 'hidden' : 'shown' }).then(setUser).catch(() => {});
+    };
+    const dontShowRow = (
+        <label className="d-flex align-items-center gap-2 text-subtle fs-8" style={{ cursor: 'pointer' }}>
+            <Checkbox inputId="wizard-dont-show" checked={dontShow} onChange={(event) => toggleDontShow(event.checked)} />
+            <span>{t('Don\'t show this when I create a club')}</span>
+        </label>
+    );
 
     const done = step >= STEPS.length;
 
@@ -169,10 +184,14 @@ const ClubSetupWizard = () => {
                             <Button label={t('Club settings')} icon="pi pi-cog" size="small" severity="secondary" onClick={() => leave(`/my-clubs/${club.id}`)} />
                             <Button label={t('Go to the dashboard')} icon="pi pi-home" size="small" severity="secondary" outlined onClick={() => leave('/')} />
                         </div>
+                        {dontShowRow}
                     </div>}
 
                 {!done &&
-                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4">
+                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4">{dontShowRow}</div>}
+
+                {!done &&
+                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
                         <Button label={t('Back')} icon="pi pi-arrow-left" size="small" text severity="secondary" disabled={step === 0 || busy} onClick={back} />
                         <div className="d-flex gap-2">
                             <Button label={t('Skip')} size="small" severity="secondary" outlined disabled={busy} onClick={skip} />

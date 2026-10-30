@@ -40,6 +40,8 @@ export default (mongoose) => {
       onboarding: {
         tourDoneAt:         { type: Date, default: null },
         firstStepsHiddenAt: { type: Date, default: null },
+        // when set, creating a club no longer opens the guided setup (chosen in the wizard)
+        clubSetupHiddenAt:  { type: Date, default: null },
       },
       blockedReason:     { type: String, default: '' },
       // two-step login (see utils/mfa.js): the secret of the authenticator app (encrypted), one being set

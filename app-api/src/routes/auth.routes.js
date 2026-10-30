@@ -95,6 +95,7 @@ export default (app) => {
     router.put('/onboarding', requireAuth,
         body('tour').optional().isIn(['done', 'again']).withMessage('tour is done or again.'),
         body('firstSteps').optional().isIn(['hidden', 'shown']).withMessage('firstSteps is hidden or shown.'),
+        body('clubSetup').optional().isIn(['hidden', 'shown']).withMessage('clubSetup is hidden or shown.'),
         validate, AuthController.setOnboarding);
     router.put('/language', requireAuth, body('language').isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.setLanguage);
     router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), body('defaultClub').optional({ values: 'null' }).isMongoId().withMessage('Choose one of your clubs.'), validate, AuthController.updateMe);

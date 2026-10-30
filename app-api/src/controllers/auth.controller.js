@@ -103,13 +103,15 @@ export const extendSession = async (req, res) => {
 };
 
 /**
- * The welcome tour and the first steps: { tour: 'done' | 'again', firstSteps:
- * 'hidden' | 'shown' }, either or both. → the user
+ * The welcome tour, the first steps and the guided club setup: { tour: 'done'
+ * | 'again', firstSteps: 'hidden' | 'shown', clubSetup: 'hidden' | 'shown' },
+ * any of them. → the user
  */
 export const setOnboarding = async (req, res) => {
     const now = new Date();
     if (req.body.tour) req.user.set('onboarding.tourDoneAt', req.body.tour === 'done' ? now : null);
     if (req.body.firstSteps) req.user.set('onboarding.firstStepsHiddenAt', req.body.firstSteps === 'hidden' ? now : null);
+    if (req.body.clubSetup) req.user.set('onboarding.clubSetupHiddenAt', req.body.clubSetup === 'hidden' ? now : null);
     await req.user.save();
     res.json(req.user);
 };

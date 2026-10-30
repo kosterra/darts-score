@@ -23,7 +23,7 @@ import CountryFlag from '../elements/country.flag';
 const ClubsPage = () => {
     const toast = useRef(null);
     const navigate = useNavigate();
-    const { clubs, activeClub, refreshClubs, selectClub, isGlobalAdmin } = useAuth();
+    const { clubs, user, activeClub, refreshClubs, selectClub, isGlobalAdmin } = useAuth();
 
     // memberships accepted elsewhere, and the requests waiting, show up when the page opens
     useEffect(() => {
@@ -41,9 +41,14 @@ const ClubsPage = () => {
             const club = await ClubService.createClub(newName);
             setNewName('');
             await refreshClubs();
-            // the new club becomes the one the app works in, and its guided setup opens
-            selectClub(club.id);
-            navigate(`/my-clubs/${club.id}/setup`);
+            // the new club's guided setup opens, unless the admin turned it off before
+            if (user?.onboarding?.clubSetupHiddenAt) {
+                if (!activeClub) selectClub(club.id);
+                toast.current.show({ severity: 'success', summary: t('Club created'), detail: club.name, life: 3000 });
+            } else {
+                selectClub(club.id);
+                navigate(`/my-clubs/${club.id}/setup`);
+            }
         } catch (error) {
             showError(t('Create club'), error);
         }
