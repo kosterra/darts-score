@@ -129,21 +129,23 @@ const ClubConnections = ({ club, onSaved, onError }) => {
                     </ul>
                 </>}
 
-                <p className="setting-title">{t('Your connections')}</p>
-                {accepted.length === 0 && outgoing.length === 0
-                    ? <p className="text-subtle fs-8 mb-3">{t('No connections yet. Search below to connect with a club.')}</p>
-                    : <ul className="my-clubs list-unstyled m-0 mb-3">
+                {(accepted.length > 0 || outgoing.length > 0) && <>
+                    <p className="setting-title">{t('Your connections')}</p>
+                    <ul className="my-clubs list-unstyled m-0 mb-3">
                         {accepted.map(link => clubRow(link,
                             <DeletePopup data={link} header={t('End connection')} message={t('the connection with {{name}}', { name: link.clubName })} handleDelete={() => remove(link)} label={t('Disconnect')} size="small" />
                         ))}
                         {outgoing.map(link => clubRow(link,
                             <Button label={t('Take back')} size="small" severity="secondary" text onClick={() => remove(link)} />
                         ))}
-                    </ul>}
+                    </ul>
+                </>}
 
                 <p className="setting-title">{t('Connect with a club')}</p>
                 <div className="row mx-0 mt-0 setting-body">
                     <div className="col d-flex flex-column gap-2 pt-1">
+                        {links !== null && accepted.length === 0 && outgoing.length === 0 && incoming.length === 0 &&
+                            <span className="text-faint fs-8">{t('No connections yet. Search below to connect with a club.')}</span>}
                         <span className="p-input-icon-left">
                             <i className="pi pi-search" aria-hidden="true" />
                             <InputText value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('Search clubs by name')} aria-label={t('Search clubs by name')} maxLength={50} style={{ minWidth: '14rem' }} />
