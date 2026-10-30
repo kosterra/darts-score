@@ -147,11 +147,14 @@ const NightsEditor = ({ nights, onSave, busy }) => {
                         <Button icon="pi pi-trash" text rounded severity="secondary" size="small" className="calendar-night-remove" aria-label={t('Remove')} title={t('Remove')} onClick={() => setRows(rows.filter((_, at) => at !== index))} />
                     </p>
                     <div className="setting-body setup-box-body">
-                        <Dropdown value={row.weekday} options={WEEKDAYS.map(weekday => ({ label: weekdayName(weekday), value: weekday, disabled: weekday !== row.weekday && rows.some(other => other.weekday === weekday) }))} onChange={(event) => set(index, { weekday: event.value })} aria-label={t('Day')} />
-                        <span className="d-flex align-items-center justify-content-center gap-2 w-100">
-                            <TimeField value={row.start} onChange={(start) => set(index, { start })} ariaLabel={t('From')} className="calendar-time" />
-                            <span className="text-faint">–</span>
-                            <TimeField value={row.end ?? ''} onChange={(end) => set(index, { end })} ariaLabel={t('Until')} placeholder={t('Open end')} clearable className="calendar-time" />
+                        {/* the day and the times in one row; the day takes the room left */}
+                        <span className="calendar-night-when">
+                            <Dropdown value={row.weekday} options={WEEKDAYS.map(weekday => ({ label: weekdayName(weekday), value: weekday, disabled: weekday !== row.weekday && rows.some(other => other.weekday === weekday) }))} onChange={(event) => set(index, { weekday: event.value })} aria-label={t('Day')} className="calendar-night-day" />
+                            <span className="calendar-night-times">
+                                <TimeField value={row.start} onChange={(start) => set(index, { start })} ariaLabel={t('From')} className="calendar-time" />
+                                <span className="text-faint">–</span>
+                                <TimeField value={row.end ?? ''} onChange={(end) => set(index, { end })} ariaLabel={t('Until')} placeholder={t('Open end')} clearable className="calendar-time" />
+                            </span>
                         </span>
                         <InputText value={row.note ?? ''} onChange={(event) => set(index, { note: event.target.value })} maxLength={NOTE_MAX} placeholder={t('Note, e.g. the place')} aria-label={t('Note')} className="calendar-note" />
                     </div>

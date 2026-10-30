@@ -543,8 +543,13 @@
     // the day as the title: centred, the remove at its right edge
     .setting-title { padding-right: 0.4rem; }
     .calendar-night-remove.p-button { width: 1.9rem; height: 1.9rem; padding: 0; margin: -0.3rem 0; }
-    // the times keep their own width, side by side
-    .setting-body .p-dropdown.calendar-time { width: 9.5rem; flex: 0 0 auto; }
+    // the day and the times in one row: the day takes the room left, the times their own width;
+    // on a narrow screen the times go under the day
+    .calendar-night-when { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; width: 100%; }
+    // the two times stay together, wrapping as one
+    .calendar-night-times { display: inline-flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
+    .setting-body .p-dropdown.calendar-night-day { flex: 1 1 9rem; width: auto; min-width: 0; }
+    .setting-body .p-dropdown.calendar-time { width: 8.5rem; flex: 0 0 auto; }
 }
 
 .calendar-time { width: 9.5rem; }
