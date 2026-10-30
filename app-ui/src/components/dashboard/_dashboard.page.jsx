@@ -107,7 +107,10 @@ const Dashboard = () => {
                         <span className="tournament-banner-title">{t('Your year in darts {{year}} is here', { year: defaultYear() })}</span>
                         <span className="text-subtle fs-7">{t('Your games, records, rival and badges of the year, to look back at and share.')}</span>
                     </div>
-                    <Link to="/year" className="p-button p-button-sm text-decoration-none">{t('Look back')}</Link>
+                    <span className="d-flex flex-wrap gap-2">
+                        <Link to="/year" className="p-button p-button-sm text-decoration-none">{t('Look back')}</Link>
+                        <Link to="/club/year" className="p-button p-button-sm p-button-secondary text-decoration-none">{t('The club\'s year')}</Link>
+                    </span>
                 </section>}
 
             {editing && (

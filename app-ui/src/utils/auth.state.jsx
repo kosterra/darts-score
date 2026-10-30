@@ -263,8 +263,10 @@ const AuthState = ({ children }) => {
         return () => window.removeEventListener(SESSION_ENDED, endSession);
     }, [user, endSession]);
 
-    // the player's preferences for playing, for the setup memory and the way darts are entered
-    useEffect(() => {
+    // the player's preferences for playing, for the setup memory, the way darts are entered and the
+    // date format: connected while rendering, so the pages drawn with the account already use them
+    // (in an effect they came only after the first pages, which then showed the language's date format)
+    useMemo(() => {
         connectGamePreferences(user?.gamePreferences, user ? accountSaver(setUser) : null);
     }, [user]);
 

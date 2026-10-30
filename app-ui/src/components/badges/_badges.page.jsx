@@ -208,7 +208,7 @@ const BadgesOverview = () => {
                     </Panel>
                     {shame?.enabled && recentPanel}
                 </div>
-                <div className="col-12 col-xl-5">
+                <div className="col-12 col-xl-5" id="shame">
                     {shame?.enabled
                         ? <Panel header={t('Hall of Shame')} className="h-100">
                             <p className="text-faint fs-8 mt-0">{t('Who holds each shame badge right now, until someone else takes it over or they wash it off.')}</p>

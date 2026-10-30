@@ -3,8 +3,9 @@ import { t } from '../../utils/i18n';
 // where a league stands, as a tag
 export const LEAGUE_STATUS_WORDS = {
     draft: { label: t('Draft'), severity: 'secondary' },
-    running: { label: t('Running'), severity: 'info' },
-    finished: { label: t('Finished'), severity: 'success' },
+    // as the status of a game: running orange, finished blue
+    running: { label: t('Running'), severity: 'warning' },
+    finished: { label: t('Finished'), severity: 'info' },
     cancelled: { label: t('Cancelled'), severity: 'danger' },
 };
 

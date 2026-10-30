@@ -109,7 +109,7 @@ const YearPage = () => {
                             <span className="text-subtle">{review.player.nickname}{activeClub?.name ? ` · ${activeClub.name}` : ''}</span>
                         </div>
                         {!nothing &&
-                            <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                            <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                                 {facts.map(([label, value]) => (
                                     <div key={label}>
                                         <dt className="text-faint fs-8 fw-normal">{label}</dt>

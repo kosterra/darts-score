@@ -5,6 +5,7 @@ import { BRAND, LICENCE, REPOSITORY } from '../../utils/project';
 import usePublicSite from '../../utils/use.public.site';
 import { isInstalled } from '../../utils/install';
 import LanguageSwitch from '../elements/language.switch';
+import { LOGO } from '../../utils/logo';
 
 /**
  * The bar on top of the public pages (the start page, the quick games, login
@@ -18,7 +19,7 @@ export const PublicHeader = ({ suffix, nav, hide, action }) => {
     return (
         <header className="landing-bar">
             <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none" aria-label={t('Legmate start page')}>
-                <img alt="" src="/logo.svg" width="40" height="40" />
+                <img alt="" src={LOGO} width="40" height="40" />
                 <span className="fs-5 fw-semibold text-default landing-brand-name">{t('Legmate')}</span>
             </Link>
             {/* the part of Legmate the page belongs to, in the place and look of the start page's sections */}
@@ -91,7 +92,7 @@ export const PublicFooter = () => (
     <footer className="landing-footer">
         <div className="landing-footer-inner">
             <div className="landing-footer-brand">
-                <img alt="" src="/logo.svg" width="32" height="32" />
+                <img alt="" src={LOGO} width="32" height="32" />
                 <div className="d-flex flex-column">
                     <span className="landing-footer-name">{BRAND}</span>
                     <span>

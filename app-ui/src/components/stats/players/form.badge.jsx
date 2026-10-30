@@ -38,7 +38,7 @@ const FormBadge = ({ form, color, align = 'start', stacked = false }) => {
                 ? (
                     <span className={`form-trend ${trend.className}`}>
                         <trend.icon aria-hidden="true" />
-                        <span>{trend.label}</span>
+                        <span className="form-trend-label">{trend.label}</span>
                         <span className="form-change">{signed(form.change)}</span>
                     </span>
                 )

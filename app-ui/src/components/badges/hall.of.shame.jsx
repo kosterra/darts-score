@@ -14,14 +14,17 @@ dayjs.extend(relativeTime);
 
 /**
  * Who holds each shame badge in the club: the one who did it last, until
- * someone else takes it over or they wash it off.
+ * someone else takes it over or they wash it off. heldOnly: only the badges
+ * someone holds (on the dashboard; all of them on the badges page).
  */
-const HallOfShame = ({ shame }) => {
+const HallOfShame = ({ shame, heldOnly = false }) => {
     if (!shame) return <Lines count={4} />;
+    const badges = heldOnly ? shame.badges.filter(badge => badge.holder) : shame.badges;
+    if (!badges.length) return <p className="text-subtle fs-7 m-0">{t('Nobody holds a shame badge right now.')}</p>;
 
     return (
         <ul className="hall-of-shame list-unstyled m-0">
-            {shame.badges.map(badge => (
+            {badges.map(badge => (
                 <li key={badge.id} className="hall-of-shame-row">
                     <ShameMedal badge={badge} size="sm" washed={!badge.holder} />
                     <div className="d-flex flex-column min-w-0">

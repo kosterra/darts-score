@@ -7,6 +7,8 @@
  * card: { eyebrow, title, subtitle, hero: { value, label }, figures: [{ value, label }], footer }
  */
 
+import { LOGO } from './logo';
+
 const WIDTH = 1080;
 const HEIGHT = 1350;
 const COLORS = { background: '#191c1b', glow: '#2b4a3c', text: '#f4f1ea', subtle: '#b9b4a8', faint: '#7f7a70', green: '#7ecca5', gold: '#ffc94d', tile: 'rgba(255, 255, 255, 0.06)' };
@@ -71,7 +73,7 @@ export const drawShareCard = async (card, { gold = false } = {}) => {
     context.fillRect(0, 0, WIDTH, HEIGHT);
 
     // the logo and the name of the app
-    const logo = await loadImage('/logo.svg');
+    const logo = await loadImage(LOGO);
     if (logo) context.drawImage(logo, 80, 72, 76, 76);
     context.fillStyle = COLORS.text;
     context.font = `700 44px ${FONT}`;
@@ -123,8 +125,7 @@ export const drawShareCard = async (card, { gold = false } = {}) => {
         context.fillStyle = COLORS.text;
         context.fillText(fitFont(context, figure.value, tileWidth - 48, { weight: 800, size: 64, min: 34 }), x + 24, top + 88);
         context.fillStyle = COLORS.subtle;
-        context.font = `400 30px ${FONT}`;
-        context.fillText(fit(context, figure.label, tileWidth - 48), x + 24, top + 136);
+        context.fillText(fitFont(context, figure.label, tileWidth - 48, { weight: 400, size: 30, min: 22 }), x + 24, top + 136);
     });
 
     // where it comes from

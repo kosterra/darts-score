@@ -173,7 +173,8 @@ const X01ScoreInputBoard = () => {
                         </div>
 
                         {/* on a phone with the board this floats above the menu bar, always in reach */}
-                        <div className={`x01-visit-bar ${input === 'board' ? 'is-floating' : ''}`}>
+                        {/* with the board or the keypad the visit, Enter score and Undo float above the menu bar */}
+                        <div className={`x01-visit-bar ${input === 'board' || input === 'keypad' ? 'is-floating' : ''}`}>
                         {/* the darts of the visit, only shown in the floating bar */}
                         <div className="x01-visit-bar-darts" aria-hidden="true">
                             {darts.map((dart, index) => <span key={index} className={dart ? '' : 'is-empty'}>{dart || '–'}</span>)}

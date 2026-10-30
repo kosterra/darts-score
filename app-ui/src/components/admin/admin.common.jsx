@@ -57,7 +57,8 @@ export const AdminToolbar = ({ children, actions = null, changed = 0, startOpen 
                 />
                 {actions && <div className="ms-auto d-flex align-items-center gap-3">{actions}</div>}
             </div>
-            {open && children}
+            {/* one under another, each as wide as the list */}
+            {open && <div className="admin-toolbar-filters">{children}</div>}
         </div>
     );
 };

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { heatOpacity } from '../../../utils/heat.scale';
 
 // Sections clockwise from the top, as on a real board
 const ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
@@ -58,7 +59,8 @@ const DartboardHeatmap = ({ valueOf, describe, tooltip, color = '#5fa883', onlyD
     // hit a little more or less than each other still look different
     const hitValues = [...values, ...bullValues].filter(value => value > 0).sort((a, b) => a - b);
     const rankOf = (value) => hitValues.length > 1 ? hitValues.lastIndexOf(value) / (hitValues.length - 1) : 1;
-    const opacity = (value) => value > 0 ? 0.1 + 0.9 * (0.5 * Math.sqrt(value / max) + 0.5 * rankOf(value)) : 0;
+    // where a field is on the heat scale (utils/heat.scale.js), 0 rarely to 1 most often
+    const heatOf = (value) => 0.5 * Math.sqrt(value / max) + 0.5 * rankOf(value);
 
     return (
         <div className="dartboard-heatmap-wrap">
@@ -85,7 +87,7 @@ const DartboardHeatmap = ({ valueOf, describe, tooltip, color = '#5fa883', onlyD
                     </path>
                 ))}
                 {fields.map((field, index) => values[index] > 0 && (
-                    <path key={`h-${field.key}`} d={field.path} fill={color} fillOpacity={opacity(values[index])} pointerEvents="none" />
+                    <path key={`h-${field.key}`} d={field.path} fill={color} fillOpacity={heatOpacity(heatOf(values[index]))} pointerEvents="none" />
                 ))}
                 {(onlyDoubles ? [['D', DOUBLES_ONLY.bull]] : [['S', R.outerBull], ['D', R.bull]]).map(([ring, radius]) => {
                     const value = ring === 'S' ? bullValues[0] : bullValues[1];
@@ -94,7 +96,7 @@ const DartboardHeatmap = ({ valueOf, describe, tooltip, color = '#5fa883', onlyD
                             <circle r={radius} fill="#262626" stroke="#3a3a3a" strokeWidth="0.5" {...hoverProps(25, ring)}>
                                 {!tooltip && <title>{describe(25, ring)}</title>}
                             </circle>
-                            {value > 0 && <circle r={radius} fill={color} fillOpacity={opacity(value)} pointerEvents="none" />}
+                            {value > 0 && <circle r={radius} fill={color} fillOpacity={heatOpacity(heatOf(value))} pointerEvents="none" />}
                         </g>
                     );
                 })}

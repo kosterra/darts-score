@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavig
 import { noteLocation } from './utils/navigation.trail';
 import { PrimeReactProvider } from 'primereact/api';
 import { Button } from 'primereact/button';
-import { t } from './utils/i18n';
+import { loadPageTexts, t } from './utils/i18n';
 
 import AppNavigation from './components/navigation/app.navigation';
 import AppBanner from './components/banner/app.banner';
@@ -44,7 +44,9 @@ const RulesTraining = lazy(() => import('./components/rules/rules.training'));
 const StatsPage = lazy(() => import('./components/stats/_stats.page'));
 const TrainingPage = lazy(() => import('./components/training/_training.page'));
 const X01BotPage = lazy(() => import('./components/training/x01.bot.page'));
-const AboutPage = lazy(() => import('./components/about/_about.page'));
+// pages whose texts are in a part of their own (utils/i18n.js): loaded together
+const withPageTexts = <T,>(page: Promise<T>) => Promise.all([page, loadPageTexts()]).then(([module]) => module);
+const AboutPage = lazy(() => withPageTexts(import('./components/about/_about.page')));
 const PlayerProfilePage = lazy(() => import('./components/players/_player.profile.page'));
 const ClubListsPage = lazy(() => import('./components/admin/_club.lists.page'));
 const AdminPage = lazy(() => import('./components/admin/_admin.page'));
@@ -79,11 +81,12 @@ const LeagueEditor = lazy(() => import('./components/leagues/league.editor'));
 const CalendarPage = lazy(() => import('./components/calendar/_calendar.page'));
 const ClubNightPage = lazy(() => import('./components/calendar/_club.night.page'));
 const YearPage = lazy(() => import('./components/year/_year.page'));
-const PrivacyPage = lazy(() => import('./components/legal/_privacy.page'));
-const SupportPage = lazy(() => import('./components/legal/_support.page'));
-const DartsTermsPage = lazy(() => import('./components/terms/_darts.terms.page'));
-const WhatsNewPage = lazy(() => import('./components/whats.new/_whats.new.page'));
-const ContactPage = lazy(() => import('./components/legal/_contact.page'));
+const ClubYearPage = lazy(() => import('./components/year/_club.year.page'));
+const PrivacyPage = lazy(() => withPageTexts(import('./components/legal/_privacy.page')));
+const SupportPage = lazy(() => withPageTexts(import('./components/legal/_support.page')));
+const DartsTermsPage = lazy(() => withPageTexts(import('./components/terms/_darts.terms.page')));
+const WhatsNewPage = lazy(() => withPageTexts(import('./components/whats.new/_whats.new.page')));
+const ContactPage = lazy(() => withPageTexts(import('./components/legal/_contact.page')));
 const QuickSetupPage = lazy(() => import('./components/quick/_quick.setup.page'));
 const QuickGamePage = lazy(() => import('./components/quick/_quick.game.page'));
 const EveningNewPage = lazy(() => import('./components/evening/evening.new.page'));
@@ -92,6 +95,7 @@ const EveningClubPage = lazy(() => import('./components/evening/evening.club.pag
 
 import 'primeicons/primeicons.css';
 import "./theme/dark/green/theme.scss";
+import { prefetchGamePages } from './utils/prefetch.games';
 
 // The old per-type game lists are one list with a type filter now
 function GameListRedirect() {
@@ -119,6 +123,10 @@ function AppContent() {
     useEffect(() => {
         startHandled.current = Boolean(user);
     }, [user]);
+    // the pages to play, kept by the service worker for games without a connection
+    useEffect(() => {
+        if (user && activeClub && !isGlobalAdmin) prefetchGamePages();
+    }, [user, activeClub, isGlobalAdmin]);
 
     // a new page starts at the top, e.g. a game after its long setup; going back
     // keeps where the browser was, and a link to a part of a page goes there
@@ -320,6 +328,7 @@ function AppContent() {
                     <Route path="/calendar" element={<CalendarPage />} />
                     <Route path="/club-night/:day" element={<ClubNightPage />} />
                     <Route path="/year" element={<YearPage />} />
+                    <Route path="/club/year" element={<ClubYearPage />} />
                     <Route path="/players/:id/year" element={<YearPage />} />
                     <Route path="/badges/:id" element={<BadgesPage />} />
                     <Route path="/my-clubs" element={<ClubsPage />} />

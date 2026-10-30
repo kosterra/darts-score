@@ -16,6 +16,7 @@ import { Lines } from '../elements/skeletons';
 import { locale, t } from '../../utils/i18n';
 import { ISSUES, REPOSITORY } from '../../utils/project';
 import { Licence } from '../landing/public.frame';
+import { LOGO } from '../../utils/logo';
 
 
 // the parts of the page, each with its own address (/about#levels)
@@ -78,7 +79,7 @@ const AboutCard = () => {
     return (
         <div className="d-flex flex-column gap-4 page-reading">
             <header className="hero-header rounded-2 p-4 d-flex flex-wrap align-items-center gap-4">
-                <img alt="" src="/logo.svg" width="80" height="80" />
+                <img alt="" src={LOGO} width="80" height="80" />
                 <div className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
                     <h1 className="fs-2 fw-semibold text-default m-0">{t('Legmate')}</h1>
                     <span className="text-subtle">{t('The scoreboard for your club, your pub team or your living room.')}</span>

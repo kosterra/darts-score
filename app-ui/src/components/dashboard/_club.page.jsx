@@ -61,7 +61,6 @@ const ClubPage = () => {
     const facts = [
         [t('Club since'), formatDate(club.createdAt)],
         [t('Players'), club.playerCount],
-        [t('Admins'), club.adminCount],
         [t('Games played'), totals.gamesPlayed],
         [t('Last game'), formatDate(totals.lastGameAt)],
         // as the badges in a player's header: how many of all, to the club's badges
@@ -91,16 +90,16 @@ const ClubPage = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            <header className="dashboard-header hero-header rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <header className="dashboard-header hero-header club-header rounded-2 p-4 mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
                 <div className="d-flex flex-wrap align-items-start gap-4 min-w-0">
                 <ClubLogo club={club} size="lg" />
                 <div className="d-flex flex-column gap-3" style={{ minWidth: 0, flex: '1 1 18rem' }}>
                     <div className="d-flex flex-wrap align-items-center gap-3">
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{club.name}</h1>
-                        <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />
+                        <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" className="club-header-visibility" />
                     </div>
                     {club.description && <p className="text-subtle m-0" style={{ maxWidth: '60ch' }}>{club.description}</p>}
-                    <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                    <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         {facts.map(([label, value]) => (
                             <div key={label}>
                                 <dt className="text-faint fs-8 fw-normal">{label}</dt>
@@ -108,6 +107,10 @@ const ClubPage = () => {
                             </div>
                         ))}
                     </dl>
+                    {/* the look back at a year: the figures and awards of the club */}
+                    <Link to="/club/year" className="p-button p-button-sm p-button-secondary text-decoration-none align-self-start">
+                        <i className="pi pi-star me-2" aria-hidden="true" />{t('The club\'s year')}
+                    </Link>
                 </div>
                 </div>
                 {/* the club's latest badges, as in a player's header */}

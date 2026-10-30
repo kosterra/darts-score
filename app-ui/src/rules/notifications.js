@@ -42,7 +42,7 @@ export const NOTIFICATION_TOPICS = [
     { id: 'tournamentInvites', group: 'club', kinds: ['tournamentInvite', 'tournamentReminder', 'tournamentCancelled'], mails: ['off', 'instant'], inApp: true, mail: 'instant' },
     { id: 'tournaments', group: 'club', kinds: ['tournamentDrawn', 'tournamentMatch', 'tournamentWon'], inApp: true, mail: 'off' },
     { id: 'leagues', group: 'club', kinds: ['leagueStarted', 'leagueMatch', 'leagueMoved', 'leagueWon'], inApp: true, mail: 'off' },
-    { id: 'clubNights', group: 'club', kinds: ['clubNightCancelled'], inApp: true, mail: 'instant' },
+    { id: 'clubNights', group: 'club', kinds: ['clubNightCancelled', 'clubNightReminder'], inApp: true, mail: 'instant' },
 
     { id: 'joinRequests', group: 'admin', kinds: ['joinRequested', 'clubJoined'], inApp: true, mail: 'instant' },
     { id: 'fairPlayFound', group: 'admin', kinds: ['fairPlayFound'], inApp: true, mail: 'daily' },

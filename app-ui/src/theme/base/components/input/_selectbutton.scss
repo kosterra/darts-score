@@ -23,7 +23,8 @@
             padding: 0.4rem;
 
             .p-button-label {
-                font-size: 0.8rem;
+                // on the type scale of the style guide ($text-sm, 13px)
+                font-size: 0.8125rem;
                 font-weight: 700;
                 white-space: nowrap;
             }

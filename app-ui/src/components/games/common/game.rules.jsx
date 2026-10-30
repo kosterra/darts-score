@@ -16,7 +16,7 @@ const useGameRules = (id, houseRules = []) => {
     const button = (
         <button type="button" className={`game-rules-toggle ${open ? 'is-open' : ''}`} aria-expanded={open} onClick={() => setOpen(!open)}>
             <i className="pi pi-book" aria-hidden="true" />
-            {t('Rules')}
+            <span className="game-rules-label">{t('Rules')}</span>
             <i className={`pi ${open ? 'pi-chevron-up' : 'pi-chevron-down'} fs-9`} aria-hidden="true" />
         </button>
     );

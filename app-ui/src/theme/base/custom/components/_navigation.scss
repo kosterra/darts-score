@@ -541,10 +541,51 @@ $navRailWidth: 4.75rem;
 // popup list of clubs opened from the club switcher
 .club-switcher-menu.p-menu {
     min-width: 15rem;
+    max-width: calc(100vw - 2rem);
+    padding: 0.35rem;
 
-    .club-switcher-current .p-menuitem-text {
+    // the heading quiet, as the titles of the menu's sections
+    .p-submenu-header {
+        padding: 0.5rem 0.65rem 0.35rem;
+        background: transparent;
+        color: $textFaintColor;
+        font-size: $text-xs;
         font-weight: $weight-bold;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
     }
+
+    .p-menuitem-link { border-radius: $radius-md; padding: 0.55rem 0.65rem; }
+
+    .club-switcher-item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-width: 0;
+
+        .club-logo { box-shadow: none; }
+        .p-menuitem-text { color: $textDefaultColor; }
+        &:hover { text-decoration: none; }
+    }
+
+    // one hover for every row, the clubs (drawn by the switcher) and My clubs: the whole row,
+    // rounded; the wrapper of My clubs gets none of its own, so there are not two shades
+    .p-menuitem > .p-menuitem-content,
+    .p-menuitem > .p-menuitem-content:hover { background: transparent; }
+    .p-menuitem-link { display: flex; width: 100%; }
+    // clearly lighter than the menu, so the row under the pointer shows
+    .p-menuitem:not(.club-switcher-current) .p-menuitem-link:hover { background: ink(0.1); }
+
+    // the current club: soft green, a check on the right
+    .club-switcher-current .p-menuitem-link {
+        background: soft($primaryColor, 0.22);
+
+        .p-menuitem-text { color: $textDefaultColor; font-weight: $weight-bold; }
+    }
+
+    .club-switcher-check { margin-left: auto; color: $primaryColor; }
+
+    .p-menuitem-separator { margin: 0.35rem 0.25rem; }
 }
 
 // A club's logo, or its initials on the brand green

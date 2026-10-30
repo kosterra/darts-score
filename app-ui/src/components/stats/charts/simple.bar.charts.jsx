@@ -8,6 +8,7 @@ import ChartTooltip from './chart.tooltip';
 import { averageLevelOf } from '../../../utils/average.levels';
 import { AXIS, BAR_OPACITY, GRID, LEGEND, PLAYER_COLORS, TOOLTIP } from './chart.theme';
 import { t } from '../../../utils/i18n';
+import useMediaQuery from '../../../utils/use.media.query';
 
 const RANGE_ORDER = ['180', '160-179', '140-159', '120-139', '100-119', '80-99', '60-79', '40-59', '20-39', '1-19', 'ZERO'];
 const rangeLabel = (range) => range === 'ZERO' ? '0' : range.replace('-', '–');
@@ -112,27 +113,58 @@ export const DartsPerLegChart = ({ data = [], players = [], description = t('Dar
     );
 };
 
+// the months added up per quarter: the games and wins summed, the average weighted by the games
+const byQuarter = (months) => {
+    const quarters = new Map();
+    for (const entry of months) {
+        const [year, month] = entry.month.split('-').map(Number);
+        const key = `${year}-${Math.ceil(month / 3)}`;
+        const quarter = quarters.get(key) ?? { label: `Q${Math.ceil(month / 3)} ${String(year).slice(2)}`, games: 0, wins: 0, points: 0, weight: 0 };
+        quarter.games += entry.games ?? 0;
+        quarter.wins += entry.wins ?? 0;
+        if (entry.average != null) {
+            quarter.points += entry.average * (entry.games || 1);
+            quarter.weight += entry.games || 1;
+        }
+        quarters.set(key, quarter);
+    }
+    return [...quarters.values()].map(({ label, games, wins, points, weight }) => ({
+        label, games, wins,
+        winRate: games ? Math.round((wins / games) * 100) : 0,
+        average: weight ? Math.round((points / weight) * 10) / 10 : null,
+    }));
+};
+
 /**
- * Win rate and X01 average per month.
+ * Win rate and X01 average per month. On a phone per quarter (the months are
+ * too many for thin bars), without the dots and the win rate's scale, and the
+ * games played switched off at first (a tap on their name shows them).
  * data: [{ month: 'YYYY-MM', games, wins, winRate, average }]
  */
 export const FormChart = ({ data = [] }) => {
-    const rows = data.map(entry => ({ ...entry, label: dayjs(`${entry.month}-01`).format('MMM YY') }));
-    const series = useHiddenSeries();
+    const phone = useMediaQuery('(max-width: 575.98px)');
+    const rows = phone ? byQuarter(data) : data.map(entry => ({ ...entry, label: dayjs(`${entry.month}-01`).format('MMM YY') }));
+    const series = useHiddenSeries(phone ? ['games'] : []);
+    const dot = (fill) => (phone ? false : { r: 2.5, fill, strokeWidth: 0 });
 
     return (
-        <ChartCard title={t('Form')} description={t('Win rate (bars), X01 average and games played (lines) per month: how the form goes with how often you play. Click an entry below the chart to show or hide it.')}>
+        <ChartCard
+            title={t('Form')}
+            description={phone
+                ? t('Win rate (bars) and X01 average (line) per quarter. Tap an entry below the chart to show or hide it, Games played too.')
+                : t('Win rate (bars), X01 average and games played (lines) per month: how the form goes with how often you play. Click an entry below the chart to show or hide it.')}
+        >
             {rows.length === 0
                 ? <p className="text-faint fs-7">{t('No games yet.')}</p>
                 : (
                     <ResponsiveContainer width="100%" height={260}>
-                        <ComposedChart data={rows} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
+                        <ComposedChart data={rows} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                             <CartesianGrid {...GRID} />
                             <XAxis dataKey="label" {...AXIS} minTickGap={16} />
-                            <YAxis yAxisId="rate" {...AXIS} domain={[0, 100]} unit=" %" />
+                            <YAxis yAxisId="rate" {...AXIS} domain={[0, 100]} unit=" %" width={48} hide={phone} />
                             <YAxis yAxisId="avg" orientation="right" {...AXIS} domain={[0, 'auto']} />
                             {/* games have their own scale, without an axis of their own */}
-                            <YAxis yAxisId="games" hide domain={[0, (max) => Math.max(max, 1) * 1.15]} allowDecimals={false} />
+                            <YAxis yAxisId="games" orientation="right" hide domain={[0, (max) => Math.max(max, 1) * 1.15]} allowDecimals={false} />
                             <Tooltip
                                 {...TOOLTIP}
                                 content={(
@@ -144,8 +176,8 @@ export const FormChart = ({ data = [] }) => {
                                 )}
                             />
                             <Bar yAxisId="rate" dataKey="winRate" name={t('Win rate')} fill={PLAYER_COLORS[0]} fillOpacity={BAR_OPACITY} radius={[4, 4, 0, 0]} hide={series.isHidden('winRate')} />
-                            <Line yAxisId="avg" type="monotone" dataKey="average" name={t('Average')} legendType="plainline" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={{ r: 2.5, fill: PLAYER_COLORS[1], strokeWidth: 0 }} connectNulls hide={series.isHidden('average')} />
-                            <Line yAxisId="games" type="monotone" dataKey="games" name={t('Games played')} legendType="plainline" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={{ r: 2.5, fill: PLAYER_COLORS[2], strokeWidth: 0 }} hide={series.isHidden('games')} />
+                            <Line yAxisId="avg" type="monotone" dataKey="average" name={t('Average')} legendType="plainline" stroke={PLAYER_COLORS[1]} strokeWidth={2.5} dot={dot(PLAYER_COLORS[1])} connectNulls hide={series.isHidden('average')} />
+                            <Line yAxisId="games" type="monotone" dataKey="games" name={t('Games played')} legendType="plainline" stroke={PLAYER_COLORS[2]} strokeWidth={2} strokeDasharray="5 4" dot={dot(PLAYER_COLORS[2])} hide={series.isHidden('games')} />
                             <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />
                         </ComposedChart>
                     </ResponsiveContainer>

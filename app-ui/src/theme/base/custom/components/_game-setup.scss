@@ -218,8 +218,12 @@
 
 @media (max-width: 575.98px) {
   .x01-handicap-fields { width: 100%; }
-  .x01-handicap-fields .p-dropdown,
-  .x01-handicap-fields .p-dropdown.x01-handicap-score { flex: 1 1 6.5rem; width: auto; min-width: 0; }
+  // the age (when it is missing) and the score share a line; the in and the checkout get one each,
+  // so "Straight In" and "Double Out" are not cut off
+  .x01-handicap-fields .p-dropdown { flex: 1 1 100%; width: auto; min-width: 0; }
+  .x01-handicap-fields .p-dropdown.x01-handicap-score,
+  .x01-handicap-fields .x01-handicap-age { flex: 1 1 0; width: auto; min-width: 0; }
+  .x01-handicap-age .p-inputnumber-input { width: 100%; }
   .player-order-item { width: 100%; }
   .player-order-name { flex: 1 1 auto; max-width: none; }
 
@@ -699,4 +703,28 @@
   background: $surfaceRaisedColor;
 
   .shirt-picture { width: 10rem; height: 10rem; }
+}
+
+// a setting of a form (a tournament, a league) as a box of a game's setup: the title on top,
+// the field and its hint centred under it, the box as tall as its neighbour in the row
+.setup-box {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .setting-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex-grow: 1;
+    margin-bottom: 0;
+    padding: 0.5rem 0.9rem 0.9rem;
+    text-align: center;
+  }
+
+  // the fields take the width of the box, their text starts on the left
+  .p-inputtext, .p-inputtextarea, .p-dropdown, .p-multiselect, .date-time-field { width: 100%; text-align: left; }
+  .date-time-field .p-dropdown { width: auto; }
+  .p-selectbutton-pills.pills-inline { justify-content: center; width: 100%; }
 }

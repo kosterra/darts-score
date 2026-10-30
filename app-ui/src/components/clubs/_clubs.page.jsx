@@ -106,11 +106,12 @@ const ClubsPage = () => {
                                 <div className="my-club-head">
                                     <ClubLogo club={club} size="md" />
                                     <div className="my-club-title">
-                                        <div className="d-flex flex-wrap align-items-center gap-2">
-                                            <span className="text-default fw-semibold fs-6 text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
+                                        <span className="text-default fw-semibold fs-6 text-break">{club.name}{' '}<CountryFlag code={club.country} /></span>
+                                        {/* the tags together on a row of their own, under the name */}
+                                        <div className="my-club-tags d-flex flex-wrap align-items-center gap-2">
                                             <Tag value={isAdmin ? t('Admin') : t('Player')} severity="secondary" />
                                             <Tag value={club.isPublic ? t('Public') : t('Private')} severity="secondary" />
-                                            {club.joinPolicy && club.joinPolicy !== 'closed' && <Tag value={club.joinPolicy === 'open' ? t('Open to join') : t('Admins accept')} severity="secondary" />}
+                                            {club.joinPolicy && club.joinPolicy !== 'closed' && <Tag value={club.joinPolicy === 'open' ? t('Open to join') : t('Admins accept')} severity="secondary" className="my-club-join" />}
                                             {current && <Tag value={t('Current club')} severity="success" />}
                                         </div>
                                         <span className="text-faint fs-8 text-break">

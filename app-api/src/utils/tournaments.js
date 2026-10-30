@@ -148,19 +148,20 @@ export const checkSetup = (body, stored = null) => {
 
 /**
  * Why the registration cannot open (or the dates not stay as they are once
- * it is open), or null: every round on a day of its own, one after the
- * other, after the registration; the registration still to end.
+ * it is open), or null: every round after the registration, each starting
+ * after the one before (on a later day, or later the same day: a tournament
+ * of one evening); the registration still to end.
  */
 export const scheduleError = ({ closesAt, rounds }, now = new Date()) => {
     if (new Date(closesAt) <= now) return 'The registration has to end in the future.';
     const playing = rounds.filter(round => !round.skipped);
     if (playing.some(round => !round.date)) return 'Choose the day of every round.';
-    let previous = dayOf(closesAt) - 1;
+    let previous = null;
     for (const round of playing) {
-        const day = dayOf(round.date);
-        if (day < dayOf(closesAt)) return 'The rounds are played after the registration ends.';
-        if (day <= previous) return 'Every round is played on a day of its own, one after the other.';
-        previous = day;
+        const start = new Date(round.date).getTime();
+        if (start < new Date(closesAt).getTime()) return 'Every round is played after the registration ends: move the rounds to later days, e.g. with One round a week.';
+        if (previous !== null && start <= previous) return 'Every round starts after the one before: on a later day, or later on the same day.';
+        previous = start;
     }
     return null;
 };

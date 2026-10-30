@@ -137,6 +137,11 @@ const ComparePicker = ({ players, selectedIds, onChange, levels = {}, ownId = nu
                             <Button type="button" label={t('Show all {{length}} players', { length: matching.length })} icon="pi pi-chevron-down" size="small" text onClick={() => setShowAll(true)} />
                         </div>}
                     {term && !matching.length && <span className="text-faint fs-7">{t('No player matches “')}{search}”.</span>}
+                    {/* with two chosen, the way to the comparison: it stays in view while scrolling through the players */}
+                    {selected.length >= 2 &&
+                        <div className="compare-picker-done">
+                            <Button type="button" label={t('Compare {{count}} players', { count: selected.length })} icon="pi pi-check" onClick={() => setOpen(false)} />
+                        </div>}
                 </div>}
         </Panel>
     );

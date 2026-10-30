@@ -22,6 +22,8 @@ import { rulesText } from '../tournaments/tournament.words';
 import WalkOn from '../tournaments/tournament.walkon';
 import { LEAGUE_STATUS_WORDS, asTournament, leagueName } from './league.words';
 import { Lines } from '../elements/skeletons';
+import DateTimeField from '../elements/date.time.field';
+import UpLink from '../elements/up.link';
 
 // the table of the league: points (2 a win), then leg difference, legs won, the match between them
 const LeagueTable = ({ league }) => {
@@ -140,7 +142,7 @@ const MoveMatchdayDialog = ({ matchday, onHide, onMove, busy }) => {
         <Dialog header={t('Move matchday {{day}}', { day: matchday.day })} visible onHide={onHide} className="tournament-dialog" dismissableMask>
             <div className="d-flex flex-column gap-3">
                 <span className="text-faint fs-8">{t('Its matches are then due on the new day (those moved on their own keep their day). The players hear of it; the other matchdays stay.')}</span>
-                <Calendar value={date} onChange={(event) => setDate(event.value)} dateFormat={calendarFormat()} showTime hourFormat="24" showIcon icon="pi pi-calendar" aria-label={t('New day')} />
+                <DateTimeField value={date} onChange={setDate} ariaLabel={t('New day')} />
                 <div className="d-flex justify-content-end gap-2">
                     <Button label={t('Cancel')} size="small" text onClick={onHide} />
                     <Button label={t('Move')} icon="pi pi-calendar" size="small" disabled={!date} loading={busy === 'moveDay'} onClick={() => onMove(matchday, date)} />
@@ -232,37 +234,44 @@ const LeaguePage = () => {
 
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
-            <Panel header={league.name} icons={<Tag value={status.label} severity={status.severity} />}>
+            <UpLink to="/leagues" label={t('Leagues')} />
+            {/* as the header of every page: the name as its title, the facts under it, the tags in the corner */}
+            <header className="dashboard-header hero-header tournament-header rounded-2 p-4 d-flex flex-column gap-3">
+                <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                    <div className="d-flex flex-column gap-1 min-w-0">
+                        <h1 className="fs-2 fw-semibold text-default m-0 text-break">{league.name}</h1>
+                        {league.description && <p className="text-subtle m-0 text-break tournament-description" style={{ whiteSpace: 'pre-line' }}>{league.description}</p>}
+                    </div>
+                    <Tag value={status.label} severity={status.severity} />
+                </div>
                 <div className="d-flex flex-column gap-3">
-                    {league.description && <p className="text-subtle m-0 text-break" style={{ whiteSpace: 'pre-line', maxWidth: '70ch' }}>{league.description}</p>}
-                    <dl className="d-flex flex-wrap column-gap-5 row-gap-2 m-0">
+                    <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
                         <div><dt className="text-faint fs-8 fw-normal">{t('Players')}</dt><dd className="text-default fw-semibold m-0">{league.players.length}</dd></div>
                         <div><dt className="text-faint fs-8 fw-normal">{t('Everyone plays everyone')}</dt><dd className="text-default fw-semibold m-0">{league.meetings === 2 ? t('Twice') : t('Once')}</dd></div>
                         {started && <div><dt className="text-faint fs-8 fw-normal">{t('Played')}</dt><dd className="text-default fw-semibold m-0">{t('{{played}} of {{count}} matches', { played, count: league.matches.length })}</dd></div>}
                         {!started && league.firstDay && <div><dt className="text-faint fs-8 fw-normal">{t('First matchday')}</dt><dd className="text-default fw-semibold m-0">{formatDateTime(league.firstDay)}</dd></div>}
                         <div><dt className="text-faint fs-8 fw-normal">{t('Every match')}</dt><dd className="text-default fw-semibold m-0">{rulesText(league.rules)}</dd></div>
-                        {league.status === 'finished' && <div><dt className="text-faint fs-8 fw-normal">{t('Winner')}</dt><dd className="text-default fw-semibold m-0">{leagueName(league, league.winner)}<FaTrophy className="ms-1 text-gold" aria-hidden="true" /></dd></div>}
                     </dl>
                     {league.status === 'finished' &&
                         <div className="tournament-champion">
-                            <i className="pi pi-trophy" aria-hidden="true" />
+                            <FaTrophy className="tournament-champion-icon" aria-hidden="true" />
                             <span>{t('{{name}} wins {{league}}!', { name: leagueName(league, league.winner), league: league.name })}</span>
                         </div>}
 
                     {isClubAdmin && !over &&
-                        <div className="d-flex flex-wrap gap-2 justify-content-end">
-                            <Link to={`/leagues/${league.id}/edit`} className="p-button p-button-sm p-button-text text-decoration-none"><i className="pi pi-pencil me-2" />{t('Change')}</Link>
+                        <div className="filter-panel-bar flex-wrap justify-content-end">
+                            <Link to={`/leagues/${league.id}/edit`} className="p-button p-button-sm p-button-secondary text-decoration-none"><i className="pi pi-pencil me-2" aria-hidden="true" />{t('Change')}</Link>
                             {league.status === 'draft' &&
                                 <Button label={t('Start the league')} icon="pi pi-play" size="small" loading={busy === 'startLeague'} onClick={() => confirm(t('Start the league'), t('The schedule is made and every player hears their first match. The players and rules then stay.'), () => run('startLeague', () => LeagueService.startLeague(league.id), t('The league has started.')))} />}
                             {running &&
-                                <Button label={t('Cancel the league')} icon="pi pi-ban" size="small" severity="danger" text loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the league'), t('Every player hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => LeagueService.cancelLeague(league.id)), true)} />}
+                                <Button label={t('Cancel the league')} icon="pi pi-ban" size="small" severity="danger" loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the league'), t('Every player hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => LeagueService.cancelLeague(league.id)), true)} />}
                         </div>}
                     {isClubAdmin && ['draft', 'cancelled'].includes(league.status) &&
-                        <div className="d-flex justify-content-end">
-                            <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" text loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The league goes for good.'), async () => { if (await run('delete', () => LeagueService.deleteLeague(league.id))) navigate('/leagues'); }, true)} />
+                        <div className="filter-panel-bar flex-wrap justify-content-end">
+                            <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The league goes for good.'), async () => { if (await run('delete', () => LeagueService.deleteLeague(league.id))) navigate('/leagues'); }, true)} />
                         </div>}
                 </div>
-            </Panel>
+            </header>
 
             {league.status === 'draft' &&
                 <Panel header={t('Players')}>
@@ -312,7 +321,6 @@ const LeaguePage = () => {
                     </Panel>
                 </div>}
 
-            <p className="m-0"><Link to="/leagues">{t('All leagues')}</Link></p>
             <MatchDialog league={league} match={selected && league.matches.find(match => match.id === selected.id)} isAdmin={isClubAdmin} onHide={() => setSelected(null)} onStart={start} onResult={decide} onMove={moveMatch} busy={busy} />
             <MoveMatchdayDialog matchday={moving} onHide={() => setMoving(null)} onMove={moveMatchday} busy={busy} />
             <ConfirmDialog />

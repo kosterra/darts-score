@@ -4,7 +4,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import { Ripple } from 'primereact/ripple';
 import { MdDashboard, MdSportsCricket } from "react-icons/md";
-import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaUserGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaStar, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase } from "react-icons/fa6";
+import { FaScaleBalanced, FaBullseye, FaChartLine, FaMedal, FaTrophy, FaUserPen, FaShieldHalved, FaChevronDown, FaChartSimple, FaRobot, FaRightFromBracket, FaPeopleGroup, FaUserGroup, FaBell, FaBug, FaUserGear, FaBolt, FaUserClock, FaChartColumn, FaSitemap, FaStar, FaListOl, FaCalendarDays, FaGaugeHigh, FaDatabase, FaRankingStar } from "react-icons/fa6";
 import { BiTargetLock } from "react-icons/bi";
 import { PiClockCountdownBold, PiClockClockwiseBold } from "react-icons/pi";
 import { GiDart, GiDiceTarget, GiStairsGoal } from "react-icons/gi";
@@ -22,6 +22,7 @@ import IntegrityService, { FAIR_PLAY_CHANGED } from '../../services/integrity.se
 import NotificationService, { NOTIFICATIONS_CHANGED } from '../../services/notification.service';
 import { t } from '../../utils/i18n';
 import { yearInDartsSeason } from '../../utils/year.in.darts';
+import { LOGO } from '../../utils/logo';
 
 /**
  * Open spam alerts, for the count next to "Alerts". Only global admins see
@@ -128,7 +129,7 @@ const useSections = () => {
                 { label: t('Year in darts'), icon: FaStar, to: '/year', visible: Boolean(myPlayer) && yearInDartsSeason() },
             ],
         },
-        // playing: the games the club plays and the trainings in groups, and the tournaments
+        // playing: the games the club plays, the trainings and the competitions in groups
         {
             id: 'play',
             title: t('Play'),
@@ -149,8 +150,14 @@ const useSections = () => {
                         { label: t('More trainings'), icon: GiStairsGoal, to: '/training/more' },
                     ],
                 },
-                { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments', tag: t('Beta') },
-                { label: t('Leagues'), icon: FaListOl, to: '/leagues', tag: t('Beta') },
+                // what the club plays for: the tournaments and the leagues (their dates are in the club's calendar)
+                {
+                    label: t('Competitions'), icon: FaRankingStar,
+                    children: [
+                        { label: t('Tournaments'), icon: FaSitemap, to: '/tournaments' },
+                        { label: t('Leagues'), icon: FaListOl, to: '/leagues' },
+                    ],
+                },
             ],
         },
         // the club
@@ -267,6 +274,7 @@ const useSections = () => {
  */
 const ClubSwitcher = ({ collapsed, onNavigate }) => {
     const menu = useRef(null);
+    const button = useRef(null);
     const navigate = useNavigate();
     const { clubs, activeClub, selectClub } = useAuth();
 
@@ -276,8 +284,15 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
             label: t('Your clubs'),
             items: clubs.map(club => ({
                 label: club.name,
-                icon: club.id === activeClub?.id ? 'pi pi-check' : 'pi pi-fw',
                 className: club.id === activeClub?.id ? 'club-switcher-current' : '',
+                // each club with its logo, the current one marked with a check on the right
+                template: (item, options) => (
+                    <a className={`${options.className} club-switcher-item`} onClick={options.onClick} role="menuitem" aria-current={club.id === activeClub?.id ? 'true' : undefined}>
+                        <ClubLogo club={club} size="xs" />
+                        <span className="p-menuitem-text text-truncate">{club.name}</span>
+                        {club.id === activeClub?.id && <i className="pi pi-check club-switcher-check" aria-hidden="true" />}
+                    </a>
+                ),
                 command: () => {
                     if (club.id !== activeClub?.id) {
                         selectClub(club.id);
@@ -294,6 +309,7 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
     return (
         <div className="club-switcher">
             <button
+                ref={button}
                 type="button"
                 className="club-switcher-button"
                 onClick={(event) => menu.current.toggle(event)}
@@ -310,7 +326,8 @@ const ClubSwitcher = ({ collapsed, onNavigate }) => {
                     <span className="club-switcher-name text-default fw-semibold">{activeClub?.name ?? t('Choose a club')}</span>
                 }
             </button>
-            <Menu model={model} popup ref={menu} className="club-switcher-menu" />
+            {/* as wide as the switcher, when the menu is wide; at least 15rem in the icon rail */}
+            <Menu model={model} popup ref={menu} className="club-switcher-menu" onShow={() => { const list = menu.current?.getElement?.(); if (list && button.current && !collapsed) list.style.minWidth = `${button.current.offsetWidth}px`; }} />
         </div>
     );
 };
@@ -420,6 +437,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             <NavLink key={child.label} to={child.to} end className={linkClass} onClick={onNavigate}>
                 {child.icon && <child.icon className="nav-icon nav-child-icon" aria-hidden="true" />}
                 <span className="nav-label">{child.label}</span>
+                {child.tag && <span className="nav-tag">{child.tag}</span>}
                 <Ripple />
             </NavLink>
         )
@@ -481,7 +499,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
                     ? <ClubSwitcher collapsed={collapsed} onNavigate={onNavigate} />
                     : (
                         <Link to="/" className="nav-brand" onClick={onNavigate} aria-label={t('Legmate')}>
-                            <img alt="" src="/logo.svg" width="40" height="40" />
+                            <img alt="" src={LOGO} width="40" height="40" />
                             <span className="nav-label fw-semibold">{t('Legmate')}</span>
                         </Link>
                     )
@@ -511,7 +529,7 @@ const NavigationContent = ({ collapsed = false, onToggle, onNavigate }) => {
             {/* the app: its name and version, opening the About page */}
             <div className="nav-app">
                 <NavLink to="/about" data-tour="about" className={({ isActive }) => `nav-app-link p-ripple ${isActive ? 'active' : ''}`} title={collapsed ? t('About Legmate') : undefined} onClick={onNavigate}>
-                    <img alt="" src="/logo.svg" width="24" height="24" />
+                    <img alt="" src={LOGO} width="24" height="24" />
                     {!collapsed &&
                         <span className="d-flex flex-column min-w-0">
                             <span className="text-subtle fw-semibold fs-7">{t('Legmate')}</span>

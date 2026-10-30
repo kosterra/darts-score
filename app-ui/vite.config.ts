@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { existsSync, readFileSync } from 'fs'
+import splitTexts from './scripts/vite.split.texts.mjs'
 
 // The app's version lives in the repository's root package.json
 // (in the dev container it is mounted elsewhere, see ROOT_PACKAGE in docker-compose.dev.yml)
@@ -39,7 +40,11 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react(), restartOnVersionChange()],
+  // the texts of each language in a main part and one for the About, legal and terms pages
+  plugins: [react(), restartOnVersionChange(), splitTexts(path.resolve(import.meta.dirname, 'src')),
+    // the logo with the version, as in the app (src/utils/logo.js), so a new one is fetched at once
+    // and the other icons and the manifest (an installed app shows its icons from there)
+    { name: 'logo-version', transformIndexHtml: (html: string) => html.replace(/href="(\/logo\.svg|\/favicon\.ico|\/icons\/[^"?]+|\/manifest\.json)"/g, `href="$1?v=${appVersion}"`) }],
   // dayjs and its locales pre-bundled together: found apart, the locales point
   // at an older dayjs bundle and the app does not start
   optimizeDeps: {

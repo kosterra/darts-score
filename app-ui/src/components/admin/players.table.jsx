@@ -268,7 +268,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                                 onError={showError}
                             />
                         )}
-                        className="admin-table"
+                        className="admin-table players-table"
                         {...tableState(view, setView, { sortField: 'nickname', sortOrder: 1 })}
                         emptyMessage={players === null ? <TableLoading /> : players?.length ? t('No players match these filters.') : t('No players yet.')}
                         responsiveLayout="stack" breakpoint="640px"
@@ -300,7 +300,7 @@ const PlayersTable = ({ scope = 'club' }) => {
                         )} />}
                         {/* on a phone the level, the type and the login side by side, without names */}
                         {!acrossClubs && <Column header={t('Level')} bodyClassName="no-label inline-cell" body={(player) => player.guest ? <span className="text-faint fs-7 empty-cell">–</span> : <LevelBadge level={levels[player.id]} />} />}
-                        <Column bodyClassName="no-label inline-cell" header={t('Type')} body={kindBody} />
+                        <Column bodyClassName="no-label inline-cell players-kind-cell" header={t('Type')} body={kindBody} />
                         {canManage && <Column bodyClassName="no-label inline-cell" header={t('Login')} body={loginBody} />}
                         {canManage && <Column header={t('Public page')} body={publicBody} />}
                         <Column field="createdAt" header={t('Added')} sortable body={(player) => <span className="text-subtle fs-7 text-nowrap">{formatDate(player.createdAt)}</span>} />

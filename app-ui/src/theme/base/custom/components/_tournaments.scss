@@ -12,11 +12,12 @@
     border: 1px solid with-alpha($primaryColor, 0.45);
     background: linear-gradient(100deg, with-alpha($primaryColor, 0.22), with-alpha($primaryColor, 0.06) 70%), $surfaceColor;
 
+    // a winner: the softer gold of the game tiles (Cricket's), not the bright one
     &.is-finished {
-        border-color: with-alpha($podiumGold, 0.5);
-        background: linear-gradient(100deg, with-alpha($podiumGold, 0.22), with-alpha($podiumGold, 0.05) 70%), $surfaceColor;
+        border-color: color-mix(in srgb, var(--c-game-cricket) 50%, transparent);
+        background: linear-gradient(100deg, color-mix(in srgb, var(--c-game-cricket) 22%, transparent), color-mix(in srgb, var(--c-game-cricket) 5%, transparent) 70%), $surfaceColor;
 
-        .tournament-banner-icon { color: $podiumGold; background: with-alpha($podiumGold, 0.16); }
+        .tournament-banner-icon { color: var(--c-game-cricket); background: color-mix(in srgb, var(--c-game-cricket) 16%, transparent); }
     }
 }
 
@@ -78,11 +79,11 @@
     gap: 0.75rem;
     padding: 0.85rem 1rem;
     border-radius: $radius-md;
-    background: with-alpha($podiumGold, 0.14);
+    background: color-mix(in srgb, var(--c-game-cricket) 16%, transparent);
     color: var(--text-default);
     font-weight: $weight-semibold;
 
-    .pi { color: $podiumGold; font-size: 1.3rem; }
+    .tournament-champion-icon { color: var(--c-game-cricket); font-size: 1.3rem; flex-shrink: 0; }
 }
 
 // who entered, who did not answer, who declined: side by side, one under the other on a phone
@@ -102,11 +103,10 @@
         align-items: center;
         justify-content: space-between;
         gap: 0.5rem;
-        min-height: 2.25rem;
-        padding: 0 0.6rem;
-        border-radius: $radius-sm;
+        min-height: 2.75rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: $radius-md;
         background: ink(0.04);
-        font-size: $text-sm;
 
         &.is-mine { background: with-alpha($primaryColor, 0.16); }
     }
@@ -129,7 +129,7 @@
     font-size: $text-sm;
 }
 
-.tournament-round-date { width: 13rem; max-width: 100%; }
+.tournament-round-date { width: 17rem; max-width: 100%; }
 
 .tournament-rules {
     display: grid;
@@ -153,11 +153,53 @@
 .bracket-scroll { overflow-x: auto; padding-bottom: 0.5rem; }
 
 .bracket {
+    // the room between the rounds, where the lines run
+    --bracket-gap: 2.5rem;
+    // the muted gold of the Share button on a winner's banner: a third of the soft gold over the panel
+    --bracket-line: color-mix(in srgb, var(--c-game-cricket) 32%, transparent);
+
     display: flex;
-    gap: 1.5rem;
+    gap: var(--bracket-gap);
     min-width: min-content;
 
     &.is-single { display: block; }
+}
+
+// the lines of the tree, thin and gold: from each match to the right, the two of a pair joined,
+// and into the match of the next round (not on a phone, where one round shows at a time)
+.bracket:not(.is-single) {
+    .bracket-slot { position: relative; }
+    // the middle of a match: the slot keeps room above it for the state
+    --bracket-middle: calc(50% + 0.25rem);
+
+    .bracket-round:not(:last-child) .bracket-slot {
+        &::after {
+            content: '';
+            position: absolute;
+            top: var(--bracket-middle);
+            right: calc(var(--bracket-gap) / -2);
+            width: calc(var(--bracket-gap) / 2);
+            border-top: 1px solid var(--bracket-line);
+        }
+        // the first of a pair down to the middle between them, the second up to it
+        &::before {
+            content: '';
+            position: absolute;
+            right: calc(var(--bracket-gap) / -2);
+            border-right: 1px solid var(--bracket-line);
+        }
+        &:nth-child(odd)::before { top: var(--bracket-middle); bottom: -0.375rem; }
+        &:nth-child(even)::before { top: -0.375rem; bottom: calc(100% - var(--bracket-middle)); }
+    }
+
+    .bracket-round:not(:first-child) .bracket-match::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: calc(var(--bracket-gap) / -2 - 1px);
+        width: calc(var(--bracket-gap) / 2);
+        border-top: 1px solid var(--bracket-line);
+    }
 }
 
 .bracket-round {
@@ -208,7 +250,10 @@
 
     &.is-clickable {
         cursor: pointer;
-        &:hover, &:focus-visible { border-color: with-alpha($primaryColor, 0.6); outline: none; }
+        transition: background 0.15s, box-shadow 0.15s;
+        // a lighter card that lifts a little, rather than a coloured edge
+        &:hover { background: ink(0.08); box-shadow: 0 0.35rem 1rem -0.5rem shadow(0.8); }
+        &:focus-visible { outline: 2px solid $accentBlue; outline-offset: 2px; }
     }
 
     &.is-bye { opacity: 0.55; }
@@ -286,18 +331,35 @@
 
 // groups + knockout: each group a card with its table and its matches
 .tournament-groups {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    display: flex;
+    flex-direction: column;
     gap: $space-4;
 }
 
+// a group: its name on top, the table on the left, its matches in columns beside it over the
+// rest of the width; on a narrow screen the matches under the table
 .tournament-group {
-    display: flex;
-    flex-direction: column;
-    gap: $space-3;
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    grid-template-areas: 'name name' 'table matches';
+    gap: $space-3 $space-4;
     padding: $space-3;
     border-radius: $radius-md;
     background: $surfaceRaisedColor;
+
+    @media (max-width: 767.98px) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: 'name' 'table' 'matches';
+    }
+}
+
+.tournament-group-head {
+    grid-area: name;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
 }
 
 .tournament-group-name {
@@ -306,6 +368,8 @@
     font-size: $text-md;
     font-weight: $weight-semibold;
 }
+
+.tournament-group-table { grid-area: table; align-self: start; }
 
 .tournament-group-table {
     width: 100%;
@@ -330,9 +394,11 @@
 }
 
 .tournament-group-matches {
-    display: flex;
-    flex-direction: column;
-    gap: $space-2;
+    grid-area: matches;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    align-content: start;
+    gap: $space-2 $space-3;
 
     .bracket-match { width: 100%; }
 }
@@ -359,7 +425,11 @@
     grid-template-columns: minmax(0, 1fr);
     gap: $space-4;
 
-    @media (min-width: 992px) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
+    // side by side the two panels are equally tall, whatever each holds
+    @media (min-width: 992px) { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: stretch; }
+
+    > .p-panel { height: 100%; display: flex; flex-direction: column; }
+    > .p-panel .p-toggleable-content, > .p-panel .p-panel-content { flex-grow: 1; }
 }
 
 .league-table { max-width: 32rem; }
@@ -605,3 +675,53 @@
 
     li { display: flex; align-items: center; gap: $space-3; min-width: 0; }
 }
+
+// the rounds as the way to the final: the steps in a row with arrows between them, every step
+// as wide as the others; on a phone one under another, the arrows pointing down
+.tournament-path {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.75rem 0;
+}
+
+.tournament-path-step {
+    display: flex;
+    align-items: center;
+    flex: 1 1 14rem;
+    min-width: 0;
+
+    .kpi-chip { flex: 1 1 auto; min-width: 0; }
+
+    // the round as the title of the tile; its day under it as a value is read in the header (the
+    // text's colour and weight, 13px), the rules as the small faint line
+    .kpi-chip-value { font-size: $text-md; font-weight: $weight-semibold; }
+    .kpi-chip-label { color: $textDefaultColor; font-size: $text-md; font-weight: $weight-semibold; }
+    .kpi-chip-detail { color: $textFaintColor; }
+}
+
+.tournament-path-arrow {
+    flex-shrink: 0;
+    width: 2.25rem;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: $text-md;
+}
+
+@media (max-width: 575.98px) {
+    .tournament-path { flex-direction: column; gap: 0; }
+    .tournament-path-step { flex-direction: column; align-items: stretch; flex-basis: auto; }
+    .tournament-path-arrow { width: auto; padding: 0.4rem 0; transform: rotate(90deg); }
+}
+
+// the description under the name: a readable width, never wider than the header (on a phone its
+// full width)
+.tournament-description { max-width: min(70ch, 100%); }
+
+// the group table: a row is tapped to see the player's matches; the picked one marked, the
+// matches without them faded
+.tournament-group-row { cursor: pointer; }
+.tournament-group-row:hover td { background: ink(0.06); }
+.tournament-group-row.is-picked td { background: with-alpha($primaryColor, 0.2); }
+.tournament-group-row:focus-visible { outline: 2px solid $accentBlue; outline-offset: -2px; }
+.tournament-match-dimmed { opacity: 0.35; transition: opacity 0.15s; }

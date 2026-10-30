@@ -61,7 +61,7 @@ const BigScreenButton = ({ kind = 'x01', gameId, create = null, send = null }) =
         <>
             <button type="button" className="game-rules-toggle" onClick={() => setOpen(true)} title={t('Show the game on a TV or a second tablet')}>
                 <i className="pi pi-desktop" aria-hidden="true" />
-                <span>{t('Big screen')}</span>
+                <span className="game-rules-label">{t('Big screen')}</span>
             </button>
             <Dialog header={t('Big screen')} visible={open} onHide={() => setOpen(false)} className="big-screen-dialog" dismissableMask>
                 <div className="d-flex flex-column gap-3">

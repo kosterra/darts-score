@@ -6,6 +6,7 @@ import useWakeLock from '../../utils/use.wake.lock';
 import usePageTitle from '../../utils/use.page.title';
 import { formatDateTime } from '../../utils/dates';
 import { t } from '../../utils/i18n';
+import { LOGO } from '../../utils/logo';
 
 const KEY = 'legmate.tv';
 // how often a waiting TV asks whether a game was sent to it
@@ -69,7 +70,7 @@ const TvPage = () => {
 
     return (
         <div className="big-screen tv-waiting">
-            <img src="/logo.svg" alt="" width="96" height="96" />
+            <img src={LOGO} alt="" width="96" height="96" />
             <h1 className="tv-title">{t('Legmate on the big screen')}</h1>
             {pairing
                 ? <>

@@ -2,8 +2,9 @@
     color: $buttonTextColor;
     background: $buttonBg;
     border: $buttonBorder;
-    padding: $buttonPadding;
-    font-size: $buttonFontSize;
+    // the sizes as variables, so a phone can have smaller buttons (custom/components/_buttons.scss)
+    padding: var(--button-padding, #{$buttonPadding});
+    font-size: var(--button-font-size, #{$buttonFontSize});
     font-weight: $buttonFontWeight;
     transition: $formElementTransition;
     border-radius: $borderRadius;
@@ -141,8 +142,8 @@
     }
 
     &.p-button-sm {
-        @include scaledFontSize($fontSize, $scaleSM);
-        @include scaledPadding($buttonPadding, $scaleSM);
+        font-size: var(--button-font-size-sm, #{$fontSize * $scaleSM});
+        padding: var(--button-padding-sm, #{nth($buttonPadding, 1) * $scaleSM} #{nth($buttonPadding, 2) * $scaleSM});
 
         .p-button-icon {
             @include scaledFontSize($primeIconFontSize, $scaleSM);

@@ -6,6 +6,8 @@ import { Panel } from 'primereact/panel';
 import TournamentService from '../../../services/tournament.service';
 import DeletionRequestService from '../../../services/deletion.request.service';
 import IntegrityService from '../../../services/integrity.service';
+import CalendarService from '../../../services/calendar.service';
+import { dayKey } from '../../../rules/calendar';
 import { useAuth } from '../../../utils/auth.context';
 import { playerInClub, useMyPlayers } from '../../../utils/use.my.players';
 import { playPath } from '../../../utils/game.paths';
@@ -15,7 +17,8 @@ import { formatDateTime } from '../../../utils/dates';
 import { t, tn } from '../../../utils/i18n';
 
 /**
- * What waits for the player: a tournament to enter (right here) or a match
+ * What waits for the player: tonight's club night (whether they come, right
+ * here, and the way to the club evening), a tournament to enter or a match
  * of theirs to play, their games left running, deletion requests waiting for
  * their answer; for the club's admins also new requests to join and what fair
  * play found. Nothing waiting: a short word saying so.
@@ -30,12 +33,15 @@ const UpNextWidget = ({ widget, runningGames = [], players }) => {
     const [requests, setRequests] = useState([]);
     const [fairPlay, setFairPlay] = useState(null);
     const [busy, setBusy] = useState('');
+    const [tonight, setTonight] = useState(null);
+    const today = dayKey(new Date());
 
     useEffect(() => {
         TournamentService.loadTournaments({ active: true }).then(data => setTournaments(data.tournaments)).catch(() => setTournaments([]));
+        CalendarService.loadCalendar(today, today).then(data => setTonight(data.clubNights?.[0] ?? null)).catch(() => setTonight(null));
         DeletionRequestService.loadOpen().then(setRequests).catch(() => setRequests([]));
         if (isClubAdmin) IntegrityService.loadSummary(false).then(setFairPlay).catch(() => setFairPlay(null));
-    }, [isClubAdmin, activeClub?.id]);
+    }, [isClubAdmin, activeClub?.id, today]);
 
     const nameOf = (id) => players?.get(id)?.nickname ?? t('Unknown');
     const answer = async (tournament, status) => {
@@ -49,7 +55,44 @@ const UpNextWidget = ({ widget, runningGames = [], players }) => {
         setBusy('');
     };
 
+    const comeTonight = async (value) => {
+        setBusy(`night-${value}`);
+        try {
+            const data = await CalendarService.answer(tonight.day, value, { from: today, to: today });
+            setTonight(data.clubNights?.[0] ?? null);
+        } catch {
+            // the calendar says why
+        }
+        setBusy('');
+    };
+
     const items = [];
+    // tonight's club night, until it is over (one going on past midnight all day)
+    const now = new Date().toTimeString().slice(0, 5);
+    if (tonight && !(tonight.end && tonight.end > tonight.start && now >= tonight.end)) {
+        const hours = tonight.end ? `${tonight.start}–${tonight.end}` : tonight.start;
+        if (tonight.cancelled) {
+            items.push({ key: 'night', icon: 'pi-ban', title: t('Tonight\'s club night is cancelled'), detail: tonight.cancelled.reason || '' });
+        } else {
+            const coming = tonight.coming.length
+                ? `${t('{{count}} coming', { count: tonight.coming.length })}: ${tonight.coming.map(entry => entry.nickname).join(', ')}`
+                : t('Nobody said yet');
+            items.push({
+                key: 'night', icon: 'pi-users',
+                title: t('Club night tonight, {{hours}}', { hours }),
+                detail: [tonight.note, coming].filter(Boolean).join(' · '),
+                // not answered yet: whether they come; else the way to the evening's games and table
+                actions: me && !tonight.me
+                    ? (
+                        <>
+                            <Button type="button" label={t('I\'m coming')} icon="pi pi-check" size="small" loading={busy === 'night-yes'} onClick={() => comeTonight('yes')} />
+                            <Button type="button" label={t('Not this time')} size="small" severity="secondary" text loading={busy === 'night-no'} onClick={() => comeTonight('no')} />
+                        </>
+                    )
+                    : <Link to={`/club-night/${tonight.day}`} className={`p-button p-button-sm text-decoration-none ${tonight.me === 'no' ? 'p-button-secondary' : ''}`}><i className="pi pi-users me-2" aria-hidden="true" />{t('Club evening')}</Link>,
+            });
+        }
+    }
     for (const tournament of tournaments) {
         if (tournament.status === 'registration' && tournament.me?.status === 'invited') {
             items.push({

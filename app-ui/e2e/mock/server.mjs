@@ -57,6 +57,8 @@ const ref = (p) => ({ id: p.id, nickname: p.nickname, firstname: p.firstname, la
 
 let seq = 0;
 const ago = (days) => new Date(Date.now() - days * 86400000).toISOString();
+// the months before this one, oldest first: 'YYYY-MM' (i months after 30 months ago)
+const dayjsLike = (i) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - 29 + i); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
 const perTarget = (darts) => { const t = Array(21).fill(1); let rest = darts - 21; let i = 0; while (rest-- > 0) { t[(i * 7) % 21] += 1; i++; } return t; };
 const entries = [];
 const reviews = new Map();
@@ -479,6 +481,9 @@ http.createServer((req, res) => {
                 const id = `q${quickGames.size + 1}`;
                 return send(res, 201, { game: keep(id, json.kind, clean(json.game)), key: 'mock-key' });
             }
+            // the statistics of a quick X01 game, worked out by the API
+            const qgStats = path.match(/^\/api\/public\/quick-games\/([^/]+)\/stats$/);
+            if (qgStats && quickGames.has(qgStats[1])) return send(res, 200, x01StatsOf({ ...quickGames.get(qgStats[1]).data, _id: qgStats[1] }));
             const qg = path.match(/^\/api\/public\/quick-games\/([^/]+)$/);
             if (qg && quickGames.has(qg[1])) {
                 if (req.method === 'PUT') return send(res, 200, keep(qg[1], quickGames.get(qg[1]).kind, clean(json)));
@@ -548,6 +553,30 @@ http.createServer((req, res) => {
             if (/name="profileImg"; filename=/.test(body)) p.profileImg = 'uploaded.png';
             return send(res, 200, { message: 'Player was updated successfully.' });
         }
+        // a player's latest games, for the profile
+        if (/^\/api\/stats\/player\/p\d+\/games$/.test(path)) {
+            const me = path.split('/')[4];
+            return send(res, 200, { total: 3, players: players.map(p => ({ id: p.id, nickname: p.nickname })), games: [
+                { id: 'g901', type: 'cricket', format: 'Cricket', playedAt: ago(1), running: false, players: [{ player: 'p2', isWinner: true, score: 36 }, { player: me, isWinner: false, score: 0 }] },
+                { id: 'g902', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', playedAt: ago(1), running: false, players: [{ player: 'p2', isWinner: false, sets: 1, legs: 3 }, { player: me, isWinner: true, sets: 2, legs: 4 }] },
+                { id: 'g903', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', playedAt: ago(2), running: true, players: [{ player: me, isWinner: false, sets: 1, legs: 1 }, { player: 'p3', isWinner: false, sets: 0, legs: 2 }] },
+            ] });
+        }
+        // the club's year: its figures and awards (an old year without games)
+        if (path === '/api/stats/club/year') {
+            const year = Number(url.searchParams.get('year')) || new Date().getFullYear();
+            const years = [new Date().getFullYear(), new Date().getFullYear() - 1];
+            const who = (id) => ({ id, nickname: players.find(p => p.id === id)?.nickname ?? '?' });
+            if (year < new Date().getFullYear() - 1) return send(res, 200, { year, years, club: { id: 'c1', name: 'Test Club' }, games: { total: 0, byType: {} }, players: 0, days: 0, darts: 0, oneEighties: 0, clubNights: 0, awards: [] });
+            return send(res, 200, {
+                year, years, club: { id: 'c1', name: 'Test Club' },
+                games: { total: 1284, byType: { x01: 902, cricket: 211, elimination: 96, clock: 75 } }, players: 23, days: 104, darts: 241330, oneEighties: 131, clubNights: 46,
+                awards: [
+                    { id: 'champion', player: who('p2'), value: 118 }, { id: 'mostGames', player: who('p1'), value: 214 }, { id: 'average', player: who('p3'), value: 61.42 },
+                    { id: 'oneEighties', player: who('p2'), value: 23 }, { id: 'checkout', player: who('p4'), value: 161 }, { id: 'clubNights', player: who('p1'), value: 41 }, { id: 'woodenSpoon', player: who('p5'), value: 9 },
+                ],
+            });
+        }
         const yearPath = path.match(/^\/api\/stats\/player\/(p\d+)\/year$/);
         if (yearPath) {
             const year = Number(url.searchParams.get('year')) || new Date().getFullYear();
@@ -566,7 +595,13 @@ http.createServer((req, res) => {
         if (/^\/api\/stats\/player\/p\d+$/.test(path)) return send(res, 200, { ...(process.env.FORM_CHART ? (() => {
             const months = ['2023-12', '2024-01', '2024-02', '2024-03', '2025-03', '2025-10', '2025-12', '2026-10'];
             const rates = [100, 67, 100, 100, 67, 100, 67, 43]; const avgs = [41, 36, 43, 49, 54, 44, 43, 43]; const games = [3, 3, 1, 3, 9, 1, 3, 7];
-            return { form: months.map((month, i) => ({ month, games: games[i], wins: Math.round(games[i] * rates[i] / 100), winRate: rates[i], average: avgs[i] })) };
+            // the hits of a player who aims at the 20: most around it, a few everywhere else
+            const near = { 20: 1, 1: 0.45, 5: 0.42, 18: 0.2, 12: 0.18, 19: 0.14, 3: 0.08, 17: 0.07, 7: 0.06, 16: 0.06, 8: 0.05, 2: 0.05, 4: 0.05, 15: 0.04, 9: 0.04, 14: 0.04, 11: 0.03, 6: 0.03, 10: 0.03, 13: 0.03 };
+            const sectionHits = [...Object.entries(near).map(([section, share]) => ({ section, S: Math.round(1400 * share), D: Math.round(70 * share), T: Math.round(300 * share) })), { section: '25', S: 40, D: 9 }];
+            // many months, so a phone shows the last year only
+            const many = process.env.FORM_CHART === 'many';
+            const list = many ? Array.from({ length: 30 }, (_, i) => dayjsLike(i)) : months;
+            return { sectionHits, form: list.map((month, i) => ({ month, games: games[i % 8], wins: Math.round(games[i % 8] * rates[i % 8] / 100), winRate: rates[i % 8], average: avgs[i % 8] })) };
         })() : {}), playedGames: { total: 48 }, wonGames: { total: 27 }, avg: { overallX01: 52.4 }, kpis: {}, checkouts: {}, level: { level: { id: 'countyPlayer', name: 'County Player', index: 5 }, xp: 1520, progress: 31, next: { id: 'pro', name: 'Pro', missing: [{ id: 'xp', label: '480 more XP' }, { id: 'average', label: 'an X01 average of 60' }] }, breakdown: [], ladder: [], rules: {} }, trainingSummary: { total: 23, last30Days: 9, lastAt: ago(1), streak: 4,
             atc: { count: 11, fastest: { timeMs: 9842, mode: 'Double' }, fewestDarts: { darts: 34, mode: 'All' } },
             bot: { count: 6, finished: 5, wins: 3, average: 47.8, bestAverage: 58.2, recent: [41.2, 44.8, 47.1, 52.3, 58.2], checkout: { hit: 14, total: 52, rate: 26.9 }, bestDouble: { section: 16, hit: 6, total: 15, rate: 40 }, oneEighties: 2, tonPlus: 31, highestCheckout: 104, scoring: 55.1, finishing: 31.4 },
@@ -699,6 +734,15 @@ http.createServer((req, res) => {
             };
         };
         if (path === '/api/stats/club-badges' && process.env.CLUB_BADGES) return send(res, 200, clubOwn());
+        // without CLUB_BADGES: a club that earned none yet
+        if (path === '/api/stats/club-badges') return send(res, 200, { earnedCount: 0, total: CLUB_BADGES.length, badges: CLUB_BADGES.map(b => ({ ...publicClubBadge(b), earned: null, progress: 0 })), goals: [] });
+        // the levels of the players: everyone a Rookie (the real ones need their games)
+        if (path === '/api/stats/levels' && !process.env.PLAYERS_PAGE) return send(res, 200, Object.fromEntries(players.map(p => [p.id, { id: 'rookie', name: 'Rookie', index: 0, xp: 0 }])));
+        // the banner on top of every page: off
+        if (path === '/api/public/banner') return send(res, 200, { enabled: false });
+        // the insights of the admin lists without ADMIN_OVERVIEWS: nothing yet
+        if (path === '/api/admin/insights/games' || path === '/api/admin/insights/trainings') return send(res, 200, { ...activityInsights([]), clubsById: {} });
+        if (path === '/api/admin/insights/players') return send(res, 200, { ...playersInsights([]), clubsById: {} });
         if (path === '/api/clubs/c1/goals' && req.method === 'PUT') {
             globalThis.clubBadgeData.goals = json.goals.map((g, i) => ({ id: g.id ?? `goal-new-${i}`, metric: g.metric, target: g.target, from: new Date(2026, 6, 1), until: g.until, reachedAt: null }));
             return send(res, 200, clubOwn().goals);
@@ -734,7 +778,7 @@ http.createServer((req, res) => {
             });
         }
         if (path === '/api/auth/me' && req.method === 'GET') return send(res, 200, user);
-        if (path === '/api/auth/language' && req.method === 'PUT') { user.language = json.language; console.log('LANGUAGE', json.language, req.headers['accept-language']); return send(res, 200, user); }
+        if (path === '/api/auth/language' && req.method === 'PUT') { user.language = json.language; return send(res, 200, user); }
         const dash = path.match(/^\/api\/auth\/dashboard\/(c\d+)$/);
         if (dash && req.method === 'PUT') { user.dashboards = [...(user.dashboards ?? []).filter(d => d.club !== dash[1]), ...(Array.isArray(json.layout) ? [{ club: dash[1], layout: json.layout }] : [])]; return send(res, 200, user); }
         const clubPut = path.match(/^\/api\/clubs\/(c\d+)$/);

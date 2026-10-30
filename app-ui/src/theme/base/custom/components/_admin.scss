@@ -1211,3 +1211,45 @@ $fair-play-suspicious: $accentAmber;
     font-weight: $weight-semibold;
     white-space: nowrap;
 }
+
+// the players on a phone: Member or Guest in the top right corner of the card, beside the name
+@media (max-width: 575.98px) {
+  .players-table .p-datatable-tbody > tr { position: relative; }
+  .players-table .p-datatable-tbody > tr > td.players-kind-cell { position: absolute; top: 0.85rem; right: 0.85rem; padding: 0; border: 0; }
+}
+
+// the filters of a list on a phone, unfolded: one under another, each as wide as the list
+.admin-toolbar-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+
+  > *, .p-dropdown, .p-multiselect, .filter-labelled { width: 100% !important; min-width: 0 !important; }
+}
+
+// the tags of a club in My clubs, on a phone: a size smaller and on one row; how to join is
+// left out there (it is under Edit club)
+@media (max-width: 575.98px) {
+  .my-club-tags {
+    flex-wrap: nowrap !important;
+    gap: 0.35rem !important;
+
+    .p-tag { padding: 0.2rem 0.45rem; font-size: $text-xs; white-space: nowrap; }
+    .my-club-join { display: none; }
+  }
+}
+
+// a day and a time side by side: the day takes the room, the time as wide as "20:00"
+.date-time-field {
+  display: inline-flex;
+  gap: 0.4rem;
+  max-width: 100%;
+
+  .date-time-day { flex: 1 1 9rem; min-width: 0; }
+  .date-time-day .p-inputtext { min-width: 0; }
+  .date-time-time { flex: 0 0 6.5rem; }
+}
+
+// a message in a form (what is missing, what went wrong): the size of the form's text, not body text
+.p-message .p-message-text { font-size: $text-md; }

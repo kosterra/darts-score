@@ -26,7 +26,8 @@ test('quick games and darts evenings: counted all time, listed, opened', async (
     // on a phone the filters open with their button
     if (test.info().project.name === 'phone') await page.getByRole('button', { name: 'Filters' }).click();
     await expect(page.locator('.type-filter').first()).toBeVisible();
-    await expect(page.locator('.filter-label', { hasText: 'Played' })).toBeVisible();
+    // the group's name: before the pills, on a phone inside the dropdown
+    await expect(test.info().project.name === 'phone' ? page.locator('.filter-dropdown', { hasText: 'Played:' }) : page.locator('.filter-label', { hasText: 'Played' })).toBeVisible();
     await page.screenshot({ path: `test-results/admin-quick-${test.info().project.name}.png`, fullPage: true });
     // a quick game of this evening, opened without its key on this device
     await page.locator('tr', { hasText: 'Friday at Lena\'s' }).first().locator('.row-action-link[title="Show statistics"]').click();
