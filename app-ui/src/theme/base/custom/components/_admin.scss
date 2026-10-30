@@ -1269,10 +1269,10 @@ $fair-play-suspicious: $accentAmber;
   .player-option-level { display: inline-flex; align-items: center; flex-shrink: 0; margin-left: auto; padding-left: 0.75rem; }
 }
 
-// in the items of a list the names take a column of the same width, so the levels line up
-.p-dropdown-item .player-option-text, .p-multiselect-item .player-option-text { flex: 0 0 11rem; max-width: 11rem; }
-// the value of a dropdown takes its whole width, the level at the right edge
-.p-dropdown-label .player-option { display: flex; width: 100%; }
+// in the items and the value of a list the row takes the whole width, so the levels line up at
+// the right edge whatever the names' length (the wrapper of an item is stretched for it)
+.p-dropdown-item .p-dropdown-item-label, .p-multiselect-item > span:not(.p-checkbox) { display: block; flex: 1 1 auto; min-width: 0; }
+.p-dropdown-item .player-option, .p-multiselect-item .player-option, .p-dropdown-label .player-option { display: flex; width: 100%; }
 
 // the chosen players of a multiselect, in its field: the picture small, the nickname alone
 .p-multiselect-label .player-option {
