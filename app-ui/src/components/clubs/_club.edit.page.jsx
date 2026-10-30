@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
@@ -45,9 +45,19 @@ const JOIN_POLICIES = [
 const ClubEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { hash } = useLocation();
     const toast = useRef(null);
     const { clubs, refreshClubs, selectClub, user, mailEnabled } = useAuth();
     const club = clubs.find(entry => entry.id === id);
+
+    // a link with a section (e.g. a notification to #connections) scrolls there once the page is up
+    useEffect(() => {
+        if (!club || !hash) return undefined;
+        const element = document.getElementById(hash.slice(1));
+        if (!element) return undefined;
+        const timer = setTimeout(() => element.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+        return () => clearTimeout(timer);
+    }, [hash, club]);
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');

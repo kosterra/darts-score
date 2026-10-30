@@ -36,7 +36,8 @@ const notifyAdmins = async (clubId, notice) => {
     try {
         const club = await Club.findById(clubId, 'admins name').lean();
         const admins = club?.admins ?? [];
-        if (admins.length) await deliver(admins.map(user => ({ user, club: clubId, link: '/club#connections', ...notice })));
+        // the connections (accept/decline) live on the club's edit page, not its dashboard
+        if (admins.length) await deliver(admins.map(user => ({ user, club: clubId, link: `/my-clubs/${clubId}#connections`, ...notice })));
     } catch (err) {
         logger.error(err, 'Failed to tell a club about a connection');
     }
