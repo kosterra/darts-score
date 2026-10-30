@@ -9,7 +9,7 @@ import PublicService from '../../services/public.service';
 import PublicGameCard from './public.game.card';
 import PublicClubCard from './public.club.card';
 import { ShowcaseShot, PhoneShot } from './showcase.shot';
-import HeroBoard from './hero.board';
+import ThrowBoard from './throw.board';
 import CountUp from './count.up';
 import OneEightyCelebration from '../games/common/one.eighty.celebration';
 import { locale, t } from '../../utils/i18n';
@@ -242,7 +242,6 @@ const LandingPage = () => {
                             <div className="landing-hero-shots">
                                 <ShowcaseShot name="x01-game" alt={t('An X01 game in Legmate: the scores, the ways out and the board to tap the darts on')} eager />
                                 <PhoneShot name="x01-game-phone" alt={t('The same X01 game on a phone')} />
-                                <HeroBoard onMoment={celebrate} />
                             </div>
                         </div>
                     </div>
@@ -406,10 +405,14 @@ const LandingPage = () => {
 
                 <section className="container">
                     <div className="landing-cta" data-reveal>
-                        <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
-                        <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
-                        <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
-                        <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Legmate')}</Link></span>
+                        <div className="landing-cta-text">
+                            <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
+                            <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
+                            <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
+                            <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Legmate')}</Link></span>
+                        </div>
+                        {/* a board to throw at, 180 after 180, with a treat for whoever hits the bull */}
+                        <ThrowBoard onMoment={celebrate} />
                     </div>
                 </section>
             </main>

@@ -27,13 +27,13 @@ const wordOf = (field) => field === 'D25' ? 'Bull' : field === 'S25' ? '25' : fi
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * The small dartboard of the start page: three darts fly into the treble 20,
+ * The small dartboard of the start page, beside its last word: three darts fly into the treble 20,
  * 180, again and again. A visitor can throw at it themselves, a tap for each
  * dart, with the score under it; onMoment('bull') when they hit the
  * bullseye, onMoment('180') when their three darts make 180. With reduced
  * motion the three darts sit in the board.
  */
-const HeroBoard = ({ onMoment }) => {
+const ThrowBoard = ({ onMoment }) => {
     const still = reducedMotion();
     const [darts, setDarts] = useState(still ? THROW : []);
     // the visitor throws: the loop stops until they are done
@@ -81,4 +81,4 @@ const HeroBoard = ({ onMoment }) => {
     );
 };
 
-export default HeroBoard;
+export default ThrowBoard;
