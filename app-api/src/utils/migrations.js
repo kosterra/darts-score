@@ -284,6 +284,18 @@ const migrations = [
         },
     },
     {
+        id: '2026-10-club-tally-drop-legacy-sourceid',
+        description: 'Make sure the old unique sourceId_1 index on the club tally is gone, so a game can count for several clubs (the earlier migration may have been recorded done before dropping it)',
+        run: async () => {
+            const collection = db.clubTally.collection;
+            if ((await collection.indexes()).some(index => index.name === 'sourceId_1')) {
+                await collection.dropIndex('sourceId_1');
+                logger.info('Dropped the leftover unique index on the club tally (sourceId)');
+            }
+            return true;
+        },
+    },
+    {
         id: '2026-10-onboarding',
         description: 'Accounts from before the welcome tour have no need of it: their tour and first steps count as done',
         run: async () => {
