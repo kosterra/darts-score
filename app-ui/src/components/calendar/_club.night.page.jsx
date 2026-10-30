@@ -25,6 +25,8 @@ import GameStatusTag from '../elements/game.status.tag';
 import GamePlayers from '../dashboard/widgets/game.players';
 import { Lines } from '../elements/skeletons';
 import usePageTitle from '../../utils/use.page.title';
+import PlayerOption from '../elements/player.option';
+import usePlayerLevels from '../../utils/use.player.levels';
 
 // the table follows the games played on the other boards
 const REFRESH_MS = 20 * 1000;
@@ -48,6 +50,7 @@ const ClubNightPage = () => {
     const { activeClub } = useAuth();
     const [night, setNight] = useState(null);
     const [members, setMembers] = useState([]);
+    const levels = usePlayerLevels();
     const [players, setPlayers] = useState(null);
     const [evening, setEvening] = useState(null);
     const [error, setError] = useState('');
@@ -159,7 +162,7 @@ const ClubNightPage = () => {
                             </span>
                         ))}
                         {notPlaying.length > 0 &&
-                            <Dropdown value={null} options={notPlaying.map(member => ({ label: member.nickname, value: member.id }))} onChange={(event) => setChosen([...players, event.value])} placeholder={t('Add a member')} filter className="club-night-add" />}
+                            <Dropdown value={null} options={notPlaying.map(member => ({ label: member.nickname, value: member.id, player: member }))} itemTemplate={(option) => <PlayerOption player={option.player} level={levels[option.value]} />} onChange={(event) => setChosen([...players, event.value])} placeholder={t('Add a member')} filter className="club-night-add" />}
                     </div>
                 </Panel>
 

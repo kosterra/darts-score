@@ -42,6 +42,8 @@ import { AskDeletionDialog, DeletionRequestDialog } from './deletion.request.dia
 import { t } from '../../utils/i18n';
 import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
+import PlayerOption from '../elements/player.option';
+import usePlayerLevels from '../../utils/use.player.levels';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
 const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
@@ -212,6 +214,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
     const playersById = useMemo(() => new Map(players.map(player => [player.id, player])), [players]);
 
     // the player filter offers the players who appear in the loaded games
+    const levels = usePlayerLevels();
     const playerOptions = useMemo(() => {
         const ids = new Set((games ?? []).flatMap(game => game.players));
         return players.filter(player => ids.has(player.id));
@@ -377,6 +380,8 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
                     options={playerOptions}
                     optionLabel="nickname"
                     optionValue="id"
+                    itemTemplate={(player) => <PlayerOption player={player} level={levels[player.id]} />}
+                    valueTemplate={(player, props) => (player ? <PlayerOption player={player} level={levels[player.id]} /> : props.placeholder)}
                     onChange={(e) => setPlayerId(e.value)}
                     placeholder={t('All players')}
                     filter

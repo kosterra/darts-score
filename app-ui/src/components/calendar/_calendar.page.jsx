@@ -19,6 +19,7 @@ import { MAX_CLUB_NIGHTS, NOTE_MAX, REASON_MAX, addDays, dayKey, monthGrid, nigh
 import { roundName } from '../tournaments/tournament.words';
 import { Lines } from '../elements/skeletons';
 import CalendarMonth from './calendar.month';
+import TimeField from '../elements/time.field';
 
 const WEEKS = 8;
 // the view chosen last on this device: the coming weeks as a list, or a month
@@ -45,7 +46,7 @@ const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0];
 const eventWords = (event) => ({
     registrationEnds: { icon: FaHourglassHalf, what: t('Registration ends') },
     tournamentRound: { icon: FaSitemap, what: roundName(event.round) },
-    matchday: { icon: FaListOl, what: t('Matchday {{day}}', { day: event.day }) },
+    matchday: { icon: FaListOl, what: event.planned ? t('Matchday {{day}} (planned)', { day: event.day }) : t('Matchday {{day}}', { day: event.day }) },
 })[event.type];
 
 /**
@@ -142,9 +143,9 @@ const NightsEditor = ({ nights, onSave, busy }) => {
                 <div key={index} className="calendar-night-row">
                     <Dropdown value={row.weekday} options={WEEKDAYS.map(weekday => ({ label: weekdayName(weekday), value: weekday, disabled: weekday !== row.weekday && rows.some(other => other.weekday === weekday) }))} onChange={(event) => set(index, { weekday: event.value })} aria-label={t('Day')} />
                     <span className="d-flex align-items-center gap-2">
-                        <InputText type="time" value={row.start} onChange={(event) => set(index, { start: event.target.value })} aria-label={t('From')} className="calendar-time" />
+                        <TimeField value={row.start} onChange={(start) => set(index, { start })} ariaLabel={t('From')} className="calendar-time" />
                         <span className="text-faint">–</span>
-                        <InputText type="time" value={row.end ?? ''} onChange={(event) => set(index, { end: event.target.value })} aria-label={t('Until')} className="calendar-time" />
+                        <TimeField value={row.end ?? ''} onChange={(end) => set(index, { end })} ariaLabel={t('Until')} placeholder={t('Open end')} clearable className="calendar-time" />
                     </span>
                     <InputText value={row.note ?? ''} onChange={(event) => set(index, { note: event.target.value })} maxLength={NOTE_MAX} placeholder={t('Note, e.g. the place')} aria-label={t('Note')} className="calendar-note" />
                     <Button icon="pi pi-trash" text rounded severity="secondary" size="small" aria-label={t('Remove')} title={t('Remove')} onClick={() => setRows(rows.filter((_, at) => at !== index))} />

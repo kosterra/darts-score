@@ -29,6 +29,8 @@ import { KpiChip } from '../stats/players/kpi';
 import { Avatar } from 'primereact/avatar';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { ACCENT } from '../../utils/palette';
+import PlayerOption from '../elements/player.option';
+import usePlayerLevels from '../../utils/use.player.levels';
 
 /**
  * What can be done with a match: start it (its players or an admin, with who
@@ -97,6 +99,7 @@ const TournamentPage = () => {
     const toast = useRef(null);
     const { isClubAdmin, activeClub } = useAuth();
     const [tournament, setTournament] = useState(null);
+    const levels = usePlayerLevels();
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
     const [selected, setSelected] = useState(null);
@@ -358,7 +361,8 @@ const TournamentPage = () => {
                         <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
                             <Dropdown
                                 value={null}
-                                options={notAsked.map(member => ({ label: member.nickname, value: member.id }))}
+                                options={notAsked.map(member => ({ label: member.nickname, value: member.id, player: member }))}
+                                itemTemplate={(option) => <PlayerOption player={option.player} level={levels[option.value]} />}
                                 onChange={(event) => answerFor(event.value, 'in')}
                                 placeholder={t('Enter a member who joined later')}
                                 filter

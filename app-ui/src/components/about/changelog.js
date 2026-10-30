@@ -10,6 +10,8 @@ const CHANGELOG = [
         version: '2026.10.23',
         changes: [
             t('Arranging a dashboard: the place a dragged widget will land shows as a dashed frame.'),
+            t('Every list of players to pick from shows their picture and their level: the player filter of the games and trainings, the players of a league, a member added to a club night or entered into a tournament.'),
+            t('Calendar: the matchdays of every league, also one not started yet (as planned) or finished; the club nights\' times as a list of quarter hours, in 24 hours.'),
             t('The mails of Legmate in the look of the app, in its light theme: the logo, the subject as the title with its green line, the text and the green button on a white card.'),
         ],
     },

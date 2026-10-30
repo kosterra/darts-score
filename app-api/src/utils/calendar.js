@@ -144,7 +144,7 @@ export const clubEvening = async (club, { from, to, players }) => {
 const competitionsOf = async (clubIds) => {
     const [tournaments, leagues] = await Promise.all([
         db.tournament.find({ club: { $in: clubIds }, status: { $nin: ['draft', 'cancelled'] } }, 'club name status closesAt rounds').lean(),
-        db.league.find({ club: { $in: clubIds }, status: 'running' }, 'club name status matchdays').lean(),
+        db.league.find({ club: { $in: clubIds }, status: { $ne: 'cancelled' } }, 'club name status matchdays firstDay everyDays meetings players').lean(),
     ]);
     const plain = (list) => list.map(entry => ({ ...entry, id: String(entry._id), club: String(entry.club) }));
     return { tournaments: plain(tournaments), leagues: plain(leagues) };

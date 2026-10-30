@@ -20,6 +20,8 @@ import { rulesText } from '../tournaments/tournament.words';
 import { Lines } from '../elements/skeletons';
 import DateTimeField from '../elements/date.time.field';
 import SetupBox from '../elements/setup.box';
+import PlayerOption from '../elements/player.option';
+import usePlayerLevels from '../../utils/use.player.levels';
 
 // a match of a club league: 501 double out, best of 5 legs
 const DEFAULT_RULES = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 5 };
@@ -46,6 +48,7 @@ const LeagueEditor = () => {
     const [stored, setStored] = useState(null);
     const [form, setForm] = useState(null);
     const [members, setMembers] = useState([]);
+    const levels = usePlayerLevels();
     const [rulesOpen, setRulesOpen] = useState(false);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
@@ -112,7 +115,9 @@ const LeagueEditor = () => {
                                 <SetupBox title={t('Players')} hint={t('From 3 to 20 members of the club.')}>
                                     <MultiSelect
                                         value={form.players}
-                                        options={members.map(member => ({ label: member.nickname, value: member.id }))}
+                                        options={members.map(member => ({ label: member.nickname, value: member.id, player: member }))}
+                                        itemTemplate={(option) => <PlayerOption player={option.player} level={levels[option.value]} />}
+                                        selectedItemTemplate={(id) => (id ? <PlayerOption player={members.find(member => member.id === id)} /> : null)}
                                         onChange={(event) => set({ players: event.value })}
                                         placeholder={t('Choose the members who play')}
                                         filter

@@ -1253,3 +1253,24 @@ $fair-play-suspicious: $accentAmber;
 
 // a message in a form (what is missing, what went wrong): the size of the form's text, not body text
 .p-message .p-message-text { font-size: $text-md; }
+
+// a player to pick from a list: the picture, the name and the level in one line
+.player-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
+
+  .player-option-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+  .player-option-name { min-width: 0; font-weight: $weight-semibold; }
+  .level-badge { margin-top: 0.1rem; }
+}
+
+// the chips of a multiselect: the picture small, the name beside it on one line
+.p-multiselect-token .player-option {
+  gap: 0.35rem;
+
+  .player-option-avatar { width: 1.35rem; height: 1.35rem; font-size: 0.55rem; }
+  .player-option-name { font-weight: $weight-regular; }
+}
