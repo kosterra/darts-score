@@ -8,6 +8,7 @@ import ClubService from '../../services/club.service';
 import ClubLogo from '../elements/club.logo';
 import CountryFlag from '../elements/country.flag';
 import DeletePopup from '../elements/delete.popup';
+import SettingSwitch from '../elements/setting.switch';
 import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 
@@ -17,7 +18,7 @@ import { formatDate } from '../../utils/dates';
  * ask another club. A connection grants no access to the other club's players
  * or statistics; it only lets the two invite each other into tournaments.
  */
-const ClubConnections = ({ club, onSaved, onError }) => {
+const ClubConnections = ({ club, onSaved, onError, onSetting }) => {
     const [links, setLinks] = useState(null);
     const [failed, setFailed] = useState(false);
     const [search, setSearch] = useState('');
@@ -116,6 +117,15 @@ const ClubConnections = ({ club, onSaved, onError }) => {
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     {t('Connect with another club to play shared tournaments together. Each club keeps its own players and statistics; a connection only lets you invite each other into a tournament.')}
                 </p>
+
+                {onSetting &&
+                    <SettingSwitch
+                        id="club-connectable"
+                        title={t('Findable by other clubs')}
+                        hint={t('Other clubs can find yours by name and ask to connect. Turn this off to stay hidden; your existing connections are not affected.')}
+                        checked={club.connectable !== false}
+                        onChange={(value) => onSetting({ connectable: value }, value ? t('Other clubs can find yours.') : t('Your club is hidden from other clubs.'))}
+                    />}
 
                 {failed && <p className="text-subtle fs-7 m-0">{t('The connections could not be loaded. Please reload the page.')}</p>}
 

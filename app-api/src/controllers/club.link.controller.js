@@ -84,7 +84,8 @@ export const connectable = async (req, res) => {
     const q = String(req.query.q ?? '').trim().slice(0, 50);
     const links = await ClubLink.find({ clubs: club._id }, 'clubs').lean();
     const taken = new Set(links.map(link => otherClub(link, club._id)));
-    const filter = { _id: { $ne: club._id }, ...(q && { name: { $regex: escapeRegex(q), $options: 'i' } }) };
+    // clubs that turned off being findable are left out of the search
+    const filter = { _id: { $ne: club._id }, connectable: { $ne: false }, ...(q && { name: { $regex: escapeRegex(q), $options: 'i' } }) };
     const clubs = await Club.find(filter, 'name logo country').sort({ name: 1 }).limit(100).lean();
     res.json(clubs
         .filter(other => !taken.has(String(other._id)))

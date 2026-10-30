@@ -76,7 +76,7 @@ export default (app) => {
     router.post('/', clubValidator, validate, ClubController.create);
     router.put('/:id',
         clubValidator,
-        ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren'].map(setting =>
+        ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren', 'connectable'].map(setting =>
             body(setting).optional().isBoolean({ strict: true }).withMessage(`${setting} must be true or false.`)),
         body('joinPolicy').optional().isIn(['open', 'approval', 'closed']).withMessage('New members join freely, are accepted by an admin, or are added by the admins only.'),
         body('shameMinAge').optional().isInt({ min: 6, max: 21 }).withMessage('The age limit must be between 6 and 21.').toInt(),

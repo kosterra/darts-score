@@ -379,7 +379,7 @@ const ClubEditPage = () => {
             {/* what the club earned together, and the goals its admins set */}
             <ClubGoalsEditor club={club} key={`goals-${club.id}`} onError={showError} />
             {/* connections to other clubs, to play shared tournaments */}
-            <ClubConnections club={club} key={`connections-${club.id}`} onSaved={showSaved} onError={showError} />
+            <ClubConnections club={club} key={`connections-${club.id}`} onSaved={showSaved} onError={showError} onSetting={saveSetting} />
             {/* the club's own rules for its games */}
             <ClubGameRules club={club} key={club.id} onSaved={refreshClubs} onError={showError} />
         </div>
