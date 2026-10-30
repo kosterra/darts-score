@@ -4,6 +4,8 @@
 
 REST API **and** React UI for the [darts-score](https://github.com/kosterra/darts-score-sample) application. Built with **Express 5**, **Mongoose 9**, and **Node.js 24**. Serves the React frontend, player management, game data (X01, Cricket, Elimination, Around-the-Clock), player images, and statistics — all from a single container.
 
+> **Developers:** the deep technical reference (architecture, data model, backend/frontend internals, security, CI/CD, operations) is in [`docs/`](docs/README.md). This README is the quick-start and self-hosting guide.
+
 ---
 
 ## Table of Contents
