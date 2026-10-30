@@ -3,6 +3,7 @@ import { body, param, query } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as ClubController from '../controllers/club.controller.js';
 import * as ClubJoinController from '../controllers/club.join.controller.js';
+import * as ClubLinkController from '../controllers/club.link.controller.js';
 import { emailValidator, nameValidators, passwordValidator } from './auth.routes.js';
 import { uploadClubLogo } from '../controllers/file.controller.js';
 
@@ -43,6 +44,35 @@ export default (app) => {
         validate,
         ClubJoinController.decide
     );
+    // connections between clubs, to play shared tournaments (club admins)
+    const clubId = param('id').isMongoId().withMessage('Invalid club.');
+    router.get('/:id/connections', clubId, validate, ClubLinkController.list);
+    router.get('/:id/connections/connectable',
+        clubId,
+        query('q').optional().isString().isLength({ max: 50 }).withMessage('Search with at most 50 characters.'),
+        validate,
+        ClubLinkController.connectable
+    );
+    router.post('/:id/connections',
+        clubId,
+        body('clubId').isMongoId().withMessage('Choose a club to connect to.'),
+        validate,
+        ClubLinkController.request
+    );
+    router.put('/:id/connections/:linkId',
+        clubId,
+        param('linkId').isMongoId().withMessage('Invalid connection.'),
+        body('accept').isBoolean({ strict: true }).withMessage('accept must be true or false.'),
+        validate,
+        ClubLinkController.decide
+    );
+    router.delete('/:id/connections/:linkId',
+        clubId,
+        param('linkId').isMongoId().withMessage('Invalid connection.'),
+        validate,
+        ClubLinkController.remove
+    );
+
     router.post('/', clubValidator, validate, ClubController.create);
     router.put('/:id',
         clubValidator,

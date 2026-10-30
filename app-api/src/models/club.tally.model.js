@@ -28,6 +28,9 @@ export default (mongoose) => {
     { timestamps: false }
   );
   schema.index({ club: 1, at: 1 });
-  schema.index({ sourceId: 1 }, { unique: true });
+  // one tally per club and game: a shared tournament's game counts for every
+  // club that took part, each with its own players (see utils/club.badge.service.js)
+  schema.index({ club: 1, sourceId: 1 }, { unique: true });
+  schema.index({ sourceId: 1 });
   return mongoose.model('clubtally', schema);
 };

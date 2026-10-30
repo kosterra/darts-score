@@ -129,6 +129,40 @@ export const syncGameBadges = async (clubId, game, type = null) => {
 };
 
 /**
+ * After a finished shared-tournament game (see utils/tournaments.js): every
+ * player's own badges (in whatever club they play), then — per club that took
+ * part — the club tally of that club's players and its club badges. So a game
+ * played between connected clubs counts for each club's own players only.
+ */
+export const syncTournamentGameBadges = async (game, type = null) => {
+    try {
+        const ids = (game.players ?? []).filter(id => db.mongoose.isValidObjectId(id)).map(String);
+        // personal badges for everyone who played, regardless of which club they belong to
+        const players = await db.player.find({ _id: { $in: ids }, guest: { $ne: true } });
+        for (const player of players) await syncPlayerBadges(player, { notify: true });
+        if (!type || !game.tournament?.id) return [];
+        const tournament = await db.tournament.findById(game.tournament.id, 'club invitedClubs entries').lean();
+        if (!tournament) return [];
+        // each player's club in this tournament, from their entry (the host by default)
+        const clubOf = new Map((tournament.entries ?? []).map(entry => [String(entry.player), entry.club ? String(entry.club) : String(tournament.club)]));
+        const byClub = new Map();
+        for (const id of ids) {
+            const club = clubOf.get(id) ?? String(tournament.club);
+            if (!byClub.has(club)) byClub.set(club, []);
+            byClub.get(club).push(id);
+        }
+        let fresh = [];
+        for (const [club, clubPlayers] of byClub) {
+            fresh = fresh.concat(await syncClubAfterGame(club, type, game, { onlyPlayers: clubPlayers }));
+        }
+        return fresh;
+    } catch (err) {
+        logger.error(err, 'Failed to update badges after a tournament game');
+        return [];
+    }
+};
+
+/**
  * Deletes a game or training and takes back the badges earned in it (they
  * come back if the player earned them again elsewhere); its fair play review
  * goes along. type: a key of GAME_MODELS or 'training'. Resolves to the
@@ -140,8 +174,8 @@ export const removeWithBadges = async (type, doc) => {
         .filter(playerId => playerId && db.mongoose.isValidObjectId(playerId));
     await doc.deleteOne();
     await db.integrityReview.deleteMany({ sourceType: type, sourceId: id });
-    // what it added to the club goes too (the club keeps the badges it earned)
-    await db.clubTally.deleteOne({ sourceId: id });
+    // what it added to its clubs goes too (a shared game counts for several; the clubs keep earned badges)
+    await db.clubTally.deleteMany({ sourceId: id });
     const players = await db.player.find({ _id: { $in: playerIds } });
     for (const player of players) {
         const before = player.badges.length;

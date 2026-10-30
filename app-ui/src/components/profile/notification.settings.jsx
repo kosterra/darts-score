@@ -29,6 +29,7 @@ const TOPICS = {
     clubGoals: { title: t('Club goals'), hint: t('Your club reached a goal.') },
     joining: { title: t('Joining clubs'), hint: t('Your request to join a club was accepted or declined, or a club was handed over to you.') },
     joinRequests: { title: t('Requests to join'), hint: t('Someone asks to join your club, or joined it.') },
+    connections: { title: t('Club connections'), hint: t('Another club asks to connect, or accepts your request, to play shared tournaments.') },
     fairPlayFound: { title: t('Fair play'), hint: t('A game or training in your club that cannot be real.') },
     goalEnding: { title: t('Goals ending'), hint: t('A goal of your club ends within a week, with how far it is.') },
     inviteUnused: { title: t('Unused invitations'), hint: t('Someone who got a login has not used it after a week.') },

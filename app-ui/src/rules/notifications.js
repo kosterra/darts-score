@@ -45,6 +45,7 @@ export const NOTIFICATION_TOPICS = [
     { id: 'clubNights', group: 'club', kinds: ['clubNightCancelled', 'clubNightReminder'], inApp: true, mail: 'instant' },
 
     { id: 'joinRequests', group: 'admin', kinds: ['joinRequested', 'clubJoined'], inApp: true, mail: 'instant' },
+    { id: 'connections', group: 'admin', kinds: ['clubConnectionRequested', 'clubConnectionAccepted'], inApp: true, mail: 'instant' },
     { id: 'fairPlayFound', group: 'admin', kinds: ['fairPlayFound'], inApp: true, mail: 'daily' },
     { id: 'goalEnding', group: 'admin', kinds: ['goalEnding'], inApp: true, mail: 'off' },
     { id: 'inviteUnused', group: 'admin', kinds: ['inviteUnused'], inApp: true, mail: 'off' },

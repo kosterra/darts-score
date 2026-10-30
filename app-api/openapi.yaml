@@ -1755,6 +1755,124 @@ paths:
         '410':
           description: The account that asked is gone
       operationId: putClubsByidJoinRequestsByrequestId
+  /api/clubs/{id}/connections:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Club connections
+      summary: The club's connections and pending requests (club admins)
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: getClubsByidConnections
+    post:
+      tags:
+        - Club connections
+      summary: Ask another club for a connection (club admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - clubId
+              properties:
+                clubId:
+                  type: string
+      responses:
+        '201':
+          description: The pending connection
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Already connected or a request is pending
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postClubsByidConnections
+  /api/clubs/{id}/connections/connectable:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - Club connections
+      summary: Clubs this club can connect to, searchable with ?q= (club admins)
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: getClubsByidConnectionsConnectable
+  /api/clubs/{id}/connections/{linkId}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: linkId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+        - Club connections
+      summary: Accept or decline a connection request addressed to the club (club admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accept
+              properties:
+                accept:
+                  type: boolean
+      responses:
+        '200':
+          description: The connection after the decision
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Decided already
+      operationId: putClubsByidConnectionsBylinkId
+    delete:
+      tags:
+        - Club connections
+      summary: Remove a connection, or withdraw a request the club sent (club admins)
+      responses:
+        '200':
+          description: Removed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: deleteClubsByidConnectionsBylinkId
   /api/users:
     get:
       tags:

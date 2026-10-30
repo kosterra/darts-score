@@ -83,6 +83,13 @@ const loadJoinRequests = (clubId) => requestJSON(`${API_URL}/${clubId}/join-requ
 const decideJoinRequest = (clubId, requestId, accept) =>
     requestJSON(`${API_URL}/${clubId}/join-requests/${requestId}`, { method: 'PUT', body: { accept } });
 
+// connections between clubs, to play shared tournaments (club admins)
+const loadConnections = (clubId) => requestJSON(`${API_URL}/${clubId}/connections`);
+const loadConnectable = (clubId, q = '') => requestJSON(`${API_URL}/${clubId}/connections/connectable${q ? `?q=${encodeURIComponent(q)}` : ''}`);
+const requestConnection = (clubId, otherClubId) => requestJSON(`${API_URL}/${clubId}/connections`, { method: 'POST', body: { clubId: otherClubId } });
+const decideConnection = (clubId, linkId, accept) => requestJSON(`${API_URL}/${clubId}/connections/${linkId}`, { method: 'PUT', body: { accept } });
+const removeConnection = (clubId, linkId) => requestJSON(`${API_URL}/${clubId}/connections/${linkId}`, { method: 'DELETE' });
+
 const ClubService = {
     updateGoals,
     uploadLogo,
@@ -102,7 +109,12 @@ const ClubService = {
     withdrawJoinRequest,
     loadMyJoinRequests,
     loadJoinRequests,
-    decideJoinRequest
+    decideJoinRequest,
+    loadConnections,
+    loadConnectable,
+    requestConnection,
+    decideConnection,
+    removeConnection
 };
 
 export default ClubService;

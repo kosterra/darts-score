@@ -5,11 +5,13 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
+import { MultiSelect } from 'primereact/multiselect';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 
 import TournamentService from '../../services/tournament.service';
+import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import { GROUP_ROUND, INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
@@ -123,16 +125,18 @@ export const RoundRules = ({ rules, onChange, disabled }) => {
 const TournamentEditor = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { isClubAdmin } = useAuth();
+    const { isClubAdmin, activeClub } = useAuth();
     const [stored, setStored] = useState(null);
     const [form, setForm] = useState(null);
     const [openRound, setOpenRound] = useState(null);
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
+    // the clubs this club is connected with, to invite into a shared tournament
+    const [connected, setConnected] = useState([]);
 
     useEffect(() => {
         if (!id) {
-            setForm({ name: '', description: '', format: 'knockout', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), invite: 'mail', rounds: roundsFor(16, 'clubClassic') });
+            setForm({ name: '', description: '', format: 'knockout', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), invite: 'mail', invitedClubs: [], rounds: roundsFor(16, 'clubClassic') });
             return;
         }
         TournamentService.loadTournament(id).then(loaded => {
@@ -141,10 +145,19 @@ const TournamentEditor = () => {
                 name: loaded.name, description: loaded.description ?? '', format: loaded.format ?? 'knockout', maxPlayers: loaded.maxPlayers, preset: loaded.preset ?? null,
                 closesAt: new Date(loaded.closesAt),
                 invite: loaded.invite ?? 'mail',
+                invitedClubs: (loaded.invitedClubs ?? []).map(String),
                 rounds: loaded.rounds.map(round => ({ ...round, date: round.date ? new Date(round.date) : null })),
             });
         }).catch(err => setError(err.message));
     }, [id]);
+
+    // the accepted connections of the active club, for the "play with" picker
+    useEffect(() => {
+        if (!activeClub?.id) return;
+        ClubService.loadConnections(activeClub.id)
+            .then(links => setConnected(links.filter(link => link.status === 'accepted').map(link => ({ id: link.club, name: link.clubName }))))
+            .catch(() => setConnected([]));
+    }, [activeClub?.id]);
 
     // the rounds with a match started or decided keep their day and rules
     const played = useMemo(() => new Set((stored?.matches ?? []).filter(match => match.status === 'running' || (isDecided(match) && !match.bye)).map(match => match.size)), [stored]);
@@ -184,7 +197,7 @@ const TournamentEditor = () => {
     const save = async (open) => {
         setError('');
         setBusy(open ? 'open' : 'save');
-        const setup = { name: form.name, description: form.description, format: form.format, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, invite: form.invite, rounds: form.rounds };
+        const setup = { name: form.name, description: form.description, format: form.format, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, invite: form.invite, invitedClubs: form.invitedClubs ?? [], rounds: form.rounds };
         try {
             let saved;
             if (!stored) saved = await TournamentService.createTournament({ ...setup, open });
@@ -265,6 +278,24 @@ const TournamentEditor = () => {
                                 />
                             </SetupBox>
                         </div>
+                        {connected.length > 0 &&
+                            <div className="col-12">
+                                <SetupBox title={t('Play with connected clubs')} hint={t('Invite a club you are connected with: their admin enters their players, and you play the tournament together. Each club keeps its own players and statistics.')}>
+                                    <MultiSelect
+                                        value={form.invitedClubs ?? []}
+                                        options={connected}
+                                        optionLabel="name"
+                                        optionValue="id"
+                                        onChange={(event) => set({ invitedClubs: event.value })}
+                                        display="chip"
+                                        filter={connected.length > 6}
+                                        placeholder={t('Only your club')}
+                                        disabled={!early && stored?.status !== 'closed'}
+                                        aria-label={t('Play with connected clubs')}
+                                        className="w-100"
+                                    />
+                                </SetupBox>
+                            </div>}
                         <div className="col-12">
                             <SetupBox title={t('Rounds')}>
                                 <div className="d-flex flex-wrap justify-content-center gap-1">
