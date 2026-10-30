@@ -272,13 +272,13 @@ const migrations = [
         description: 'A game can count for more than one club (shared tournaments between connected clubs): the club tally is unique per club and game, not per game',
         run: async () => {
             const collection = db.clubTally.collection;
-            const names = (await collection.indexes()).map(index => index.name);
-            // drop the old "one tally per game" unique index so a game can count for several clubs
-            if (names.includes('sourceId_1') && !names.includes('club_1_sourceId_1')) {
+            // drop the old "one tally per game" unique index (sourceId_1) so a game can count
+            // for several clubs; the model's indexes (unique { club, sourceId } and the named
+            // sourceId_lookup) are built by Mongoose, which is why the plain one is not named sourceId_1
+            if ((await collection.indexes()).some(index => index.name === 'sourceId_1')) {
                 await collection.dropIndex('sourceId_1');
                 logger.info('Dropped the old unique index on the club tally (sourceId)');
             }
-            // the new indexes (unique { club, sourceId } and a plain sourceId) are defined on the model
             await db.clubTally.createIndexes();
             return true;
         },
