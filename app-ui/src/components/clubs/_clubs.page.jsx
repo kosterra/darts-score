@@ -41,9 +41,9 @@ const ClubsPage = () => {
             const club = await ClubService.createClub(newName);
             setNewName('');
             await refreshClubs();
-            // The first club becomes the one the app works in
-            if (!activeClub) selectClub(club.id);
-            toast.current.show({ severity: 'success', summary: t('Club created'), detail: club.name, life: 3000 });
+            // the new club becomes the one the app works in, and its guided setup opens
+            selectClub(club.id);
+            navigate(`/my-clubs/${club.id}/setup`);
         } catch (error) {
             showError(t('Create club'), error);
         }

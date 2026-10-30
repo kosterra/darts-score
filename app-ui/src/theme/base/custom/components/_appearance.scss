@@ -130,3 +130,14 @@
   font-size: $text-xs;
   text-align: center;
 }
+
+// the step dots of the guided club setup (club.setup.wizard.jsx)
+.wizard-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, #{$primaryColor} 22%, transparent);
+  transition: background 0.2s ease;
+
+  &.is-done { background: $primaryColor; }
+}
