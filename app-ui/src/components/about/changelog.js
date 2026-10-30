@@ -10,6 +10,7 @@ const CHANGELOG = [
         version: '2026.10.23',
         changes: [
             t('Arranging a dashboard: the place a dragged widget will land shows as a dashed frame.'),
+            t('The mails of Legmate in the look of the app, in its light theme: the logo, the subject as the title with its green line, the text and the green button on a white card.'),
         ],
     },
     {
