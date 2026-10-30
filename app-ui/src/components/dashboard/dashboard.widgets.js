@@ -9,20 +9,12 @@ import { locale, t } from '../../utils/i18n';
 
 // the widths of a widget: S a third, M half, L two thirds, F the full width; all full width on a phone
 export const WIDGET_SIZES = [
-    { value: 'S', label: t('S'), title: t('A third') },
-    { value: 'M', label: t('M'), title: t('Half') },
-    { value: 'L', label: t('L'), title: t('Two thirds') },
-    { value: 'F', label: t('Full'), title: t('The full width') },
+    { value: 'S', label: t('S'), title: t('A third'), cols: 'col-12 col-md-6 col-xl-4' },
+    { value: 'M', label: t('M'), title: t('Half'), cols: 'col-12 col-lg-6' },
+    { value: 'L', label: t('L'), title: t('Two thirds'), cols: 'col-12 col-xl-8' },
+    { value: 'F', label: t('Full'), title: t('The full width'), cols: 'col-12' },
 ];
-// the heights: as tall as the content, or capped (the content scrolls inside), so a long list
-// takes less of the dashboard
-export const WIDGET_HEIGHTS = [
-    { value: 'auto', label: t('Auto'), title: t('As tall as its content') },
-    { value: 'S', label: t('S'), title: t('Short: the content scrolls inside') },
-    { value: 'M', label: t('M'), title: t('Medium: the content scrolls inside') },
-    { value: 'L', label: t('L'), title: t('Tall: the content scrolls inside') },
-];
-const heightOf = (item) => (WIDGET_HEIGHTS.some(entry => entry.value === item.height) ? item.height : 'auto');
+const colsOf = (size) => (WIDGET_SIZES.find(entry => entry.value === size) ?? WIDGET_SIZES[1]).cols;
 
 const integer = (value) => new Intl.NumberFormat(locale()).format(value);
 
@@ -94,16 +86,16 @@ export const toLayout = (stored, fallback = DEFAULT_LAYOUT) => {
 };
 
 /**
- * The widgets of a layout, in its order, each with its width and height:
- * [{ ...widget, size, height }]. Widgets that no longer exist are left out,
- * and the Hall of Shame for clubs that switched it off.
+ * The widgets of a layout, in its order, each with its width and its columns:
+ * [{ ...widget, size, cols }]. Widgets that no longer exist are left out, and
+ * the Hall of Shame for clubs that switched it off.
  */
 export const resolveLayout = (stored, { shameBadges = true, fallback = DEFAULT_LAYOUT } = {}) => toLayout(stored, fallback)
     .map(item => {
         const widget = widgetOf(item.id);
         if (!widget) return null;
         const size = WIDGET_SIZES.some(entry => entry.value === item.size) ? item.size : widget.size;
-        return { ...widget, size, height: heightOf(item) };
+        return { ...widget, size, cols: colsOf(size) };
     })
     .filter(Boolean)
     .filter(widget => shameBadges || widget.kind !== 'hallOfShame');

@@ -9,7 +9,7 @@ const CHANGELOG = [
     {
         version: '2026.10.23',
         changes: [
-            t('The dashboards pack like masonry: a short widget beside a tall one leaves no empty panel, the next ones move up into the room. When arranging, each widget also gets a height (auto, or capped with the content scrolling inside), and the place a dragged widget will land shows as a dashed frame.'),
+            t('Arranging a dashboard: the place a dragged widget will land shows as a dashed frame.'),
         ],
     },
     {

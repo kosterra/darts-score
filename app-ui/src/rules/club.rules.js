@@ -279,10 +279,9 @@ export const normalizeGamePreferences = (raw = {}) => {
         }
     }
     const training = plain(raw?.training) ? raw.training : {};
-    // the personal dashboard as arranged: [{ id, size, height? }], null for the usual one
+    // the personal dashboard as arranged: [{ id, size }], null for the usual one
     const dashboard = Array.isArray(raw?.dashboard)
-        ? raw.dashboard.filter(item => plain(item) && isId(item.id) && ['S', 'M', 'L', 'F'].includes(item.size)).slice(0, 40)
-            .map(({ id, size, height }) => ({ id, size, ...(['S', 'M', 'L'].includes(height) ? { height } : {}) }))
+        ? raw.dashboard.filter(item => plain(item) && isId(item.id) && ['S', 'M', 'L', 'F'].includes(item.size)).slice(0, 40).map(({ id, size }) => ({ id, size }))
         : null;
     return {
         waysOut: WAYS_OUT.includes(raw?.waysOut) ? raw.waysOut : 'all',

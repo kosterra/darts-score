@@ -2,8 +2,7 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 
-import { CLUB_WIDGETS, DEFAULT_LAYOUT, SCOPES, WIDGET_HEIGHTS, WIDGET_SIZES, resolveLayout, scopeOf } from './dashboard.widgets';
-import { DashboardCell, DashboardGrid } from './dashboard.grid';
+import { CLUB_WIDGETS, DEFAULT_LAYOUT, SCOPES, WIDGET_SIZES, resolveLayout, scopeOf } from './dashboard.widgets';
 import { t } from '../../utils/i18n';
 
 // a widget lies across (nearly) the whole row: it is moved before or after it by height, not by side
@@ -28,19 +27,19 @@ const TileContent = memo(
     function TileContent({ widget, renderWidget }) {
         return <div className="dashboard-tile-content" inert>{renderWidget(widget)}</div>;
     },
-    (before, after) => before.widget.id === after.widget.id && before.widget.size === after.widget.size && before.widget.height === after.widget.height,
+    (before, after) => before.widget.id === after.widget.id && before.widget.size === after.widget.size,
 );
 
 /**
  * One widget while the dashboard is arranged: the bar to drag it by, its
- * width, its height and remove, over its content. Drawn again only when its width or
+ * width and remove, over its content. Drawn again only when its width or
  * whether it is dragged changes, not each time the widgets change places.
  * actions: a ref with { start, key, resize, remove }, the same over time.
  */
 const EditorTile = memo(
     function EditorTile({ widget, dragged, actions, renderWidget, tileRef }) {
         return (
-            <DashboardCell widget={widget} cellRef={tileRef}>
+            <div className={widget.cols} ref={tileRef}>
                 <div className={`dashboard-tile ${dragged ? 'is-dragged' : ''}`}>
                     <div className="dashboard-tile-bar">
                         <button
@@ -55,43 +54,26 @@ const EditorTile = memo(
                             <span className="text-truncate">{widget.title}</span>
                             <ScopeTag widget={widget} />
                         </button>
-                        {/* the width and the height, each after its arrow */}
-                        <span className="dashboard-tile-choice dashboard-tile-width" title={t('Width')}>
-                            <i className="pi pi-arrows-h" aria-hidden="true" />
-                            <SelectButton
-                                value={widget.size}
-                                options={WIDGET_SIZES}
-                                optionLabel="label"
-                                optionValue="value"
-                                itemTemplate={(option) => <span title={option.title}>{option.label}</span>}
-                                onChange={(event) => event.value && actions.current.resize(widget.id, event.value)}
-                                className="p-selectbutton-pills dashboard-tile-sizes"
-                                aria-label={t('Width of {{title}}', { title: widget.title })}
-                            />
-                        </span>
-                        <span className="dashboard-tile-choice" title={t('Height')}>
-                            <i className="pi pi-arrows-v" aria-hidden="true" />
-                            <SelectButton
-                                value={widget.height ?? 'auto'}
-                                options={WIDGET_HEIGHTS}
-                                optionLabel="label"
-                                optionValue="value"
-                                itemTemplate={(option) => <span title={option.title}>{option.label}</span>}
-                                onChange={(event) => event.value && actions.current.setHeight(widget.id, event.value)}
-                                className="p-selectbutton-pills dashboard-tile-sizes"
-                                aria-label={t('Height of {{title}}', { title: widget.title })}
-                            />
-                        </span>
+                        <SelectButton
+                            value={widget.size}
+                            options={WIDGET_SIZES}
+                            optionLabel="label"
+                            optionValue="value"
+                            itemTemplate={(option) => <span title={option.title}>{option.label}</span>}
+                            onChange={(event) => event.value && actions.current.resize(widget.id, event.value)}
+                            className="p-selectbutton-pills dashboard-tile-sizes"
+                            aria-label={t('Width of {{title}}', { title: widget.title })}
+                        />
                         <Button type="button" icon="pi pi-times" text size="small" className="dashboard-tile-remove" aria-label={t('Remove {{title}}', { title: widget.title })} title={t('Remove')} onClick={() => actions.current.remove(widget.id)} />
                     </div>
                     {/* shown as it is, but it does not react while the dashboard is arranged */}
                     <TileContent widget={widget} renderWidget={renderWidget} />
                 </div>
-            </DashboardCell>
+            </div>
         );
     },
     (before, after) => before.widget.id === after.widget.id && before.widget.size === after.widget.size
-        && before.widget.height === after.widget.height && before.widget.title === after.widget.title && before.dragged === after.dragged,
+        && before.widget.cols === after.widget.cols && before.widget.title === after.widget.title && before.dragged === after.dragged,
 );
 
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -99,7 +81,7 @@ const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.
 /**
  * The dashboard while it is arranged: each widget with a bar to drag it by
  * (mouse, pen or finger; or the arrow keys on the handle), its width (S, M,
- * L, Full), its height (auto, or capped) and a button to remove it; below, the widgets not shown yet, to
+ * L, Full) and a button to remove it; below, the widgets not shown yet, to
  * add. layout: [{ id, size }], onChange(layout). renderWidget(widget) draws a
  * widget as on the dashboard; it does not react while being arranged. pool:
  * the widgets that can be added; fallback: the layout of an empty one.
@@ -131,8 +113,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, p
     // the place of each widget in the grid, without the gliding (offsets ignore transforms)
     const positions = () => new Map([...tileRefs.current].map(([id, element]) => [id, { left: element.offsetLeft, top: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight }]));
 
-    // the height is kept only when one was chosen (auto is the usual)
-    const asLayout = (list) => list.map(widget => ({ id: widget.id, size: widget.size, ...(widget.height && widget.height !== 'auto' ? { height: widget.height } : {}) }));
+    const asLayout = (list) => list.map(widget => ({ id: widget.id, size: widget.size }));
     const moveTo = (id, index) => {
         const moved = widgets.find(widget => widget.id === id);
         const rest = widgets.filter(widget => widget.id !== id);
@@ -141,7 +122,6 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, p
         onChange(asLayout([...rest.slice(0, at), moved, ...rest.slice(at)]));
     };
     const resize = (id, size) => onChange(asLayout(widgets.map(widget => widget.id === id ? { ...widget, size } : widget)));
-    const setHeight = (id, height) => onChange(asLayout(widgets.map(widget => widget.id === id ? { ...widget, height } : widget)));
     const remove = (id) => onChange(asLayout(widgets.filter(widget => widget.id !== id)));
     const add = (widget) => onChange([...asLayout(widgets), { id: widget.id, size: widget.size }]);
 
@@ -208,7 +188,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, p
     };
     // the same object over time, with what the widgets call now: the tiles are not drawn again for it
     const actions = useRef(null);
-    actions.current = { start, key, resize, setHeight, remove };
+    actions.current = { start, key, resize, remove };
     const placeRef = useRef(place);
     placeRef.current = place;
 
@@ -268,7 +248,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, p
     return (
         <>
             {widgets.length === 0 && <p className="text-subtle fs-7">{t('No widgets on the dashboard. Add some below.')}</p>}
-            <DashboardGrid gridRef={gridRef}>
+            <div className="row g-4 dashboard-grid" ref={gridRef}>
                 {widgets.map(widget => (
                     <EditorTile
                         key={widget.id}
@@ -279,7 +259,7 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, p
                         tileRef={refOf(widget.id)}
                     />
                 ))}
-            </DashboardGrid>
+            </div>
             {/* the copy of the dragged widget's bar, under the pointer */}
             {dragged &&
                 <div className="dashboard-drag-ghost" ref={ghostRef} style={{ width: dragged.width }} aria-hidden="true">

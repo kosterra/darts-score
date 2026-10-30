@@ -6,9 +6,9 @@ describe('resolveLayout', () => {
         expect(resolveLayout(undefined).map(w => w.id)).toEqual(DEFAULT_WIDGET_IDS);
         expect(resolveLayout([]).map(w => w.id)).toEqual(DEFAULT_WIDGET_IDS);
     });
-    it('keeps the order, the widths and the heights chosen (auto unless capped)', () => {
-        const widgets = resolveLayout([{ id: 'timeline', size: 'F', height: 'M' }, { id: 'totals', size: 'S' }, { id: 'records', size: 'M', height: 'XXL' }]);
-        expect(widgets.map(w => [w.id, w.size, w.height])).toEqual([['timeline', 'F', 'M'], ['totals', 'S', 'auto'], ['records', 'M', 'auto']]);
+    it('keeps the order and the widths chosen, with their columns', () => {
+        const widgets = resolveLayout([{ id: 'timeline', size: 'F' }, { id: 'totals', size: 'S' }]);
+        expect(widgets.map(w => [w.id, w.size, w.cols])).toEqual([['timeline', 'F', 'col-12'], ['totals', 'S', 'col-12 col-md-6 col-xl-4']]);
     });
     it('reads the plain widget ids stored before, each with its own width', () => {
         expect(resolveLayout(['timeline', 'totals']).map(w => [w.id, w.size])).toEqual([['timeline', 'L'], ['totals', 'F']]);

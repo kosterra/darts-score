@@ -5,8 +5,6 @@
  * longer knows is simply ignored there.
  */
 export const WIDGET_SIZES = ['S', 'M', 'L', 'F'];
-// a widget's height: as tall as its content unless capped (S, M, L: the content scrolls inside)
-export const WIDGET_HEIGHTS = ['S', 'M', 'L'];
 export const MAX_WIDGETS = 40;
 const WIDGET_ID = /^[A-Za-z0-9]{1,40}$/;
 
@@ -17,8 +15,8 @@ const FORMER_SIZES = {
 };
 
 /**
- * A layout as sent by the app, made safe: [{ id, size, height? }], each widget
- * once, at most MAX_WIDGETS. Anything else is left out.
+ * A layout as sent by the app, made safe: [{ id, size }], each widget once,
+ * at most MAX_WIDGETS. Anything else is left out.
  */
 export const normalizeLayout = (items) => {
     if (!Array.isArray(items)) return [];
@@ -28,7 +26,7 @@ export const normalizeLayout = (items) => {
         const id = typeof item?.id === 'string' ? item.id : null;
         if (!id || !WIDGET_ID.test(id) || seen.has(id)) continue;
         seen.add(id);
-        layout.push({ id, size: WIDGET_SIZES.includes(item.size) ? item.size : 'M', ...(WIDGET_HEIGHTS.includes(item.height) ? { height: item.height } : {}) });
+        layout.push({ id, size: WIDGET_SIZES.includes(item.size) ? item.size : 'M' });
         if (layout.length === MAX_WIDGETS) break;
     }
     return layout;

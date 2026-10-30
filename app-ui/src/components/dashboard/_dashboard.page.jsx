@@ -12,7 +12,6 @@ import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { DASHBOARD_WIDGETS, PERSONAL_DEFAULT_LAYOUT, resolveLayout, toLayout } from './dashboard.widgets';
 import DashboardEditor from './dashboard.editor';
-import { DashboardCell, DashboardGrid } from './dashboard.grid';
 import DashboardWidget from './dashboard.widget';
 import { t } from '../../utils/i18n';
 import FirstSteps from '../onboarding/first.steps';
@@ -131,13 +130,13 @@ const Dashboard = () => {
             {editing
                 ? <DashboardEditor layout={draft} onChange={setDraft} renderWidget={renderWidget} shameBadges={shameBadges} pool={DASHBOARD_WIDGETS} fallback={PERSONAL_DEFAULT_LAYOUT} />
                 : (
-                    <DashboardGrid>
+                    <div className="row g-4">
                         {widgets.map(widget => (
-                            <DashboardCell widget={widget} key={widget.id}>
+                            <div className={widget.cols} key={widget.id}>
                                 {renderWidget(widget)}
-                            </DashboardCell>
+                            </div>
                         ))}
-                    </DashboardGrid>
+                    </div>
                 )}
             <Toast ref={toast} position="bottom-right" />
         </div>
