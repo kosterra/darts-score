@@ -9,6 +9,7 @@ const CHANGELOG = [
     {
         version: '2026.10.23',
         changes: [
+            t('The start page moves: the headline comes in line by line, the sections as you scroll to them, the numbers count up, and a small dartboard throws 180 after 180 – tap it to throw yourself.'),
             t('Arranging a dashboard: the place a dragged widget will land shows as a dashed frame.'),
             t('Every list of players to pick from shows their picture and their level: the player filter of the games and trainings, the players of a league, a member added to a club night or entered into a tournament.'),
             t('Calendar: the matchdays of every league, also one not started yet (as planned) or finished; the club nights\' times as a list of quarter hours, in 24 hours.'),
