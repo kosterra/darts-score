@@ -9,6 +9,7 @@ import helmet       from 'helmet';
 import rateLimit    from 'express-rate-limit';
 import swaggerUi    from 'swagger-ui-express';
 import { randomBytes } from 'crypto';
+import { pathToFileURL } from 'node:url';
 import { existsSync, readFileSync } from 'fs';
 import { load as loadYaml } from 'js-yaml';
 import db           from './src/models/db.model.js';
@@ -58,16 +59,23 @@ import { getStartPageSettings } from './src/utils/start.page.settings.js';
 
 const { UI_URL } = process.env;
 
-logger.info(`Logger level: ${logger.level}`);
-// warnings and errors are also kept for the error log of global admins
-startErrorLog();
+// true when this file is run directly (node index.js), false when it is imported
+// (the integration tests import `app` and drive it with their own database, so
+// the server must not connect or listen then)
+const isMain = import.meta.url === pathToFileURL(process.argv[1] ?? '').href;
 
-process.on('unhandledRejection', (reason) => logger.error({ err: reason }, 'Unhandled promise rejection'));
-process.on('uncaughtException', (err) => {
-    logger.fatal(err, 'Uncaught exception, stopping');
-    // a moment to save the entry to the error log
-    setTimeout(() => process.exit(1), 500).unref();
-});
+if (isMain) {
+    logger.info(`Logger level: ${logger.level}`);
+    // warnings and errors are also kept for the error log of global admins
+    startErrorLog();
+
+    process.on('unhandledRejection', (reason) => logger.error({ err: reason }, 'Unhandled promise rejection'));
+    process.on('uncaughtException', (err) => {
+        logger.fatal(err, 'Uncaught exception, stopping');
+        // a moment to save the entry to the error log
+        setTimeout(() => process.exit(1), 500).unref();
+    });
+}
 
 const app = express();
 
@@ -179,25 +187,27 @@ if (HAS_UI) app.use(express.static(UI_DIST, { index: false }));
 // ---------------------------------------------------------------------------
 // Without these the connection fails with a puzzling "undefined:undefined",
 // so say plainly what is missing
-const missingDbSettings = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].filter(name => !process.env[name]);
-if (missingDbSettings.length) {
-    logger.error(`Missing database settings: ${missingDbSettings.join(', ')}. Put them in the .env file next to docker-compose.yml (Portainer: the stack's environment variables, stored as stack.env).`);
-    process.exit(1);
-}
-
-db.mongoose
-    .connect(db.url)
-    .then(() => {
-        logger.info('Connected to MongoDB');
-        startNotificationJobs();
-        startBackupJobs();
-        startMailServerChecks();
-        return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
-    })
-    .catch(err => {
-        logger.error(err, 'Cannot connect to MongoDB');
+if (isMain) {
+    const missingDbSettings = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].filter(name => !process.env[name]);
+    if (missingDbSettings.length) {
+        logger.error(`Missing database settings: ${missingDbSettings.join(', ')}. Put them in the .env file next to docker-compose.yml (Portainer: the stack's environment variables, stored as stack.env).`);
         process.exit(1);
-    });
+    }
+
+    db.mongoose
+        .connect(db.url)
+        .then(() => {
+            logger.info('Connected to MongoDB');
+            startNotificationJobs();
+            startBackupJobs();
+            startMailServerChecks();
+            return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
+        })
+        .catch(err => {
+            logger.error(err, 'Cannot connect to MongoDB');
+            process.exit(1);
+        });
+}
 
 // ---------------------------------------------------------------------------
 // Swagger UI — served at /api-docs, and at the root when there is no UI build
@@ -313,25 +323,30 @@ app.use((err, req, res, next) => {
 // ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
-const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, () => {
-    logger.info(`Server listening on ${PORT}`);
-    checkImageFolder();
-});
-
-// Graceful shutdown
-const shutdown = (signal) => {
-    logger.info(`${signal} received — shutting down`);
-    server.close(async () => {
-        // Mongoose 9 closes with a promise, no callback any more
-        try {
-            await db.mongoose.connection.close(false);
-            logger.info('MongoDB connection closed');
-        } catch (err) {
-            logger.error(err, 'Closing the MongoDB connection failed');
-        }
-        process.exit(0);
+if (isMain) {
+    const PORT = process.env.PORT || 3001;
+    const server = app.listen(PORT, () => {
+        logger.info(`Server listening on ${PORT}`);
+        checkImageFolder();
     });
-};
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT',  () => shutdown('SIGINT'));
+
+    // Graceful shutdown
+    const shutdown = (signal) => {
+        logger.info(`${signal} received — shutting down`);
+        server.close(async () => {
+            // Mongoose 9 closes with a promise, no callback any more
+            try {
+                await db.mongoose.connection.close(false);
+                logger.info('MongoDB connection closed');
+            } catch (err) {
+                logger.error(err, 'Closing the MongoDB connection failed');
+            }
+            process.exit(0);
+        });
+    };
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT',  () => shutdown('SIGINT'));
+}
+
+// for the integration tests: the configured app, driven with their own database
+export { app };
