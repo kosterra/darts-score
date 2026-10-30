@@ -139,16 +139,22 @@ const NightsEditor = ({ nights, onSave, busy }) => {
     return (
         <div className="d-flex flex-column gap-3">
             {rows.length === 0 && <span className="text-faint fs-7">{t('No club nights yet. Add the evenings the club meets every week.')}</span>}
+            {/* each night as a box of a setup (as the X01 setup and the tournament editor have them): its day as the title, the fields under it */}
             {rows.map((row, index) => (
-                <div key={index} className="calendar-night-row">
-                    <Dropdown value={row.weekday} options={WEEKDAYS.map(weekday => ({ label: weekdayName(weekday), value: weekday, disabled: weekday !== row.weekday && rows.some(other => other.weekday === weekday) }))} onChange={(event) => set(index, { weekday: event.value })} aria-label={t('Day')} />
-                    <span className="d-flex align-items-center gap-2">
-                        <TimeField value={row.start} onChange={(start) => set(index, { start })} ariaLabel={t('From')} className="calendar-time" />
-                        <span className="text-faint">–</span>
-                        <TimeField value={row.end ?? ''} onChange={(end) => set(index, { end })} ariaLabel={t('Until')} placeholder={t('Open end')} clearable className="calendar-time" />
-                    </span>
-                    <InputText value={row.note ?? ''} onChange={(event) => set(index, { note: event.target.value })} maxLength={NOTE_MAX} placeholder={t('Note, e.g. the place')} aria-label={t('Note')} className="calendar-note" />
-                    <Button icon="pi pi-trash" text rounded severity="secondary" size="small" aria-label={t('Remove')} title={t('Remove')} onClick={() => setRows(rows.filter((_, at) => at !== index))} />
+                <div key={index} className="setup-box calendar-night-box">
+                    <p className="setting-title d-flex align-items-center justify-content-between gap-2 m-0">
+                        <span className="flex-grow-1 text-center">{weekdayName(row.weekday)}</span>
+                        <Button icon="pi pi-trash" text rounded severity="secondary" size="small" className="calendar-night-remove" aria-label={t('Remove')} title={t('Remove')} onClick={() => setRows(rows.filter((_, at) => at !== index))} />
+                    </p>
+                    <div className="setting-body setup-box-body">
+                        <Dropdown value={row.weekday} options={WEEKDAYS.map(weekday => ({ label: weekdayName(weekday), value: weekday, disabled: weekday !== row.weekday && rows.some(other => other.weekday === weekday) }))} onChange={(event) => set(index, { weekday: event.value })} aria-label={t('Day')} />
+                        <span className="d-flex align-items-center justify-content-center gap-2 w-100">
+                            <TimeField value={row.start} onChange={(start) => set(index, { start })} ariaLabel={t('From')} className="calendar-time" />
+                            <span className="text-faint">–</span>
+                            <TimeField value={row.end ?? ''} onChange={(end) => set(index, { end })} ariaLabel={t('Until')} placeholder={t('Open end')} clearable className="calendar-time" />
+                        </span>
+                        <InputText value={row.note ?? ''} onChange={(event) => set(index, { note: event.target.value })} maxLength={NOTE_MAX} placeholder={t('Note, e.g. the place')} aria-label={t('Note')} className="calendar-note" />
+                    </div>
                 </div>
             ))}
             <div className="d-flex flex-wrap justify-content-between gap-2">

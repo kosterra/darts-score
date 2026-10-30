@@ -1264,13 +1264,16 @@ $fair-play-suspicious: $accentAmber;
 
   .player-option-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
   .player-option-name { min-width: 0; font-weight: $weight-semibold; }
+  .player-option-fullname { margin-left: 0.4rem; color: $textFaintColor; font-size: $text-sm; font-weight: $weight-regular; }
   .level-badge { margin-top: 0.1rem; }
 }
 
-// the chips of a multiselect: the picture small, the name beside it on one line
-.p-multiselect-token .player-option {
+// the chosen players of a multiselect, in its field: the picture small, the nickname alone
+.p-multiselect-label .player-option {
   gap: 0.35rem;
+  margin-right: 0.6rem;
 
   .player-option-avatar { width: 1.35rem; height: 1.35rem; font-size: 0.55rem; }
   .player-option-name { font-weight: $weight-regular; }
+  .player-option-fullname { display: none; }
 }

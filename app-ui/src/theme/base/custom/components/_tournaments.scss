@@ -539,16 +539,12 @@
     &:not(:disabled):hover { color: var(--text-default); }
 }
 
-.calendar-night-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: $space-2;
-    align-items: center;
-    padding-bottom: $space-3;
-    border-bottom: 1px solid ink(0.06);
-
-    .calendar-note { grid-column: 1; }
-    > .p-button { grid-column: 2; grid-row: 1 / span 3; align-self: start; }
+.calendar-night-box {
+    // the day as the title: centred, the remove at its right edge
+    .setting-title { padding-right: 0.4rem; }
+    .calendar-night-remove.p-button { width: 1.9rem; height: 1.9rem; padding: 0; margin: -0.3rem 0; }
+    // the times keep their own width, side by side
+    .setting-body .p-dropdown.calendar-time { width: 9.5rem; flex: 0 0 auto; }
 }
 
 .calendar-time { width: 9.5rem; }
