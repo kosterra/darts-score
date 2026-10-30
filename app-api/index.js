@@ -47,6 +47,7 @@ import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
+import { sanitizeBody } from './src/utils/sanitize.body.js';
 import { startErrorLog } from './src/utils/error.log.js';
 import { startNotificationJobs } from './src/utils/notification.jobs.js';
 import { startBackupJobs } from './src/utils/backups.js';
@@ -154,6 +155,9 @@ app.use(favicon(path.join(import.meta.dirname, 'public', 'favicon.ico')));
 app.use(cookieParser(getSessionSecret()));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.json({ limit: '30mb' }));
+// strip control characters and angle brackets from the free text in request
+// bodies (defence in depth; secrets and auth payloads are skipped)
+app.use('/api', sanitizeBody);
 
 // ---------------------------------------------------------------------------
 // React UI — serve static build; SPA fallback handled after API routes.
