@@ -40,6 +40,27 @@ backup before a major upgrade. Uploaded images are **not** in the database — b
 up the `darts_score_data` volume (or the host folder mounted at `/app/data`)
 separately.
 
+### The app's own backups
+
+Administration → Backups (global admins) writes one gzipped file of JSON lines with every
+collection **and** the uploaded pictures (`src/utils/backups.js`); logins stay out, so a
+restore logs nobody in or out. Made by hand, on a schedule (keep 1–60), before every
+restore, or uploaded from elsewhere; the files land in `BACKUP_DIR` (default
+`/app/data/backups`, on the `darts_score_data` volume). The `mongodump` path above
+predates this and does not include the pictures.
+
+The round trip is proven by an integration test, the **backup/restore drill**
+(`app-api/test/integration/backup.restore.integration.test.js`: backup, wreck the data,
+restore, compare every collection and the picture bytes, upload path, refusals). Run it
+with `npm run test:integration`; extend it when a new collection or file kind appears.
+
+**Encryption at rest:** neither MongoDB Community nor the app encrypts the volume or the
+backup files. Encrypt at the host (LUKS/dm-crypt under `/var/lib/docker/volumes` or the
+bind-mounted data folder), and encrypt a backup before it leaves the server:
+`age -r <recipient> legmate-….json.gz > legmate-….json.gz.age` (or `gpg -e`), key kept off
+the server, and decrypt one now and then to be sure. Treat a downloaded backup like the
+database itself: it holds password hashes, emails and the encrypted MFA secrets.
+
 ## Mail
 
 Optional (Nodemailer, `utils/mail.utils.js` + `mail.templates.js`). With SMTP
