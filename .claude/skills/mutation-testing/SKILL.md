@@ -18,7 +18,7 @@ for `app-api` (`stryker.config.json`, `npm run test:mutation`,
 cd app-api
 npm run test:mutation                                   # the configured set, ~12 min at concurrency 2
 npx stryker run --concurrency 4                         # faster on an idle machine
-npx stryker run --mutate src/utils/kpi.data.js --mutate '!src/**/*.test.js'   # one file
+npx stryker run --mutate 'src/utils/kpi.data.js,!src/**/*.test.js'   # one file: ONE --mutate, comma-separated (a repeated flag keeps only the last)
 ```
 `ignoreStatic: true` skips module-level mutants (constants, regexes) that would need the
 whole suite each — set it to `false` for a thorough, ~3× longer run. Thresholds are
@@ -40,9 +40,9 @@ first, then add them. `badges.js` is left out for run time.
 |---|---|---|
 | kpi.data.js | 82.6 | 83.2 |
 | game.utils.js | 68.0 | 75.4 |
-| auth.utils.js | 55.1 | 56.9 |
+| auth.utils.js | 55.1 → 71.3 after the follow-up tests | 56.9 → 73.7 |
 | tournaments.js | 49.9 | 66.6 |
-| integrity.js | 45.6 | 55.9 |
+| integrity.js | 45.6 → 48.5 after the follow-up tests | 55.9 → 58.2 |
 | total (3 126 mutants) | 50.5 | 62.1 |
 
 Pattern of the survivors: (a) security conditions whose **deny** side was never exercised
@@ -51,6 +51,10 @@ cookie; cookie flags `httpOnly`/`signed`/`secure`; `needsRehash` for a weaker sc
 (b) **mode branches never entered** (Master Out finishes and busts, set-based match
 scoring, an admin answering entries after the draw), (c) **fixtures too small** to tell
 min from max or first-nine from all visits. Each became a test the same day.
+The remaining integrity.js survivors sit in functions without unit tests (`checkRulesGame`,
+`checkClock`, `checkRulesTraining`, `x01Legs`, `checkElimination`, `checkCricket`).
+Equivalent and left alone: the regex anchors `/^D/`→`/D/` and `/^[DT]/`→`/[DT]/` (the dart
+notation always has the letter first), `<`/`<=` on millisecond expiries.
 
 ## Reading survivors
 
