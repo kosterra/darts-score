@@ -129,6 +129,29 @@ see the [`style-guide`](../style-guide/SKILL.md) and [`ui-components`](../ui-com
 skills), not a dependency chore. Treat `primereact` and `primeicons` as pinned
 to their current major until the user asks to migrate.
 
+## New packages: slopsquatting and typosquatting
+
+AI tools (this one included) sometimes name packages that do not exist; attackers
+register those names and wait ("slopsquatting"), next to the classic typo variants
+of popular packages. So before any `npm install <new-package>`, in this order:
+
+1. **Does it exist, and since when?** `npm view <pkg> time --json` — the `created`
+   date and how many versions there are. Anything younger than about three months,
+   or with a single version, is out unless the user named it themselves.
+2. **Is anyone using it?** `curl -s https://api.npmjs.org/downloads/point/last-month/<pkg>`
+   — a handful of downloads for a supposedly well-known package means a look-alike.
+3. **Where does it come from?** `npm view <pkg> repository.url maintainers` and open
+   the repository: same name, the maintainer you expect, a README that matches the
+   package. `npm view <pkg> dist.attestations` shows npm provenance when present.
+4. **Is the spelling the one you meant?** Compare with the canonical name
+   (`lodash` vs `lodahs`, `cross-env` vs `crossenv`); `npm search <name>` when unsure.
+5. **What runs at install?** `npm view <pkg> scripts` — a `preinstall`/`postinstall`
+   on a small utility is a red flag. Take a first look with `npm install --ignore-scripts`.
+
+Prefer, in this order: what Node itself does, a package already in the tree, then a
+widely used one. Never let a tool pick a name you did not verify. The same applies
+to GitHub Actions (`uses:`): only well-known publishers, pinned to a commit SHA.
+
 ## Applying an update
 
 1. `cd` into the right project (`app-ui` or `app-api`).
@@ -152,6 +175,8 @@ to their current major until the user asks to migrate.
 - Don't `npm audit fix --force`.
 - Don't act on a dev-only advisory by breaking production tooling.
 - Don't add a dependency for something small the platform/Node already does.
+- Don't install a package name an AI tool suggested without the checks under slopsquatting above.
+- Don't `uses:` an action by tag; pin the commit SHA and let Dependabot move it.
 - Don't move PrimeReact off `^10` without the user asking for the migration.
 - Don't leave the Docker base image on a floating tag, and don't bump its tag
   without updating the digest alongside it.
