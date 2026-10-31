@@ -641,6 +641,7 @@
  "Backups are made daily or weekly.": "Backups werden täglich oder wöchentlich erstellt.",
  "Backups of the whole installation for global admins: made by hand or automatically every day or week, the newest few kept; downloaded, uploaded again and restored, with a backup of the state before made first.": "Backups der ganzen Installation für globale Admins: von Hand oder automatisch jeden Tag oder jede Woche erstellt, die neuesten behalten; heruntergeladen, wieder hochgeladen und wiederhergestellt, wobei zuerst ein Backup des Stands davor erstellt wird.",
  "Backups:": "Backups:",
+ "Backups: restoring from a backup whose file is missing reports an error instead of taking the server down, and two backups made in the same second no longer overwrite each other.": "Backups: Die Wiederherstellung aus einem Backup, dessen Datei fehlt, meldet einen Fehler, statt den Server zu stoppen, und zwei Backups in derselben Sekunde überschreiben sich nicht mehr.",
  "Badge": "Badge",
  "Badges": "Badges",
  "Badges are earned by themselves in games and trainings. There are three kinds:": "Badges kommen von selbst in Spielen und Trainings. Es gibt drei Arten:",

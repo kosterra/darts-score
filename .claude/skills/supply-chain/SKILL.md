@@ -58,7 +58,8 @@ docker buildx imagetools inspect kosterra/darts-score:latest --format '{{ json .
 ```
 
 `:develop` (TEST stack) is not signed. **npm provenance** does not apply: nothing is
-published to npm. Regenerate the SBOM/CBOM in `sbom/` with each release (see its README),
+published to npm. Regenerate the SBOMs in `sbom/` with each release (`node scripts/sbom.mjs` after
+`npm ci` in both packages; the CBOM is edited by hand, see `sbom/README.md`),
 otherwise the attestation describes the previous version.
 
 ## Images that still float
@@ -82,6 +83,6 @@ before adding anything, and `npm audit signatures` as a quick registry-signature
 3. `.github/dependabot.yml` present, cooldown ≥ 14 days, no majors.
 4. `Dockerfile` `ARG NODE_IMAGE=node:<tag>@sha256:…` and the comment's date is recent.
 5. The last release run has the cosign steps green; `cosign verify` of `:latest` passes.
-6. `sbom/` regenerated for the release; `npm audit --omit=dev` clean in `app-api`.
+6. `sbom/` regenerated for the release (`node scripts/sbom.mjs`, CBOM checked by hand); `npm audit --omit=dev` clean in `app-api`.
 7. Secrets in Actions: only `DOCKERHUB_USER`/`DOCKERHUB_PASSWORD` (a token with push
    rights to this repository only, rotated when a maintainer leaves).

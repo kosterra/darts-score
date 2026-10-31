@@ -12,6 +12,7 @@ const CHANGELOG = [
             t('A password that appeared in a data breach is refused when you register, change or reset it. Only the first five characters of a hash of it are asked of Have I Been Pwned; the password itself never leaves Legmate.'),
             t('Changing your email address asks for your current password, and for a code with two-step login on. Adding a passkey asks for the code too, removing one for your password. After a new password, trusted devices ask for the code again at the next login.'),
             t('Where to report a security problem: every installation answers /.well-known/security.txt with the address of its operator, and the project has a security policy on GitHub.'),
+            t('Backups: restoring from a backup whose file is missing reports an error instead of taking the server down, and two backups made in the same second no longer overwrite each other.'),
         ],
     },
     {

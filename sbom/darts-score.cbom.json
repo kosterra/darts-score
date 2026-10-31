@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:861ea000-c489-4be7-9d8a-5ee71147f2dd",
+  "serialNumber": "urn:uuid:678bce72-2f0b-4145-8636-82e36ce31753",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-30T09:50:14.570Z",
+    "timestamp": "2026-10-31T11:58:46.392Z",
     "tools": [
       {
         "vendor": "Legmate security review",
@@ -16,8 +16,8 @@
       "type": "application",
       "bom-ref": "darts-score",
       "name": "darts-score (Legmate)",
-      "version": "2026.10.23",
-      "purl": "pkg:npm/darts-score@2026.10.23"
+      "version": "2026.10.31",
+      "purl": "pkg:npm/darts-score@2026.10.31"
     },
     "properties": [
       {
@@ -50,7 +50,7 @@
       "evidence": {
         "occurrences": [
           {
-            "location": "app-api/src/utils/auth.utils.js#L29"
+            "location": "app-api/src/utils/auth.utils.js#L37"
           }
         ]
       }
@@ -109,7 +109,7 @@
             "location": "app-api/src/utils/auth.tokens.js#L8"
           },
           {
-            "location": "app-api/src/utils/mfa.js#L103 (recovery codes)"
+            "location": "app-api/src/utils/mfa.js#L119 (recovery codes)"
           },
           {
             "location": "app-api/src/utils/quick.games.js#L28"
@@ -207,6 +207,32 @@
     },
     {
       "type": "cryptographic-asset",
+      "bom-ref": "crypto/sha-1-hibp",
+      "name": "SHA-1 (breached-password lookup)",
+      "description": "k-anonymity query to the Have I Been Pwned range API: SHA-1 of the candidate password, only the first 5 hex characters leave the server, the rest is compared locally; nothing is stored. SHA-1 is the API's protocol, not a protection of the password.",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "hash",
+          "parameterSetIdentifier": "160",
+          "cryptoFunctions": [
+            "digest"
+          ],
+          "classicalSecurityLevel": 80,
+          "nistQuantumSecurityLevel": 0
+        },
+        "oid": "1.3.14.3.2.26"
+      },
+      "evidence": {
+        "occurrences": [
+          {
+            "location": "app-api/src/utils/breached.password.js#L43"
+          }
+        ]
+      }
+    },
+    {
+      "type": "cryptographic-asset",
       "bom-ref": "crypto/ecdsa-p256",
       "name": "ECDSA P-256 (ES256)",
       "description": "Accepted passkey/WebAuthn public-key algorithm; assertions verified server-side with SHA-256. Not quantum-safe.",
@@ -290,7 +316,7 @@
       "type": "cryptographic-asset",
       "bom-ref": "crypto/csprng",
       "name": "CSPRNG (OpenSSL RAND, via node:crypto)",
-      "description": "crypto.randomBytes / randomInt (OpenSSL CSPRNG) for salts, IVs, session ids, tokens, recovery codes, passkey user ids and WebAuthn challenges.",
+      "description": "crypto.randomBytes / randomInt (OpenSSL CSPRNG) for salts, IVs, session ids, tokens, recovery codes, passkey user ids, WebAuthn challenges and the per-account trusted-device salt.",
       "cryptoProperties": {
         "assetType": "algorithm",
         "algorithmProperties": {
@@ -305,13 +331,16 @@
       "evidence": {
         "occurrences": [
           {
-            "location": "app-api/src/utils/auth.utils.js#L28 (salts)"
+            "location": "app-api/src/utils/auth.utils.js#L36 (salts)"
           },
           {
             "location": "app-api/src/utils/sessions.js#L18 (session ids)"
           },
           {
-            "location": "app-api/src/utils/mfa.js#L42 (IV)"
+            "location": "app-api/src/utils/mfa.js#L23 (trusted-device salt)"
+          },
+          {
+            "location": "app-api/src/utils/mfa.js#L49 (IV)"
           },
           {
             "location": "app-api/src/utils/auth.tokens.js#L15"
@@ -511,6 +540,7 @@
         "crypto/hkdf-sha256",
         "crypto/aes-256-gcm",
         "crypto/hmac-sha1-totp",
+        "crypto/sha-1-hibp",
         "crypto/ecdsa-p256",
         "crypto/eddsa-ed25519",
         "crypto/rsa-rs256",
