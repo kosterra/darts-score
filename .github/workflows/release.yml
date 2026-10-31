@@ -1,6 +1,12 @@
 name: darts-score
+# The actions are pinned to commit SHAs (the tag they stand for is in the comment), so a
+# moved or hijacked tag cannot change what runs here; Dependabot (.github/dependabot.yml)
+# proposes the bumps. The image is signed keyless with Sigstore (cosign, the workflow's
+# OIDC identity) and carries BuildKit's provenance and SBOM attestations plus the project's
+# CycloneDX SBOMs as cosign attestations; docs/deployment.md says how to verify them.
 permissions:
   contents: write
+  id-token: write
 
 on:
   push:
@@ -21,7 +27,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -32,7 +38,7 @@ jobs:
           echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
 
       - name: Create tag
-        uses: rickstaa/action-create-tag@v1
+        uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 # v1.7.2
         with:
           tag: ${{ steps.package.outputs.version }}
           message: 'Release ${{ steps.package.outputs.version }}'
@@ -41,7 +47,7 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ secrets.DOCKERHUB_USER }}/${{ steps.package.outputs.name }}
           tags: |
@@ -49,20 +55,24 @@ jobs:
             type=raw,value=latest
 
       - name: Login to Dockerhub
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Build and push
-        uses: docker/build-push-action@v7
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./Dockerfile
           target: production
+          # SLSA provenance and an SPDX SBOM of the image, attached to the image index
+          provenance: mode=max
+          sbom: true
           # the version of this build is out: What's new shows it as released
           build-args: |
             APP_RELEASED=true
@@ -74,3 +84,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/${{ steps.package.outputs.name }}:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USER }}/${{ steps.package.outputs.name }}:buildcache,mode=max
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign the image and attach the SBOMs
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USER }}/${{ steps.package.outputs.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        # keyless: the signature is bound to this workflow's identity in the Sigstore log
+        run: |
+          cosign sign --yes "${IMAGE}@${DIGEST}"
+          cosign attest --yes --type cyclonedx --predicate sbom/darts-score-api.cdx.json "${IMAGE}@${DIGEST}"
+          cosign attest --yes --type cyclonedx --predicate sbom/darts-score-ui.cdx.json "${IMAGE}@${DIGEST}"

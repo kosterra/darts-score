@@ -24,8 +24,13 @@ services:
     image: kosterra/darts-score:latest
     container_name: darts_score
     restart: unless-stopped
+    # Where the app listens on the server. Behind a reverse proxy on the same
+    # server set APP_BIND=127.0.0.1, so only the proxy reaches it; with the
+    # Cloudflare Tunnel nothing outside Docker needs the port at all. (Any
+    # client on a private network counts as a trusted proxy for the rate limits
+    # unless TRUST_PROXY says otherwise, see docs/configuration.md.)
     ports:
-      - "3001:3001"
+      - "${APP_BIND:-0.0.0.0}:3001:3001"
     # The settings come from the variables of the stack (Portainer) or a .env
     # file next to this file (docker compose). Settings marked "?" are required:
     # without them the stack is not started and says which one is missing.
@@ -49,9 +54,20 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_REQUIRE_TLS: ${SMTP_REQUIRE_TLS:-true}
       IMG_DIR: ${IMG_DIR:-data/img}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ENVIRONMENT_LABEL: ${ENVIRONMENT_LABEL:-}
+    # the container cannot change itself: its file system is read-only but for
+    # /app/data (the volume below) and /tmp, it runs without Linux capabilities
+    # and no process in it can gain privileges
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     volumes:
       # uploaded player pictures and club logos, in a Docker volume the app may
       # write to. To keep them in a folder of your own instead, use e.g.
@@ -86,6 +102,16 @@ services:
       # Letting glibc own rseq makes TCMalloc skip per-CPU caches, which passes the check.
       # Remove once mongo:8.0 resolves to >= 8.0.35.
       GLIBC_TUNABLES: glibc.pthread.rseq=1
+    # mongod runs as its own user: the image's entrypoint only needs to own the
+    # data directory and switch user, nothing may gain privileges beyond that
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - darts_score_db:/data/db
     # no "ports": the database stays private. To reach it from the server
@@ -112,6 +138,11 @@ services:
     restart: unless-stopped
     profiles: ["tunnel"]
     command: tunnel --no-autoupdate run
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     environment:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
     depends_on:

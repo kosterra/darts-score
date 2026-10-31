@@ -1,0 +1,57 @@
+# Dependabot keeps the Actions' commit pins and the npm packages current, within the
+# policy of .claude/skills/dependency-management/SKILL.md: age over newness (a cooldown
+# of two weeks lets a fresh release prove itself), minor and patch updates grouped into
+# one pull request per project, no major bumps on their own (PrimeReact stays on 10 on
+# purpose; a High/Critical that needs a major is handled by hand). The Docker base image
+# is deliberately not here: it is pinned by digest in the Dockerfile and bumped by hand
+# only for a High/Critical in Node or Debian (the skill says how).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "Actions:"
+
+  - package-ecosystem: npm
+    directory: /app-api
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 3
+    groups:
+      api:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "API deps:"
+
+  - package-ecosystem: npm
+    directory: /app-ui
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 3
+    groups:
+      ui:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "UI deps:"
