@@ -95,6 +95,17 @@ describe('setting up a tournament', () => {
         expect(setup.rounds.map(round => round.size)).toEqual([8, 4, 2]);
     });
 
+    it('keeps the name to 80 and the description to 1000 characters', () => {
+        const rounds = roundsOfPreset('clubNight', 8);
+        const body = { closesAt: later(3), maxPlayers: 8, rounds };
+        expect(service.checkSetup({ ...body, name: 'C'.repeat(service.NAME_MAX) }).setup.name).toHaveLength(80);
+        expect(service.checkSetup({ ...body, name: 'C'.repeat(service.NAME_MAX + 1) }).error).toMatch(/at most 80 characters/);
+        expect(service.checkSetup({ ...body, name: ` ${'C'.repeat(service.NAME_MAX)} ` }).setup.name).toHaveLength(80);
+        expect(service.checkSetup({ ...body, name: 'Cup', description: 'D'.repeat(service.DESCRIPTION_MAX) }).setup.description).toHaveLength(1000);
+        expect(service.checkSetup({ ...body, name: 'Cup', description: 'D'.repeat(service.DESCRIPTION_MAX + 1) }).error).toMatch(/at most 1000 characters/);
+        expect(service.checkSetup({ ...body, name: 'Cup' }).setup.description).toBe('');
+    });
+
     it('wants every round after the registration, each after the one before', () => {
         const rounds = (days) => roundsOfPreset('clubNight', 8).map((round, index) => ({ ...round, date: days[index] === null ? null : later(days[index]) }));
         expect(service.scheduleError({ closesAt: later(-1), rounds: rounds([5, 6, 7]) }, now)).toMatch(/future/);
@@ -156,12 +167,40 @@ describe('the registration', () => {
         await expect(service.answerEntry(tournament, id(3), 'out', { byAdmin: true })).resolves.toBeTruthy();
     });
 
+    it('takes no answer once the draw is held, not even from an admin, and only in or out', async () => {
+        const tournament = tournamentDoc({ status: 'registration', maxPlayers: 8 });
+        tournament.entries = players.map(player => ({ player: player._id, status: 'invited' }));
+        await expect(service.answerEntry(tournament, id(1), 'maybe')).rejects.toMatchObject({ status: 422 });
+        await expect(service.answerEntry(tournament, id(1), 'maybe', { byAdmin: true })).rejects.toMatchObject({ status: 422 });
+        for (const status of ['drawn', 'running', 'finished', 'cancelled', 'draft']) {
+            tournament.status = status;
+            await expect(service.answerEntry(tournament, id(1), 'in')).rejects.toMatchObject({ status: 409, message: expect.stringMatching(/closed/) });
+            await expect(service.answerEntry(tournament, id(1), 'in', { byAdmin: true })).rejects.toMatchObject({ status: 409 });
+        }
+        expect(service.entriesIn(tournament)).toHaveLength(0);
+        expect(tournament.save).not.toHaveBeenCalled();
+    });
+
+    it('lets a player already in say in again when the tournament is full', async () => {
+        const tournament = tournamentDoc({ status: 'registration', maxPlayers: 2 });
+        tournament.entries = players.slice(0, 3).map(player => ({ player: player._id, status: 'invited' }));
+        await service.answerEntry(tournament, id(1), 'in');
+        await service.answerEntry(tournament, id(2), 'in');
+        await expect(service.answerEntry(tournament, id(1), 'in')).resolves.toMatchObject({ status: 'in' });
+        await expect(service.answerEntry(tournament, id(3), 'in')).rejects.toMatchObject({ status: 409, message: expect.stringMatching(/full/) });
+        expect(service.entriesIn(tournament)).toHaveLength(2);
+    });
+
     it('answers with one-click links that cannot be forged', () => {
         const token = service.replyToken(id(900), id(4));
         expect(service.readReplyToken(token)).toEqual({ tournament: id(900), player: id(4) });
         const [payload] = token.split('.');
         expect(service.readReplyToken(`${payload}.forged`)).toBeNull();
         expect(service.readReplyToken('nonsense')).toBeNull();
+        expect(service.readReplyToken(null)).toBeNull();
+        // signed by us, but not with the ids of a tournament and a player
+        expect(service.readReplyToken(service.replyToken('autumn-cup', id(4)))).toBeNull();
+        expect(service.readReplyToken(service.replyToken(id(900), 'p4'))).toBeNull();
     });
 
     it('closes at its end and tells the admins, also when too few entered', async () => {
@@ -265,6 +304,8 @@ describe('the draw and the matches', () => {
         await service.tournamentGameFinished(game, { playerModels: { [a]: { hasWonGame: false, legsWon: { game: 1 } }, [b]: { hasWonGame: true, legsWon: { game: 3 } } } });
         const decided = tournament.matches.find(entry => entry.id === first.id);
         expect(decided).toMatchObject({ status: 'done', winner: b, score: { legs: [1, 3] } });
+        // legs only: no sets in the score
+        expect(decided.score).toEqual({ legs: [1, 3] });
         // both semi-finals are ready now: their players hear it
         expect(tournament.matches.filter(entry => entry.size === 4).every(entry => entry.status === 'ready')).toBe(true);
         expect(notices.some(notice => notice.kind === 'tournamentMatch')).toBe(true);
@@ -281,6 +322,23 @@ describe('the draw and the matches', () => {
         // a result can no longer change once the next match was decided
         const semi = tournament.matches.find(entry => entry.size === 4);
         await expect(service.setResult(tournament, semi.id, semi.players[1])).rejects.toMatchObject({ status: 409 });
+    });
+
+    it('keeps the sets with the legs when a round is played in sets', async () => {
+        const db = (await import('../models/db.model.js')).default;
+        const tournament = closedWithFive();
+        db.tournament = { findById: async () => tournament };
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        const round = tournament.rounds.find(entry => entry.size === 8);
+        round.rules = { ...round.rules, setMode: 'Best of', numberOfSets: 3 };
+        const match = tournament.matches.find(entry => entry.status === 'ready' && entry.size === 8);
+        const game = await service.startMatch(tournament, match.id);
+        expect(game).toMatchObject({ numberOfSets: 3 });
+        const [a, b] = match.players;
+        await service.tournamentGameFinished(game, { playerModels: { [a]: { hasWonGame: true, legsWon: { game: 7 }, setsWon: 2 }, [b]: { hasWonGame: false, legsWon: { game: 5 }, setsWon: 1 } } });
+        const decided = tournament.matches.find(entry => entry.id === match.id);
+        expect(decided).toMatchObject({ status: 'done', winner: a });
+        expect(decided.score).toEqual({ legs: [7, 5], sets: [2, 1] });
     });
 
     it('lets a running match start again when its game is deleted', async () => {

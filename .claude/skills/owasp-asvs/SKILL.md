@@ -105,3 +105,20 @@ largely satisfy these; cite them.
 - OWASP ASVS project & requirements (authoritative): <https://owasp.org/www-project-application-security-verification-standard/>
 - Prior Legmate assessments: the three Artifact reports (pentest, dependency audit, CBOM) in the `pentest-later` memory.
 - [`docs/security.md`](../../docs/security.md), [`sbom/`](../../sbom/).
+
+## Deep check of the second factor and passkeys (V6/V7, done 2026-10-31)
+
+A report-only review found no high-severity issue and these properties, to re-check after
+any change in `controllers/{auth,mfa,passkey}.controller.js`, `utils/{auth.utils,mfa,passkeys,sessions}.js`:
+
+1. `requireAuth` reads only `ds_session`; the pending-MFA cookie `ds_mfa` never sets `req.user`.
+2. Every login path (password+code, passkey, reset, register, enrol) mints a new session id (`login: true` → `recordSession` with `sid: null`).
+3. `sessionVersion += 1` and `mfa.trustSalt` rotation sit together in changePassword, resetPassword and the admin setPassword.
+4. Email change, passkey add/remove, MFA disable and account deletion each re-verify the password and, with MFA on, the code.
+5. Passkeys: `expectedOrigin`/`expectedRPID` from `APP_URL`, `requireUserVerification: true`, no `allowCredentials`, challenge single-use server-side (`utils/passkeys.js`).
+6. Recovery codes: 10, `randomBytes`, hashed, constant-time compare, consumed atomically (`$pull`, `modifiedCount`); TOTP step consumed atomically.
+7. Blocked accounts are refused in login, pendingUser, passkey login, forgot/reset and `startSession`.
+8. Limits: credential 30/15 min per IP, global 50 000/15 min, wrong codes 5/5 min per account, spam guard 10 failed logins/15 min.
+9. Reset tokens: only hashes stored, `$gt: now`, nulled after use, 1 h (7 d for invitations).
+
+Open recommendations: keyed hash and more entropy for recovery codes (~40 bits today), a per-account wrong-code counter on every code check (not only `/login/mfa`), a password to enable MFA from a session, `skipSuccessfulRequests` on the login limiter, a dummy scrypt on unknown emails. Related: [`threat-modeling`](../threat-modeling/SKILL.md), [`privacy-review`](../privacy-review/SKILL.md), [`infra-hardening`](../infra-hardening/SKILL.md), [`supply-chain`](../supply-chain/SKILL.md), [`secret-scanning`](../secret-scanning/SKILL.md).

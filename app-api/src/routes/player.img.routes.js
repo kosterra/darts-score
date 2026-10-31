@@ -18,7 +18,8 @@ const serveImage = (subdir, cacheControl) => (req, res) => {
 
     res.sendFile(filename, options, err => {
         if (err) {
-            logger.error(err, `Failed to serve image: ${filename}`);
+            // a picture that is not there (deleted, or an old name) is not an error of the server
+            logger[err.code === 'ENOENT' || err.status === 404 ? 'debug' : 'error'](err, `Failed to serve image: ${filename}`);
             // no next(err): a 404 lets the avatar fall back to initials
             if (!res.headersSent) res.status(404).json({ message: 'Image not found.' });
         }

@@ -48,6 +48,29 @@ describe('x01Kpis', () => {
     it('is empty without games', () => {
         expect(x01Kpis([], 'a')).toEqual({ firstNineAverage: null, bestLeg: null, tonPlus: 0, highestVisit: null, legsWon: 0 });
     });
+
+    // a wins in 18 darts: 60, 60, 60, 100, 100, 121
+    const longer = {
+        startingScore: 501,
+        allSetsThrows: {
+            'set-1': {
+                'leg-1': [
+                    visit('a', 441), visit('b', 441), visit('a', 381), visit('b', 381), visit('a', 321), visit('b', 321),
+                    visit('a', 221), visit('b', 221), visit('a', 121), visit('b', 121), visit('a', 0, ['T20', 'T11', 'D14']),
+                ],
+            },
+        },
+    };
+
+    it('takes the first three visits of a leg for the first 9, not the whole leg', () => {
+        expect(x01Kpis([longer], 'a')).toEqual({ firstNineAverage: 60, bestLeg: 18, tonPlus: 3, highestVisit: 121, legsWon: 1 });
+    });
+
+    it('keeps the fewest darts of the won 501 legs as the best leg, whichever came first', () => {
+        expect(x01Kpis([game, longer], 'a').bestLeg).toBe(9);
+        expect(x01Kpis([longer, game], 'a').bestLeg).toBe(9);
+        expect(x01Kpis([longer, game], 'a').legsWon).toBe(2);
+    });
 });
 
 function round(value) { return Math.round(value * 10) / 10; }

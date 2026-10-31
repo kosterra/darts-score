@@ -1,31 +1,40 @@
 import { generateAuthenticationOptions, generateRegistrationOptions, verifyAuthenticationResponse, verifyRegistrationResponse } from '@simplewebauthn/server';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
-import { verifyPassword } from '../utils/auth.utils.js';
+import { BLOCKED_MESSAGE, verifyPassword } from '../utils/auth.utils.js';
+import { UNREADABLE, isMfaEnabled, secondFactor } from '../utils/mfa.js';
 import { notifySecurity } from '../utils/notify.js';
 import { noteLoginFailure } from '../utils/spam.guard.js';
 import { MAX_PASSKEYS, deviceName, newPasskeyUserId, passkeysOf, relyingParty, setChallenge, takeChallenge } from '../utils/passkeys.js';
 import { startSession } from './mfa.controller.js';
-import { BLOCKED_MESSAGE } from './auth.controller.js';
 
 /**
  * Passkeys (see utils/passkeys.js): adding one to the account (with the
- * password, so a device left logged in cannot add a way in), the list,
- * removing one, and logging in with one. A passkey is two steps by itself
- * (the device and the fingerprint, face or PIN), so its login asks no code.
+ * password, and a code when two-step login is on: a device left logged in
+ * cannot add a way in, and a stolen password alone cannot get round the
+ * code), the list, removing one (with the password), and logging in with
+ * one. A passkey is two steps by itself (the device and the fingerprint, face
+ * or PIN), so its login asks no code.
  */
 
 const NO_ADDRESS = 'Passkeys need the address of the installation (APP_URL).';
 const FAILED = 'The passkey could not be checked. Please try again.';
+const WRONG_PASSWORD = 'The current password is wrong.';
+const WRONG_CODE = 'This code is not right. Check the time of your phone and try the newest code.';
 
 const bytesOf = (base64url) => new Uint8Array(Buffer.from(base64url, 'base64url'));
 
 export const list = async (req, res) => res.json({ passkeys: passkeysOf(req.user) });
 
-// a passkey to add: the password first, then the options for the browser
+// a passkey to add: the password (and the code of two-step login) first, then the options for the browser
 export const registrationOptions = async (req, res) => {
     const user = req.user;
-    if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: 'The current password is wrong.' });
+    if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: WRONG_PASSWORD });
+    if (isMfaEnabled(user)) {
+        // a code of the app, or a recovery code in its place
+        const check = await secondFactor(user, req.body.code);
+        if (!check.ok) return res.status(403).json({ message: check.unreadable ? UNREADABLE : WRONG_CODE, unreadable: Boolean(check.unreadable) });
+    }
     if ((user.passkeys ?? []).length >= MAX_PASSKEYS) return res.status(409).json({ message: 'You have the most passkeys already. Remove one first.' });
     const rp = relyingParty(req);
     if (!rp) return res.status(409).json({ message: NO_ADDRESS });
@@ -92,8 +101,10 @@ export const register = async (req, res) => {
     res.status(201).json({ passkeys: passkeysOf(user) });
 };
 
+// a passkey to remove: with the password, so a device left logged in cannot lock the owner out of theirs
 export const remove = async (req, res) => {
     const user = req.user;
+    if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: WRONG_PASSWORD });
     const before = (user.passkeys ?? []).length;
     user.passkeys = (user.passkeys ?? []).filter(passkey => passkey.credentialId !== req.params.id);
     if (user.passkeys.length === before) return res.status(404).json({ message: 'There is no such passkey.' });

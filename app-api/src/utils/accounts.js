@@ -3,6 +3,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
 import { hashPassword } from './auth.utils.js';
+import { isBreachedPassword, BREACHED_MESSAGE } from './breached.password.js';
 import { issuePasswordLink, INVITE_TOKEN_HOURS } from './auth.tokens.js';
 import { isMailConfigured } from './mail.utils.js';
 
@@ -24,6 +25,7 @@ export const findOrCreateAccount = async ({ email, firstname, lastname, password
     if (!password && !isMailConfigured()) {
         return { error: 'Enter an initial password for the new account.' };
     }
+    if (password && await isBreachedPassword(password)) return { error: BREACHED_MESSAGE };
 
     const user = new db.user({
         email,

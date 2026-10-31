@@ -79,6 +79,23 @@ describe('createGameFilterQuery for the comparison filters', () => {
         expect(query.createdAt.$lte.getHours()).toBe(23);
     });
 
+    it('leaves the friendly games out only when asked', () => {
+        expect(createGameFilterQuery({ playerIds: ['a'], friendly: 'exclude' }).friendly).toEqual({ $ne: true });
+        expect(createGameFilterQuery({ playerIds: ['a'] })).not.toHaveProperty('friendly');
+        expect(createGameFilterQuery({ playerIds: ['a'], friendly: 'include' })).not.toHaveProperty('friendly');
+        expect(createGameFilterQuery({ playerIds: ['a'], friendly: true })).not.toHaveProperty('friendly');
+    });
+
+    it('filters by the id of a club format, and nothing that is not one', () => {
+        expect(createGameFilterQuery({ playerIds: ['a'], clubFormat: 'club-night_501' }).format).toBe('club-night_501');
+        expect(createGameFilterQuery({ playerIds: ['a'], clubFormat: 'a'.repeat(64) }).format).toBe('a'.repeat(64));
+        expect(createGameFilterQuery({ playerIds: ['a'], clubFormat: 'a'.repeat(65) })).not.toHaveProperty('format');
+        expect(createGameFilterQuery({ playerIds: ['a'], clubFormat: 'not a format!' })).not.toHaveProperty('format');
+        expect(createGameFilterQuery({ playerIds: ['a'], clubFormat: '' })).not.toHaveProperty('format');
+        expect(createGameFilterQuery({ playerIds: ['a'], clubFormat: { $ne: null } })).not.toHaveProperty('format');
+        expect(createGameFilterQuery({ playerIds: ['a'] })).not.toHaveProperty('format');
+    });
+
     it('lets nothing but plain values through', () => {
         const query = createGameFilterQuery({
             playerIds: ['a', { $ne: null }],

@@ -44,6 +44,8 @@ services:
       # Mails (password reset, club admin invitations) go to the local Mailpit inbox
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
+      # mailpit speaks no TLS; production insists on STARTTLS
+      SMTP_REQUIRE_TLS: 'false'
       APP_URL: http://localhost:3000
     restart: unless-stopped
     depends_on:

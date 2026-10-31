@@ -14,9 +14,9 @@ export const passkeyAutofillSupported = () => browserSupportsWebAuthnAutofill().
 // the user closed the device's dialog, or another attempt took its place: nothing to say
 export const isCancelled = (error) => ['NotAllowedError', 'AbortError'].includes(error?.name) || error?.code === 'ERROR_CEREMONY_ABORTED';
 
-// adds a passkey of this device: the password first; answers the list of passkeys
-export const addPasskey = async (password) => {
-    const optionsJSON = await AuthService.passkeyOptions(password);
+// adds a passkey of this device: the password (and a code of two-step login) first; answers the list of passkeys
+export const addPasskey = async (password, code) => {
+    const optionsJSON = await AuthService.passkeyOptions(password, code);
     const response = await startRegistration({ optionsJSON });
     return AuthService.savePasskey(response);
 };

@@ -25,8 +25,18 @@ const NAME = /^legmate-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(manual|auto|
 const FORMAT = 'legmate-backup';
 
 const pad = (n) => String(n).padStart(2, '0');
-export const backupName = (kind, now = new Date()) =>
-    `legmate-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}-${kind}.json.gz`;
+const nameAt = (kind, at) =>
+    `legmate-${at.getFullYear()}${pad(at.getMonth() + 1)}${pad(at.getDate())}-${pad(at.getHours())}${pad(at.getMinutes())}${pad(at.getSeconds())}-${kind}.json.gz`;
+// a name for a new backup of this kind, not taken by a file there already (a second
+// upload or restore within the same second would otherwise write over the first)
+export const backupName = (kind, now = new Date()) => {
+    const at = new Date(now);
+    for (;;) {
+        const name = nameAt(kind, at);
+        if (!fs.existsSync(path.join(BACKUP_DIR, name)) && !fs.existsSync(path.join(BACKUP_DIR, `${name}.part`))) return name;
+        at.setSeconds(at.getSeconds() + 1);
+    }
+};
 
 // a backup as listed: { name, kind, createdAt, size }, or null for any other file
 export const parseName = (name) => {
@@ -108,8 +118,13 @@ export const createBackup = async (kind = 'manual', now = new Date()) => {
     return { ...parseName(name), size, counts };
 };
 
-// the lines of a backup, one after the other
-const linesOf = (file) => readline.createInterface({ input: fs.createReadStream(file).pipe(zlib.createGunzip()), crlfDelay: Infinity });
+// the lines of a backup, one after the other. A file that cannot be read (gone
+// meanwhile) fails the reading like a corrupt one does, instead of crashing the process
+const linesOf = (file) => {
+    const gunzip = zlib.createGunzip();
+    const input = fs.createReadStream(file).on('error', err => gunzip.destroy(err));
+    return readline.createInterface({ input: input.pipe(gunzip), crlfDelay: Infinity });
+};
 
 /**
  * Whether a file is a backup of Legmate: its first line says so. → the header, or null

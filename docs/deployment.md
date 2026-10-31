@@ -52,6 +52,42 @@ Three workflows in `.github/workflows`:
 Secrets: `DOCKERHUB_USER`, `DOCKERHUB_PASSWORD`. Buildx registry cache speeds up
 the develop builds.
 
+### Supply chain: pins, signature, SBOM
+
+- Every `uses:` in the workflows is pinned to a **commit SHA** (the tag it stands for is in
+  a comment). Dependabot (`.github/dependabot.yml`) proposes the bumps weekly, after a
+  two-week cooldown, grouped per project; it never bumps a major on its own.
+- The release image is **signed keyless with Sigstore** by the release workflow and
+  carries BuildKit's SLSA provenance and SPDX SBOM attestations plus the project's
+  CycloneDX SBOMs (`sbom/`) as cosign attestations. To verify a pulled image:
+
+  ```bash
+  cosign verify \
+    --certificate-identity-regexp '^https://github.com/kosterra/darts-score/\.github/workflows/release\.yml@refs/heads/main$' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+    kosterra/darts-score:latest
+  cosign verify-attestation --type cyclonedx \
+    --certificate-identity-regexp '^https://github.com/kosterra/darts-score/' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+    kosterra/darts-score:latest | jq -r .payload | base64 -d | jq .predicate.components[].name | head
+  docker buildx imagetools inspect kosterra/darts-score:latest --format '{{ json .SBOM }}' | head -c 400
+  ```
+
+  The `:develop` image of the TEST stack is not signed.
+- The base image is pinned by digest in the `Dockerfile` (see the dependency-management
+  skill for when to bump it).
+
+### Container hardening (compose)
+
+`docker-compose.yml` runs the app with a **read-only root file system** (only the data
+volume and `/tmp` are writable), **all Linux capabilities dropped** and
+`no-new-privileges`. MongoDB keeps only `CHOWN`, `SETGID` and `SETUID` (its entrypoint
+owns the data directory and switches user), cloudflared runs read-only without
+capabilities. Behind a reverse proxy on the same server set `APP_BIND=127.0.0.1` in
+the stack's variables, so port 3001 is reachable only from the proxy; with the tunnel
+profile it is not needed outside Docker at all. If you add a volume or a sidecar, keep these lines; if the app ever needs to
+write elsewhere, give it a `tmpfs` rather than dropping `read_only`.
+
 ## Environments
 
 | Environment | Image | Built by | Notes |

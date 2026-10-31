@@ -6,6 +6,8 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
     test: {
         include: ['test/integration/**/*.test.js'],
+        // the shared mongoose singleton forgets the models of the file before
+        setupFiles: ['test/integration/setup.models.js'],
         // one in-memory server, one connection: run the file(s) in a single fork, in order
         fileParallelism: false,
         pool: 'forks',

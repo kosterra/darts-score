@@ -58,9 +58,9 @@ export default (app) => {
     // passkeys: logging in with the fingerprint, face or PIN of a device; adding one asks the password
     const passkeyResponse = body('response').isObject().withMessage('The answer of the passkey is missing.');
     router.get('/passkeys', requireAuth, PasskeyController.list);
-    router.post('/passkeys/options', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), validate, PasskeyController.registrationOptions);
+    router.post('/passkeys/options', requireAuth, credentialLimiter, body('password').isString().notEmpty().withMessage('Current password is required.'), codeRule('code'), validate, PasskeyController.registrationOptions);
     router.post('/passkeys', requireAuth, credentialLimiter, passkeyResponse, body('name').optional().isString().isLength({ max: 40 }), validate, PasskeyController.register);
-    router.delete('/passkeys/:id', requireAuth, param('id').isString().isLength({ min: 1, max: 1024 }), validate, PasskeyController.remove);
+    router.delete('/passkeys/:id', requireAuth, credentialLimiter, param('id').isString().isLength({ min: 1, max: 1024 }), body('password').isString().notEmpty().withMessage('Current password is required.'), validate, PasskeyController.remove);
     router.post('/login/passkey/options', credentialLimiter, PasskeyController.loginOptions);
     router.post('/login/passkey', credentialLimiter, passkeyResponse, validate, PasskeyController.login);
 
@@ -98,7 +98,9 @@ export default (app) => {
         body('clubSetup').optional().isIn(['hidden', 'shown']).withMessage('clubSetup is hidden or shown.'),
         validate, AuthController.setOnboarding);
     router.put('/language', requireAuth, body('language').isIn(LANGUAGES).withMessage('Unknown language.'), validate, AuthController.setLanguage);
-    router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), body('defaultClub').optional({ values: 'null' }).isMongoId().withMessage('Choose one of your clubs.'), validate, AuthController.updateMe);
+    // a new email address needs the current password (and a code when two-step login is on)
+    router.put('/me', requireAuth, emailValidator, nameValidators(), body('startPage').optional().isIn(['dashboard', 'myStatistics']).withMessage('The start page is the dashboard or your statistics.'), body('defaultClub').optional({ values: 'null' }).isMongoId().withMessage('Choose one of your clubs.'),
+        body('currentPassword').optional().isString().isLength({ max: 128 }), codeRule('code'), validate, AuthController.updateMe);
     router.put('/password',
         requireAuth,
         credentialLimiter,

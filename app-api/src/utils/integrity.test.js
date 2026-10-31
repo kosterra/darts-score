@@ -53,6 +53,29 @@ describe('X01', () => {
         expect(checkX01(x01([leg]))).toEqual([]);
     });
 
+    it('lets a leg won in fifteen darts through: no nine-darter, nothing else', () => {
+        const leg = [
+            v('a', ['T20', 'S20', 'S20'], 100, 401), v('b', ['S20', 'S5', 'S1'], 26, 475),
+            v('a', ['T20', 'S20', 'S20'], 100, 301), v('b', ['S20', 'S5', 'S1'], 26, 449),
+            v('a', ['T20', 'S20', 'S20'], 100, 201), v('b', ['S20', 'S5', 'S1'], 26, 423),
+            v('a', ['T20', 'S20', 'S20'], 100, 101), v('b', ['S20', 'S5', 'S1'], 26, 397),
+            v('a', ['T20', 'S1', 'D20'], 101, 0),
+        ];
+        expect(checkX01(x01([leg]))).toEqual([]);
+    });
+
+    it('takes the out mode of the game for the finish: a treble in Master Out, a single in Straight Out', () => {
+        const treble = [v('a', ['T20', 'T20', 'T20'], 180, 321), v('a', ['T20', 'T20', 'T20'], 180, 141), v('a', ['T20', 'T20', 'T7'], 141, 0)];
+        expect(rules(checkX01(x01([treble], { legOutMode: 'Master Out' })))).not.toContain('impossible:wrongFinish');
+        expect(rules(checkX01(x01([treble])))).toContain('impossible:wrongFinish');
+        const single = [v('a', ['T20', 'T20', 'T20'], 180, 321), v('a', ['T20', 'T20', 'T20'], 180, 141), v('a', ['T20', 'T19', 'S24'], 141, 0)];
+        const wrong = checkX01(x01([single], { legOutMode: 'Master Out' })).find(item => item.rule === 'wrongFinish');
+        expect(wrong).toMatchObject({ level: 'impossible', title: 'Checked out without a double or treble', detail: 'S24 in leg 1 with Master Out', playerId: 'a' });
+        expect(rules(checkX01(x01([single], { legOutMode: 'Straight Out' })))).not.toContain('impossible:wrongFinish');
+        // the mode of the player counts, not only the one of the game
+        expect(rules(checkX01(x01([single], { playerModels: { a: { hasWonGame: true, legOutMode: 'Straight Out' }, b: {} } })))).not.toContain('impossible:wrongFinish');
+    });
+
     it('finds a visit of four darts, a dart off the board, a wrong score and a wrong rest', () => {
         const leg = [v('a', ['T20', 'T20', 'T20', 'T20'], 240, 261), v('b', ['T21', '0', '0'], 63, 438), v('a', ['T20', 'S1', '0'], 100, 161), v('b', ['S20', '0', '0'], 20, 400)];
         expect(rules(checkX01(x01([leg])))).toEqual(expect.arrayContaining(['impossible:tooManyDarts', 'impossible:invalidDart', 'impossible:scoreMismatch', 'error:leftMismatch']));
@@ -60,8 +83,9 @@ describe('X01', () => {
 
     it('finds a checkout without a double and a leg won with too few darts', () => {
         const leg = [v('a', ['T20', 'T20', 'T20'], 180, 321), v('a', ['T20', 'T20', 'T20'], 180, 141), v('a', ['T20', 'T19', 'S24'], 141, 0)];
-        const found = rules(checkX01(x01([leg])));
-        expect(found).toContain('impossible:wrongFinish');
+        const found = checkX01(x01([leg]));
+        expect(rules(found)).toContain('impossible:wrongFinish');
+        expect(found.find(item => item.rule === 'wrongFinish')).toMatchObject({ title: 'Checked out without a double', detail: 'S24 in leg 1 with Double Out' });
         const short = [v('a', ['T20', 'T20', 'T20'], 180, 121), v('a', ['T20', 'D1'], 62, 0)];
         expect(rules(checkX01(x01([short], { startingScore: 301 })))).toContain('impossible:tooFewDarts');
     });
@@ -117,6 +141,22 @@ describe('X01', () => {
         expect(repaired).toMatchObject({ possible: true, changed: 1 });
         expect(repaired.allSetsThrows['set-1']['leg-1'].map(visit => visit.scoreLeft).filter((_, index) => index % 2 === 0)).toEqual([321, 141, 141, 100, 0]);
         expect(checkX01(x01([repaired.allSetsThrows['set-1']['leg-1']])).filter(item => item.rule === 'leftMismatch')).toEqual([]);
+    });
+
+    it('keeps the score of a bust when it works the scores left out: one left, a finish without a double, or a single in Master Out', () => {
+        // 121 − 120 would leave 1: a bust, 121 stays
+        const oneLeft = [v('a', ['T20', 'T20', 'T20'], 180, 121), v('a', ['T20', 'T20'], 120, 121), v('a', ['T20', 'T19', 'D2'], 121, 0)];
+        expect(repairX01(x01([oneLeft], { startingScore: 301 }))).toMatchObject({ possible: true, changed: 0 });
+        // 121 − 121 with a single as the last dart: a bust in Double Out, 121 stays
+        const noDouble = [v('a', ['T20', 'T20', 'T20'], 180, 121), v('a', ['T20', 'T20', 'S1'], 121, 121), v('a', ['T20', 'T19', 'D2'], 121, 0)];
+        expect(repairX01(x01([noDouble], { startingScore: 301 }))).toMatchObject({ possible: true, changed: 0 });
+        expect(checkX01(x01([noDouble], { startingScore: 301 }))).toEqual([]);
+        // in Master Out a single is fine while something is left, one left and a single on nought are busts, and a treble finishes
+        const master = [v('a', ['T20', 'T20', 'S1'], 121, 180), v('a', ['T20', 'T20', 'S20'], 140, 40), v('a', ['S19', 'S20'], 39, 40), v('a', ['S20', 'S20'], 40, 40), v('a', ['S1', 'T13'], 40, 0)];
+        expect(repairX01(x01([master], { startingScore: 301, legOutMode: 'Master Out' }))).toMatchObject({ possible: true, changed: 0 });
+        expect(checkX01(x01([master], { startingScore: 301, legOutMode: 'Master Out' }))).toEqual([]);
+        // in Straight Out the single finishes, so a repair would end the leg earlier
+        expect(repairX01(x01([noDouble], { startingScore: 301, legOutMode: 'Straight Out' }))).toEqual({ possible: false, reason: 'Set 1, leg 1 would have ended earlier' });
     });
 
     it('does not repair when a leg would end earlier', () => {

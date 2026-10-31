@@ -19,6 +19,8 @@ export const ISSUER = 'Legmate';
 export const RECOVERY_CODES = 10;
 export const TRUST_DAYS = 30;
 export const PENDING_MINUTES = 5;
+// the value the trusted devices of an account carry; a new one forgets them all
+export const newTrustSalt = () => randomBytes(12).toString('base64url');
 // wrong codes per account before it has to wait
 export const CODE_TRIES = { limit: 5, windowMs: 5 * 60 * 1000 };
 
@@ -142,23 +144,56 @@ export const UNREADABLE = 'Two-step login cannot check the codes of your app any
 export const secretReadable = (user) => Boolean(decrypt(user?.mfa?.secret));
 
 /**
+ * Takes a recovery code of the account, once: the hash leaves the database
+ * in one step, so the same code sent twice at the same time gets in once.
+ * → whether it was still there. The account in hand follows, without writing
+ * the codes again when it is saved (another request may have taken another one).
+ */
+export const takeRecoveryCode = async (user, code) => {
+    const index = recoveryIndex(user.mfa?.recoveryHashes, code);
+    if (index < 0) return false;
+    const hash = user.mfa.recoveryHashes[index];
+    const result = await db.user.updateOne({ _id: user._id, 'mfa.recoveryHashes': hash }, { $pull: { 'mfa.recoveryHashes': hash } });
+    if (!result?.modifiedCount) return false;
+    user.mfa.recoveryHashes = user.mfa.recoveryHashes.filter(entry => entry !== hash);
+    user.unmarkModified?.('mfa.recoveryHashes');
+    return true;
+};
+
+/**
+ * Notes the step of a code of the app as used, once: in one step of the
+ * database, so the same code sent twice at the same time counts once.
+ * → whether it was not used yet.
+ */
+export const claimStep = async (user, step) => {
+    const result = await db.user.updateOne(
+        { _id: user._id, $or: [{ 'mfa.lastStep': null }, { 'mfa.lastStep': { $lt: step } }] },
+        { $set: { 'mfa.lastStep': step } },
+    );
+    if (!result?.modifiedCount) return false;
+    user.mfa.lastStep = step;
+    user.unmarkModified?.('mfa.lastStep');
+    return true;
+};
+
+/**
  * The second factor for what needs it besides logging in (turning two-step
- * login off, new recovery codes, deleting the account): a code of the app,
- * or one of the recovery codes in its place, which is used up then.
+ * login off, new recovery codes, deleting the account, a new email address,
+ * a new passkey): a code of the app, or one of the recovery codes in its
+ * place, which is used up then. Each counts once (see claimStep, takeRecoveryCode).
  * → { ok, step } for a code of the app, { ok, recovery: true }, or
  * { ok: false, unreadable } (unreadable: the secret no longer opens).
  */
-export const secondFactor = (user, code) => {
+export const secondFactor = async (user, code) => {
     const token = String(code ?? '').trim();
     const unreadable = !secretReadable(user);
     if (/^[\d\s]+$/.test(token)) {
         if (unreadable) return { ok: false, unreadable };
         const step = checkCode(decrypt(user.mfa.secret), token, user.mfa.lastStep);
-        return step === null ? { ok: false, unreadable } : { ok: true, step };
+        if (step === null || !(await claimStep(user, step))) return { ok: false, unreadable };
+        return { ok: true, step };
     }
-    const index = recoveryIndex(user.mfa?.recoveryHashes, token);
-    if (index < 0) return { ok: false, unreadable };
-    user.mfa.recoveryHashes.splice(index, 1);
+    if (!(await takeRecoveryCode(user, token))) return { ok: false, unreadable };
     return { ok: true, recovery: true };
 };
 

@@ -38,14 +38,14 @@
     "primeicons": "^7.0.0",
     "primereact": "^10.9.9",
     "qrcode": "1.5.4",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "react-hook-form": "^7.89.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-hook-form": "^7.90.0",
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.18.4",
     "react-spinners": "^0.17.1",
     "recharts": "^3.10.1",
-    "sass": "^1.105.1"
+    "sass": "^1.105.2"
   },
   "devDependencies": {
     "@babel/parser": "^7.29.9",
@@ -59,7 +59,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
-    "jsdom": "^27.0.1",
+    "jsdom": "^27.4.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "vitest": "^3.2.7"

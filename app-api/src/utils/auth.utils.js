@@ -14,6 +14,8 @@ const SCRYPT = { N: 1 << 15, r: 8, p: 1, maxmem: 96 * 1024 * 1024 };
 const maxmemFor = ({ N, r, p }) => Math.max(SCRYPT.maxmem, 256 * N * r * p);
 
 export const SESSION_COOKIE = 'ds_session';
+// what a blocked account hears wherever it tries to get in
+export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
 
 let fallbackSecret;
 

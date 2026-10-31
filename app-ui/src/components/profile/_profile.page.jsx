@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
+import { Message } from 'primereact/message';
 import { Password } from 'primereact/password';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
@@ -56,6 +57,10 @@ const ProfilePage = () => {
     const startClub = clubs.find(club => club.id === profile.defaultClub);
     const startClubText = startClub ? startClub.name : t('the club you used last');
     const [passwords, setPasswords] = useState({ current: '', next: '', repeat: '' });
+    // a new email address is confirmed with the current password, and a code when two-step login is on
+    const [confirm, setConfirm] = useState({ password: '', code: '' });
+    const emailChanged = profile.email.trim().toLowerCase() !== user.email;
+    const confirmed = !emailChanged || (confirm.password && (!user.mfaEnabled || confirm.code));
     const showSuccess = (summary, detail) =>
         toast.current.show({ severity: 'success', summary, detail, life: 3000 });
     const showError = (summary, error) =>
@@ -64,7 +69,9 @@ const ProfilePage = () => {
     const onSaveProfile = async (event) => {
         event.preventDefault();
         try {
-            setUser(await AuthService.updateProfile(profile));
+            const secured = emailChanged ? { ...profile, currentPassword: confirm.password, ...(user.mfaEnabled && { code: confirm.code }) } : profile;
+            setUser(await AuthService.updateProfile(secured));
+            setConfirm({ password: '', code: '' });
             showSuccess(t('Profile'), t('Your profile is saved.'));
         } catch (error) {
             showError(t('Profile'), error);
@@ -158,8 +165,17 @@ const ProfilePage = () => {
                         </div>
                         <p className="setting-title">{t('Email')}</p>
                         <div className="row mx-0 mt-0 setting-body">
-                            <div className="col pt-1">
+                            <div className="col d-flex flex-column gap-3 pt-1">
                                 {field('profile-email', t('Email address'), <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />, t('You log in with it; a new password is sent there.'))}
+                                {emailChanged &&
+                                    <>
+                                        <Message severity="info" className="w-100 justify-content-start" text={user.mfaEnabled
+                                            ? t('To change your email address, enter your current password and a code of your app or a recovery code.')
+                                            : t('To change your email address, enter your current password.')} />
+                                        {field('profile-email-password', t('Current password'), <Password inputId="profile-email-password" value={confirm.password} onChange={(e) => setConfirm({ ...confirm, password: e.target.value })} feedback={false} autoComplete="current-password" className="w-100" inputClassName="w-100" required />)}
+                                        {user.mfaEnabled &&
+                                            field('profile-email-code', t('Code of the app or a recovery code'), <InputText id="profile-email-code" value={confirm.code} onChange={(e) => setConfirm({ ...confirm, code: e.target.value.replace(/[^\da-zA-Z -]/g, '') })} autoComplete="one-time-code" maxLength={12} className="mfa-code-any" required />)}
+                                    </>}
                             </div>
                         </div>
 
@@ -200,7 +216,7 @@ const ProfilePage = () => {
 
                         <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
                             <Button type="button" label={t('Log out')} icon="pi pi-sign-out" size="small" severity="secondary" onClick={logout} />
-                            <Button type="submit" label={t('Save')} icon="pi pi-save" size="small" disabled={!changed} />
+                            <Button type="submit" label={t('Save')} icon="pi pi-save" size="small" disabled={!changed || !confirmed} />
                         </div>
                     </form>
 

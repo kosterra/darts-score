@@ -1,12 +1,11 @@
-import { randomBytes } from 'node:crypto';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import {
-    clearPendingCookie, isTrustedDevice, readPending, setPendingCookie, setSessionCookie, setTrustCookie, verifyPassword,
+    BLOCKED_MESSAGE, clearPendingCookie, isTrustedDevice, readPending, setPendingCookie, setSessionCookie, setTrustCookie, verifyPassword,
 } from '../utils/auth.utils.js';
 import {
-    PENDING_MINUTES, TRUST_DAYS, UNREADABLE, checkCode, clearTries, decrypt, encrypt, isMfaEnabled, mfaStateOf, newRecoveryCodes,
-    newSecret, noteWrongCode, otpauthUri, recoveryIndex, requirementOf, secondFactor, tooManyTries,
+    PENDING_MINUTES, TRUST_DAYS, UNREADABLE, checkCode, claimStep, clearTries, decrypt, encrypt, isMfaEnabled, mfaStateOf, newRecoveryCodes,
+    newSecret, newTrustSalt, noteWrongCode, otpauthUri, requirementOf, secondFactor, takeRecoveryCode, tooManyTries,
 } from '../utils/mfa.js';
 import { notifySecurity } from '../utils/notify.js';
 import { noteLoginFailure } from '../utils/spam.guard.js';
@@ -17,8 +16,12 @@ import { noteLoginFailure } from '../utils/spam.guard.js';
  * recovery codes and forgetting trusted devices.
  */
 
-// the session starts: the login is complete
+// the session starts: the login is complete (never for a blocked account, whichever way it came)
 export const startSession = async (req, res, user, { status = 200, extra = {} } = {}) => {
+    if (user.blockedAt) {
+        clearPendingCookie(req, res);
+        return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
+    }
     user.lastLoginAt = new Date();
     await user.save({ timestamps: false });
     clearPendingCookie(req, res);
@@ -78,20 +81,18 @@ export const loginCode = async (req, res) => {
     const { code, recoveryCode, trust } = req.body;
     // the secret no longer opens (MFA_KEY changed): a code of the app cannot be checked, which is not the user's fault
     if (!secret && !recoveryCode) return res.status(409).json({ message: UNREADABLE, unreadable: true });
+    // each code counts once, also when it is sent twice at the same time
     let usedRecovery = false;
     if (recoveryCode) {
-        const index = recoveryIndex(user.mfa.recoveryHashes, recoveryCode);
-        if (index < 0) return wrongCode(req, res, user);
-        user.mfa.recoveryHashes.splice(index, 1);
+        if (!(await takeRecoveryCode(user, recoveryCode))) return wrongCode(req, res, user);
         usedRecovery = true;
     } else {
         const step = checkCode(secret, code, user.mfa.lastStep);
-        if (step === null) return wrongCode(req, res, user);
-        user.mfa.lastStep = step;
+        if (step === null || !(await claimStep(user, step))) return wrongCode(req, res, user);
     }
     clearTries(user._id);
     if (trust === true) {
-        if (!user.mfa.trustSalt) user.mfa.trustSalt = randomBytes(12).toString('base64url');
+        if (!user.mfa.trustSalt) user.mfa.trustSalt = newTrustSalt();
         setTrustCookie(req, res, user, TRUST_DAYS);
     }
     // a recovery code got in, but the secret is lost: two-step login is off and set up again,
@@ -157,7 +158,7 @@ export const enable = async (req, res) => {
     if (step === null) return res.status(422).json({ errors: ['This code is not right. Check the time of your phone and try the newest code.'] });
 
     const { codes, hashes } = newRecoveryCodes();
-    Object.assign(user.mfa, { secret: user.mfa.pendingSecret, pendingSecret: null, enabledAt: new Date(), lastStep: step, recoveryHashes: hashes, trustSalt: randomBytes(12).toString('base64url') });
+    Object.assign(user.mfa, { secret: user.mfa.pendingSecret, pendingSecret: null, enabledAt: new Date(), lastStep: step, recoveryHashes: hashes, trustSalt: newTrustSalt() });
     notifySecurity(user, 'mfaEnabled', {
         title: 'Two-step login is on',
         body: 'From now on Legmate asks for a code of your authenticator app after the password. Keep your recovery codes in a safe place.',
@@ -179,7 +180,7 @@ export const disable = async (req, res) => {
     if ((await requirementOf(user)).required) return res.status(409).json({ message: 'Two-step login is required for your account on this installation.' });
     if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: 'The current password is wrong.' });
     // a code of the app, or a recovery code in its place
-    const check = secondFactor(user, req.body.code);
+    const check = await secondFactor(user, req.body.code);
     if (refused(res, check)) return undefined;
     user.mfa = { ...OFF };
     await user.save({ timestamps: false });
@@ -199,11 +200,10 @@ export const recoveryCodes = async (req, res) => {
     const user = req.user;
     if (!isMfaEnabled(user)) return res.status(409).json({ message: 'Two-step login is off.' });
     // a code of the app, or one of the old recovery codes in its place
-    const check = secondFactor(user, req.body.code);
+    const check = await secondFactor(user, req.body.code);
     if (refused(res, check)) return undefined;
     const { codes, hashes } = newRecoveryCodes();
     user.mfa.recoveryHashes = hashes;
-    if (check.step != null) user.mfa.lastStep = check.step;
     await user.save({ timestamps: false });
     res.json({ recoveryCodes: codes, mfa: await mfaStateOf(user) });
 };
@@ -212,7 +212,7 @@ export const recoveryCodes = async (req, res) => {
 export const forgetDevices = async (req, res) => {
     const user = req.user;
     if (!isMfaEnabled(user)) return res.status(409).json({ message: 'Two-step login is off.' });
-    user.mfa.trustSalt = randomBytes(12).toString('base64url');
+    user.mfa.trustSalt = newTrustSalt();
     await user.save({ timestamps: false });
     res.json({ message: 'Every device asks for the code again.' });
 };

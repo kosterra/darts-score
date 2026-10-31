@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Button } from 'primereact/button';
+import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 import { Password } from 'primereact/password';
 
 import AuthService from '../../services/auth.service';
+import { useAuth } from '../../utils/auth.context';
 import { addPasskey, isCancelled, passkeysSupported } from '../../utils/passkeys';
 import { formatDate } from '../../utils/dates';
 import { t } from '../../utils/i18n';
@@ -12,13 +14,19 @@ import { t } from '../../utils/i18n';
  * The passkeys of the account, on the profile below two-step login: log in
  * with the fingerprint, the face or the PIN of a device instead of the
  * password, in the browser and in the installed app. Adding one asks for the
- * password (a device left logged in cannot add a way in); each one shows
- * where it was made and when it was used last, and can be removed.
+ * password, and a code when two-step login is on (a device left logged in
+ * cannot add a way in, a stolen password alone cannot get round the code);
+ * each one shows where it was made and when it was used last, and can be
+ * removed with the password.
  */
 const PasskeysSetting = ({ onSaved }) => {
+    const { user } = useAuth();
     const [passkeys, setPasskeys] = useState(null);
     const [adding, setAdding] = useState(false);
+    // the passkey about to be removed (its id), asking for the password
+    const [removing, setRemoving] = useState(null);
     const [password, setPassword] = useState('');
+    const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
     const supported = passkeysSupported();
@@ -27,14 +35,14 @@ const PasskeysSetting = ({ onSaved }) => {
         AuthService.listPasskeys().then(answer => setPasskeys(answer.passkeys)).catch(() => setPasskeys([]));
     }, []);
 
-    const close = () => { setAdding(false); setPassword(''); setError(''); };
+    const close = () => { setAdding(false); setRemoving(null); setPassword(''); setCode(''); setError(''); };
 
     const add = async (event) => {
         event.preventDefault();
         setBusy('add');
         setError('');
         try {
-            const answer = await addPasskey(password);
+            const answer = await addPasskey(password, user.mfaEnabled ? code : undefined);
             setPasskeys(answer.passkeys);
             close();
             onSaved?.(t('The passkey is added: log in with it next time.'));
@@ -44,16 +52,23 @@ const PasskeysSetting = ({ onSaved }) => {
         setBusy('');
     };
 
-    const remove = async (passkey) => {
-        setBusy(passkey.id);
+    const remove = async (event) => {
+        event.preventDefault();
+        setBusy(removing);
+        setError('');
         try {
-            setPasskeys((await AuthService.removePasskey(passkey.id)).passkeys);
+            setPasskeys((await AuthService.removePasskey(removing, password)).passkeys);
+            close();
             onSaved?.(t('The passkey is removed.'));
         } catch (err) {
             setError(err.message);
         }
         setBusy('');
     };
+
+    const passwordInput = (id) => (
+        <Password inputId={id} value={password} onChange={(e) => setPassword(e.target.value)} feedback={false} placeholder={t('Current password')} aria-label={t('Current password')} autoComplete="current-password" className="w-100" inputClassName="w-100" required />
+    );
 
     return (
         <>
@@ -77,25 +92,43 @@ const PasskeysSetting = ({ onSaved }) => {
                                             {passkey.synced && <>{' · '}{t('on all your devices of the same account')}</>}
                                         </span>
                                     </span>
-                                    <Button type="button" icon="pi pi-trash" size="small" severity="danger" text aria-label={t('Remove {{name}}', { name: passkey.name })} title={t('Remove')} loading={busy === passkey.id} onClick={() => remove(passkey)} />
+                                    <Button type="button" icon="pi pi-trash" size="small" severity="danger" text aria-label={t('Remove {{name}}', { name: passkey.name })} title={t('Remove')} disabled={removing === passkey.id} onClick={() => { close(); setRemoving(passkey.id); }} />
                                 </li>
                             ))}
                         </ul>}
 
-                    {adding
-                        ? <form onSubmit={add} className="d-flex flex-column gap-2">
-                            <span className="fs-7 text-subtle">{t('Enter your password; then your device asks for your fingerprint, face or PIN.')}</span>
-                            <Password inputId="passkey-password" value={password} onChange={(e) => setPassword(e.target.value)} feedback={false} placeholder={t('Current password')} aria-label={t('Current password')} autoComplete="current-password" className="w-100" inputClassName="w-100" required />
+                    {removing &&
+                        <form onSubmit={remove} className="d-flex flex-column gap-2">
+                            <span className="fs-7 text-subtle">{t('Enter your password to remove {{name}}.', { name: passkeys?.find(passkey => passkey.id === removing)?.name ?? '' })}</span>
+                            {passwordInput('passkey-remove-password')}
                             {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
                             <div className="d-flex justify-content-end gap-2">
                                 <Button type="button" label={t('Cancel')} size="small" severity="secondary" text onClick={close} />
-                                <Button type="submit" label={t('Add passkey')} icon="pi pi-key" size="small" loading={busy === 'add'} />
+                                <Button type="submit" label={t('Remove')} icon="pi pi-trash" size="small" severity="danger" loading={busy === removing} disabled={!password} />
                             </div>
-                        </form>
-                        : <>
+                        </form>}
+
+                    {adding &&
+                        <form onSubmit={add} className="d-flex flex-column gap-2">
+                            <span className="fs-7 text-subtle">
+                                {user.mfaEnabled
+                                    ? t('Enter your password and a code of your app or a recovery code; then your device asks for your fingerprint, face or PIN.')
+                                    : t('Enter your password; then your device asks for your fingerprint, face or PIN.')}
+                            </span>
+                            {passwordInput('passkey-password')}
+                            {user.mfaEnabled &&
+                                <InputText id="passkey-code" value={code} onChange={(e) => setCode(e.target.value.replace(/[^\da-zA-Z -]/g, ''))} autoComplete="one-time-code" maxLength={12} placeholder={t('Code of the app or a recovery code')} aria-label={t('Code of the app or a recovery code')} className="mfa-code-any" required />}
+                            {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
+                            <div className="d-flex justify-content-end gap-2">
+                                <Button type="button" label={t('Cancel')} size="small" severity="secondary" text onClick={close} />
+                                <Button type="submit" label={t('Add passkey')} icon="pi pi-key" size="small" loading={busy === 'add'} disabled={!password || (user.mfaEnabled && !code)} />
+                            </div>
+                        </form>}
+                    {!adding && !removing &&
+                        <>
                             {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
                             <div className="d-flex justify-content-end">
-                                <Button type="button" label={passkeys?.length ? t('Add another passkey') : t('Add a passkey')} icon="pi pi-key" size="small" disabled={!supported} onClick={() => { setError(''); setAdding(true); }} />
+                                <Button type="button" label={passkeys?.length ? t('Add another passkey') : t('Add a passkey')} icon="pi pi-key" size="small" disabled={!supported} onClick={() => { close(); setAdding(true); }} />
                             </div>
                         </>}
                 </div>

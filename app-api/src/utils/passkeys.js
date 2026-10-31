@@ -34,12 +34,29 @@ export const setChallenge = (req, res, purpose, challenge, uid = null) => {
     res.cookie(CHALLENGE_COOKIE, { purpose, challenge, uid, exp }, { ...cookieOptions(req), maxAge: CHALLENGE_MINUTES * 60 * 1000 });
 };
 
-// the waiting challenge of a purpose ('register' or 'login'), used up by reading it; null when gone
+// the challenges answered already, until they would have run out anyway (in
+// memory): the cookie is cleared with the answer, but a browser need not obey,
+// so an answer sent twice counts once here
+const used = new Map();
+const pruneUsed = (now) => {
+    for (const [challenge, exp] of used) if (exp < now) used.delete(challenge);
+};
+
+/**
+ * The waiting challenge of a purpose ('register' or 'login'), used up by
+ * reading it: a second answer with the same cookie gets null, as does a late
+ * one or one for the other purpose.
+ */
 export const takeChallenge = (req, res, purpose) => {
     const waiting = req.signedCookies?.[CHALLENGE_COOKIE];
     res.clearCookie(CHALLENGE_COOKIE, cookieOptions(req));
     if (!waiting || typeof waiting !== 'object' || waiting.purpose !== purpose || typeof waiting.challenge !== 'string') return null;
-    return waiting.exp < Date.now() ? null : waiting;
+    const now = Date.now();
+    if (waiting.exp < now) return null;
+    pruneUsed(now);
+    if (used.has(waiting.challenge)) return null;
+    used.set(waiting.challenge, waiting.exp);
+    return waiting;
 };
 
 // a short name for a passkey from the browser it was made in, e.g. "iPhone" or "Windows"
