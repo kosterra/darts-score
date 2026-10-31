@@ -14,6 +14,9 @@ export const isMailConfigured = () => Boolean(process.env.SMTP_HOST && getAppUrl
 const DEFAULT_FROM = 'Legmate <no-reply@darts-score.local>';
 const portOf = () => Number(process.env.SMTP_PORT) || 587;
 const secureOf = () => (process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : portOf() === 465);
+// without implicit TLS the connection must upgrade with STARTTLS, or no mail goes out:
+// SMTP_REQUIRE_TLS=false only for a relay without TLS on a private network (the dev mailpit)
+const requireTlsOf = () => !secureOf() && process.env.SMTP_REQUIRE_TLS !== 'false';
 
 /**
  * How mail is set up, for the global admins: the server, port, encryption,
@@ -45,6 +48,7 @@ const getTransporter = () => {
             host: SMTP_HOST,
             port: portOf(),
             secure: secureOf(),
+            requireTLS: requireTlsOf(),
             ...(SMTP_USER && { auth: { user: SMTP_USER, pass: SMTP_PASSWORD } }),
             // a server that does not answer is reported within seconds, not after two minutes
             connectionTimeout: 15_000,

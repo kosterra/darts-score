@@ -11,7 +11,8 @@
 // without its statistics), and the tests
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
 // /__test/tournaments { scenario }, /__test/leagues { scenario }, /__test/calendar { scenario }, /__test/session { leftMs } and
-// /__test/notifications (two of them, one unread), /__test/evening (one with finished games).
+// /__test/notifications (two of them, one unread), /__test/evening (one with finished games),
+// /__test/mfa { enabled } and /__test/passkeys { passkeys: [names] }.
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
@@ -163,6 +164,9 @@ http.createServer((req, res) => {
         if (path === '/__test/tournaments') { seedTournaments(players, json.scenario); return send(res, 200, {}); }
         if (path.startsWith('/api/tournament') && tournamentMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', url }) !== false) return;
         if (path === '/__test/logged-out' && req.method === 'POST') { globalThis.mockLoggedOut = Boolean(json.loggedOut); return send(res, 200, {}); }
+        // two-step login on or off for the account, and passkeys already there (for the profile's forms)
+        if (path === '/__test/mfa' && req.method === 'POST') { mfa.enabled = Boolean(json.enabled); mfa.loggedIn = true; return send(res, 200, {}); }
+        if (path === '/__test/passkeys' && req.method === 'POST') { globalThis.mockPasskeys = (json.passkeys ?? []).map((name, i) => ({ id: `pk${i + 1}`, name, createdAt: ago(30 - i), lastUsedAt: i === 0 ? ago(2) : null })); return send(res, 200, {}); }
         if (path === '/__test/role' && req.method === 'POST') { user.role = json.admin ? 'globalAdmin' : 'user'; club.role = json.admin ? 'admin' : 'player'; user.id = json.user ?? 'u1'; return send(res, 200, {}); }
         if (path === '/api/stats/favourites') return send(res, 200, [
             { id: 'fav1aaaaaaaa', type: 'x01', kind: null, settings: { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 5, legStarter: 'rotate', roundLimit: 0, bull: 'split' }, players: ['p1', 'p2'], opponents: ['p2'], count: 14, lastAt: new Date(Date.now() - 2 * 864e5) },
@@ -778,7 +782,7 @@ http.createServer((req, res) => {
             });
         }
         if (path === '/api/auth/me' && req.method === 'GET') return send(res, 200, user);
-        if (path === '/api/auth/language' && req.method === 'PUT') { user.language = json.language; return send(res, 200, user); }
+        if (path === '/api/auth/language' && req.method === 'PUT') { user.language = json.language; return send(res, 200, mfa.enabled ? { ...user, mfaEnabled: true, mfa: mfaState() } : user); }
         const dash = path.match(/^\/api\/auth\/dashboard\/(c\d+)$/);
         if (dash && req.method === 'PUT') { user.dashboards = [...(user.dashboards ?? []).filter(d => d.club !== dash[1]), ...(Array.isArray(json.layout) ? [{ club: dash[1], layout: json.layout }] : [])]; return send(res, 200, user); }
         const clubPut = path.match(/^\/api\/clubs\/(c\d+)$/);

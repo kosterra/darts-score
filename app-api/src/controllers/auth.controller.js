@@ -2,7 +2,7 @@ import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { LANGUAGES, ROLES } from '../models/user.model.js';
-import { hashPassword, verifyPassword, needsRehash, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
+import { BLOCKED_MESSAGE, hashPassword, verifyPassword, needsRehash, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
 import { endSession } from '../utils/sessions.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
@@ -14,13 +14,22 @@ import { notifySecurity } from '../utils/notify.js';
 import { claimOnRegister } from './player.contact.controller.js';
 import { finishLogin } from './mfa.controller.js';
 import { carryOutSteps, deleteAccount, deletionBlock, lastGlobalAdmin, soleAdminClubs } from '../utils/account.deletion.js';
-import { UNREADABLE, isMfaEnabled, mfaStateOf, secondFactor } from '../utils/mfa.js';
+import { UNREADABLE, isMfaEnabled, mfaStateOf, newTrustSalt, secondFactor } from '../utils/mfa.js';
 import { translate } from '../utils/translate.js';
 import { dateTimeIn } from '../utils/notify.js';
 import { getAppUrl } from '../utils/mail.utils.js';
 import { clubShirtOf } from '../utils/shirts.js';
+import { isBreachedPassword, BREACHED_MESSAGE } from '../utils/breached.password.js';
 
-export const BLOCKED_MESSAGE = 'This account is blocked. Please contact the administrator of this installation.';
+export { BLOCKED_MESSAGE };
+const WRONG_PASSWORD = 'The current password is wrong.';
+const WRONG_CODE = 'This code is not right. Check the time of your phone and try the newest code.';
+// a new email address is where a new password would be sent: the password (and the code) first
+const EMAIL_NEEDS_PASSWORD = 'Enter your current password to change your email address.';
+const EMAIL_NEEDS_CODE = 'Enter a code of your app, or a recovery code, to change your email address.';
+
+// the second factor for what needs it: an answer when it does not count, else null
+const refusedCode = (res, check) => (check.ok ? null : res.status(403).json({ message: check.unreadable ? UNREADABLE : WRONG_CODE, unreadable: Boolean(check.unreadable) }));
 
 const User = db.user;
 
@@ -34,6 +43,7 @@ export const register = async (req, res) => {
     if (await User.exists({ email })) {
         return res.status(409).json({ message: 'An account with this email already exists.' });
     }
+    if (await isBreachedPassword(password)) return res.status(422).json({ errors: [BREACHED_MESSAGE] });
 
     const user = await User.create({
         email,
@@ -145,8 +155,15 @@ export const updateMe = async (req, res) => {
     logger.debug('auth update profile called');
     const { email, firstname, lastname, startPage, defaultClub } = req.body;
 
-    if (email !== req.user.email && await User.exists({ email })) {
-        return res.status(409).json({ message: 'An account with this email already exists.' });
+    if (email !== req.user.email) {
+        // the address a new password goes to: not from a device left logged in
+        if (!req.body.currentPassword) return res.status(403).json({ message: EMAIL_NEEDS_PASSWORD });
+        if (!(await verifyPassword(req.body.currentPassword, req.user.passwordHash))) return res.status(403).json({ message: WRONG_PASSWORD });
+        if (isMfaEnabled(req.user)) {
+            if (!req.body.code) return res.status(403).json({ message: EMAIL_NEEDS_CODE });
+            if (refusedCode(res, await secondFactor(req.user, req.body.code))) return undefined;
+        }
+        if (await User.exists({ email })) return res.status(409).json({ message: 'An account with this email already exists.' });
     }
 
     // the default club is one the user runs or plays in (null: the one used last)
@@ -200,11 +217,14 @@ export const changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     if (!(await verifyPassword(currentPassword, req.user.passwordHash))) {
-        return res.status(403).json({ message: 'The current password is wrong.' });
+        return res.status(403).json({ message: WRONG_PASSWORD });
     }
+    if (await isBreachedPassword(newPassword)) return res.status(422).json({ errors: [BREACHED_MESSAGE] });
 
     req.user.passwordHash = await hashPassword(newPassword);
     req.user.sessionVersion += 1;
+    // the trusted devices of two-step login ask for the code again: a new password starts afresh
+    if (req.user.mfa?.trustSalt) req.user.mfa.trustSalt = newTrustSalt();
     await req.user.save();
 
     notifySecurity(req.user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
@@ -226,7 +246,8 @@ export const forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email: req.body.email });
     checkLater(() => noteResetRequest(req, typeof req.body.email === 'string' ? req.body.email : '', user));
-    if (user) {
+    // a blocked account gets no link (and hears the same answer)
+    if (user && !user.blockedAt) {
         const link = issuePasswordLink(user, RESET_TOKEN_HOURS);
         await user.save();
         // Mail problems are logged, not shown: the answer must not reveal whether the account exists
@@ -246,11 +267,15 @@ export const resetPassword = async (req, res) => {
     if (!user) {
         return res.status(400).json({ message: 'This link is invalid or has expired. Please request a new one.' });
     }
+    if (user.blockedAt) return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
+    if (await isBreachedPassword(req.body.password)) return res.status(422).json({ errors: [BREACHED_MESSAGE] });
 
     user.passwordHash = await hashPassword(req.body.password);
     user.sessionVersion += 1;
     user.resetTokenHash = null;
     user.resetTokenExpires = null;
+    // the trusted devices of two-step login ask for the code again: a new password starts afresh
+    if (user.mfa?.trustSalt) user.mfa.trustSalt = newTrustSalt();
     await user.save();
     // not for a new account choosing its first password
     if (user.lastLoginAt) notifySecurity(user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });
@@ -278,15 +303,12 @@ export const deletionSteps = async (req, res) => {
  */
 export const deleteMe = async (req, res) => {
     const user = req.user;
-    if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: 'The current password is wrong.' });
-    if (isMfaEnabled(user)) {
-        // a code of the app, or a recovery code in its place
-        const check = secondFactor(user, req.body.code);
-        if (!check.ok) return res.status(403).json({ message: check.unreadable ? UNREADABLE : 'This code is not right. Check the time of your phone and try the newest code.' });
-    }
+    if (!(await verifyPassword(req.body.password, user.passwordHash))) return res.status(403).json({ message: WRONG_PASSWORD });
     const steps = Array.isArray(req.body.clubs) ? req.body.clubs : [];
     const block = await deletionBlock(user, steps);
     if (block) return res.status(409).json(block);
+    // a code of the app, or a recovery code in its place: last, as it counts once
+    if (isMfaEnabled(user) && refusedCode(res, await secondFactor(user, req.body.code))) return undefined;
     const { email, firstname } = user;
     const language = user.language ?? 'en';
     await carryOutSteps(user, steps);

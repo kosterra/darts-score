@@ -272,6 +272,7 @@ paths:
       tags:
         - Public
       summary: The ways to support Legmate with a gift, for the page /support
+      security: []
       responses:
         '429':
           $ref: '#/components/responses/TooManyRequests'
@@ -572,7 +573,7 @@ paths:
     post:
       tags:
         - Auth
-      summary: Start adding a passkey, with the password; the options for the browser (WebAuthn)
+      summary: Start adding a passkey, with the password (and the code of two-step login); the options for the browser (WebAuthn)
       requestBody:
         required: true
         content:
@@ -583,13 +584,17 @@ paths:
               properties:
                 password:
                   type: string
+                code:
+                  type: string
+                  maxLength: 20
+                  description: A code of the app or a recovery code; needed when two-step login is on
       responses:
         '200':
           description: The options for navigator.credentials.create (as JSON)
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
-          description: The password is wrong
+          description: The password or the code is wrong
         '409':
           description: Ten passkeys already, or no APP_URL
         '422':
@@ -606,14 +611,28 @@ paths:
     delete:
       tags:
         - Auth
-      summary: Remove a passkey
+      summary: Remove a passkey, with the password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
       responses:
         '200':
           description: '{ passkeys }, as GET'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The password is wrong
         '404':
           description: There is no such passkey
+        '422':
+          $ref: '#/components/responses/ValidationError'
       operationId: deleteAuthPasskeysByid
   /api/auth/login/passkey/options:
     post:
@@ -832,6 +851,9 @@ paths:
       tags:
         - Auth
       summary: Update own name and email
+      description: >-
+        A new email address needs the current password (currentPassword) and, with two-step login on, a code of the
+        app or a recovery code (code): the address is where a new password would be sent.
       requestBody:
         required: true
         content:
@@ -843,6 +865,8 @@ paths:
           description: OK
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: A new email address without the current password or the code, or with a wrong one
         '409':
           description: Email already registered
       operationId: putAuthMe
@@ -8295,15 +8319,10 @@ components:
             properties:
               errors:
                 type: array
+                description: The messages of what was wrong, one per failed check
                 items:
-                  type: object
-                  properties:
-                    msg:
-                      type: string
-                    path:
-                      type: string
-                    value:
-                      type: string
+                  type: string
+                  example: Give your name, at most 80 characters.
     InternalError:
       description: Internal server error
       content:
@@ -8563,6 +8582,13 @@ components:
           type: string
         lastname:
           type: string
+        currentPassword:
+          type: string
+          description: Needed when the email changes
+        code:
+          type: string
+          maxLength: 20
+          description: A code of the app or a recovery code; needed when the email changes and two-step login is on
     PasswordInput:
       type: object
       required:

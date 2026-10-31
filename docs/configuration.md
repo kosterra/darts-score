@@ -38,6 +38,7 @@ five are missing the API logs exactly which and exits.
 | `ADMIN_EMAIL` | — | the first global admin, created on startup if no global admin exists. |
 | `ADMIN_PASSWORD` | — | that admin's initial password (min 8 chars). |
 | `ADMIN_RESET_MFA` | — | set to an email to turn off that account's two-step login at the next start; **remove it afterwards**. |
+| `BREACHED_PASSWORD_CHECK` | on | `off` stops asking Have I Been Pwned's Pwned Passwords range API whether a new password is known from a data breach (only the first five hex characters of its SHA-1 are sent, with padding; see [security.md](security.md)). The check fails open when the API does not answer within 3 s. Tests never call it unless set to `on`. |
 
 Changing `ADMIN_EMAIL`/`ADMIN_PASSWORD` later does **not** touch existing
 accounts — they only seed the very first global admin.
@@ -73,6 +74,7 @@ accounts — they only seed the very first global admin.
 | `SMTP_HOST` | — | the SMTP server. With it unset, mail is disabled (admins set passwords by hand). |
 | `SMTP_PORT` | — | SMTP port (e.g. `587`). |
 | `SMTP_SECURE` | — | `true` for implicit TLS (port 465). |
+| `SMTP_REQUIRE_TLS` | `true` | without implicit TLS the connection must upgrade with STARTTLS, else no mail is sent (a stripped STARTTLS would expose credentials and reset links). `false` only for a relay without TLS on a private network, such as the dev mailpit. |
 | `SMTP_USER`, `SMTP_PASSWORD` | — | SMTP credentials. |
 | `SMTP_FROM` | — | the `From` header, e.g. `Legmate <no-reply@example.com>`. |
 

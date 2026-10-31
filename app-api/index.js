@@ -55,6 +55,8 @@ import { startBackupJobs } from './src/utils/backups.js';
 import { clientIp } from './src/utils/spam.guard.js';
 import { getAppUrl, startMailServerChecks } from './src/utils/mail.utils.js';
 import { languageOfHeader, metaOf, renderIndex, robotsOf, sitemapOf } from './src/utils/page.meta.js';
+import { securityTxtOf } from './src/utils/security.txt.js';
+import { getLegalSettings } from './src/utils/legal.settings.js';
 import { getStartPageSettings } from './src/utils/start.page.settings.js';
 
 const { UI_URL } = process.env;
@@ -119,6 +121,11 @@ app.use(helmet({
     // sent only over HTTPS; 180 days
     hsts: { maxAge: 15552000, includeSubDomains: true },
 }));
+// helmet has no Permissions-Policy: the app uses none of these browser features
+app.use((req, res, next) => {
+    res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+    next();
+});
 
 // The address of the client is needed by the spam rules. Behind a reverse
 // proxy it comes from X-Forwarded-For, trusted from proxies on the local or
@@ -161,8 +168,19 @@ app.use(rateLimit({
 // ---------------------------------------------------------------------------
 app.use(favicon(path.join(import.meta.dirname, 'public', 'favicon.ico')));
 app.use(cookieParser(getSessionSecret()));
-app.use(express.urlencoded({ limit: '30mb', extended: true }));
-app.use(express.json({ limit: '30mb' }));
+// JSON bodies are small (the largest, a whole game, stays well under a megabyte);
+// pictures and backups come as multipart through multer with limits of their own
+app.use(express.urlencoded({ limit: '2mb', extended: true }));
+app.use(express.json({ limit: '2mb' }));
+// Express 5 leaves req.body undefined when nothing was sent: a request without a
+// body is an empty one, so validators and controllers may read its fields.
+// API answers are personal and change with every request: never cached by a
+// browser or a proxy (pictures and the public overview set their own headers)
+app.use('/api', (req, res, next) => {
+    req.body ??= {};
+    res.set('Cache-Control', 'no-store');
+    next();
+});
 // strip control characters and angle brackets from the free text in request
 // bodies (defence in depth; secrets and auth payloads are skipped)
 app.use('/api', sanitizeBody);
@@ -178,6 +196,10 @@ const HAS_UI  = existsSync(path.join(UI_DIST, 'index.html'));
 const baseOf = (req) => getAppUrl() || `${req.protocol}://${req.get('host')}`;
 // for the search engines: the public pages, and where to find them
 app.get('/robots.txt', (req, res) => res.type('text/plain').send(robotsOf(baseOf(req))));
+// where to report a security problem (RFC 9116): the operator's address, else the project's
+app.get(['/.well-known/security.txt', '/security.txt'], async (req, res) => {
+    res.set('Cache-Control', 'public, max-age=86400').type('text/plain').send(securityTxtOf(baseOf(req), await getLegalSettings()));
+});
 app.get('/sitemap.xml', async (req, res) => res.type('application/xml').send(sitemapOf(baseOf(req), await getStartPageSettings())));
 // index.html is served with the meta of each page (see the SPA fallback below), the rest as it is
 if (HAS_UI) app.use(express.static(UI_DIST, { index: false }));
@@ -287,6 +309,8 @@ rulesRoutes(app);
 // ---------------------------------------------------------------------------
 let indexHtml = null;
 app.use(async (req, res) => {
+    // an API path that no route answered is not a page of the app
+    if (req.path === '/api' || req.path.startsWith('/api/')) return res.status(404).json({ message: 'Not found' });
     if (!HAS_UI) return res.redirect('/');
     // a file that is not there (e.g. an old script after an update) is not the app
     if (path.extname(req.path) && !req.path.endsWith('.html')) return res.status(404).json({ message: 'Not found' });
@@ -313,6 +337,10 @@ app.use((err, req, res, next) => {
     const status = err.status || err.statusCode || 500;
     // a request from an address that may not use the API: said once as a warning already (CORS blocked)
     if (err.cors) return res.status(403).json({ message: 'This address may not use the API.' });
+    // the body parsers' refusals are the client's mistake: a plain answer, no error log
+    if (err.type === 'entity.parse.failed') return res.status(400).json({ message: 'The request body is not valid JSON.' });
+    if (err.type === 'entity.too.large') return res.status(413).json({ message: 'The request is too large.' });
+    if (typeof err.type === 'string' && err.type.startsWith('entity.')) return res.status(err.status || 400).json({ message: 'The request body could not be read.' });
     // what failed, for the error log; client mistakes (bad JSON, too large) are only warnings
     const request = { method: req.method, url: req.originalUrl, user: req.user?.email, ip: clientIp(req) };
     logger[status >= 500 ? 'error' : 'warn']({ err, request }, `${req.method} ${req.originalUrl} failed: ${err.message}`);

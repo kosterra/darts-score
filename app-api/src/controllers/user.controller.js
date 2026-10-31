@@ -3,6 +3,8 @@ import db from '../models/db.model.js';
 import { CLUB_ROLES, ROLES } from '../models/user.model.js';
 import { clubsOfAccount } from '../utils/global.admins.js';
 import { hashPassword } from '../utils/auth.utils.js';
+import { newTrustSalt } from '../utils/mfa.js';
+import { isBreachedPassword, BREACHED_MESSAGE } from '../utils/breached.password.js';
 import { issuePasswordLink } from '../utils/auth.tokens.js';
 import { notifySecurity } from '../utils/notify.js';
 import { deleteAccount } from '../utils/account.deletion.js';
@@ -123,10 +125,13 @@ export const setPassword = async (req, res) => {
     if (refuseSelf(req, res)) return;
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
+    if (await isBreachedPassword(req.body.password)) return res.status(422).json({ errors: [BREACHED_MESSAGE] });
     user.passwordHash = await hashPassword(req.body.password);
     user.sessionVersion += 1;
     user.resetTokenHash = null;
     user.resetTokenExpires = null;
+    // the trusted devices of two-step login ask for the code again
+    if (user.mfa?.trustSalt) user.mfa.trustSalt = newTrustSalt();
     await user.save();
     logger.info(`Password of ${user.email} set by ${req.user.email}`);
     notifySecurity(user, 'passwordChanged', { title: 'Your password was changed', body: 'If that was not you, choose a new password right away and tell the admins of your club.' });

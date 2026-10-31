@@ -29,7 +29,8 @@ describe('dictionaries', () => {
 });
 
 // every text of the app in German, French, Italian and Spanish: npm run i18n missing, then npm run i18n add
-describe('the translations', () => {
+// these read every source file: under the load of the whole suite they need more than the 5 s default
+describe('the translations', { timeout: 30000 }, () => {
     it('cover every text of the app and of the API', () => {
         const problems = translationProblems().map(({ key, where, language, problem }) => `${language} ${problem}: ${where} ${key}`);
         expect(problems).toEqual([]);

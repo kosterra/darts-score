@@ -9,32 +9,43 @@ vi.mock('../utils/notify.js', () => ({ notifySecurity: (user, kind) => { securit
 vi.mock('../utils/spam.guard.js', () => ({ noteLoginFailure: async () => {} }));
 vi.mock('../utils/mail.utils.js', () => ({ getAppUrl: () => 'https://legmate.example' }));
 vi.mock('./mfa.controller.js', () => ({ startSession: async (req, res, user) => res.json({ session: String(user._id) }) }));
-vi.mock('./auth.controller.js', () => ({ BLOCKED_MESSAGE: 'blocked' }));
 vi.mock('../models/db.model.js', () => ({
     default: {
         user: {
             exists: async (query) => users.some(user => user.passkeys.some(passkey => passkey.credentialId === query['passkeys.credentialId'])),
             findOne: async (query) => users.find(user => user.passkeys.some(passkey => passkey.credentialId === query['passkeys.credentialId'])) ?? null,
+            // the one-step update of a used code of two-step login (utils/mfa.js)
+            updateOne: async (query, update) => {
+                const user = users.find(entry => String(entry._id) === String(query._id));
+                if (!user || (user.mfa.lastStep != null && user.mfa.lastStep >= update.$set['mfa.lastStep'])) return { modifiedCount: 0 };
+                user.mfa.lastStep = update.$set['mfa.lastStep'];
+                return { modifiedCount: 1 };
+            },
         },
     },
 }));
+process.env.MFA_KEY = 'test key';
+// every ceremony gets a challenge of its own, as the library makes them
+let ceremonies = 0;
 vi.mock('@simplewebauthn/server', () => ({
-    generateRegistrationOptions: async ({ rpID }) => ({ challenge: 'reg-challenge', rp: { id: rpID } }),
-    generateAuthenticationOptions: async ({ rpID }) => ({ challenge: 'login-challenge', rpId: rpID }),
+    generateRegistrationOptions: async ({ rpID }) => ({ challenge: `reg-challenge-${++ceremonies}`, rp: { id: rpID } }),
+    generateAuthenticationOptions: async ({ rpID }) => ({ challenge: `login-challenge-${++ceremonies}`, rpId: rpID }),
     verifyRegistrationResponse: async ({ expectedChallenge, expectedOrigin, expectedRPID }) => {
-        expect([expectedChallenge, expectedOrigin, expectedRPID]).toEqual(['reg-challenge', 'https://legmate.example', 'legmate.example']);
+        expect(expectedChallenge).toMatch(/^reg-challenge-\d+$/);
+        expect([expectedOrigin, expectedRPID]).toEqual(['https://legmate.example', 'legmate.example']);
         return verified
             ? { verified: true, registrationInfo: { credential: { id: 'cred-1', publicKey: new Uint8Array([1, 2, 3]), counter: 0, transports: ['internal'] }, credentialDeviceType: 'multiDevice', credentialBackedUp: true } }
             : { verified: false };
     },
     verifyAuthenticationResponse: async ({ expectedChallenge, credential }) => {
-        expect(expectedChallenge).toBe('login-challenge');
+        expect(expectedChallenge).toMatch(/^login-challenge-\d+$/);
         expect(Array.from(credential.publicKey)).toEqual([1, 2, 3]);
         return { verified, authenticationInfo: { newCounter: 7, credentialBackedUp: true } };
     },
 }));
 
 const { hashPassword } = await import('../utils/auth.utils.js');
+const { codeOf, encrypt } = await import('../utils/mfa.js');
 const PasskeyController = await import('./passkey.controller.js');
 
 // a request with signed cookies, and an answer keeping the cookies it sets, as the browser would
@@ -49,7 +60,7 @@ const answer = () => {
     return res;
 };
 const account = async () => {
-    const user = { _id: { toString: () => 'anna' }, email: 'anna@example.ch', firstname: 'Anna', lastname: 'Muster', passwordHash: await hashPassword('secret123'), passkeys: [], passkeyUserId: null, save: async () => {} };
+    const user = { _id: { toString: () => 'anna' }, email: 'anna@example.ch', firstname: 'Anna', lastname: 'Muster', passwordHash: await hashPassword('secret123'), passkeys: [], passkeyUserId: null, mfa: { secret: null, enabledAt: null, lastStep: null, recoveryHashes: [] }, save: async () => {} };
     users.push(user);
     return user;
 };
@@ -77,6 +88,29 @@ describe('adding a passkey', () => {
         expect(added.body.passkeys).toEqual([expect.objectContaining({ id: 'cred-1', name: 'iPhone', synced: true })]);
         expect(anna.passkeys[0]).toMatchObject({ publicKey: 'AQID', transports: ['internal'] });
         expect(security).toEqual(['passkeyAdded']);
+    });
+
+    it('asks for the code too when two-step login is on', async () => {
+        const anna = await account();
+        const secret = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
+        anna.mfa = { secret: encrypt(secret), enabledAt: new Date(), lastStep: null, recoveryHashes: [] };
+        expect((await call('registrationOptions', anna, { password: 'secret123' })).statusCode).toBe(403);
+        expect((await call('registrationOptions', anna, { password: 'secret123', code: '000000' })).statusCode).toBe(403);
+        const code = codeOf(secret);
+        expect((await call('registrationOptions', anna, { password: 'secret123', code })).statusCode).toBe(200);
+        // the code counts once
+        expect((await call('registrationOptions', anna, { password: 'secret123', code })).statusCode).toBe(403);
+    });
+
+    it('takes the answer once: the same challenge cookie sent again is refused', async () => {
+        const anna = await account();
+        await call('registrationOptions', anna, { password: 'secret123' });
+        const kept = { ...cookies };
+        expect((await call('register', anna, { response: {} })).statusCode).toBe(201);
+        Object.assign(cookies, kept);
+        anna.passkeys = [];
+        expect((await call('register', anna, { response: {} })).statusCode).toBe(409);
+        expect(anna.passkeys).toHaveLength(0);
     });
 
     it('refuses an answer without its challenge, or one that does not check out', async () => {
@@ -119,10 +153,22 @@ describe('logging in with a passkey', () => {
         expect((await call('login', null, { response: { id: 'cred-1' } })).statusCode).toBe(403);
     });
 
-    it('removes a passkey, which then opens nothing', async () => {
+    it('takes a login answer once: the same challenge cookie sent again is refused', async () => {
+        await withPasskey();
+        await call('loginOptions', null);
+        const kept = { ...cookies };
+        expect((await call('login', null, { response: { id: 'cred-1' } })).statusCode).toBe(200);
+        Object.assign(cookies, kept);
+        expect((await call('login', null, { response: { id: 'cred-1' } })).statusCode).toBe(409);
+    });
+
+    it('removes a passkey with the password, which then opens nothing', async () => {
         const anna = await withPasskey();
-        expect((await call('remove', anna, {}, { id: 'cred-1' })).body.passkeys).toEqual([]);
+        expect((await call('remove', anna, {}, { id: 'cred-1' })).statusCode).toBe(403);
+        expect((await call('remove', anna, { password: 'wrong' }, { id: 'cred-1' })).statusCode).toBe(403);
+        expect(anna.passkeys).toHaveLength(1);
+        expect((await call('remove', anna, { password: 'secret123' }, { id: 'cred-1' })).body.passkeys).toEqual([]);
         expect(security).toEqual(['passkeyRemoved']);
-        expect((await call('remove', anna, {}, { id: 'cred-1' })).statusCode).toBe(404);
+        expect((await call('remove', anna, { password: 'secret123' }, { id: 'cred-1' })).statusCode).toBe(404);
     });
 });

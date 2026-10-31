@@ -10,7 +10,24 @@ vi.mock('../utils/spam.guard.js', () => ({ noteLoginFailure: async () => {} }));
 vi.mock('../utils/session.settings.js', () => ({ getSessionTimeoutMs: async () => 5 * 60 * 60 * 1000 }));
 vi.mock('../models/db.model.js', () => ({
     default: {
-        user: { findById: async (id) => users.get(String(id)) ?? null },
+        user: {
+            findById: async (id) => users.get(String(id)) ?? null,
+            // the one-step updates of the codes (utils/mfa.js), on the account in memory
+            updateOne: async (query, update) => {
+                const user = users.get(String(query._id));
+                if (!user) return { modifiedCount: 0 };
+                if ('mfa.recoveryHashes' in query) {
+                    const hash = query['mfa.recoveryHashes'];
+                    if (!user.mfa.recoveryHashes.includes(hash)) return { modifiedCount: 0 };
+                    user.mfa.recoveryHashes = user.mfa.recoveryHashes.filter(entry => entry !== hash);
+                    return { modifiedCount: 1 };
+                }
+                const step = update.$set['mfa.lastStep'];
+                if (user.mfa.lastStep != null && user.mfa.lastStep >= step) return { modifiedCount: 0 };
+                user.mfa.lastStep = step;
+                return { modifiedCount: 1 };
+            },
+        },
         setting: {
             findOne: () => ({ lean: async () => (setting ? { value: setting } : null) }),
             updateOne: async (query, { $set }) => { setting = $set.value; },
@@ -22,7 +39,7 @@ vi.mock('../models/db.model.js', () => ({
 }));
 process.env.MFA_KEY = 'test key';
 
-const { finishLogin, loginCode, setup, enable, disable, recoveryCodes } = await import('./mfa.controller.js');
+const { finishLogin, loginCode, setup, enable, disable, recoveryCodes, startSession } = await import('./mfa.controller.js');
 const { hashPassword } = await import('../utils/auth.utils.js');
 const { codeOf, encrypt, saveMfaSettings, newRecoveryCodes } = await import('../utils/mfa.js');
 
@@ -104,6 +121,35 @@ describe('logging in', () => {
         expect(ok.cookies.ds_session).toBeDefined();
         expect(anna.mfa.recoveryHashes).toHaveLength(9);
         expect(security).toEqual(['mfaRecoveryUsed']);
+    });
+
+    it('takes the same code once when it is sent twice at the same time', async () => {
+        const secret = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
+        const { codes, hashes } = newRecoveryCodes();
+        const anna = account('anna', { secret: encrypt(secret), enabledAt: new Date(), recoveryHashes: hashes });
+        const res = answer();
+        await finishLogin(request(), res, anna);
+        const pending = res.cookies.ds_mfa;
+
+        const code = codeOf(secret);
+        const byApp = [answer(), answer()];
+        await Promise.all(byApp.map(one => loginCode(request({ ds_mfa: pending }, { code }), one)));
+        expect(byApp.map(one => one.statusCode).sort()).toEqual([200, 401]);
+
+        const byRecovery = [answer(), answer()];
+        await Promise.all(byRecovery.map(one => loginCode(request({ ds_mfa: pending }, { recoveryCode: codes[4] }), one)));
+        expect(byRecovery.map(one => one.statusCode).sort()).toEqual([200, 401]);
+        expect(anna.mfa.recoveryHashes).toHaveLength(9);
+    });
+
+    it('starts no session for a blocked account, whichever way it came', async () => {
+        const anna = account('anna');
+        anna.blockedAt = new Date();
+        const res = answer();
+        await startSession(request(), res, anna);
+        expect(res.statusCode).toBe(403);
+        expect(res.body.blocked).toBe(true);
+        expect(res.cookies.ds_session).toBeUndefined();
     });
 
     it('refuses a pending login of an older session version', async () => {

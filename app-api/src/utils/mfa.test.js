@@ -3,6 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // the setting of the policy and the clubs, in memory
 let setting = null;
 let adminOf = new Set();
+// what the database answers to the one-step updates of the codes, and what it was asked
+let updated = { modifiedCount: 1 };
+const updates = [];
 vi.mock('../models/logger.model.js', () => ({ default: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() } }));
 vi.mock('../models/db.model.js', () => ({
     default: {
@@ -11,13 +14,14 @@ vi.mock('../models/db.model.js', () => ({
             updateOne: async (query, { $set }) => { setting = $set.value; },
         },
         club: { exists: async ({ admins }) => adminOf.has(String(admins)) },
+        user: { updateOne: async (query, update) => { updates.push({ query, update }); return updated; } },
     },
 }));
 process.env.MFA_KEY = 'test key';
 
 const {
-    checkCode, codeOf, decrypt, encrypt, newRecoveryCodes, newSecret, recoveryIndex, otpauthUri,
-    saveMfaSettings, getMfaSettings, mfaStateOf, tooManyTries, noteWrongCode, clearTries, CODE_TRIES,
+    checkCode, claimStep, codeOf, decrypt, encrypt, newRecoveryCodes, newSecret, recoveryIndex, otpauthUri,
+    saveMfaSettings, getMfaSettings, mfaStateOf, secondFactor, takeRecoveryCode, tooManyTries, noteWrongCode, clearTries, CODE_TRIES,
 } = await import('./mfa.js');
 
 const NOW = Date.UTC(2026, 9, 24, 12, 0, 10);
@@ -141,5 +145,60 @@ describe('the policy', () => {
         const second = await saveMfaSettings({ policy: 'everyone', graceDays: 7 });
         expect(second.requiredSince).toEqual(first.requiredSince);
         expect((await saveMfaSettings({ policy: 'optional', graceDays: 7 })).requiredSince).toBeNull();
+    });
+});
+
+describe('a code counts once', () => {
+    // an account as mongoose gives it, with the paths it would write down
+    const account = (mfa) => {
+        const unmarked = [];
+        return { _id: 'anna', mfa: { secret: null, lastStep: null, recoveryHashes: [], ...mfa }, unmarkModified: (path) => unmarked.push(path), unmarked };
+    };
+    const secret = newSecret();
+
+    it('takes a recovery code out of the database in one step, and the account follows without writing the codes again', async () => {
+        const { codes, hashes } = newRecoveryCodes();
+        const anna = account({ recoveryHashes: [...hashes] });
+        updates.length = 0;
+        updated = { modifiedCount: 1 };
+        expect(await takeRecoveryCode(anna, codes[2])).toBe(true);
+        expect(updates[0].query).toEqual({ _id: 'anna', 'mfa.recoveryHashes': hashes[2] });
+        expect(updates[0].update).toEqual({ $pull: { 'mfa.recoveryHashes': hashes[2] } });
+        expect(anna.mfa.recoveryHashes).toHaveLength(9);
+        expect(anna.unmarked).toEqual(['mfa.recoveryHashes']);
+        // not there: nothing asked of the database
+        expect(await takeRecoveryCode(anna, codes[2])).toBe(false);
+        expect(await takeRecoveryCode(anna, 'nonsense')).toBe(false);
+        expect(updates).toHaveLength(1);
+        // taken by another request meanwhile: not again
+        updated = { modifiedCount: 0 };
+        expect(await takeRecoveryCode(anna, codes[3])).toBe(false);
+        expect(anna.mfa.recoveryHashes).toHaveLength(9);
+    });
+
+    it('notes the step of a code of the app once, as the database says', async () => {
+        const anna = account({ lastStep: 5 });
+        updates.length = 0;
+        updated = { modifiedCount: 1 };
+        expect(await claimStep(anna, 7)).toBe(true);
+        expect(updates[0].query).toEqual({ _id: 'anna', $or: [{ 'mfa.lastStep': null }, { 'mfa.lastStep': { $lt: 7 } }] });
+        expect(anna.mfa.lastStep).toBe(7);
+        updated = { modifiedCount: 0 };
+        expect(await claimStep(anna, 8)).toBe(false);
+        expect(anna.mfa.lastStep).toBe(7);
+    });
+
+    it('is the second factor: a code of the app or a recovery code, each once', async () => {
+        const { codes, hashes } = newRecoveryCodes();
+        const anna = account({ secret: encrypt(secret), recoveryHashes: [...hashes] });
+        updated = { modifiedCount: 1 };
+        expect(await secondFactor(anna, codeOf(secret))).toMatchObject({ ok: true });
+        expect(await secondFactor(anna, codes[0])).toEqual({ ok: true, recovery: true });
+        expect(await secondFactor(anna, codes[0])).toMatchObject({ ok: false });
+        expect(await secondFactor(anna, '000000')).toMatchObject({ ok: false });
+        // the database says the code was used at the same time by another request
+        updated = { modifiedCount: 0 };
+        expect(await secondFactor(anna, codeOf(secret, Date.now() + 30000))).toMatchObject({ ok: false });
+        expect(await secondFactor(anna, codes[1])).toMatchObject({ ok: false });
     });
 });
