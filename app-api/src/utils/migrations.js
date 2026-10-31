@@ -268,6 +268,34 @@ const migrations = [
         },
     },
     {
+        id: '2026-10-club-tally-per-club',
+        description: 'A game can count for more than one club (shared tournaments between connected clubs): the club tally is unique per club and game, not per game',
+        run: async () => {
+            const collection = db.clubTally.collection;
+            // drop the old "one tally per game" unique index (sourceId_1) so a game can count
+            // for several clubs; the model's indexes (unique { club, sourceId } and the named
+            // sourceId_lookup) are built by Mongoose, which is why the plain one is not named sourceId_1
+            if ((await collection.indexes()).some(index => index.name === 'sourceId_1')) {
+                await collection.dropIndex('sourceId_1');
+                logger.info('Dropped the old unique index on the club tally (sourceId)');
+            }
+            await db.clubTally.createIndexes();
+            return true;
+        },
+    },
+    {
+        id: '2026-10-club-tally-drop-legacy-sourceid',
+        description: 'Make sure the old unique sourceId_1 index on the club tally is gone, so a game can count for several clubs (the earlier migration may have been recorded done before dropping it)',
+        run: async () => {
+            const collection = db.clubTally.collection;
+            if ((await collection.indexes()).some(index => index.name === 'sourceId_1')) {
+                await collection.dropIndex('sourceId_1');
+                logger.info('Dropped the leftover unique index on the club tally (sourceId)');
+            }
+            return true;
+        },
+    },
+    {
         id: '2026-10-onboarding',
         description: 'Accounts from before the welcome tour have no need of it: their tour and first steps count as done',
         run: async () => {

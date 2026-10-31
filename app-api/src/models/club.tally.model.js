@@ -28,6 +28,11 @@ export default (mongoose) => {
     { timestamps: false }
   );
   schema.index({ club: 1, at: 1 });
-  schema.index({ sourceId: 1 }, { unique: true });
+  // one tally per club and game: a shared tournament's game counts for every
+  // club that took part, each with its own players (see utils/club.badge.service.js)
+  schema.index({ club: 1, sourceId: 1 }, { unique: true });
+  // for finding every club's tally of one game (game deletion, integrity); named so it
+  // never clashes with the legacy unique "sourceId_1" that the migration drops
+  schema.index({ sourceId: 1 }, { name: 'sourceId_lookup' });
   return mongoose.model('clubtally', schema);
 };

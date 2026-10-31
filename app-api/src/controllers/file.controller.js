@@ -6,48 +6,67 @@ import { v4 as uuidv4 } from 'uuid';
 
 const PLAYER_SUBDIR = '/players';
 const CLUB_SUBDIR = '/clubs';
-const ALLOWED_TYPES = ['image/png', 'image/jpg', 'image/jpeg'];
+// the types we store, each with the first bytes a real file of that type starts with
+const ALLOWED_MIMES = ['image/png', 'image/jpg', 'image/jpeg'];
+const IMAGE_TYPES = [
+    { ext: '.png', magic: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+    { ext: '.jpg', magic: [0xff, 0xd8, 0xff] },
+];
+// a picture is at most this big; larger uploads are refused rather than filling the disk
+const MAX_BYTES = 5 * 1024 * 1024;
+const WRONG_TYPE = ['Please choose a .png or .jpg image.'];
 
-const WRONG_TYPE = 'Only .png, .jpg and .jpeg formats are allowed!';
+// the type of a file from its own first bytes (not the type the browser claims), or null
+const detectType = (buffer) => IMAGE_TYPES.find(type => type.magic.every((byte, index) => buffer[index] === byte)) ?? null;
 
 /**
  * Middleware that stores one uploaded image of the given form field in a
- * sub-folder of IMG_DIR. A wrong file type and problems on the server (e.g. a
- * folder the app may not write to) are answered right away, each with its
- * own message, instead of going on as if no image had been sent.
+ * sub-folder of IMG_DIR. The type is decided by the file's own first bytes,
+ * not the content-type the browser sends, and the file is saved under a fresh
+ * random name with the extension of that real type — so a script dressed up
+ * as an image (e.g. an SVG sent as image/png) is refused, and nothing is ever
+ * served back as anything but a .png or .jpg. A wrong type, a too-large file
+ * and problems on the server are each answered right away with their own
+ * message, instead of going on as if no image had been sent.
  */
 const createImageUpload = (subdir, field) => {
     const upload = multer({
-        storage: multer.diskStorage({
-            destination: (req, file, cb) => {
-                const dir = path.join('./', process.env.IMG_DIR, subdir);
-                fs.mkdirSync(dir, { recursive: true });
-                cb(null, dir);
-            },
-            filename: (req, file, cb) => {
-                const sanitised = file.originalname.toLowerCase().replace(/\s+/g, '-');
-                cb(null, uuidv4() + '-' + sanitised);
-            },
-        }),
-        fileFilter: (req, file, cb) => {
-            if (ALLOWED_TYPES.includes(file.mimetype)) cb(null, true);
-            else cb(new Error(WRONG_TYPE));
-        },
+        storage: multer.memoryStorage(),
+        limits: { fileSize: MAX_BYTES, files: 1 },
+        // a first gate on the declared type; the real check is the bytes below
+        fileFilter: (req, file, cb) => cb(null, ALLOWED_MIMES.includes(file.mimetype)),
     }).single(field);
 
     return (req, res, next) => {
         upload(req, res, (err) => {
-            if (!err) return next();
-            logger.error(`Upload of ${field} failed: ${err}`);
-            if (err.message === WRONG_TYPE) {
-                return res.status(422).json({ errors: ['Please choose a .png or .jpg image.'] });
+            if (err) {
+                logger.error(`Upload of ${field} failed: ${err}`);
+                if (err.code === 'LIMIT_FILE_SIZE') return res.status(422).json({ errors: ['The picture is too large (at most 5 MB).'] });
+                return res.status(400).json({ message: 'The picture could not be read. Please try again.' });
             }
-            const notWritable = err.code === 'EACCES' || err.code === 'EPERM' || err.code === 'EROFS';
-            res.status(500).json({
-                message: notWritable
-                    ? 'The picture could not be saved: the server may not write to its data folder. Please tell your administrator.'
-                    : 'The picture could not be saved. Please try again.',
-            });
+            // no image sent (the field is optional): let the controller decide
+            if (!req.file) return next();
+
+            const type = detectType(req.file.buffer);
+            if (!type) return res.status(422).json({ errors: WRONG_TYPE });
+
+            try {
+                const dir = path.join('./', process.env.IMG_DIR, subdir);
+                fs.mkdirSync(dir, { recursive: true });
+                // a fresh name and the extension of the detected type — never the uploaded name
+                const filename = uuidv4() + type.ext;
+                fs.writeFileSync(path.join(dir, filename), req.file.buffer);
+                req.file.filename = filename;
+                next();
+            } catch (saveErr) {
+                logger.error(`Saving ${field} failed: ${saveErr}`);
+                const notWritable = saveErr.code === 'EACCES' || saveErr.code === 'EPERM' || saveErr.code === 'EROFS';
+                res.status(500).json({
+                    message: notWritable
+                        ? 'The picture could not be saved: the server may not write to its data folder. Please tell your administrator.'
+                        : 'The picture could not be saved. Please try again.',
+                });
+            }
         });
     };
 };

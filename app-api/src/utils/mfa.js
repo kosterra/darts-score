@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, hkdfSync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { authenticator } from 'otplib';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
@@ -27,6 +27,11 @@ export const CODE_TRIES = { limit: 5, windowMs: 5 * 60 * 1000 };
 // ---------------------------------------------------------------------------
 
 let warned = false;
+// the AES key from MFA_KEY, derived with HKDF (a proper KDF, with a context label)
+const hkdfKey = (secret) => Buffer.from(hkdfSync('sha256', secret, 'legmate-mfa', 'totp-secret-v1', 32));
+// the earlier derivation (plain SHA-256 of MFA_KEY): still read, so secrets saved
+// before HKDF keep opening
+const legacyKey = (secret) => createHash('sha256').update(secret).digest();
 // the key from the session secret, used while MFA_KEY is not set
 const fallbackKey = () => createHash('sha256').update(`mfa:${getSessionSecret()}`).digest();
 const keyOf = () => {
@@ -35,7 +40,7 @@ const keyOf = () => {
         warned = true;
         logger.warn('MFA_KEY is not set — the secrets of two-step login are encrypted with a key from SESSION_SECRET; changing that secret ends every two-step login');
     }
-    return configured ? createHash('sha256').update(configured).digest() : fallbackKey();
+    return configured ? hkdfKey(configured) : fallbackKey();
 };
 
 export const encrypt = (text) => {
@@ -56,9 +61,18 @@ const decryptWith = (key, stored) => {
     }
 };
 
-// secrets saved before MFA_KEY was set were encrypted with the key from the
-// session secret: they still work once MFA_KEY is set
-export const decrypt = (stored) => decryptWith(keyOf(), stored) ?? (process.env.MFA_KEY ? decryptWith(fallbackKey(), stored) : null);
+// a secret is read with whichever key sealed it: the current HKDF key, the
+// earlier SHA-256(MFA_KEY) key, or the session-secret key (from before MFA_KEY
+// was set) — so changing the derivation never locks anyone out of two-step login
+export const decrypt = (stored) => {
+    const configured = process.env.MFA_KEY;
+    if (configured) {
+        return decryptWith(hkdfKey(configured), stored)
+            ?? decryptWith(legacyKey(configured), stored)
+            ?? decryptWith(fallbackKey(), stored);
+    }
+    return decryptWith(fallbackKey(), stored);
+};
 
 // ---------------------------------------------------------------------------
 // Codes

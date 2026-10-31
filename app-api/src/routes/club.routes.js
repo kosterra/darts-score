@@ -3,6 +3,7 @@ import { body, param, query } from 'express-validator';
 import { validate } from '../utils/validation.js';
 import * as ClubController from '../controllers/club.controller.js';
 import * as ClubJoinController from '../controllers/club.join.controller.js';
+import * as ClubLinkController from '../controllers/club.link.controller.js';
 import { emailValidator, nameValidators, passwordValidator } from './auth.routes.js';
 import { uploadClubLogo } from '../controllers/file.controller.js';
 
@@ -43,10 +44,39 @@ export default (app) => {
         validate,
         ClubJoinController.decide
     );
+    // connections between clubs, to play shared tournaments (club admins)
+    const clubId = param('id').isMongoId().withMessage('Invalid club.');
+    router.get('/:id/connections', clubId, validate, ClubLinkController.list);
+    router.get('/:id/connections/connectable',
+        clubId,
+        query('q').optional().isString().isLength({ max: 50 }).withMessage('Search with at most 50 characters.'),
+        validate,
+        ClubLinkController.connectable
+    );
+    router.post('/:id/connections',
+        clubId,
+        body('clubId').isMongoId().withMessage('Choose a club to connect to.'),
+        validate,
+        ClubLinkController.request
+    );
+    router.put('/:id/connections/:linkId',
+        clubId,
+        param('linkId').isMongoId().withMessage('Invalid connection.'),
+        body('accept').isBoolean({ strict: true }).withMessage('accept must be true or false.'),
+        validate,
+        ClubLinkController.decide
+    );
+    router.delete('/:id/connections/:linkId',
+        clubId,
+        param('linkId').isMongoId().withMessage('Invalid connection.'),
+        validate,
+        ClubLinkController.remove
+    );
+
     router.post('/', clubValidator, validate, ClubController.create);
     router.put('/:id',
         clubValidator,
-        ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren'].map(setting =>
+        ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren', 'connectable'].map(setting =>
             body(setting).optional().isBoolean({ strict: true }).withMessage(`${setting} must be true or false.`)),
         body('joinPolicy').optional().isIn(['open', 'approval', 'closed']).withMessage('New members join freely, are accepted by an admin, or are added by the admins only.'),
         body('shameMinAge').optional().isInt({ min: 6, max: 21 }).withMessage('The age limit must be between 6 and 21.').toInt(),

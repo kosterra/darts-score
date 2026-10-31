@@ -91,6 +91,18 @@ export const countEligible = (clubId) => db.player.countDocuments({ clubs: clubI
 
 export const entriesIn = (tournament) => (tournament.entries ?? []).filter(entry => entry.status === 'in');
 
+/**
+ * True when a club takes part in a tournament: it hosts it, or it is an invited
+ * (shared) club. Used to let a participating club act on a shared match's game
+ * even though the game is owned by the host club.
+ */
+export const participatesInTournament = async (clubId, tournamentId) => {
+    if (!db.mongoose.isValidObjectId(tournamentId)) return false;
+    const tournament = await db.tournament.findById(tournamentId, 'club invitedClubs').lean();
+    if (!tournament) return false;
+    return [String(tournament.club), ...(tournament.invitedClubs ?? []).map(String)].includes(String(clubId));
+};
+
 // ---------------------------------------------------------------------------
 // Setting up
 // ---------------------------------------------------------------------------
@@ -266,18 +278,25 @@ export const openRegistration = async (tournament) => {
  * admin for them (who may also add a member not asked yet). Throws an
  * Error with a status when it cannot be taken.
  */
-export const answerEntry = async (tournament, playerId, status, { byAdmin = false } = {}) => {
+export const answerEntry = async (tournament, playerId, status, { byAdmin = false, club = null } = {}) => {
     const open = tournament.status === 'registration' || (byAdmin && tournament.status === 'closed');
     if (!open) throw Object.assign(new Error('The registration is closed.'), { status: 409 });
     if (!['in', 'out'].includes(status)) throw Object.assign(new Error('Answer in or out.'), { status: 422 });
     const id = String(playerId);
+    // the club the player plays for: the host, or a connected club in a shared tournament
+    const entryClub = club ?? tournament.club;
     let entry = tournament.entries.find(item => String(item.player) === id);
     if (!entry) {
-        // an admin adds a member who was not asked (joined later)
-        const member = byAdmin && await db.player.exists({ _id: id, clubs: tournament.club, guest: { $ne: true } });
+        // an admin adds a member of their own club who was not asked (joined later,
+        // or a connected club's player in a shared tournament)
+        const member = byAdmin && await db.player.exists({ _id: id, clubs: entryClub, guest: { $ne: true } });
         if (!member) throw Object.assign(new Error('This player is not a member of the club.'), { status: 404 });
-        tournament.entries.push({ player: id, club: tournament.club, status: 'invited' });
+        tournament.entries.push({ player: id, club: entryClub, status: 'invited' });
         entry = tournament.entries[tournament.entries.length - 1];
+    } else if (club && String(entry.club ?? tournament.club) !== String(club)) {
+        // in a shared tournament an admin only manages entries of their own club,
+        // never another club's players (the entry already exists for them)
+        throw Object.assign(new Error('This player is not a member of the club.'), { status: 404 });
     }
     if (status === 'in' && entry.status !== 'in' && entriesIn(tournament).length >= tournament.maxPlayers) {
         throw Object.assign(new Error(`The tournament is full: ${tournament.maxPlayers} players.`), { status: 409 });
@@ -318,8 +337,10 @@ export const holdDraw = async (tournament, { seeding = 'seeded', by = null, rand
     if (!SEEDINGS.includes(seeding)) throw Object.assign(new Error('Choose how the draw is held.'), { status: 422 });
     const players = entriesIn(tournament).map(entry => String(entry.player));
     if (players.length < MIN_PLAYERS) throw Object.assign(new Error(`A tournament needs at least ${MIN_PLAYERS} players.`), { status: 409 });
-    // the strongest first by the club rating; players without games in random order behind them
-    const ratings = clubRatings(await db.clubTally.find({ club: tournament.club }, 'at players winners friendly').lean());
+    // the strongest first by the club rating (in a shared tournament, across every
+    // club taking part); players without games in random order behind them
+    const ratingClubs = [tournament.club, ...(tournament.invitedClubs ?? [])];
+    const ratings = clubRatings(await db.clubTally.find({ club: { $in: ratingClubs } }, 'at players winners friendly').lean());
     const tiebreak = new Map(players.map(id => [id, random()]));
     const ranked = [...players].sort((a, b) => (ratings.get(b)?.rating ?? 0) - (ratings.get(a)?.rating ?? 0) || tiebreak.get(a) - tiebreak.get(b));
     if (tournament.format === 'groups') return drawWithGroups(tournament, ranked, { seeding, by, random, groupSize, advance: goOn });
@@ -611,10 +632,23 @@ export const tournamentView = async (tournament, { playerId = null } = {}) => {
     ])];
     const players = await db.player.find({ _id: { $in: ids } }, 'nickname firstname lastname profileImg country shirt bestLevel notifiedLevel').lean();
     const entries = json.entries ?? [];
+    // which club each player plays for in this tournament (from their entry)
+    const clubOfPlayer = new Map(entries.map(entry => [String(entry.player), entry.club ? String(entry.club) : String(json.club)]));
+    // the clubs taking part: the host and any invited (shared) clubs, with their names
+    const invitedIds = (json.invitedClubs ?? []).map(String);
+    const shared = invitedIds.length > 0;
+    const clubIds = [...new Set([String(json.club), ...invitedIds])];
+    const clubDocs = shared ? await db.club.find({ _id: { $in: clubIds } }, 'name logo country').lean() : [];
+    const clubs = Object.fromEntries(clubDocs.map(club => [String(club._id), {
+        id: String(club._id), name: club.name, logo: club.logo ?? '', country: club.country ?? '', host: String(club._id) === String(json.club),
+    }]));
     return {
         ...json,
+        shared,
+        clubs,
         players: Object.fromEntries(players.map(player => [String(player._id), {
             id: String(player._id), nickname: player.nickname, firstname: player.firstname, lastname: player.lastname, profileImg: player.profileImg, country: player.country,
+            club: clubOfPlayer.get(String(player._id)) ?? String(json.club),
             // for the walk-on before a match
             shirt: shirtOf(player),
         }])),

@@ -114,7 +114,7 @@ export const update = async (req, res) => {
     if (typeof req.body.country === 'string') club.country = req.body.country.toUpperCase();
     if (req.body.accent !== undefined) club.accent = ACCENTS.includes(req.body.accent) ? req.body.accent : null;
     // Visibility settings are optional, so a plain rename leaves them alone
-    for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren']) {
+    for (const setting of ['isPublic', 'publicLiveGames', 'publicResults', 'shameBadges', 'shameWithoutChildren', 'connectable']) {
         if (typeof req.body[setting] === 'boolean') club[setting] = req.body[setting];
     }
     if (['open', 'approval', 'closed'].includes(req.body.joinPolicy)) club.joinPolicy = req.body.joinPolicy;

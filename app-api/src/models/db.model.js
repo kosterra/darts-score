@@ -16,6 +16,7 @@ import integrityReviewModel from './integrity.review.model.js';
 import notificationModel from './notification.model.js';
 import deletionRequestModel from './deletion.request.model.js';
 import joinRequestModel from './join.request.model.js';
+import clubLinkModel from './club.link.model.js';
 import quickGameModel from './quick.game.model.js';
 import rulesGameModel from './rules.game.model.js';
 import rulesTrainingModel from './rules.training.model.js';
@@ -52,6 +53,7 @@ const db = {
   notification: notificationModel(mongoose),
   deletionRequest: deletionRequestModel(mongoose),
   joinRequest: joinRequestModel(mongoose),
+  clubLink: clubLinkModel(mongoose),
   quickGame: quickGameModel(mongoose),
   rulesGame: rulesGameModel(mongoose),
   rulesTraining: rulesTrainingModel(mongoose),

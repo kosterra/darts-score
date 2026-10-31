@@ -395,11 +395,14 @@
     border-radius: $radius-md;
     transition: box-shadow $transitionDuration, opacity $transitionDuration;
 
-    // where the dragged widget will land; the copy under the pointer carries it
+    // where the dragged widget will land: a dashed frame, the widget itself only hinted at;
+    // the copy under the pointer carries it
     &.is-dragged {
-        border-color: with-alpha($primaryColor, 0.8);
-        background: with-alpha($primaryColor, 0.06);
-        opacity: 0.45;
+        border: 2px dashed with-alpha($primaryColor, 0.85);
+        background: with-alpha($primaryColor, 0.08);
+
+        .dashboard-tile-bar { opacity: 0.4; }
+        .dashboard-tile-content { opacity: 0.12; }
     }
 }
 

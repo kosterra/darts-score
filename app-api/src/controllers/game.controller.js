@@ -1,14 +1,14 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { createGameFilterQuery, findFilteredGames } from '../utils/game.utils.js';
-import { removeWithBadges, syncGameBadges } from '../utils/badge.service.js';
+import { removeWithBadges, syncGameBadges, syncTournamentGameBadges } from '../utils/badge.service.js';
 import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import { knownInClub } from '../models/player.model.js';
 import { answerOf, hasRules, storedOf } from '../utils/game.view.js';
 import { GAME_SETTINGS, RULES_KINDS, ruleViolations } from '../rules/club.rules.js';
 import { gameOf } from '../rules/games.js';
 import { withGameState } from '../rules/engine.js';
-import { tournamentGameDeleted, tournamentGameFinished } from '../utils/tournaments.js';
+import { participatesInTournament, tournamentGameDeleted, tournamentGameFinished } from '../utils/tournaments.js';
 import { leagueGameDeleted, leagueGameFinished } from '../utils/leagues.js';
 
 /**
@@ -72,6 +72,21 @@ export const createGameController = (Model, gameName, type = null) => {
     const inClub = (req) => ({ _id: req.params.id, club: req.club._id });
     const validId = (req) => db.mongoose.isValidObjectId(req.params.id);
 
+    /**
+     * The game the request may act on: one of the request's own club, or — for a
+     * shared tournament — a match game of a tournament the request's club takes
+     * part in (the game itself is owned by the host club). Returns the document
+     * or null. Everything else still stays strictly within the request's club.
+     */
+    const loadForRequest = async (req) => {
+        if (!validId(req)) return null;
+        const own = await Model.findOne(inClub(req));
+        if (own) return own;
+        const game = await Model.findById(req.params.id);
+        if (game?.tournament?.id && await participatesInTournament(req.club._id, game.tournament.id)) return game;
+        return null;
+    };
+
     const create = async (req, res) => {
         logger.debug(`Create ${label} game called`);
         try {
@@ -123,7 +138,7 @@ export const createGameController = (Model, gameName, type = null) => {
         logger.debug(`${label} findOne called`);
         const { id } = req.params;
         try {
-            const data = validId(req) ? await Model.findOne(inClub(req)) : null;
+            const data = await loadForRequest(req);
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             res.json(answer(data));
         } catch (err) {
@@ -136,21 +151,29 @@ export const createGameController = (Model, gameName, type = null) => {
         logger.debug(`${label} update called`);
         const { id } = req.params;
         try {
-            if (!(await playersBelongToClub(req.body.players, req.club._id))) {
+            const stored = await loadForRequest(req);
+            if (!stored) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            // a tournament match is owned by the host club and keeps the players it
+            // was started with; any other game must stay within the request's club
+            const isTournamentGame = Boolean(stored.tournament?.id);
+            if (!isTournamentGame && !(await playersBelongToClub(req.body.players, req.club._id))) {
                 return res.status(422).json({ errors: ['All players must belong to the selected club.'] });
             }
             // Use $set explicitly to prevent MongoDB operator injection from req.body;
-            // a game never moves to another club
-            const stored = validId(req) ? await Model.findOne(inClub(req)) : null;
-            if (!stored) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
+            // a game never moves to another club, so it keeps the club it was stored with
+            const base = { ...toStore(req.body), club: stored.club };
+            if (isTournamentGame) base.players = stored.toObject().players;
             // a game keeps what it was set up with, also when the club's rules change meanwhile
-            const changes = withRulesResult(keepSetUp(type ?? stored.kind, stored, { ...toStore(req.body), club: req.club._id }));
-            const data = await Model.findOneAndUpdate(inClub(req), { $set: changes }, { new: true });
+            const changes = withRulesResult(keepSetUp(type ?? stored.kind, stored, base));
+            const data = await Model.findOneAndUpdate({ _id: stored._id }, { $set: changes }, { new: true });
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges
             if (data.hasWinner) {
-                await syncGameBadges(req.club._id, data, type ?? data.kind);
-                checkLater(() => noteFairPlay(req.club._id, type ?? 'rules', data));
+                // a shared tournament game counts for each participating club's own players;
+                // any other game counts within its own club
+                if (isTournamentGame) await syncTournamentGameBadges(data, type ?? data.kind);
+                else await syncGameBadges(data.club, data, type ?? data.kind);
+                checkLater(() => noteFairPlay(data.club, type ?? 'rules', data));
                 // the winner of a tournament match goes on
                 if (data.tournament?.id) await tournamentGameFinished(data, answer(data));
                 // likewise a league match counts in its table

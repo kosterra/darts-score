@@ -6,6 +6,7 @@ import {
     answerEntry, cancelTournament, checkSetup, closeRegistration, countEligible, holdDraw, openRegistration,
     readReplyToken, scheduleError, setResult, startMatch, tournamentView,
 } from '../utils/tournaments.js';
+import { connectedClubIds } from '../utils/club.links.js';
 
 /**
  * The tournaments of the selected club: its admins set them up, open the
@@ -15,6 +16,8 @@ import {
 
 const isAdmin = (req) => req.clubRole === CLUB_ROLES.ADMIN;
 const myPlayerId = async (req) => (await db.player.findOne({ user: req.user._id, clubs: req.club._id }, '_id').lean())?._id ?? null;
+// the request's club hosts the tournament (as opposed to being invited to it)
+const isHost = (req, tournament) => String(tournament.club) === String(req.club._id);
 
 // answers an Error of the tournament service with its status, anything else as a failure
 const fail = (res, err, what) => {
@@ -23,8 +26,9 @@ const fail = (res, err, what) => {
     return res.status(500).json({ message: `Could not ${what}.` });
 };
 
-// the tournament of the request in the club (drafts only for its admins), or null after answering 404
-const load = async (req, res) => {
+// a tournament the request's club hosts (for setting it up and running it): drafts
+// included for its admins. For host-only actions; a guest club cannot manage it.
+const loadManaged = async (req, res) => {
     const tournament = db.mongoose.isValidObjectId(req.params.id) ? await db.tournament.findOne({ _id: req.params.id, club: req.club._id }) : null;
     if (!tournament || (tournament.status === 'draft' && !isAdmin(req))) {
         res.status(404).json({ message: 'There is no such tournament.' });
@@ -33,7 +37,35 @@ const load = async (req, res) => {
     return tournament;
 };
 
+// a tournament the request's club takes part in (hosts it, or is invited to it),
+// for viewing, entering players and playing. A host draft is hidden from guests.
+const loadShared = async (req, res) => {
+    const tournament = db.mongoose.isValidObjectId(req.params.id)
+        ? await db.tournament.findOne({ _id: req.params.id, $or: [{ club: req.club._id }, { invitedClubs: req.club._id }] })
+        : null;
+    const canSeeDraft = tournament && isHost(req, tournament) && isAdmin(req);
+    if (!tournament || (tournament.status === 'draft' && !canSeeDraft)) {
+        res.status(404).json({ message: 'There is no such tournament.' });
+        return null;
+    }
+    return tournament;
+};
+
 const answerWith = async (req, res, tournament, status = 200) => res.status(status).json(await tournamentView(tournament, { playerId: await myPlayerId(req) }));
+
+// which connected clubs are invited to a shared tournament, from the body:
+// undefined leaves them unchanged; only clubs the host is connected with are kept.
+// Throws (422) when an unconnected club is named.
+const resolveInvitedClubs = async (hostId, body) => {
+    if (body.invitedClubs === undefined) return undefined;
+    const ids = Array.isArray(body.invitedClubs) ? [...new Set(body.invitedClubs.map(String))].filter(id => db.mongoose.isValidObjectId(id)) : [];
+    if (!ids.length) return [];
+    const connected = new Set(await connectedClubIds(hostId));
+    if (ids.some(id => !connected.has(id))) {
+        throw Object.assign(new Error('You can only invite clubs you are connected with.'), { status: 422 });
+    }
+    return ids;
+};
 
 /**
  * The club's tournaments, the newest first, with whether a new one can be set
@@ -41,13 +73,16 @@ const answerWith = async (req, res, tournament, status = 200) => res.status(stat
  */
 export const list = async (req, res) => {
     try {
-        const query = { club: req.club._id };
-        if (!isAdmin(req)) query.status = { $ne: 'draft' };
+        // the club's own tournaments (drafts only for its admins), plus the shared
+        // ones it is invited to (never a host's draft)
+        const mine = isAdmin(req) ? { club: req.club._id } : { club: req.club._id, status: { $ne: 'draft' } };
+        const invited = { invitedClubs: req.club._id, status: { $ne: 'draft' } };
+        const query = { $and: [{ $or: [mine, invited] }] };
         if (req.query.active) {
-            query.$or = [
+            query.$and.push({ $or: [
                 { status: { $in: ['registration', 'closed', 'drawn', 'running'] } },
                 { status: 'finished', finishedAt: { $gt: new Date(Date.now() - SHOWN_DAYS_AFTER * 24 * 60 * 60 * 1000) } },
-            ];
+            ] });
         }
         const [tournaments, eligible, playerId] = await Promise.all([
             db.tournament.find(query).sort({ createdAt: -1 }).limit(100),
@@ -66,7 +101,7 @@ export const list = async (req, res) => {
 };
 
 export const findOne = async (req, res) => {
-    const tournament = await load(req, res);
+    const tournament = await loadShared(req, res);
     if (tournament) await answerWith(req, res, tournament);
 };
 
@@ -84,7 +119,8 @@ export const create = async (req, res) => {
             const problem = scheduleError(setup);
             if (problem) return res.status(422).json({ message: problem });
         }
-        const tournament = await db.tournament.create({ ...setup, club: req.club._id, createdBy: req.user._id });
+        const invitedClubs = (await resolveInvitedClubs(req.club._id, req.body)) ?? [];
+        const tournament = await db.tournament.create({ ...setup, invitedClubs, club: req.club._id, createdBy: req.user._id });
         logger.info(`Tournament ${tournament._id} "${tournament.name}" set up by ${req.user.email}`);
         if (req.body.open) await openRegistration(tournament);
         await answerWith(req, res, tournament, 201);
@@ -95,7 +131,7 @@ export const create = async (req, res) => {
 
 export const update = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         if (['finished', 'cancelled'].includes(tournament.status)) return res.status(409).json({ message: 'This tournament is over.' });
         const { setup, error } = checkSetup(req.body, tournament);
@@ -106,6 +142,14 @@ export const update = async (req, res) => {
             if (problem) return res.status(422).json({ message: problem });
         }
         Object.assign(tournament, setup);
+        // the invited clubs can still change before the draw
+        const invitedClubs = await resolveInvitedClubs(req.club._id, req.body);
+        if (invitedClubs !== undefined) {
+            if (!['draft', 'registration', 'closed'].includes(tournament.status)) {
+                return res.status(409).json({ message: 'The invited clubs cannot change once the draw is held.' });
+            }
+            tournament.invitedClubs = invitedClubs;
+        }
         await tournament.save();
         await answerWith(req, res, tournament);
     } catch (err) {
@@ -116,7 +160,7 @@ export const update = async (req, res) => {
 // the registration opens: every member is invited
 export const open = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         if (tournament.status !== 'draft') return res.status(409).json({ message: 'The registration is already open.' });
         const problem = scheduleError(tournament);
@@ -133,7 +177,7 @@ export const open = async (req, res) => {
 // the registration closes now, before its end
 export const close = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         if (tournament.status !== 'registration') return res.status(409).json({ message: 'The registration is not open.' });
         await closeRegistration(tournament);
@@ -146,7 +190,7 @@ export const close = async (req, res) => {
 // a closed registration opens again until a new end (e.g. too few players)
 export const reopen = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         if (tournament.status !== 'closed') return res.status(409).json({ message: 'Only a closed registration can be extended.' });
         const closesAt = new Date(req.body.closesAt);
@@ -162,26 +206,27 @@ export const reopen = async (req, res) => {
     }
 };
 
-// the member asking enters or declines
+// the member asking enters or declines (with their player in the request's club)
 export const answerMine = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadShared(req, res);
         if (!tournament) return;
         const playerId = await myPlayerId(req);
         if (!playerId) return res.status(403).json({ message: 'You do not play in this club.' });
-        await answerEntry(tournament, playerId, req.body.status);
+        await answerEntry(tournament, playerId, req.body.status, { club: req.club._id });
         await answerWith(req, res, tournament);
     } catch (err) {
         fail(res, err, 'save the answer');
     }
 };
 
-// an admin enters or takes out a member
+// an admin enters or takes out a member — of their own club only, so a guest
+// club's admin fills its own places in a shared tournament, not the host's
 export const answerFor = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadShared(req, res);
         if (!tournament) return;
-        await answerEntry(tournament, req.params.playerId, req.body.status, { byAdmin: true });
+        await answerEntry(tournament, req.params.playerId, req.body.status, { byAdmin: true, club: req.club._id });
         await answerWith(req, res, tournament);
     } catch (err) {
         fail(res, err, 'save the entry');
@@ -190,7 +235,7 @@ export const answerFor = async (req, res) => {
 
 export const draw = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         await holdDraw(tournament, { seeding: req.body.seeding ?? 'seeded', by: req.user._id, groupSize: req.body.groupSize ?? null, advance: req.body.advance ?? null });
         await answerWith(req, res, tournament);
@@ -202,7 +247,7 @@ export const draw = async (req, res) => {
 // a match starts as an X01 game, by one of its players or an admin: { game }
 export const start = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadShared(req, res);
         if (!tournament) return;
         const match = tournament.matches.find(entry => entry.id === req.params.match);
         const playerId = await myPlayerId(req);
@@ -219,7 +264,7 @@ export const start = async (req, res) => {
 // an admin decides a match: a walkover, or a result agreed elsewhere
 export const result = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         await setResult(tournament, req.params.match, req.body.winner, { by: req.user._id });
         logger.info(`Match ${req.params.match} of the tournament ${tournament._id} decided by ${req.user.email}`);
@@ -231,7 +276,7 @@ export const result = async (req, res) => {
 
 export const cancel = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         if (['finished', 'cancelled'].includes(tournament.status)) return res.status(409).json({ message: 'This tournament is over.' });
         await cancelTournament(tournament);
@@ -245,7 +290,7 @@ export const cancel = async (req, res) => {
 // a draft or a cancelled tournament goes for good
 export const remove = async (req, res) => {
     try {
-        const tournament = await load(req, res);
+        const tournament = await loadManaged(req, res);
         if (!tournament) return;
         if (!['draft', 'cancelled'].includes(tournament.status)) return res.status(409).json({ message: 'Cancel the tournament first.' });
         await db.tournament.deleteOne({ _id: tournament._id });

@@ -5,8 +5,11 @@ import path         from 'path';
 import favicon      from 'serve-favicon';
 import cookieParser from 'cookie-parser';
 import cors         from 'cors';
+import helmet       from 'helmet';
 import rateLimit    from 'express-rate-limit';
 import swaggerUi    from 'swagger-ui-express';
+import { randomBytes } from 'crypto';
+import { pathToFileURL } from 'node:url';
 import { existsSync, readFileSync } from 'fs';
 import { load as loadYaml } from 'js-yaml';
 import db           from './src/models/db.model.js';
@@ -45,6 +48,7 @@ import { checkImageFolder } from './src/controllers/file.controller.js';
 import { requireAuth, requireClub } from './src/middleware/auth.middleware.js';
 import { getSessionSecret } from './src/utils/auth.utils.js';
 import { bootstrap } from './src/utils/bootstrap.js';
+import { sanitizeBody } from './src/utils/sanitize.body.js';
 import { startErrorLog } from './src/utils/error.log.js';
 import { startNotificationJobs } from './src/utils/notification.jobs.js';
 import { startBackupJobs } from './src/utils/backups.js';
@@ -55,18 +59,66 @@ import { getStartPageSettings } from './src/utils/start.page.settings.js';
 
 const { UI_URL } = process.env;
 
-logger.info(`Logger level: ${logger.level}`);
-// warnings and errors are also kept for the error log of global admins
-startErrorLog();
+// true when this file is run directly (node index.js), false when it is imported
+// (the integration tests import `app` and drive it with their own database, so
+// the server must not connect or listen then)
+const isMain = import.meta.url === pathToFileURL(process.argv[1] ?? '').href;
 
-process.on('unhandledRejection', (reason) => logger.error({ err: reason }, 'Unhandled promise rejection'));
-process.on('uncaughtException', (err) => {
-    logger.fatal(err, 'Uncaught exception, stopping');
-    // a moment to save the entry to the error log
-    setTimeout(() => process.exit(1), 500).unref();
-});
+if (isMain) {
+    logger.info(`Logger level: ${logger.level}`);
+    // warnings and errors are also kept for the error log of global admins
+    startErrorLog();
+
+    process.on('unhandledRejection', (reason) => logger.error({ err: reason }, 'Unhandled promise rejection'));
+    process.on('uncaughtException', (err) => {
+        logger.fatal(err, 'Uncaught exception, stopping');
+        // a moment to save the entry to the error log
+        setTimeout(() => process.exit(1), 500).unref();
+    });
+}
 
 const app = express();
+
+// Don't advertise the framework
+app.disable('x-powered-by');
+
+// ---------------------------------------------------------------------------
+// Security headers (helmet)
+// ---------------------------------------------------------------------------
+// A per-request nonce lets the one inline script in index.html (the no-flash
+// theme) run under a strict script-src without opening the door to injected
+// scripts; renderIndex puts the same nonce on that tag. Styles need
+// 'unsafe-inline' (React sets style attributes); images allow data:/blob:
+// (avatars) and the service worker needs worker-src.
+app.use((req, res, next) => {
+    res.locals.cspNonce = randomBytes(16).toString('base64');
+    next();
+});
+app.use(helmet({
+    contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            fontSrc: ["'self'"],
+            connectSrc: ["'self'"],
+            workerSrc: ["'self'", 'blob:'],
+            manifestSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            frameAncestors: ["'self'"],
+        },
+    },
+    // the app loads its own fonts and avatars; these would block legitimate cross-origin use
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // sent only over HTTPS; 180 days
+    hsts: { maxAge: 15552000, includeSubDomains: true },
+}));
 
 // The address of the client is needed by the spam rules. Behind a reverse
 // proxy it comes from X-Forwarded-For, trusted from proxies on the local or
@@ -92,11 +144,14 @@ app.use('/api', cors((req, callback) => {
 }));
 
 // ---------------------------------------------------------------------------
-// Rate limiting — 100k req / 15 min (effectively disabled; tune as needed)
+// Rate limiting — a generous per-IP backstop against crude floods. It is set
+// high so a busy club on one network (shared NAT, the app polling live scores)
+// is never caught; login, registration and the other credential endpoints
+// have their own far stricter limits where it matters.
 // ---------------------------------------------------------------------------
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 100_000,
+    limit: 50_000,
     standardHeaders: true,
     legacyHeaders: false
 }));
@@ -108,6 +163,9 @@ app.use(favicon(path.join(import.meta.dirname, 'public', 'favicon.ico')));
 app.use(cookieParser(getSessionSecret()));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.json({ limit: '30mb' }));
+// strip control characters and angle brackets from the free text in request
+// bodies (defence in depth; secrets and auth payloads are skipped)
+app.use('/api', sanitizeBody);
 
 // ---------------------------------------------------------------------------
 // React UI — serve static build; SPA fallback handled after API routes.
@@ -129,33 +187,41 @@ if (HAS_UI) app.use(express.static(UI_DIST, { index: false }));
 // ---------------------------------------------------------------------------
 // Without these the connection fails with a puzzling "undefined:undefined",
 // so say plainly what is missing
-const missingDbSettings = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].filter(name => !process.env[name]);
-if (missingDbSettings.length) {
-    logger.error(`Missing database settings: ${missingDbSettings.join(', ')}. Put them in the .env file next to docker-compose.yml (Portainer: the stack's environment variables, stored as stack.env).`);
-    process.exit(1);
-}
-
-db.mongoose
-    .connect(db.url)
-    .then(() => {
-        logger.info('Connected to MongoDB');
-        startNotificationJobs();
-        startBackupJobs();
-        startMailServerChecks();
-        return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
-    })
-    .catch(err => {
-        logger.error(err, 'Cannot connect to MongoDB');
+if (isMain) {
+    const missingDbSettings = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].filter(name => !process.env[name]);
+    if (missingDbSettings.length) {
+        logger.error(`Missing database settings: ${missingDbSettings.join(', ')}. Put them in the .env file next to docker-compose.yml (Portainer: the stack's environment variables, stored as stack.env).`);
         process.exit(1);
-    });
+    }
+
+    db.mongoose
+        .connect(db.url)
+        .then(() => {
+            logger.info('Connected to MongoDB');
+            startNotificationJobs();
+            startBackupJobs();
+            startMailServerChecks();
+            return bootstrap().catch(err => logger.error(err, 'Startup bootstrap failed'));
+        })
+        .catch(err => {
+            logger.error(err, 'Cannot connect to MongoDB');
+            process.exit(1);
+        });
+}
 
 // ---------------------------------------------------------------------------
 // Swagger UI — served at /api-docs, and at the root when there is no UI build
 // ---------------------------------------------------------------------------
-app.use('/api-docs', swaggerUi.serve);
+// Swagger UI runs its own inline scripts and styles, so it needs a looser CSP
+// than the app; it is a developer/admin page, not part of the SPA.
+const swaggerCsp = (req, res, next) => {
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'");
+    next();
+};
+app.use('/api-docs', swaggerCsp, swaggerUi.serve);
 app.get('/api-docs', swaggerUi.setup(swaggerDocument));
 if (!HAS_UI) {
-    app.use('/', swaggerUi.serve);
+    app.use('/', swaggerCsp, swaggerUi.serve);
     app.get('/', swaggerUi.setup(swaggerDocument));
 }
 
@@ -232,7 +298,7 @@ app.use(async (req, res) => {
         const evening = token ? (await db.quickEvening.findOne({ shareToken: token }, 'name').lean())?.name : undefined;
         const meta = metaOf(req.path, language, { evening, publicSite: (await getStartPageSettings()).publicSite });
         res.set('Cache-Control', 'no-cache');
-        res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: req.path, language }));
+        res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: req.path, language, nonce: res.locals.cspNonce }));
     } catch (err) {
         logger.error(err, 'Failed to serve the app');
         res.status(500).send('Legmate could not be loaded. Please try again in a moment.');
@@ -257,25 +323,30 @@ app.use((err, req, res, next) => {
 // ---------------------------------------------------------------------------
 // Start
 // ---------------------------------------------------------------------------
-const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, () => {
-    logger.info(`Server listening on ${PORT}`);
-    checkImageFolder();
-});
-
-// Graceful shutdown
-const shutdown = (signal) => {
-    logger.info(`${signal} received — shutting down`);
-    server.close(async () => {
-        // Mongoose 9 closes with a promise, no callback any more
-        try {
-            await db.mongoose.connection.close(false);
-            logger.info('MongoDB connection closed');
-        } catch (err) {
-            logger.error(err, 'Closing the MongoDB connection failed');
-        }
-        process.exit(0);
+if (isMain) {
+    const PORT = process.env.PORT || 3001;
+    const server = app.listen(PORT, () => {
+        logger.info(`Server listening on ${PORT}`);
+        checkImageFolder();
     });
-};
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT',  () => shutdown('SIGINT'));
+
+    // Graceful shutdown
+    const shutdown = (signal) => {
+        logger.info(`${signal} received — shutting down`);
+        server.close(async () => {
+            // Mongoose 9 closes with a promise, no callback any more
+            try {
+                await db.mongoose.connection.close(false);
+                logger.info('MongoDB connection closed');
+            } catch (err) {
+                logger.error(err, 'Closing the MongoDB connection failed');
+            }
+            process.exit(0);
+        });
+    };
+    process.on('SIGTERM', () => shutdown('SIGTERM'));
+    process.on('SIGINT',  () => shutdown('SIGINT'));
+}
+
+// for the integration tests: the configured app, driven with their own database
+export { app };

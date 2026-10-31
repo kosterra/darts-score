@@ -29,13 +29,15 @@ import { KpiChip } from '../stats/players/kpi';
 import { Avatar } from 'primereact/avatar';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { ACCENT } from '../../utils/palette';
+import PlayerOption from '../elements/player.option';
+import usePlayerLevels from '../../utils/use.player.levels';
 
 /**
  * What can be done with a match: start it (its players or an admin, with who
  * throws first), go on with or watch a running one, see the statistics of a
  * played one, and (admins) decide it without a game.
  */
-const MatchDialog = ({ tournament, match, isAdmin, onHide, onStart, onResult, busy }) => {
+const MatchDialog = ({ tournament, match, isAdmin, canManage, onHide, onStart, onResult, busy }) => {
     const { activeClub } = useAuth();
     const [first, setFirst] = useState(null);
     const [winner, setWinner] = useState(null);
@@ -49,7 +51,8 @@ const MatchDialog = ({ tournament, match, isAdmin, onHide, onStart, onResult, bu
     const nextStarted = next && ['running', 'done', 'walkover'].includes(tournament.matches.find(entry => entry.id === next.id)?.status);
     // a group result can change until the bracket is filled from the groups
     const changeable = match.group != null ? !tournament.draw?.knockoutAt : !isDecided(match) || !nextStarted;
-    const canDecide = isAdmin && match.players[0] && match.players[1] && !match.bye && changeable;
+    // only the host club's admins decide a match without a game (the server enforces it too)
+    const canDecide = canManage && match.players[0] && match.players[1] && !match.bye && changeable;
 
     return (
         <Dialog header={`${match.group != null ? groupName(match.group) : roundName(match.size)} · ${options.map(option => option.label).join(' – ')}`} visible onHide={onHide} className="tournament-dialog" dismissableMask>
@@ -97,6 +100,7 @@ const TournamentPage = () => {
     const toast = useRef(null);
     const { isClubAdmin, activeClub } = useAuth();
     const [tournament, setTournament] = useState(null);
+    const levels = usePlayerLevels();
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
     const [selected, setSelected] = useState(null);
@@ -144,6 +148,17 @@ const TournamentPage = () => {
     if (!tournament) return <div className="container-fluid p-4">{error ? <Message severity="error" text={error} /> : <Lines count={8} />}</div>;
 
     const status = STATUS_WORDS[tournament.status];
+    // a shared tournament is hosted by one club and played with connected clubs; only the
+    // host's admins run it, while a guest club's admin only enters and manages its own players
+    const shared = Boolean(tournament.shared);
+    const isHostAdmin = isClubAdmin && tournament.club === activeClub?.id;
+    const clubOfEntry = (entry) => String(entry.club ?? tournament.club);
+    const myClubEntry = (entry) => clubOfEntry(entry) === String(activeClub?.id);
+    const clubTag = (playerId) => {
+        if (!shared) return null;
+        const club = tournament.clubs?.[tournament.players?.[playerId]?.club];
+        return club ? <Tag value={club.name} severity={club.host ? 'info' : 'secondary'} className="fs-8" /> : null;
+    };
     const registration = tournament.status === 'registration';
     const closed = tournament.status === 'closed';
     const drawn = ['drawn', 'running', 'finished'].includes(tournament.status);
@@ -212,11 +227,14 @@ const TournamentPage = () => {
                         <span className="d-flex align-items-center gap-2 min-w-0">
                             {avatarOf(entry.player)}
                             <span className="d-flex flex-column min-w-0">
-                                <span className="text-default fs-7 fw-semibold text-truncate">{nameOf(tournament, entry.player)}</span>
+                                <span className="d-flex align-items-center gap-2 min-w-0">
+                                    <span className="text-default fs-7 fw-semibold text-truncate">{nameOf(tournament, entry.player)}</span>
+                                    {clubTag(entry.player)}
+                                </span>
                                 {entry.byAdmin && <span className="text-faint fs-8">{t('by an admin')}</span>}
                             </span>
                         </span>
-                        {isClubAdmin && (registration || closed) &&
+                        {isClubAdmin && (registration || closed) && myClubEntry(entry) &&
                             <span className="d-flex gap-1">
                                 {entry.status !== 'in' && <Button icon="pi pi-check" text size="small" aria-label={t('Enter')} title={t('Enter')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'in')} />}
                                 {entry.status !== 'out' && <Button icon="pi pi-times" text size="small" severity="secondary" aria-label={t('Take out')} title={t('Take out')} loading={busy === `entry-${entry.player}`} onClick={() => answerFor(entry.player, 'out')} />}
@@ -236,6 +254,14 @@ const TournamentPage = () => {
                     <div className="d-flex flex-column gap-1 min-w-0">
                         <h1 className="fs-2 fw-semibold text-default m-0 text-break">{tournament.name}</h1>
                         {tournament.description && <p className="text-subtle m-0 text-break tournament-description" style={{ whiteSpace: 'pre-line' }}>{tournament.description}</p>}
+                        {shared &&
+                            <div className="d-flex flex-wrap align-items-center gap-2 mt-1">
+                                <i className="pi pi-link text-faint" aria-hidden="true" />
+                                <span className="text-faint fs-8">{t('Shared tournament')}</span>
+                                {Object.values(tournament.clubs ?? {}).map(club => (
+                                    <Tag key={club.id} value={club.name} severity={club.host ? 'info' : 'secondary'} className="fs-8" />
+                                ))}
+                            </div>}
                     </div>
                     <Tag value={status.label} severity={status.severity} className="tournament-header-tags" />
                 </div>
@@ -264,8 +290,8 @@ const TournamentPage = () => {
                             <Button label={t('Share')} icon="pi pi-share-alt" size="small" severity="secondary" onClick={shareWin} />
                         </div>}
 
-                    {/* the admin's actions, as the bar of a header (see My club) */}
-                    {isClubAdmin && !over &&
+                    {/* the admin's actions, as the bar of a header (see My club); only the host club runs it */}
+                    {isHostAdmin && !over &&
                         <div className="filter-panel-bar flex-wrap justify-content-end">
                             <Link to={`/tournaments/${tournament.id}/edit`} className="p-button p-button-sm p-button-secondary text-decoration-none"><i className="pi pi-pencil me-2" aria-hidden="true" />{t('Change')}</Link>
                             {tournament.status === 'draft' &&
@@ -274,14 +300,14 @@ const TournamentPage = () => {
                                 <Button label={t('Close the registration now')} icon="pi pi-lock" size="small" loading={busy === 'close'} onClick={() => confirm(t('Close the registration now'), t('Nobody can enter after this; then you hold the draw.'), () => run('close', () => TournamentService.closeRegistration(tournament.id)))} />}
                             <Button label={t('Cancel the tournament')} icon="pi pi-ban" size="small" severity="danger" loading={busy === 'cancel'} onClick={() => confirm(t('Cancel the tournament'), t('Everyone invited or entered hears that it is cancelled. This cannot be undone.'), () => run('cancel', () => TournamentService.cancelTournament(tournament.id)), true)} />
                         </div>}
-                    {isClubAdmin && ['draft', 'cancelled'].includes(tournament.status) &&
+                    {isHostAdmin && ['draft', 'cancelled'].includes(tournament.status) &&
                         <div className="filter-panel-bar flex-wrap justify-content-end">
                             <Button label={t('Delete')} icon="pi pi-trash" size="small" severity="danger" loading={busy === 'delete'} onClick={() => confirm(t('Delete'), t('The tournament goes for good.'), async () => { if (await run('delete', () => TournamentService.deleteTournament(tournament.id))) navigate('/tournaments'); }, true)} />
                         </div>}
                 </div>
             </header>
 
-            {closed && isClubAdmin &&
+            {closed && isHostAdmin &&
                 <Panel header={t('The draw')}>
                     {tournament.counts.in >= MIN_PLAYERS
                         ? (
@@ -358,9 +384,10 @@ const TournamentPage = () => {
                         <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
                             <Dropdown
                                 value={null}
-                                options={notAsked.map(member => ({ label: member.nickname, value: member.id }))}
+                                options={notAsked.map(member => ({ label: member.nickname, value: member.id, player: member }))}
+                                itemTemplate={(option) => <PlayerOption player={option.player} level={levels[option.value]} />}
                                 onChange={(event) => answerFor(event.value, 'in')}
-                                placeholder={t('Enter a member who joined later')}
+                                placeholder={shared ? t('Enter a player of your club') : t('Enter a member who joined later')}
                                 filter
                             />
                         </div>}
@@ -385,7 +412,7 @@ const TournamentPage = () => {
                 {!drawn && <p className="text-faint fs-8 mt-3 mb-0">{t('With fewer players the first rounds are left out at the draw.')}</p>}
             </Panel>
 
-            <MatchDialog tournament={tournament} match={selected && tournament.matches.find(match => match.id === selected.id)} isAdmin={isClubAdmin} onHide={() => setSelected(null)} onStart={start} onResult={decide} busy={busy} />
+            <MatchDialog tournament={tournament} match={selected && tournament.matches.find(match => match.id === selected.id)} isAdmin={isClubAdmin} canManage={isHostAdmin} onHide={() => setSelected(null)} onStart={start} onResult={decide} busy={busy} />
             <ConfirmDialog />
             <Toast ref={toast} position="bottom-right" />
         </div>

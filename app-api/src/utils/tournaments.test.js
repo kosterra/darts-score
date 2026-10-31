@@ -6,6 +6,8 @@ let users = [];
 let contacts = [];
 let tallies = [];
 let games = [];
+// a tournament returned by db.tournament.findById, for the cross-club access tests
+let sharedTournament = null;
 const notices = [];
 const mails = [];
 const created = [];
@@ -19,9 +21,13 @@ vi.mock('../models/db.model.js', () => ({
         player: {
             find: (query) => lean(query._id ? byIds(players, query._id.$in) : players.filter(player => !player.guest)),
             countDocuments: async () => players.filter(player => !player.guest).length,
-            exists: async ({ _id }) => players.some(player => String(player._id) === String(_id)),
+            exists: async (query = {}) => players.some(player =>
+                (query._id === undefined || String(player._id) === String(query._id))
+                && (query.clubs === undefined || (player.clubs ?? ['club']).map(String).includes(String(query.clubs)))
+                && (query.guest === undefined || !player.guest)),
             findById: async () => null,
         },
+        tournament: { findById: () => lean(sharedTournament) },
         user: { find: (query) => lean(byIds(users, query._id.$in)) },
         playerContact: { find: () => lean(contacts) },
         notification: { create: async (doc) => { notices.push(doc); return doc; } },
@@ -70,6 +76,7 @@ beforeEach(() => {
     contacts = [{ _id: 'contact4', player: id(4), email: 'p4@example.ch', language: 'fr', topics: ['tournamentInvites'] }];
     tallies = [];
     games = [];
+    sharedTournament = null;
     for (const list of [notices, mails, created, badgesSynced]) list.length = 0;
 });
 
@@ -163,6 +170,51 @@ describe('the registration', () => {
         await service.closeRegistration(tournament);
         expect(tournament.status).toBe('closed');
         expect(notices.at(-1)).toMatchObject({ user: 'admin1', kind: 'tournamentClosed', title: 'Too few players for Autumn Cup: 3 of 4' });
+    });
+});
+
+describe('shared tournaments between connected clubs', () => {
+    // a registration-open tournament hosted by clubA, with clubB invited; an entry per club
+    const sharedDoc = () => {
+        const tournament = tournamentDoc({ status: 'registration', club: 'clubA', invitedClubs: ['clubB'], maxPlayers: 16 });
+        tournament.entries = [
+            { player: id(1), club: 'clubA', status: 'in' },
+            { player: id(2), club: 'clubB', status: 'in' },
+        ];
+        return tournament;
+    };
+
+    it('lets a club admin change only its own club\'s entries', async () => {
+        const tournament = sharedDoc();
+        // clubB's admin cannot take out clubA's player
+        await expect(service.answerEntry(tournament, id(1), 'out', { byAdmin: true, club: 'clubB' }))
+            .rejects.toMatchObject({ status: 404 });
+        // clubA's admin can take out its own player
+        await service.answerEntry(tournament, id(1), 'out', { byAdmin: true, club: 'clubA' });
+        expect(tournament.entries.find(entry => entry.player === id(1)).status).toBe('out');
+        // clubB's admin manages its own player
+        await service.answerEntry(tournament, id(2), 'out', { byAdmin: true, club: 'clubB' });
+        expect(tournament.entries.find(entry => entry.player === id(2)).status).toBe('out');
+    });
+
+    it('adds a new entry only for a player of the admin\'s own club, stamped with that club', async () => {
+        const tournament = sharedDoc();
+        players.push({ _id: id(7), nickname: 'P7', clubs: ['clubB'], user: null });
+        // a player who is not a member of the admin's club is refused
+        await expect(service.answerEntry(tournament, id(7), 'in', { byAdmin: true, club: 'clubA' }))
+            .rejects.toMatchObject({ status: 404 });
+        // a member of the admin's club is added, and the entry keeps that club
+        await service.answerEntry(tournament, id(7), 'in', { byAdmin: true, club: 'clubB' });
+        expect(tournament.entries.find(entry => entry.player === id(7))).toMatchObject({ club: 'clubB', status: 'in' });
+    });
+
+    it('knows which clubs take part (host or invited), for cross-club game access', async () => {
+        sharedTournament = { _id: id(900), club: 'clubA', invitedClubs: ['clubB'] };
+        expect(await service.participatesInTournament('clubA', id(900))).toBe(true);
+        expect(await service.participatesInTournament('clubB', id(900))).toBe(true);
+        expect(await service.participatesInTournament('clubC', id(900))).toBe(false);
+        sharedTournament = null;
+        expect(await service.participatesInTournament('clubA', id(900))).toBe(false);
     });
 });
 

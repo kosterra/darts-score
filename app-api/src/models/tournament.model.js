@@ -14,6 +14,10 @@ export default (mongoose) => {
   const schema = mongoose.Schema(
     {
       club:        { type: mongoose.Schema.Types.ObjectId, ref: 'club', required: true, index: true },
+      // a shared tournament: the connected clubs invited to play alongside the host.
+      // Their admins enter their own players; every club keeps its own results
+      // (see utils/tournaments.js and utils/club.links.js)
+      invitedClubs: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'club' }], default: [], index: true },
       name:        { type: String, required: true, trim: true },
       description: { type: String, default: '', trim: true },
       status:      { type: String, enum: STATUSES, default: 'draft', index: true },

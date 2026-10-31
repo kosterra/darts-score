@@ -33,6 +33,8 @@ import { BOT_ID } from '../../utils/x01.bot';
 import { t } from '../../utils/i18n';
 import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
+import PlayerOption from '../elements/player.option';
+import usePlayerLevels from '../../utils/use.player.levels';
 
 const WHOSE_OPTIONS = [
     { label: t('Everyone'), value: 'all', icon: 'pi pi-users' },
@@ -212,6 +214,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
         );
 
     // the player filter offers the players who have trained
+    const levels = usePlayerLevels();
     const playerOptions = useMemo(() => {
         const ids = new Set((rows ?? []).map(row => row.player?.id));
         return players.filter(player => ids.has(player.id));
@@ -246,6 +249,8 @@ const TrainingsTable = ({ scope = 'club' }) => {
                     options={playerOptions}
                     optionLabel="nickname"
                     optionValue="id"
+                    itemTemplate={(player) => <PlayerOption player={player} level={levels[player.id]} />}
+                    valueTemplate={(player, props) => (player ? <PlayerOption player={player} level={levels[player.id]} /> : props.placeholder)}
                     onChange={(e) => setPlayerId(e.value)}
                     placeholder={t('All players')}
                     filter

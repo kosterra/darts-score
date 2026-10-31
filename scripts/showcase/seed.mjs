@@ -48,6 +48,9 @@ const request = async (base, path, { method = 'GET', body, clubId, form } = {}) 
  */
 export const seed = async (base) => {
     await request(base, '/api/auth/register', { method: 'POST', body: { ...ACCOUNT, formTimeMs: 9000 } });
+    // the demo account is "settled in": no welcome tour, first-steps panel or club-setup
+    // prompt over the dashboard in the screenshots
+    await request(base, '/api/auth/onboarding', { method: 'PUT', body: { tour: 'done', firstSteps: 'hidden', clubSetup: 'hidden' } });
     const club = await request(base, '/api/clubs', { method: 'POST', body: { name: CLUB.name } });
     await request(base, `/api/clubs/${club.id}`, { method: 'PUT', body: { ...CLUB, isPublic: true, joinPolicy: 'approval', dashboardLayout: DASHBOARD } });
     const me = await request(base, '/api/players/me', { method: 'POST', body: { nickname: 'Lex' }, clubId: club.id });

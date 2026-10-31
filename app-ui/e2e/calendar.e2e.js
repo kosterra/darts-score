@@ -40,7 +40,7 @@ test('the club nights, who comes, and the days of tournaments and leagues', asyn
 
     // a third club night a week
     await page.getByRole('button', { name: 'Add a club night' }).click();
-    await expect(page.locator('.calendar-night-row')).toHaveCount(3);
+    await expect(page.locator('.calendar-night-box')).toHaveCount(3);
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(page.getByText('The club nights are saved.')).toBeVisible();
 

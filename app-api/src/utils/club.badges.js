@@ -132,11 +132,14 @@ const FIRSTS = { max180: 'max180Firsts', bigFish: 'bigFishFirsts', nineDarter: '
  * players: the darts, the 180s, the ton-plus visits and high finishes, and who
  * threw a 180, a big fish, a nine-darter or a Shanghai finish in it.
  */
-export const tallyOf = (type, game) => {
+export const tallyOf = (type, game, { onlyPlayers = null } = {}) => {
+    // a shared tournament game counts for several clubs: each keeps only its own players
+    const everyone = (game.players ?? []).map(String);
+    const players = onlyPlayers ? everyone.filter(id => onlyPlayers.map(String).includes(id)) : everyone;
     const tally = {
-        players: (game.players ?? []).map(String), darts: 0, num180s: 0, tonPlus: 0, highFinishes: 0, firsts: {},
+        players, darts: 0, num180s: 0, tonPlus: 0, highFinishes: 0, firsts: {},
         // for the club's rating: who won, and whether the game was friendly
-        winners: (game.players ?? []).map(String).filter(id => game.playerModels?.[id]?.hasWonGame === true),
+        winners: players.filter(id => game.playerModels?.[id]?.hasWonGame === true),
         friendly: game.friendly === true,
         // doubles: who played together
         ...(teamsOf(game) ? { teams: teamsOf(game) } : {}),

@@ -101,7 +101,7 @@ export const markEnvironment = ({ subject, text, html }, label = environmentLabe
     if (!label) return { subject, text, html };
     const where = appUrl.replace(/^https?:\/\//, '');
     const line = [label, where].filter(Boolean).join(' · ');
-    const strip = `<div style="background:#ffc53d;color:#1d2126;padding:10px 16px;font-family:Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;text-align:center;letter-spacing:0.5px;">${escapeHtml(line)}</div>`;
+    const strip = `<div style="background:#ffc53d;color:#1d2126;padding:10px 16px;font-family:'Exo 2','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;text-align:center;letter-spacing:0.5px;">${escapeHtml(line)}</div>`;
     return {
         subject: `[${label}] ${subject}`,
         text: text ? `[${line}]\n\n${text}` : text,

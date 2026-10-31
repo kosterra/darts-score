@@ -20,16 +20,17 @@ const GAME_COLLECTIONS = {
  * worked out again only when the game changed since. type: x01, cricket, …
  * or the kind of a newer game.
  */
-export const saveTally = async (clubId, type, game) => {
+export const saveTally = async (clubId, type, game, { onlyPlayers = null } = {}) => {
     if (!clubId || !game?.hasWinner) return false;
     const sourceId = String(game._id ?? game.id);
     const at = game.updatedAt ?? new Date();
-    const known = await db.clubTally.findOne({ sourceId }, 'at version').lean();
+    // the tally is kept per club and game: a shared tournament game has one per club
+    const known = await db.clubTally.findOne({ club: clubId, sourceId }, 'at version').lean();
     if (known && known.version === TALLY_VERSION && new Date(known.at).getTime() === new Date(at).getTime()) return false;
     const data = viewOf(isRulesGame(type) ? 'rules' : type, game);
-    const tally = tallyOf(type, data);
+    const tally = tallyOf(type, data, { onlyPlayers });
     await db.clubTally.updateOne(
-        { sourceId },
+        { club: clubId, sourceId },
         { $set: { club: clubId, sourceType: type, sourceId, at, ...tally } },
         { upsert: true }
     );
@@ -150,9 +151,9 @@ export const syncClubBadges = async (clubOrId, { notify = true } = {}) => {
  * After a finished game: its tally, then the club's badges. Failures are
  * logged, never thrown: a badge must not get in the way of saving a game.
  */
-export const syncClubAfterGame = async (clubId, type, game) => {
+export const syncClubAfterGame = async (clubId, type, game, { onlyPlayers = null } = {}) => {
     try {
-        const fresh = await saveTally(clubId, type, game);
+        const fresh = await saveTally(clubId, type, game, { onlyPlayers });
         if (fresh) checkLater(() => noteRatingChanges(clubId, String(game._id ?? game.id)));
         return (await syncClubBadges(clubId)).fresh;
     } catch (err) {

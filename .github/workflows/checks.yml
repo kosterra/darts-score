@@ -25,6 +25,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run lint
       - run: npm test
+      # integration tests: the real app driven with supertest against an in-memory MongoDB
+      - run: npm run test:integration
       # the description of the API: valid, and (a test above) with every route
       - run: npx --yes @redocly/cli@2.71.0 lint openapi.yaml
       - run: npm run build

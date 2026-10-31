@@ -264,12 +264,20 @@ export const sampleVars = (id, language = 'en') => Object.fromEntries((templateO
     placeholder.key === 'validity' ? validityOf(placeholder.sample === '1 hour' ? 1 : 7 * 24, language) : placeholder.sample,
 ]));
 
-const BRAND = '#528b6e';
+// the colours of the app's light theme (app-ui/src/theme/base/_theme-vars.scss): the page,
+// the card and its edge, the text in two strengths, the green of the buttons and of the links
+const LIGHT = { page: '#f7f6f3', card: '#ffffff', edge: '#e2e0da', text: '#262626', title: '#111111', faint: '#5f5f5f', green: '#528b6e', link: '#366650' };
+// the app's font, where a mail client has it; else one of the system's (single quotes: the
+// list stands inside a style attribute written with double ones)
+const FONT = "'Exo 2','Segoe UI',Helvetica,Arial,sans-serif";
 
 /**
  * The mail ready to send: { subject, text, html }. vars fill the placeholders
  * (link: the address behind the button, appUrl: the installation); the
- * layout around the text is in the language of the mail.
+ * layout around the text is in the language of the mail. The HTML is the
+ * app's light theme: a white card on the light page, the logo and the name
+ * on top, the subject as its title with the short green line of the app's
+ * titles, the text, the green button, a quiet footer.
  */
 export const renderMail = ({ subject, body, button }, vars, language = 'en') => {
     const layout = layoutOf(language);
@@ -284,19 +292,31 @@ export const renderMail = ({ subject, body, button }, vars, language = 'en') => 
         .map(paragraph => `<p style="margin:0 0 16px;">${paragraph.replace(/\n/g, '<br>')}</p>`)
         .join('');
     const link = escapeHtml(vars.link ?? '');
+    const title = escapeHtml(fill(subject, vars));
+    // the logo as the app serves it (mail clients show a PNG, not the SVG); without an address, the name alone
+    const logo = vars.appUrl ? `<img src="${escapeHtml(vars.appUrl)}/icons/icon-192.png" width="32" height="32" alt="" style="display:block;width:32px;height:32px;border-radius:8px;">` : '';
     const html = `<!doctype html>
-<html lang="${MAIL_LANGUAGES.includes(language) ? language : 'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(fill(subject, vars))}</title></head>
-<body style="margin:0;padding:0;background:#f2f3f1;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f3f1;padding:24px 12px;">
+<html lang="${MAIL_LANGUAGES.includes(language) ? language : 'en'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${title}</title></head>
+<body style="margin:0;padding:0;background:${LIGHT.page};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${LIGHT.page};padding:32px 12px;">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:10px;overflow:hidden;font-family:Helvetica,Arial,sans-serif;color:#2b2b2b;">
-<tr><td style="background:${BRAND};padding:18px 28px;color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.5px;">Legmate</td></tr>
-<tr><td style="padding:28px 28px 8px;font-size:15px;line-height:1.6;">${paragraphs}</td></tr>
-<tr><td style="padding:0 28px 28px;">
-<a href="${link}" style="display:inline-block;background:${BRAND};color:#ffffff;text-decoration:none;font-weight:bold;font-size:15px;padding:12px 22px;border-radius:6px;">${escapeHtml(fill(button, vars))}</a>
-<p style="margin:16px 0 0;font-size:12px;line-height:1.5;color:#777777;">${escapeHtml(layout.noButton)}<br><a href="${link}" style="color:${BRAND};word-break:break-all;">${link}</a></p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:${LIGHT.card};border:1px solid ${LIGHT.edge};border-top:3px solid ${LIGHT.green};border-radius:12px;font-family:${FONT};color:${LIGHT.text};">
+<tr><td style="padding:22px 28px 0;">
+<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+${logo ? `<td style="padding-right:10px;vertical-align:middle;">${logo}</td>` : ''}
+<td style="vertical-align:middle;font-size:17px;font-weight:bold;color:${LIGHT.title};letter-spacing:0.2px;">Legmate</td>
+</tr></table>
 </td></tr>
-<tr><td style="padding:16px 28px;background:#f7f8f6;border-top:1px solid #e6e8e4;font-size:12px;line-height:1.5;color:#888888;">${escapeHtml(footer)}${manage ? `<br>${escapeHtml(manage.label)} <a href="${escapeHtml(manage.url)}" style="color:${BRAND};">${escapeHtml(manage.url)}</a>` : ''}</td></tr>
+<tr><td style="padding:26px 28px 0;">
+<h1 style="margin:0;font-size:21px;line-height:1.3;font-weight:600;color:${LIGHT.title};">${title}</h1>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:10px 0 0;"><tr><td style="width:36px;height:3px;line-height:3px;font-size:0;background:${LIGHT.green};border-radius:2px;">&nbsp;</td></tr></table>
+</td></tr>
+<tr><td style="padding:22px 28px 8px;font-size:15px;line-height:1.6;color:${LIGHT.text};">${paragraphs}</td></tr>
+<tr><td style="padding:4px 28px 28px;">
+<a href="${link}" style="display:inline-block;background:${LIGHT.green};color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;line-height:1;padding:13px 22px;border-radius:6px;">${escapeHtml(fill(button, vars))}</a>
+<p style="margin:18px 0 0;font-size:12px;line-height:1.5;color:${LIGHT.faint};">${escapeHtml(layout.noButton)}<br><a href="${link}" style="color:${LIGHT.link};word-break:break-all;">${link}</a></p>
+</td></tr>
+<tr><td style="padding:16px 28px;background:${LIGHT.page};border-top:1px solid ${LIGHT.edge};border-radius:0 0 12px 12px;font-size:12px;line-height:1.5;color:${LIGHT.faint};">${escapeHtml(footer)}${manage ? `<br>${escapeHtml(manage.label)} <a href="${escapeHtml(manage.url)}" style="color:${LIGHT.link};">${escapeHtml(manage.url)}</a>` : ''}</td></tr>
 </table>
 </td></tr>
 </table>

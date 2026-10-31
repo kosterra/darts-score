@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - main
+  # rebuild and re-push the current release on demand — e.g. to pick up a patched
+  # base image (Node/Debian security release) between releases, without a version bump
+  workflow_dispatch:
 
 jobs:
   # the tests, lint, types, the description of the API and both builds: nothing is released without them
@@ -63,6 +66,9 @@ jobs:
           # the version of this build is out: What's new shows it as released
           build-args: |
             APP_RELEASED=true
+          # always fetch the base image fresh so a rebuild picks up the newest
+          # Debian security packages (apt-get upgrade) rather than a cached layer
+          pull: true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

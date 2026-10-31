@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { Calendar } from 'primereact/calendar';
-import { Dropdown } from 'primereact/dropdown';
 
 import { calendarFormat } from '../../utils/dates';
 import { t } from '../../utils/i18n';
 
-// the times to choose from: every quarter of an hour
-const STEP_MINUTES = 15;
+import TimeField from './time.field';
+
 const pad = (value) => String(value).padStart(2, '0');
-const TIMES = Array.from({ length: (24 * 60) / STEP_MINUTES }, (_, index) => {
-    const minutes = index * STEP_MINUTES;
-    return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
-});
 const timeOf = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
 /**
@@ -22,12 +17,10 @@ const timeOf = (date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
  * defaultTime: the time a day gets when none was set yet (noon unless said otherwise)
  */
 const DateTimeField = ({ value, onChange, minDate, disabled = false, placeholder, ariaLabel, className = '', defaultTime = '12:00' }) => {
-    const time = value ? timeOf(value) : null;
+    const time = value ? timeOf(value) : '';
     // without a day yet the calendar opens at the month of the first day offered, not at today
     const [viewed, setViewed] = useState(null);
     const viewDate = value ?? viewed ?? minDate ?? new Date();
-    // a time that is not on a quarter (set elsewhere) stays choosable
-    const times = time && !TIMES.includes(time) ? [...TIMES, time].sort() : TIMES;
     const withTime = (day, hhmm) => {
         const [hours, minutes] = hhmm.split(':').map(Number);
         const next = new Date(day);
@@ -50,15 +43,12 @@ const DateTimeField = ({ value, onChange, minDate, disabled = false, placeholder
                 aria-label={ariaLabel}
                 className="date-time-day"
             />
-            <Dropdown
+            <TimeField
                 value={time}
-                options={times}
-                onChange={(event) => onChange(withTime(value ?? minDate ?? new Date(), event.value))}
+                onChange={(next) => next && onChange(withTime(value ?? minDate ?? new Date(), next))}
                 disabled={disabled}
-                placeholder={t('Time')}
-                aria-label={ariaLabel ? `${ariaLabel} · ${t('Time')}` : t('Time')}
+                ariaLabel={ariaLabel ? `${ariaLabel} · ${t('Time')}` : t('Time')}
                 className="date-time-time"
-                scrollHeight="16rem"
             />
         </span>
     );

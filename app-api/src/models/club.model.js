@@ -9,6 +9,9 @@ export default (mongoose) => {
       accent:      { type: String, default: null },
       // File name of the uploaded logo in IMG_DIR/clubs
       logo:        { type: String, default: '' },
+      // Whether other clubs can find this one by name to connect with it (for
+      // shared tournaments). Existing connections are unaffected when turned off.
+      connectable:     { type: Boolean, default: true },
       // A public club is listed on the public start page. Its admins decide
       // whether running games and finished results are shown there too.
       isPublic:        { type: Boolean, default: false },

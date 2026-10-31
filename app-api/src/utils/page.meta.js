@@ -84,7 +84,7 @@ const structuredData = (base, description) => JSON.stringify({
     ],
 }).replace(/</g, '\\u003c');
 
-export const renderIndex = (html, { title, description, index }, { base, path, language }) => {
+export const renderIndex = (html, { title, description, index }, { base, path, language, nonce }) => {
     const url = `${base}${path}`;
     const tags = [
         `<title>${escape(title)}</title>`,
@@ -101,12 +101,16 @@ export const renderIndex = (html, { title, description, index }, { base, path, l
         `<meta property="og:image:height" content="${OG_IMAGE.height}" />`,
         `<meta property="og:image:alt" content="${escape(translate(language, 'The darts scoreboard'))}" />`,
         '<meta name="twitter:card" content="summary_large_image" />',
-        ...(path === '/' && index && base ? [`<script type="application/ld+json">${structuredData(base, description)}</script>`] : []),
+        ...(path === '/' && index && base ? [`<script type="application/ld+json"${nonce ? ` nonce="${nonce}"` : ''}>${structuredData(base, description)}</script>`] : []),
     ].join('\n    ');
-    return html
+    let out = html
         .replace(/<meta name="description"[^>]*>\s*/i, '')
         .replace(/<title>[^<]*<\/title>/i, tags)
         .replace(/<html lang="[^"]*"/i, `<html lang="${language}"`);
+    // the Content-Security-Policy admits inline scripts only with this request's nonce;
+    // the one inline script in index.html (the no-flash theme) gets it here
+    if (nonce) out = out.replace(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)/gi, `<script nonce="${nonce}"`);
+    return out;
 };
 
 // the public pages for the search engines

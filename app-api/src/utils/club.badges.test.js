@@ -22,6 +22,19 @@ describe('club badges', () => {
         expect(result.metrics.darts).toBe(3000);
     });
 
+    it('scopes a tally to a subset of players, for a shared tournament game', () => {
+        const g = { players: ['a', 'b'], visits: [], friendly: false, playerModels: { a: { hasWonGame: true }, b: { hasWonGame: false } } };
+        const all = tallyOf('x01', g);
+        expect(all.players).toEqual(['a', 'b']);
+        expect(all.winners).toEqual(['a']);
+        const onlyB = tallyOf('x01', g, { onlyPlayers: ['b'] });
+        expect(onlyB.players).toEqual(['b']);
+        expect(onlyB.winners).toEqual([]);
+        const onlyA = tallyOf('x01', g, { onlyPlayers: ['a'] });
+        expect(onlyA.players).toEqual(['a']);
+        expect(onlyA.winners).toEqual(['a']);
+    });
+
     it('credits a first to the player who threw it', () => {
         const result = replayClubBadges([game(['p1', 'p2']), game(['p1', 'p2'], { num180s: 1, firsts: { max180: ['p2'] } })]);
         const first = result.earned.find(entry => entry.badge === 'clubFirst180-1');

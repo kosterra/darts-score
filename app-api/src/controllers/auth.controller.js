@@ -2,7 +2,7 @@ import { normalizeGamePreferences } from '../rules/club.rules.js';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { LANGUAGES, ROLES } from '../models/user.model.js';
-import { hashPassword, verifyPassword, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
+import { hashPassword, verifyPassword, needsRehash, setSessionCookie, clearSessionCookie, clearPendingCookie, readSession } from '../utils/auth.utils.js';
 import { endSession } from '../utils/sessions.js';
 import { getSessionSettings } from '../utils/session.settings.js';
 import { ageOn, selfBirthAge } from '../utils/birth.rules.js';
@@ -65,6 +65,16 @@ export const login = async (req, res) => {
     }
     if (user.blockedAt) return res.status(403).json({ message: BLOCKED_MESSAGE, blocked: true });
 
+    // the password was right: bring an older hash up to the current strength
+    if (needsRehash(user.passwordHash)) {
+        try {
+            user.passwordHash = await hashPassword(password);
+            await user.save();
+        } catch (err) {
+            logger.warn({ err }, 'Could not re-hash the password on login');
+        }
+    }
+
     // the code of two-step login next, or the session
     await finishLogin(req, res, user);
 };
@@ -93,13 +103,15 @@ export const extendSession = async (req, res) => {
 };
 
 /**
- * The welcome tour and the first steps: { tour: 'done' | 'again', firstSteps:
- * 'hidden' | 'shown' }, either or both. → the user
+ * The welcome tour, the first steps and the guided club setup: { tour: 'done'
+ * | 'again', firstSteps: 'hidden' | 'shown', clubSetup: 'hidden' | 'shown' },
+ * any of them. → the user
  */
 export const setOnboarding = async (req, res) => {
     const now = new Date();
     if (req.body.tour) req.user.set('onboarding.tourDoneAt', req.body.tour === 'done' ? now : null);
     if (req.body.firstSteps) req.user.set('onboarding.firstStepsHiddenAt', req.body.firstSteps === 'hidden' ? now : null);
+    if (req.body.clubSetup) req.user.set('onboarding.clubSetupHiddenAt', req.body.clubSetup === 'hidden' ? now : null);
     await req.user.save();
     res.json(req.user);
 };

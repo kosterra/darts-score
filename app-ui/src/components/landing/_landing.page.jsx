@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { GiDart } from "react-icons/gi";
@@ -9,10 +9,14 @@ import PublicService from '../../services/public.service';
 import PublicGameCard from './public.game.card';
 import PublicClubCard from './public.club.card';
 import { ShowcaseShot, PhoneShot } from './showcase.shot';
+import ThrowBoard from './throw.board';
+import CountUp from './count.up';
+import OneEightyCelebration from '../games/common/one.eighty.celebration';
 import { locale, t } from '../../utils/i18n';
 import { PublicHeader, PublicFooter } from './public.frame';
 import usePageTitle from '../../utils/use.page.title';
 import usePublicSite from '../../utils/use.public.site';
+import useReveal from '../../utils/use.reveal';
 import { isInstalled } from '../../utils/install';
 import { BRAND } from '../../utils/project';
 
@@ -140,6 +144,26 @@ const LandingPage = () => {
     // an installation of its own clubs only opens with the login (System settings → Start page)
     const publicSite = usePublicSite();
     const [overview, setOverview] = useState(null);
+    // the sections rise into view as the visitor scrolls to them
+    const rootRef = useRef(null);
+    useReveal(rootRef, overview);
+    // a hidden treat: the bull on the small board, 180 with its three darts, or "180" typed, and the
+    // figures of a 180 come up with their signs
+    const [moment, setMoment] = useState(null);
+    const endMoment = useCallback(() => setMoment(null), []);
+    const celebrate = useCallback((kind) => setMoment(kind === 'bull'
+        ? { key: Date.now(), name: BRAND, number: '50', words: t('Bullseye!'), sign: 'Bull' }
+        : { key: Date.now(), name: BRAND }), []);
+    useEffect(() => {
+        let typed = '';
+        const onKey = (event) => {
+            if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+            typed = (typed + event.key).slice(-3);
+            if (typed === '180') { typed = ''; celebrate('180'); }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [celebrate]);
     // a section asked for from another page (/#faq): there, and kept there while the
     // clubs, results and pictures above it come in and push it down, until the
     // visitor scrolls on their own
@@ -183,7 +207,8 @@ const LandingPage = () => {
     if (publicSite === null) return null;
 
     return (
-        <div className="landing container-fluid p-0">
+        <div className="landing container-fluid p-0" ref={rootRef}>
+            <OneEightyCelebration celebration={moment} onDone={endMoment} />
             <PublicHeader nav={
                 <nav className="landing-nav" aria-label={t('Sections')}>
                     <a href="#features">{t('Features')}</a>
@@ -197,7 +222,7 @@ const LandingPage = () => {
 
                 <section className="container landing-hero-content">
                     <div className="row align-items-center gy-5">
-                        <div className="col-12 col-lg-5 d-flex flex-column gap-3">
+                        <div className="col-12 col-lg-5 d-flex flex-column gap-3 landing-hero-copy">
                             <span className="landing-eyebrow">{t('Free darts scoring for everyone – clubs, friends, flatshares')}</span>
                             <h1 className="landing-title m-0">{t('Game on. We keep the score.')}</h1>
                             <p className="fs-5 text-default m-0">
@@ -227,10 +252,10 @@ const LandingPage = () => {
                 {/* the numbers only once the global admins show them */}
                 {overview?.totals &&
                     <section className="container" aria-label={t('Legmate in numbers')}>
-                        <div className="landing-numbers">
+                        <div className="landing-numbers" data-reveal>
                             {[[t('Clubs'), overview.totals.clubs], [t('Players'), overview.totals.players], [t('Games played'), overview.totals.gamesPlayed], [t('Games this week'), overview.totals.gamesThisWeek]].map(([label, value]) => (
                                 <div key={label}>
-                                    <div className="landing-number">{formatNumber(value)}</div>
+                                    <div className="landing-number"><CountUp value={value ?? 0} format={formatNumber} /></div>
                                     <div className="text-subtle fs-7">{label}</div>
                                 </div>
                             ))}
@@ -240,13 +265,13 @@ const LandingPage = () => {
 
                 {/* three ways in: a game to try, an evening with friends, or a club */}
                 <section id="start" className="container d-flex flex-column gap-4">
-                    <div className="landing-section-head">
+                    <div className="landing-section-head" data-reveal>
                         <span className="landing-eyebrow">{t('Three ways to play')}</span>
                         <h2 className="landing-heading m-0">{t('What is right for you?')}</h2>
                     </div>
                     <div className="landing-ways">
-                        {WAYS.map(way => (
-                            <div key={way.to} className={`landing-way${way.main ? ' is-main' : ''}`}>
+                        {WAYS.map((way, index) => (
+                            <div key={way.to} className={`landing-way${way.main ? ' is-main' : ''}`} data-reveal style={{ '--i': index }}>
                                 <span className="landing-feature-icon" aria-hidden="true">{way.icon}</span>
                                 <span className="landing-eyebrow">{way.eyebrow}</span>
                                 <h3 className="fs-5 fw-semibold text-default m-0">{way.question}</h3>
@@ -263,7 +288,7 @@ const LandingPage = () => {
 
                 <section id="features" className="container d-flex flex-column landing-showcase">
                     {SHOWCASE.map((item, index) => (
-                        <article key={item.shot} className={`row align-items-center gy-4 ${index % 2 ? 'flex-lg-row-reverse' : ''}`}>
+                        <article key={item.shot} className={`row align-items-center gy-4 ${index % 2 ? 'flex-lg-row-reverse' : ''}`} data-reveal>
                             <div className="col-12 col-lg-5 d-flex flex-column gap-3">
                                 <span className="landing-eyebrow">{item.eyebrow}</span>
                                 <h2 className="landing-heading m-0">{item.title}</h2>
@@ -280,14 +305,14 @@ const LandingPage = () => {
                 </section>
 
                 <section className="container d-flex flex-column gap-4">
-                    <div className="landing-section-head">
+                    <div className="landing-section-head" data-reveal>
                         <span className="landing-eyebrow">{t('And much more')}</span>
                         <h2 className="landing-heading m-0">{t('Everything a darts evening needs')}</h2>
                     </div>
                     <div className="row g-3">
-                        {FEATURES.map(feature => (
+                        {FEATURES.map((feature, index) => (
                             <div className="col-12 col-sm-6 col-xl-3" key={feature.title}>
-                                <div className="landing-feature">
+                                <div className="landing-feature" data-reveal style={{ '--i': index % 4 }}>
                                     <span className="landing-feature-icon" aria-hidden="true">{feature.icon}</span>
                                     <h3 className="fs-6 fw-semibold text-default m-0">{feature.title}</h3>
                                     <p className="text-subtle fs-7 m-0">{feature.text}</p>
@@ -299,7 +324,7 @@ const LandingPage = () => {
 
                 {/* only what is there: running games, the latest results, or nothing at all */}
                 {(liveGames.length > 0 || results.length > 0) &&
-                    <section id="live" className="container d-flex flex-column gap-4">
+                    <section id="live" className="container d-flex flex-column gap-4" data-reveal>
                         <div className="landing-section-head">
                             <span className="landing-eyebrow">{t('On the oche')}</span>
                             <h2 className="landing-heading m-0">{liveGames.length > 0 ? t('Live now') : t('Latest results')}</h2>
@@ -327,7 +352,7 @@ const LandingPage = () => {
                 }
 
                 {clubs.length > 0 &&
-                    <section id="clubs" className="container d-flex flex-column gap-4">
+                    <section id="clubs" className="container d-flex flex-column gap-4" data-reveal>
                         <div className="landing-section-head">
                             <span className="landing-eyebrow">{t('Playing with Legmate')}</span>
                             <h2 className="landing-heading m-0">{t('Public clubs')}</h2>
@@ -344,14 +369,14 @@ const LandingPage = () => {
                 }
 
                 <section className="container d-flex flex-column gap-4">
-                    <div className="landing-section-head">
+                    <div className="landing-section-head" data-reveal>
                         <span className="landing-eyebrow">{t('Get going')}</span>
                         <h2 className="landing-heading m-0">{t('Start in three steps')}</h2>
                     </div>
                     <ol className="row g-3 list-unstyled m-0 p-0">
                         {STEPS.map((step, idx) => (
                             <li className="col-12 col-md-4" key={step.title}>
-                                <div className="landing-step">
+                                <div className="landing-step" data-reveal style={{ '--i': idx }}>
                                     <span className="landing-step-number" aria-hidden="true">{idx + 1}</span>
                                     <div className="d-flex flex-column gap-1">
                                         <h3 className="fs-5 fw-semibold text-default m-0">{step.title}</h3>
@@ -363,7 +388,7 @@ const LandingPage = () => {
                     </ol>
                 </section>
 
-                <section id="faq" className="container d-flex flex-column gap-4">
+                <section id="faq" className="container d-flex flex-column gap-4" data-reveal>
                     <div className="landing-section-head">
                         <span className="landing-eyebrow">{t('Questions')}</span>
                         <h2 className="landing-heading m-0">{t('Good to know')}</h2>
@@ -379,11 +404,15 @@ const LandingPage = () => {
                 </section>
 
                 <section className="container">
-                    <div className="landing-cta">
-                        <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
-                        <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
-                        <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
-                        <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Legmate')}</Link></span>
+                    <div className="landing-cta" data-reveal>
+                        <div className="landing-cta-text">
+                            <h2 className="landing-heading m-0">{t('Ready for the first leg?')}</h2>
+                            <p className="text-subtle m-0">{t('Set up your club or group, or join one, today. It is free.')}</p>
+                            <Link to="/register"><Button label={t('Get started')} icon="pi pi-arrow-right" iconPos="right" size="large" /></Link>
+                            <span className="text-faint fs-8">{t('Free and without ads. Enjoying it?')}{' '}<Link to="/support">{t('Support Legmate')}</Link></span>
+                        </div>
+                        {/* a board to throw at, 180 after 180, with a treat for whoever hits the bull */}
+                        <ThrowBoard onMoment={celebrate} />
                     </div>
                 </section>
             </main>

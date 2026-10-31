@@ -1,3 +1,4 @@
+import { matchdayCount, matchdayDates } from './leagues.js';
 /**
  * The calendar of a club: its weekly club nights (with the nights that are
  * cancelled), and the days of its tournaments and leagues. A day is kept as
@@ -111,9 +112,15 @@ export const competitionEvents = ({ tournaments = [], leagues = [] }) => {
         }
     }
     for (const league of leagues) {
-        if (league.status !== 'running') continue;
-        for (const matchday of league.matchdays ?? []) {
-            events.push({ id: `l-${league.id}-${matchday.day}`, type: 'matchday', at: new Date(matchday.date), name: league.name, day: matchday.day, link: `/leagues/${league.id}` });
+        if (league.status === 'cancelled') continue;
+        // a league not started yet: its matchdays as planned from the first day (marked so)
+        const planned = league.status === 'draft';
+        const matchdays = planned
+            ? matchdayDates(league.firstDay, league.everyDays ?? 7, matchdayCount((league.players ?? []).length, league.meetings ?? 1)).map((date, index) => ({ day: index + 1, date }))
+            : league.matchdays ?? [];
+        for (const matchday of matchdays) {
+            if (!matchday.date) continue;
+            events.push({ id: `l-${league.id}-${matchday.day}`, type: 'matchday', at: new Date(matchday.date), name: league.name, day: matchday.day, link: `/leagues/${league.id}`, ...(planned ? { planned: true } : {}) });
         }
     }
     return events.sort((a, b) => a.at - b.at);

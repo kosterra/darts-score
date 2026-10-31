@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
@@ -18,6 +18,7 @@ import SettingSwitch from '../elements/setting.switch';
 import UpLink from '../elements/up.link';
 import ClubGameRules from './club.game.rules';
 import ClubGoalsEditor from './club.goals.editor';
+import ClubConnections from './club.connections';
 import { useAuth } from '../../utils/auth.context';
 import { resolveClubLogo } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
@@ -44,9 +45,19 @@ const JOIN_POLICIES = [
 const ClubEditPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { hash } = useLocation();
     const toast = useRef(null);
     const { clubs, refreshClubs, selectClub, user, mailEnabled } = useAuth();
     const club = clubs.find(entry => entry.id === id);
+
+    // a link with a section (e.g. a notification to #connections) scrolls there once the page is up
+    useEffect(() => {
+        if (!club || !hash) return undefined;
+        const element = document.getElementById(hash.slice(1));
+        if (!element) return undefined;
+        const timer = setTimeout(() => element.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+        return () => clearTimeout(timer);
+    }, [hash, club]);
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -377,6 +388,8 @@ const ClubEditPage = () => {
             <ClubShirtEditor club={club} key={`shirt-${club.id}`} onSaved={async (detail) => { await refreshClubs(); showSaved(detail); }} onError={showError} />
             {/* what the club earned together, and the goals its admins set */}
             <ClubGoalsEditor club={club} key={`goals-${club.id}`} onError={showError} />
+            {/* connections to other clubs, to play shared tournaments */}
+            <ClubConnections club={club} key={`connections-${club.id}`} onSaved={showSaved} onError={showError} onSetting={saveSetting} />
             {/* the club's own rules for its games */}
             <ClubGameRules club={club} key={club.id} onSaved={refreshClubs} onError={showError} />
         </div>

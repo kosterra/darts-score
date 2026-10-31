@@ -62,6 +62,7 @@ const PlayerEditPage = lazy(() => import('./components/players/_player.edit.page
 const MyStatistics = lazy(() => import('./components/players/my.statistics'));
 const ClubsPage = lazy(() => import('./components/clubs/_clubs.page'));
 const ClubEditPage = lazy(() => import('./components/clubs/_club.edit.page'));
+const ClubSetupWizard = lazy(() => import('./components/clubs/club.setup.wizard'));
 const BadgesPage = lazy(() => import('./components/badges/_badges.page'));
 const ProfilePage = lazy(() => import('./components/profile/_profile.page'));
 const LoginPage = lazy(() => import('./components/auth/login.page'));
@@ -333,6 +334,7 @@ function AppContent() {
                     <Route path="/badges/:id" element={<BadgesPage />} />
                     <Route path="/my-clubs" element={<ClubsPage />} />
                     <Route path="/my-clubs/:id" element={<ClubEditPage />} />
+                    <Route path="/my-clubs/:id/setup" element={<ClubSetupWizard />} />
                     {/* the old address of My clubs */}
                     <Route path="/clubs" element={<Navigate replace to="/my-clubs" />} />
                     <Route path="/profile" element={<ProfilePage />} />
