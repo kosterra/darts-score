@@ -1,19 +1,26 @@
 import { useEffect, useState } from 'react';
 
-import { call, callerOn, callerSupported, setCallerOn, setCallerVoiceKind, stopCalling } from '../../../utils/caller';
+import { call, callerOn, callerSupported, gameOn, preloadCaller, setCallerOn, setCallerVoiceKind, stopCalling, unlockCaller } from '../../../utils/caller';
 import useGamePreferences from '../../../utils/use.game.preferences';
 import { t } from '../../../utils/i18n';
 
 /**
  * The caller on or off, in the game header: a speaker. Switched on it says
  * "Game on!" at once, which also lets a phone speak later (they only start
- * speaking after a tap). Remembered on the device; the voice, male or female,
- * comes with the account.
+ * speaking after a tap; after a reload, the next tap in the game does), and
+ * loads the caller's files for a game without a network. Remembered on the
+ * device; the voice, male or female, comes with the account.
  */
 const CallerButton = () => {
     const [on, setOn] = useState(callerOn);
     const [{ callerVoice }] = useGamePreferences();
     useEffect(() => setCallerVoiceKind(callerVoice), [callerVoice]);
+    useEffect(() => {
+        if (!on) return undefined;
+        preloadCaller();
+        document.addEventListener('pointerdown', unlockCaller, { passive: true });
+        return () => document.removeEventListener('pointerdown', unlockCaller);
+    }, [on, callerVoice]);
     // leaving the game stops what is still being said
     useEffect(() => () => stopCalling(), []);
     if (!callerSupported()) return null;
@@ -21,7 +28,10 @@ const CallerButton = () => {
     const toggle = () => {
         setCallerOn(!on);
         setOn(!on);
-        if (!on) call([t('Game on!')]);
+        if (!on) {
+            unlockCaller();
+            call(gameOn(), { force: true });
+        }
     };
 
     return (

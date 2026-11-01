@@ -9,8 +9,8 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
-            t('The caller sounds more like the stage: a male voice of the device where it has one, and the 180 shouted the way the callers do – One hundred and eighty, with the eighty drawn out.'),
-            t('A male or female caller, under Profile → Playing: with your account on every device. There too, a voice of the device to call with instead, and Try to hear it.'),
+            t('Legmate has its own caller: every score in English as on the stage, the more excited the higher the score, up to the 180 shouted the way the callers do. No score, Game shot, Game on and what a player requires too; the names come from the device.'),
+            t('A male or female caller, under Profile → Playing: with your account on every device. There too, a voice of the device in the language of the app instead, and Try to hear it.'),
         ],
     },
     {
