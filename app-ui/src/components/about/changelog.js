@@ -9,6 +9,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Tidier on the phone: the players of a game\'s setup as compact rows, so they fit on the first screen; the scores in a game level with each other; figures such as "100 %" and "132 / 145" no longer break; the home screen hint leaves room for the end of the page; the error log\'s buttons fit.'),
             t('The caller sounds more like the stage: a male voice of the device where it has one, and the 180 shouted the way the callers do – One hundred and eighty, with the eighty drawn out.'),
             t('A male or female caller, under Profile → Playing: with your account on every device. There too, a voice of the device to call with instead, and Try to hear it.'),
         ],

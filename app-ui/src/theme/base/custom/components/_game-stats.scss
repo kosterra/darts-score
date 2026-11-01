@@ -564,6 +564,13 @@
     font-weight: $weight-bold;
 }
 
+// a figure, its unit and the lead stay whole on a phone ("100 %", never "100" over "%")
+.tape-number,
+.tape-lead,
+.tape-detail {
+    white-space: nowrap;
+}
+
 .tape-detail {
     margin-left: 0.35rem;
     color: $textFaintColor;

@@ -169,7 +169,7 @@ const ClubEditPage = () => {
             <UpLink to="/my-clubs" label={t('My clubs')} />
             <Panel header={t('Edit {{name}}', { name: club.name })}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    {t('What the club is and who runs it, what it shows of itself and how new members come in. The settings on the right are saved right away.')}
+                    {t('What the club is and who runs it, what it shows of itself and how new members come in. The logo, name and description are saved with Save, every other setting right away.')}
                 </p>
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">

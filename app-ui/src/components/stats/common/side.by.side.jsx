@@ -81,7 +81,7 @@ const SideBySide = ({ rows, players, names = true }) => {
                                 <span key={index} className={`tape-value ${index === 0 ? 'is-left' : 'is-right'} ${isBest(row, index) ? 'is-best' : ''}`}>
                                     {/* the lead sits on the inside, next to the figure's name */}
                                     {index === 1 && <Lead row={row} index={index} />}
-                                    {textOf(row, index)}
+                                    <span className="tape-number">{textOf(row, index)}</span>
                                     {row.details?.[index] && <span className="tape-detail">{row.details[index]}</span>}
                                     {index === 0 && <Lead row={row} index={index} />}
                                 </span>

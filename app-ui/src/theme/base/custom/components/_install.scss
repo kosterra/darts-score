@@ -27,12 +27,18 @@
     }
 }
 
+// on a phone the page gets room below for the hint, so its end can still be scrolled into view
+@media (max-width: 767.98px) {
+    body:has(.install-hint) #root { padding-bottom: 7rem; }
+}
+
 .install-hint-close {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    width: 1.75rem;
-    height: 1.75rem;
+    top: 0.25rem;
+    right: 0.25rem;
+    // big enough for a thumb
+    width: 2.25rem;
+    height: 2.25rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;

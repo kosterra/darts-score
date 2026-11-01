@@ -1219,6 +1219,9 @@ $fair-play-suspicious: $accentAmber;
 }
 
 // the filters of a list on a phone, unfolded: one under another, each as wide as the list
+// on a phone: the count of the list stays one line ("7 entries", not "7" over "entries")
+.admin-toolbar-actions > span { white-space: nowrap; }
+
 .admin-toolbar-filters {
   display: flex;
   flex-direction: column;
