@@ -29,3 +29,38 @@
 // utilities Bootstrap lacks: a flex child that may shrink below its content, figures that line up
 .min-w-0 { min-width: 0; }
 .tabular-nums { font-variant-numeric: tabular-nums; }
+
+// how a section's saving goes (SaveStatus): quiet while saving, a green check when saved, red with Try again
+.autosave-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 1.25rem;
+    color: var(--text-faint);
+    font-size: $text-sm;
+    font-weight: $weight-regular;
+
+    .pi { font-size: 0.8rem; }
+
+    &.is-saved .pi { color: $accentGreen; }
+
+    // what went wrong reads as one line of text, the icon in it, wrapping like text
+    &.is-error {
+        display: inline-block;
+        color: $accentRed;
+
+        .pi { margin-right: 0.3rem; }
+        .autosave-status-retry { margin-left: 0.4rem; }
+    }
+}
+
+.autosave-status-retry {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: $weight-semibold;
+    text-decoration: underline;
+    cursor: pointer;
+}

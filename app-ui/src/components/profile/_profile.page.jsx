@@ -23,6 +23,8 @@ import TwoStepSetting from '../mfa/two.step.setting';
 import PasskeysSetting from '../mfa/passkeys.setting';
 import DeleteAccount from './delete.account';
 import { MyPlayers } from '../players/_my.player.page';
+import SectionTitle from '../elements/section.title';
+import useAutoSave from '../../utils/use.auto.save';
 import OnboardingSetting from '../onboarding/onboarding.setting';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -52,41 +54,65 @@ const ProfilePage = () => {
     const sections = isGlobalAdmin ? SECTIONS.filter(entry => entry.value === 'account' || entry.value === 'notifications') : SECTIONS;
     const section = sections.find(entry => `#${entry.value}` === hash) ?? sections[0];
 
-    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, email: user.email, startPage: user.startPage ?? 'dashboard', defaultClub: user.defaultClub ? String(user.defaultClub) : null });
+    const [profile, setProfile] = useState({ firstname: user.firstname, lastname: user.lastname, startPage: user.startPage ?? 'dashboard', defaultClub: user.defaultClub ? String(user.defaultClub) : null });
     // the club the start page is about: the default one, or the one used last
     const startClub = clubs.find(club => club.id === profile.defaultClub);
     const startClubText = startClub ? startClub.name : t('the club you used last');
     const [passwords, setPasswords] = useState({ current: '', next: '', repeat: '' });
-    // a new email address is confirmed with the current password, and a code when two-step login is on
+    // a new email address is an action of its own: confirmed with the current password, and a code when two-step login is on
+    const [email, setEmail] = useState(user.email);
     const [confirm, setConfirm] = useState({ password: '', code: '' });
-    const emailChanged = profile.email.trim().toLowerCase() !== user.email;
-    const confirmed = !emailChanged || (confirm.password && (!user.mfaEnabled || confirm.code));
+    const emailChanged = email.trim().toLowerCase() !== user.email;
+    const confirmed = emailChanged && confirm.password && (!user.mfaEnabled || confirm.code);
+    // how the parts of Display save that save themselves
+    const [dateStatus, setDateStatus] = useState(null);
+    const [lookStatus, setLookStatus] = useState(null);
     const showSuccess = (summary, detail) =>
         toast.current.show({ severity: 'success', summary, detail, life: 3000 });
     const showError = (summary, error) =>
         toast.current.show({ severity: 'error', summary, detail: error.message, life: 4000 });
 
-    const onSaveProfile = async (event) => {
+    // the account saves as you go: the name a moment after typing, the start page at once; always
+    // with the email address it has (the API wants it, and only changes it with the password)
+    const latest = useRef(profile);
+    const validName = (value) => value.trim().length >= 2 && value.trim().length <= 25;
+    const saveAccount = async () => {
+        const { firstname, lastname, startPage, defaultClub } = latest.current;
+        setUser(await AuthService.updateProfile({ firstname: firstname.trim(), lastname: lastname.trim(), email: user.email, startPage, defaultClub }));
+    };
+    const nameSave = useAutoSave(saveAccount, { valid: (values) => validName(values.firstname) && validName(values.lastname) });
+    const startSave = useAutoSave(saveAccount);
+    const changeProfile = (patch) => {
+        const next = { ...profile, ...patch };
+        setProfile(next);
+        // a name not complete yet stays out of what the start page sends
+        latest.current = validName(next.firstname) && validName(next.lastname) ? next : { ...next, firstname: latest.current.firstname, lastname: latest.current.lastname };
+        if ('firstname' in patch || 'lastname' in patch) nameSave.change(next);
+        else startSave.change(next, { now: true });
+    };
+
+    const onChangeEmail = async (event) => {
         event.preventDefault();
         try {
-            const secured = emailChanged ? { ...profile, currentPassword: confirm.password, ...(user.mfaEnabled && { code: confirm.code }) } : profile;
-            setUser(await AuthService.updateProfile(secured));
+            const { firstname, lastname, startPage, defaultClub } = latest.current;
+            setUser(await AuthService.updateProfile({ firstname: firstname.trim(), lastname: lastname.trim(), startPage, defaultClub, email: email.trim(), currentPassword: confirm.password, ...(user.mfaEnabled && { code: confirm.code }) }));
             setConfirm({ password: '', code: '' });
-            showSuccess(t('Profile'), t('Your profile is saved.'));
+            showSuccess(t('Email'), t('Your email address is changed.'));
         } catch (error) {
-            showError(t('Profile'), error);
+            showError(t('Email'), error);
         }
     };
 
-    // saved on the account right away; the app starts again in it
-    const onChangeLanguage = async (language) => {
-        if (!language || language === currentLanguage()) return;
-        try {
-            setUser(await AuthService.saveLanguage(language));
-            setLanguage(language);
-        } catch (error) {
-            showError(t('Language'), error);
-        }
+    // saved on the account at once; the app starts again in it
+    const [language, setShownLanguage] = useState(currentLanguage());
+    const languageSave = useAutoSave(async (code) => {
+        setUser(await AuthService.saveLanguage(code));
+        setLanguage(code);
+    });
+    const onChangeLanguage = (code) => {
+        if (!code || code === language) return;
+        setShownLanguage(code);
+        languageSave.change(code, { now: true });
     };
 
     const onChangePassword = async (event) => {
@@ -106,17 +132,15 @@ const ProfilePage = () => {
         }
     };
 
-    const changed = profile.firstname !== user.firstname || profile.lastname !== user.lastname || profile.email !== user.email
-        || profile.startPage !== (user.startPage ?? 'dashboard') || profile.defaultClub !== (user.defaultClub ? String(user.defaultClub) : null);
-
     // a field with its label above it, as on the player profile
-    const field = (id, label, input, hint) => (
+    const field = (id, label, input, hint, hintClass = 'text-faint') => (
         <label htmlFor={id} className="d-flex flex-column gap-1 profile-field">
             <span className="text-subtle fs-8">{label}</span>
             {input}
-            {hint && <span className="text-faint fs-8">{hint}</span>}
+            {hint && <span className={`${hintClass} fs-8`}>{hint}</span>}
         </label>
     );
+    const nameOk = validName(profile.firstname) && validName(profile.lastname);
     const passwordField = (id, label, key, autoComplete, hint) => field(id, label, (
         <Password
             inputId={id}
@@ -153,20 +177,22 @@ const ProfilePage = () => {
                 {section.value === 'account' &&
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">
-                    <form onSubmit={onSaveProfile}>
-                        <p className="game-setup-section-title">{t('Your account')}</p>
+                    <div>
+                        <SectionTitle saves={[nameSave]}>{t('Your account')}</SectionTitle>
                         <p className="setting-title">{t('Name')}</p>
                         <div className="row mx-0 mt-0 setting-body">
                             <div className="col d-flex flex-wrap gap-3 pt-1 profile-name">
-                                {field('profile-firstname', t('First name'), <InputText id="profile-firstname" value={profile.firstname} onChange={(e) => setProfile({ ...profile, firstname: e.target.value })} required />)}
-                                {field('profile-lastname', t('Last name'), <InputText id="profile-lastname" value={profile.lastname} onChange={(e) => setProfile({ ...profile, lastname: e.target.value })} required />)}
-                                <span className="text-faint fs-8 w-100">{t('Your players in the clubs carry this name; their nickname you set on the profile.')}</span>
+                                {field('profile-firstname', t('First name'), <InputText id="profile-firstname" value={profile.firstname} onChange={(e) => changeProfile({ firstname: e.target.value })} onBlur={nameSave.flush} maxLength={25} invalid={!validName(profile.firstname)} required />)}
+                                {field('profile-lastname', t('Last name'), <InputText id="profile-lastname" value={profile.lastname} onChange={(e) => changeProfile({ lastname: e.target.value })} onBlur={nameSave.flush} maxLength={25} invalid={!validName(profile.lastname)} required />)}
+                                <span className={`fs-8 w-100 ${nameOk ? 'text-faint' : 'text-danger'}`}>{t('Your players in the clubs carry this name; their nickname you set on the profile. 2 to 25 characters each.')}</span>
                             </div>
                         </div>
+                    </div>
+                    <form onSubmit={onChangeEmail}>
                         <p className="setting-title">{t('Email')}</p>
                         <div className="row mx-0 mt-0 setting-body">
                             <div className="col d-flex flex-column gap-3 pt-1">
-                                {field('profile-email', t('Email address'), <InputText id="profile-email" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />, t('You log in with it; a new password is sent there.'))}
+                                {field('profile-email', t('Email address'), <InputText id="profile-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />, t('You log in with it; a new password is sent there.'))}
                                 {emailChanged &&
                                     <>
                                         <Message severity="info" className="w-100 justify-content-start" text={user.mfaEnabled
@@ -175,21 +201,26 @@ const ProfilePage = () => {
                                         {field('profile-email-password', t('Current password'), <Password inputId="profile-email-password" value={confirm.password} onChange={(e) => setConfirm({ ...confirm, password: e.target.value })} feedback={false} autoComplete="current-password" className="w-100" inputClassName="w-100" required />)}
                                         {user.mfaEnabled &&
                                             field('profile-email-code', t('Code of the app or a recovery code'), <InputText id="profile-email-code" value={confirm.code} onChange={(e) => setConfirm({ ...confirm, code: e.target.value.replace(/[^\da-zA-Z -]/g, '') })} autoComplete="one-time-code" maxLength={12} className="mfa-code-any" required />)}
+                                        <div className="d-flex flex-wrap justify-content-end gap-2">
+                                            <Button type="button" label={t('Cancel')} size="small" severity="secondary" text onClick={() => { setEmail(user.email); setConfirm({ password: '', code: '' }); }} />
+                                            <Button type="submit" label={t('Change email')} icon="pi pi-envelope" size="small" disabled={!confirmed} />
+                                        </div>
                                     </>}
                             </div>
                         </div>
+                    </form>
 
                         {/* no clubs and no statistics of their own for global admins */}
                         {!isGlobalAdmin && (
                             <>
-                                <p className="game-setup-section-title">{t('After logging in')}</p>
+                                <SectionTitle saves={[startSave]}>{t('After logging in')}</SectionTitle>
                                 <p className="setting-title">{t('Open the club')}</p>
                                 <div className="row mx-0 mt-0 setting-body">
                                     <div className="col pt-1">
                                         <Dropdown
                                             value={profile.defaultClub ?? LAST_CLUB}
                                             options={[{ label: t('The club I used last'), value: LAST_CLUB }, ...clubs.map(club => ({ label: club.name, value: club.id }))]}
-                                            onChange={(e) => setProfile({ ...profile, defaultClub: e.value === LAST_CLUB ? null : e.value })}
+                                            onChange={(e) => changeProfile({ defaultClub: e.value === LAST_CLUB ? null : e.value })}
                                             className="profile-club"
                                             aria-label={t('Default club')}
                                         />
@@ -202,7 +233,7 @@ const ProfilePage = () => {
                                         <SelectButton
                                             value={profile.startPage}
                                             options={[{ label: t('Dashboard'), value: 'dashboard' }, { label: t('My statistics'), value: 'myStatistics' }]}
-                                            onChange={(e) => e.value && setProfile({ ...profile, startPage: e.value })}
+                                            onChange={(e) => e.value && e.value !== profile.startPage && changeProfile({ startPage: e.value })}
                                             className="p-selectbutton-pills flex-wrap"
                                             aria-label={t('Start page')}
                                         />
@@ -216,17 +247,15 @@ const ProfilePage = () => {
 
                         <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
                             <Button type="button" label={t('Log out')} icon="pi pi-sign-out" size="small" severity="secondary" onClick={logout} />
-                            <Button type="submit" label={t('Save')} icon="pi pi-save" size="small" disabled={!changed || !confirmed} />
                         </div>
-                    </form>
 
-                    {/* how the app shows itself: language, dates and the look, each saved right away */}
-                    <p className="game-setup-section-title">{t('Display')}</p>
+                    {/* how the app shows itself: language, dates and the look, each saved at once */}
+                    <SectionTitle saves={[languageSave, dateStatus, lookStatus]}>{t('Display')}</SectionTitle>
                         <p className="setting-title">{t('Language')}</p>
                         <div className="row mx-0 mt-0 setting-body">
                             <div className="col d-flex flex-column gap-2">
                                 <SelectButton
-                                    value={currentLanguage()}
+                                    value={language}
                                     options={LANGUAGES}
                                     optionLabel="label"
                                     optionValue="code"
@@ -234,11 +263,11 @@ const ProfilePage = () => {
                                     className="p-selectbutton-pills flex-wrap"
                                     aria-label={t('Language')}
                                 />
-                                <span className="text-faint fs-8">{t('The app and the mails you get come in this language. Saved right away.')}</span>
+                                <span className="text-faint fs-8">{t('The app and the mails you get come in this language.')}</span>
                             </div>
                         </div>
-                        <DateFormatSetting onSaved={(detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 })} />
-                    <AppearanceSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} />
+                        <DateFormatSetting onStatus={setDateStatus} />
+                    <AppearanceSetting onStatus={setLookStatus} />
                     </div>
 
                     <div className="col-12 col-xl-6">
@@ -267,12 +296,12 @@ const ProfilePage = () => {
                     </div>
                 </div>}
 
-                {section.value === 'player' && <MyPlayers part="player" onSaved={showSuccess} onError={showError} />}
+                {section.value === 'player' && <MyPlayers part="player" onError={showError} />}
 
                 {section.value === 'notifications' &&
                     <div className="row g-4">
                         <div className="col-12 col-xxl-9">
-                            <NotificationSettings onSaved={(detail) => showSuccess(t('Saved'), detail)} onError={showError} />
+                            <NotificationSettings />
                         </div>
                     </div>}
 
@@ -280,11 +309,11 @@ const ProfilePage = () => {
                     <div className="row g-4">
                         {/* how you like to play, with your account on every device */}
                         <div className="col-12 col-xl-6">
-                            <PlayingPreferences onSaved={(detail) => showSuccess(t('Saved'), detail)} />
+                            <PlayingPreferences />
                         </div>
                         {/* your player's own: the club sees them too */}
                         <div className="col-12 col-xl-6">
-                            <MyPlayers part="playing" onSaved={showSuccess} onError={showError} />
+                            <MyPlayers part="playing" onError={showError} />
                         </div>
                     </div>}
             </Panel>

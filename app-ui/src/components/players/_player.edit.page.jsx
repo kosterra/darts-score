@@ -18,7 +18,9 @@ import UpLink from '../elements/up.link';
 import PlayerCheckoutPreferences from './player.checkout.preferences';
 import PlayerDartPreferences from './player.dart.preferences';
 import PlayerClubs from './player.clubs';
+import SectionTitle from '../elements/section.title';
 import { useAuth } from '../../utils/auth.context';
+import useAutoSave from '../../utils/use.auto.save';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
 import { SettingsSkeleton } from '../elements/skeletons';
@@ -45,10 +47,11 @@ const fieldsOf = (player) => ({
 
 /**
  * A club admin edits one of the club's players on a page of its own, laid
- * out as the player profile: picture, nickname, name and date of birth to
- * save; whether the nickname is public and the login; the ways out and the
- * darts. A player with a login keeps their name, nickname and picture up to
- * date themselves; the admins set the date of birth.
+ * out as the player profile: picture, nickname, name and date of birth;
+ * whether the nickname is public and the login; the ways out and the darts.
+ * Everything saves as you go. A player with a login keeps their name,
+ * nickname and picture up to date themselves; the admins set the date of
+ * birth.
  */
 const PlayerEditPage = () => {
     const { id } = useParams();
@@ -60,8 +63,14 @@ const PlayerEditPage = () => {
     const [player, setPlayer] = useState(null);
     const [failed, setFailed] = useState(false);
     const [fields, setFields] = useState(null);
-    const [image, setImage] = useState({ action: 'unchanged', file: null, preview: '' });
-    const [saving, setSaving] = useState(false);
+    const [preview, setPreview] = useState('');
+    // the switch as just chosen, shown at once while it is saved
+    const [publicChosen, setPublicChosen] = useState(null);
+    // how the saving goes in the parts that save themselves
+    const [checkoutStatus, setCheckoutStatus] = useState(null);
+    const [dartStatus, setDartStatus] = useState(null);
+    // the fields as last valid: a new picture goes with them
+    const lastValid = useRef(null);
 
     const load = useCallback(async () => {
         try {
@@ -69,12 +78,46 @@ const PlayerEditPage = () => {
             if (!loaded) throw new Error(t('Not found'));
             setPlayer(loaded);
             setFields(fieldsOf(loaded));
-            setImage({ action: 'unchanged', file: null, preview: resolvePlayerImg(loaded.profileImg ?? '') });
+            lastValid.current = fieldsOf(loaded);
+            setPreview(resolvePlayerImg(loaded.profileImg ?? ''));
         } catch {
             setFailed(true);
         }
     }, [id]);
     useEffect(() => { load(); }, [load]);
+    // after a save the player again, the fields stay as they are typed
+    const refresh = useCallback(async () => {
+        const loaded = await PlayerService.getPlayer(id);
+        if (loaded) setPlayer(loaded);
+    }, [id]);
+
+    const validFields = (values) => values.nickname.trim().length >= 3 && values.nickname.trim().length <= 25
+        && values.firstname.trim() && values.lastname.trim() && values.dateOfBirth;
+    const formOf = (values) => {
+        const formData = new FormData();
+        formData.append('nickname', values.nickname.trim());
+        formData.append('firstname', values.firstname.trim());
+        formData.append('lastname', values.lastname.trim());
+        formData.append('dateOfBirth', values.dateOfBirth);
+        formData.append('country', values.country);
+        return formData;
+    };
+    // the names a moment after typing, the country and date of birth at once; the picture uploaded at once
+    const fieldsSave = useAutoSave(async (values) => {
+        await PlayerService.updatePlayer({ id, formData: formOf(values) });
+        await refresh();
+    }, { valid: (values) => Boolean(validFields(values)) });
+    const pictureSave = useAutoSave(async (file) => {
+        const formData = formOf(lastValid.current);
+        if (file) formData.append('profileImg', file);
+        else formData.append('clearProfileImg', 'true');
+        await PlayerService.updatePlayer({ id, formData });
+        await refresh();
+    });
+    const publicSave = useAutoSave(async (publicProfile) => {
+        await PlayerService.setPublicProfile(id, publicProfile);
+        await refresh();
+    });
     // opened at the login (from the key of the players list): there once the player is loaded
     useEffect(() => {
         if (player && window.location.hash === '#login') document.getElementById('login')?.scrollIntoView({ block: 'center' });
@@ -88,47 +131,24 @@ const PlayerEditPage = () => {
 
     // a player with a login keeps their name, nickname and picture up to date themselves
     const maintainedByPlayer = Boolean(player.user && player.user !== user?.id);
-    const saved = fieldsOf(player);
-    const changed = Object.keys(fields).some(key => fields[key] !== saved[key]) || image.action !== 'unchanged';
-    const valid = fields.nickname.trim().length >= 3 && fields.firstname.trim() && fields.lastname.trim() && fields.dateOfBirth;
-    const set = (key) => (event) => setFields(current => ({ ...current, [key]: event.target.value }));
-
-    const save = async (event) => {
-        event.preventDefault();
-        setSaving(true);
-        try {
-            const formData = new FormData();
-            formData.append('nickname', fields.nickname.trim());
-            formData.append('firstname', fields.firstname.trim());
-            formData.append('lastname', fields.lastname.trim());
-            formData.append('dateOfBirth', fields.dateOfBirth);
-            formData.append('country', fields.country);
-            if (image.action === 'new' && image.file) formData.append('profileImg', image.file);
-            if (image.action === 'cleared') formData.append('clearProfileImg', 'true');
-            await PlayerService.updatePlayer({ id: player.id, formData });
-            toast.current?.show({ severity: 'success', summary: t('Player saved'), detail: fields.nickname.trim(), life: 3000 });
-            await load();
-        } catch (error) {
-            showError(t('Save the player'), error);
-        } finally {
-            setSaving(false);
-        }
+    const changeFields = (patch, options) => {
+        const next = { ...fields, ...patch };
+        setFields(next);
+        if (validFields(next)) lastValid.current = next;
+        fieldsSave.change(next, options);
     };
-
-    const togglePublic = async (publicProfile) => {
-        try {
-            await PlayerService.setPublicProfile(player.id, publicProfile);
-            await load();
-        } catch (error) {
-            showError(t('Public nickname'), error);
-        }
+    const togglePublic = (publicProfile) => {
+        setPublicChosen(publicProfile);
+        publicSave.change(publicProfile, { now: true });
     };
+    const publicProfile = publicChosen ?? Boolean(player.publicProfile);
+    const nicknameShort = fields.nickname.trim().length < 3;
 
-    const field = (key, label, hint) => (
+    const field = (key, label, hint, wrong = false) => (
         <label className="d-flex flex-column gap-1 profile-field">
             <span className="text-subtle fs-8">{label}</span>
-            <InputText value={fields[key]} onChange={set(key)} disabled={maintainedByPlayer} required />
-            {hint && <span className="text-faint fs-8">{hint}</span>}
+            <InputText value={fields[key]} onChange={(event) => changeFields({ [key]: event.target.value })} onBlur={fieldsSave.flush} disabled={maintainedByPlayer} required invalid={wrong} />
+            {hint && <span className={`fs-8 ${wrong ? 'text-danger' : 'text-faint'}`}>{hint}</span>}
         </label>
     );
 
@@ -140,12 +160,12 @@ const PlayerEditPage = () => {
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     {player.guest
                         ? t('A guest of a game: their name, nickname, picture and date of birth.')
-                        : t('How the player appears in the club, their login and their settings for the games. The settings of the games are saved right away.')}
+                        : t('How the player appears in the club, their login and their settings for the games. Everything is saved as you go.')}
                 </p>
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">
-                        <form onSubmit={save}>
-                            <p className="game-setup-section-title">{t('The player')}</p>
+                        <div className="mb-4">
+                            <SectionTitle saves={[fieldsSave, pictureSave]}>{t('The player')}</SectionTitle>
                             {maintainedByPlayer &&
                                 <Message
                                     severity="info"
@@ -157,28 +177,28 @@ const PlayerEditPage = () => {
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col my-player-main">
                                     {maintainedByPlayer
-                                        ? <Avatar image={image.preview || undefined} label={image.preview ? undefined : resolvePlayerInitials(player.firstname, player.lastname)} shape="circle" className="avatar-xl bg-surface-high" />
+                                        ? <Avatar image={preview || undefined} label={preview ? undefined : resolvePlayerInitials(player.firstname, player.lastname)} shape="circle" className="avatar-xl bg-surface-high" />
                                         : <ImageUploader
                                             name={`${fields.firstname} ${fields.lastname}`}
-                                            previewUrl={image.preview}
-                                            onFileChange={(file) => setImage({ action: 'new', file, preview: URL.createObjectURL(file) })}
-                                            onFileDelete={() => setImage({ action: 'cleared', file: null, preview: '' })}
+                                            previewUrl={preview}
+                                            onFileChange={(file) => { setPreview(URL.createObjectURL(file)); pictureSave.change(file, { now: true }); }}
+                                            onFileDelete={() => { setPreview(''); pictureSave.change(null, { now: true }); }}
                                         />
                                     }
-                                    {field('nickname', t('Nickname'), t('How the club and the games call the player, 3 to 25 characters.'))}
+                                    {field('nickname', t('Nickname'), t('How the club and the games call the player, 3 to 25 characters.'), !maintainedByPlayer && nicknameShort)}
                                 </div>
                             </div>
                             <p className="setting-title">{t('Name')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col d-flex flex-wrap gap-3 pt-1 profile-name">
-                                    {field('firstname', t('First name'))}
-                                    {field('lastname', t('Last name'))}
+                                    {field('firstname', t('First name'), null, !maintainedByPlayer && !fields.firstname.trim())}
+                                    {field('lastname', t('Last name'), null, !maintainedByPlayer && !fields.lastname.trim())}
                                 </div>
                             </div>
                             <p className="setting-title">{t('Country')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col d-flex flex-column gap-1 pt-1">
-                                    <CountryPicker value={fields.country} onChange={(country) => setFields(current => ({ ...current, country }))} disabled={maintainedByPlayer} />
+                                    <CountryPicker value={fields.country} onChange={(country) => changeFields({ country: country ?? '' }, { now: true })} disabled={maintainedByPlayer} />
                                     <span className="text-faint fs-8">{maintainedByPlayer ? t('{{nickname}} has a login and chooses the country on their profile.', { nickname: player.nickname }) : t('Where the player comes from: the flag is shown next to the nickname.')}</span>
                                 </div>
                             </div>
@@ -188,7 +208,7 @@ const PlayerEditPage = () => {
                                     <label className="d-flex flex-column gap-1 profile-field">
                                         <Calendar
                                             value={toDate(fields.dateOfBirth)}
-                                            onChange={(event) => setFields(current => ({ ...current, dateOfBirth: fromDate(event.value) }))}
+                                            onChange={(event) => changeFields({ dateOfBirth: fromDate(event.value) }, { now: true })}
                                             dateFormat={calendarFormat()}
                                             mask="99.99.9999"
                                             maxDate={new Date()}
@@ -206,25 +226,24 @@ const PlayerEditPage = () => {
                             </div>
                             <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
                                 <Button type="button" label={t('Statistics and badges')} icon="pi pi-chart-line" size="small" severity="secondary" onClick={() => navigate(`/players/${player.id}`)} />
-                                <Button type="submit" label={t('Save')} icon="pi pi-save" size="small" loading={saving} disabled={!changed || !valid} />
                             </div>
-                        </form>
+                        </div>
 
                         {!player.guest && (
                             <>
-                                <p className="game-setup-section-title">{t('In the club')}</p>
+                                <SectionTitle saves={[publicSave]}>{t('In the club')}</SectionTitle>
                                 <SettingSwitch
                                     id={`player-public-${player.id}`}
                                     title={t('Nickname on the public page')}
-                                    hint={`${player.publicProfile ? t('The nickname appears with the live games and results of the club, if the club is public.') : t('The player is shown without a name on the public page.')}${maintainedByPlayer ? t(' {{nickname}} has a login and decides this on their profile.', { nickname: player.nickname }) : ''}`}
-                                    checked={Boolean(player.publicProfile)}
+                                    hint={`${publicProfile ? t('The nickname appears with the live games and results of the club, if the club is public.') : t('The player is shown without a name on the public page.')}${maintainedByPlayer ? t(' {{nickname}} has a login and decides this on their profile.', { nickname: player.nickname }) : ''}`}
+                                    checked={publicProfile}
                                     disabled={maintainedByPlayer}
                                     onChange={togglePublic}
                                 />
                                 <p className="setting-title" id="login">{t('Login')}</p>
                                 <div className="row mx-0 mt-0 setting-body">
                                     <div className="col">
-                                        <PlayerLogin player={player} onChange={load} />
+                                        <PlayerLogin player={player} onChange={refresh} />
                                     </div>
                                 </div>
                                 {!player.user && (
@@ -258,14 +277,14 @@ const PlayerEditPage = () => {
 
                     {!player.guest && (
                         <div className="col-12 col-xl-6">
-                            <p className="game-setup-section-title">{t('In games')}</p>
+                            <SectionTitle saves={[checkoutStatus, dartStatus]}>{t('In games')}</SectionTitle>
                             <p className="setting-title">{t('Ways out in X01')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col">
-                                    <PlayerCheckoutPreferences player={player} onError={(error) => showError(t('Ways out'), error)} />
+                                    <PlayerCheckoutPreferences player={player} onStatus={setCheckoutStatus} />
                                 </div>
                             </div>
-                            <PlayerDartPreferences player={player} onError={(error) => showError(t('Darts on the board'), error)} />
+                            <PlayerDartPreferences player={player} onStatus={setDartStatus} onError={(error) => showError(t('Darts on the board'), error)} />
                         </div>
                     )}
                 </div>

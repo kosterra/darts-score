@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Panel } from 'primereact/panel';
 import { Message } from 'primereact/message';
 
 import AdminService from '../../services/admin.service';
+import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
 import StatTile from '../stats/players/stat.tile';
+import useAutoSave from '../../utils/use.auto.save';
 import { locale, t } from '../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -12,11 +14,15 @@ const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 
 /**
  * The public start page: whether there is one at all (off: visitors see the
  * login first), and the numbers of the installation (clubs, players, games
- * played, games this week) only once they speak for it.
+ * played, games this week) only once they speak for it. Each switch is
+ * saved at once.
  */
-const StartPageSettings = ({ onSaved }) => {
+const StartPageSettings = () => {
     const [settings, setSettings] = useState(null);
     const [error, setError] = useState('');
+    // what was switched so far, sent together (the newest save wins)
+    const chosen = useRef({});
+    const startSave = useAutoSave((changes) => AdminService.saveStartPageSettings(changes));
 
     useEffect(() => {
         AdminService.loadStartPageSettings().then(setSettings).catch(err => setError(err.message));
@@ -24,25 +30,20 @@ const StartPageSettings = ({ onSaved }) => {
 
     if (!settings) return error ? <Message severity="error" text={error} /> : null;
 
-    const save = async (changes, message) => {
-        setError('');
-        try {
-            const saved = await AdminService.saveStartPageSettings(changes);
-            // the numbers stay as they were loaded
-            setSettings(current => ({ ...current, ...saved }));
-            onSaved?.(message);
-        } catch (err) {
-            setError(err.message);
-        }
+    // shown at once, saved at once; the numbers stay as they were loaded
+    const save = (changes) => {
+        chosen.current = { ...chosen.current, ...changes };
+        setSettings(current => ({ ...current, ...changes }));
+        startSave.change(chosen.current, { now: true });
     };
-    const toggle = (showNumbers) => save({ showNumbers }, showNumbers ? t('The numbers are shown on the start page.') : t('The numbers are no longer shown on the start page.'));
-    const togglePublic = (publicSite) => save({ publicSite }, publicSite ? t('Visitors see the start page about Legmate again.') : t('Visitors now see the login first.'));
+    const toggle = (showNumbers) => save({ showNumbers });
+    const togglePublic = (publicSite) => save({ publicSite });
 
     return (
-        <Panel header={t('Start page')}>
+        <Panel header={t('Start page')} icons={<SaveStatus {...startSave} className="me-2" />}>
             <div className="d-flex flex-column gap-3">
                 <span className="text-subtle fs-7">
-                    {t('The public page everyone sees before logging in. A few clubs and games make a small number: show the numbers once they speak for Legmate.')}
+                    {t('The public page everyone sees before logging in. A few clubs and games make a small number: show the numbers once they speak for Legmate.')}{' '}{t('Saved as you go.')}
                 </span>
                 {settings.numbers &&
                     <div className="d-flex flex-column gap-2">
@@ -74,7 +75,6 @@ const StartPageSettings = ({ onSaved }) => {
                     checked={settings.showNumbers}
                     onChange={toggle}
                 />
-                {error && <Message severity="error" text={error} className="w-100 justify-content-start" />}
             </div>
         </Panel>
     );

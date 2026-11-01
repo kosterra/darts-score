@@ -8,7 +8,9 @@ import ClubService from '../../services/club.service';
 import ClubLogo from '../elements/club.logo';
 import CountryFlag from '../elements/country.flag';
 import DeletePopup from '../elements/delete.popup';
+import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
+import useAutoSave from '../../utils/use.auto.save';
 import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 
@@ -18,7 +20,13 @@ import { formatDate } from '../../utils/dates';
  * ask another club. A connection grants no access to the other club's players
  * or statistics; it only lets the two invite each other into tournaments.
  */
-const ClubConnections = ({ club, onSaved, onError, onSetting }) => {
+const ClubConnections = ({ club, onSaved, onError, onClubChanged }) => {
+    // whether other clubs find this one: shown at once and saved at once, as every setting (only on Edit club)
+    const [connectable, setConnectable] = useState(club.connectable !== false);
+    const findableSave = useAutoSave(async (value) => {
+        await ClubService.updateClub(club.id, { name: club.name, connectable: value });
+        await onClubChanged?.();
+    });
     const [links, setLinks] = useState(null);
     const [failed, setFailed] = useState(false);
     const [search, setSearch] = useState('');
@@ -113,18 +121,18 @@ const ClubConnections = ({ club, onSaved, onError, onSetting }) => {
 
     return (
         <div id="connections">
-            <Panel header={t('Connected clubs')} className="mt-4">
+            <Panel header={t('Connected clubs')} className="mt-4" icons={onClubChanged && <SaveStatus {...findableSave} className="me-2" />}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     {t('Connect with another club to play shared tournaments together. Each club keeps its own players and statistics; a connection only lets you invite each other into a tournament.')}
                 </p>
 
-                {onSetting &&
+                {onClubChanged &&
                     <SettingSwitch
                         id="club-connectable"
                         title={t('Findable by other clubs')}
                         hint={t('Other clubs can find yours by name and ask to connect. Turn this off to stay hidden; your existing connections are not affected.')}
-                        checked={club.connectable !== false}
-                        onChange={(value) => onSetting({ connectable: value }, value ? t('Other clubs can find yours.') : t('Your club is hidden from other clubs.'))}
+                        checked={connectable}
+                        onChange={(value) => { setConnectable(value); findableSave.change(value, { now: true }); }}
                     />}
 
                 {failed && <p className="text-subtle fs-7 m-0">{t('The connections could not be loaded. Please reload the page.')}</p>}

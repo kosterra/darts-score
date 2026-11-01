@@ -38,11 +38,10 @@ test('the club nights, who comes, and the days of tournaments and leagues', asyn
     await page.getByRole('button', { name: 'Cancel the club night' }).click();
     await expect(page.locator('.calendar-item.is-cancelled', { hasText: 'Darts final on TV' })).toBeVisible();
 
-    // a third club night a week
+    // a third club night a week, saved as it is added
     await page.getByRole('button', { name: 'Add a club night' }).click();
     await expect(page.locator('.calendar-night-box')).toHaveCount(3);
-    await page.getByRole('button', { name: 'Save', exact: true }).click();
-    await expect(page.getByText('The club nights are saved.')).toBeVisible();
+    await expect(page.locator('.autosave-status.is-saved')).toBeVisible();
 
     // the same as a month: the club nights in their days; a day shows what is on below
     await page.getByRole('button', { name: 'Month', exact: true }).click();

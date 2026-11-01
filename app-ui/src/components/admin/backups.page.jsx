@@ -11,11 +11,13 @@ import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import AdminService from '../../services/admin.service';
+import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
 import { Lines } from '../elements/skeletons';
 import { formatDateTime } from '../../utils/dates';
 import { relativeTime } from '../../utils/relative.time';
 import usePageTitle from '../../utils/use.page.title';
+import useAutoSave from '../../utils/use.auto.save';
 import { locale, t } from '../../utils/i18n';
 
 const KINDS = {
@@ -74,7 +76,7 @@ const BackupRow = ({ backup, busy, onRestore, onDelete }) => {
  * Backups of the whole installation, for global admins: made now by hand,
  * downloaded to keep elsewhere, brought back from a file, restored, deleted;
  * and the automatic ones: daily or weekly at an hour (server time), the
- * newest few kept.
+ * newest few kept, saved as you go.
  */
 const BackupsPage = () => {
     usePageTitle(t('Backups'));
@@ -85,6 +87,19 @@ const BackupsPage = () => {
     const [error, setError] = useState('');
     const [busy, setBusy] = useState('');
     const [restarting, setRestarting] = useState(false);
+    // the whole schedule sent at each change; the server tells when the next backup is
+    const scheduleSave = useAutoSave(async (next) => {
+        const saved = await AdminService.saveBackupSchedule({
+            enabled: next.enabled, frequency: next.frequency, hour: next.hour, weekday: next.weekday, keep: next.keep,
+        });
+        setSchedule(current => ({ ...current, nextAt: saved.nextAt, lastError: saved.lastError, timeZone: saved.timeZone ?? current.timeZone }));
+    }, { valid: (next) => Number.isInteger(next.keep) && next.keep >= 1 && next.keep <= 60 });
+    // shown at once; a choice saved at once, the number kept a moment after it stopped changing
+    const changeSchedule = (patch, options = { now: true }) => {
+        const next = { ...schedule, ...patch };
+        setSchedule(next);
+        scheduleSave.change(next, options);
+    };
 
     const load = useCallback(() => AdminService.loadBackups()
         .then(loaded => { setData(loaded); setSchedule(current => current ?? loaded.schedule); setError(''); })
@@ -126,9 +141,6 @@ const BackupsPage = () => {
             setTimeout(() => window.location.reload(), 10000);
         } else say('success', t('The backup is restored.'));
     });
-    const saveSchedule = () => run('schedule', () => AdminService.saveBackupSchedule({
-        enabled: schedule.enabled, frequency: schedule.frequency, hour: schedule.hour, weekday: schedule.weekday, keep: schedule.keep,
-    }), (saved) => { setSchedule(saved); say('success', saved.enabled ? t('Automatic backups are on.') : t('Automatic backups are off.')); });
 
     if (restarting) {
         return (
@@ -160,7 +172,7 @@ const BackupsPage = () => {
                 </div>
             </Panel>
 
-            <Panel header={t('Automatic backups')}>
+            <Panel header={t('Automatic backups')} icons={<SaveStatus {...scheduleSave} className="me-2" />}>
                 {!schedule ? <Lines count={3} /> :
                     <div className="d-flex flex-column gap-3 backup-schedule">
                         <SettingSwitch
@@ -170,35 +182,32 @@ const BackupsPage = () => {
                                 ? t('A backup is made on its own and the oldest go, so only the newest are kept.')
                                 : t('Off: backups are only made by hand.')}
                             checked={schedule.enabled}
-                            onChange={(enabled) => setSchedule({ ...schedule, enabled })}
+                            onChange={(enabled) => changeSchedule({ enabled })}
                         />
                         <div className="backup-schedule-fields">
                             <label className="d-flex flex-column gap-1">
                                 <span className="fs-7 fw-semibold text-default">{t('How often')}</span>
-                                <SelectButton value={schedule.frequency} options={[{ label: t('Daily'), value: 'daily' }, { label: t('Weekly'), value: 'weekly' }]} onChange={(event) => event.value && setSchedule({ ...schedule, frequency: event.value })} disabled={!schedule.enabled} />
+                                <SelectButton value={schedule.frequency} options={[{ label: t('Daily'), value: 'daily' }, { label: t('Weekly'), value: 'weekly' }]} onChange={(event) => event.value && changeSchedule({ frequency: event.value })} disabled={!schedule.enabled} />
                             </label>
                             {schedule.frequency === 'weekly' &&
                                 <label className="d-flex flex-column gap-1">
                                     <span className="fs-7 fw-semibold text-default">{t('On')}</span>
-                                    <Dropdown value={schedule.weekday} options={WEEKDAYS} onChange={(event) => setSchedule({ ...schedule, weekday: event.value })} disabled={!schedule.enabled} />
+                                    <Dropdown value={schedule.weekday} options={WEEKDAYS} onChange={(event) => changeSchedule({ weekday: event.value })} disabled={!schedule.enabled} />
                                 </label>}
                             <label className="d-flex flex-column gap-1">
                                 <span className="fs-7 fw-semibold text-default">{t('At')}</span>
-                                <Dropdown value={schedule.hour} options={HOURS} onChange={(event) => setSchedule({ ...schedule, hour: event.value })} disabled={!schedule.enabled} />
+                                <Dropdown value={schedule.hour} options={HOURS} onChange={(event) => changeSchedule({ hour: event.value })} disabled={!schedule.enabled} />
                             </label>
                             <label className="d-flex flex-column gap-1">
                                 <span className="fs-7 fw-semibold text-default">{t('Keep the newest')}</span>
-                                <InputNumber value={schedule.keep} onValueChange={(event) => setSchedule({ ...schedule, keep: event.value ?? 1 })} min={1} max={60} showButtons buttonLayout="horizontal" decrementButtonIcon="pi pi-minus" incrementButtonIcon="pi pi-plus" inputClassName="text-center" disabled={!schedule.enabled} />
+                                <InputNumber value={schedule.keep} onValueChange={(event) => changeSchedule({ keep: event.value ?? 1 }, { now: false })} onBlur={scheduleSave.flush} min={1} max={60} showButtons buttonLayout="horizontal" decrementButtonIcon="pi pi-minus" incrementButtonIcon="pi pi-plus" inputClassName="text-center" disabled={!schedule.enabled} />
                             </label>
                         </div>
                         <span className="text-faint fs-8">
-                            {t('The time is the time of the server ({{zone}}). Only automatic backups are counted and deleted; the others stay until you delete them.', { zone: schedule.timeZone })}
+                            {t('The time is the time of the server ({{zone}}). Only automatic backups are counted and deleted; the others stay until you delete them.', { zone: schedule.timeZone })}{' '}{t('Saved as you go.')}
                             {schedule.enabled && schedule.nextAt && <>{' '}{t('Next backup: {{date}}.', { date: formatDateTime(schedule.nextAt) })}</>}
                         </span>
                         {schedule.lastError && <Message severity="error" className="w-100 justify-content-start" text={t('The last automatic backup failed: {{error}}', { error: schedule.lastError })} />}
-                        <div className="d-flex justify-content-end">
-                            <Button type="button" label={t('Save')} icon="pi pi-check" size="small" loading={busy === 'schedule'} onClick={saveSchedule} />
-                        </div>
                     </div>}
             </Panel>
         </div>

@@ -1,5 +1,8 @@
+import { useState } from 'react';
+
 import { isFormat } from '../../../utils/setup.memory';
-import useGamePreferences from '../../../utils/use.game.preferences';
+import { useAuth } from '../../../utils/auth.context';
+import useGamePreferences, { accountSaver } from '../../../utils/use.game.preferences';
 import { t } from '../../../utils/i18n';
 
 const MAX_FAVOURITES = 3;
@@ -12,7 +15,10 @@ const MAX_FAVOURITES = 3;
  * game: the game the formats are of, for the favourites
  */
 const QuickFormats = ({ game, formats, settings, playerCount, onApply }) => {
-    const [preferences, save, loggedIn] = useGamePreferences();
+    const [preferences, , loggedIn] = useGamePreferences();
+    const { setUser } = useAuth();
+    // a pin that could not be saved says so (the shared saver keeps quiet about failures)
+    const [error, setError] = useState(null);
     const keyOf = (format) => format.id ?? format.name;
     const favourites = preferences.favourites[game] ?? [];
     const ordered = [
@@ -22,7 +28,8 @@ const QuickFormats = ({ game, formats, settings, playerCount, onApply }) => {
     const togglePin = (format) => {
         const key = keyOf(format);
         const next = favourites.includes(key) ? favourites.filter(entry => entry !== key) : [key, ...favourites].slice(0, MAX_FAVOURITES);
-        save({ favourites: { ...preferences.favourites, [game]: next } });
+        setError(null);
+        accountSaver(setUser)({ favourites: { ...preferences.favourites, [game]: next } }).catch(setError);
     };
 
     return (
@@ -60,6 +67,7 @@ const QuickFormats = ({ game, formats, settings, playerCount, onApply }) => {
                 );
             })}
             </div>
+            {error && <span className="text-danger fs-8" role="alert">{`${t('Not saved')}: ${error.message}`}</span>}
         </div>
     );
 };

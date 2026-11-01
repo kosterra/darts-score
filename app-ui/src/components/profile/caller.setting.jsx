@@ -3,7 +3,6 @@ import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { SelectButton } from 'primereact/selectbutton';
 
-import useGamePreferences from '../../utils/use.game.preferences';
 import { call, callerSample, callerSupported, callerVoices, chosenVoiceName, setCallerVoiceKind, setChosenVoiceName } from '../../utils/caller';
 import { t } from '../../utils/i18n';
 
@@ -18,9 +17,10 @@ const AUTOMATIC = 'automatic';
  * The caller's voice: male or female with the account (male, as most
  * callers on the stage), and a voice of this device to call with instead,
  * as each device has voices of its own. Try says a 180 with it.
+ * voice: the kind chosen ('male' | 'female'); onChange(kind) saves it with
+ * the account, as you go. The device's own voice is kept on the device.
  */
-const CallerSetting = ({ onSaved }) => {
-    const [preferences, save] = useGamePreferences();
+const CallerSetting = ({ voice, onChange }) => {
     const [voices, setVoices] = useState(callerVoices);
     const [chosen, setChosen] = useState(() => chosenVoiceName() ?? AUTOMATIC);
 
@@ -31,18 +31,17 @@ const CallerSetting = ({ onSaved }) => {
         window.speechSynthesis.addEventListener?.('voiceschanged', update);
         return () => window.speechSynthesis.removeEventListener?.('voiceschanged', update);
     }, []);
-    useEffect(() => setCallerVoiceKind(preferences.callerVoice), [preferences.callerVoice]);
+    useEffect(() => setCallerVoiceKind(voice), [voice]);
 
     if (!callerSupported()) return null;
 
     const options = [
-        { value: AUTOMATIC, label: KINDS.find(kind => kind.value === preferences.callerVoice).automatic },
-        ...voices.map(voice => ({ value: voice.name, label: `${voice.name} (${voice.lang})` })),
+        { value: AUTOMATIC, label: (KINDS.find(kind => kind.value === voice) ?? KINDS[0]).automatic },
+        ...voices.map(entry => ({ value: entry.name, label: `${entry.name} (${entry.lang})` })),
     ];
     const choose = (name) => {
         setChosen(name);
         setChosenVoiceName(name === AUTOMATIC ? null : name);
-        onSaved?.(t('Voice on this device'));
     };
 
     return (
@@ -51,9 +50,9 @@ const CallerSetting = ({ onSaved }) => {
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col d-flex flex-column gap-2">
                     <SelectButton
-                        value={preferences.callerVoice}
+                        value={voice}
                         options={KINDS}
-                        onChange={(e) => e.value && save({ callerVoice: e.value }).then(() => onSaved?.(t('Caller voice')))}
+                        onChange={(e) => e.value && onChange(e.value)}
                         className="p-selectbutton-pills flex-wrap"
                         aria-label={t('Caller voice')}
                     />

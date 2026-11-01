@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Button } from 'primereact/button';
 
 import NotificationService from '../../services/notification.service';
+import SaveStatus from '../elements/save.status';
+import SectionTitle from '../elements/section.title';
+import useAutoSave from '../../utils/use.auto.save';
 import { t } from '../../utils/i18n';
 import { Lines } from '../elements/skeletons';
 
@@ -51,11 +54,17 @@ const MAILS = { off: t('No mail'), instant: t('At once'), daily: t('Once a day')
 
 /**
  * Which notifications the user gets, and how: in the notification center,
- * by mail at once, or collected in one mail a day or a week. Saved right away.
+ * by mail at once, or collected in one mail a day or a week. Each choice
+ * shown and saved at once; how the saving goes beside the group just changed.
  */
-const NotificationSettings = ({ onSaved, onError }) => {
+const NotificationSettings = () => {
     const [data, setData] = useState(null);
     const [failed, setFailed] = useState(false);
+    // the choices made here, sent together (one save at a time, the newest wins)
+    const chosen = useRef({});
+    // where the saving is shown: the group of the topic just changed, or 'all' (no mails at all)
+    const [shownAt, setShownAt] = useState(null);
+    const settingsSave = useAutoSave((choices) => NotificationService.saveSettings(choices));
 
     useEffect(() => {
         NotificationService.loadSettings().then(setData).catch(() => setFailed(true));
@@ -64,30 +73,26 @@ const NotificationSettings = ({ onSaved, onError }) => {
     if (failed) return <p className="text-faint fs-7 m-0">{t('The notification settings could not be loaded.')}</p>;
     if (!data) return <Lines count={6} />;
 
-    const change = (topic, changes) => {
-        // shown at once, saved behind
-        setData(current => ({ ...current, topics: current.topics.map(entry => entry.id === topic.id ? { ...entry, ...changes } : entry) }));
-        NotificationService.saveSettings({ [topic.id]: { inApp: topic.inApp, mail: topic.mail, ...changes } })
-            .then((saved) => { setData(saved); onSaved?.(TOPICS[topic.id]?.title ?? topic.id); })
-            .catch((error) => onError?.(t('Not saved'), error));
+    // shown at once, saved behind
+    const choose = (choices, at) => {
+        chosen.current = { ...chosen.current, ...choices };
+        setData(current => ({ ...current, topics: current.topics.map(entry => (choices[entry.id] ? { ...entry, ...choices[entry.id] } : entry)) }));
+        setShownAt(at);
+        settingsSave.change(chosen.current, { now: true });
     };
-    const allMailsOff = () => {
-        const choices = Object.fromEntries(data.topics.filter(topic => !topic.locked).map(topic => [topic.id, { inApp: topic.inApp, mail: 'off' }]));
-        NotificationService.saveSettings(choices)
-            .then((saved) => { setData(saved); onSaved?.(t('No mails')); })
-            .catch((error) => onError?.(t('Not saved'), error));
-    };
+    const change = (topic, changes) => choose({ [topic.id]: { inApp: topic.inApp, mail: topic.mail, ...changes } }, topic.group);
+    const allMailsOff = () => choose(Object.fromEntries(data.topics.filter(topic => !topic.locked).map(topic => [topic.id, { inApp: topic.inApp, mail: 'off' }])), 'all');
 
     return (
         <div className="notification-settings">
             <p className="text-faint fs-8 mt-0">
-                {t('In the app: in your notifications (the bell). By mail: at once, or collected in one mail a day or a week (from 7 in the morning; the weekly one on Mondays). Saved right away.')}
+                {t('In the app: in your notifications (the bell). By mail: at once, or collected in one mail a day or a week (from 7 in the morning; the weekly one on Mondays). Saved as you go.')}
             </p>
             {!data.mailEnabled &&
                 <p className="notification-settings-note fs-8">{t('This installation sends no mails at the moment: the choices for mails apply once an admin sets them up.')}</p>}
             {data.groups.map(group => (
                 <section key={group} className="notification-group" aria-labelledby={`notification-group-${group}`}>
-                    <p id={`notification-group-${group}`} className="game-setup-section-title mb-1">{GROUPS[group]?.title}</p>
+                    <SectionTitle id={`notification-group-${group}`} className="mb-1" saves={shownAt === group ? [settingsSave] : []}>{GROUPS[group]?.title}</SectionTitle>
                     <p className="text-faint fs-8 mt-0 mb-2">{GROUPS[group]?.hint}</p>
                     <ul className="list-unstyled m-0 notification-topics">
                         {data.topics.filter(topic => topic.group === group).map(topic => (
@@ -116,7 +121,8 @@ const NotificationSettings = ({ onSaved, onError }) => {
                     </ul>
                 </section>
             ))}
-            <div className="d-flex justify-content-end mt-3">
+            <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mt-3">
+                {shownAt === 'all' && <SaveStatus {...settingsSave} />}
                 <Button type="button" label={t('No mails at all')} icon="pi pi-envelope" size="small" severity="secondary" outlined onClick={allMailsOff} />
             </div>
         </div>

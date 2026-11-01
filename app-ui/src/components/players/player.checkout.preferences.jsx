@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dropdown } from 'primereact/dropdown';
 
 import PlayerService from '../../services/player.service';
+import useAutoSave from '../../utils/use.auto.save';
 import { t } from '../../utils/i18n';
 
 const DOUBLES = [20, 16, 18, 8, 12, 10, 14, 4, 6, 2, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1].map(n => `D${n}`).concat('D25');
@@ -11,12 +12,13 @@ const nameOf = (double) => double === 'D25' ? 'Bull (D25)' : double;
 /**
  * A player's favourite double and main treble, which put their own ways out
  * first during an X01 game. Automatic learns them from the player's games;
- * a change is saved right away.
+ * a change is shown and saved at once.
  *
  * player: { id, preferences }
  * clubId: the club the player is edited in
+ * onSaved(player) with the player as saved; onStatus(autosave) how the saving goes
  */
-const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onError }) => {
+const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
     const [preferences, setPreferences] = useState({ favouriteDouble: 'auto', mainTreble: 'auto', handicap: 'accept', ...player.preferences });
     // what the games say, for the "Automatic" choice
     const [learned, setLearned] = useState(null);
@@ -29,15 +31,16 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onError }) => {
         return () => { cancelled = true; };
     }, [player.id, clubId]);
 
-    const save = async (change) => {
-        const next = { ...preferences, ...change };
-        setPreferences(next);
-        try {
-            onSaved?.(await PlayerService.setPreferences(player.id, change, clubId));
-        } catch (error) {
-            setPreferences(preferences);
-            onError?.(error);
-        }
+    // what was chosen here, sent together (one save at a time, the newest wins)
+    const chosen = useRef({});
+    const preferencesSave = useAutoSave(async (changes) => onSaved?.(await PlayerService.setPreferences(player.id, changes, clubId)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => onStatus?.(preferencesSave), [preferencesSave.status, preferencesSave.error]);
+
+    const save = (change) => {
+        chosen.current = { ...chosen.current, ...change };
+        setPreferences(current => ({ ...current, ...change }));
+        preferencesSave.change(chosen.current, { now: true });
     };
 
     // what the games say, when they are enough to tell

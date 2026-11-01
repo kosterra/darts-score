@@ -12,12 +12,14 @@ import UserService, { ROLES, ROLE_LABELS, CLUB_ROLES } from '../../services/user
 import AdminService from '../../services/admin.service';
 import { announceAlertsChange } from './alert.events';
 import DeletePopup from '../elements/delete.popup';
+import SaveStatus from '../elements/save.status';
 import UserEditor from './user.editor';
 import UsersOverview from './users.overview';
 import { ClubCell, ClubFilter } from './club.filter';
 import { AdminToolbar } from './admin.common';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { useAuth } from '../../utils/auth.context';
+import useAutoSave from '../../utils/use.auto.save';
 import { t } from '../../utils/i18n';
 import { TableLoading } from '../elements/skeletons';
 import { formatDate } from '../../utils/dates';
@@ -70,13 +72,21 @@ const UsersList = () => {
         // eslint-disable-next-line
     }, []);
 
-    const onRoleChange = async (user, role) => {
-        try {
-            await UserService.updateRole(user.id, role);
-            await loadUsers();
-        } catch (error) {
-            showError(t('Change role'), error);
-        }
+    // a role is shown at once and saved at once; the roles chosen and not yet saved are sent
+    // together (one save at a time), what went wrong shows beside the title with Try again
+    const chosenRoles = useRef({});
+    const [roleOverrides, setRoleOverrides] = useState({});
+    const roleSave = useAutoSave(async (wanted) => {
+        for (const [id, role] of Object.entries(wanted)) await UserService.updateRole(id, role);
+        await loadUsers();
+        // saved: the list says it now, unless another role was chosen meanwhile
+        chosenRoles.current = Object.fromEntries(Object.entries(chosenRoles.current).filter(([id, role]) => wanted[id] !== role));
+        setRoleOverrides(chosenRoles.current);
+    });
+    const onRoleChange = (user, role) => {
+        chosenRoles.current = { ...chosenRoles.current, [user.id]: role };
+        setRoleOverrides(chosenRoles.current);
+        roleSave.change(chosenRoles.current, { now: true });
     };
 
     const onDelete = async (user) => {
@@ -113,7 +123,7 @@ const UsersList = () => {
 
     const roleBody = (user) => (
         <Dropdown
-            value={user.role}
+            value={roleOverrides[user.id] ?? user.role}
             options={roleOptions}
             onChange={(e) => onRoleChange(user, e.value)}
             disabled={isSelf(user)}
@@ -167,7 +177,7 @@ const UsersList = () => {
         <>
         {/* the users at a glance; an account picked there shows in the list */}
         <UsersOverview users={users} loading={!loaded} onPick={(user) => setView({ search: user.email, clubs: '', page: 1 })} />
-        <Panel id="admin-list" header={t('Users')}>
+        <Panel id="admin-list" header={t('Users')} icons={<SaveStatus {...roleSave} className="me-2" />}>
             <AdminToolbar actions={<span className="text-faint fs-7">{visibleUsers.length} {visibleUsers.length === 1 ? t('user') : t('users')}</span>} changed={[view.search, view.clubs].filter(Boolean).length}>
                 <ClubFilter clubs={clubs} selectedIds={clubIds} onChange={setClubIds} optional />
                 <span className="p-input-icon-left">
@@ -190,6 +200,7 @@ const UsersList = () => {
                             toast.current.show({ severity: 'success', summary, detail, life: 4000 });
                             await loadUsers();
                         }}
+                        onChanged={loadUsers}
                         onError={showError}
                     />
                 )}

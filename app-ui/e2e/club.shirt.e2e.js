@@ -18,8 +18,8 @@ test('the club shirt, designed and worn', async ({ page }) => {
     await editor.getByRole('radiogroup', { name: 'Main colour' }).getByRole('radio').nth(5).click();
     await editor.getByRole('radiogroup', { name: 'Second colour' }).getByRole('radio').nth(2).click();
     await editor.locator('.club-shirt-preview').screenshot({ path: `test-results/club-shirt-${test.info().project.name}.png` });
-    await editor.getByRole('button', { name: 'Save' }).click();
-    await expect(page.getByText('The club shirt is saved.')).toBeVisible();
+    // saved as you go: each choice, the panel says so
+    await expect(page.locator('.p-panel', { has: editor }).locator('.autosave-status.is-saved')).toBeVisible();
 
     // in a game: the shirt small before the name
     const created = await (await post('/api/games/x01', { players: ['p1', 'p2'], startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'Best of', numberOfSets: 1, legMode: 'Best of', numberOfLegs: 3, currentPlayerTurn: 'p1', startingPlayerLeg: 'p1', startingPlayerSet: 'p1', gameIsRunning: true, visits: [] })).json();
