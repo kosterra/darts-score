@@ -1557,7 +1557,8 @@
 .admin-dashboard-group { margin-bottom: $space-5; }
 .admin-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
+  // auto-fit: a group of four in a row wide enough for six shares the whole row
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
   gap: $space-3;
 }
 // on a phone two figures side by side (one each was a long column of single numbers); a tile of words

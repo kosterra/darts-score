@@ -10,7 +10,7 @@ import { t } from '../../utils/i18n';
 // the steps: an anchor is a part of the menu (data-tour); without one the step stands in the middle
 const STEPS = [
     { id: 'welcome' },
-    { id: 'dashboard', anchor: 'dashboard', title: t('Your Dashboard'), text: t('What waits for you, your favourite games to start again with one tap, and your form. Arrange it as you like.') },
+    { id: 'dashboard', anchor: 'dashboard', title: t('Your dashboard'), text: t('What waits for you, your favourite games to start again with one tap, and your form. Arrange it as you like.') },
     { id: 'play', anchor: 'play', title: t('Play'), text: t('Start a game of X01, Cricket, Elimination and more, or train on your own against the bot. You tap the darts on the board, Legmate counts.') },
     { id: 'club', anchor: 'my-club', title: t('Your club'), text: t('The club at a glance: its players, games, trainings, badges and tournaments.') },
     { id: 'profile', anchor: 'profile', title: t('You'), text: t('Your player with nickname and picture, your darts, how you like to play, and your notifications.') },

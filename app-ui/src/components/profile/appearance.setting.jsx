@@ -120,7 +120,7 @@ const AppearanceSetting = ({ onStatus }) => {
                         value={look.background}
                         options={BACKGROUND_OPTIONS}
                         onChange={(event) => event.value && change({ background: event.value })}
-                        className="p-selectbutton-pills flex-wrap"
+                        className="p-selectbutton-pills pills-inline flex-wrap"
                         aria-label={t('Background')}
                     />
                     <span className="text-faint fs-8">{t('Behind the pages: the dartboard photo, the photo blurred, or none (calmer, and lighter on older phones). The theme, colour and background come with your account on every device.')}</span>

@@ -105,7 +105,8 @@ const DashboardEditor = ({ layout, onChange, renderWidget, shameBadges = true, p
     // places, not on every move (that would lay the dashboard out again each frame)
     const stands = useRef(null);
 
-    const widgets = resolveLayout(layout, { shameBadges, fallback });
+    // while arranging each widget shows the width chosen for it, not the one filling its row
+    const widgets = resolveLayout(layout, { shameBadges, fallback, fill: false });
     const ids = widgets.map(widget => widget.id);
     const shown = new Set(ids);
     const available = pool.filter(widget => !shown.has(widget.id) && (shameBadges || widget.kind !== 'hallOfShame'));

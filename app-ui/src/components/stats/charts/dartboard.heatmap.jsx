@@ -4,7 +4,8 @@ import { heatOpacity } from '../../../utils/heat.scale';
 // Sections clockwise from the top, as on a real board
 const ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
 
-// Radii relative to the outer edge of the double ring (170 mm on a real board)
+// Radii relative to the outer edge of the double ring (170 mm on a real board);
+// the numbers are 10 of the 236 units across, so they stay readable (12px and more) from a 284px wide board
 const R = { doubleOuter: 100, doubleInner: 95.3, trebleOuter: 62.9, trebleInner: 58.2, outerBull: 9.4, bull: 3.7, numbers: 110 };
 // a board of only the doubles draws them as a wide band and a bigger bull, so their shades can be told apart
 const DOUBLES_ONLY = { inner: 74, bull: 14, trebleInner: 44, trebleOuter: 50, outerBull: 22 };
@@ -102,7 +103,7 @@ const DartboardHeatmap = ({ valueOf, describe, tooltip, color = '#5fa883', onlyD
                 })}
                 {ORDER.map((section, index) => {
                     const [x, y] = polar(R.numbers, index * 18);
-                    return <text key={section} x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize="8" fill="#9a9a9a" pointerEvents="none">{section}</text>;
+                    return <text key={section} x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize="10" fill="#9a9a9a" pointerEvents="none">{section}</text>;
                 })}
             </svg>
         {hoveredTip &&

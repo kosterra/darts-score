@@ -26,7 +26,7 @@ const WhatsNewPage = () => {
                     <h1 className="landing-title m-0">{t('Legmate keeps growing')}</h1>
                     <p className="terms-lead m-0">
                         {t('New games, features and fixes, release by release. Legmate is made in the open:')}{' '}
-                        <a href={REPOSITORY} target="_blank" rel="noopener noreferrer">{t('the code on GitHub')}</a>.
+                        <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="text-nowrap">{t('the code on GitHub')}</a>.
                     </p>
                 </section>
 

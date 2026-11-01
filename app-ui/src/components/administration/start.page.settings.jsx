@@ -42,7 +42,7 @@ const StartPageSettings = () => {
     return (
         <Panel header={t('Start page')} icons={<SaveStatus {...startSave} className="me-2" />}>
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('The public page everyone sees before logging in. A few clubs and games make a small number: show the numbers once they speak for Legmate.')}{' '}{t('Saved as you go.')}
                 </span>
                 {settings.numbers &&

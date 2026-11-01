@@ -7,6 +7,9 @@ import { t } from '../../utils/i18n';
 
 const DOUBLES = [20, 16, 18, 8, 12, 10, 14, 4, 6, 2, 19, 17, 15, 13, 11, 9, 7, 5, 3, 1].map(n => `D${n}`).concat('D25');
 const TREBLES = ['T20', 'T19', 'T18'];
+// each choice on a row of its own, as wide as the box: "Automatic (not enough darts at doubles yet)"
+// and its translations do not fit in half of it
+const WHOLE_ROW = { flexBasis: '100%' };
 const nameOf = (double) => double === 'D25' ? 'Bull (D25)' : double;
 
 /**
@@ -50,7 +53,7 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
 
     return (
         <div className="player-checkout-preferences">
-            <label className="d-flex flex-column gap-1">
+            <label className="d-flex flex-column gap-1 mw-100" style={WHOLE_ROW}>
                 <span className="text-subtle fs-8">{t('Favourite double')}</span>
                 <Dropdown
                     value={preferences.favouriteDouble}
@@ -59,7 +62,7 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
                     className="w-100"
                 />
             </label>
-            <label className="d-flex flex-column gap-1">
+            <label className="d-flex flex-column gap-1 mw-100" style={WHOLE_ROW}>
                 <span className="text-subtle fs-8">{t('Main treble')}</span>
                 <Dropdown
                     value={preferences.mainTreble}
@@ -71,7 +74,7 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
             <span className="text-faint fs-8 player-checkout-preferences-hint">
                 {t('In X01 the ways out finish on the favourite double first and the scoring tips stay on the main treble.')}
             </span>
-            <label className="d-flex flex-column gap-1">
+            <label className="d-flex flex-column gap-1 mw-100" style={WHOLE_ROW}>
                 <span className="text-subtle fs-8">{t('Handicap')}</span>
                 <Dropdown
                     value={preferences.handicap ?? 'accept'}

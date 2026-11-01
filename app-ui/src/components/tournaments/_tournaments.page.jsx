@@ -69,10 +69,10 @@ const TournamentsPage = () => {
         <div className="container-fluid p-4 d-flex flex-column gap-4">
             <Panel header={t('Tournaments')} icons={newButton}>
                 <div className="d-flex flex-column gap-3">
-                    <span className="text-subtle fs-7">{t('Knockout tournaments of the club: the members enter, the draw makes the bracket, and every match is a game of X01 with the rules of its round.')}</span>
+                    <span className="text-subtle fs-7 text-measure">{t('Knockout tournaments of the club: the members enter, the draw makes the bracket, and every match is a game of X01 with the rules of its round.')}</span>
                     {isClubAdmin && !data.canCreate &&
                         <Message severity="info" className="w-100 justify-content-start" text={t('A tournament needs at least {{min}} members; the club has {{count}}. Add players under Players.', { min: data.min, count: data.eligible })} />}
-                    {!current.length && <span className="text-faint">{t('No tournament right now.')}</span>}
+                    {!current.length && <p className="text-faint fs-7 m-0">{t('No tournament right now.')}</p>}
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {current.map(tournament => <TournamentRow key={tournament.id} tournament={tournament} />)}
                     </ul>

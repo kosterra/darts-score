@@ -228,7 +228,7 @@ const TrainingsTable = ({ scope = 'club' }) => {
                 ? <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('The statistics of this training')} title={t('Statistics')} onClick={() => navigate(`/stats/training/x01/${row.id}`)} />
                 : <Button type="button" icon="pi pi-chart-bar" severity="secondary" aria-label={t('The statistics of this training')} title={t('Statistics')} onClick={() => visit(row.club.id, `/stats/training/x01/${row.id}`)} />)}
             {canManage && <JSONViewer data={row.raw} header={t('Training _RAW Data')} />}
-            {mayDelete(row) && <DeletePopup data={row} header={t('Delete Training')} message={t('this training and the badges earned in it')} handleDelete={onDelete} />}
+            {mayDelete(row) && <DeletePopup data={row} header={t('Delete training')} message={t('this training and the badges earned in it')} handleDelete={onDelete} />}
         </div>
     );
 

@@ -329,7 +329,10 @@ const RulesTraining = () => {
 
     return (
         <div className="container-fluid p-4 border-0">
-            {header}
+            {/* the way up above the setup, in line with the panels below */}
+            <div className="row justify-content-center">
+                <div className="col-12 col-xl-10">{header}</div>
+            </div>
             <div className="row g-4 justify-content-center">
                 {finished &&
                     // as wide as the setup and the scoreboard below together
@@ -370,20 +373,25 @@ const RulesTraining = () => {
                         <PlayerPicker selected={players} onChange={setPlayers} initialIds={remembered?.playerIds} single minPlayers={1} key={remembered ? 'remembered' : 'fresh'} />
                         {/* as the other setups: the options under a section of their own */}
                         {(definition.options ?? []).length > 0 && <p className="game-setup-section-title mt-4">{t('Training')}</p>}
-                        {(definition.options ?? []).map(option => (
-                            <div className="setting-box" key={option.key}>
-                                <p className="setting-title">{option.label}</p>
-                                <div className="d-flex justify-content-center">
-                                    <SelectButton
-                                        value={settings[option.key]}
-                                        onChange={(e) => e.value !== null && e.value !== undefined && setSettings({ ...settings, [option.key]: e.value })}
-                                        options={option.values}
-                                        className="p-selectbutton-pills flex-wrap justify-content-center"
-                                        aria-label={option.label}
-                                    />
+                        {/* two options side by side where there is room, as the in and out of a game's setup */}
+                        <div className="row gx-3">
+                            {(definition.options ?? []).map(option => (
+                                <div className={definition.options.length > 1 ? 'col-12 col-md-6' : 'col-12'} key={option.key}>
+                                    <div className="setting-box h-100">
+                                        <p className="setting-title">{option.label}</p>
+                                        <div className="d-flex justify-content-center">
+                                            <SelectButton
+                                                value={settings[option.key]}
+                                                onChange={(e) => e.value !== null && e.value !== undefined && setSettings({ ...settings, [option.key]: e.value })}
+                                                options={option.values}
+                                                className="p-selectbutton-pills flex-wrap justify-content-center"
+                                                aria-label={option.label}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                         <GameSetupStart
                             summary={[definition.title, ...chosen, players[0]?.nickname].filter(Boolean).join(' · ')}
                             missing={missing}

@@ -6,6 +6,7 @@ import { SelectButton } from 'primereact/selectbutton';
 
 import PlayerPicker from '../game_config/config_components/player.picker';
 import GameSetupMemory from '../game_config/config_components/game.setup.memory';
+import GameSetupStart from '../game_config/config_components/game.setup.start';
 import ATCScoreboard from './atc.scoreboard';
 import ATCModeConfig from './atc.mode.config';
 import ATCStopwatch from './atc.stopwatch';
@@ -333,13 +334,13 @@ const ATC = () => {
                                 <span className="text-faint fs-8 text-center">{SCORINGS.find(option => option.value === scoring).description}</span>
                             </div>
                             <ATCModeConfig atcModeOption={mode} onATCModeChange={setMode} disabled={inProgress} />
-                            {/* the setup only: the stopwatch or the round come once the training starts */}
-                            <div className="atc-stopwatch mt-4">
-                                <div className="atc-stopwatch-actions">
-                                    <Button type="button" label={t('Start training')} icon="pi pi-play" className="atc-stopwatch-main" disabled={!players.length} onClick={() => { rememberSetup(); setEarned([]); setClubEarned([]); setStage('training'); }} />
-                                </div>
-                                {!players.length && <div className="text-faint fs-8 text-center mt-2">{t('Choose a player to start.')}</div>}
-                            </div>
+                            {/* the setup only, started as every setup: the stopwatch or the round come once the training starts */}
+                            <GameSetupStart
+                                label={t('Start training')}
+                                summary={[SCORINGS.find(option => option.value === scoring).label, mode, names(players)].filter(Boolean).join(' · ')}
+                                missing={players.length ? null : t('Choose a player to start.')}
+                                onStart={() => { rememberSetup(); setEarned([]); setClubEarned([]); setStage('training'); }}
+                            />
                             </>}
 
                             {playing && <>

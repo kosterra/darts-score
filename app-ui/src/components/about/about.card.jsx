@@ -86,7 +86,7 @@ const AboutCard = () => {
                     <span className="text-faint fs-7">{t('Version')}{' '}{import.meta.env.VITE_APP_VERSION}{' '}{'· '}<Licence className="" />{' · '}<Link to="/privacy">{t('Privacy')}</Link>{' · '}<Link to="/privacy#imprint">{t('Imprint')}</Link>{' · '}<Link to="/support"><i className="pi pi-heart me-1" aria-hidden="true" />{t('Support Legmate')}</Link></span>
                 </div>
                 <div className="d-flex flex-wrap gap-2">
-                    <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm p-button-outlined">
+                    <a href={REPOSITORY} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm p-button-secondary text-decoration-none">
                         <FaGithub className="me-2" aria-hidden="true" />{t('Source code')}
                     </a>
                     <a href={ISSUES} target="_blank" rel="noopener noreferrer" className="p-button p-button-sm">

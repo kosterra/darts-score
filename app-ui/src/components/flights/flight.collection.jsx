@@ -42,18 +42,19 @@ const FlightCollection = ({ playerId }) => {
     };
 
     return (
-        <section className="d-flex flex-column gap-3">
-            <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
-                <h2 className="fs-4 fw-semibold text-default m-0">{t('Flights and barrels')}</h2>
-                <span className="text-subtle">{owned}{' '}{t('of')}{' '}{all.length}{' '}{t('collected')}</span>
-                <ProgressBar value={Math.round(owned / all.length * 100)} showValue={false} style={{ height: '0.5rem', width: '16rem', maxWidth: '100%' }} />
-            </div>
-            <Panel header={t('{{balance}} flight points to spend · {{earned}} earned', { balance: standing.points.balance, earned: standing.points.earned })}>
-                <div className="d-flex flex-column gap-3">
+        <Panel header={t('Flights and barrels')}>
+            <div className="d-flex flex-column gap-3">
+                <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
+                    <span className="text-subtle">{owned}{' '}{t('of')}{' '}{all.length}{' '}{t('collected')}</span>
+                    <ProgressBar value={Math.round(owned / all.length * 100)} showValue={false} style={{ height: '0.5rem', width: '16rem', maxWidth: '100%' }} />
+                    <span className="text-faint fs-8">{t('{{balance}} flight points to spend · {{earned}} earned', { balance: standing.points.balance, earned: standing.points.earned })}</span>
+                </div>
+                {/* shapes, designs and barrels side by side on a wide screen */}
+                <div className="row g-4">
                     {GROUPS.map(group => {
                         const items = standing[group.key].filter(item => item.state === 'owned');
                         return (
-                            <div key={group.key} className="d-flex flex-column gap-2">
+                            <div key={group.key} className="col-12 col-lg-4 d-flex flex-column gap-2">
                                 <span className="text-subtle fs-8">{group.title} · {items.length}{' '}{t('of')}{' '}{standing[group.key].length}</span>
                                 <ul className="flight-album list-unstyled m-0">
                                     {items.map(item => (
@@ -67,8 +68,8 @@ const FlightCollection = ({ playerId }) => {
                         );
                     })}
                 </div>
-            </Panel>
-        </section>
+            </div>
+        </Panel>
     );
 };
 

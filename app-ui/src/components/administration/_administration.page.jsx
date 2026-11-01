@@ -13,10 +13,11 @@ import SupportSettings from './support.settings';
 import StartPageSettings from './start.page.settings';
 import MailTemplates from './mail.templates';
 import MailServer from './mail.server';
-import StatTile from '../stats/players/stat.tile';
+import { KpiHero } from '../stats/players/kpi';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
+import { ACCENT } from '../../utils/palette';
 
 
 const formatBytes = (bytes) => {
@@ -65,35 +66,15 @@ const AdministrationPage = () => {
 
     return (
         <div className="container-fluid p-4 d-flex flex-column gap-4">
-            <div className="row g-3">
-                {[[t('Clubs'), 'clubs'], [t('Users'), 'users'], [t('Players'), 'players'], [t('Games'), 'games']].map(([label, key]) => (
-                    <div key={key} className="col-6 col-lg-3">
-                        <StatTile label={label} value={overview?.totals[key] ?? '–'} />
-                    </div>
-                ))}
-            </div>
-
-            {/* every setting below is saved as you go, each panel says how its saving goes */}
-            <BannerSettings />
-
-            <StartPageSettings />
-
-            <MailServer />
-
-            {/* a test mail sent or a mail back to the default text: actions, told with a toast */}
-            <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
-
-            <SessionSettings />
-
-            <MfaSettings />
-
-            <LegalSettings />
-
-            <SupportSettings />
-
-            {system &&
-                <Panel header={t('System')}>
-                    <div className="row g-4">
+            {/* the installation at a glance, the way the other admin pages start: its totals, then the system */}
+            <Panel header={t('System')}>
+                <div className="kpi-headline">
+                    {[[t('Clubs'), 'clubs'], [t('Users'), 'users'], [t('Players'), 'players'], [t('Games'), 'games']].map(([label, key]) => (
+                        <KpiHero key={key} label={label} value={overview?.totals[key] ?? '–'} color={ACCENT.green} />
+                    ))}
+                </div>
+                {system &&
+                    <div className="row g-4 mt-1">
                         <div className="col-12 col-lg-6">
                             <dl className="m-0 d-grid gap-2" style={{ gridTemplateColumns: 'max-content 1fr', columnGap: '1.5rem' }}>
                                 {systemRows.map(([label, value]) => (
@@ -121,8 +102,27 @@ const AdministrationPage = () => {
                             }
                         </div>
                     </div>
-                </Panel>
-            }
+                }
+            </Panel>
+
+            {/* every setting below is saved as you go, each panel says how its saving goes;
+                on a wide screen two by two, the ones that belong together side by side */}
+            <div className="row g-4 settings-grid">
+                <div className="col-12 col-xl-6"><BannerSettings /></div>
+                <div className="col-12 col-xl-6"><StartPageSettings /></div>
+
+                <div className="col-12 col-xl-6"><MailServer /></div>
+                <div className="col-12 col-xl-6">
+                    {/* a test mail sent or a mail back to the default text: actions, told with a toast */}
+                    <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
+                </div>
+
+                <div className="col-12 col-xl-6"><SessionSettings /></div>
+                <div className="col-12 col-xl-6"><MfaSettings /></div>
+
+                <div className="col-12 col-xl-6"><LegalSettings /></div>
+                <div className="col-12 col-xl-6"><SupportSettings /></div>
+            </div>
 
             <Toast ref={toast} position="bottom-right" />
         </div>

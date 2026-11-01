@@ -78,24 +78,12 @@
     word-break: break-all;
 }
 
-// the next game: the choices as pills of a fitting size from the left, the settings of
-// the game in two columns where there is room
-.evening-next {
-    .p-selectbutton.p-selectbutton-pills {
-        justify-content: flex-start;
+// the next game: the whole width of its panel, its settings as on the quick game's setup
+// (the score and the out side by side where there is room)
 
-        .p-button { max-width: 9rem; }
-    }
-
-    .setting-body .col { justify-content: flex-start !important; }
-}
-
-.evening-settings {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    column-gap: $space-3;
-
-    @media (min-width: 768px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+// who beat whom: the names as long as the panel has room for (cut only on a phone)
+@media (min-width: 576px) {
+    .evening-h2h .h2h-matrix tbody th { max-width: 16rem; }
 }
 
 // who plays tonight, under the date: standing out from it

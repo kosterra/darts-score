@@ -47,7 +47,8 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
     rows = rows.slice(0, 15);
 
     return (
-        <Panel header={t('Scoreboard')} className="h-100">
+        // as tall as the setup beside it once there is a list; empty it stays its own small height
+        <Panel header={t('Scoreboard')} className={rows.length ? 'h-100' : ''}>
             <div className="d-flex justify-content-center mb-3">
                 <SelectButton value={view} options={VIEWS} onChange={(e) => e.value && setView(e.value)} className="p-selectbutton-pills" aria-label={t('Scoreboard')} />
             </div>

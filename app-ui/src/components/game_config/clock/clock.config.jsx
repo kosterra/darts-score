@@ -105,20 +105,19 @@ const ClockConfig = () => {
                             aria-label={t('Mode')}
                         />
                         <span className="text-faint fs-8 text-center">{MODES.find(option => option.value === mode)?.description}</span>
+                        {/* how the game goes, whatever the mode */}
+                        <span className="text-faint fs-8 text-center">{t('1 to 20, then the bull. The first to finish wins once the round is complete; finished in the same round, fewer darts win.')}</span>
                         </div>
                     </div>
                     {mode === 'All' &&
-                        <label className="clock-skip-switch">
+                        <label className="setting-switch clock-skip-switch">
                             <InputSwitch checked={skipAhead} onChange={(e) => change('skipAhead', e.value)} disabled={club.locked('skipAhead')} />
                             <span>
-                                <span className="d-block text-default fw-semibold fs-7">{t('Doubles and trebles move on')}{club.locked('skipAhead') && <> <ClubRuleMark /></>}</span>
+                                <span className="d-block text-default fw-semibold">{t('Doubles and trebles move on')}{club.locked('skipAhead') && <> <ClubRuleMark /></>}</span>
                                 <span className="d-block text-faint fs-8">{t('A double moves on two numbers, a treble three. The bull still has to be hit.')}</span>
                             </span>
                         </label>
                     }
-                    <p className="text-faint fs-8 text-center mb-0">
-                        {t('1 to 20, then the bull. The first to finish wins once the round is complete; finished in the same round, fewer darts win.')}
-                    </p>
                     <FriendlyGame club={club} value={friendly} onChange={setFriendlyChosen} />
                     <GameSetupStart summary={summary} missing={missing} loading={starting} onStart={handleSubmit} />
                 </div>}

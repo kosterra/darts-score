@@ -16,8 +16,8 @@ export const GAME_TITLES = {
 };
 
 export const SETTING_LABELS = {
-    startingScore: t('Starting Score'),
-    legInMode: t('Starting In'),
+    startingScore: t('Starting score'),
+    legInMode: t('Starting in'),
     legOutMode: t('Checkout'),
     setMode: t('Sets'),
     numberOfSets: t('Number of sets'),
@@ -27,8 +27,8 @@ export const SETTING_LABELS = {
     roundLimit: t('Round limit'),
     bull: t('Bull'),
     variant: t('Variant'),
-    targetScore: t('Starting Score'),
-    gameInMode: t('Starting In'),
+    targetScore: t('Starting score'),
+    gameInMode: t('Starting in'),
     gameOutMode: t('Checkout'),
     mode: t('Mode'),
     skipAhead: t('Doubles and trebles move on'),

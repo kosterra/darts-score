@@ -28,7 +28,7 @@ const Change = ({ change }) => {
     return (
         <li className="release-change">
             <Tag value={fix ? t('Fix') : t('New')} severity={fix ? 'warning' : 'success'} className="release-change-kind" />
-            <span className="fs-7 text-subtle">
+            <span className="fs-7 text-subtle text-measure">
                 {topic && <strong className="text-default fw-semibold">{topic}: </strong>}
                 {text}
             </span>

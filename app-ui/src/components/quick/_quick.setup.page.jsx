@@ -95,6 +95,7 @@ const QuickSetupPage = () => {
                     <Choice title={t('Game')} value={kind} options={QUICK_GAMES} onChange={(value) => setSettings(current => ({ ...current, kind: value }))} />
 
                     <p className="game-setup-section-title mt-4">{t('Players')}</p>
+                    {/* as wide as the setup's other fields, from its left edge */}
                     <div className="quick-names">
                         {names.map((name, index) => (
                             <div key={index} className="quick-name">
@@ -111,7 +112,7 @@ const QuickSetupPage = () => {
                                     <Button type="button" icon="pi pi-times" text severity="secondary" aria-label={t('Remove player {{value}}', { value: index + 1 })} onClick={() => setNames(current => current.filter((_, i) => i !== index))} />}
                             </div>
                         ))}
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div className="d-flex flex-wrap align-items-center gap-2 column-gap-3">
                             {names.length < 4
                                 ? <Button type="button" label={t('Add a player')} icon="pi pi-plus" size="small" text onClick={() => setNames(current => [...current, ''])} />
                                 : <span />}
@@ -123,7 +124,7 @@ const QuickSetupPage = () => {
                     <QuickSettings settings={settings} onChange={(changes) => setSettings(current => ({ ...current, ...changes }))} withGame={false} />
 
                     <div className="game-setup-start">
-                        <Button type="submit" label={t('Start game')} icon="pi pi-play" loading={starting} disabled={Boolean(missing)} aria-label={t('Start game')} />
+                        <Button type="submit" label={t('Start game')} icon="pi pi-play" size="small" loading={starting} disabled={Boolean(missing)} aria-label={t('Start game')} />
                         <span className="game-setup-summary" aria-live="polite">
                             {missing ?? `${quickSetupText(kind, settings)} · ${trimmed.length === 1 ? t('{{count}} player', { count: 1 }) : t('{{count}} players', { count: trimmed.length })}`}
                         </span>

@@ -53,7 +53,7 @@ const LeaguesPage = () => {
     return (
         <div className="container-fluid p-4">
             <Panel header={t('Leagues')} icons={isClubAdmin && <Link to="/leagues/new" className="p-button p-button-sm text-decoration-none"><i className="pi pi-plus me-2" aria-hidden="true" />{t('New league')}</Link>}>
-                <p className="text-subtle fs-7 mt-0">{t('A season where everyone plays everyone, once or twice, in matchdays with dates. Each match is played any time up to its day; the table counts 2 points a win.')}</p>
+                <p className="text-subtle fs-7 mt-0 text-measure">{t('A season where everyone plays everyone, once or twice, in matchdays with dates. Each match is played any time up to its day; the table counts 2 points a win.')}</p>
                 {error && <Message severity="error" text={error} />}
                 {!leagues && !error && <Lines count={4} />}
                 {leagues && leagues.length === 0 && <p className="text-faint fs-7 m-0">{isClubAdmin ? t('No league yet: set up the first one.') : t('No league yet.')}</p>}

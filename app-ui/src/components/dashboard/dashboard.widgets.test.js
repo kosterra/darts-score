@@ -17,7 +17,7 @@ describe('the dashboards', () => {
 
     it('show their own default until arranged', () => {
         expect(resolveLayout(null).map(widget => widget.id)).toEqual(DEFAULT_LAYOUT.map(item => item.id));
-        expect(resolveLayout(null, { fallback: PERSONAL_DEFAULT_LAYOUT }).map(widget => widget.id)).toEqual(['upNext', 'favourites', 'me', 'clubGoals', 'timeline']);
+        expect(resolveLayout(null, { fallback: PERSONAL_DEFAULT_LAYOUT }).map(widget => widget.id)).toEqual(['upNext', 'favourites', 'clubGoals', 'me', 'timeline']);
         expect(resolveLayout([{ id: 'favourites', size: 'F' }, { id: 'gone', size: 'S' }]).map(widget => [widget.id, widget.size])).toEqual([['favourites', 'F']]);
     });
 

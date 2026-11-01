@@ -25,15 +25,20 @@ const QuickSettings = ({ settings, onChange, withGame = true }) => (
         {withGame && <Choice title={t('Game')} value={settings.kind} options={QUICK_GAMES} onChange={(kind) => onChange({ kind })} />}
         {settings.kind === 'x01' &&
             <>
-                <Choice title={t('Score')} value={settings.startingScore} options={QUICK_SCORES} onChange={(startingScore) => onChange({ startingScore })} />
-                <Choice title={t('Out')} value={settings.legOutMode} options={QUICK_OUTS} onChange={(legOutMode) => onChange({ legOutMode })} />
+                {/* the score and the out side by side where there is room */}
+                <div className="row gx-3">
+                    <div className="col-12 col-md-6"><Choice title={t('Score')} value={settings.startingScore} options={QUICK_SCORES} onChange={(startingScore) => onChange({ startingScore })} /></div>
+                    <div className="col-12 col-md-6"><Choice title={t('Out')} value={settings.legOutMode} options={QUICK_OUTS} onChange={(legOutMode) => onChange({ legOutMode })} /></div>
+                </div>
                 <Choice title={t('Legs')} value={settings.numberOfLegs} options={QUICK_LEGS} onChange={(numberOfLegs) => onChange({ numberOfLegs })} />
             </>}
         {settings.kind === 'cricket' && <Choice title={t('Variant')} value={settings.variant} options={QUICK_VARIANTS} onChange={(variant) => onChange({ variant })} />}
         {settings.kind === 'elimination' &&
             <>
-                <Choice title={t('Target')} value={settings.targetScore} options={QUICK_SCORES} onChange={(targetScore) => onChange({ targetScore })} />
-                <Choice title={t('Out')} value={settings.gameOutMode} options={QUICK_OUTS} onChange={(gameOutMode) => onChange({ gameOutMode })} />
+                <div className="row gx-3">
+                    <div className="col-12 col-md-6"><Choice title={t('Target')} value={settings.targetScore} options={QUICK_SCORES} onChange={(targetScore) => onChange({ targetScore })} /></div>
+                    <div className="col-12 col-md-6"><Choice title={t('Out')} value={settings.gameOutMode} options={QUICK_OUTS} onChange={(gameOutMode) => onChange({ gameOutMode })} /></div>
+                </div>
             </>}
     </>
 );

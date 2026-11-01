@@ -6,6 +6,7 @@ import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
 import SaveStatus from '../elements/save.status';
 import { useAuth } from '../../utils/auth.context';
+import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
 import useAutoSave from '../../utils/use.auto.save';
 import ClubService from '../../services/club.service';
 import { DEFAULT_LAYOUT, clubLayout as layoutOfClub, resolveLayout, toLayout } from './dashboard.widgets';
@@ -26,7 +27,10 @@ import { formatDate } from '../../utils/dates';
  * narrower, removed and added, each saved as you go.
  */
 const ClubPage = () => {
-    const { activeClub, isClubAdmin, refreshClubs } = useAuth();
+    const { activeClub, isClubAdmin, isGlobalAdmin, refreshClubs } = useAuth();
+    const myPlayers = useMyPlayers(!isGlobalAdmin);
+    // known not to play in the club (not while still loading)
+    const playsHere = myPlayers === null || Boolean(playerInClub(myPlayers, activeClub?.id));
 
     const [stats, setStats] = useState(null);
     const [failed, setFailed] = useState(false);
@@ -62,7 +66,8 @@ const ClubPage = () => {
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
     const shameBadges = activeClub?.shameBadges !== false;
     const clubLayout = arranged?.length ? arranged : layoutOfClub(activeClub);
-    const widgets = resolveLayout(clubLayout, { shameBadges });
+    // You shows nothing to someone who does not play in the club: no hole for it
+    const widgets = resolveLayout(clubLayout, { shameBadges, without: playsHere ? [] : ['me'] });
 
     if (failed) {
         return <div className="container-fluid p-4 text-subtle">{t('The dashboard could not be loaded. Please reload the page.')}</div>;

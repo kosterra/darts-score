@@ -302,22 +302,25 @@ const TournamentEditor = () => {
                                     <Button label={t('All on one evening')} icon="pi pi-clock" size="small" text onClick={oneEvening} />
                                     <Button label={t('One round a week')} icon="pi pi-calendar-plus" size="small" text onClick={weekly} />
                                 </div>
-                            <ol className="list-unstyled m-0 d-flex flex-column gap-2 w-100 text-start">
+                            {/* two rounds a row where there is room: each its day and time on one line, then its rules with Change */}
+                            <ol className="list-unstyled m-0 row g-2 w-100 text-start">
                                 {form.rounds.map(round => {
                                     const fixed = played.has(round.size) || round.skipped;
                                     return (
-                                        <li key={round.size} className="tournament-round">
-                                            <div className="d-flex flex-wrap align-items-center gap-3">
+                                        <li key={round.size} className={`col-12 ${openRound === round.size ? '' : 'col-md-6'}`}>
+                                            <div className="tournament-round">
                                                 <span className="tournament-round-name">{roundName(round.size)}</span>
                                                 <DateTimeField value={round.date} onChange={(value) => setRound(round.size, { date: value })} placeholder={t('Day')} disabled={fixed} className="tournament-round-date" minDate={form.closesAt ? new Date(form.closesAt.getFullYear(), form.closesAt.getMonth(), form.closesAt.getDate()) : undefined} />
-                                                <span className="d-flex flex-column flex-grow-1 min-w-0">
-                                                    <span className="text-default fs-7">{rulesText(round.rules)}</span>
-                                                    <span className="text-faint fs-8">{round.skipped ? t('Left out: the field is smaller') : t('up to {{count}} legs a match', { count: maxLegs(round.rules) })}</span>
+                                                <span className="d-flex flex-wrap align-items-center column-gap-2">
+                                                    <span className="d-flex flex-column min-w-0">
+                                                        <span className="text-default fs-7">{rulesText(round.rules)}</span>
+                                                        <span className="text-faint fs-8">{round.skipped ? t('Left out: the field is smaller') : t('up to {{count}} legs a match', { count: maxLegs(round.rules) })}</span>
+                                                    </span>
+                                                    {!fixed && <Button label={openRound === round.size ? t('Done') : t('Change')} size="small" text onClick={() => setOpenRound(openRound === round.size ? null : round.size)} />}
                                                 </span>
-                                                {!fixed && <Button label={openRound === round.size ? t('Done') : t('Change')} size="small" text onClick={() => setOpenRound(openRound === round.size ? null : round.size)} />}
+                                                {openRound === round.size && <RoundRules rules={round.rules} onChange={(rules) => changeRules(round.size, rules)} disabled={fixed} />}
+                                                {rulesError(round.rules) && <span className="text-danger fs-8">{t(rulesError(round.rules))}</span>}
                                             </div>
-                                            {openRound === round.size && <RoundRules rules={round.rules} onChange={(rules) => changeRules(round.size, rules)} disabled={fixed} />}
-                                            {rulesError(round.rules) && <span className="text-danger fs-8">{t(rulesError(round.rules))}</span>}
                                         </li>
                                     );
                                 })}

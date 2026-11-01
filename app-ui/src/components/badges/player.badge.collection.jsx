@@ -25,6 +25,7 @@ const BadgeSeries = ({ badges }) => {
 
     return (
         <li className="badge-series">
+            {/* the medals right after the name and what is next, not at the far end of a wide row */}
             <div className="badge-series-info">
                 <span className="text-default fw-semibold">{badges[0].groupTitle}</span>
                 {badges.length === 1
@@ -189,18 +190,23 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
     return (
         <div className="d-flex flex-column gap-4">
             {data.shame && <HallOfShameSection shame={data.shame} name={name} />}
-            <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
-                <h2 className="fs-4 fw-semibold text-default m-0">{t('Badges')}</h2>
-                <span className="text-subtle">{data.earnedCount}{' '}{t('of')}{' '}{data.total}{' '}{t('collected')}</span>
-                <ProgressBar value={Math.round(data.earnedCount / data.total * 100)} showValue={false} style={{ height: '0.5rem', width: '16rem', maxWidth: '100%' }} />
-            </div>
-            {categories.map(category => (
-                <Panel key={category.category} header={`${category.title} · ${category.earned} / ${category.total}`}>
-                    <ul className="list-unstyled m-0 d-flex flex-column">
-                        {category.series.map(badges => <BadgeSeries key={badges[0].group} badges={badges} />)}
-                    </ul>
-                </Panel>
-            ))}
+            {/* one panel as the other parts of the profile, the categories as its sections */}
+            <Panel header={t('Badges')}>
+                <div className="d-flex flex-column gap-4">
+                    <div className="d-flex flex-wrap align-items-center column-gap-4 row-gap-2">
+                        <span className="text-subtle">{data.earnedCount}{' '}{t('of')}{' '}{data.total}{' '}{t('collected')}</span>
+                        <ProgressBar value={Math.round(data.earnedCount / data.total * 100)} showValue={false} style={{ height: '0.5rem', width: '16rem', maxWidth: '100%' }} />
+                    </div>
+                    {categories.map(category => (
+                        <section key={category.category}>
+                            <h3 className="stats-section-title mb-0">{category.title} · {category.earned} / {category.total}</h3>
+                            <ul className="list-unstyled m-0 d-flex flex-column">
+                                {category.series.map(badges => <BadgeSeries key={badges[0].group} badges={badges} />)}
+                            </ul>
+                        </section>
+                    ))}
+                </div>
+            </Panel>
             <FlightCollection playerId={playerId} />
         </div>
     );

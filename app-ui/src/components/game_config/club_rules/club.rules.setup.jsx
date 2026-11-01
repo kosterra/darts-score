@@ -81,13 +81,13 @@ export const HouseRules = ({ game, club, settings, onChange }) => {
 export const FriendlyGame = ({ club, value, onChange }) => {
     if (!club.friendlyChoice && !value) return null;
     return (
-        <div className="setting-box">
-            <div className="d-flex align-items-center justify-content-center gap-3">
-                <InputSwitch inputId="friendly-game" checked={Boolean(value)} onChange={(e) => onChange(e.value)} disabled={!club.friendlyChoice} />
-                <label htmlFor="friendly-game" className="text-default fs-7">{t('Friendly game')}</label>
-                {!club.friendlyChoice && <ClubRuleMark />}
-            </div>
-            <p className="text-faint fs-8 text-center mt-2 mb-0">{t('It counts for the players\' own statistics, but not for the club\'s leaderboards, records and Hall of Shame.')}</p>
+        // as the other switches of a setup (the handicap): the switch, its title and what it does beside it
+        <div className="setting-switch">
+            <InputSwitch inputId="friendly-game" checked={Boolean(value)} onChange={(e) => onChange(e.value)} disabled={!club.friendlyChoice} />
+            <label htmlFor="friendly-game" className="d-flex flex-column">
+                <span className="d-flex align-items-center flex-wrap gap-2 text-default fw-semibold">{t('Friendly game')}{!club.friendlyChoice && <ClubRuleMark />}</span>
+                <span className="text-faint fs-8">{t('It counts for the players\' own statistics, but not for the club\'s leaderboards, records and Hall of Shame.')}</span>
+            </label>
         </div>
     );
 };

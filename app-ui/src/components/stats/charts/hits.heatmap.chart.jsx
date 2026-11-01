@@ -1,6 +1,7 @@
 import ChartCard from './chart.card';
 import DartboardHeatmap from './dartboard.heatmap';
 import { PLAYER_COLORS } from './chart.theme';
+import { hasHits } from './board.data';
 import { hitFields, formatShare } from '../../../utils/hit.fields';
 import { t, tn } from '../../../utils/i18n';
 import { heatGradient } from '../../../utils/heat.scale';
@@ -20,6 +21,8 @@ const HitsHeatmapChart = ({ hitsByPlayer = [], players = [], gameName = 'X01' })
         title={t('Where the darts land')}
         description={t('Every field of the board shaded by how often it was hit in {{gameName}}, with the most hit fields below. Hover a field for its share of the darts.', { gameName: gameName })}
     >
+        {/* an empty board says nothing: a line instead */}
+        {!hasHits(hitsByPlayer) ? <p className="text-faint fs-7">{t('No visits yet.')}</p> : <>
         <div className="row g-3 justify-content-center">
             {players.map((player, index) => {
                 const hits = hitsByPlayer[index] ?? [];
@@ -36,7 +39,7 @@ const HitsHeatmapChart = ({ hitsByPlayer = [], players = [], gameName = 'X01' })
                 return (
                     <div key={player.id} className={players.length > 1 ? 'col-12 col-md-6' : 'col-12'}>
                         {players.length > 1 && <div className="text-center fw-semibold mb-1" style={{ color: PLAYER_COLORS[index] }}>{player.nickname}</div>}
-                        <div className="mx-auto" style={{ maxWidth: '20rem' }}>
+                        <div className="mx-auto" style={{ maxWidth: '24rem' }}>
                             <DartboardHeatmap
                                 valueOf={valueOf}
                                 color={PLAYER_COLORS[index]}
@@ -73,6 +76,7 @@ const HitsHeatmapChart = ({ hitsByPlayer = [], players = [], gameName = 'X01' })
             <span className="hit-scale-bar" style={{ background: heatGradient(PLAYER_COLORS[0]) }} />
             <span>{t('often')}</span>
         </div>
+        </>}
     </ChartCard>
 );
 

@@ -51,7 +51,8 @@
 }
 
 .notification-topic-mail {
-  width: 9.5rem;
+  // wide enough for the longest choice in every language ("Une fois par semaine")
+  min-width: 15rem;
   flex-shrink: 0;
 }
 
@@ -61,6 +62,11 @@
     width: 100%;
     flex-wrap: nowrap;
     justify-content: space-between;
+  }
+
+  .notification-topic-mail {
+    min-width: 0;
+    flex: 1 1 auto;
   }
 }
 

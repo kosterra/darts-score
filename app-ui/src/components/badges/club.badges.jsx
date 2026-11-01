@@ -75,9 +75,10 @@ export const ClubBadgeList = ({ badges = [] }) => {
 
 /**
  * The club's goals with how far each is, and when it ends or was reached.
+ * className: how they stand (one under the other, or a grid across a wide panel).
  */
-export const ClubGoalList = ({ goals = [] }) => (
-    <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+export const ClubGoalList = ({ goals = [], className = 'd-flex flex-column gap-3' }) => (
+    <ul className={`list-unstyled m-0 ${className}`}>
         {goals.map(goal => (
             <li key={goal.id} className="d-flex flex-column gap-1">
                 <span className="d-flex align-items-baseline justify-content-between gap-2">

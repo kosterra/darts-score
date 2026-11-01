@@ -125,7 +125,7 @@ const BadgesOverview = () => {
         : showAll ? overview.players : overview.players.slice(0, RANKING_SHOWN);
     // the badges earned lately in the club, newest first
     const recentPanel = (
-                <Panel header={t('Recently earned')}>
+                <Panel header={t('Recently earned')} className="h-100">
                     {(overview.recent ?? []).length === 0
                         ? <span className="text-faint fs-7">{t('No badges earned yet.')}</span>
                         : <ul className="list-unstyled m-0 d-flex flex-column gap-2">
@@ -160,10 +160,10 @@ const BadgesOverview = () => {
                 </div>
             </Panel>
 
-            {/* what the club earned together; beside it the goals of its admins */}
+            {/* what the club earned together, then the goals of its admins; the page splits in halves only */}
             {club?.badges &&
                 <div className="row g-4" id="club">
-                    <div className={(club.goals ?? []).length ? 'col-12 col-xl-8' : 'col-12'}>
+                    <div className="col-12">
                         <Panel header={t('Club badges')}>
                             <p className="text-subtle fs-7 mt-0 mb-4">
                                 {t('Badges the club earns together: every game and training of its members adds to them. {{earned}} of {{total}} so far.', { earned: club.earnedCount, total: club.total })}
@@ -172,18 +172,18 @@ const BadgesOverview = () => {
                         </Panel>
                     </div>
                     {(club.goals ?? []).length > 0 &&
-                        <div className="col-12 col-xl-4">
-                            <Panel header={t('Club goals')} className="h-100">
+                        <div className="col-12">
+                            <Panel header={t('Club goals')}>
                                 <p className="text-faint fs-8 mt-0">{t('Set by the club admins: what the club plays until the end date counts.')}</p>
-                                <ClubGoalList goals={club.goals ?? []} />
+                                <ClubGoalList goals={club.goals ?? []} className="club-goals-grid" />
                             </Panel>
                         </div>}
                 </div>}
 
-            {/* the ranking with what was earned lately; next to it the Hall of Shame (or, without it, what was earned lately) */}
+            {/* halves only: the ranking beside the Hall of Shame (or, without it, what was earned lately) */}
             <div className="row g-4">
-                <div className="col-12 col-xl-7 d-flex flex-column gap-4">
-                    <Panel header={t('Most badges')}>
+                <div className="col-12 col-xl-6">
+                    <Panel header={t('Most badges')} className="h-100">
                         {overview.players.length === 0
                             ? <span className="text-subtle">{t('This club has no players yet.')}</span>
                             : <>
@@ -206,9 +206,8 @@ const BadgesOverview = () => {
                                 </div>
                             </>}
                     </Panel>
-                    {shame?.enabled && recentPanel}
                 </div>
-                <div className="col-12 col-xl-5" id="shame">
+                <div className="col-12 col-xl-6" id="shame">
                     {shame?.enabled
                         ? <Panel header={t('Hall of Shame')} className="h-100">
                             <p className="text-faint fs-8 mt-0">{t('Who holds each shame badge right now, until someone else takes it over or they wash it off.')}</p>
@@ -218,7 +217,10 @@ const BadgesOverview = () => {
                 </div>
             </div>
 
+            {/* the two lists of badges side by side (with the Hall of Shame above: what was earned lately
+                beside the rarest), what nobody has yet in a row of their own or beside the rarest */}
             <div className="row g-4">
+                {shame?.enabled && <div className="col-12 col-xl-6">{recentPanel}</div>}
                 <div className="col-12 col-xl-6">
                     <Panel header={t('Rarest in the club')} className="h-100">
                         <p className="text-faint fs-8 mt-0">{t('Badges only one or two players of the club have.')}</p>
@@ -245,13 +247,13 @@ const BadgesOverview = () => {
                             </ul>}
                     </Panel>
                 </div>
-                <div className="col-12 col-xl-6">
+                <div className={shame?.enabled ? 'col-12' : 'col-12 col-xl-6'}>
                     <Panel header={t('Still to win')} className="h-100">
                         <p className="text-faint fs-8 mt-0">{t('Nobody in the club has these yet, the first steps first: who gets them first?')}</p>
                         {unclaimed.length === 0
                             ? <span className="text-faint fs-7">{t('Every badge has been won in the club.')}</span>
                             : <>
-                                <ul className="badge-unclaimed list-unstyled m-0">
+                                <ul className={`badge-unclaimed list-unstyled m-0 ${shame?.enabled ? 'is-wide' : ''}`}>
                                     {unclaimed.slice(0, UNCLAIMED_SHOWN).map(badge => (
                                         <li key={badge.id} title={badge.description}>
                                             <BadgeMedal badge={badge} size="sm" locked />

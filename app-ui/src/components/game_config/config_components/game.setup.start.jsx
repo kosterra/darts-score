@@ -12,6 +12,7 @@ const GameSetupStart = ({ summary, missing, loading, onStart, label = t('Start g
             type="button"
             label={label}
             icon="pi pi-play"
+            size="small"
             disabled={Boolean(missing) || loading}
             loading={loading}
             onClick={onStart}

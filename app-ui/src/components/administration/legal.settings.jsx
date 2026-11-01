@@ -50,7 +50,7 @@ const LegalSettings = () => {
     return (
         <Panel header={t('Privacy and imprint')} icons={<SaveStatus {...legalSave} className="me-2" />}>
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('Who runs this installation: shown on the privacy page and in the imprint, linked in the footer of the public pages and on About.')}{' '}{t('Saved as you go.')}{' '}<Link to="/privacy">{t('Open the privacy page')}</Link>
                 </span>
                 {!settings.operator && !settings.email && <Message severity="warn" text={t('Enter at least your name and an email address before you make the installation public.')} className="w-100 justify-content-start" />}
@@ -75,7 +75,7 @@ const LegalSettings = () => {
                         optionLabel="label"
                         optionValue="code"
                         onChange={(event) => event.value && setLanguage(event.value)}
-                        className="p-selectbutton-pills flex-wrap"
+                        className="p-selectbutton-pills pills-inline flex-wrap"
                         aria-label={t('Language of the text')}
                     />
                     <InputTextarea

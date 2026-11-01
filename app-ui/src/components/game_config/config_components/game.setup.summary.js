@@ -1,5 +1,5 @@
 import { MAX_PLAYERS, MIN_PLAYERS } from '../../../utils/player.picker';
-import { t } from '../../../utils/i18n';
+import { t, tn } from '../../../utils/i18n';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
 const plural = (count, word) => t(count === 1 ? `{{count}} ${word}` : `{{count}} ${word}s`, { count });
@@ -18,6 +18,6 @@ export const setsLegsSummary = (game) =>
 // what keeps the game from starting, null when it can start
 export const missingPlayers = (players) => {
     if (players.length === 0) return t('Choose {{MIN_PLAYERS}} to {{MAX_PLAYERS}} players', { MIN_PLAYERS: MIN_PLAYERS, MAX_PLAYERS: MAX_PLAYERS });
-    if (players.length < MIN_PLAYERS) return t('Choose {{value}} more player', { value: MIN_PLAYERS - players.length });
+    if (players.length < MIN_PLAYERS) return tn(MIN_PLAYERS - players.length, 'Choose {{count}} more player to start.', 'Choose {{count}} more players to start.');
     return null;
 };

@@ -84,7 +84,7 @@ const MailServer = () => {
         <div ref={panel} id="mail-server" className="scroll-anchor">
         <Panel header={t('Mail server')}>
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('How this installation sends mails. The settings come from its environment (SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASSWORD, SMTP_FROM and APP_URL); after a change the API has to be restarted.')}
                 </span>
                 <div className="d-flex align-items-center gap-2">
@@ -155,7 +155,7 @@ const MailServer = () => {
                         optionLabel="label"
                         optionValue="code"
                         onChange={(event) => event.value && setLanguage(event.value)}
-                        className="p-selectbutton-pills flex-wrap"
+                        className="p-selectbutton-pills pills-inline flex-wrap"
                         aria-label={t('Language of the test mail')}
                     />
                 </div>

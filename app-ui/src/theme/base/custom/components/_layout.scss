@@ -21,6 +21,10 @@
 .page-narrow { max-width: $page-narrow; }
 .page-reading { max-width: $page-reading; }
 
+// running text (an intro, a paragraph to read): at most ~70 characters a line, however wide the
+// page or panel is, so the eye finds the next line on a desktop too
+.text-measure { max-width: 70ch; }
+
 // the app's pages: at least the height of the window, the dartboard behind them as it is
 .app-shell {
     min-height: 100vh;

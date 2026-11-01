@@ -103,7 +103,8 @@ const TrainingsOverview = ({ rows, playerOf }) => {
 
             {overview.records.length > 0 &&
                 <Panel header={t('Club records')}>
-                    <div className="training-cards">
+                    {/* the records share the row: two of them are not two narrow cards and an empty rest */}
+                    <div className="training-cards is-fit">
                         {overview.records.map(record => {
                             const player = playerOf(record.row) ?? record.row.player;
                             return (

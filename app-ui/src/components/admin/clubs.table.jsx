@@ -109,7 +109,7 @@ const ClubsTable = () => {
             />
             <DeletePopup
                 data={club}
-                header={t('Delete Club')}
+                header={t('Delete club')}
                 message={t('club {{name}} with all its players, games and training entries', { name: club.name })}
                 handleDelete={onDeleteClub}
             />

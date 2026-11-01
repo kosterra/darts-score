@@ -81,8 +81,8 @@ const ClubAdminsEditor = ({ club, onHide, onChange }) => {
                         </span>
                         <InputText id="club-admin-email" type="email" value={newAdmin.email} onChange={onFieldChange('email')} placeholder={t('Email')} aria-label={t('Email')} required />
                         <div className="d-flex flex-wrap gap-3">
-                            <InputText id="club-admin-firstname" value={newAdmin.firstname} onChange={onFieldChange('firstname')} placeholder={t('Firstname (new account)')} aria-label={t('Firstname')} className="flex-grow-1" />
-                            <InputText id="club-admin-lastname" value={newAdmin.lastname} onChange={onFieldChange('lastname')} placeholder={t('Lastname (new account)')} aria-label={t('Lastname')} className="flex-grow-1" />
+                            <InputText id="club-admin-firstname" value={newAdmin.firstname} onChange={onFieldChange('firstname')} placeholder={t('First name (new account)')} aria-label={t('First name')} className="flex-grow-1" />
+                            <InputText id="club-admin-lastname" value={newAdmin.lastname} onChange={onFieldChange('lastname')} placeholder={t('Last name (new account)')} aria-label={t('Last name')} className="flex-grow-1" />
                         </div>
                         <Password
                             inputId="club-admin-password"

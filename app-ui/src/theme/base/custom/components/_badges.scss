@@ -251,7 +251,8 @@ $badgeMetals: (
         display: flex;
         flex-direction: column;
         gap: 0.35rem;
-        flex: 1 1 16rem;
+        // the medals follow the name, not the far edge of a wide panel
+        flex: 0 1 22rem;
         min-width: 0;
     }
 
@@ -824,6 +825,11 @@ $tar: #17110c;
     grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
     gap: $space-4 $space-3;
 
+    // across the full width: the twelve shown in one row (auto-fit: fewer share it out)
+    &.is-wide {
+        @media (min-width: 1200px) { grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); }
+    }
+
     li {
         display: flex;
         flex-direction: column;
@@ -847,6 +853,16 @@ $tar: #17110c;
         align-items: center;
         gap: 0.9rem;
     }
+}
+
+// in a row across a full-width panel: all in one row while each has 14rem, else as many as fit
+.training-popular.is-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(max(14rem, calc((100% - (var(--count) - 1) * 2rem) / var(--count))), 1fr));
+    gap: 0.9rem 2rem;
+
+    // a long name ("Around the Clock") on two lines rather than cut
+    .text-truncate { white-space: normal; }
 }
 
 // the players page: a level's icon in its colour, as a round mark
@@ -949,11 +965,19 @@ $tar: #17110c;
 // the club's badges on the badges page: a grid of shields with their name and how far
 .club-badges-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    // auto-fit: a section of four in a row wide enough for five shares the whole row
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
     gap: $space-3;
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+// the club's goals across the full width of the badges page, as many in a row as fit
+.club-goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: $space-3 $space-5;
 }
 
 .club-badge-card {

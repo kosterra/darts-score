@@ -78,9 +78,11 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                 </div>
             </Panel>
 
-            {overview.ranking.length > 0 &&
-                <div className="row g-4">
-                    <div className="col-12 col-xl-7">
+            {/* one split: the two lists of players side by side, the two short ones under them,
+                so the list of all players follows soon */}
+            <div className="row g-4">
+                {overview.ranking.length > 0 &&
+                    <div className="col-12 col-lg-6">
                         <Panel header={t('Highest levels')} className="h-100">
                             <PlayerRanking entries={overview.ranking.map(entry => ({
                                 id: entry.playerId,
@@ -91,7 +93,27 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                             }))} />
                         </Panel>
                     </div>
-                    <div className="col-12 col-xl-5">
+                }
+                <div className="col-12 col-lg-6">
+                    <Panel header={t('New in the club')} className="h-100">
+                        <ul className="training-popular list-unstyled m-0">
+                            {overview.newest.map(player => (
+                                <li key={player.id}>
+                                    <Link to={`/players/${player.id}`} className="link-row d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
+                                        <PlayerAvatar player={player} className="avatar-md" />
+                                        <span className="d-flex flex-column min-w-0">
+                                            <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
+                                            <span className="text-faint fs-8 text-nowrap">{t('added {{date}}', { date: formatDate(player.createdAt) })}</span>
+                                        </span>
+                                        <span className="ms-auto"><LevelBadge level={levels?.[player.id]} /></span>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </Panel>
+                </div>
+                {overview.ranking.length > 0 &&
+                    <div className="col-12 col-lg-6">
                         <Panel header={t('Levels of the club')} className="h-100">
                             <ul className="training-popular list-unstyled m-0">
                                 {overview.levels.map(level => {
@@ -113,28 +135,7 @@ const PlayersOverview = ({ players, levels, canManage }) => {
                             </ul>
                         </Panel>
                     </div>
-                </div>
-            }
-
-            <div className="row g-4">
-                <div className="col-12 col-lg-6">
-                    <Panel header={t('New in the club')} className="h-100">
-                        <ul className="training-popular list-unstyled m-0">
-                            {overview.newest.map(player => (
-                                <li key={player.id}>
-                                    <Link to={`/players/${player.id}`} className="link-row d-flex align-items-center gap-3 flex-grow-1 text-default text-decoration-none min-w-0">
-                                        <PlayerAvatar player={player} className="avatar-md" />
-                                        <span className="d-flex flex-column min-w-0">
-                                            <span className="text-default fw-semibold text-truncate">{player.nickname}</span>
-                                            <span className="text-faint fs-8 text-nowrap">{t('added {{date}}', { date: formatDate(player.createdAt) })}</span>
-                                        </span>
-                                        <span className="ms-auto"><LevelBadge level={levels?.[player.id]} /></span>
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </Panel>
-                </div>
+                }
                 <div className="col-12 col-lg-6">
                     <Panel header={t('Birthdays coming up')} className="h-100">
                         {overview.birthdays.length === 0

@@ -388,7 +388,7 @@ const LandingPage = () => {
                     </ol>
                 </section>
 
-                <section id="faq" className="container d-flex flex-column gap-4" data-reveal>
+                <section id="faq" className="container d-flex flex-column d-lg-grid gap-4 landing-faq-section" data-reveal>
                     <div className="landing-section-head">
                         <span className="landing-eyebrow">{t('Questions')}</span>
                         <h2 className="landing-heading m-0">{t('Good to know')}</h2>
