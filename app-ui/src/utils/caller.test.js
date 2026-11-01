@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { callsForVisit } from './caller';
+import { callsForVisit, voiceFor } from './caller';
 
 const next = (score, extra = {}) => ({ name: 'Anna', score, outMode: 'Double Out', legStarts: false, ...extra });
 const texts = (calls) => calls.map(entry => entry.text);
@@ -34,5 +34,19 @@ describe('the caller', () => {
         expect(texts(callsForVisit({ score: 40, wonLeg: true }, next(501, { legStarts: true })))).toEqual(['Game shot, and the leg!', 'Anna to throw first. Game on!']);
         expect(texts(callsForVisit({ score: 40, wonLeg: true, wonSet: true }, next(501, { legStarts: true })))).toEqual(['Game shot, and the set!', 'Anna to throw first. Game on!']);
         expect(callsForVisit({ score: 40, wonLeg: true, wonMatch: true }, null)).toEqual([{ text: 'Game shot, and the match!', mood: 'bigTon' }]);
+    });
+
+    it('picks a male voice of the language first, as the callers on the stage', () => {
+        const voices = [
+            { name: 'Google UK English Female', lang: 'en-GB' },
+            { name: 'Google UK English Male', lang: 'en-GB' },
+            { name: 'Paulina', lang: 'es-MX' },
+            { name: 'Microsoft Jan - German (Switzerland)', lang: 'de-CH' },
+            { name: 'Anna', lang: 'de-DE' },
+        ];
+        expect(voiceFor(voices, 'en-GB').name).toBe('Google UK English Male');
+        expect(voiceFor(voices, 'de-DE').name).toBe('Microsoft Jan - German (Switzerland)');
+        expect(voiceFor(voices, 'es-ES').name).toBe('Paulina');
+        expect(voiceFor(voices, 'it-IT')).toBeNull();
     });
 });

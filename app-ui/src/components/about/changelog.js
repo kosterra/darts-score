@@ -7,6 +7,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('The caller sounds more like the stage: a male voice of the device where it has one, and the 180 shouted the way the callers do – One hundred and eighty, with the eighty drawn out.'),
+        ],
+    },
+    {
         version: '2026.10.31',
         changes: [
             t('A password that appeared in a data breach is refused when you register, change or reset it. Only the first five characters of a hash of it are asked of Have I Been Pwned; the password itself never leaves Legmate.'),

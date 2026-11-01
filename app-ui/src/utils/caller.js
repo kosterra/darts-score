@@ -35,12 +35,13 @@ const MOODS = {
     flat: { rate: 0.95, pitch: 0.85 },
     normal: { rate: 1, pitch: 1 },
     lively: { rate: 1.05, pitch: 1.15 },
-    ton: { rate: 0.95, pitch: 1.25 },
-    bigTon: { rate: 0.88, pitch: 1.35 },
-    // the 180 as the callers draw it out: building up, a breath on "and", the peak on "eighty"
-    oneEightyBuild: { rate: 0.85, pitch: 1.1, lang: 'en-GB' },
-    oneEightyAnd: { rate: 0.7, pitch: 1.2, lang: 'en-GB' },
-    oneEightyPeak: { rate: 0.5, pitch: 1.6, lang: 'en-GB' },
+    ton: { rate: 0.92, pitch: 1.25 },
+    bigTon: { rate: 0.85, pitch: 1.35 },
+    // the 180 as the callers shout it (about four seconds): "One hundred" and "and" high and level,
+    // then "eighty" held twice as long as both, so its end can rise and fall away
+    oneEightyBuild: { rate: 0.75, pitch: 1.3, lang: 'en-GB' },
+    oneEightyAnd: { rate: 0.5, pitch: 1.35, lang: 'en-GB' },
+    oneEightyPeak: { rate: 0.3, pitch: 1.25, lang: 'en-GB' },
 };
 
 const said = (text, mood = 'normal') => ({ text, mood });
@@ -74,13 +75,21 @@ export const callsForVisit = ({ score, busted, wonLeg, wonSet, wonMatch }, next)
     return calls;
 };
 
-// a voice for a language tag ('en-GB', 'de-CH', …), else one of its language
-const voiceFor = (voices, tag) => {
+// the deep male voices of the devices, as most callers on the stage: by name, as voices tell nothing else
+const MALE_VOICE = /\b(male|daniel|arthur|oliver|george|ryan|thomas|alfie|elliot|reed|rocko|grandpa|stefan|conrad|jan|markus|yannick|paul|henri|fabrice|cosimo|diego|luca|pablo|alvaro|jorge)\b/i;
+
+const isMale = (voice) => MALE_VOICE.test(voice.name ?? '');
+
+// a voice for a language tag ('en-GB', 'de-CH', …), else one of its language; a male one first
+export const voiceFor = (voices, tag) => {
     const lower = tag.toLowerCase();
-    return voices.find(entry => entry.lang?.toLowerCase() === lower)
-        ?? voices.find(entry => entry.lang?.toLowerCase().startsWith(lower.slice(0, 2)))
-        ?? null;
+    const exact = voices.filter(entry => entry.lang?.toLowerCase() === lower);
+    const language = voices.filter(entry => entry.lang?.toLowerCase().startsWith(lower.slice(0, 2)));
+    return exact.find(isMale) ?? language.find(isMale) ?? exact[0] ?? language[0] ?? null;
 };
+
+// with only a female or unknown voice, a little deeper, nearer the callers
+const DEEPER = 0.85;
 
 export const stopCalling = () => {
     if (callerSupported()) window.speechSynthesis.cancel();
@@ -107,7 +116,7 @@ export const call = (calls) => {
         utterance.lang = voice?.lang ?? tag;
         if (voice) utterance.voice = voice;
         utterance.rate = rate;
-        utterance.pitch = pitch;
+        utterance.pitch = voice && isMale(voice) ? pitch : pitch * DEEPER;
         synth.speak(utterance);
     }
 };
