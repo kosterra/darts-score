@@ -743,6 +743,14 @@ $fair-play-suspicious: $accentAmber;
 @media (max-width: 575.98px) {
   .my-club-head,
   .my-club-part { padding-left: 0.75rem; padding-right: 0.75rem; }
+
+  // the logo beside the name, as in the lists of players (it took a row of its own); the actions below
+  .my-club-head { flex-wrap: wrap; align-items: flex-start; }
+  .my-club-title { flex: 1 1 0; }
+  .my-club-actions { flex-basis: 100%; }
+
+  // a new club: the name as wide as the card, the button beside it
+  .my-clubs-create .p-inputtext { flex: 1 1 0; min-width: 0; }
 }
 
 // as a column it must not wrap: a wrapping column grows to its content, not the card

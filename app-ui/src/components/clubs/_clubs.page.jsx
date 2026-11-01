@@ -81,19 +81,6 @@ const ClubsPage = () => {
                     <p className="text-subtle fs-7 m-0">
                         {t('The clubs you run or play in. Switch between them here or at the top of the menu; Edit club holds everything about a club you run. How you appear as a player, your nickname, picture and the X01 tips, is on your')}{' '}<Link to="/profile#player">{t('profile')}</Link>.
                     </p>
-                    <form onSubmit={onCreate} className="my-clubs-create">
-                        <InputText
-                            id="club-name"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            placeholder={t('Name of a new club')}
-                            aria-label={t('Name of a new club')}
-                            minLength={3}
-                            maxLength={50}
-                            required
-                        />
-                        <Button type="submit" label={t('Create club')} icon="pi pi-plus" size="small" />
-                    </form>
                 </div>
 
                 {clubs.length === 0 &&
@@ -143,6 +130,21 @@ const ClubsPage = () => {
                         );
                     })}
                 </ul>
+
+                {/* a new club below the clubs: the clubs are what the page is mostly opened for */}
+                <form onSubmit={onCreate} className="my-clubs-create mt-4">
+                    <InputText
+                        id="club-name"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder={t('Name of a new club')}
+                        aria-label={t('Name of a new club')}
+                        minLength={3}
+                        maxLength={50}
+                        required
+                    />
+                    <Button type="submit" label={t('Create club')} icon="pi pi-plus" size="small" />
+                </form>
             </Panel>
 
             <ClubDirectory onSuccess={showSuccess} onError={showError} />

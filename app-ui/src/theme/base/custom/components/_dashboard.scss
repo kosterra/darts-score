@@ -1560,6 +1560,17 @@
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr));
   gap: $space-3;
 }
+// on a phone two figures side by side (one each was a long column of single numbers); a tile of words
+// (the last backup, the mails) keeps the whole row
+@media (max-width: 575.98px) {
+  .admin-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-2;
+  }
+
+  .admin-tile.is-wordy { grid-column: 1 / -1; }
+  .admin-tile-value { font-size: $text-2xl; }
+}
 .admin-tile {
   --tile-tone: var(--text-default);
   position: relative;

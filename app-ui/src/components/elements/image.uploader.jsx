@@ -68,14 +68,15 @@ const ImageUploader = (props) => {
     }
 
     return (
-        <div className="file-upload d-flex flex-column justify-content-center align-items-center">
+        // on a phone the picture smaller with the upload beside it (see _fileupload.scss)
+        <div className="file-upload d-flex flex-row flex-sm-column justify-content-center align-items-center">
             <div className="position-relative">
                 <Avatar
                     label={name.split(" ").map((n) => n[0]).join("")}
                     image={previewUrl}
                     shape="circle"
                     size="xlarge"
-                    style={{ width: '10rem', height: '10rem' }}
+                    className="file-upload-avatar"
                 />
                 {previewUrl &&
                     <span className="position-absolute top-85 start-85 translate-middle">
@@ -96,7 +97,8 @@ const ImageUploader = (props) => {
                 onDrop={handleOnDrop}
                 onClick={() => fileInput.current.click()}
             >
-                <span className="fs-7 text-faint"><ins>{t('Upload')}</ins>{' '}{t('or Drag and drop image')}</span>
+                {/* dragging only where there is a mouse */}
+                <span className="fs-7 text-faint"><ins>{t('Upload')}</ins><span className="drop-zone-drag">{' '}{t('or Drag and drop image')}</span></span>
                 <input
                     type="file"
                     accept="image/png, image/jpg, image/jpeg"
