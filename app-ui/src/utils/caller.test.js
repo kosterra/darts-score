@@ -49,4 +49,15 @@ describe('the caller', () => {
         expect(voiceFor(voices, 'es-ES').name).toBe('Paulina');
         expect(voiceFor(voices, 'it-IT')).toBeNull();
     });
+
+    it('picks a female voice of the language when the player asks for one', () => {
+        const voices = [
+            { name: 'Google UK English Male', lang: 'en-GB' },
+            { name: 'Google UK English Female', lang: 'en-GB' },
+            { name: 'Microsoft Jan - German (Switzerland)', lang: 'de-CH' },
+        ];
+        expect(voiceFor(voices, 'en-GB', 'female').name).toBe('Google UK English Female');
+        // none of the kind: the voice of the language there is
+        expect(voiceFor(voices, 'de-CH', 'female').name).toBe('Microsoft Jan - German (Switzerland)');
+    });
 });

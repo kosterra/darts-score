@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appDefaults, isLocked, lockedSettings, normalizeClubRules, offeredValues, ruleViolations, startingSettings } from './club.rules.js';
+import { appDefaults, isLocked, lockedSettings, normalizeClubRules, normalizeGamePreferences, offeredValues, ruleViolations, startingSettings } from './club.rules.js';
 
 const rules = {
     games: {
@@ -80,5 +80,13 @@ describe('ruleViolations', () => {
         expect(ruleViolations('x01', rules, { ...x01, startingScore: 301, numberOfLegs: 1, friendly: true, format: 'warm-up' })).toEqual([]);
         expect(ruleViolations('x01', rules, { ...x01, startingScore: 301, numberOfLegs: 3, friendly: true, format: 'warm-up' })).toHaveLength(1);
         expect(ruleViolations('x01', {}, { ...x01, friendly: true })).toEqual([]);
+    });
+});
+
+describe('a player\'s preferences', () => {
+    it('keep a male caller unless they ask for a female one', () => {
+        expect(normalizeGamePreferences({}).callerVoice).toBe('male');
+        expect(normalizeGamePreferences({ callerVoice: 'female' }).callerVoice).toBe('female');
+        expect(normalizeGamePreferences({ callerVoice: 'robot' }).callerVoice).toBe('male');
     });
 });

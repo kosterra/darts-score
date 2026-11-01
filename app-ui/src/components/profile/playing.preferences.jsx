@@ -1,6 +1,7 @@
 import { SelectButton } from 'primereact/selectbutton';
 
 import SettingSwitch from '../elements/setting.switch';
+import CallerSetting from './caller.setting';
 import useGamePreferences from '../../utils/use.game.preferences';
 import { t } from '../../utils/i18n';
 
@@ -23,7 +24,8 @@ const INPUTS = [
 /**
  * How the player likes to play, saved with their account so it follows them
  * to every device: the ways out, sending a visit by itself, the keypad for
- * the left hand, quieter celebrations and board or keypad. Saved right away.
+ * the left hand, quieter celebrations, the caller's voice and board or keypad.
+ * Saved right away.
  */
 const PlayingPreferences = ({ onSaved }) => {
     const [preferences, save] = useGamePreferences();
@@ -80,6 +82,7 @@ const PlayingPreferences = ({ onSaved }) => {
                 checked={preferences.celebrations === 'quiet'}
                 onChange={(value) => change({ celebrations: value ? 'quiet' : 'full' }, t('Celebrations'))}
             />
+            <CallerSetting onSaved={onSaved} />
             <p className="text-faint fs-8 mt-3 mb-0">{t('Your favourite formats come first in the setups: pin one with its star. The setups and trainings start as you left them, on every device.')}</p>
         </>
     );

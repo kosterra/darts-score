@@ -10,6 +10,7 @@ const CHANGELOG = [
         version: 'Next release',
         changes: [
             t('The caller sounds more like the stage: a male voice of the device where it has one, and the 180 shouted the way the callers do – One hundred and eighty, with the eighty drawn out.'),
+            t('A male or female caller, under Profile → Playing: with your account on every device. There too, a voice of the device to call with instead, and Try to hear it.'),
         ],
     },
     {
