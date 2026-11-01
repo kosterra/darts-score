@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { Button } from 'primereact/button';
-import { Toast } from 'primereact/toast';
 
 import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
+import SaveStatus from '../elements/save.status';
 import { useAuth } from '../../utils/auth.context';
-import useGamePreferences from '../../utils/use.game.preferences';
+import useGamePreferences, { accountSaver } from '../../utils/use.game.preferences';
+import useAutoSave from '../../utils/use.auto.save';
 import { useMyPlayers, playerInClub } from '../../utils/use.my.players';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { DASHBOARD_WIDGETS, PERSONAL_DEFAULT_LAYOUT, resolveLayout, toLayout } from './dashboard.widgets';
@@ -32,16 +33,19 @@ const greeting = (name, hour = new Date().getHours()) => {
  * every device; the club itself is on My club.
  */
 const Dashboard = () => {
-    const toast = useRef(null);
-    const { activeClub, user, isGlobalAdmin } = useAuth();
+    const { activeClub, user, setUser, isGlobalAdmin } = useAuth();
     // who the user plays as in the club: their picture and nickname on top
     const me = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
-    const [preferences, savePreferences] = useGamePreferences();
+    const [preferences] = useGamePreferences();
     const [stats, setStats] = useState(null);
     const [failed, setFailed] = useState(false);
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState([]);
-    const [saving, setSaving] = useState(false);
+    // the layout as last arranged, shown at once while it is saved
+    const [arranged, setArranged] = useState(null);
+    // arranging saves as you go, a moment after the last move (drags come in bursts); with the account,
+    // so a failed save says so
+    const layoutSave = useAutoSave((layout) => accountSaver(setUser)({ dashboard: layout }), { delay: 500, valid: (layout) => layout.length > 0 });
 
     useEffect(() => {
         StatsService.loadClubStats().then(setStats).catch((error) => {
@@ -53,22 +57,25 @@ const Dashboard = () => {
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
     const shameBadges = activeClub?.shameBadges !== false;
     const stored = preferences.dashboard;
-    const widgets = resolveLayout(stored, { shameBadges, fallback: PERSONAL_DEFAULT_LAYOUT });
+    const widgets = resolveLayout(arranged?.length ? arranged : stored, { shameBadges, fallback: PERSONAL_DEFAULT_LAYOUT });
 
     if (failed) return <div className="container-fluid p-4 text-subtle">{t('The dashboard could not be loaded. Please reload the page.')}</div>;
     if (!stats) return <DashboardSkeleton club={activeClub} widgets={widgets} />;
 
-    const save = async (layout, summary) => {
-        setSaving(true);
-        try {
-            await savePreferences({ dashboard: layout });
-            setEditing(false);
-            toast.current?.show({ severity: 'success', summary, life: 3000 });
-        } catch (error) {
-            toast.current?.show({ severity: 'error', summary: t('Dashboard'), detail: error.message, life: 4000 });
-        } finally {
-            setSaving(false);
-        }
+    // each move, width, widget removed or added: shown at once and saved
+    const arrange = (layout, options) => {
+        setDraft(layout);
+        setArranged(layout);
+        layoutSave.change(layout, options);
+    };
+    const startArranging = () => {
+        setDraft(toLayout(arranged?.length ? arranged : stored, PERSONAL_DEFAULT_LAYOUT).map(({ id, size }) => ({ id, size })));
+        setEditing(true);
+    };
+    // done: what still waits is saved now
+    const done = () => {
+        layoutSave.flush();
+        setEditing(false);
     };
     const renderWidget = (widget) => <DashboardWidget widget={widget} stats={stats} players={players} />;
 
@@ -93,7 +100,11 @@ const Dashboard = () => {
                         </span>
                     </div>
                 </div>
-                {!editing && <Button label={t('Arrange')} icon="pi pi-th-large" size="small" severity="secondary" onClick={() => { setDraft(toLayout(stored, PERSONAL_DEFAULT_LAYOUT).map(({ id, size }) => ({ id, size }))); setEditing(true); }} />}
+                {!editing &&
+                    <span className="d-flex flex-wrap align-items-center gap-2">
+                        <SaveStatus {...layoutSave} />
+                        <Button label={t('Arrange')} icon="pi pi-th-large" size="small" severity="secondary" onClick={startArranging} />
+                    </span>}
             </header>
 
             {/* a new account: what to do first, ticked as it is done */}
@@ -117,18 +128,19 @@ const Dashboard = () => {
                 <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging your dashboard')}>
                     <div className="d-flex flex-column gap-1 min-w-0">
                         <span className="text-default fw-semibold">{t('Arranging your dashboard')}</span>
-                        <span className="text-faint fs-8">{t('Only you see it, on every device. Drag the widgets by their bar, choose their width, remove them or add more below.')}</span>
+                        <span className="text-faint fs-8">{t('Only you see it, on every device, and it is saved as you go. Drag the widgets by their bar, choose their width, remove them or add more below.')}</span>
+                        {!draft.length && <span className="text-danger fs-8">{t('Add at least one widget.')}</span>}
                     </div>
                     <div className="d-flex flex-wrap align-items-center gap-2">
-                        <Button type="button" label={t('Default widgets')} icon="pi pi-replay" size="small" severity="secondary" text onClick={() => setDraft(PERSONAL_DEFAULT_LAYOUT)} disabled={saving} />
-                        <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setEditing(false)} disabled={saving} />
-                        <Button type="button" label={t('Save')} icon="pi pi-check" size="small" onClick={() => save(draft, t('Your dashboard is saved'))} loading={saving} disabled={!draft.length} />
+                        <SaveStatus {...layoutSave} />
+                        <Button type="button" label={t('Default widgets')} icon="pi pi-replay" size="small" severity="secondary" text onClick={() => arrange(PERSONAL_DEFAULT_LAYOUT, { now: true })} />
+                        <Button type="button" label={t('Done')} icon="pi pi-check" size="small" onClick={done} />
                     </div>
                 </div>
             )}
 
             {editing
-                ? <DashboardEditor layout={draft} onChange={setDraft} renderWidget={renderWidget} shameBadges={shameBadges} pool={DASHBOARD_WIDGETS} fallback={PERSONAL_DEFAULT_LAYOUT} />
+                ? <DashboardEditor layout={draft} onChange={arrange} renderWidget={renderWidget} shameBadges={shameBadges} pool={DASHBOARD_WIDGETS} fallback={PERSONAL_DEFAULT_LAYOUT} />
                 : (
                     <div className="row g-4">
                         {widgets.map(widget => (
@@ -138,7 +150,6 @@ const Dashboard = () => {
                         ))}
                     </div>
                 )}
-            <Toast ref={toast} position="bottom-right" />
         </div>
     );
 };

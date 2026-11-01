@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { SelectButton } from 'primereact/selectbutton';
 
-import useGamePreferences from '../../utils/use.game.preferences';
+import useGamePreferences, { accountSaver } from '../../utils/use.game.preferences';
+import useAutoSave from '../../utils/use.auto.save';
 import { currentAppearance, setAppearance } from '../../utils/appearance';
 import { useAuth } from '../../utils/auth.context';
 import { t } from '../../utils/i18n';
@@ -23,20 +25,27 @@ const BACKGROUND_OPTIONS = [
 
 /**
  * How the app looks, with the account on every device: the theme, the accent
- * colour (or the club's) and the background. Shown at once and saved; part
- * of Display on the profile (Account), with the language and date format.
+ * colour (or the club's) and the background. Shown at once and saved as you
+ * go; part of Display on the profile (Account), with the language and date
+ * format. onStatus(autosave) tells the page how the saving goes.
  */
-const AppearanceSetting = ({ onSaved }) => {
-    const [preferences, save] = useGamePreferences();
-    const { user, activeClub } = useAuth();
+const AppearanceSetting = ({ onStatus }) => {
+    const [preferences] = useGamePreferences();
+    const { user, setUser, activeClub } = useAuth();
+    // what was just chosen, shown while it is saved
+    const [chosen, setChosen] = useState(null);
     // the account's look, or the one this device uses until the account has one
-    const look = user?.gamePreferences?.appearance ? preferences.appearance : currentAppearance();
+    const look = chosen ?? (user?.gamePreferences?.appearance ? preferences.appearance : currentAppearance());
     const clubAccent = ACCENT_OPTIONS.find(option => option.value === (activeClub?.accent ?? 'green'));
+    const lookSave = useAutoSave((appearance) => accountSaver(setUser)({ appearance }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => onStatus?.(lookSave), [lookSave.status, lookSave.error]);
 
-    const change = (changes, detail) => {
+    const change = (changes) => {
         const next = { ...look, ...changes };
+        setChosen(next);
         setAppearance(next);
-        save({ appearance: next }).then(() => onSaved?.(detail));
+        lookSave.change(next, { now: true });
     };
 
     return (
@@ -52,7 +61,7 @@ const AppearanceSetting = ({ onSaved }) => {
                                 role="radio"
                                 aria-checked={look.theme === option.value}
                                 className={`theme-choice ${look.theme === option.value ? 'is-chosen' : ''}`}
-                                onClick={() => change({ theme: option.value }, option.label)}
+                                onClick={() => change({ theme: option.value })}
                             >
                                 <span className={`theme-preview ${option.preview.split ? 'is-split' : ''}`} style={{ '--p-page': option.preview.page, '--p-panel': option.preview.panel, '--p-text': option.preview.text, '--p-line': option.preview.line }} aria-hidden="true">
                                     <span className="theme-preview-panel">
@@ -79,7 +88,7 @@ const AppearanceSetting = ({ onSaved }) => {
                             role="radio"
                             aria-checked={look.accent === null}
                             className={`accent-choice is-club ${look.accent === null ? 'is-chosen' : ''}`}
-                            onClick={() => change({ accent: null }, t('The club\'s colour'))}
+                            onClick={() => change({ accent: null })}
                             title={t('The club\'s colour')}
                         >
                             <span className="accent-swatch" style={{ '--swatch': clubAccent.color }} aria-hidden="true"><i className="pi pi-building" /></span>
@@ -92,7 +101,7 @@ const AppearanceSetting = ({ onSaved }) => {
                                 role="radio"
                                 aria-checked={look.accent === option.value}
                                 className={`accent-choice ${look.accent === option.value ? 'is-chosen' : ''}`}
-                                onClick={() => change({ accent: option.value }, option.label)}
+                                onClick={() => change({ accent: option.value })}
                                 title={option.label}
                             >
                                 <span className="accent-swatch" style={{ '--swatch': option.color }} aria-hidden="true" />
@@ -110,7 +119,7 @@ const AppearanceSetting = ({ onSaved }) => {
                     <SelectButton
                         value={look.background}
                         options={BACKGROUND_OPTIONS}
-                        onChange={(event) => event.value && change({ background: event.value }, t('Background'))}
+                        onChange={(event) => event.value && change({ background: event.value })}
                         className="p-selectbutton-pills flex-wrap"
                         aria-label={t('Background')}
                     />

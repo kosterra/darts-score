@@ -113,7 +113,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem 0.6rem;
-  min-height: 1.1rem;
+  // as tall as a label ("Throwing"): the scores side by side stay on one line when the turn changes
+  min-height: 1.5rem;
   max-width: 100%;
   color: var(--text-faint);
   font-size: $text-xs;

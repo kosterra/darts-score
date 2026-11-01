@@ -90,6 +90,11 @@
     font-weight: $weight-heavy;
     line-height: 1.05;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+
+    @media (max-width: 575.98px) {
+        &.is-long { font-size: 1.6rem; }
+    }
 }
 
 .kpi-chips {

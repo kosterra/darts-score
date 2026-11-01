@@ -34,7 +34,8 @@ export const KpiRing = ({ label, part, whole, color, detail }) => {
  */
 export const KpiHero = ({ label, value, detail, color }) => (
     <div className="kpi-hero" style={{ '--kpi-color': color }}>
-        <span className="kpi-hero-value">{value ?? '–'}</span>
+        {/* a long figure ("132 / 145") a size smaller on a phone, so it stays on one line */}
+        <span className={`kpi-hero-value ${String(value ?? '').length > 6 ? 'is-long' : ''}`}>{value ?? '–'}</span>
         <span className="kpi-label">{label}</span>
         {detail && <span className="kpi-detail">{detail}</span>}
     </div>

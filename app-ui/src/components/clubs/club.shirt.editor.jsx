@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 
 import ClubService from '../../services/club.service';
+import SaveStatus from '../elements/save.status';
 import { ShirtPicture } from '../shirts/shirt.art';
 import { Swatches } from '../shirts/shirt.chooser';
 import { t } from '../../utils/i18n';
+import useAutoSave from '../../utils/use.auto.save';
 
 const PATTERNS = [
     { value: 'plain', label: t('Plain') },
@@ -26,27 +28,21 @@ const DEFAULT = { pattern: 'plain', color: null, accent: '#f2f2f2', logo: false 
  * colour and the club's logo on the chest, with the shirt as it looks.
  * Players from the level Pro on may still wear a shirt of their own.
  */
-const ClubShirtEditor = ({ club, onSaved, onError }) => {
+const ClubShirtEditor = ({ club, onSaved }) => {
     const [shirt, setShirt] = useState({ ...DEFAULT, ...(club.shirt ?? {}) });
-    const [saving, setSaving] = useState(false);
-    useEffect(() => setShirt({ ...DEFAULT, ...(club.shirt ?? {}) }), [club.shirt]);
-    const set = (changes) => setShirt(current => ({ ...current, ...changes }));
-    const changed = JSON.stringify(shirt) !== JSON.stringify({ ...DEFAULT, ...(club.shirt ?? {}) });
-
-    const save = async () => {
-        setSaving(true);
-        try {
-            await ClubService.updateShirt(club.id, shirt);
-            await onSaved(t('The club shirt is saved.'));
-        } catch (error) {
-            onError(t('Club shirt'), error);
-        } finally {
-            setSaving(false);
-        }
+    // each choice saved at once, as every setting
+    const shirtSave = useAutoSave(async (next) => {
+        await ClubService.updateShirt(club.id, next);
+        await onSaved?.();
+    });
+    const set = (changes) => {
+        const next = { ...shirt, ...changes };
+        setShirt(next);
+        shirtSave.change(next, { now: true });
     };
 
     return (
-        <Panel header={t('Club shirt')} className="mt-4">
+        <Panel header={t('Club shirt')} className="mt-4" icons={<SaveStatus {...shirtSave} className="me-2" />}>
             <p className="text-subtle fs-7 mt-0 mb-3">{t('The shirt every member plays in, with the name of the club on the chest: in the walk-on of a match, on the profiles and in the games. From the level Pro on a player may wear a shirt of their own.')}</p>
             <div className="club-shirt-editor">
                 <div className="club-shirt-preview">
@@ -67,9 +63,6 @@ const ClubShirtEditor = ({ club, onSaved, onError }) => {
                         <span className="text-default fs-7">{t('The club logo on the chest')}</span>
                         {!club.logo && <span className="text-faint fs-8">{t('(add a logo above first)')}</span>}
                     </label>
-                    <div className="d-flex justify-content-end">
-                        <Button label={t('Save')} icon="pi pi-save" size="small" loading={saving} disabled={!changed} onClick={save} />
-                    </div>
                 </div>
             </div>
         </Panel>

@@ -43,7 +43,8 @@ export const AdminToolbar = ({ children, actions = null, changed = 0, startOpen 
     }
     return (
         <div className="admin-toolbar d-flex flex-wrap align-items-center gap-3 mb-3">
-            <div className="d-flex align-items-center gap-3 w-100">
+            {/* Filters and the actions in a row, the actions on a line of their own when they do not fit beside it */}
+            <div className="d-flex flex-wrap align-items-center gap-2 w-100">
                 <Button
                     type="button"
                     icon={changed ? 'pi pi-filter-fill' : 'pi pi-filter'}
@@ -55,7 +56,7 @@ export const AdminToolbar = ({ children, actions = null, changed = 0, startOpen 
                     aria-expanded={open}
                     onClick={() => setOpen(!open)}
                 />
-                {actions && <div className="ms-auto d-flex align-items-center gap-3">{actions}</div>}
+                {actions && <div className="admin-toolbar-actions ms-auto d-flex flex-wrap justify-content-end align-items-center gap-2">{actions}</div>}
             </div>
             {/* one under another, each as wide as the list */}
             {open && <div className="admin-toolbar-filters">{children}</div>}

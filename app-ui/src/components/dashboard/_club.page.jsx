@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
-import { Toast } from 'primereact/toast';
 
 import StatsService from '../../services/stats.service';
 import { DashboardSkeleton } from '../elements/skeletons';
+import SaveStatus from '../elements/save.status';
 import { useAuth } from '../../utils/auth.context';
+import useAutoSave from '../../utils/use.auto.save';
 import ClubService from '../../services/club.service';
 import { DEFAULT_LAYOUT, clubLayout as layoutOfClub, resolveLayout, toLayout } from './dashboard.widgets';
 import DashboardEditor from './dashboard.editor';
@@ -22,10 +23,9 @@ import { formatDate } from '../../utils/dates';
  * My club: the club at a glance, its tournaments, and the widgets its admins
  * arranged for everyone (each member arranges their own Dashboard). Arrange
  * works right on the page: widgets dragged into place, made wider or
- * narrower, removed and added.
+ * narrower, removed and added, each saved as you go.
  */
 const ClubPage = () => {
-    const toast = useRef(null);
     const { activeClub, isClubAdmin, refreshClubs } = useAuth();
 
     const [stats, setStats] = useState(null);
@@ -33,7 +33,19 @@ const ClubPage = () => {
     // while arranging: what (mine or the club's) and the layout so far
     const [editing, setEditing] = useState(null);
     const [draft, setDraft] = useState([]);
-    const [saving, setSaving] = useState(false);
+    // the layout as last arranged, shown at once while it is saved
+    const [arranged, setArranged] = useState(null);
+    // arranging saves as you go, a moment after the last move (drags come in bursts); the club goes
+    // with the layout (another club chosen meanwhile keeps its own), its name as the API needs it
+    const layoutSave = useAutoSave(async ({ club, layout }) => {
+        await ClubService.updateClub(club.id, { name: club.name, dashboardLayout: layout });
+        await refreshClubs();
+    }, { delay: 500, valid: ({ layout }) => layout.length > 0 });
+    // another club: its own layout
+    useEffect(() => {
+        setArranged(null);
+        setEditing(null);
+    }, [activeClub?.id]);
 
     useEffect(() => {
         const load = async () => {
@@ -49,7 +61,7 @@ const ClubPage = () => {
 
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
     const shameBadges = activeClub?.shameBadges !== false;
-    const clubLayout = layoutOfClub(activeClub);
+    const clubLayout = arranged?.length ? arranged : layoutOfClub(activeClub);
     const widgets = resolveLayout(clubLayout, { shameBadges });
 
     if (failed) {
@@ -72,18 +84,16 @@ const ClubPage = () => {
         setDraft(toLayout(clubLayout).map(({ id, size }) => ({ id, size })));
     };
 
-    const save = async () => {
-        setSaving(true);
-        try {
-            await ClubService.updateClub(activeClub.id, { name: activeClub.name, dashboardLayout: draft });
-            await refreshClubs();
-            setEditing(null);
-            toast.current?.show({ severity: 'success', summary: t('My club is arranged for everyone'), life: 3000 });
-        } catch (error) {
-            toast.current?.show({ severity: 'error', summary: t('My club'), detail: error.message, life: 4000 });
-        } finally {
-            setSaving(false);
-        }
+    // each move, width, widget removed or added: shown at once and saved
+    const arrange = (layout, options) => {
+        setDraft(layout);
+        setArranged(layout);
+        layoutSave.change({ club: { id: activeClub.id, name: activeClub.name }, layout }, options);
+    };
+    // done: what still waits is saved now
+    const done = () => {
+        layoutSave.flush();
+        setEditing(null);
     };
 
     const renderWidget = (widget) => <DashboardWidget widget={widget} stats={stats} players={players} />;
@@ -126,6 +136,7 @@ const ClubPage = () => {
                     <div className="w-100 filter-panel-bar">
                         <span className="filter-panel-summary">
                             <span className="filter-chip">{t('Arranged by the club\'s admins')}</span>
+                            <SaveStatus {...layoutSave} className="ms-2" />
                         </span>
                         <Button label={t('Arrange')} icon="pi pi-th-large" size="small" severity="secondary" onClick={startEditing} />
                     </div>
@@ -139,18 +150,19 @@ const ClubPage = () => {
                 <div className="dashboard-edit-bar" role="region" aria-label={t('Arranging My club')}>
                     <div className="d-flex flex-column gap-1 min-w-0">
                         <span className="text-default fw-semibold">{t('Arranging My club')}</span>
-                        <span className="text-faint fs-8">{t('Everyone in the club sees it. Drag the widgets by their bar, choose their width, remove them or add more below.')}</span>
+                        <span className="text-faint fs-8">{t('Everyone in the club sees it, and it is saved as you go. Drag the widgets by their bar, choose their width, remove them or add more below.')}</span>
+                        {!draft.length && <span className="text-danger fs-8">{t('Add at least one widget.')}</span>}
                     </div>
                     <div className="d-flex flex-wrap align-items-center gap-2">
-                        <Button type="button" label={t('Default widgets')} icon="pi pi-replay" size="small" severity="secondary" text onClick={() => setDraft(DEFAULT_LAYOUT)} disabled={saving} />
-                        <Button type="button" label={t('Cancel')} size="small" severity="secondary" onClick={() => setEditing(null)} disabled={saving} />
-                        <Button type="button" label={t('Save')} icon="pi pi-check" size="small" onClick={save} loading={saving} disabled={!draft.length} />
+                        <SaveStatus {...layoutSave} />
+                        <Button type="button" label={t('Default widgets')} icon="pi pi-replay" size="small" severity="secondary" text onClick={() => arrange(DEFAULT_LAYOUT, { now: true })} />
+                        <Button type="button" label={t('Done')} icon="pi pi-check" size="small" onClick={done} />
                     </div>
                 </div>
             )}
 
             {editing
-                ? <DashboardEditor layout={draft} onChange={setDraft} renderWidget={renderWidget} shameBadges={shameBadges} />
+                ? <DashboardEditor layout={draft} onChange={arrange} renderWidget={renderWidget} shameBadges={shameBadges} />
                 : (
                     <div className="row g-4">
                         {widgets.map(widget => (
@@ -161,7 +173,6 @@ const ClubPage = () => {
                     </div>
                 )
             }
-            <Toast ref={toast} position="bottom-right" />
         </div>
     );
 };

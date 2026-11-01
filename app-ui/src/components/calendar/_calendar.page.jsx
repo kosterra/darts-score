@@ -14,10 +14,12 @@ import { Toast } from 'primereact/toast';
 
 import CalendarService from '../../services/calendar.service';
 import { useAuth } from '../../utils/auth.context';
+import useAutoSave from '../../utils/use.auto.save';
 import { locale, t } from '../../utils/i18n';
 import { MAX_CLUB_NIGHTS, NOTE_MAX, REASON_MAX, addDays, dayKey, monthGrid, nightsError } from '../../rules/calendar';
 import { roundName } from '../tournaments/tournament.words';
 import { Lines } from '../elements/skeletons';
+import SaveStatus from '../elements/save.status';
 import CalendarMonth from './calendar.month';
 import TimeField from '../elements/time.field';
 
@@ -128,14 +130,18 @@ const EventItem = ({ event }) => {
     );
 };
 
-// the weekly club nights: as they are, or for the admins to change
-const NightsEditor = ({ nights, onSave, busy }) => {
+// the weekly club nights, for the admins to change: saved as you go (a day, a time, a night added
+// or removed at once, a note a moment after typing); nights that do not fit together are not sent
+const NightsEditor = ({ nights, autosave }) => {
+    // from the nights as loaded; afterwards what was chosen here (a save does not overwrite the typing)
     const [rows, setRows] = useState(nights);
-    useEffect(() => setRows(nights), [nights]);
-    const set = (index, changes) => setRows(rows.map((row, at) => (at === index ? { ...row, ...changes } : row)));
+    const update = (next, options = { now: true }) => {
+        setRows(next);
+        autosave.change(next, options);
+    };
+    const set = (index, changes, options) => update(rows.map((row, at) => (at === index ? { ...row, ...changes } : row)), options);
     const free = WEEKDAYS.find(weekday => !rows.some(row => row.weekday === weekday));
     const problem = nightsError(rows);
-    const changed = JSON.stringify(rows) !== JSON.stringify(nights);
     return (
         <div className="d-flex flex-column gap-3">
             {rows.length === 0 && <span className="text-faint fs-7">{t('No club nights yet. Add the evenings the club meets every week.')}</span>}
@@ -144,7 +150,7 @@ const NightsEditor = ({ nights, onSave, busy }) => {
                 <div key={index} className="setup-box calendar-night-box">
                     <p className="setting-title d-flex align-items-center justify-content-between gap-2 m-0">
                         <span className="flex-grow-1 text-center">{weekdayName(row.weekday)}</span>
-                        <Button icon="pi pi-trash" text rounded severity="secondary" size="small" className="calendar-night-remove" aria-label={t('Remove')} title={t('Remove')} onClick={() => setRows(rows.filter((_, at) => at !== index))} />
+                        <Button icon="pi pi-trash" text rounded severity="secondary" size="small" className="calendar-night-remove" aria-label={t('Remove')} title={t('Remove')} onClick={() => update(rows.filter((_, at) => at !== index))} />
                     </p>
                     <div className="setting-body setup-box-body">
                         {/* the day and the times in one row; the day takes the room left */}
@@ -156,15 +162,12 @@ const NightsEditor = ({ nights, onSave, busy }) => {
                                 <TimeField value={row.end ?? ''} onChange={(end) => set(index, { end })} ariaLabel={t('Until')} placeholder={t('Open end')} clearable className="calendar-time" />
                             </span>
                         </span>
-                        <InputText value={row.note ?? ''} onChange={(event) => set(index, { note: event.target.value })} maxLength={NOTE_MAX} placeholder={t('Note, e.g. the place')} aria-label={t('Note')} className="calendar-note" />
+                        <InputText value={row.note ?? ''} onChange={(event) => set(index, { note: event.target.value }, { now: false })} onBlur={autosave.flush} maxLength={NOTE_MAX} placeholder={t('Note, e.g. the place')} aria-label={t('Note')} className="calendar-note" />
                     </div>
                 </div>
             ))}
-            <div className="d-flex flex-wrap justify-content-between gap-2">
-                <Button label={t('Add a club night')} icon="pi pi-plus" size="small" text disabled={rows.length >= MAX_CLUB_NIGHTS || free === undefined} onClick={() => setRows([...rows, { weekday: free, start: '19:30', end: '23:00', note: '' }])} />
-                <Button label={t('Save')} icon="pi pi-save" size="small" disabled={!changed || Boolean(problem)} loading={busy === 'nights'} onClick={() => onSave(rows)} />
-            </div>
-            {problem && rows.length > 0 && <span className="text-subtle fs-8">{t(problem)}</span>}
+            <Button label={t('Add a club night')} icon="pi pi-plus" size="small" text className="align-self-start" disabled={rows.length >= MAX_CLUB_NIGHTS || free === undefined} onClick={() => update([...rows, { weekday: free, start: '19:30', end: '23:00', note: '' }])} />
+            {problem && rows.length > 0 && <span className="text-danger fs-8">{t(problem)}</span>}
         </div>
     );
 };
@@ -231,6 +234,11 @@ const CalendarPage = () => {
     const [view, setView] = useState(storedView);
     const [month, setMonth] = useState(today.slice(0, 7));
     const [selected, setSelected] = useState(today);
+    // the weekly club nights, saved as you go; the calendar comes back with them
+    const nightsSave = useAutoSave(async (nights) => {
+        const result = await CalendarService.saveNights(nights, range);
+        if (result?.clubNights) setCalendar(result);
+    }, { valid: (nights) => !nightsError(nights) });
 
     const to = addDays(today, weeks * 7 - 1);
     // the days the view shows: the coming weeks, or the weeks of the month
@@ -355,9 +363,9 @@ const CalendarPage = () => {
                 </Panel>
 
                 <div className="d-flex flex-column gap-4">
-                    <Panel header={t('Club nights')}>
+                    <Panel header={t('Club nights')} icons={isClubAdmin ? <SaveStatus {...nightsSave} className="me-2" /> : undefined}>
                         {isClubAdmin
-                            ? <NightsEditor nights={calendar.nights} busy={busy} onSave={(nights) => run('nights', () => CalendarService.saveNights(nights, range), t('The club nights are saved.'))} />
+                            ? <NightsEditor nights={calendar.nights} autosave={nightsSave} />
                             : calendar.nights.length
                                 ? (
                                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">

@@ -5,8 +5,9 @@ import { t } from '../../utils/i18n';
 
 /**
  * Picks the clubs whose entries an admin list shows. Lists across clubs
- * always need at least one, so they never load everything at once; with
- * "optional" none means all (e.g. the users).
+ * always need at least one, so they never load everything at once (the list
+ * says so with ChooseClubsHint, the field is not shown as an error before it
+ * was touched); with "optional" none means all (e.g. the users).
  */
 export const ClubFilter = ({ clubs, selectedIds, onChange, optional = false }) => (
     <MultiSelect
@@ -22,7 +23,6 @@ export const ClubFilter = ({ clubs, selectedIds, onChange, optional = false }) =
         removeIcon="pi pi-times"
         maxSelectedLabels={3}
         selectedItemsLabel={t('{0} clubs')}
-        className={selectedIds.length || optional ? '' : 'p-invalid'}
         aria-label={t('Clubs')}
         style={{ minWidth: '14rem', maxWidth: '100%' }}
     />

@@ -11,4 +11,31 @@
             background-color: $shade800;
         }
     }
+
+    .file-upload-avatar.p-avatar {
+        width: 10rem;
+        height: 10rem;
+    }
+
+    // on a phone: the picture smaller and the upload beside it, so the fields come into sight
+    @media (max-width: 575.98px) {
+        // side by side by flex-row (flex-sm-column from the next width up)
+        gap: $space-4;
+
+        .file-upload-avatar.p-avatar {
+            width: 6rem;
+            height: 6rem;
+            font-size: 2.2rem;
+        }
+
+        .drop-zone {
+            margin: 0 !important;
+            padding: 0.75rem 1rem !important;
+        }
+    }
+
+    // nothing to drag on a touch screen: "Upload" alone
+    @media (pointer: coarse) {
+        .drop-zone-drag { display: none; }
+    }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
@@ -8,14 +8,15 @@ import { Panel } from 'primereact/panel';
 import { SelectButton } from 'primereact/selectbutton';
 
 import ClubService from '../../services/club.service';
+import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
+import useAutoSave from '../../utils/use.auto.save';
 import GameTypeIcon from '../elements/game.type.icon';
 import { CLUB_GAMES, GAME_SETTINGS, HALVE_IT_POOL, MAX_FORMATS, appDefaults, normalizeClubRules } from '../../rules/club.rules';
 import { halveItTarget } from '../../rules/games';
 import { GAME_TITLES, SETTING_HINTS, SETTING_LABELS, settingOptions, settingsSummary, valueLabel } from '../../utils/club.rules.labels';
 import { t } from '../../utils/i18n';
 
-const SAVE_AFTER_MS = 700;
 const HANDICAP_MODES = [
     { value: 'off', label: t('Off') },
     { value: 'offered', label: t('Set by hand') },
@@ -190,38 +191,19 @@ const FormatRow = ({ format, onChange, onRemove }) => {
  * house rules), the club's formats, friendly games, the handicap policy and
  * the ways out. Saved a moment after each change.
  */
-const ClubGameRules = ({ club, onSaved, onError }) => {
+const ClubGameRules = ({ club, onSaved }) => {
     const [rules, setRules] = useState(() => normalizeClubRules(club.gameRules));
     const [openGame, setOpenGame] = useState(null);
     const [newFormatGame, setNewFormatGame] = useState('x01');
-    const [state, setState] = useState('idle');
-    const timer = useRef(null);
-    const pending = useRef(null);
-
-    // a pending change is saved when the page is left
-    useEffect(() => () => {
-        clearTimeout(timer.current);
-        if (pending.current) ClubService.updateGameRules(club.id, pending.current).then(onSaved).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // saved a moment after each change (the same way as every setting), what is waiting when the page is left
+    const rulesSave = useAutoSave(async (next) => {
+        await ClubService.updateGameRules(club.id, next);
+        onSaved?.();
+    });
 
     const change = (next) => {
         setRules(next);
-        pending.current = next;
-        setState('saving');
-        clearTimeout(timer.current);
-        timer.current = setTimeout(async () => {
-            const sending = pending.current;
-            try {
-                await ClubService.updateGameRules(club.id, sending);
-                if (pending.current === sending) pending.current = null;
-                setState('saved');
-                onSaved?.();
-            } catch (error) {
-                setState('idle');
-                onError?.(t('Game rules'), error);
-            }
-        }, SAVE_AFTER_MS);
+        rulesSave.change(next);
     };
     const setGame = (game, own) => change({ ...rules, games: { ...rules.games, [game]: own } });
     const setFormat = (index, format) => change({ ...rules, formats: rules.formats.map((entry, at) => (at === index ? format : entry)) });
@@ -232,7 +214,7 @@ const ClubGameRules = ({ club, onSaved, onError }) => {
 
     return (
         <Panel header={t('Game rules')} id="game-rules" className="mt-4" icons={
-            <span className="text-faint fs-8 me-2" aria-live="polite">{state === 'saving' ? t('Saving…') : state === 'saved' ? t('Saved') : ''}</span>
+            <SaveStatus {...rulesSave} className="me-2" />
         }>
             <p className="text-subtle fs-7 mt-0 mb-4">
                 {t('The club\'s own rules: which games it plays, what a game starts with, which choices the setups offer and which are locked for every game, the club\'s formats, friendly games and handicaps. A running game keeps the rules it started with. Saved as you go.')}

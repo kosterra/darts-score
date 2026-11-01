@@ -238,7 +238,7 @@ export const ruleViolations = (game, rules, stored) => {
  * A player's own preferences for playing, kept with their account so they
  * follow them to every device: the ways out (for every player, only the one
  * at the oche, or off), sending a visit by itself after the third dart, a
- * keypad for the left hand, quieter celebrations, board or keypad, favourite
+ * keypad for the left hand, quieter celebrations, the caller's voice, board or keypad, favourite
  * formats per game (pinned first), the last setup of each game per club, and
  * how their trainings start.
  */
@@ -288,6 +288,8 @@ export const normalizeGamePreferences = (raw = {}) => {
         autoSend: raw?.autoSend === true,
         leftHanded: raw?.leftHanded === true,
         celebrations: raw?.celebrations === 'quiet' ? 'quiet' : 'full',
+        // the caller's voice: male as most callers on the stage, or female
+        callerVoice: raw?.callerVoice === 'female' ? 'female' : 'male',
         inputMode: ['board', 'keypad'].includes(raw?.inputMode) ? raw.inputMode : null,
         // how dates are shown; null: the usual format of the language
         dateFormat: ['DD.MM.YYYY', 'DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'].includes(raw?.dateFormat) ? raw.dateFormat : null,

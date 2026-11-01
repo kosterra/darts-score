@@ -6,6 +6,8 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
 import { Panel } from 'primereact/panel';
 
+import SaveStatus from '../elements/save.status';
+import useAutoSave from '../../utils/use.auto.save';
 import ClubService from '../../services/club.service';
 import StatsService from '../../services/stats.service';
 import { ClubGoalList, ClubMedalRow } from '../badges/club.badges';
@@ -32,13 +34,19 @@ const draftOf = (goal) => ({ id: goal.id ?? null, metric: goal.metric, target: g
 /**
  * The club's badges and its goals, on the Edit club page: the medals it
  * earned so far (all of them on the badges page), and the goals the admins
- * set, e.g. 100 × 180 until the end of the season. Saved with Save.
+ * set, e.g. 100 × 180 until the end of the season. Saved as you go.
  */
 const ClubGoalsEditor = ({ club, onError }) => {
     const { activeClub, selectClub } = useAuth();
     const [overview, setOverview] = useState(null);
     const [drafts, setDrafts] = useState([]);
-    const [saving, setSaving] = useState(false);
+    // saved as you go: the whole list each time (the server keeps a goal by its id)
+    const goalsSave = useAutoSave(async (list) => {
+        const goals = await ClubService.updateGoals(club.id, list.map(goal => ({ ...goal, until: goal.until ? goal.until.toISOString() : null })));
+        setOverview(current => ({ ...current, goals }));
+        // a new goal keeps the id it got, so the next save keeps it too
+        setDrafts(current => (current.length === goals.length ? current.map((goal, at) => (goal.id ? goal : { ...goal, id: goals[at].id })) : current));
+    }, { valid: (list) => list.every(goal => goal.metric && goal.target >= 1) });
 
     useEffect(() => {
         StatsService.loadClubOwnBadges(club.id)
@@ -50,28 +58,19 @@ const ClubGoalsEditor = ({ club, onError }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [club.id]);
 
-    const change = (index, changes) => setDrafts(current => current.map((goal, at) => (at === index ? { ...goal, ...changes } : goal)));
-    const add = () => setDrafts(current => [...current, { id: null, metric: 'num180s', target: DEFAULT_TARGETS.num180s, until: null }]);
-    const remove = (index) => setDrafts(current => current.filter((_, at) => at !== index));
-
-    const save = async () => {
-        setSaving(true);
-        try {
-            const goals = await ClubService.updateGoals(club.id, drafts.map(goal => ({ ...goal, until: goal.until ? goal.until.toISOString() : null })));
-            setOverview(current => ({ ...current, goals }));
-            setDrafts(goals.map(draftOf));
-        } catch (error) {
-            onError(t('Club goals'), error);
-        } finally {
-            setSaving(false);
-        }
+    // a change shown at once and saved: a choice at once, a number a moment after typing
+    const update = (next, options = { now: true }) => {
+        setDrafts(next);
+        goalsSave.change(next, options);
     };
+    const change = (index, changes, options) => update(drafts.map((goal, at) => (at === index ? { ...goal, ...changes } : goal)), options);
+    const add = () => update([...drafts, { id: null, metric: 'num180s', target: DEFAULT_TARGETS.num180s, until: null }]);
+    const remove = (index) => update(drafts.filter((_, at) => at !== index));
 
     const earned = (overview?.badges ?? []).filter(badge => badge.earned).sort((a, b) => b.tier - a.tier);
-    const valid = drafts.every(goal => goal.metric && goal.target >= 1);
 
     return (
-        <Panel header={t('Club badges and goals')} className="mt-4">
+        <Panel header={t('Club badges and goals')} className="mt-4" icons={<SaveStatus {...goalsSave} className="me-2" />}>
             <div className="row g-4">
                 <div className="col-12 col-xl-6">
                     <p className="game-setup-section-title">{t('Club badges')}</p>
@@ -102,7 +101,8 @@ const ClubGoalsEditor = ({ club, onError }) => {
                                 />
                                 <InputNumber
                                     value={goal.target}
-                                    onValueChange={(e) => change(index, { target: e.value ?? 1 })}
+                                    onValueChange={(e) => change(index, { target: e.value ?? 1 }, { now: false })}
+                                    onBlur={goalsSave.flush}
                                     min={1}
                                     max={10000000}
                                     useGrouping
@@ -128,7 +128,6 @@ const ClubGoalsEditor = ({ club, onError }) => {
                             {drafts.length < MAX_GOALS
                                 ? <Button type="button" label={t('Add a goal')} icon="pi pi-plus" size="small" outlined onClick={add} />
                                 : <span className="text-faint fs-8">{t('A club has at most three goals.')}</span>}
-                            <Button type="button" label={t('Save')} icon="pi pi-save" size="small" loading={saving} disabled={!overview || !valid} onClick={save} />
                         </div>
                     </div>
                 </div>

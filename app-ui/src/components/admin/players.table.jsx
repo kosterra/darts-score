@@ -17,8 +17,10 @@ import PlayerClubsEditor from './player.clubs.editor';
 import PlayersOverview from './players.overview';
 import PlayersInsights from './players.insights';
 import DeletePopup from '../elements/delete.popup';
+import SaveStatus from '../elements/save.status';
 import JSONViewer from '../elements/json.viewer';
 import { useAuth } from '../../utils/auth.context';
+import useAutoSave from '../../utils/use.auto.save';
 import { AdminToolbar, PlayerCell } from './admin.common';
 import { ClubFilter, ClubCell, ChooseClubsHint } from './club.filter';
 import { formatDate } from '../../utils/dates';
@@ -108,13 +110,22 @@ const PlayersTable = ({ scope = 'club' }) => {
             .filter(player => !term || matches(player, term));
     }, [players, search, kind]);
 
-    const onTogglePublic = async (player) => {
-        try {
-            await PlayerService.setPublicProfile(player.id, !player.publicProfile);
-            await loadPlayers();
-        } catch (error) {
-            showError(t('Public nickname'), error);
-        }
+    // the public nickname is shown at once and saved at once; the ones chosen and not yet saved
+    // are sent together (one save at a time), what went wrong shows beside the title with Try again
+    const chosenPublic = useRef({});
+    const [publicOverrides, setPublicOverrides] = useState({});
+    const publicSave = useAutoSave(async (wanted) => {
+        for (const [id, value] of Object.entries(wanted)) await PlayerService.setPublicProfile(id, value);
+        await loadPlayers();
+        // saved: the list says it now, unless it was switched again meanwhile
+        chosenPublic.current = Object.fromEntries(Object.entries(chosenPublic.current).filter(([id, value]) => wanted[id] !== value));
+        setPublicOverrides(chosenPublic.current);
+    });
+    const isPublic = (player) => publicOverrides[player.id] ?? player.publicProfile;
+    const onTogglePublic = (player) => {
+        chosenPublic.current = { ...chosenPublic.current, [player.id]: !isPublic(player) };
+        setPublicOverrides(chosenPublic.current);
+        publicSave.change(chosenPublic.current, { now: true });
     };
 
     const onMakeMember = async (player) => {
@@ -172,7 +183,7 @@ const PlayersTable = ({ scope = 'club' }) => {
         : (
             // on a phone both on one line (see admin-public-page)
             <span className="admin-public-page">
-                <span className={player.publicProfile ? 'text-default fs-7' : 'text-faint fs-7'}>{player.publicProfile ? t('Nickname shown') : t('Hidden')}</span>
+                <span className={isPublic(player) ? 'text-default fs-7' : 'text-faint fs-7'}>{isPublic(player) ? t('Nickname shown') : t('Hidden')}</span>
                 {decidesThemselves(player) && <span className="text-faint fs-8 admin-public-page-who">{t('their own choice')}</span>}
             </span>
         );
@@ -197,12 +208,12 @@ const PlayersTable = ({ scope = 'club' }) => {
                         />
                         <Button
                             type="button"
-                            icon={player.publicProfile ? 'pi pi-eye' : 'pi pi-eye-slash'}
-                            severity={player.publicProfile ? undefined : 'secondary'}
-                            aria-label={player.publicProfile ? t('Hide the nickname of {{nickname}} on the public page', { nickname: player.nickname }) : t('Show the nickname of {{nickname}} on the public page', { nickname: player.nickname })}
+                            icon={isPublic(player) ? 'pi pi-eye' : 'pi pi-eye-slash'}
+                            severity={isPublic(player) ? undefined : 'secondary'}
+                            aria-label={isPublic(player) ? t('Hide the nickname of {{nickname}} on the public page', { nickname: player.nickname }) : t('Show the nickname of {{nickname}} on the public page', { nickname: player.nickname })}
                             tooltip={decidesThemselves(player)
                                 ? t('{{nickname}} has a login and decides this on their profile', { nickname: player.nickname })
-                                : player.publicProfile ? t('Nickname is public') : t('Nickname is hidden publicly')}
+                                : isPublic(player) ? t('Nickname is public') : t('Nickname is hidden publicly')}
                             tooltipOptions={{ position: 'top', showOnDisabled: true }}
                             disabled={decidesThemselves(player)}
                             onClick={() => onTogglePublic(player)}
@@ -234,7 +245,7 @@ const PlayersTable = ({ scope = 'club' }) => {
         {!acrossClubs && <PlayersOverview players={players} levels={levels} canManage={canManage} />}
         {/* across clubs: every club at a glance, a club picked there shows in the list */}
         {acrossClubs && <PlayersInsights onPickClub={(id) => select([id])} />}
-        <Panel id="admin-list" header={acrossClubs ? t('Players of all clubs') : t('Players')}>
+        <Panel id="admin-list" header={acrossClubs ? t('Players of all clubs') : t('Players')} icons={<SaveStatus {...publicSave} className="me-2" />}>
             <AdminToolbar actions={<>
                     {!needsClubs && <span className="text-faint fs-7">{visiblePlayers.length} {visiblePlayers.length === 1 ? t('player') : t('players')}</span>}
                     {(acrossClubs || isClubAdmin) && newPlayerButton}

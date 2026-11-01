@@ -292,7 +292,7 @@ docker run -p 3001:3001 --env-file .env darts-score
 
 The application version is maintained in the **root `package.json`** and is the single source of truth for Docker image tags. Both `app-api/package.json` and `app-ui/package.json` carry `"version": "0.0.0"` to signal they are not independently published.
 
-To release a new version, bump the version in the root `package.json` and push to `main`. The CI workflow reads the version from there and tags the Docker image accordingly.
+Versions are `{year}.{month}.{sequence}`, the sequence counting from 0 in each month (`2026.11.0`, `2026.11.1`, `2026.12.0`); `node scripts/version.mjs next` sets the next one in `package.json` and `app-api/openapi.yaml`. A release goes to `main` through a pull request (see [docs/deployment.md](docs/deployment.md#release-flow)); the CI workflow reads the version from `package.json` and tags the Docker image accordingly, and `develop` moves to the next version right after the pull request is opened.
 
 The workflows (`.github/workflows`):
 

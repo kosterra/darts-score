@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
@@ -10,6 +10,7 @@ import { FlightPicture } from '../flights/flight.art';
 import { BarrelPicture } from '../flights/barrel.art';
 import { FLIGHT_COLORS, flightOf } from '../../utils/flights';
 import { PLAYER_COLORS } from '../stats/charts/chart.theme';
+import useAutoSave from '../../utils/use.auto.save';
 import { t } from '../../utils/i18n';
 
 const DEFAULTS = { flyingDarts: false, flightColor: 'auto', flightPattern: 'plain', flightShape: 'standard', barrel: 'classic' };
@@ -19,14 +20,16 @@ const DEFAULTS = { flyingDarts: false, flightColor: 'auto', flightPattern: 'plai
  * in the boxes of the game setup: the dart animation (a game can switch it
  * on or off for everyone), and the flights: a dart turning slowly, the
  * colour, and the shapes and designs as tiles. The player's flight points,
- * earned by playing and training, unlock more of them. A change is saved
- * right away.
+ * earned by playing and training, unlock more of them. A change is shown
+ * and saved at once.
  *
  * player: { id, preferences }
  * clubId: the club the player is edited in
  * part: 'all', 'animation' (the dart animation only) or 'flights' (the flights and barrels only)
+ * onSaved(player) with the player as saved; onStatus(autosave) how the saving goes;
+ * onError(error) when unlocking fails
  */
-const PlayerDartPreferences = ({ player, clubId, onSaved, onError, part = 'all' }) => {
+const PlayerDartPreferences = ({ player, clubId, onSaved, onStatus, onError, part = 'all' }) => {
     const [preferences, setPreferences] = useState({ ...DEFAULTS, ...player.preferences });
     // the flight points and what is owned, to unlock or locked
     const [standing, setStanding] = useState(null);
@@ -43,15 +46,16 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError, part = 'all' 
         return () => { current = false; };
     }, [player.id, clubId, part]);
 
-    const save = async (change) => {
-        const before = preferences;
+    // what was chosen here, sent together (one save at a time, the newest wins)
+    const chosen = useRef({});
+    const preferencesSave = useAutoSave(async (changes) => onSaved?.(await PlayerService.setPreferences(player.id, changes, clubId)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => onStatus?.(preferencesSave), [preferencesSave.status, preferencesSave.error]);
+
+    const save = (change) => {
+        chosen.current = { ...chosen.current, ...change };
         setPreferences(current => ({ ...current, ...change }));
-        try {
-            onSaved?.(await PlayerService.setPreferences(player.id, change, clubId));
-        } catch (error) {
-            setPreferences(before);
-            onError?.(error);
-        }
+        preferencesSave.change(chosen.current, { now: true });
     };
 
     const preferenceOf = (kind) => ({ shape: 'flightShape', design: 'flightPattern', barrel: 'barrel' })[kind];
@@ -69,7 +73,7 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onError, part = 'all' 
         accept: async () => {
             try {
                 setStanding(await PlayerService.unlockFlight(player.id, item.kind, item.id, clubId));
-                await save({ [preferenceOf(item.kind)]: item.id });
+                save({ [preferenceOf(item.kind)]: item.id });
             } catch (error) {
                 onError?.(error);
             }

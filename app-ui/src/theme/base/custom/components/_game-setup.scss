@@ -169,6 +169,37 @@
   text-align: center;
 }
 
+// on a phone (where the menu bar is at the bottom) the start stays in sight while scrolling through
+// the setup: a bar just above the menu bar, what will be played on the left and the button on the right
+@media (max-width: 767.98px) {
+  .game-setup-start {
+    position: sticky;
+    // right on the menu bar (2.75rem button, 0.5rem above and below it, and the safe area), so nothing
+    // of the page shows between the two
+    bottom: calc(3.75rem + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)));
+    z-index: 5;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    gap: $space-3;
+    padding: 0.6rem 0.6rem 0.6rem 0.9rem;
+    border-radius: $radius-md;
+    background: var(--surface-raised);
+    box-shadow: 0 0.5rem 1.5rem -0.5rem shadow(0.8);
+
+    .p-button { flex-shrink: 0; }
+  }
+
+  .game-setup-summary {
+    // two lines at most: "501 · Double Out · Best of 3 legs · Anna vs Ben"
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+    text-align: left;
+  }
+}
+
 .x01-handicap {
   padding: 0.85rem 1rem;
   border-radius: $radius-md;
@@ -227,8 +258,54 @@
   .player-order-item { width: 100%; }
   .player-order-name { flex: 1 1 auto; max-width: none; }
 
-  .player-picker-grid { grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); }
   .player-order-actions .player-order-button { width: 1.9rem; height: 1.9rem; }
+
+  // a setup's inner container adds no inset of its own on a phone: its content lines up with the
+  // panel title, as the trainings' setups (12px more on each side for the players and boxes)
+  .p-panel-content > .container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  // the players to pick as rows, two side by side: the picture small beside the name and the line under
+  // it, so a club's players fit on the first screen (a card with the picture on top was four times as tall)
+  .player-picker-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .player-pick-card:not(.is-editing) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.6rem;
+    row-gap: 0;
+    align-items: center;
+    justify-items: start;
+    min-height: 3.25rem;
+    padding: 0.5rem 0.6rem;
+    text-align: left;
+
+    > .p-avatar,
+    > .player-pick-plus {
+      grid-row: 1 / span 2;
+      width: 2.25rem;
+      height: 2.25rem;
+      font-size: 0.9rem;
+    }
+
+    > .player-pick-plus { font-size: $text-lg; }
+
+    .player-pick-name { grid-column: 2; align-self: end; }
+    .player-pick-detail { grid-column: 2; align-self: start; }
+
+    // the order on the picture's corner
+    .player-pick-number {
+      top: 0.2rem;
+      left: 0.2rem;
+      width: 1.15rem;
+      height: 1.15rem;
+    }
+  }
 }
 
 .quick-formats {

@@ -21,7 +21,8 @@ test.afterEach(async () => {
 test('a new email address asks for the password, and the code once two-step login is on', async ({ page }) => {
     await post('/__test/mfa', { enabled: false });
     await page.goto('/profile');
-    const save = page.getByRole('button', { name: 'Save', exact: true });
+    // the address is not saved as you go: it changes with its own button, once confirmed
+    const save = page.getByRole('button', { name: 'Change email', exact: true });
     await expect(page.locator('#profile-email-password')).toHaveCount(0);
 
     await page.fill('#profile-email', 'new.address@example.com');

@@ -111,6 +111,8 @@ const FairPlayPage = ({ all = false }) => {
     const [reviewing, setReviewing] = useState(null);
     const [repairing, setRepairing] = useState(null);
     const [restoring, setRestoring] = useState(null);
+    // the three kinds of entries explained, on request
+    const [explained, setExplained] = useState(false);
     // global admins: the clubs shown, none chosen means all
     const [clubFilter, setClubFilter] = useState([]);
 
@@ -228,12 +230,17 @@ const FairPlayPage = ({ all = false }) => {
             <RepairDialog entry={repairing} onCancel={() => setRepairing(null)} onRepair={repair} />
             <RestoreDialog entry={restoring} onCancel={() => setRestoring(null)} onRestore={restoreBirth} />
             <Panel header={all ? t('Fair play · all clubs') : t('Fair play')}>
+                {/* one sentence, the three kinds behind a link: the entries come first */}
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    {t('Games and trainings checked for what cannot be real or is far out of the ordinary. Open an entry with Details to see what was thrown.')}
-                    <strong className="text-default">{' '}{t('Impossible')}</strong>{' '}{t('ones (e.g. Around the Clock in a few seconds, a dart that is not on the board) cannot come from a real game: delete them, with the badges earned in them, or mark them as a false alarm.')}
-                    <strong className="text-default">{' '}{t('Data errors')}</strong>{' '}{t('are wrong but no cheat (e.g. a score left that does not add up after an undo): repair them where the darts allow it.')}
-                    <strong className="text-default">{' '}{t('Suspicious')}</strong>{' '}{t('ones are possible but worth a look (e.g. a world-class time, an opponent who never threw): mark them as fine, or keep them on the watch list. The players and the club admins are told when a game is deleted or repaired.')}
+                    {t('Games and trainings checked for what cannot be real or is far out of the ordinary. Open an entry with Details to see what was thrown.')}{' '}
+                    <Button type="button" link className="p-0 fs-7 align-baseline" label={explained ? t('Hide the explanation') : t('What do these mean?')} aria-expanded={explained} onClick={() => setExplained(shown => !shown)} />
                 </p>
+                {explained &&
+                    <ul className="text-subtle fs-7 mt-0 mb-3 ps-3 d-flex flex-column gap-1">
+                        <li><strong className="text-default">{t('Impossible')}</strong>{' '}{t('ones (e.g. Around the Clock in a few seconds, a dart that is not on the board) cannot come from a real game: delete them, with the badges earned in them, or mark them as a false alarm.')}</li>
+                        <li><strong className="text-default">{t('Data errors')}</strong>{' '}{t('are wrong but no cheat (e.g. a score left that does not add up after an undo): repair them where the darts allow it.')}</li>
+                        <li><strong className="text-default">{t('Suspicious')}</strong>{' '}{t('ones are possible but worth a look (e.g. a world-class time, an opponent who never threw): mark them as fine, or keep them on the watch list. The players and the club admins are told when a game is deleted or repaired.')}</li>
+                    </ul>}
                 <div className="fair-play-filters">
                     <SelectButton value={shown} options={options} onChange={(e) => e.value && setList(e.value)} className="p-selectbutton-pills pills-inline flex-wrap" aria-label={t('List')} />
                     {shown === 'impossible' && entries.length > 1 &&

@@ -1,13 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 
 import UserService from '../../services/user.service';
+import SaveStatus from '../elements/save.status';
+import useAutoSave from '../../utils/use.auto.save';
 import { t } from '../../utils/i18n';
 import RowEditor from './row.editor';
 
 const MIN_PASSWORD_LENGTH = 8;
+
+// as the API wants them: a name of 2 to 25 letters, an email address that looks like one
+const isName = (value) => /^[\p{L}\s'-]+$/u.test(value.trim()) && value.trim().length >= 2 && value.trim().length <= 25;
+const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) && value.trim().length <= 254;
 
 // a password that is easy to read out and type: no 0/O or 1/l/I
 const generatePassword = () => {
@@ -20,24 +26,33 @@ const generatePassword = () => {
 const absolute = (link) => link.startsWith('/') ? `${window.location.origin}${link}` : link;
 
 /**
- * For global admins: correct a user's name and email address, set a new
- * password, or create a "choose your password" link to pass on to them,
- * e.g. when their email address does not work.
+ * For global admins: correct a user's name and email address (saved as you
+ * go), set a new password, or create a "choose your password" link to pass
+ * on to them, e.g. when their email address does not work.
  */
-const UserEditor = ({ user, onHide, onSaved, onError }) => {
+const UserEditor = ({ user, onHide, onSaved, onChanged, onError }) => {
     const [account, setAccount] = useState({ firstname: '', lastname: '', email: '' });
     const [password, setPassword] = useState('');
     const [link, setLink] = useState(null);
     const [busy, setBusy] = useState(false);
     const [copied, setCopied] = useState(null);
+    // the email address goes along only once the field is left: each new one tells the old address
+    const sentEmail = useRef('');
+    const accountSave = useAutoSave(async (values) => {
+        await UserService.updateUser(user.id, { firstname: values.firstname.trim(), lastname: values.lastname.trim(), email: values.email.trim() });
+        await onChanged?.();
+    }, { valid: (values) => isName(values.firstname) && isName(values.lastname) && isEmail(values.email) });
 
+    // the fields start from the user, not again when the list is loaded after a save
     useEffect(() => {
         if (!user) return;
         setAccount({ firstname: user.firstname, lastname: user.lastname, email: user.email });
+        sentEmail.current = user.email;
         setPassword('');
         setLink(null);
         setCopied(null);
-    }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id]);
 
     if (!user) return null;
 
@@ -62,42 +77,55 @@ const UserEditor = ({ user, onHide, onSaved, onError }) => {
         }
     };
 
-    const onChange = (field) => (event) => setAccount({ ...account, [field]: event.target.value });
-    const changed = account.firstname !== user.firstname || account.lastname !== user.lastname || account.email !== user.email;
+    // a name saved a moment after typing, with the email address as last saved
+    const onChange = (field) => (event) => {
+        const next = { ...account, [field]: event.target.value };
+        setAccount(next);
+        if (field !== 'email') accountSave.change({ ...next, email: sentEmail.current });
+    };
+    // the email address when the field is left (or Enter), if it is a new one that looks right
+    const saveEmail = () => {
+        const email = account.email.trim();
+        if (email === sentEmail.current.trim() || !isEmail(email)) {
+            accountSave.flush();
+            return;
+        }
+        sentEmail.current = email;
+        accountSave.change({ ...account, email }, { now: true });
+    };
+    const hint = (wrong, text) => wrong && <span className="text-danger fs-8 d-block mt-1">{text}</span>;
 
     return (
         <RowEditor title={t('Edit {{firstname}} {{lastname}}', { firstname: user.firstname, lastname: user.lastname })} onClose={onHide}>
             <div className="d-flex flex-column gap-4">
                 <section className="d-flex flex-column gap-3">
-                    <span className="text-subtle fs-7 fw-semibold">{t('Account')}</span>
+                    <span className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <span className="text-subtle fs-7 fw-semibold">{t('Account')}</span>
+                        <SaveStatus {...accountSave} />
+                    </span>
+                    <span className="text-faint fs-8">{t('Saved as you go; the email address once you leave the field, and its old address is told.')}</span>
                     <div className="row g-4 pt-3">
                         <div className="col-12 col-sm-6">
                             <span className="p-float-label">
-                                <InputText id="edit-firstname" value={account.firstname} onChange={onChange('firstname')} className="w-100" />
+                                <InputText id="edit-firstname" value={account.firstname} onChange={onChange('firstname')} onBlur={accountSave.flush} invalid={!isName(account.firstname)} className="w-100" />
                                 <label htmlFor="edit-firstname">{t('Firstname')}</label>
                             </span>
+                            {hint(!isName(account.firstname), t('2 to 25 letters.'))}
                         </div>
                         <div className="col-12 col-sm-6">
                             <span className="p-float-label">
-                                <InputText id="edit-lastname" value={account.lastname} onChange={onChange('lastname')} className="w-100" />
+                                <InputText id="edit-lastname" value={account.lastname} onChange={onChange('lastname')} onBlur={accountSave.flush} invalid={!isName(account.lastname)} className="w-100" />
                                 <label htmlFor="edit-lastname">{t('Lastname')}</label>
                             </span>
+                            {hint(!isName(account.lastname), t('2 to 25 letters.'))}
                         </div>
                         <div className="col-12">
                             <span className="p-float-label">
-                                <InputText id="edit-email" type="email" value={account.email} onChange={onChange('email')} className="w-100" />
+                                <InputText id="edit-email" type="email" value={account.email} onChange={onChange('email')} onBlur={saveEmail} onKeyDown={(event) => event.key === 'Enter' && saveEmail()} invalid={!isEmail(account.email)} className="w-100" />
                                 <label htmlFor="edit-email">{t('Email')}</label>
                             </span>
+                            {hint(!isEmail(account.email), t('A valid email address is required.'))}
                         </div>
-                    </div>
-                    <div className="d-flex justify-content-end">
-                        <Button
-                            label={t('Save')}
-                            icon="pi pi-save"
-                            size="small"
-                            disabled={!changed || busy}
-                            onClick={() => run(t('Account saved'), () => UserService.updateUser(user.id, account), account.email)}
-                        />
                     </div>
                 </section>
 

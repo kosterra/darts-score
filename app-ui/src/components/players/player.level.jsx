@@ -7,8 +7,8 @@ import { locale, t } from '../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
 
-// what is missing for the next level, the XP with a thousands separator like the rest
-const missingText = (entry, level) => entry.id === 'xp' ? t('{{formatNumber}} more XP', { formatNumber: formatNumber(level.next.xp - level.xp) }) : entry.label;
+// what is missing for the next level, the XP with a thousands separator like the rest (else as the server says it)
+const missingText = (entry, level) => entry.id === 'xp' && Number.isFinite(level.next?.xp - level.xp) ? t('{{formatNumber}} more XP', { formatNumber: formatNumber(level.next.xp - level.xp) }) : entry.label;
 
 // what a level needs besides XP, in words
 const needsOf = (entry) => [

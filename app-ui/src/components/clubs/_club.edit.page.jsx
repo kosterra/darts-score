@@ -14,12 +14,14 @@ import { CLUB_ROLES } from '../../services/user.service';
 import CountryPicker from '../elements/country.picker';
 import DeletePopup from '../elements/delete.popup';
 import ImageUploader from '../elements/image.uploader';
+import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
 import UpLink from '../elements/up.link';
 import ClubGameRules from './club.game.rules';
 import ClubGoalsEditor from './club.goals.editor';
 import ClubConnections from './club.connections';
 import { useAuth } from '../../utils/auth.context';
+import useAutoSave, { mergeSaves } from '../../utils/use.auto.save';
 import { resolveClubLogo } from '../../utils/image.utils';
 import { t } from '../../utils/i18n';
 import { ACCENT_OPTIONS } from '../../utils/accents';
@@ -64,14 +66,28 @@ const ClubEditPage = () => {
     const [country, setCountry] = useState('');
     const [accent, setAccent] = useState('green');
     const [logoPreview, setLogoPreview] = useState('');
-    // 'unchanged' | File (a new logo) | null (the logo removed)
-    const [logo, setLogo] = useState('unchanged');
-    const [saving, setSaving] = useState(false);
     const [newAdmin, setNewAdmin] = useState(EMPTY_ADMIN);
     const [adding, setAdding] = useState(false);
     const [shameMinAge, setShameMinAge] = useState(16);
-    // the age limit is saved once it stopped changing (the buttons count up and down)
-    const ageTimer = useRef(null);
+    // the settings as just chosen, shown at once while they are saved
+    const [overrides, setOverrides] = useState({});
+    const chosen = useRef({});
+
+    // everything saves as you go: what the club is (the name and description a moment after typing),
+    // its logo, and its settings (each choice at once, all chosen so far sent together)
+    const clubSave = useAutoSave(async (values) => {
+        await ClubService.updateClub(id, { name: values.name.trim(), description: values.description, country: values.country, accent: values.accent === 'green' ? null : values.accent });
+        await refreshClubs();
+    }, { valid: (values) => values.name.trim().length >= 3 && values.name.trim().length <= 50 });
+    const logoSave = useAutoSave(async (file) => {
+        if (file) await ClubService.uploadLogo(id, file);
+        else await ClubService.removeLogo(id);
+        await refreshClubs();
+    });
+    const settingsSave = useAutoSave(async (settings) => {
+        await ClubService.updateClub(id, { name: club.name, ...settings });
+        await refreshClubs();
+    });
 
     // the fields start from the club, and again after it was saved
     const loadedId = useRef(null);
@@ -83,7 +99,6 @@ const ClubEditPage = () => {
         setCountry(club.country ?? '');
         setAccent(club.accent ?? 'green');
         setLogoPreview(resolveClubLogo(club.logo));
-        setLogo('unchanged');
         setShameMinAge(club.shameMinAge ?? 16);
     }, [club]);
 
@@ -93,34 +108,22 @@ const ClubEditPage = () => {
     const showError = (summary, error) => toast.current?.show({ severity: 'error', summary, detail: error.message, life: 4000 });
     const showSaved = (detail) => toast.current?.show({ severity: 'success', summary: t('Saved'), detail, life: 2500 });
 
-    const changed = name.trim() !== club.name || description !== (club.description ?? '') || country !== (club.country ?? '') || accent !== (club.accent ?? 'green') || logo !== 'unchanged';
-
-    const saveClub = async (event) => {
-        event.preventDefault();
-        setSaving(true);
-        try {
-            await ClubService.updateClub(club.id, { name: name.trim(), description, country, accent: accent === 'green' ? null : accent });
-            if (logo instanceof File) await ClubService.uploadLogo(club.id, logo);
-            else if (logo === null && club.logo) await ClubService.removeLogo(club.id);
-            await refreshClubs();
-            setLogo('unchanged');
-            showSaved(name.trim());
-        } catch (error) {
-            showError(t('Save the club'), error);
-        } finally {
-            setSaving(false);
-        }
+    // what the club is: shown at once, saved a moment later (a choice at once)
+    const changeClub = (patch, options) => {
+        const next = { name, description, country, accent, ...patch };
+        if ('name' in patch) setName(patch.name);
+        if ('description' in patch) setDescription(patch.description);
+        if ('country' in patch) setCountry(patch.country);
+        if ('accent' in patch) setAccent(patch.accent);
+        clubSave.change(next, options);
     };
 
-    // a setting on the right: saved at once, the name goes along (the API needs it)
-    const saveSetting = async (changes, detail) => {
-        try {
-            await ClubService.updateClub(club.id, { name: club.name, ...changes });
-            await refreshClubs();
-            showSaved(detail);
-        } catch (error) {
-            showError(t('Club settings'), error);
-        }
+    // a setting: shown at once and saved at once (the age limit once it stopped changing); the name goes
+    // along, as the API needs it
+    const saveSetting = (changes, { now = true } = {}) => {
+        chosen.current = { ...chosen.current, ...changes };
+        setOverrides(chosen.current);
+        settingsSave.change(chosen.current, { now });
     };
 
     const addAdmin = async (event) => {
@@ -159,21 +162,23 @@ const ClubEditPage = () => {
     };
 
     const field = (key) => (event) => setNewAdmin(current => ({ ...current, [key]: event.target.value }));
-    const isPublic = Boolean(club.isPublic);
-    const shameOn = club.shameBadges !== false;
-    const policy = club.joinPolicy ?? 'closed';
+    // the club as saved, with what was just chosen on top
+    const shown = { ...club, ...overrides };
+    const isPublic = Boolean(shown.isPublic);
+    const shameOn = shown.shameBadges !== false;
+    const policy = shown.joinPolicy ?? 'closed';
 
     return (
         <div className="container-fluid p-4 border-0">
             <Toast ref={toast} position="bottom-right" />
             <UpLink to="/my-clubs" label={t('My clubs')} />
-            <Panel header={t('Edit {{name}}', { name: club.name })}>
+            <Panel header={t('Edit {{name}}', { name: club.name })} icons={<SaveStatus {...mergeSaves(clubSave, logoSave, settingsSave)} className="me-2" />}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
-                    {t('What the club is and who runs it, what it shows of itself and how new members come in. The settings on the right are saved right away.')}
+                    {t('What the club is and who runs it, what it shows of itself and how new members come in. Everything is saved as you go.')}
                 </p>
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">
-                        <form onSubmit={saveClub}>
+                        <div className="mb-4">
                             <p className="game-setup-section-title">{t('The club')}</p>
                             <p className="setting-title">{t('Logo and name')}</p>
                             <div className="row mx-0 mt-0 setting-body">
@@ -181,13 +186,13 @@ const ClubEditPage = () => {
                                     <ImageUploader
                                         name={name}
                                         previewUrl={logoPreview}
-                                        onFileChange={(file) => { setLogo(file); setLogoPreview(URL.createObjectURL(file)); }}
-                                        onFileDelete={() => { setLogo(null); setLogoPreview(''); }}
+                                        onFileChange={(file) => { setLogoPreview(URL.createObjectURL(file)); logoSave.change(file, { now: true }); }}
+                                        onFileDelete={() => { setLogoPreview(''); logoSave.change(null, { now: true }); }}
                                     />
                                     <label className="d-flex flex-column gap-1 profile-field">
                                         <span className="text-subtle fs-8">{t('Name')}</span>
-                                        <InputText value={name} onChange={(event) => setName(event.target.value)} minLength={3} maxLength={50} required />
-                                        <span className="text-faint fs-8">{t('3 to 50 characters.')}</span>
+                                        <InputText value={name} onChange={(event) => changeClub({ name: event.target.value })} onBlur={clubSave.flush} minLength={3} maxLength={50} required invalid={name.trim().length < 3} />
+                                        <span className={`fs-8 ${name.trim().length < 3 ? 'text-danger' : 'text-faint'}`}>{t('3 to 50 characters.')}</span>
                                     </label>
                                 </div>
                             </div>
@@ -196,7 +201,8 @@ const ClubEditPage = () => {
                                 <div className="col d-flex flex-column gap-1 pt-1">
                                     <InputTextarea
                                         value={description}
-                                        onChange={(event) => setDescription(event.target.value)}
+                                        onChange={(event) => changeClub({ description: event.target.value })}
+                                        onBlur={clubSave.flush}
                                         maxLength={DESCRIPTION_MAX}
                                         rows={4}
                                         autoResize
@@ -209,7 +215,7 @@ const ClubEditPage = () => {
                             <p className="setting-title">{t('Country')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col d-flex flex-column gap-1 pt-1">
-                                    <CountryPicker value={country} onChange={setCountry} />
+                                    <CountryPicker value={country} onChange={(value) => changeClub({ country: value ?? '' }, { now: true })} />
                                     <span className="text-faint fs-8">{t('Where the club plays: its flag is shown next to its name in the lists of clubs.')}</span>
                                 </div>
                             </div>
@@ -224,7 +230,7 @@ const ClubEditPage = () => {
                                                 role="radio"
                                                 aria-checked={accent === option.value}
                                                 className={`accent-choice ${accent === option.value ? 'is-chosen' : ''}`}
-                                                onClick={() => setAccent(option.value)}
+                                                onClick={() => changeClub({ accent: option.value }, { now: true })}
                                                 title={option.label}
                                             >
                                                 <span className="accent-swatch" style={{ '--swatch': option.color }} aria-hidden="true" />
@@ -235,10 +241,7 @@ const ClubEditPage = () => {
                                     <span className="text-faint fs-8">{t('The accent colour of the app for the members who did not choose their own (Profile → Account → Display): buttons, highlights and the club\'s tablet.')}</span>
                                 </div>
                             </div>
-                            <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
-                                <Button type="submit" label={t('Save')} icon="pi pi-save" size="small" loading={saving} disabled={!changed || name.trim().length < 3} />
-                            </div>
-                        </form>
+                        </div>
 
                         <p className="game-setup-section-title">{t('Admins')}</p>
                         <p className="setting-title">{t('Who runs the club')}</p>
@@ -295,23 +298,23 @@ const ClubEditPage = () => {
                             title={t('Public club')}
                             hint={t('Listed by name on the public start page, with its figures. Whether people with an account can find and join the club is set under New members.')}
                             checked={isPublic}
-                            onChange={(value) => saveSetting({ isPublic: value }, value ? t('The club is public.') : t('The club is private.'))}
+                            onChange={(value) => saveSetting({ isPublic: value })}
                         />
                         <SettingSwitch
                             id="club-live"
                             title={t('Show running games')}
                             hint={t('Live scores of games in progress appear on the public start page.')}
-                            checked={club.publicLiveGames !== false}
+                            checked={shown.publicLiveGames !== false}
                             disabled={!isPublic}
-                            onChange={(value) => saveSetting({ publicLiveGames: value }, value ? t('Running games are shown.') : t('Running games are hidden.'))}
+                            onChange={(value) => saveSetting({ publicLiveGames: value })}
                         />
                         <SettingSwitch
                             id="club-results"
                             title={t('Show results')}
                             hint={t('Finished games appear under the latest results. Players are shown without their name unless their nickname is public: their own choice with a login, yours without.')}
-                            checked={club.publicResults !== false}
+                            checked={shown.publicResults !== false}
                             disabled={!isPublic}
-                            onChange={(value) => saveSetting({ publicResults: value }, value ? t('Results are shown.') : t('Results are hidden.'))}
+                            onChange={(value) => saveSetting({ publicResults: value })}
                         />
 
                         <p className="game-setup-section-title mt-4">{t('New members')}</p>
@@ -323,7 +326,7 @@ const ClubEditPage = () => {
                                     options={JOIN_POLICIES}
                                     optionLabel="label"
                                     optionValue="value"
-                                    onChange={(event) => event.value && event.value !== policy && saveSetting({ joinPolicy: event.value }, t('New members: {{label}}.', { label: JOIN_POLICIES.find(entry => entry.value === event.value).label }))}
+                                    onChange={(event) => event.value && event.value !== policy && saveSetting({ joinPolicy: event.value })}
                                     className="p-selectbutton-pills club-join-policy"
                                     aria-label={t('How new members join')}
                                 />
@@ -337,15 +340,15 @@ const ClubEditPage = () => {
                             title={t('Hall of Shame')}
                             hint={t('Badges nobody wants, like Bed and Breakfast or Madhouse, with who holds them on the dashboard and in the games.')}
                             checked={shameOn}
-                            onChange={(value) => saveSetting({ shameBadges: value }, value ? t('The Hall of Shame is on.') : t('The Hall of Shame is off.'))}
+                            onChange={(value) => saveSetting({ shameBadges: value })}
                         />
                         <SettingSwitch
                             id="club-shame-children"
                             title={t('Leave out children under {{shameMinAge}}', { shameMinAge: shameMinAge })}
                             hint={t('Children never hold a shame badge and have no Hall of Shame on their profile; what they threw as children never counts. Players without a date of birth are always left out.')}
-                            checked={club.shameWithoutChildren === true}
+                            checked={shown.shameWithoutChildren === true}
                             disabled={!shameOn}
-                            onChange={(value) => saveSetting({ shameWithoutChildren: value }, value ? t('Children under {{shameMinAge}} are left out.', { shameMinAge: shameMinAge }) : t('Children count too.'))}
+                            onChange={(value) => saveSetting({ shameWithoutChildren: value })}
                         />
                         <p className="setting-title">{t('Age limit')}</p>
                         <div className="row mx-0 mt-0 setting-body">
@@ -354,15 +357,16 @@ const ClubEditPage = () => {
                                     value={shameMinAge}
                                     onValueChange={(event) => {
                                         const age = event.value ?? 16;
+                                        // the field also reports the value it starts with: only a change is saved
+                                        if (age === shameMinAge) return;
                                         setShameMinAge(age);
-                                        clearTimeout(ageTimer.current);
-                                        if (age !== (club.shameMinAge ?? 16)) ageTimer.current = setTimeout(() => saveSetting({ shameMinAge: age }, t('Players count from {{age}}.', { age: age })), 700);
+                                        saveSetting({ shameMinAge: age }, { now: false });
                                     }}
                                     min={6}
                                     max={21}
                                     showButtons
                                     suffix=" years"
-                                    disabled={!shameOn || club.shameWithoutChildren !== true}
+                                    disabled={!shameOn || shown.shameWithoutChildren !== true}
                                     inputClassName="text-center"
                                     inputStyle={{ width: '6.5rem' }}
                                     aria-label={t('Age limit')}
@@ -385,13 +389,13 @@ const ClubEditPage = () => {
                 </div>
             </Panel>
             {/* the club shirt its members play in */}
-            <ClubShirtEditor club={club} key={`shirt-${club.id}`} onSaved={async (detail) => { await refreshClubs(); showSaved(detail); }} onError={showError} />
+            <ClubShirtEditor club={club} key={`shirt-${club.id}`} onSaved={refreshClubs} />
             {/* what the club earned together, and the goals its admins set */}
             <ClubGoalsEditor club={club} key={`goals-${club.id}`} onError={showError} />
             {/* connections to other clubs, to play shared tournaments */}
-            <ClubConnections club={club} key={`connections-${club.id}`} onSaved={showSaved} onError={showError} onSetting={saveSetting} />
+            <ClubConnections club={club} key={`connections-${club.id}`} onSaved={showSaved} onError={showError} onClubChanged={refreshClubs} />
             {/* the club's own rules for its games */}
-            <ClubGameRules club={club} key={club.id} onSaved={refreshClubs} onError={showError} />
+            <ClubGameRules club={club} key={club.id} onSaved={refreshClubs} />
         </div>
     );
 };

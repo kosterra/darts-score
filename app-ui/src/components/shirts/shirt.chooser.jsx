@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import PlayerService from '../../services/player.service';
 import FlightGallery from '../flights/flight.gallery';
 import { ShirtPicture } from './shirt.art';
 import { FLIGHT_COLORS } from '../../utils/flights';
+import useAutoSave from '../../utils/use.auto.save';
 import { t } from '../../utils/i18n';
 
 // the tiles framed as the flights: the club shirt as a starter, those of the levels as master, the Legend's as legendary
@@ -34,13 +35,23 @@ export const Swatches = ({ label, value, onChange }) => (
  * A player's shirt, in the boxes of their player: everyone wears the shirt
  * of their club; from the level Pro on one of their own with their nickname
  * on the back, every design free, more with World Class and Legend. Below
- * Pro the designs wait greyed out, as a goal. A choice is saved right away.
+ * Pro the designs wait greyed out, as a goal. A choice is shown and saved at
+ * once; onStatus(autosave) tells the page how the saving goes.
  *
  * player: { id, nickname }; club: { name, accent } of the club shown; clubId: the club the player is edited in
  */
-const ShirtChooser = ({ player, club, clubId, onError }) => {
+const ShirtChooser = ({ player, club, clubId, onStatus }) => {
     const [standing, setStanding] = useState(null);
     const [failed, setFailed] = useState(false);
+    // what was chosen here, sent together (one save at a time, the newest wins)
+    const chosen = useRef({});
+    const shirtSave = useAutoSave(async (shirt) => {
+        const saved = await PlayerService.setShirt(player.id, shirt, clubId);
+        // the designs the level opens from the answer, the shirt as chosen meanwhile
+        setStanding({ ...saved, shirt: { ...saved.shirt, ...chosen.current } });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => onStatus?.(shirtSave), [shirtSave.status, shirtSave.error]);
 
     useEffect(() => {
         let current = true;
@@ -53,15 +64,10 @@ const ShirtChooser = ({ player, club, clubId, onError }) => {
     if (failed) return <span className="text-faint fs-8">{t('The shirts could not be loaded. Please reload the page.')}</span>;
     if (!standing) return null;
 
-    const save = async (change) => {
-        const before = standing;
-        setStanding({ ...standing, shirt: { ...standing.shirt, ...change } });
-        try {
-            setStanding(await PlayerService.setShirt(player.id, change, clubId));
-        } catch (error) {
-            setStanding(before);
-            onError?.(error);
-        }
+    const save = (change) => {
+        chosen.current = { ...chosen.current, ...change };
+        setStanding(current => ({ ...current, shirt: { ...current.shirt, ...change } }));
+        shirtSave.change(chosen.current, { now: true });
     };
 
     const { shirt } = standing;

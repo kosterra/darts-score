@@ -9,6 +9,8 @@ import { SelectButton } from 'primereact/selectbutton';
 import { Tag } from 'primereact/tag';
 
 import AdminService from '../../services/admin.service';
+import SaveStatus from '../elements/save.status';
+import useAutoSave from '../../utils/use.auto.save';
 import { useAuth } from '../../utils/auth.context';
 import { LANGUAGES, currentLanguage, t, tn } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
@@ -16,10 +18,10 @@ import { formatDate } from '../../utils/dates';
 /**
  * The mail server, for the global admins: how the installation is set up to
  * send mails (from its environment, without the password), its daily limit
- * with the mails of the last seven days, and a test mail to any address, with
- * what the server answered or what to check when it fails.
+ * with the mails of the last seven days (saved as you go), and a test mail to
+ * any address, with what the server answered or what to check when it fails.
  */
-const MailServer = ({ onSaved }) => {
+const MailServer = () => {
     const { user } = useAuth();
     const [setup, setSetup] = useState(null);
     const [error, setError] = useState('');
@@ -30,7 +32,10 @@ const MailServer = ({ onSaved }) => {
     const [result, setResult] = useState(null);
 
     const [perDay, setPerDay] = useState(null);
-    const [savingLimit, setSavingLimit] = useState(false);
+    // empty for no limit, else 1 to 1,000,000 (as the API wants it); saved a moment after typing
+    const limitSave = useAutoSave(async (value) => setSetup(await AdminService.saveMailLimit(value)), {
+        valid: (value) => value === null || (Number.isInteger(value) && value >= 1 && value <= 1000000),
+    });
     const panel = useRef(null);
     const { hash } = useLocation();
 
@@ -47,17 +52,9 @@ const MailServer = ({ onSaved }) => {
 
     if (!setup) return error ? <Message severity="error" text={error} /> : null;
 
-    const saveLimit = async () => {
-        setSavingLimit(true);
-        try {
-            const saved = await AdminService.saveMailLimit(perDay || null);
-            setSetup(saved);
-            setPerDay(saved.limit.limit);
-            onSaved?.(saved.limit.limit ? t('At most {{count}} mails a day.', { count: saved.limit.limit }) : t('No daily mail limit.'));
-        } catch (err) {
-            setError(err.message);
-        }
-        setSavingLimit(false);
+    const changeLimit = (value) => {
+        setPerDay(value);
+        limitSave.change(value || null);
     };
     const { days, limit } = setup.limit;
     const today = days[0];
@@ -103,15 +100,19 @@ const MailServer = ({ onSaved }) => {
                     ))}
                 </dl>
 
-                <span className="text-default fw-semibold fs-7 mt-2">{t('Daily limit')}</span>
+                <span className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
+                    <span className="text-default fw-semibold fs-7">{t('Daily limit')}</span>
+                    <SaveStatus {...limitSave} />
+                </span>
                 <span className="text-subtle fs-8">
-                    {t('Many mail providers send only so many mails a day (e.g. 300). Close to the limit the global admins hear it; once it is reached, no more mails are sent that day (not later either). A mail server that refuses mails for its own limit counts as reached too.')}
+                    {t('Many mail providers send only so many mails a day (e.g. 300). Close to the limit the global admins hear it; once it is reached, no more mails are sent that day (not later either). A mail server that refuses mails for its own limit counts as reached too.')}{' '}{t('Saved as you go.')}
                 </span>
                 <div className="d-flex flex-wrap align-items-center gap-3">
                     <InputNumber
                         inputId="mail-limit"
                         value={perDay}
-                        onValueChange={(event) => setPerDay(event.value)}
+                        onValueChange={(event) => changeLimit(event.value)}
+                        onBlur={limitSave.flush}
                         min={1}
                         max={1000000}
                         placeholder={t('No limit')}
@@ -119,7 +120,6 @@ const MailServer = ({ onSaved }) => {
                         aria-label={t('Daily limit')}
                         inputClassName="mail-limit-input"
                     />
-                    <Button label={t('Save')} icon="pi pi-save" size="small" loading={savingLimit} disabled={(perDay || null) === (limit || null)} onClick={saveLimit} />
                 </div>
                 <div className="d-flex flex-column gap-2">
                     <span className="text-default fs-7">

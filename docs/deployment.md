@@ -37,7 +37,10 @@ profile). Key points:
 
 The app version lives in the **root `package.json`** and is the single source of
 truth for the Docker tag; `app-api` and `app-ui` stay at `0.0.0` (not published
-independently). The scheme is date-based (`YYYY.MM.DD`).
+independently), and in `app-api/openapi.yaml` (`info.version`). The scheme is
+`{year}.{month}.{sequence}`, the sequence counting from 0 in each month and no
+leading zeros (`2026.11.0`, `2026.11.1`, `2026.12.0`, `2027.1.0`).
+`node scripts/version.mjs next` sets the next one in both files.
 
 ## CI/CD (GitHub Actions)
 
@@ -100,11 +103,15 @@ write elsewhere, give it a `tmpfs` rather than dropping `read_only`.
 The repository convention (branches): work and push go to **`develop`**; `main`
 is only updated through a reviewed pull request.
 
-1. On `develop`, bump the version in the root `package.json` for the release.
-2. Open a **`develop` → `main`** pull request; CI (`checks.yml`) runs on it.
-3. Review and merge. The merge to `main` triggers `release.yml`: it tags the
+1. On `develop`, the version in the root `package.json` is the one to release;
+   the top What's new entry gets that number.
+2. Push `develop` to `release/<version>` and open a **`release/<version>` →
+   `main`** pull request; CI (`checks.yml`) runs on it.
+3. Right after opening it, `develop` moves to the next version
+   (`node scripts/version.mjs next`, commit `Version <next>`).
+4. Review and merge. The merge to `main` triggers `release.yml`: it tags the
    version and pushes `:<version>` and `:latest`.
-4. Production pulls `:latest`; the TEST stack has already been running `:develop`.
+5. Production pulls `:latest`; the TEST stack has already been running `:develop`.
 
 > Never push or merge directly to `main` — always via the pull request, so the
 > release is reviewed before it reaches production.

@@ -73,21 +73,23 @@ const AdministrationPage = () => {
                 ))}
             </div>
 
-            <BannerSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Banner saved'), detail, life: 3000 })} />
+            {/* every setting below is saved as you go, each panel says how its saving goes */}
+            <BannerSettings />
 
-            <StartPageSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Start page'), detail, life: 3000 })} />
+            <StartPageSettings />
 
-            <MailServer onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail server'), detail, life: 3000 })} />
+            <MailServer />
 
+            {/* a test mail sent or a mail back to the default text: actions, told with a toast */}
             <MailTemplates onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Mail templates'), detail, life: 3500 })} />
 
-            <SessionSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Session saved'), detail, life: 3000 })} />
+            <SessionSettings />
 
-            <MfaSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Two-step login'), detail, life: 3000 })} />
+            <MfaSettings />
 
-            <LegalSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Saved'), detail, life: 3000 })} />
+            <LegalSettings />
 
-            <SupportSettings onSaved={(detail) => toast.current.show({ severity: 'success', summary: t('Saved'), detail, life: 3000 })} />
+            <SupportSettings />
 
             {system &&
                 <Panel header={t('System')}>
