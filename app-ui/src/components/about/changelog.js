@@ -7,10 +7,11 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.0',
         changes: [
             t('Saved as you go, everywhere: every setting and every change of a club, a player, your profile and the installation is saved a moment after you make it, and the section says Saving…, Saved or what went wrong. No more Save buttons, except where something is created, sent or protected by your password.'),
             t('Tidier on the phone: the players of a game\'s setup as compact rows, so they fit on the first screen; the scores in a game level with each other; figures such as "100 %" and "132 / 145" no longer break; the home screen hint leaves room for the end of the page; the error log\'s buttons fit.'),
+            t('On the phone: Start game stays in sight above the menu while you set up a game, My clubs shows your clubs before the form for a new one, Fair play explains its lists on request, the picture to upload is smaller with Upload beside it, and the admin dashboard shows two figures a row.'),
             t('The caller sounds more like the stage: a male voice of the device where it has one, and the 180 shouted the way the callers do – One hundred and eighty, with the eighty drawn out.'),
             t('A male or female caller, under Profile → Playing: with your account on every device. There too, a voice of the device to call with instead, and Try to hear it.'),
         ],
