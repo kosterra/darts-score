@@ -74,10 +74,19 @@ every PR".
 2. **Then the release preparation**: the top What's new entry in
    `app-ui/src/components/about/changelog.js` gets that new version instead
    of `'Next release'`; SBOMs regenerated (`node scripts/sbom.mjs`, so they
-   carry the new version), full test suites run.
-3. Push `develop`, then `git push origin develop:release/<version>` and open the
-   PR `release/<version>` → `main` — only when the developer asked for it.
-4. **After the PR** nothing changes the version. A new
+   carry the new version). Commit and push `develop`.
+3. **The checks run once, in CI**, on that push (`develop.yml`), not again
+   locally: wait for its run (`gh run list --branch develop --limit 1`, then
+   `gh run watch <id> --exit-status`). If it fails, fix it on `develop` first.
+   Push nothing else to `develop` until the PR is open: a newer push makes the
+   release commit's run wait or be skipped.
+4. `git push origin develop:release/<version>` and open the PR
+   `release/<version>` → `main` — only when the developer asked for it. The PR
+   has no checks of its own: it shows those of the commit's develop run, which
+   `main`'s branch protection requires (`checks / api`, `checks / ui`,
+   `checks / e2e`). Link that run in the PR's notes. Merging into `main`
+   builds the release without running the checks again.
+5. **After the PR** nothing changes the version. A new
    `{ version: 'Next release', changes: [] }` entry is added to What's new with
    the first change that goes into it.
 
