@@ -1056,6 +1056,8 @@ http.createServer((req, res) => {
             ] });
         }
         if (path.startsWith('/api/stats/badges/game/')) return send(res, 200, { finished: true, players: [], club: process.env.CLUB_BADGES ? [{ ...publicClubBadge(CLUB_BADGES.find(b => b.id === 'clubGames-100')), earnedAt: new Date(), nickname: 'Anna' }] : [] });
+        // the clubs a club is connected with, to play shared tournaments: none here
+        if (req.method === 'GET' && /^\/api\/clubs\/[^/]+\/connections(\/connectable)?$/.test(path)) return send(res, 200, []);
         console.log('unhandled', req.method, path);
         send(res, 200, req.method === 'GET' ? [] : {});
     });

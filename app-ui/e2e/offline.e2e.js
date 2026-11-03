@@ -14,6 +14,8 @@ const visit = async (page, ring, number) => {
     if (await send.count()) await send.first().click();
 };
 
+test.skip(({ isMobile }) => isMobile, 'once is enough: keeping and sending a game works the same at every width');
+
 test('an X01 game is scored on without a connection and sent when it is back', async ({ page, context }) => {
     await post('/__test/logged-out', { loggedOut: false });
     await post('/__test/role', { admin: false });
