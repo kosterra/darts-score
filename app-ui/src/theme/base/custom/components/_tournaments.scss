@@ -294,6 +294,16 @@
     font-variant-numeric: tabular-nums;
 }
 
+// the favourite's chance on a match still to be played: faint, so it never reads as a score
+.bracket-chance {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    font-size: $text-xs;
+    font-weight: $weight-regular;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 // on the top edge of the card, like a tab, clear of the names and scores
 .bracket-state {
     position: absolute;

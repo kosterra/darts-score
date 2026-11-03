@@ -5,19 +5,19 @@ import { normalizeGamePreferences } from '../../rules/club.rules';
 describe('the dashboards', () => {
     it('keep the personal widgets to one\'s own Dashboard', () => {
         const personal = DASHBOARD_WIDGETS.filter(widget => widget.personal).map(widget => widget.id);
-        expect(personal).toEqual(['upNext', 'favourites', 'training']);
+        expect(personal).toEqual(['upNext', 'favourites', 'training', 'practiceGoals']);
         expect(CLUB_WIDGETS.some(widget => widget.personal)).toBe(false);
         expect(DEFAULT_LAYOUT.some(item => personal.includes(item.id))).toBe(false);
     });
 
     it('say whether a widget shows only yours or the whole club', () => {
-        expect(DASHBOARD_WIDGETS.filter(widget => scopeOf(widget) === 'you').map(widget => widget.id)).toEqual(['upNext', 'favourites', 'training', 'me']);
+        expect(DASHBOARD_WIDGETS.filter(widget => scopeOf(widget) === 'you').map(widget => widget.id)).toEqual(['upNext', 'favourites', 'training', 'practiceGoals', 'me']);
         expect(scopeOf({ id: 'records' })).toBe('club');
     });
 
     it('show their own default until arranged', () => {
         expect(resolveLayout(null).map(widget => widget.id)).toEqual(DEFAULT_LAYOUT.map(item => item.id));
-        expect(resolveLayout(null, { fallback: PERSONAL_DEFAULT_LAYOUT }).map(widget => widget.id)).toEqual(['upNext', 'favourites', 'clubGoals', 'me', 'timeline']);
+        expect(resolveLayout(null, { fallback: PERSONAL_DEFAULT_LAYOUT }).map(widget => widget.id)).toEqual(['upNext', 'practiceGoals', 'favourites', 'clubGoals', 'me', 'timeline']);
         expect(resolveLayout([{ id: 'favourites', size: 'F' }, { id: 'gone', size: 'S' }]).map(widget => [widget.id, widget.size])).toEqual([['favourites', 'F']]);
     });
 

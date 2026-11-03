@@ -35,6 +35,9 @@ export const NOTIFICATION_TOPICS = [
     { id: 'deletion', group: 'games', kinds: ['deletionRequested', 'deletionDone', 'deletionKept'], inApp: true, mail: 'instant' },
     { id: 'fairPlay', group: 'games', kinds: ['fairPlayDeleted', 'fairPlayRepaired', 'fairPlayRestored'], inApp: true, mail: 'instant' },
     { id: 'weeklySummary', group: 'games', kinds: [], mailOnly: true, mails: ['off', 'weekly'], inApp: false, mail: 'off' },
+    // the user's own weekly goals: one reached, and on Sunday how far the open ones are
+    { id: 'practiceGoals', group: 'games', kinds: ['practiceGoalReached'], inApp: true, mail: 'off' },
+    { id: 'practiceGoalNudge', group: 'games', kinds: ['practiceGoalNudge'], mails: ['off', 'instant'], inApp: true, mail: 'off' },
 
     { id: 'clubBadges', group: 'club', kinds: ['clubBadge'], inApp: true, mail: 'off' },
     { id: 'clubGoals', group: 'club', kinds: ['clubGoal'], inApp: true, mail: 'off' },
@@ -43,6 +46,8 @@ export const NOTIFICATION_TOPICS = [
     { id: 'tournaments', group: 'club', kinds: ['tournamentDrawn', 'tournamentMatch', 'tournamentWon'], inApp: true, mail: 'off' },
     { id: 'leagues', group: 'club', kinds: ['leagueStarted', 'leagueMatch', 'leagueMoved', 'leagueWon'], inApp: true, mail: 'off' },
     { id: 'clubNights', group: 'club', kinds: ['clubNightCancelled', 'clubNightReminder'], inApp: true, mail: 'instant' },
+    // a match called to a free board (a tournament or a club night played on boards)
+    { id: 'boards', group: 'club', kinds: ['boardCalled'], inApp: true, mail: 'off' },
 
     { id: 'joinRequests', group: 'admin', kinds: ['joinRequested', 'clubJoined'], inApp: true, mail: 'instant' },
     { id: 'connections', group: 'admin', kinds: ['clubConnectionRequested', 'clubConnectionAccepted'], inApp: true, mail: 'instant' },

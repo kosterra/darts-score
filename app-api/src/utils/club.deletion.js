@@ -27,6 +27,7 @@ export const deleteClubData = async (club, { by = '' } = {}) => {
         db.joinRequest.deleteMany({ club: club._id }),
         db.playerClaim.deleteMany({ club: club._id }),
         db.tournament.deleteMany({ club: club._id }),
+        db.boardNight.deleteMany({ club: club._id }),
         db.clubTally.deleteMany({ club: club._id }),
         db.fairPlayHit.deleteMany({ club: club._id }),
         db.deletionRequest.deleteMany({ club: club._id }),

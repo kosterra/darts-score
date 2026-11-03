@@ -7,6 +7,9 @@ import TournamentService from '../../../services/tournament.service';
 import DeletionRequestService from '../../../services/deletion.request.service';
 import IntegrityService from '../../../services/integrity.service';
 import CalendarService from '../../../services/calendar.service';
+import BoardService from '../../../services/board.service';
+import useMyBoards from '../../../utils/use.my.boards';
+import { noteNightGame } from '../../../utils/club.night';
 import { dayKey } from '../../../rules/calendar';
 import { useAuth } from '../../../utils/auth.context';
 import { playerInClub, useMyPlayers } from '../../../utils/use.my.players';
@@ -17,7 +20,8 @@ import { formatDateTime } from '../../../utils/dates';
 import { t, tn } from '../../../utils/i18n';
 
 /**
- * What waits for the player: tonight's club night (whether they come, right
+ * What waits for the player: their match called to a board (first, across
+ * their clubs), tonight's club night (whether they come, right
  * here, and the way to the club evening), a tournament to enter or a match
  * of theirs to play, their games left running, deletion requests waiting for
  * their answer; for the club's admins also new requests to join and what fair
@@ -35,6 +39,7 @@ const UpNextWidget = ({ widget, runningGames = [], players }) => {
     const [busy, setBusy] = useState('');
     const [tonight, setTonight] = useState(null);
     const today = dayKey(new Date());
+    const myBoards = useMyBoards();
 
     useEffect(() => {
         TournamentService.loadTournaments({ active: true }).then(data => setTournaments(data.tournaments)).catch(() => setTournaments([]));
@@ -66,7 +71,36 @@ const UpNextWidget = ({ widget, runningGames = [], players }) => {
         setBusy('');
     };
 
+    // a match called to a board, started right here: a tournament's or a club night's
+    const startOnBoard = async (entry) => {
+        setBusy(`board-${entry.key}`);
+        try {
+            if (entry.source === 'night') {
+                const { game } = await BoardService.startEntry(entry.id, entry.key);
+                noteNightGame(game.id, entry.id);
+                navigate(playPath(game.kind, game.id));
+            } else {
+                const { game } = await TournamentService.startMatch(entry.id, entry.key);
+                navigate(playPath('x01', game));
+            }
+        } catch {
+            // the page of the match says why
+            navigate(entry.link);
+        }
+        setBusy('');
+    };
+
     const items = [];
+    for (const entry of myBoards) {
+        items.push({
+            key: `b-${entry.source}-${entry.key}`, icon: 'pi-th-large',
+            title: t('Your match: board {{board}}, against {{name}}', { board: entry.board, name: entry.opponent?.nickname ?? '?' }),
+            detail: [entry.source === 'night' ? t('Club night') : entry.title, entry.club?.id !== activeClub?.id ? entry.club?.name : null].filter(Boolean).join(' · '),
+            actions: entry.status === 'playing' && entry.game
+                ? <Button type="button" icon="pi pi-play" label={t('Go on')} size="small" onClick={() => navigate(playPath(entry.game.kind, entry.game.id))} />
+                : <Button type="button" icon="pi pi-play" label={t('Start the match')} size="small" loading={busy === `board-${entry.key}`} onClick={() => startOnBoard(entry)} />,
+        });
+    }
     // tonight's club night, until it is over (one going on past midnight all day)
     const now = new Date().toTimeString().slice(0, 5);
     if (tonight && !(tonight.end && tonight.end > tonight.start && now >= tonight.end)) {
@@ -108,7 +142,8 @@ const UpNextWidget = ({ widget, runningGames = [], players }) => {
             });
         }
         const match = me && tournament.matches?.find(entry => entry.players.includes(me) && ['ready', 'running'].includes(entry.status));
-        if (match) {
+        // a match on a board is in the first rows already
+        if (match && !myBoards.some(entry => entry.source === 'tournament' && entry.key === match.id)) {
             const opponent = match.players.find(id => id && id !== me);
             items.push({
                 key: `m-${tournament.id}`, icon: 'pi-sitemap',
@@ -118,7 +153,7 @@ const UpNextWidget = ({ widget, runningGames = [], players }) => {
             });
         }
     }
-    for (const game of runningGames.filter(entry => me && entry.players?.some(player => player.player === me))) {
+    for (const game of runningGames.filter(entry => me && entry.players?.some(player => player.player === me) && !myBoards.some(board => board.game?.id === entry.id))) {
         const others = game.players.map(player => player.player).filter(id => id !== me);
         items.push({
             key: `g-${game.id}`, icon: 'pi-play-circle',

@@ -62,6 +62,15 @@ describe('the topics', () => {
         expect(topicOfKind('fairPlayRestored').id).toBe('fairPlay');
         expect(topicOfKind('unknown')).toBeNull();
     });
+
+    it('have the weekly goals in the app by default, by mail only when chosen (the nudge at once or not at all)', () => {
+        expect(topicOfKind('practiceGoalReached').id).toBe('practiceGoals');
+        expect(topicOfKind('practiceGoalNudge').id).toBe('practiceGoalNudge');
+        expect(preferenceOf(undefined, 'practiceGoals')).toEqual({ inApp: true, mail: 'off' });
+        expect(preferenceOf(undefined, 'practiceGoalNudge')).toEqual({ inApp: true, mail: 'off' });
+        expect(normalizePreferences({ practiceGoalNudge: { mail: 'daily' } })).toEqual({});
+        expect(normalizePreferences({ practiceGoalNudge: { mail: 'instant' } })).toEqual({ practiceGoalNudge: { mail: 'instant' } });
+    });
 });
 
 describe('delivering', () => {
@@ -180,11 +189,17 @@ describe('the club rating', () => {
 
     it('tells who moved up past whom', () => {
         const wins = (count) => [...base, ...Array.from({ length: count }, (_, index) => tally(`da${index + 1}`, 'D', 'A', 11 + index))];
-        // the third win lifts D past B, the sixth past A
-        expect(ratingMoves(wins(3), 'da3', { clubRatings, minGames: 5 })).toMatchObject({ climbed: [{ id: 'D', place: 3, passed: ['B'] }] });
-        expect([...ratingMoves(wins(6), 'da6', { clubRatings, minGames: 5 }).passedBy]).toEqual([['A', ['D']]]);
+        // the second win lifts D past B, the eighth past A
+        expect(ratingMoves(wins(2), 'da2', { clubRatings, minGames: 5 })).toMatchObject({ climbed: [{ id: 'D', place: 3, passed: ['B'] }] });
+        expect([...ratingMoves(wins(8), 'da8', { clubRatings, minGames: 5 }).passedBy]).toEqual([['A', ['D']]]);
         // a win that changes no places tells nobody
         expect(ratingMoves(wins(4), 'da4', { clubRatings, minGames: 5 }).climbed).toEqual([]);
+    });
+
+    it('places only the members when the club names them', () => {
+        const wins = [...base, ...Array.from({ length: 2 }, (_, index) => tally(`da${index + 1}`, 'D', 'A', 11 + index))];
+        // without B on the board, D's second win passes nobody
+        expect(ratingMoves(wins, 'da2', { clubRatings, minGames: 5, among: new Set(['A', 'C', 'D']) }).climbed).toEqual([]);
     });
 
     it('leaves friendly games and games without one winner out', () => {

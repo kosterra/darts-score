@@ -41,6 +41,8 @@ export default (mongoose) => {
       badges: { type: [{ _id: false, badge: String, earnedAt: Date, sourceType: String, sourceId: String, player: String, nickname: String }], default: [] },
       // the goals the club admins set: { id, metric, target, from, until, reachedAt, reachedBy, nickname }
       goals:  { type: [{ _id: false, id: String, metric: String, target: Number, from: Date, until: Date, reachedAt: Date, reachedBy: String, nickname: String }], default: [] },
+      // how many boards the club plays on: the default for its tournaments and club nights (0: not on boards)
+      boards: { type: Number, min: 0, max: 16, default: 0 },
       // The calendar: the weekly club nights { weekday (0 Sunday), start and end "HH:MM", note }
       // and the nights cancelled { day "YYYY-MM-DD", reason }. See rules/calendar.js
       calendar: {

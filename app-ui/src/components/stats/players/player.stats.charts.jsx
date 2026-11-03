@@ -4,6 +4,7 @@ import DoublesChart from '../charts/doubles.chart';
 import { hasDoubles, hasHits } from '../charts/board.data';
 import TrainingProgressChart from '../charts/training.progress.chart';
 import AtcTargetsChart from '../charts/atc.targets.chart';
+import RatingTrendChart from '../charts/rating.trend.chart';
 import { ScoreRangesChart, ScoringFinishingChart, DartsPerLegChart, FormChart } from '../charts/simple.bar.charts';
 import { t } from '../../../utils/i18n';
 
@@ -13,13 +14,15 @@ import { t } from '../../../utils/i18n';
  * the end, as a short card that says so.
  */
 const PlayerStatsCharts = ({ playerStats = {}, players = [] }) => {
-    const { avg = {}, sectionHits = [], checkouts = {}, scoreRanges = [], trend = [], form = [], scoring, dartsPerLeg = [], training = {}, trainingDarts } = playerStats;
+    const { avg = {}, sectionHits = [], checkouts = {}, scoreRanges = [], trend = [], form = [], scoring, dartsPerLeg = [], training = {}, trainingDarts, rating } = playerStats;
     const hasTraining = Object.values(training).some(list => list.length > 0);
 
     // in the order of the page; wide ones take the whole row
     const charts = [
         { key: 'trend', wide: true, empty: trend.length === 0, chart: <AverageTrendChart data={trend} players={players} overall={avg.overallX01} /> },
         { key: 'form', empty: form.length === 0, chart: <FormChart data={form} /> },
+        // the club rating, from the club's games whatever the filters (loaded by the chart itself)
+        { key: 'rating', empty: !(rating?.games > 0), chart: <div id="rating" className="h-100"><RatingTrendChart playerId={players[0]?.id} /></div> },
         { key: 'scoring', empty: !scoring?.opening && !scoring?.finishing, chart: <ScoringFinishingChart scoring={scoring ? [scoring] : []} players={players} /> },
         { key: 'hits', empty: !hasHits([sectionHits]), chart: <HitsHeatmapChart hitsByPlayer={[sectionHits]} players={players} /> },
         { key: 'doubles', empty: !hasDoubles([checkouts.rates ?? []]), chart: <DoublesChart ratesByPlayer={[checkouts.rates ?? []]} players={players} /> },

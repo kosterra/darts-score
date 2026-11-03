@@ -2,6 +2,7 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { CLUB_ROLES } from '../models/user.model.js';
 import { cancelLeague, checkSetup, leagueView, moveMatch, moveMatchday, setResult, startLeague, startMatch } from '../utils/leagues.js';
+import { withChances } from '../utils/compare.js';
 
 /**
  * The leagues of the selected club: its admins set them up, start them,
@@ -27,7 +28,8 @@ const load = async (req, res) => {
     return league;
 };
 
-const answerWith = async (req, res, league, status = 200) => res.status(status).json(await leagueView(league, { playerId: await myPlayerId(req) }));
+// with the chances on the open matches, from the club rating
+const answerWith = async (req, res, league, status = 200) => res.status(status).json(await withChances(await leagueView(league, { playerId: await myPlayerId(req) }), [league.club]));
 
 // the club's leagues, the newest first (drafts only for the admins)
 export const list = async (req, res) => {

@@ -27,7 +27,7 @@ vi.mock('../models/db.model.js', () => ({
                 && (query.guest === undefined || !player.guest)),
             findById: async () => null,
         },
-        tournament: { findById: () => lean(sharedTournament) },
+        tournament: { findById: () => lean(sharedTournament), find: () => lean([]) },
         user: { find: (query) => lean(byIds(users, query._id.$in)) },
         playerContact: { find: () => lean(contacts) },
         notification: { create: async (doc) => { notices.push(doc); return doc; } },
@@ -296,7 +296,7 @@ describe('the draw and the matches', () => {
     it('lets the finished game decide the match, a walkover the next, and the final the tournament', async () => {
         const db = (await import('../models/db.model.js')).default;
         const tournament = closedWithFive();
-        db.tournament = { findById: async () => tournament };
+        db.tournament = { findById: async () => tournament, find: () => lean([]) };
         await service.holdDraw(tournament, { random: () => 0.5 });
         const first = tournament.matches.find(entry => entry.status === 'ready' && entry.size === 8);
         const game = await service.startMatch(tournament, first.id);
@@ -327,7 +327,7 @@ describe('the draw and the matches', () => {
     it('keeps the sets with the legs when a round is played in sets', async () => {
         const db = (await import('../models/db.model.js')).default;
         const tournament = closedWithFive();
-        db.tournament = { findById: async () => tournament };
+        db.tournament = { findById: async () => tournament, find: () => lean([]) };
         await service.holdDraw(tournament, { random: () => 0.5 });
         const round = tournament.rounds.find(entry => entry.size === 8);
         round.rules = { ...round.rules, setMode: 'Best of', numberOfSets: 3 };
@@ -344,7 +344,7 @@ describe('the draw and the matches', () => {
     it('lets a running match start again when its game is deleted', async () => {
         const db = (await import('../models/db.model.js')).default;
         const tournament = closedWithFive();
-        db.tournament = { findById: async () => tournament };
+        db.tournament = { findById: async () => tournament, find: () => lean([]) };
         await service.holdDraw(tournament, { random: () => 0.5 });
         const match = tournament.matches.find(entry => entry.status === 'ready');
         const game = await service.startMatch(tournament, match.id);
@@ -384,7 +384,7 @@ describe('groups + knockout', () => {
     it('draws the groups as the admin chose, plays them round robin and fills the bracket with the best', async () => {
         const db = (await import('../models/db.model.js')).default;
         const tournament = closedGroups(12);
-        db.tournament = { findById: async () => tournament };
+        db.tournament = { findById: async () => tournament, find: () => lean([]) };
         // groups of 4, the top 2 go on: 3 groups, 6 players in a bracket of 8
         await service.holdDraw(tournament, { groupSize: 4, advance: 2, random: () => 0.5 });
         expect(tournament.draw).toMatchObject({ size: 8, groupSize: 4, advance: 2 });
@@ -425,6 +425,112 @@ describe('groups + knockout', () => {
     it('refuses groups that cannot be played', async () => {
         const tournament = closedGroups(8);
         await expect(service.holdDraw(tournament, { groupSize: 4, advance: 4 })).rejects.toMatchObject({ status: 422 });
+    });
+});
+
+describe('on boards', () => {
+    // eight players, each with a login, on two boards
+    const closedWithEight = async () => {
+        players = [1, 2, 3, 4, 5, 6, 7, 8].map(n => ({ _id: id(n), nickname: `P${n}`, firstname: `First${n}`, user: id(100 + n) }));
+        users = players.map(player => ({ _id: player.user, email: `${player.nickname}@example.ch`, firstname: player.firstname, language: 'en' }));
+        const db = (await import('../models/db.model.js')).default;
+        const tournament = tournamentDoc({ status: 'closed', boards: { count: 2, out: [] } });
+        tournament.entries = players.map(player => ({ player: player._id, status: 'in' }));
+        db.tournament = { findById: async () => tournament, find: () => lean([]) };
+        return tournament;
+    };
+    const called = () => notices.filter(notice => notice.kind === 'boardCalled');
+    const onBoard = (tournament, board) => tournament.matches.find(match => match.board === board && ['ready', 'running'].includes(match.status));
+    const win = (game, match, winner) => service.tournamentGameFinished(game, { playerModels: Object.fromEntries(match.players.map(player => [player, { hasWonGame: player === winner, legsWon: { game: player === winner ? 4 : 1 } }])) });
+
+    it('calls the first matches of the draw to the boards, the others wait in the queue', async () => {
+        const tournament = await closedWithEight();
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        expect(onBoard(tournament, 1)).toMatchObject({ id: '8-0', status: 'ready' });
+        expect(onBoard(tournament, 2)).toMatchObject({ id: '8-1' });
+        expect(tournament.matches.filter(match => match.size === 8 && !match.board)).toHaveLength(2);
+        expect(tournament.matches.filter(match => match.size === 8).every(match => match.readyAt)).toBe(true);
+        // the four players on the boards hear their board, once
+        expect(called()).toHaveLength(4);
+        const nickname = (playerId) => players.find(player => player._id === playerId).nickname;
+        const [a, b] = onBoard(tournament, 1).players;
+        expect(called().find(notice => notice.user === id(100 + Number.parseInt(a, 16)))).toMatchObject({ title: `Your match: board 1, against ${nickname(b)}`, body: 'Autumn Cup', link: `/tournaments/${id(900)}` });
+        const view = await service.tournamentView(tournament);
+        expect(view.boardView).toMatchObject({ count: 2, boards: [{ number: 1, key: '8-0', status: 'called' }, { number: 2, key: '8-1', status: 'called' }], queue: ['8-2', '8-3'] });
+    });
+
+    it('frees the board of a finished game at once: the next match is called to it, without the old notice', async () => {
+        const tournament = await closedWithEight();
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        const first = onBoard(tournament, 1);
+        const game = await service.startMatch(tournament, first.id);
+        expect(onBoard(tournament, 1)).toMatchObject({ id: first.id, status: 'running' });
+        notices.length = 0;
+        await win(game, first, first.players[0]);
+        expect(tournament.matches.find(match => match.id === first.id)).toMatchObject({ status: 'done', board: 1 });
+        expect(onBoard(tournament, 1)).toMatchObject({ id: '8-2', status: 'ready' });
+        expect(called()).toHaveLength(2);
+        expect(notices.some(notice => notice.kind === 'tournamentMatch')).toBe(false);
+        // a walkover frees the board too
+        await service.setResult(tournament, '8-1', onBoard(tournament, 2).players[1]);
+        expect(onBoard(tournament, 2)).toMatchObject({ id: '8-3' });
+        // the semi-final waits for its second player and is not called
+        expect(tournament.matches.find(match => match.id === '4-0')).toMatchObject({ status: 'ready', board: null });
+    });
+
+    it('reads the matches again when another game was saved at the same moment', async () => {
+        const tournament = await closedWithEight();
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        const first = onBoard(tournament, 1);
+        const game = await service.startMatch(tournament, first.id);
+        // the first read is out of date by the time it is saved
+        const stale = tournamentDoc({ ...tournament, matches: tournament.matches.map(match => ({ ...match, players: [...match.players] })) });
+        stale.save.mockImplementation(async () => { throw Object.assign(new Error('No matching document'), { name: 'VersionError' }); });
+        const db = (await import('../models/db.model.js')).default;
+        const reads = [stale, tournament];
+        db.tournament = { findById: async () => reads.shift(), find: () => lean([]) };
+        await win(game, first, first.players[1]);
+        expect(stale.save).toHaveBeenCalled();
+        expect(reads).toHaveLength(0);
+        expect(tournament.matches.find(match => match.id === first.id)).toMatchObject({ status: 'done', winner: first.players[1] });
+    });
+
+    it('tells the players once: a move or a swap sends no notice, a match held back makes room', async () => {
+        const tournament = await closedWithEight();
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        notices.length = 0;
+        // 8-0 held back: board 1 takes 8-2, which hears it
+        await service.holdMatch(tournament, '8-0', true);
+        expect(tournament.matches.find(match => match.id === '8-0')).toMatchObject({ held: true, board: null, calledAt: null });
+        expect(onBoard(tournament, 1).id).toBe('8-2');
+        expect(called()).toHaveLength(2);
+        // swapping the two boards: nobody hears it
+        await service.moveMatch(tournament, '8-2', 2);
+        expect(onBoard(tournament, 2).id).toBe('8-2');
+        expect(onBoard(tournament, 1).id).toBe('8-1');
+        expect(called()).toHaveLength(2);
+        // a match from the queue put on a board hears it, the one there goes back
+        await service.moveMatch(tournament, '8-3', 1);
+        expect(onBoard(tournament, 1).id).toBe('8-3');
+        expect(tournament.matches.find(match => match.id === '8-1')).toMatchObject({ board: null, calledAt: null });
+        expect(called()).toHaveLength(4);
+        await expect(service.moveMatch(tournament, '8-3', 3)).rejects.toMatchObject({ status: 409 });
+        await expect(service.moveMatch(tournament, '2-0', 1)).rejects.toMatchObject({ status: 409 });
+        await expect(service.holdMatch(tournament, '9-9', true)).rejects.toMatchObject({ status: 404 });
+    });
+
+    it('sets the boards: more boards call more matches, a board taken out sends its match back first', async () => {
+        const tournament = await closedWithEight();
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        await service.changeBoards(tournament, { count: 3 });
+        expect(onBoard(tournament, 3).id).toBe('8-2');
+        await service.changeBoards(tournament, { count: 3, out: [1] });
+        expect(tournament.boards).toEqual({ count: 3, out: [1] });
+        expect(onBoard(tournament, 1)).toBeUndefined();
+        // 8-0 waited longest: it is called again as soon as a board is free
+        expect(tournament.matches.find(match => match.id === '8-0')).toMatchObject({ board: null });
+        await service.setResult(tournament, '8-1', onBoard(tournament, 2).players[0]);
+        expect(onBoard(tournament, 2).id).toBe('8-0');
     });
 });
 

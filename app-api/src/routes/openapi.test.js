@@ -28,6 +28,8 @@ import eveningRoutes, { eveningClubRoutes } from './evening.routes.js';
 import screenRoutes from './screen.routes.js';
 import leagueRoutes from './league.routes.js';
 import calendarRoutes, { calendarFeedRoutes } from './calendar.routes.js';
+import practiceGoalRoutes from './practice.goals.routes.js';
+import boardRoutes from './boards.routes.js';
 
 /**
  * The routes of the API as "GET /api/players/{id}": each module registers
@@ -50,7 +52,8 @@ const apiRoutes = () => {
     };
     [authRoutes, publicRoutes, clubRoutes, userRoutes, adminRoutes, badgeRoutes, integrityRoutes, notificationRoutes, playerRoutes, statsRoutes,
         deletionRequestRoutes, x01Routes, cricketRoutes, eliminationRoutes, clockRoutes, atcRoutes, x01TrainingRoutes, rulesRoutes, playerImageRoutes, clubLogoRoutes,
-        unsubscribeRoutes, claimInfoRoutes, claimRoutes, tournamentRoutes, tournamentReplyRoutes, leagueRoutes, calendarRoutes, calendarFeedRoutes, eveningRoutes, eveningClubRoutes, screenRoutes]
+        unsubscribeRoutes, claimInfoRoutes, claimRoutes, tournamentRoutes, tournamentReplyRoutes, leagueRoutes, calendarRoutes, calendarFeedRoutes, eveningRoutes, eveningClubRoutes, screenRoutes,
+        practiceGoalRoutes, boardRoutes]
         .forEach(register => register(app));
     return found;
 };

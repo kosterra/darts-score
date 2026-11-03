@@ -10,8 +10,9 @@ import { getSessionSecret } from './auth.utils.js';
  */
 
 export const SCREEN_HOURS = 12;
-// the club games by their kind of game, and a darts evening (it follows its running game)
-export const SCREEN_KINDS = ['x01', 'cricket', 'elimination', 'clock', 'rules', 'evening'];
+// the club games by their kind of game, a darts evening (it follows its running game), and the
+// boards of a tournament or a club night (by the id of the tournament or the night)
+export const SCREEN_KINDS = ['x01', 'cricket', 'elimination', 'clock', 'rules', 'evening', 'tournamentBoards', 'nightBoards'];
 
 const sign = (payload) => createHmac('sha256', `screen:${getSessionSecret()}`).update(payload).digest('base64url');
 

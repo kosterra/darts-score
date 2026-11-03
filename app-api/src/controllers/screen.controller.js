@@ -3,6 +3,7 @@ import logger from '../models/logger.model.js';
 import { answerOf, hasRules } from '../utils/game.view.js';
 import { clubShirtOf, shirtOf } from '../utils/shirts.js';
 import { screenOfEvening } from './evening.controller.js';
+import { boardsScreen } from '../utils/boards.js';
 import { newPairing, pairingOf, readScreenToken, screenToken, sendToPairing } from '../utils/screens.js';
 
 /**
@@ -35,6 +36,12 @@ export const show = async (req, res) => {
         if (!evening) return res.status(404).json({ message: 'This game is gone.', expired: true });
         res.set('Cache-Control', 'no-store');
         return res.json({ kind: 'evening', ...evening, club: null, expiresAt: screen.expiresAt });
+    }
+    if (['tournamentBoards', 'nightBoards'].includes(screen.kind)) {
+        const boards = await boardsScreen(screen.kind, screen.gameId);
+        if (!boards) return res.status(404).json({ message: 'This game is gone.', expired: true });
+        res.set('Cache-Control', 'no-store');
+        return res.json({ ...boards, expiresAt: screen.expiresAt });
     }
     const doc = await MODELS[screen.kind].findById(screen.gameId);
     if (!doc) return res.status(404).json({ message: 'This game is gone.', expired: true });

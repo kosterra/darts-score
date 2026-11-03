@@ -9,6 +9,7 @@ import { withPlayers } from './atc.controller.js';
 import { trainingOf } from '../rules/trainings.js';
 import { replayTraining } from '../rules/engine.js';
 import { noteTrainingRecords } from '../utils/player.notices.js';
+import { practiceGoalsAfterTraining } from '../utils/practice.goals.js';
 
 // a start time the app sent: in the past and at most a day ago, or none
 const startedAtOf = (value) => {
@@ -75,6 +76,8 @@ export const create = async (req, res) => {
             newBadges,
             // the club's badges this training tipped
             clubBadges: (await syncClubAfterTraining(req.club._id)).map(clubBadgeView).filter(Boolean),
+            // how far the player's own weekly goals are, when they saved it themselves
+            ...(await practiceGoalsAfterTraining(req, player, kind)),
         });
     } catch (err) {
         logger.error(err, 'Failed to create a training');

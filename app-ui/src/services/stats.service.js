@@ -111,6 +111,8 @@ const loadOpponents = (playerId) => requestJSON(`${API_URL}stats/compare/opponen
 const loadRivals = (playerId) => requestJSON(`${API_URL}stats/compare/rivals/${playerId}`);
 
 const loadPlayerGames = (playerId, limit = 5) => requestJSON(`${API_URL}stats/player/${playerId}/games?limit=${limit}`);
+// a player's club rating over time and the latest changes: { history: [{ at, rating }], lastChanges }
+const loadPlayerRating = (playerId) => requestJSON(`${API_URL}stats/player/${playerId}/rating`);
 
 /**
  * The badges each player earned in one game ('x01' | 'cricket' | 'elimination').
@@ -132,6 +134,7 @@ const StatsService = {
     startFavourite,
     loadPlayerStats,
     loadPlayerGames,
+    loadPlayerRating,
     loadDuel,
     loadSideBySide,
     loadOpponents,

@@ -1,4 +1,5 @@
 import ClubMedal from './club.medal';
+import GoalProgress from '../elements/goal.progress';
 import { formatDate } from '../../utils/dates';
 import { locale, t, tn } from '../../utils/i18n';
 
@@ -22,13 +23,6 @@ export const ClubMedalRow = ({ badges = [], count = badges.length, size = 'xs' }
         </span>
     );
 };
-
-// how far towards a target, as a thin bar
-export const ClubProgress = ({ value, target, label }) => (
-    <span className={`club-progress ${value >= target ? 'is-done' : ''}`} role="progressbar" aria-valuemin={0} aria-valuemax={target} aria-valuenow={value} aria-label={label}>
-        <span style={{ width: `${Math.min(100, target ? value / target * 100 : 0)}%` }} />
-    </span>
-);
 
 // when and by whom a club badge was earned: "12.11.2026 · Anna made it happen"
 const earnedLine = (earned) => [formatDate(earned.earnedAt), earned.nickname ? t('{{nickname}} made it happen', { nickname: earned.nickname }) : null].filter(Boolean).join(' · ');
@@ -59,7 +53,7 @@ export const ClubBadgeList = ({ badges = [] }) => {
                                             ? <span className="text-subtle fs-8">{earnedLine(badge.earned)}</span>
                                             : badge.target > 1 &&
                                                 <span className="d-flex flex-column gap-1">
-                                                    <ClubProgress value={badge.progress} target={badge.target} label={badge.title} />
+                                                    <GoalProgress value={badge.progress} target={badge.target} label={badge.title} />
                                                     <span className="text-faint fs-9 tabular-nums">{formatNumber(badge.progress)} / {formatNumber(badge.target)}</span>
                                                 </span>}
                                     </span>
@@ -85,7 +79,7 @@ export const ClubGoalList = ({ goals = [], className = 'd-flex flex-column gap-3
                     <span className="text-default fs-7 fw-semibold">{goal.description}</span>
                     <span className="text-subtle fs-8 tabular-nums text-nowrap">{formatNumber(goal.progress)} / {formatNumber(goal.target)}</span>
                 </span>
-                <ClubProgress value={goal.progress} target={goal.target} label={goal.description} />
+                <GoalProgress value={goal.progress} target={goal.target} label={goal.description} />
                 <span className="text-faint fs-8">
                     {goal.reachedAt
                         ? t('Reached on {{date}}', { date: formatDate(goal.reachedAt) })

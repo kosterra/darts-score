@@ -5,6 +5,7 @@ import { Button } from 'primereact/button';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { Message } from 'primereact/message';
 import { Panel } from 'primereact/panel';
@@ -14,7 +15,10 @@ import { Toast } from 'primereact/toast';
 
 import CalendarService from '../../services/calendar.service';
 import { useAuth } from '../../utils/auth.context';
-import useAutoSave from '../../utils/use.auto.save';
+import useAutoSave, { mergeSaves } from '../../utils/use.auto.save';
+import BoardService from '../../services/board.service';
+import { MAX_BOARDS } from '../../rules/boards';
+import SetupBox from '../elements/setup.box';
 import { locale, t } from '../../utils/i18n';
 import { MAX_CLUB_NIGHTS, NOTE_MAX, REASON_MAX, addDays, dayKey, monthGrid, nightsError } from '../../rules/calendar';
 import { roundName } from '../tournaments/tournament.words';
@@ -239,6 +243,9 @@ const CalendarPage = () => {
         const result = await CalendarService.saveNights(nights, range);
         if (result?.clubNights) setCalendar(result);
     }, { valid: (nights) => !nightsError(nights) });
+    // the club's boards, the default for its club nights and tournaments
+    const [boards, setBoards] = useState(null);
+    const boardsSave = useAutoSave((count) => BoardService.saveClubBoards(count));
 
     const to = addDays(today, weeks * 7 - 1);
     // the days the view shows: the coming weeks, or the weeks of the month
@@ -364,9 +371,16 @@ const CalendarPage = () => {
                 </Panel>
 
                 <div className="d-flex flex-column gap-4">
-                    <Panel header={t('Club nights')} icons={isClubAdmin ? <SaveStatus {...nightsSave} className="me-2" /> : undefined}>
+                    <Panel header={t('Club nights')} icons={isClubAdmin ? <SaveStatus {...mergeSaves(nightsSave, boardsSave)} className="me-2" /> : undefined}>
                         {isClubAdmin
-                            ? <NightsEditor nights={calendar.nights} autosave={nightsSave} />
+                            ? (
+                                <div className="d-flex flex-column gap-3">
+                                    <NightsEditor nights={calendar.nights} autosave={nightsSave} />
+                                    <SetupBox title={t('Boards at the club')} hint={t('How many games can be played at a time: club nights and tournaments start with this many boards.')}>
+                                        <InputNumber value={boards ?? calendar.boards ?? 0} onValueChange={(event) => { if ((event.value ?? 0) === (boards ?? calendar.boards ?? 0)) return; setBoards(event.value ?? 0); boardsSave.change(event.value ?? 0); }} onBlur={boardsSave.flush} min={0} max={MAX_BOARDS} showButtons buttonLayout="horizontal" decrementButtonIcon="pi pi-minus" incrementButtonIcon="pi pi-plus" inputClassName="text-center" aria-label={t('Boards at the club')} inputId="club-boards" />
+                                    </SetupBox>
+                                </div>
+                            )
                             : calendar.nights.length
                                 ? (
                                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">

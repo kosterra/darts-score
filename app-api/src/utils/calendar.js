@@ -170,6 +170,8 @@ export const calendarView = async (club, { playerId = null, isAdmin = false, fro
     return {
         from, to,
         nights,
+        // how many boards the club plays on (the default of its tournaments and club nights)
+        boards: club.boards ?? 0,
         myPlayer: playerId ? String(playerId) : null,
         clubNights: list.map(night => {
             const yes = who(night.day, 'yes');

@@ -136,7 +136,7 @@ const snapshot = async () => {
 const sessions = async () => (await db.session.find({}).sort({ sid: 1 }).lean()).map(({ sid, user, v, expiresAt }) => ({ sid, user: String(user), v, expiresAt: expiresAt.toISOString() }));
 
 describe('the installation to back up', () => {
-    it('is seeded: a finished X01 game, a legal setting and a picture', async () => {
+    it('is seeded: a finished X01 game, a weekly goal reached, a legal setting and a picture', async () => {
         // Ann wins 501 in nine darts, Bob scores 20s: a finished leg, worked out by the server
         const visits = [
             { player: state.ann, darts: ['T20', 'T20', 'T20'] }, { player: state.bob, darts: ['S20', 'S20', 'S20'] },
@@ -148,6 +148,18 @@ describe('the installation to back up', () => {
         expect(game.body.hasWinner).toBe(true);
         expect(game.body.gameIsRunning).toBe(false);
         state.game = String(game.body.id ?? game.body._id);
+
+        // Uli's weekly goal, reached with a training of Bob: the week of the goals is noted
+        expect((await as(state.user).put('/api/goals', { goals: [{ kind: 'trainings', target: 1 }] })).status).toBe(200);
+        const atc = await as(state.user, state.club).post('/api/training/atc', { scoring: 'Time', timeMs: 95000, mode: 'Single', player: { id: state.bob } });
+        expect(atc.body.goalsReached).toHaveLength(1);
+
+        // tonight's club night on boards: Ann and Bob called to board 1
+        const now = new Date();
+        const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        expect((await asAdmin().put('/api/calendar/nights', { nights: [{ weekday: now.getDay(), start: '00:00', end: '23:59', note: '' }] })).status).toBe(200);
+        const night = await asAdmin().put(`/api/calendar/nights/${day}/boards`, { count: 1, players: [state.ann, state.bob] });
+        expect(night.body.entries).toMatchObject([{ status: 'called', board: 1 }]);
 
         const legal = await asAdmin().put('/api/admin/legal', { operator: 'Drill Darts Club', address: 'Oche Lane 1, 8000 Zürich', email: 'legal@test.local', notes: { en: 'Kept for the drill.' } });
         expect(legal.status).toBe(200);
@@ -190,7 +202,7 @@ describe('a manual backup', () => {
         expect(collections).not.toContain('sessions');
         expect(records.some(record => record.c === 'sessions')).toBe(false);
         // the seeded data is in it, document by document
-        for (const name of ['users', 'clubs', 'players', 'x01', 'settings']) expect(collections).toContain(name);
+        for (const name of ['users', 'clubs', 'players', 'x01', 'settings', 'practicegoalweeks', 'boardnights']) expect(collections).toContain(name);
         for (const [name, docs] of Object.entries(state.world)) {
             expect(records.filter(record => record.c === name && record.d).map(record => record.d)).toEqual(expect.arrayContaining(docs));
         }

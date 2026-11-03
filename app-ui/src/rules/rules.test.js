@@ -167,6 +167,42 @@ describe('trainings', () => {
         expect(result.result.failed).toBe(true);
     });
 
+    it("Bob's 27 shows the hits of every double, the one to throw at and the darts of the visit", () => {
+        const { state } = train(BOBS_27, ['H', 'M', 'H', 'M', 'M', 'M', 'H']);
+        const cells = BOBS_27.doubles(state);
+        expect(cells).toHaveLength(21);
+        expect(cells.slice(0, 3)).toEqual([
+            { name: 'D1', short: '1', value: 2, tone: 2, current: false },
+            { name: 'D2', short: '2', value: 0, tone: 0, current: false },
+            { name: 'D3', short: '3', value: null, tone: null, current: true },
+        ]);
+        expect(cells[20]).toMatchObject({ name: 'Bull', short: 'Bull', value: null, current: false });
+        expect(BOBS_27.inVisit(state)).toBe(1);
+        expect(BOBS_27.hero(state)).toBe('D3');
+        // 27 + 4 for two hits of D1, − 4 for none at D2, + 6 for a hit of D3
+        expect(BOBS_27.heroNote(state)).toBe('33 points');
+    });
+
+    it("Bob's 27 over at 0: no double to throw at any more", () => {
+        const { state } = train(BOBS_27, Array(18).fill('M'));
+        const cells = BOBS_27.doubles(state);
+        expect(cells.some(cell => cell.current)).toBe(false);
+        expect(cells.filter(cell => cell.value === 0)).toHaveLength(state.index);
+    });
+
+    it('Doubles around the board rates the darts every double took', () => {
+        const { state } = train(DOUBLES_AROUND, ['H', 'M', 'H', 'M', 'M', 'M', 'M', 'H']);
+        expect(DOUBLES_AROUND.doubles(state).slice(0, 4).map(cell => [cell.value, cell.tone, cell.current])).toEqual([[1, 3, false], [2, 2, false], [5, 0, false], [null, null, true]]);
+    });
+
+    it('the checkout trainings count the darts of the visit from the start of the attempt', () => {
+        // 121 − 120 leaves 1, a bust after two darts: the next attempt starts with a new visit
+        expect(CHECKOUT_121.inVisit(train(CHECKOUT_121, ['T20', 'T20'], { attempts: 2, darts: 9 }).state)).toBe(0);
+        expect(CHECKOUT_121.inVisit(train(CHECKOUT_121, Array(4).fill('S1'), { attempts: 2, darts: 9 }).state)).toBe(1);
+        expect(CATCH_40.inVisit(train(CATCH_40, ['T11', 'D14', 'S1']).state)).toBe(1);
+        expect(RANDOM_CHECKOUTS.inVisit(train(RANDOM_CHECKOUTS, ['S1', 'S1'], { attempts: 2, targets: [40, 32] }).state)).toBe(2);
+    });
+
     it('121 Checkout goes up when done and down when not', () => {
         const done = train(CHECKOUT_121, ['T20', 'S11', 'D25'], { attempts: 1, darts: 9 });
         expect(done.result).toMatchObject({ score: 121, done: 1, last: 122 });

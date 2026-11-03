@@ -5,6 +5,7 @@ import { clubBadgeView, syncClubAfterTraining } from '../utils/club.badge.servic
 import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 import { noteTrainingRecords } from '../utils/player.notices.js';
+import { practiceGoalsAfterTraining } from '../utils/practice.goals.js';
 
 const ATC = db.atc;
 
@@ -84,6 +85,8 @@ export const create = async (req, res) => {
             newBadges,
             // the club's badges this training tipped
             clubBadges: (await syncClubAfterTraining(req.club._id)).map(clubBadgeView).filter(Boolean),
+            // how far the player's own weekly goals are, when they saved it themselves
+            ...(await practiceGoalsAfterTraining(req, player, 'atc')),
         });
     } catch (err) {
         logger.error(err, 'Failed to create ATC entry');

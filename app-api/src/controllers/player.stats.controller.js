@@ -11,6 +11,7 @@ import { rulesKpis, rulesTrainingBests } from '../utils/rules.stats.js';
 import { trainingSummary } from '../utils/training.summary.js';
 import { createGameFilterQuery, findFilteredGames, profileFiltersOf, isUnfiltered } from '../utils/game.utils.js';
 import { viewOf } from '../utils/game.view.js';
+import { clubRatingBoard, ratingFactsOf, ratingHistory } from '../utils/compare.js';
 
 const X01 = db.x01;
 const Cricket = db.cricket;
@@ -24,10 +25,41 @@ const Cricket = db.cricket;
 export const getPlayerStats = async (req, res, next) => {
     logger.debug("statistics get player stats called!");
     try {
-        const playerStats = await calculatePlayerStats(req.params.id, profileFiltersOf(req.query), req.club._id, { hideTrainings: !(await seesTrainingsOf(req, req.params.id)) });
-        res.send(playerStats);
+        const [playerStats, { ratings, board }] = await Promise.all([
+            calculatePlayerStats(req.params.id, profileFiltersOf(req.query), req.club._id, { hideTrainings: !(await seesTrainingsOf(req, req.params.id)) }),
+            clubRatingBoard(req.club._id),
+        ]);
+        // the club rating always counts the club's games, whatever the filters
+        res.send({ ...playerStats, rating: ratingFactsOf(ratings, board, req.params.id) });
     } catch (err) {
         logger.error(err, 'Failed to calculate player stats');
+        next(err);
+    }
+};
+
+// the latest changes a player's page lists under the chart
+const LAST_CHANGES = 10;
+
+/**
+ * A player's club rating over time, for the chart on their page: the rating
+ * day by day, and the latest changes with the game and whom they played.
+ */
+export const getPlayerRating = async (req, res, next) => {
+    try {
+        const { ratings } = await clubRatingBoard(req.club._id, { history: true });
+        const points = ratings.get(String(req.params.id))?.points ?? [];
+        const latest = points.slice(-LAST_CHANGES).reverse();
+        const ids = [...new Set(latest.flatMap(point => point.opponents))].filter(id => db.mongoose.isValidObjectId(id));
+        const names = new Map((await db.player.find({ _id: { $in: ids } }, 'nickname').lean()).map(player => [String(player._id), player.nickname]));
+        res.json({
+            history: ratingHistory(points),
+            lastChanges: latest.map(({ at, change, sourceId, opponents }) => ({
+                at, change, sourceId,
+                opponents: opponents.map(id => ({ id, nickname: names.get(id) ?? null })),
+            })),
+        });
+    } catch (err) {
+        logger.error(err, 'Failed to work out the rating history');
         next(err);
     }
 };

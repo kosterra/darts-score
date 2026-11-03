@@ -10,6 +10,7 @@ import { formFigures } from '../utils/form.figures.js';
 import { isShameChild, shameCountIn, shameCountsFrom, shameMinAgeOf } from '../utils/shame.js';
 import { gamesOverview } from '../utils/games.overview.js';
 import { CLUB_BADGES, latestClubBadges } from '../utils/club.badges.js';
+import { clubRatingBoard } from '../utils/compare.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -134,10 +135,11 @@ export const getClubStats = async (req, res) => {
     const club = req.club;
     const filter = { club: club._id };
 
-    const [players, gamesByType] = await Promise.all([
+    const [players, gamesByType, { board: ratingBoard }] = await Promise.all([
         // former members too: their games still count in the club's leaderboards
         db.player.find(knownInClub(club._id), 'firstname lastname nickname profileImg guest activity').lean(),
         Promise.all(GAME_TYPES.map(async ({ type, model }) => ({ type, games: await model().find(filter).lean() }))),
+        clubRatingBoard(club._id),
     ]);
 
     const finishedByType = gamesByType.map(({ type, games }) => ({ type, games: games.filter(game => game.hasWinner) }));
@@ -185,7 +187,11 @@ export const getClubStats = async (req, res) => {
             profileImg: player.profileImg,
             guest: player.guest,
         })),
-        leaderboards: buildLeaderboards(collectPlayerTotals(rankedByType), new Set(members.map(player => String(player._id)))),
+        leaderboards: {
+            ...buildLeaderboards(collectPlayerTotals(rankedByType), new Set(members.map(player => String(player._id)))),
+            // the strongest by the club rating: settled, playing within a year (see utils/compare.js)
+            rating: ratingBoard.slice(0, LEADERBOARD_SIZE),
+        },
         recentGames: recent.map(({ type, game }) => summarizeGame(type, game)),
         runningGames: running.slice(0, RUNNING_GAMES).map(({ type, game }) => summarizeGame(type, game)),
         // key figures, who beats whom, records and when the club plays

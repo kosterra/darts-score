@@ -14,6 +14,7 @@ import MeWidget from './widgets/me.widget';
 import TrainingWidget from './widgets/training.widget';
 import UpNextWidget from './widgets/up.next.widget';
 import FavouritesWidget from './widgets/favourites.widget';
+import PracticeGoalsWidget from './widgets/practice.goals.widget';
 import ErrorBoundary from '../elements/error.boundary';
 import { t } from '../../utils/i18n';
 
@@ -39,6 +40,7 @@ const WidgetContent = ({ widget, stats, players }) => {
         case 'clubGoals': return <ClubGoalsWidget widget={widget} />;
         case 'me': return <MeWidget widget={widget} />;
         case 'training': return <TrainingWidget widget={widget} />;
+        case 'practiceGoals': return <PracticeGoalsWidget widget={widget} />;
         case 'timeline': return <TimelineWidget widget={widget} games={stats.recentGames} players={players} />;
         case 'leaderboard': return <LeaderboardWidget widget={widget} entries={stats.leaderboards[widget.board]} players={players} />;
         default: return null;

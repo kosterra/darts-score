@@ -146,37 +146,196 @@ export const x01Highlights = (games, playerIds) => Object.fromEntries(playerIds.
 // the club's rating: everyone starts here, a win against an equal moves it by K / 2
 export const RATING_START = 1000;
 const RATING_K = 24;
+// the first rated games move a rating faster, so a new player soon finds their place
+const RATING_K_SETTLING = 48;
 // below this many rated games a rating is provisional
 export const RATING_MIN_GAMES = 5;
+// what the club rating needs of a tally
+export const RATING_FIELDS = 'at sourceId players winners friendly teams';
+
+const kOf = (entry) => (entry.games < RATING_MIN_GAMES ? RATING_K_SETTLING : RATING_K);
+const expectedScore = (rating, against) => 1 / (1 + 10 ** ((against - rating) / 400));
 
 /**
- * An Elo rating per player of the club, from its finished games in order:
- * the winner of a game beats each other player of it (the change split among
- * them), friendly games and games without exactly one winner are left out.
- * tallies: [{ at, players, winners, friendly }] (the club's game tallies)
- * → Map(playerId → { rating, games })
+ * The sides of a rated game, the winning one first: [[ids], …]; null for a
+ * game the rating leaves out (friendly, fewer than two sides, no single
+ * winning side, or partners missing).
  */
-export const clubRatings = (tallies) => {
+const ratedSides = (tally) => {
+    const players = [...new Set((tally.players ?? []).map(String))];
+    const winners = [...new Set((tally.winners ?? []).map(String))];
+    if (tally.friendly || players.length < 2 || !winners.length || !winners.every(id => players.includes(id))) return null;
+    // doubles: the teams; otherwise each player alone
+    const sides = tally.teams?.length
+        ? tally.teams.map(team => [...new Set(team.map(String))])
+        : players.map(id => [id]);
+    const covered = sides.flat();
+    if (sides.length < 2 || sides.some(side => !side.length) || covered.length !== players.length || !players.every(id => covered.includes(id))) return null;
+    const winning = sides.filter(side => side.length === winners.length && side.every(id => winners.includes(id)));
+    if (winning.length !== 1) return null;
+    return [winning[0], ...sides.filter(side => side !== winning[0])];
+};
+
+/**
+ * An Elo rating per player of the club, from its finished games in order
+ * (by when they ended, the game's id breaking a tie): the winner of a game
+ * beats each other player of it, the change split among them; a player's
+ * first RATING_MIN_GAMES games count double (K 48, then 24), each side with
+ * its own K. In doubles a team plays with the mean of its partners and each
+ * partner takes half of the team's change. Friendly games and games without
+ * one winning side are left out.
+ * tallies: [{ at, sourceId, players, winners, friendly, teams }] (see ratingTallies)
+ * history: also each player's points, [{ at, rating, change, sourceId, opponents }]
+ * → Map(playerId → { rating, games, best, lastAt, points? }); best is the
+ *   highest rating since it settled (null before), lastAt the latest game
+ */
+export const clubRatings = (tallies, { history = false } = {}) => {
     const ratings = new Map();
-    const of = (id) => ratings.get(id) ?? { rating: RATING_START, games: 0 };
-    for (const tally of [...tallies].sort((a, b) => new Date(a.at) - new Date(b.at))) {
-        const players = [...new Set((tally.players ?? []).map(String))];
-        const winners = (tally.winners ?? []).map(String);
-        if (tally.friendly || players.length < 2 || winners.length !== 1 || !players.includes(winners[0])) continue;
-        const winner = winners[0];
-        const losers = players.filter(id => id !== winner);
-        const k = RATING_K / losers.length;
-        const before = new Map(players.map(id => [id, of(id).rating]));
-        let gained = 0;
-        for (const loser of losers) {
-            const expected = 1 / (1 + 10 ** ((before.get(loser) - before.get(winner)) / 400));
-            const change = k * (1 - expected);
-            gained += change;
-            ratings.set(loser, { rating: of(loser).rating - change, games: of(loser).games + 1 });
+    const of = (id) => ratings.get(id) ?? { rating: RATING_START, games: 0, best: null, points: [] };
+    const ordered = [...tallies].sort((a, b) => new Date(a.at) - new Date(b.at) || String(a.sourceId ?? '').localeCompare(String(b.sourceId ?? '')));
+    for (const tally of ordered) {
+        const sides = ratedSides(tally);
+        if (!sides) continue;
+        const [winner, ...losers] = sides;
+        const strength = (side) => side.reduce((sum, id) => sum + of(id).rating, 0) / side.length;
+        const before = sides.map(strength);
+        const changes = new Map();
+        const add = (id, change) => changes.set(id, (changes.get(id) ?? 0) + change);
+        losers.forEach((side, index) => {
+            // the share of the game against this side: what the winner was not expected to take
+            const share = (1 - expectedScore(before[0], before[index + 1])) / losers.length;
+            for (const id of winner) add(id, kOf(of(id)) / winner.length * share);
+            for (const id of side) add(id, -kOf(of(id)) / side.length * share);
+        });
+        for (const [id, change] of changes) {
+            const entry = of(id);
+            const rating = entry.rating + change;
+            const games = entry.games + 1;
+            const best = games >= RATING_MIN_GAMES ? Math.max(entry.best ?? -Infinity, rating) : entry.best;
+            if (history) {
+                entry.points.push({ at: tally.at, rating, change, sourceId: tally.sourceId ?? null, opponents: sides.filter(side => !side.includes(id)).flat() });
+            }
+            ratings.set(id, { rating, games, best, lastAt: tally.at, points: entry.points });
         }
-        ratings.set(winner, { rating: of(winner).rating + gained, games: of(winner).games + 1 });
     }
-    return new Map([...ratings].map(([id, entry]) => [id, { rating: Math.round(entry.rating), games: entry.games }]));
+    return new Map([...ratings].map(([id, entry]) => [id, {
+        rating: Math.round(entry.rating),
+        games: entry.games,
+        best: entry.best === null ? null : Math.round(entry.best),
+        lastAt: entry.lastAt,
+        ...(history && { points: entry.points.map(point => ({ ...point, rating: Math.round(point.rating), change: Math.round(point.change * 10) / 10 })) }),
+    }]));
+};
+
+/**
+ * A player's rating over time for a chart: the last rating of each day, and
+ * of a long history only every so many days (always the latest), at most
+ * maxPoints. points: [{ at, rating }] in order (see clubRatings).
+ * → [{ at, rating }]
+ */
+export const ratingHistory = (points, { maxPoints = 120 } = {}) => {
+    const byDay = new Map();
+    for (const point of points) byDay.set(new Date(point.at).toISOString().slice(0, 10), { at: point.at, rating: point.rating });
+    const days = [...byDay.values()];
+    if (days.length <= maxPoints) return days;
+    const step = (days.length - 1) / (maxPoints - 1);
+    return Array.from({ length: maxPoints }, (_, index) => days[Math.round(index * step)]);
+};
+
+/**
+ * One tally per game: a game of a shared tournament has a tally per club that
+ * took part, each with only that club's players, so they are joined again
+ * (players and winners together) for the rating to see the whole game.
+ */
+export const mergeTallies = (tallies) => {
+    const bySource = new Map();
+    const loose = [];
+    for (const tally of tallies) {
+        if (!tally.sourceId) { loose.push(tally); continue; }
+        const key = String(tally.sourceId);
+        const seen = bySource.get(key);
+        if (!seen) { bySource.set(key, { ...tally, sourceId: key }); continue; }
+        const union = (a = [], b = []) => [...new Set([...a, ...b].map(String))];
+        bySource.set(key, {
+            ...seen,
+            at: new Date(tally.at) < new Date(seen.at) ? tally.at : seen.at,
+            players: union(seen.players, tally.players),
+            winners: union(seen.winners, tally.winners),
+            friendly: Boolean(seen.friendly || tally.friendly),
+            teams: seen.teams?.length ? seen.teams : tally.teams,
+        });
+    }
+    return [...bySource.values(), ...loose];
+};
+
+/**
+ * The tallies the club rating of these clubs is worked out from: their own,
+ * and for the games of a shared tournament they took part in the other
+ * clubs' tallies of the same games, joined by game (see mergeTallies).
+ */
+export const ratingTallies = async (clubIds) => {
+    const db = (await import('../models/db.model.js')).default;
+    const ids = [...new Set([clubIds].flat().map(String))];
+    const own = await db.clubTally.find({ club: { $in: ids } }, RATING_FIELDS).lean();
+    const shared = await db.tournament.find(
+        { $or: [{ club: { $in: ids } }, { invitedClubs: { $in: ids } }], 'invitedClubs.0': { $exists: true } },
+        'club invitedClubs matches.game',
+    ).lean();
+    const games = [...new Set(shared.flatMap(tournament => (tournament.matches ?? []).map(match => match.game).filter(Boolean).map(String)))];
+    const others = [...new Set(shared.flatMap(tournament => [tournament.club, ...(tournament.invitedClubs ?? [])].map(String)))].filter(id => !ids.includes(id));
+    const theirs = games.length && others.length
+        ? await db.clubTally.find({ club: { $in: others }, sourceId: { $in: games } }, RATING_FIELDS).lean()
+        : [];
+    return mergeTallies([...own, ...theirs]);
+};
+
+// a rating is on the club's board while its player played a rated game within this many days
+export const RATING_ACTIVE_DAYS = 365;
+
+/**
+ * The club's board of the rating: its members (guests left out) whose rating
+ * has settled and who played within RATING_ACTIVE_DAYS, strongest first.
+ * → [{ player, value, games }]
+ */
+export const ratingBoard = (ratings, memberIds, { now = new Date() } = {}) => {
+    const members = new Set([...memberIds].map(String));
+    const since = now.getTime() - RATING_ACTIVE_DAYS * 24 * 60 * 60 * 1000;
+    return [...ratings]
+        .filter(([id, entry]) => members.has(id) && entry.games >= RATING_MIN_GAMES && new Date(entry.lastAt).getTime() >= since)
+        .map(([player, entry]) => ({ player, value: entry.rating, games: entry.games }))
+        .sort((a, b) => b.value - a.value || b.games - a.games || a.player.localeCompare(b.player));
+};
+
+/**
+ * What a player's page shows of the club rating: the rating, its games,
+ * whether it is still provisional, the place on the club's board (null when
+ * not on it) of how many, and the best rating so far.
+ */
+export const ratingFactsOf = (ratings, board, playerId) => {
+    const entry = ratings.get(String(playerId)) ?? { rating: RATING_START, games: 0, best: null };
+    const place = board.findIndex(row => row.player === String(playerId));
+    return {
+        rating: entry.rating,
+        games: entry.games,
+        provisional: entry.games < RATING_MIN_GAMES,
+        rank: place < 0 ? null : place + 1,
+        of: board.length,
+        best: entry.best,
+    };
+};
+
+/**
+ * The club's ratings (see ratingTallies) with its board, for the dashboard,
+ * a player's page and the rating notices. history: with each player's points.
+ */
+export const clubRatingBoard = async (clubId, { history = false } = {}) => {
+    const db = (await import('../models/db.model.js')).default;
+    const [tallies, members] = await Promise.all([
+        ratingTallies(clubId),
+        db.player.find({ clubs: clubId, guest: { $ne: true } }, '_id').lean(),
+    ]);
+    const ratings = clubRatings(tallies, { history });
+    return { ratings, board: ratingBoard(ratings, members.map(member => String(member._id))) };
 };
 
 /**
@@ -191,6 +350,27 @@ export const winChances = (ratings, playerIds) => {
     const rest = 100 - shares.reduce((sum, value) => sum + value, 0);
     if (rest) shares[shares.indexOf(Math.max(...shares))] += rest;
     return Object.fromEntries(playerIds.map((id, index) => [String(id), shares[index]]));
+};
+
+// a match still to be played between two players
+const isOpenMatch = (match) => ['ready', 'running'].includes(match.status) && (match.players ?? []).filter(Boolean).length === 2;
+
+/**
+ * The matches of a tournament or league, each one still to be played with
+ * both players known with their chances to win it: { [playerId]: percent }.
+ */
+export const matchChances = (matches, ratings) => (matches ?? []).map(match => (isOpenMatch(match)
+    ? { ...match, chances: winChances(ratings, match.players) }
+    : match));
+
+/**
+ * A tournament or league view with the chances on its open matches, from the
+ * rating of these clubs (a shared tournament: every club taking part).
+ */
+export const withChances = async (view, clubIds) => {
+    if (!(view.matches ?? []).some(isOpenMatch)) return view;
+    const ratings = clubRatings(await ratingTallies(clubIds));
+    return { ...view, matches: matchChances(view.matches, ratings) };
 };
 
 /**

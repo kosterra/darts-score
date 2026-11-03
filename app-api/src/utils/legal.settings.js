@@ -3,6 +3,7 @@ import { getSessionSettings } from './session.settings.js';
 import { QUICK_KEEP_DAYS, QUICK_UNFINISHED_DAYS } from './quick.games.js';
 import { LOG_RETENTION_DAYS } from '../models/log.entry.model.js';
 import { USAGE_KEEP_DAYS } from '../models/usage.day.model.js';
+import { BOARD_NIGHT_KEEP_DAYS } from '../models/board.night.model.js';
 import { isMailConfigured } from './mail.utils.js';
 import { LANGUAGES } from '../models/user.model.js';
 
@@ -59,6 +60,7 @@ export const legalPage = async (language = 'en') => {
         errorLogDays: LOG_RETENTION_DAYS,
         claimLinkDays: 30,
         usageDays: USAGE_KEEP_DAYS,
+        boardNightDays: BOARD_NIGHT_KEEP_DAYS,
     },
     };
 };

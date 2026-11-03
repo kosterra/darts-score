@@ -5,7 +5,8 @@ import { Panel } from 'primereact/panel';
 import StatsService from '../../../services/stats.service';
 import ClubMedal from '../../badges/club.medal';
 import { Lines } from '../../elements/skeletons';
-import { ClubGoalList, ClubProgress } from '../../badges/club.badges';
+import { ClubGoalList } from '../../badges/club.badges';
+import GoalProgress from '../../elements/goal.progress';
 import { formatDate } from '../../../utils/dates';
 import { locale, t } from '../../../utils/i18n';
 
@@ -47,7 +48,7 @@ const ClubGoalsWidget = ({ widget }) => {
                                             <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
                                             <span className="text-subtle fs-8 tabular-nums text-nowrap">{formatNumber(badge.progress)} / {formatNumber(badge.target)}</span>
                                         </span>
-                                        <ClubProgress value={badge.progress} target={badge.target} label={badge.title} />
+                                        <GoalProgress value={badge.progress} target={badge.target} label={badge.title} />
                                     </span>
                                 </li>
                             ))}

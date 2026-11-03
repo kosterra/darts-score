@@ -1,4 +1,5 @@
 import { shirtOf } from '../../../app-api/src/utils/shirts.js';
+import { withMockChances } from './ratings.mjs';
 // leagues for the mock API, with the real league rules and the API's match pattern
 import { LEAGUE_MATCH_ID, leagueMatches, leagueTable, matchdayCount, matchdayDates, seasonOver } from '../../src/rules/leagues.js';
 
@@ -13,6 +14,8 @@ export const allLeagues = () => leagues;
 
 const viewOf = (league, players, me) => ({
     ...league,
+    // the chances on the open matches, from the club rating
+    matches: withMockChances(league.matches ?? [], players.map(p => p.id)),
     names: Object.fromEntries(players.map(p => [p.id, { id: p.id, nickname: p.nickname, firstname: p.firstname, lastname: p.lastname, shirt: shirtOf(p) }])),
     myPlayer: me,
 });

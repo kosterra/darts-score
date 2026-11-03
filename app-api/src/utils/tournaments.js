@@ -7,9 +7,10 @@ import {
     drawGroups, groupMatches, groupSetupError, groupsDone, isDecided, knockoutDraw, knockoutOfGroups, presetById, retract, roundSizes, rulesError,
     suggestGroups,
 } from '../rules/tournaments.js';
+import { boardsView, fill, hold, moveTo, setBoards, tournamentItems } from '../rules/boards.js';
 import { getSessionSecret } from './auth.utils.js';
 import { storedOf } from './game.view.js';
-import { clubRatings } from './compare.js';
+import { clubRatings, ratingTallies } from './compare.js';
 import { getAppUrl, isMailConfigured } from './mail.utils.js';
 import { sendTemplateMail } from './mail.service.js';
 import { dateIn, deliverQuietly, languageOf, unsubscribeToken } from './notify.js';
@@ -340,7 +341,7 @@ export const holdDraw = async (tournament, { seeding = 'seeded', by = null, rand
     // the strongest first by the club rating (in a shared tournament, across every
     // club taking part); players without games in random order behind them
     const ratingClubs = [tournament.club, ...(tournament.invitedClubs ?? [])];
-    const ratings = clubRatings(await db.clubTally.find({ club: { $in: ratingClubs } }, 'at players winners friendly').lean());
+    const ratings = clubRatings(await ratingTallies(ratingClubs));
     const tiebreak = new Map(players.map(id => [id, random()]));
     const ranked = [...players].sort((a, b) => (ratings.get(b)?.rating ?? 0) - (ratings.get(a)?.rating ?? 0) || tiebreak.get(a) - tiebreak.get(b));
     if (tournament.format === 'groups') return drawWithGroups(tournament, ranked, { seeding, by, random, groupSize, advance: goOn });
@@ -352,6 +353,7 @@ export const holdDraw = async (tournament, { seeding = 'seeded', by = null, rand
     tournament.rounds = tournament.rounds.map(round => ({ ...(round.toObject?.() ?? round), skipped: round.size > draw.size }));
     tournament.draw = { at: new Date(), by, seeding, size: draw.size };
     tournament.status = 'drawn';
+    const called = settleBoards(tournament);
     await tournament.save();
     logger.info(`Draw of the tournament ${tournament._id}: ${players.length} players, bracket of ${draw.size}, ${seeding}`);
 
@@ -367,6 +369,7 @@ export const holdDraw = async (tournament, { seeding = 'seeded', by = null, rand
             body: match?.bye ? 'You have a bye into the next round.' : `Your first match: against ${names.get(other)?.nickname ?? '?'}`,
         };
     });
+    await tellCalled(tournament, called);
     return tournament;
 };
 
@@ -394,6 +397,7 @@ const drawWithGroups = async (tournament, ranked, { seeding, by, random, groupSi
     tournament.rounds = tournament.rounds.map(round => ({ ...(round.toObject?.() ?? round), skipped: round.size !== GROUP_ROUND && round.size > knockout.size }));
     tournament.draw = { at: new Date(), by, seeding, size: knockout.size, groups, groupSize: size, advance: advanceCount, knockoutAt: null };
     tournament.status = 'drawn';
+    const called = settleBoards(tournament);
     await tournament.save();
     logger.info(`Draw of the tournament ${tournament._id}: ${ranked.length} players in ${groups.length} groups, ${advanceCount} of each go on to a bracket of ${knockout.size}`);
 
@@ -408,6 +412,7 @@ const drawWithGroups = async (tournament, ranked, { seeding, by, random, groupSi
             body: `Group ${String.fromCharCode(65 + group)}: against ${others.join(', ')}. The best ${advanceCount} of each group go on.`,
         };
     });
+    await tellCalled(tournament, called);
     return tournament;
 };
 
@@ -421,13 +426,15 @@ const fillKnockout = async (tournament, matches) => {
     const draw = knockoutDraw(groups, matches, tournament.draw.advance);
     const bracket = bracketMatches(draw);
     const next = [...matches.filter(match => match.group != null), ...bracket.map(match => ({ ...match, players: [...match.players] }))];
-    tournament.matches = next;
     tournament.draw.knockoutAt = new Date();
+    const called = settleBoards(tournament, next);
     await tournament.save();
     logger.info(`The groups of the tournament ${tournament._id} are over: ${draw.slots.filter(Boolean).length} players in a bracket of ${draw.size}`);
     const players = draw.slots.filter(Boolean);
     const names = await accountsOf(players);
     const firstOf = (playerId) => bracket.find(match => match.size === draw.size && match.players.includes(playerId));
+    // on boards the players hear their match when it is called to a board
+    if (boardsOn(tournament)) return tellCalled(tournament, called);
     await tellPlayers(tournament, players, (player) => {
         const match = firstOf(String(player._id));
         const other = match?.players.find(id => id && id !== String(player._id));
@@ -499,21 +506,25 @@ const decide = async (tournament, matches, match, winner, extra = {}) => {
     Object.assign(match, { winner, decidedAt: new Date(), ...extra });
     // a match of a group: the table counts it; the last one fills the bracket
     if (match.group != null) {
-        tournament.matches = matches;
         if (tournament.status === 'drawn') tournament.status = 'running';
+        const called = settleBoards(tournament, matches);
         await tournament.save();
+        await tellCalled(tournament, called);
         if (groupsDone(matches) && !tournament.draw?.knockoutAt) await fillKnockout(tournament, matches);
         return;
     }
     const next = advance(byId, match);
-    tournament.matches = matches;
     if (!next) {
         tournament.status = 'finished';
         tournament.winner = winner;
         tournament.finishedAt = new Date();
     }
+    // its board is free at once: the next match in the queue is called to it
+    const called = settleBoards(tournament, matches);
     await tournament.save();
-    if (next?.status === 'ready') {
+    await tellCalled(tournament, called);
+    // on boards the players hear their next match when it is called to a board
+    if (next?.status === 'ready' && !boardsOn(tournament)) {
         const names = await accountsOf(next.players);
         await tellPlayers(tournament, next.players, (player) => ({
             kind: 'tournamentMatch',
@@ -543,17 +554,23 @@ const finished = async (tournament) => {
  * view: the game with its results worked out (answerOf).
  */
 export const tournamentGameFinished = async (game, view) => {
-    try {
-        const tournament = await db.tournament.findById(game.tournament.id);
-        if (!tournament || !['drawn', 'running'].includes(tournament.status)) return;
-        const matches = plainMatches(tournament);
-        const match = matches.find(entry => entry.id === game.tournament.match);
-        if (!match || isDecided(match) || String(match.game) !== String(game._id)) return;
-        const winner = match.players.find(id => view?.playerModels?.[id]?.hasWonGame);
-        if (!winner) return;
-        await decide(tournament, matches, match, winner, { status: 'done', score: scoreOf(view, match, roundOf(tournament, match.size).rules) });
-    } catch (err) {
-        logger.error(err, `Failed to move on the winner of the tournament game ${game._id}`);
+    // two games finishing at once both save the matches: the one that lost the race reads them again
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+            const tournament = await db.tournament.findById(game.tournament.id);
+            if (!tournament || !['drawn', 'running'].includes(tournament.status)) return;
+            const matches = plainMatches(tournament);
+            const match = matches.find(entry => entry.id === game.tournament.match);
+            if (!match || isDecided(match) || String(match.game) !== String(game._id)) return;
+            const winner = match.players.find(id => view?.playerModels?.[id]?.hasWonGame);
+            if (!winner) return;
+            await decide(tournament, matches, match, winner, { status: 'done', score: scoreOf(view, match, roundOf(tournament, match.size).rules) });
+            return;
+        } catch (err) {
+            if (err.name === 'VersionError' && attempt === 0) continue;
+            logger.error(err, `Failed to move on the winner of the tournament game ${game._id}`);
+            return;
+        }
     }
 };
 
@@ -568,9 +585,10 @@ export const tournamentGameDeleted = async (game) => {
         const matches = plainMatches(tournament);
         const match = matches.find(entry => entry.id === game.tournament.match && String(entry.game) === String(game._id));
         if (!match) return;
+        // on boards it stays on its board, called again
         if (match.status === 'running') match.status = 'ready';
         match.game = null;
-        tournament.matches = matches;
+        settleBoards(tournament, matches);
         await tournament.save();
     } catch (err) {
         logger.error(err, `Failed to take the deleted game ${game._id} out of its tournament`);
@@ -617,6 +635,111 @@ export const cancelTournament = async (tournament) => {
 };
 
 // ---------------------------------------------------------------------------
+// Boards: the matches called to free boards and played side by side
+// ---------------------------------------------------------------------------
+
+const boardsOn = (tournament) => (tournament.boards?.count ?? 0) > 0;
+
+// the notice of a match called to a board (also for club nights, see utils/boards.js)
+export const boardCalledTitle = (board, name) => `Your match: board ${board}, against ${name}`;
+
+/**
+ * Changes of boards (from rules/boards.js) on the matches: a match not
+ * started that leaves its board is no longer called (it hears its next
+ * board); one getting a board for the first time is called.
+ * → the matches called now
+ */
+const applyBoardChanges = (matches, changes, now = new Date()) => {
+    const called = new Set();
+    for (const { key, ...fields } of changes) {
+        const match = matches.find(entry => entry.id === key);
+        if (!match) continue;
+        if ('held' in fields) match.held = fields.held;
+        if (!('board' in fields)) continue;
+        match.board = fields.board;
+        if (!fields.board && match.status === 'ready') {
+            match.calledAt = null;
+            called.delete(match);
+        } else if (fields.board && !match.calledAt) {
+            match.calledAt = now;
+            called.add(match);
+        }
+    }
+    return [...called];
+};
+
+/**
+ * Before the matches are saved: since when each match is ready, a match
+ * whose players are no longer known leaves its board, and the free boards
+ * are filled from the queue. Puts the matches on the tournament.
+ * → the matches called now (their players hear it after the save)
+ */
+const settleBoards = (tournament, matches = plainMatches(tournament), now = new Date()) => {
+    for (const match of matches) {
+        if (['ready', 'running'].includes(match.status) && !match.readyAt) match.readyAt = now;
+        if (match.status === 'waiting') Object.assign(match, { readyAt: null, board: null, calledAt: null, held: false });
+    }
+    tournament.matches = matches;
+    if (!boardsOn(tournament) || !['drawn', 'running'].includes(tournament.status)) return [];
+    const called = applyBoardChanges(matches, fill(tournament.boards, tournamentItems({ matches })), now);
+    tournament.matches = matches;
+    return called;
+};
+
+// the players of matches called to a board hear which board, and against whom
+const tellCalled = async (tournament, called) => {
+    if (!called.length) return;
+    const names = await accountsOf(called.flatMap(match => match.players));
+    for (const match of called) {
+        await tellPlayers(tournament, match.players, (player) => ({
+            kind: 'boardCalled',
+            title: boardCalledTitle(match.board, names.get(match.players.find(id => id !== String(player._id)))?.nickname ?? '?'),
+            body: tournament.name,
+        }));
+    }
+};
+
+const notOver = (tournament) => {
+    if (['finished', 'cancelled'].includes(tournament.status)) throw Object.assign(new Error('This tournament is over.'), { status: 409 });
+};
+
+/**
+ * An admin sets the boards: how many, and those taken out. A match called
+ * to a board that goes is queued again (first); a game going on finishes.
+ */
+export const changeBoards = async (tournament, { count, out = tournament.boards?.out ?? [] }) => {
+    notOver(tournament);
+    const matches = plainMatches(tournament);
+    const { boards, changes } = setBoards(tournamentItems({ matches }), { count, out });
+    tournament.boards = boards;
+    const live = ['drawn', 'running'].includes(tournament.status);
+    const called = live ? applyBoardChanges(matches, changes) : [];
+    called.push(...settleBoards(tournament, matches).filter(match => !called.includes(match)));
+    await tournament.save();
+    await tellCalled(tournament, called.filter(match => match.board));
+    return tournament;
+};
+
+const boardAction = async (tournament, matchKey, decide) => {
+    if (!['drawn', 'running'].includes(tournament.status)) throw Object.assign(new Error('The tournament is not running.'), { status: 409 });
+    const matches = plainMatches(tournament);
+    if (!matches.some(match => match.id === matchKey)) throw Object.assign(new Error('There is no such match.'), { status: 404 });
+    const { changes, error } = decide(tournament.boards ?? { count: 0, out: [] }, tournamentItems({ matches }));
+    if (error) throw Object.assign(new Error(error), { status: 409 });
+    const called = applyBoardChanges(matches, changes);
+    called.push(...settleBoards(tournament, matches).filter(match => !called.includes(match)));
+    await tournament.save();
+    await tellCalled(tournament, called.filter(match => match.board));
+    return tournament;
+};
+
+// an admin moves a match to a board (or swaps it with the match there); only a match new on a board hears it
+export const moveMatch = (tournament, matchKey, board) => boardAction(tournament, matchKey, (boards, items) => moveTo(boards, items, matchKey, board));
+
+// an admin holds a match back (a player is not there) or lets it into the queue again
+export const holdMatch = (tournament, matchKey, held) => boardAction(tournament, matchKey, (boards, items) => hold(boards, items, matchKey, Boolean(held)));
+
+// ---------------------------------------------------------------------------
 // For the app
 // ---------------------------------------------------------------------------
 
@@ -642,8 +765,12 @@ export const tournamentView = async (tournament, { playerId = null } = {}) => {
     const clubs = Object.fromEntries(clubDocs.map(club => [String(club._id), {
         id: String(club._id), name: club.name, logo: club.logo ?? '', country: club.country ?? '', host: String(club._id) === String(json.club),
     }]));
+    const boards = { count: json.boards?.count ?? 0, out: json.boards?.out ?? [] };
     return {
         ...json,
+        boards,
+        // the boards with the match on each, the queue and the matches held back (see rules/boards.js)
+        boardView: boardsView(boards, tournamentItems(json)),
         shared,
         clubs,
         players: Object.fromEntries(players.map(player => [String(player._id), {

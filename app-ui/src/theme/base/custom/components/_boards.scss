@@ -1,0 +1,264 @@
+// Boards: games in parallel on the boards of a club (a tournament, a club
+// night), the queue of who plays next, "Your match", and the big screen of
+// all boards at once.
+
+// the boards as tiles, as many in a row as fit; one column on a phone
+.boards-grid {
+    display: grid;
+    // the boards share the row: two of them are not left in a corner of a wide panel
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 0.75rem;
+}
+
+.board-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-radius: $radius-md;
+    background: ink(0.04);
+    border: 1px solid ink(0.08);
+    transition: background 0.15s, box-shadow 0.15s;
+
+    &:hover { background: ink(0.08); }
+    // a board taken out: still there, quiet
+    &.is-out { opacity: 0.55; }
+    // on a phone the player's own board comes first
+    @media (max-width: 767.98px) { &.is-mine { order: -1; } }
+}
+
+.board-move { min-width: 10rem; }
+
+.board-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.board-card-number {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+
+    span:first-child { color: var(--text-faint); font-size: $text-sm; }
+    strong { color: var(--text-default); font-size: $text-2xl; font-weight: $weight-heavy; font-variant-numeric: tabular-nums; }
+}
+
+.board-card-players {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-height: 4.2rem;
+}
+
+.board-player {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+    color: var(--text-default);
+
+    .board-player-legs { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: $weight-bold; }
+    &.is-mine .board-player-name { color: $primaryColor; }
+}
+
+.board-card-free { color: var(--text-faint); font-size: $text-md; }
+
+.board-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: auto;
+}
+
+// the queue: who plays next, as rows of a list
+.board-queue {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.board-queue-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.85rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: $radius-md;
+    background: ink(0.04);
+
+    &:hover { background: ink(0.08); }
+    &.is-held { opacity: 0.6; }
+    &.is-mine { background: with-alpha($primaryColor, 0.08); }
+}
+
+.board-queue-place {
+    flex-shrink: 0;
+    width: 1.6rem;
+    color: var(--text-faint);
+    font-size: $text-sm;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+}
+
+.board-queue-pair {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 12rem;
+    min-width: 0;
+}
+
+.board-queue-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-left: auto;
+}
+
+// the admin's tools above the boards: grey, out of the way
+.boards-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+}
+
+.boards-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    .boards-count-value { min-width: 1.6rem; text-align: center; font-weight: $weight-bold; font-variant-numeric: tabular-nums; }
+}
+
+// "Your match": hard to miss, the board large
+.my-match {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    padding: 1rem 1.25rem;
+    border-radius: $radius-md;
+    background: var(--surface-raised);
+    border: 1px solid with-alpha($primaryColor, 0.45);
+    box-shadow: 0 0.5rem 1.5rem -0.75rem shadow(0.8);
+}
+
+.my-match-board {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+
+    span { color: var(--text-subtle); font-size: $text-sm; font-weight: $weight-semibold; text-transform: uppercase; letter-spacing: 0.06em; }
+    strong { color: var(--text-default); font-size: $text-display; font-weight: $weight-heavy; font-variant-numeric: tabular-nums; }
+}
+
+.my-match-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex: 1 1 10rem;
+    min-width: 0;
+}
+
+.my-match-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+// the big screen of the boards: a tile per board, the next up in a column of their own
+.big-boards {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: 1fr minmax(14rem, 22rem);
+    gap: clamp(0.75rem, 2vw, 2rem);
+    @media (max-width: 991.98px) { grid-template-columns: 1fr; }
+}
+
+.big-boards-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--columns, 2), minmax(0, 1fr));
+    gap: clamp(0.75rem, 1.5vw, 1.5rem);
+    align-content: start;
+    @media (max-width: 767.98px) { grid-template-columns: 1fr; }
+}
+
+.big-board {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.4rem, 1.2vh, 1rem);
+    padding: clamp(0.75rem, 2vh, 1.5rem) clamp(0.75rem, 1.5vw, 1.5rem);
+    border-radius: $radius-lg;
+    background: var(--c-shade-800);
+    border: 2px solid transparent;
+
+    &.is-fresh { border-color: with-alpha($accentGold, 0.7); box-shadow: 0 0 2.5rem -0.75rem $accentGold; }
+    &.is-out { opacity: 0.45; }
+}
+
+.big-board-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+}
+
+.big-board-number {
+    font-size: clamp(2rem, 4.5vw, 4rem);
+    font-weight: $weight-heavy;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.big-board-badge {
+    padding: $space-1 $space-3;
+    border-radius: $radius-pill;
+    font-weight: $weight-bold;
+    font-size: clamp(0.9rem, 1.4vw, 1.3rem);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+
+    &.is-fresh { background: $accentGold; color: #1d2126; }
+    &.is-called { background: with-alpha($accentGreen, 0.2); color: $accentGreen; }
+    &.is-playing { background: with-alpha($accentAmber, 0.2); color: $accentAmber; }
+    &.is-free, &.is-out { background: ink(0.08); color: var(--text-subtle); }
+}
+
+.big-board-player {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    font-size: clamp(1.3rem, 2.6vw, 2.4rem);
+    font-weight: $weight-bold;
+    min-width: 0;
+
+    .big-board-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .big-board-legs { margin-left: auto; font-weight: $weight-heavy; font-variant-numeric: tabular-nums; color: $accentGold; }
+    .big-board-score { min-width: 2.5em; text-align: right; color: var(--text-subtle); font-variant-numeric: tabular-nums; }
+    .big-board-legs + .big-board-score { margin-left: 0; }
+    .big-board-name + .big-board-score { margin-left: auto; }
+}
+// names in line whether a flag is there or not
+.big-board-flag { flex-shrink: 0; width: 1.4em; }
+.big-board-round { font-size: clamp(0.9rem, 1.4vw, 1.3rem); }
+.big-boards-next-round { font-size: 0.75em; font-weight: $weight-regular; }
+
+.big-board-free { color: var(--text-faint); font-size: clamp(1.1rem, 2vw, 1.8rem); }
+
+.big-boards-next {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    padding: clamp(0.75rem, 2vh, 1.5rem);
+    border-radius: $radius-lg;
+    background: var(--c-shade-800);
+    align-self: start;
+
+    h2 { margin: 0 0 $space-2; font-size: clamp(1.1rem, 2vw, 1.8rem); font-weight: $weight-semibold; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.08em; }
+    ol { display: flex; flex-direction: column; gap: $space-2; margin: 0; padding: 0; list-style: none; }
+    li { display: flex; gap: $space-3; font-size: clamp(1rem, 1.7vw, 1.5rem); font-weight: $weight-semibold; }
+    li > span:first-child { color: var(--text-faint); font-variant-numeric: tabular-nums; min-width: 1.5em; }
+}

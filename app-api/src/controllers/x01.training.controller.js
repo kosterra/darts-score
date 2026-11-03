@@ -3,6 +3,7 @@ import { noteDeleted, noteFairPlay, checkLater } from '../utils/spam.guard.js';
 import db from '../models/db.model.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf, seesTrainingsOf } from '../utils/training.privacy.js';
 import { answerOf, storedOf } from '../utils/game.view.js';
+import { checkPracticeGoals } from '../utils/practice.goals.js';
 
 // the bot is no player of the club: it only lives in its trainings
 export const BOT_ID = 'bot';
@@ -83,7 +84,8 @@ export const update = async (req, res) => {
     if (!db.mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
     const training = await Training.findOne({ _id: req.params.id, club: req.club._id }, 'players bot');
     if (!training) return res.status(404).json({ message: 'Not found.' });
-    if (!(await loadPlayer(req, res, humanOf(training.players)))) return;
+    const player = await loadPlayer(req, res, humanOf(training.players));
+    if (!player) return;
     // eslint-disable-next-line no-unused-vars
     const { players, bot, club, _id, id, __v, createdAt, updatedAt, ...sent } = req.body;
     // the results follow from the visits, worked out here; the players stay
@@ -91,7 +93,11 @@ export const update = async (req, res) => {
     const { players: same, ...changes } = storedOf('x01training', { ...sent, players: training.players });
     try {
         const saved = await Training.findOneAndUpdate({ _id: training._id }, { $set: changes }, { returnDocument: 'after' });
-        if (saved?.hasWinner) checkLater(() => noteFairPlay(req.club._id, 'x01training', saved));
+        if (saved?.hasWinner) {
+            checkLater(() => noteFairPlay(req.club._id, 'x01training', saved));
+            // a finished training counts for the player's weekly goals
+            if (player.user && !player.guest) await checkPracticeGoals(player.user, { training: 'bot' });
+        }
         res.json(answerOf('x01training', saved));
     } catch (err) {
         logger.error(err, `Failed to save the X01 training ${req.params.id}`);

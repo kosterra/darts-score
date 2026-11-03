@@ -12,6 +12,23 @@ const doubleValue = (number) => number * 2;
 const percent = (part, whole) => (whole ? `${Math.round(part / whole * 100)} %` : '–');
 
 /**
+ * The doubles of a training around the board as cells, D1 to the bull: the
+ * ones played with what they took (value) and how good that was (tone, 0 the
+ * worst to 3 the best), the one to throw at now (current), the rest to come.
+ */
+const doubleCells = (state, valueOf, toneOf, over = false) => DOUBLE_TARGETS.map((number, index) => {
+    const played = index < state.index;
+    const value = played ? valueOf(index) : null;
+    return {
+        name: doubleName(number),
+        short: number === 25 ? t('Bull') : String(number),
+        value,
+        tone: played ? toneOf(value) : null,
+        current: !over && index === state.index,
+    };
+});
+
+/**
  * Bob's 27: start on 27 and throw three darts at every double, D1 to the
  * bull. Each hit adds the double's value; no hit takes it off. Below 1 the
  * training is over.
@@ -54,8 +71,15 @@ export const BOBS_27 = {
     },
     done: (state) => state.failed || state.index >= DOUBLE_TARGETS.length,
     target: (state) => doubleName(DOUBLE_TARGETS[state.index]),
-    // the big number of the header
-    hero: (state) => state.score,
+    // the double to throw at is the big figure of the header, the points under it
+    hero: (state) => doubleName(DOUBLE_TARGETS[state.index]),
+    heroTarget: true,
+    heroNote: (state) => tn(state.score, '{{count}} point', '{{count}} points'),
+    // the darts thrown in this visit
+    inVisit: (state) => state.inVisit,
+    // the hits of every double, 0 to 3 (a visit without one is the worst)
+    doubles: (state) => doubleCells(state, index => state.perDouble[index], hits => hits, state.failed),
+    doublesLabel: t('Hits out of 3 per double'),
     status: (state) => [[t('Points'), state.score], [t('Dart'), `${state.inVisit + 1} / 3`]],
     result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, darts: state.darts, failed: state.failed }),
     higherIsBetter: true,
@@ -113,6 +137,8 @@ export const CHECKOUT_121 = {
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
     checkout: (state, { settings }) => wayOut(state, settings.darts),
+    // an attempt ends early when it is checked out or bust: its visits count from its start
+    inVisit: (state) => state.inAttempt % 3,
     status: (state, { settings }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
@@ -174,6 +200,7 @@ export const RANDOM_CHECKOUTS = {
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
     checkout: (state) => wayOut(state, 3),
+    inVisit: (state) => state.inAttempt,
     status: (state, { settings }) => [[t('Checked out'), state.done], [t('Attempt'), `${state.index + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     result: (state, { settings }) => ({ score: Math.round(state.done / settings.attempts * 100), done: state.done, attempts: settings.attempts, best: state.best, darts: state.darts }),
     higherIsBetter: true,
@@ -252,6 +279,11 @@ export const DOUBLES_AROUND = {
     done: (state) => state.index >= DOUBLE_TARGETS.length,
     target: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     hero: (state) => doubleName(DOUBLE_TARGETS[state.index]),
+    heroTarget: true,
+    heroNote: (state) => tn(state.darts, '{{count}} dart', '{{count}} darts'),
+    // the darts every double took: one is the best, five or more the worst
+    doubles: (state) => doubleCells(state, index => state.perDouble[index], darts => (darts <= 1 ? 3 : darts === 2 ? 2 : darts <= 4 ? 1 : 0)),
+    doublesLabel: t('Darts per double'),
     status: (state) => [[t('Darts'), state.darts], [t('Doubles hit'), `${state.index} / 21`]],
     result: (state) => {
         const hardest = state.perDouble.map((darts, index) => ({ darts, name: doubleName(DOUBLE_TARGETS[index]) })).sort((a, b) => b.darts - a.darts).slice(0, 3);
@@ -305,6 +337,7 @@ export const CATCH_40 = {
     target: (state) => t('Check out {{left}}', { left: state.left }),
     hero: (state) => state.left,
     checkout: (state) => wayOut(state, 6),
+    inVisit: (state) => state.inAttempt % 3,
     status: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt} / 6`]],
     result: (state) => ({ score: state.points, done: state.done, darts: state.darts }),
     higherIsBetter: true,

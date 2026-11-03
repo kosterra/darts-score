@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import ScreenService from '../../services/screen.service';
 import BigScreenX01 from './big.screen.x01';
+import BigScreenBoards from './big.screen.boards';
 import { BigScreenClock, BigScreenCricket, BigScreenElimination, BigScreenEveningTable, BigScreenRules } from './big.screen.games';
 import { newVisits } from './screen.visits';
 import CallerButton from '../games/common/caller.button';
@@ -16,6 +17,9 @@ import { t } from '../../utils/i18n';
 
 // how often the screen asks for the game: about as fast as the next visit can come
 const POLL_MS = 1500;
+// the boards of a tournament or a club night change with a call or a leg, not with every visit
+const BOARDS_POLL_MS = 5000;
+const BOARD_KINDS = ['tournamentBoards', 'nightBoards'];
 
 /**
  * What a screen shows, from the answer of the API: the game (for a darts
@@ -24,6 +28,7 @@ const POLL_MS = 1500;
  * the scorer's device does.
  */
 const screenOf = (answer) => {
+    if (BOARD_KINDS.includes(answer.kind)) return { ...answer, view: { kind: 'boards', game: null, players: [], evening: null, title: null } };
     const evening = answer.kind === 'evening' ? answer.evening : null;
     const { game } = answer;
     const kind = evening ? game?.kind ?? null : answer.kind;
@@ -85,7 +90,7 @@ export const ScreenGame = ({ token, corner = null }) => {
                 // a link run out ends the screen; a connection lost is tried again
                 if (err.data?.expired) { setError(err.message); return; }
             }
-            if (alive) timer = setTimeout(load, POLL_MS);
+            if (alive) timer = setTimeout(load, last.current?.view.kind === 'boards' ? BOARDS_POLL_MS : POLL_MS);
         };
         load();
         return () => { alive = false; clearTimeout(timer); };
@@ -112,6 +117,7 @@ export const ScreenGame = ({ token, corner = null }) => {
         <>
             {(() => {
                 const { kind, game, players, evening, title } = screen.view;
+                if (kind === 'boards') return <BigScreenBoards answer={screen} />;
                 const Display = DISPLAYS[kind];
                 if (game && Display) return <Display game={game} players={players} club={screen.club} title={title} />;
                 if (evening) return <BigScreenEveningTable evening={evening} />;
