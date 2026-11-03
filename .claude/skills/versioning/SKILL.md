@@ -1,6 +1,6 @@
 ---
 name: versioning
-description: Legmate's version numbers and when they change — the format {year}.{month}.{sequence} (sequence from 0 in each month, e.g. 2026.11.0, 2026.11.1, 2026.12.0), where the version lives (root package.json, app-api/openapi.yaml), the script that bumps it, and the rule that a new version is set on develop right after every pull request (which is only opened when the developer asks). Use whenever creating a pull request, cutting a release, bumping, setting or checking the version, naming a release branch or What's new entry, or when the user asks about versions.
+description: Legmate's version numbers and when they change — the format {year}.{month}.{sequence} (sequence from 0 in each month, e.g. 2026.11.0, 2026.11.1, 2026.12.0), where the version lives (root package.json, app-api/openapi.yaml), the script that bumps it, and the rule that the next version is set on develop right before every pull request (which is only opened when the developer asks), so the pull request carries it. Use whenever creating a pull request, cutting a release, bumping, setting or checking the version, naming a release branch or What's new entry, or when the user asks about versions.
 ---
 
 # Versioning for Legmate
@@ -48,37 +48,43 @@ a PR on your own initiative — not for a finished feature, not for a release,
 not "to be ready". Work goes straight to `develop` (see the project memory);
 `main` changes only through a PR the developer asked for and merges themself.
 
-**Right after every pull request you create, set the next version on
-`develop`.** The PR carries the version it was created with; `develop` moves
-on at once so the next work has its own number:
+**Right before every pull request you create, set the next version on
+`develop`.** The PR carries the new version; between pull requests `develop`
+keeps the version of the last one (the one released last, or about to be):
 
-1. Create the PR as the developer asked (for a release: the `release/<version>`
-   branch from `develop`, then the PR `release/<version>` → `main` with the
-   deploy notes — see the release flow below).
-2. Check the PR exists (`gh pr view <number>`), and note its URL.
-3. On `develop`: `git pull`, then `node scripts/version.mjs next`.
-4. Commit only those two files with the message `Version <new version>` (and the
+1. On `develop`: `git pull`, then `node scripts/version.mjs next`.
+2. Commit only those two files with the message `Version <new version>` (and the
    attribution lines), and push to `develop`.
-5. Tell the developer both: the PR (with its version) and the new develop version.
+3. Create the PR as the developer asked, from that commit or later (for a
+   release: the `release/<version>` branch from `develop`, then the PR
+   `release/<version>` → `main` with the deploy notes — see the release flow below).
+4. Check the PR exists (`gh pr view <number>`), and note its URL.
+5. Tell the developer the PR with its version.
 
-If creating the PR failed, do not bump. If the developer says a PR does not
-count as a release (e.g. a PR they asked for that is not a release), still
-bump unless they say otherwise — the rule is "after every PR".
+If creating the PR fails after the bump, keep the version: the next attempt
+uses it, it is not set again (a version is only set once per PR). If the
+developer says a PR does not count as a release (e.g. a PR they asked for that
+is not a release), still bump unless they say otherwise — the rule is "before
+every PR".
 
 ## A release, in order
 
-1. **Before the PR**, on `develop`: the top What's new entry in
-   `app-ui/src/components/about/changelog.js` gets the current version instead
-   of `'Next release'` (the version in package.json is the one being
-   released); SBOMs regenerated (`node scripts/sbom.mjs`), full test suites run.
-2. Push `develop`, then `git push origin develop:release/<version>` and open the
+1. **The version first**, on `develop`: `node scripts/version.mjs next`, commit
+   `Version <new version>`.
+2. **Then the release preparation**: the top What's new entry in
+   `app-ui/src/components/about/changelog.js` gets that new version instead
+   of `'Next release'`; SBOMs regenerated (`node scripts/sbom.mjs`, so they
+   carry the new version), full test suites run.
+3. Push `develop`, then `git push origin develop:release/<version>` and open the
    PR `release/<version>` → `main` — only when the developer asked for it.
-3. **After the PR**: `node scripts/version.mjs next` on `develop`, commit
-   `Version <next>`, push. A new `{ version: 'Next release', changes: [] }`
-   entry is added to What's new with the first change that goes into it.
+4. **After the PR** nothing changes the version. A new
+   `{ version: 'Next release', changes: [] }` entry is added to What's new with
+   the first change that goes into it.
 
 ## Checks
 
 - `node scripts/version.mjs` prints a warning when the version is not in the format.
 - The version in package.json and openapi.yaml must be the same.
 - A version number is never reused: if `git tag` already has it, it was released.
+- Between pull requests the version on `develop` is that of the last PR: a
+  higher one means it was set without a PR (set it back with the script).
