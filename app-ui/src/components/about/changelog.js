@@ -2,8 +2,10 @@
 import { t } from '../../utils/i18n';
 
 /**
- * What changed for players, newest first. When a release gets its version
- * number in the root package.json, give the "Next release" entry that number.
+ * What changed for players, newest first. Changes not released yet go into
+ * the "Next release" entry on top (shown as coming soon); right before the
+ * release's pull request the version is set in the root package.json and that
+ * entry gets its number (see the versioning skill).
  */
 const CHANGELOG = [
     {
