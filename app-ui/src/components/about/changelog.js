@@ -7,7 +7,7 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.1',
         changes: [
             t('Legmate in your language at its own address – legmate.ch/de, /fr, /it and /es – to share and for the search engines, which now find every public page in every language.'),
             t('Made for the big screen: on a computer the flights and darts take the whole width, the settings of the installation sit two by two, dashboards fill their rows without gaps, the player page groups badges and flights in panels, and long texts keep to a width that is easy to read.'),
