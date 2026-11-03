@@ -35,7 +35,8 @@ const greeting = (name, hour = new Date().getHours()) => {
 const Dashboard = () => {
     const { activeClub, user, setUser, isGlobalAdmin } = useAuth();
     // who the user plays as in the club: their picture and nickname on top
-    const me = playerInClub(useMyPlayers(!isGlobalAdmin), activeClub?.id);
+    const myPlayers = useMyPlayers(!isGlobalAdmin);
+    const me = playerInClub(myPlayers, activeClub?.id);
     const [preferences] = useGamePreferences();
     const [stats, setStats] = useState(null);
     const [failed, setFailed] = useState(false);
@@ -57,7 +58,8 @@ const Dashboard = () => {
     const players = useMemo(() => new Map((stats?.players ?? []).map(player => [player.id, player])), [stats]);
     const shameBadges = activeClub?.shameBadges !== false;
     const stored = preferences.dashboard;
-    const widgets = resolveLayout(arranged?.length ? arranged : stored, { shameBadges, fallback: PERSONAL_DEFAULT_LAYOUT });
+    // without a player in the club, You and Your training show nothing: no hole for them
+    const widgets = resolveLayout(arranged?.length ? arranged : stored, { shameBadges, fallback: PERSONAL_DEFAULT_LAYOUT, without: me || myPlayers === null ? [] : ['me', 'training'] });
 
     if (failed) return <div className="container-fluid p-4 text-subtle">{t('The dashboard could not be loaded. Please reload the page.')}</div>;
     if (!stats) return <DashboardSkeleton club={activeClub} widgets={widgets} />;

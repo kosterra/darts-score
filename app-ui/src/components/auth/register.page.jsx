@@ -61,11 +61,11 @@ const RegisterPage = () => {
                 </div>
                 <span className="p-float-label w-100">
                     <InputText id="register-firstname" autoComplete="given-name" value={account.firstname} onChange={onChange('firstname')} className="w-100" required />
-                    <label htmlFor="register-firstname">{t('Firstname')}</label>
+                    <label htmlFor="register-firstname">{t('First name')}</label>
                 </span>
                 <span className="p-float-label w-100">
                     <InputText id="register-lastname" autoComplete="family-name" value={account.lastname} onChange={onChange('lastname')} className="w-100" required />
-                    <label htmlFor="register-lastname">{t('Lastname')}</label>
+                    <label htmlFor="register-lastname">{t('Last name')}</label>
                 </span>
                 <span className="p-float-label w-100">
                     <InputText id="register-email" type="email" autoComplete="username" value={account.email} onChange={onChange('email')} className="w-100" required />

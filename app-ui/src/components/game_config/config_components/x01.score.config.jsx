@@ -19,7 +19,7 @@ const X01ScoreConfig = (props) => {
     return (
         // no container of its own: the boxes line up with the other boxes of the setup
         <div>
-            <SettingTitle locked={locked}>{t('Starting Score')}</SettingTitle>
+            <SettingTitle locked={locked}>{t('Starting score')}</SettingTitle>
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col">
                     <SelectButton

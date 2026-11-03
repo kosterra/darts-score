@@ -56,7 +56,7 @@ const BannerSettings = () => {
     return (
         <Panel header={t('Banner')} icons={<SaveStatus {...bannerSave} className="me-2" />}>
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('A message on top of every page, for everyone, also on the public start page and the login. Use it e.g. to mark a test environment, so everyone knows test data is welcome here.')}{' '}{t('Saved as you go.')}
                 </span>
 

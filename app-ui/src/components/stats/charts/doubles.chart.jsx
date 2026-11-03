@@ -1,6 +1,7 @@
 import ChartCard from './chart.card';
 import DartboardHeatmap from './dartboard.heatmap';
 import { PLAYER_COLORS } from './chart.theme';
+import { hasDoubles } from './board.data';
 import { t } from '../../../utils/i18n';
 
 // the favourite doubles listed: the most tried ones
@@ -22,7 +23,10 @@ const DoublesChart = ({ ratesByPlayer = [], players = [] }) => (
         title={t('Favourite doubles')}
         description={t('The doubles shaded by how often they were tried, with the checkout rate of the most tried ones below. The best double needs at least {{MIN_ATTEMPTS}} attempts.', { MIN_ATTEMPTS: MIN_ATTEMPTS })}
     >
-        <div className="row g-3 justify-content-center">
+        {/* an empty board says nothing: a line instead */}
+        {!hasDoubles(ratesByPlayer)
+            ? <p className="text-faint fs-7">{t('No darts at a double yet.')}</p>
+            : <div className="row g-3 justify-content-center">
             {players.map((player, index) => {
                 const rates = (ratesByPlayer[index] ?? []).map(entry => ({ ...entry, rate: Number(entry.rate) || 0, total: Number(entry.total) || 0, hit: Number(entry.hit) || 0 }));
                 const bySection = new Map(rates.map(entry => [String(entry.section), entry]));
@@ -31,7 +35,7 @@ const DoublesChart = ({ ratesByPlayer = [], players = [] }) => (
                 return (
                     <div key={player.id} className={players.length > 1 ? 'col-12 col-md-6' : 'col-12'}>
                         {players.length > 1 && <div className="text-center fw-semibold mb-1" style={{ color: PLAYER_COLORS[index] }}>{player.nickname}</div>}
-                        <div className="mx-auto" style={{ maxWidth: '20rem' }}>
+                        <div className="mx-auto" style={{ maxWidth: '24rem' }}>
                             <DartboardHeatmap
                                 onlyDoubles
                                 color={PLAYER_COLORS[index]}
@@ -69,7 +73,7 @@ const DoublesChart = ({ ratesByPlayer = [], players = [] }) => (
                     </div>
                 );
             })}
-        </div>
+        </div>}
     </ChartCard>
 );
 

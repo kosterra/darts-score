@@ -118,12 +118,13 @@ const ClubYearPage = () => {
                 {nothing
                     ? <p className="text-subtle m-0">{t('No finished game in {{year}} yet.', { year: review.year })}</p>
                     : (
+                        // each the full width: the awards four in a row (seven are four and three), the games in one row
                         <div className="row g-4">
-                            <div className="col-12 col-xl-8">
+                            <div className="col-12">
                                 <Panel header={t('Awards of the year')} className="h-100">
                                     {review.awards.length
                                         ? (
-                                            <div className="kpi-chips kpi-chips-wide">
+                                            <div className="kpi-chips kpi-chips-wide kpi-chips-fours">
                                                 {review.awards.map(award => {
                                                     const words = AWARDS[award.id];
                                                     if (!words) return null;
@@ -134,7 +135,7 @@ const ClubYearPage = () => {
                                         : <p className="text-subtle fs-7 m-0">{t('The awards go to the club\'s members for the club\'s own games; none of them played one yet.')}</p>}
                                 </Panel>
                             </div>
-                            <div className="col-12 col-xl-4">
+                            <div className="col-12">
                                 <Panel header={t('Games')} className="h-100">
                                     <div className="kpi-chips">
                                         {Object.entries(review.games.byType).sort((a, b) => b[1] - a[1]).map(([kind, count]) => (

@@ -125,7 +125,11 @@ $navRailWidth: 4.75rem;
         flex-grow: 1;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 0 $space-3 $space-4;
+        padding: 0 $space-3 $space-6;
+        // more entries than the window is tall (the admins' on a laptop): they fade out above the
+        // line at the bottom instead of being cut by it, so the list reads as one to scroll; at its
+        // end the last entry stands clear of the fade (the padding)
+        mask-image: linear-gradient(to bottom, #000 calc(100% - #{$space-6}), transparent);
         // a thin, dark scrollbar instead of the bright default one
         scrollbar-width: thin;
         scrollbar-color: $shade600 transparent;
@@ -460,7 +464,7 @@ $navRailWidth: 4.75rem;
         }
 
         .nav-sections {
-            padding: 0 0.6rem 1rem;
+            padding: 0 0.6rem $space-6;
         }
 
         .nav-label,
@@ -479,6 +483,16 @@ $navRailWidth: 4.75rem;
         .nav-link-item {
             justify-content: center;
             padding: 0.7rem;
+        }
+
+        // a window of a laptop's height: the icons closer together, so more of them fit
+        @media (max-height: 950px) {
+            .nav-link-item { padding: 0.55rem 0.7rem; }
+
+            .nav-section + .nav-section {
+                margin-top: $space-1;
+                padding-top: $space-1;
+            }
         }
 
         // in the icon rail the count sits on the icon's corner

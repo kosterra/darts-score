@@ -16,7 +16,7 @@ const EliminationScoreConfig = (props) => {
     return (
         // no container of its own: the boxes line up with the other boxes of the setup
         <div>
-            <SettingTitle locked={locked}>{t('Target Score')}</SettingTitle>
+            <SettingTitle locked={locked}>{t('Target score')}</SettingTitle>
             <div className="row mx-0 mt-0 setting-body">
                 <div className="col">
                     <SelectButton

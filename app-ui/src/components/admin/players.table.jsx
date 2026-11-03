@@ -228,7 +228,7 @@ const PlayersTable = ({ scope = 'club' }) => {
             <JSONViewer data={player} header={t('Player _RAW Data')} />
             <DeletePopup
                 data={player}
-                header={t('Delete Player')}
+                header={t('Delete player')}
                 message={acrossClubs && player.clubs?.length > 1
                     ? t('player {{nickname}} from all {{length}} clubs', { nickname: player.nickname, length: player.clubs.length })
                     : 'player ' + player.nickname}

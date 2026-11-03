@@ -28,7 +28,7 @@ const ForgotPasswordPage = () => {
     };
 
     return (
-        <AuthLayout title={t('Reset password')}>
+        <AuthLayout title={t('Reset password')} heading={t('Forgot your password?')} intro={t('Enter the email address of your account and we send you a link to choose a new password.')}>
             {sent
                 ? (
                     <div className="d-flex flex-column gap-4 pt-3">
@@ -42,9 +42,6 @@ const ForgotPasswordPage = () => {
                 )
                 : (
                     <form onSubmit={onSubmit} className="d-flex flex-column gap-4 pt-3">
-                        <span className="fs-7 text-subtle">
-                            {t('Enter the email address of your account and we send you a link to choose a new password.')}
-                        </span>
                         <span className="p-float-label w-100">
                             <InputText
                                 id="forgot-email"

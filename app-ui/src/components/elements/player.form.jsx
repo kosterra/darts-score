@@ -93,7 +93,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
             if (await PlayerService.createPlayer(formData, choosesClub ? clubId : undefined)) {
                 toast.current.show({
                     severity: 'success',
-                    summary: t('Create Player'),
+                    summary: t('Create player'),
                     detail: t('Successfully created player: ') + data.nickname,
                     life: 3000
                 });
@@ -102,7 +102,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
         } catch (error) {
             toast.current.show({
                 severity: 'error',
-                summary: t('Create Player'),
+                summary: t('Create player'),
                 detail: t('Failed to create player: ') + error.message,
                 life: 3000
             });
@@ -180,7 +180,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                     <Controller
                                         name="firstname"
                                         control={control}
-                                        rules={{ required: t('Firstname is required') }}
+                                        rules={{ required: t('First name is required') }}
                                         render={({ field }) => (
                                             <InputText
                                                 id="firstname"
@@ -189,7 +189,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                             />
                                         )}
                                     />
-                                    <label htmlFor="firstname">{t('Firstname')}</label>
+                                    <label htmlFor="firstname">{t('First name')}</label>
                                 </span>
                                 {getFormErrorMessage('firstname')}
                             </div>
@@ -198,7 +198,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                     <Controller
                                         name="lastname"
                                         control={control}
-                                        rules={{ required: t('Lastname is required') }}
+                                        rules={{ required: t('Last name is required') }}
                                         render={({ field }) => (
                                             <InputText
                                                 id="lastname"
@@ -207,7 +207,7 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
                                             />
                                         )}
                                     />
-                                    <label htmlFor="lastname">{t('Lastname')}</label>
+                                    <label htmlFor="lastname">{t('Last name')}</label>
                                 </span>
                                 {getFormErrorMessage('lastname')}
                             </div>

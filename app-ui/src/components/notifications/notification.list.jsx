@@ -104,7 +104,7 @@ const NotificationList = ({ limit }) => {
                 </div>
             }
             {shown.length === 0
-                ? <p className="text-faint fs-7 m-0 py-3 text-center">{t('No notifications. You are told here when a player asks to delete a game you played, when an admin deletes or repairs one of your games, and how your requests to join a club were answered.')}</p>
+                ? <p className="text-faint fs-7 m-0 mx-auto py-3 text-center text-measure">{t('No notifications. You are told here when a player asks to delete a game you played, when an admin deletes or repairs one of your games, and how your requests to join a club were answered.')}</p>
                 : (
                     <ul className="list-unstyled m-0 d-flex flex-column gap-2">
                         {shown.map(notice => {

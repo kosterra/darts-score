@@ -12,7 +12,8 @@ import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import AdminService from '../../services/admin.service';
-import StatTile from '../stats/players/stat.tile';
+import { KpiHero } from '../stats/players/kpi';
+import { ACCENT } from '../../utils/palette';
 import { AdminToolbar } from './admin.common';
 import { t, tn } from '../../utils/i18n';
 import FilterPills from '../elements/filter.pills';
@@ -125,12 +126,12 @@ const ErrorLog = () => {
 
     return (
         <div className="d-flex flex-column gap-4">
-            <div className="row g-3">
-                <div className="col-6 col-lg-3"><StatTile label={t('Errors in 24 hours')} value={log?.errorsToday ?? '–'} /></div>
-                <div className="col-6 col-lg-3"><StatTile label={t('Warnings in 24 hours')} value={log?.warningsToday ?? '–'} /></div>
-            </div>
-
             <Panel header={t('Error log')}>
+                {/* the last day at a glance, at the top of the panel as on the other admin pages */}
+                <div className="kpi-headline mb-4">
+                    <KpiHero label={t('Errors in 24 hours')} value={log?.errorsToday ?? '–'} color={ACCENT.green} />
+                    <KpiHero label={t('Warnings in 24 hours')} value={log?.warningsToday ?? '–'} color={ACCENT.green} />
+                </div>
                 <AdminToolbar actions={<>
                         {log?.entries && <span className="text-faint fs-7">{tn(log.entries.length, '{{count}} entry', '{{count}} entries')}</span>}
                         <Button icon="pi pi-refresh" label={t('Refresh')} size="small" severity="secondary" onClick={loadLog} />

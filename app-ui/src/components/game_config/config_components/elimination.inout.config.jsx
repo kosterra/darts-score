@@ -18,9 +18,9 @@ const EliminationInOutConfig = (props) => {
     return (
         // no container of its own: the boxes line up with the other boxes of the setup
         <div>
-            <div className="row">
+            <div className="row setting-pair">
                 <div className="col-12 col-xl-6">
-                    <SettingTitle locked={inLocked}>{t('Starting In')}</SettingTitle>
+                    <SettingTitle locked={inLocked}>{t('Starting in')}</SettingTitle>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col">
                             <SelectButton

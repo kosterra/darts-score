@@ -154,7 +154,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError, part = 'player' 
                             />
                             <label className="my-player-nickname d-flex flex-column gap-1">
                                 <span className="text-subtle fs-8">{t('Nickname')}</span>
-                                <InputText value={nickname} onChange={(event) => changeFields({ nickname: event.target.value })} onBlur={fieldsSave.flush} minLength={3} maxLength={25} required invalid={nicknameLength < 3} />
+                                <InputText value={nickname} onChange={(event) => changeFields({ nickname: event.target.value })} onBlur={fieldsSave.flush} minLength={3} maxLength={25} required invalid={nicknameLength < 3} className="w-100 mw-100" />
                                 <span className={`fs-8 ${nicknameLength < 3 ? 'text-danger' : 'text-faint'}`}>{t('How the club and the games call you, 3 to 25 characters.')}</span>
                             </label>
                         </div>
@@ -163,7 +163,7 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError, part = 'player' 
                     <p className="setting-title">{t('Country')}</p>
                     <div className="row mx-0 mt-0 setting-body">
                         <div className="col d-flex flex-column gap-1 pt-1">
-                            <CountryPicker value={country} onChange={(value) => changeFields({ country: value ?? '' }, { now: true })} />
+                            <CountryPicker value={country} onChange={(value) => changeFields({ country: value ?? '' }, { now: true })} className="w-100" />
                             <span className="text-faint fs-8">{t('Where you come from: the flag is shown next to your nickname, in all your clubs.')}</span>
                         </div>
                     </div>
@@ -207,17 +207,15 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError, part = 'player' 
                                         maxDate={new Date()}
                                         showIcon
                                         icon="pi pi-calendar"
-                                        className="my-player-birth"
+                                        className="w-100"
                                         invalid={birthTooYoung}
                                     />
                                     <span className={`fs-8 ${birthTooYoung ? 'text-danger' : 'text-faint'}`}>{t('You can correct it as an adult; a date under')}{' '}{player.birthMinAge}{' '}{t('years is up to your club admins.')}</span>
                                 </label>
                             }
+                            {/* what the player has done, beside who they are */}
+                            <Button type="button" label={t('Statistics and badges')} icon="pi pi-chart-line" size="small" severity="secondary" className="align-self-start" onClick={openStatistics} />
                         </div>
-                    </div>
-
-                    <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
-                        <Button type="button" label={t('Statistics and badges')} icon="pi pi-chart-line" size="small" severity="secondary" onClick={openStatistics} />
                     </div>
                 </div>
 
@@ -243,11 +241,15 @@ const MyPlayer = ({ player, multiple = false, onSaved, onError, part = 'player' 
 
             <div className="col-12 col-xl-6">
                 <SectionTitle id="shirt" saves={[shirtStatus]}>{t('Your shirt')}</SectionTitle>
-                <div className="row mx-0 mt-0 setting-body mb-4">
+                <div className="row mx-0 mt-0 setting-body">
                     <div className="col">
                         <ShirtChooser player={{ ...current, nickname: nicknameLength >= 3 ? nickname.trim() : current.nickname }} club={player.clubs.find(club => club.id === clubId)} clubId={clubId} onStatus={setShirtStatus} />
                     </div>
                 </div>
+            </div>
+
+            {/* the flights and barrels are many tiles: across the whole width, under both columns */}
+            <div className="col-12">
                 <SectionTitle saves={[flightsStatus]}>{t('Your darts')}</SectionTitle>
                 <PlayerDartPreferences part="flights" player={current} clubId={clubId} onSaved={setCurrent} onStatus={setFlightsStatus} onError={(error) => onError(t('Darts on the board'), error)} />
             </div>

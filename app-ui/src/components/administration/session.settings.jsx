@@ -37,7 +37,7 @@ const SessionSettings = () => {
     return (
         <Panel header={t('Session')} icons={<SaveStatus {...hoursSave} className="me-2" />}>
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('How long a login lasts. Ten minutes before the end everyone is asked whether to stay logged in, which starts the time again; otherwise they are logged out. A shorter time also shortens logins that are running now.')}{' '}{t('Saved as you go.')}
                 </span>
                 <div className="d-flex flex-wrap align-items-center gap-3">

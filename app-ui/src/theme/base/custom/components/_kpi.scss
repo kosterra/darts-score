@@ -97,6 +97,16 @@
     }
 }
 
+// big numbers beside rings: as tall as a ring with the number in its middle, so all the
+// figures stand on one line and their labels under them too
+.kpi-headline:has(.kpi-ring) .kpi-hero-value {
+    display: flex;
+    align-items: center;
+    min-height: 6.5rem;
+
+    @media (max-width: 575px) { min-height: 5.25rem; }
+}
+
 .kpi-chips {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
@@ -106,6 +116,21 @@
         grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
     }
     gap: $space-3;
+
+    // wider screens: as many in a row as fit, and the chips of the last row share it out,
+    // so 13 figures are 7 and 6 without an empty cell, 4 moments one full row
+    @media (min-width: 576px) {
+        display: flex;
+        flex-wrap: wrap;
+        container-type: inline-size;
+
+        > * { flex: 1 1 10.5rem; }
+    }
+}
+
+// four that do not fit in one row: two and two, not three and a long one
+@container (max-width: 45rem) {
+    .kpi-chips:has(> :nth-child(4):last-child) > * { flex-basis: calc(50% - #{$space-3}); }
 }
 
 .kpi-chip {
@@ -149,6 +174,15 @@
 // chips with a detail line (the moments of a game) get a little more room
 .kpi-chips.kpi-chips-wide {
     grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+
+    > * { flex-basis: 14rem; }
+}
+
+// at most four in a row across a wide panel (the club's awards: seven are four and three)
+.kpi-chips.kpi-chips-fours > * { flex-basis: max(14rem, calc(25% - #{$space-3})); }
+
+@container (max-width: 59rem) {
+    .kpi-chips.kpi-chips-wide:has(> :nth-child(4):last-child) > * { flex-basis: calc(50% - #{$space-3}); }
 }
 
 .kpi-chip-detail {
@@ -308,6 +342,11 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
     gap: $space-3;
+}
+
+// cards that share out the row when they are fewer than fit (the club's training records)
+.training-cards.is-fit {
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
 }
 
 .training-card {

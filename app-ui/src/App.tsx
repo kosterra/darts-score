@@ -374,13 +374,14 @@ const PageFailed = ({ retry }: { retry?: () => void }) => (
     </div>
 );
 
-function App() {
+// basename: the language of the address, "/de" (see utils/language.path.js)
+function App({ basename = '' }: { basename?: string }) {
 
     return (
         <PrimeReactProvider>
             <ErrorBoundary fallback={() => <PageFailed />}>
                 <AuthState>
-                    <Router>
+                    <Router basename={basename}>
                         <AppContent />
                         <AppTooltip />
                     </Router>

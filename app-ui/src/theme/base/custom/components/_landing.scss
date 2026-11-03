@@ -353,6 +353,15 @@
     &:hover { text-decoration: underline; }
 }
 
+// the questions beside their heading on a wide screen, so they do not leave half the page empty
+@media (min-width: 992px) {
+    .landing-faq-section {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        align-items: start;
+        column-gap: 3rem;
+    }
+}
+
 .landing-faq {
     display: flex;
     flex-direction: column;
@@ -589,8 +598,6 @@
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    max-width: 28rem;
-    margin: 0 auto;
 }
 
 .quick-name {
@@ -861,7 +868,8 @@
     border-radius: $radius-lg;
     background: $surfaceTranslucentColor;
 
-    .p-button { margin-top: auto; }
+    // at the bottom of the card, as big as its label (not a bar across the card)
+    .p-button { margin-top: auto; align-self: flex-start; }
 
     &.is-primary { box-shadow: inset 0 0 0 1px with-alpha($primaryColor, 0.45); }
 }
@@ -948,12 +956,15 @@
 }
 
 .terms-steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    // the last row's steps share it, so five steps are 3 + 2 without a hole
+    display: flex;
+    flex-wrap: wrap;
     gap: $space-3;
     margin: 0;
     padding: 0;
     list-style: none;
+
+    > li { flex: 1 1 17rem; }
 }
 
 .terms-filter {
@@ -990,8 +1001,15 @@
 
 .terms-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
     gap: $space-3;
+
+    // a lone term on the last row takes the whole row
+    @media (min-width: 576px) {
+        display: flex;
+        flex-wrap: wrap;
+
+        > * { flex: 1 1 19rem; }
+    }
 }
 
 .term-card {
@@ -1008,9 +1026,8 @@
 
     &:target,
     &.is-target {
-        border-color: $primaryColor;
-        box-shadow: 0 0 0 1px $primaryColor;
-        background: with-alpha($primaryColor, 0.12);
+        // lighter, like a hovered card: no green edge for "this one"
+        background: ink(0.08);
     }
 
     &:hover .term-anchor { opacity: 1; }
@@ -1067,7 +1084,7 @@
     .privacy-section { background: var(--tile-surface); }
 
     .term-card:target,
-    .term-card.is-target { background: color-mix(in srgb, #{$primaryColor} 24%, var(--c-shade-800)); }
+    .term-card.is-target { background: linear-gradient(#{ink(0.1)}, #{ink(0.1)}), var(--tile-surface); }
 
     .terms-cta {
         background:
@@ -1089,7 +1106,7 @@
     display: flex;
     flex-direction: column;
     gap: 2.25rem;
-    max-width: 56rem;
+    max-width: $page-reading;
     padding: 3.5rem 1rem 4rem;
 
     @media (max-width: 575.98px) { padding-top: 2rem; gap: 1.75rem; }
@@ -1136,6 +1153,8 @@
 
     ul { padding-left: 1.2rem; }
     li + li { margin-top: 0.4rem; }
+    // the running text at a readable length, as .text-measure
+    p, ul, address { max-width: 70ch; }
 
     @media (max-width: 575.98px) { padding: 1.1rem 1.1rem; }
 }
@@ -1153,16 +1172,17 @@
     .landing-feature-icon { width: 2.1rem; height: 2.1rem; font-size: $text-md; }
 }
 
-// What's new: the releases as in the app, in a narrower column
-.whats-new-main { max-width: 56rem; }
+// What's new and Contact: pages to read, as wide as the other reading pages
+.whats-new-main,
+.contact-main { max-width: $page-reading; }
 
-// Contact: the form for feedback, and the way to GitHub below it
-.contact-main { max-width: 46rem; }
-
+// Contact: the form for feedback and the way to GitHub, side by side on a wide screen
 .contact-ways {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $space-4;
+
+    @media (max-width: 991.98px) { grid-template-columns: minmax(0, 1fr); }
 }
 
 .contact-way {

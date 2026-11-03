@@ -166,7 +166,7 @@ const UsersList = () => {
             }
             <DeletePopup
                 data={user}
-                header={t('Delete User')}
+                header={t('Delete user')}
                 message={'user ' + user.email}
                 handleDelete={onDelete}
             />

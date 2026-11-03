@@ -5,6 +5,14 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
     gap: $space-4;
+
+    // wider screens: the cards of the last row share it out (five games are three and two, no gap)
+    @media (min-width: 576px) {
+        display: flex;
+        flex-wrap: wrap;
+
+        > * { flex: 1 1 16rem; }
+    }
 }
 
 .rules-card {

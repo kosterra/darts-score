@@ -17,7 +17,7 @@ import QuickFormats from '../game_config/config_components/quick.formats';
 import useClubGameRules from '../game_config/club_rules/use.club.game.rules';
 import { FriendlyGame, HouseRules, NotPlayedHere, SettingTitle } from '../game_config/club_rules/club.rules.setup';
 import { HALVE_IT_CLASSIC, HALVE_IT_SHORT } from '../../rules/club.rules';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 import useLinkedPlayers from '../../utils/use.linked.players';
 import useGameRules from '../games/common/game.rules';
 
@@ -59,7 +59,7 @@ const RulesGameSetup = () => {
 
     const min = definition.minPlayers;
     const missing = players.length < min
-        ? (players.length === 0 && min === 1 ? t('Choose the players') : t('Choose {{value}} more player', { value: min - players.length }))
+        ? (players.length === 0 && min === 1 ? t('Choose the players') : tn(min - players.length, 'Choose {{count}} more player to start.', 'Choose {{count}} more players to start.'))
         : null;
     const chosen = (definition.options ?? []).map(option => option.values.find(value => value.value === settings[option.key])?.label).filter(Boolean);
     const summary = [...chosen, friendly ? t('Friendly') : null, playersSummary(players)].filter(Boolean).join(' · ');

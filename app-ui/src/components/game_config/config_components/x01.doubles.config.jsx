@@ -19,7 +19,7 @@ const X01DoublesConfig = ({ players, doubles, onChange, onOrder }) => {
         <div className="mt-3">
             <p className="setting-title">{t('Format')}</p>
             <div className="row mx-0 mt-0 setting-body">
-                <div className="col d-flex flex-column gap-2">
+                <div className="col d-flex flex-column align-items-center gap-2">
                     <SelectButton
                         value={doubles ? 'doubles' : 'singles'}
                         onChange={(e) => e.value && onChange(e.value === 'doubles')}
@@ -28,14 +28,14 @@ const X01DoublesConfig = ({ players, doubles, onChange, onOrder }) => {
                         aria-label={t('Format')}
                     />
                     {doubles && !teams &&
-                        <span className="text-faint fs-8">
+                        <span className="text-faint fs-8 text-center">
                             {players.length < 4
                                 ? t('Doubles are played by four players: choose {{count}} more, two teams of two who share their score.', { count: 4 - players.length })
                                 : t('Doubles are played by four players: two teams of two who share their score.')}
                         </span>}
                     {doubles && teams
                         ? <>
-                            <div className="doubles-teams">
+                            <div className="doubles-teams align-self-stretch">
                                 <span className="doubles-team"><span className="text-faint fs-8">{t('Team 1')}</span>{names(teams[0])}</span>
                                 <span className="doubles-against text-faint fs-8">{t('against')}</span>
                                 <span className="doubles-team"><span className="text-faint fs-8">{t('Team 2')}</span>{names(teams[1])}</span>
@@ -43,9 +43,9 @@ const X01DoublesConfig = ({ players, doubles, onChange, onOrder }) => {
                             <div>
                                 <Button type="button" label={t('Change partners')} icon="pi pi-sync" size="small" severity="secondary" onClick={() => onOrder(changePartners(players))} />
                             </div>
-                            <span className="text-faint fs-8">{t('Partners share their score, legs and sets; each keeps their own average and figures. The teams follow the throwing order: the first and third against the second and fourth.')}</span>
+                            <span className="text-faint fs-8 text-center">{t('Partners share their score, legs and sets; each keeps their own average and figures. The teams follow the throwing order: the first and third against the second and fourth.')}</span>
                         </>
-                        : !doubles && <span className="text-faint fs-8">{t('Everyone for themselves, or with four players two teams of two who share their score.')}</span>}
+                        : !doubles && <span className="text-faint fs-8 text-center">{t('Everyone for themselves, or with four players two teams of two who share their score.')}</span>}
                 </div>
             </div>
         </div>

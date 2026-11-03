@@ -336,7 +336,7 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
             {mayAsk(game) &&
                 <Button type="button" icon="pi pi-flag" severity="secondary" aria-label={t('Ask to delete this game')} title={t('Ask to delete')} onClick={() => setAsking(game)} />}
             {canManage && <JSONViewer data={game} header={t('Game _RAW Data')} />}
-            {canManage && <DeletePopup data={game} header={t('Delete Game')} message={t('this game')} handleDelete={(g) => deleteGames([g])} />}
+            {canManage && <DeletePopup data={game} header={t('Delete game')} message={t('this game')} handleDelete={(g) => deleteGames([g])} />}
         </div>
     );
 

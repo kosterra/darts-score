@@ -7,6 +7,14 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.1',
+        changes: [
+            t('Legmate in your language at its own address – legmate.ch/de, /fr, /it and /es – to share and for the search engines, which now find every public page in every language.'),
+            t('Made for the big screen: on a computer the flights and darts take the whole width, the settings of the installation sit two by two, dashboards fill their rows without gaps, the player page groups badges and flights in panels, and long texts keep to a width that is easy to read.'),
+            t('Game setups look the same everywhere: setting names centred, choices only as wide as their words, sets and legs side by side, a small Start game at the bottom right; the rounds of a new tournament sit two by two, and the fair play rules in two columns.'),
+        ],
+    },
+    {
         version: '2026.11.0',
         changes: [
             t('Saved as you go, everywhere: every setting and every change of a club, a player, your profile and the installation is saved a moment after you make it, and the section says Saving…, Saved or what went wrong. No more Save buttons, except where something is created, sent or protected by your password.'),

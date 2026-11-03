@@ -86,7 +86,7 @@ const EliminationConfig = () => {
         } catch (err) {
             toast.current.show({
                 severity: 'error',
-                summary: t('Start Game'),
+                summary: t('Start game'),
                 detail: t('Failed to create the game. ') + err.message,
                 life: 4000
             });

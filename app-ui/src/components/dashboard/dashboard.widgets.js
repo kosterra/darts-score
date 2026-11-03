@@ -16,6 +16,50 @@ export const WIDGET_SIZES = [
 ];
 const colsOf = (size) => (WIDGET_SIZES.find(entry => entry.value === size) ?? WIDGET_SIZES[1]).cols;
 
+// the columns (of 12) a width takes from each breakpoint on, as in WIDGET_SIZES; below md all 12
+const SPANS = {
+    S: { md: 6, lg: 6, xl: 4 },
+    M: { md: 12, lg: 6, xl: 6 },
+    L: { md: 12, lg: 12, xl: 8 },
+    F: { md: 12, lg: 12, xl: 12 },
+};
+const BREAKPOINTS = ['md', 'lg', 'xl'];
+
+/**
+ * The columns of each widget with no hole at the end of a row: at each
+ * breakpoint the widgets go into rows of 12 in their order, and the last one
+ * of a row that is not full takes what is left (a third beside nothing grows
+ * to the full width). The chosen widths stay as they are stored.
+ */
+export const fillRows = (sizes) => {
+    const spans = sizes.map(() => ({}));
+    for (const breakpoint of BREAKPOINTS) {
+        let used = 0;
+        let last = -1;
+        sizes.forEach((size, index) => {
+            const span = (SPANS[size] ?? SPANS.M)[breakpoint];
+            if (used + span > 12) {
+                spans[last][breakpoint] += 12 - used;
+                used = 0;
+            }
+            spans[index][breakpoint] = span;
+            used += span;
+            last = index;
+        });
+        if (last >= 0) spans[last][breakpoint] += 12 - used;
+    }
+    // 'col-12' and a class only where the width changes from the breakpoint below
+    return spans.map(span => {
+        let before = 12;
+        const classes = ['col-12'];
+        for (const breakpoint of BREAKPOINTS) {
+            if (span[breakpoint] !== before) classes.push(`col-${breakpoint}-${span[breakpoint]}`);
+            before = span[breakpoint];
+        }
+        return classes.join(' ');
+    });
+};
+
 const integer = (value) => new Intl.NumberFormat(locale()).format(value);
 
 export const DASHBOARD_WIDGETS = [
@@ -62,17 +106,20 @@ export const SCOPES = {
 // the widgets a club can show on My club (the personal ones only on one's own Dashboard)
 export const CLUB_WIDGETS = DASHBOARD_WIDGETS.filter(widget => !widget.personal);
 
-export const DEFAULT_WIDGET_IDS = ['me', 'totals', 'runningGames', 'timeline', 'activityCalendar', 'whenWePlay', 'records', 'hallOfShame', 'clubGoals', 'headToHead', 'leaderMostWins', 'leaderX01Average', 'leader180s'];
+// in rows that fill on a desktop and pair widgets of about the same height: the numbers, oneself
+// beside the recent games, the calendar beside its days, records beside the shame, three small ones, the leaders
+export const DEFAULT_WIDGET_IDS = ['totals', 'me', 'timeline', 'activityCalendar', 'whenWePlay', 'records', 'hallOfShame', 'runningGames', 'clubGoals', 'headToHead', 'leaderMostWins', 'leaderX01Average', 'leader180s'];
 
 const widgetOf = (id) => DASHBOARD_WIDGETS.find(widget => widget.id === id);
-// the widgets with their own widths
-export const DEFAULT_LAYOUT = DEFAULT_WIDGET_IDS.map(id => ({ id, size: widgetOf(id).size }));
-// one's own Dashboard until arranged: what waits, the favourites, oneself and a look at the club
+// the widgets with their own widths, the head-to-head a third here to sit beside two small ones
+export const DEFAULT_LAYOUT = DEFAULT_WIDGET_IDS.map(id => ({ id, size: id === 'headToHead' ? 'S' : widgetOf(id).size }));
+// one's own Dashboard until arranged: what waits, the favourites beside the club's goals (both short),
+// oneself beside the recent games (both tall)
 export const PERSONAL_DEFAULT_LAYOUT = [
     { id: 'upNext', size: 'F' },
     { id: 'favourites', size: 'L' },
-    { id: 'me', size: 'S' },
     { id: 'clubGoals', size: 'S' },
+    { id: 'me', size: 'S' },
     { id: 'timeline', size: 'L' },
 ];
 
@@ -88,17 +135,26 @@ export const toLayout = (stored, fallback = DEFAULT_LAYOUT) => {
 /**
  * The widgets of a layout, in its order, each with its width and its columns:
  * [{ ...widget, size, cols }]. Widgets that no longer exist are left out, and
- * the Hall of Shame for clubs that switched it off.
+ * the Hall of Shame for clubs that switched it off, and those in `without`
+ * (the user's own ones for someone who does not play in the club: they show
+ * nothing). The columns fill each row (fillRows); while arranging (fill
+ * false) each widget keeps exactly the width chosen.
  */
-export const resolveLayout = (stored, { shameBadges = true, fallback = DEFAULT_LAYOUT } = {}) => toLayout(stored, fallback)
-    .map(item => {
-        const widget = widgetOf(item.id);
-        if (!widget) return null;
-        const size = WIDGET_SIZES.some(entry => entry.value === item.size) ? item.size : widget.size;
-        return { ...widget, size, cols: colsOf(size) };
-    })
-    .filter(Boolean)
-    .filter(widget => shameBadges || widget.kind !== 'hallOfShame');
+export const resolveLayout = (stored, { shameBadges = true, fallback = DEFAULT_LAYOUT, without = [], fill = true } = {}) => {
+    const widgets = toLayout(stored, fallback)
+        .map(item => {
+            const widget = widgetOf(item.id);
+            if (!widget) return null;
+            const size = WIDGET_SIZES.some(entry => entry.value === item.size) ? item.size : widget.size;
+            return { ...widget, size, cols: colsOf(size) };
+        })
+        .filter(Boolean)
+        .filter(widget => shameBadges || widget.kind !== 'hallOfShame')
+        .filter(widget => !without.includes(widget.id));
+    if (!fill) return widgets;
+    const cols = fillRows(widgets.map(widget => widget.size));
+    return widgets.map((widget, index) => ({ ...widget, cols: cols[index] }));
+};
 
 // the arrangement of the club's page as its admins made it (undefined: the default set)
 export const clubLayout = (club) => (club?.dashboardLayout?.length ? club.dashboardLayout : club?.dashboardWidgets);

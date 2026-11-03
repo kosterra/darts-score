@@ -70,9 +70,10 @@ const ClubGoalsEditor = ({ club, onError }) => {
     const earned = (overview?.badges ?? []).filter(badge => badge.earned).sort((a, b) => b.tier - a.tier);
 
     return (
-        <Panel header={t('Club badges and goals')} className="mt-4" icons={<SaveStatus {...goalsSave} className="me-2" />}>
+        <Panel header={t('Club badges and goals')} className="h-100" icons={<SaveStatus {...goalsSave} className="me-2" />}>
             <div className="row g-4">
-                <div className="col-12 col-xl-6">
+                {/* beside the connected clubs on a wide screen: the badges above the goals there */}
+                <div className="col-12 col-md-6 col-xl-12">
                     <p className="game-setup-section-title">{t('Club badges')}</p>
                     <p className="text-faint fs-8 mt-0">{t('Earned together: every game and training of the members adds to them. The members hear about each new one.')}</p>
                     {!overview
@@ -83,9 +84,9 @@ const ClubGoalsEditor = ({ club, onError }) => {
                                 <span className="text-subtle fs-8">{t('{{earned}} of {{total}} club badges', { earned: overview.earnedCount, total: overview.total })}</span>
                             </div>
                             : <span className="text-faint fs-7">{t('No club badge yet: the first comes with the 100th game, the first 180 or eight players on one day.')}</span>}
-                    <Link to="/badges#club" className="d-inline-block fs-8 mt-3" onClick={() => activeClub?.id !== club.id && selectClub(club.id)}>{t('All club badges')}</Link>
+                    <Link to="/badges#club" className="d-block fs-8 mt-3" onClick={() => activeClub?.id !== club.id && selectClub(club.id)}>{t('All club badges')}</Link>
                 </div>
-                <div className="col-12 col-xl-6">
+                <div className="col-12 col-md-6 col-xl-12">
                     <p className="game-setup-section-title">{t('Club goals')}</p>
                     <p className="text-faint fs-8 mt-0">{t('Up to three goals for the whole club, e.g. 100 × 180 until the end of the season. They show on the badges page and the dashboard; the members hear when one is reached.')}</p>
                     {overview?.goals?.length > 0 && <div className="mb-4"><ClubGoalList goals={overview.goals} /></div>}

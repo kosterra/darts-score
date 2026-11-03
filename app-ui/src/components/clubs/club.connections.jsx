@@ -121,7 +121,7 @@ const ClubConnections = ({ club, onSaved, onError, onClubChanged }) => {
 
     return (
         <div id="connections">
-            <Panel header={t('Connected clubs')} className="mt-4" icons={onClubChanged && <SaveStatus {...findableSave} className="me-2" />}>
+            <Panel header={t('Connected clubs')} className="h-100" icons={onClubChanged && <SaveStatus {...findableSave} className="me-2" />}>
                 <p className="text-subtle fs-7 mt-0 mb-3">
                     {t('Connect with another club to play shared tournaments together. Each club keeps its own players and statistics; a connection only lets you invite each other into a tournament.')}
                 </p>
@@ -164,9 +164,9 @@ const ClubConnections = ({ club, onSaved, onError, onClubChanged }) => {
                     <div className="col d-flex flex-column gap-2 pt-1">
                         {links !== null && accepted.length === 0 && outgoing.length === 0 && incoming.length === 0 &&
                             <span className="text-faint fs-8">{t('No connections yet. Search below to connect with a club.')}</span>}
-                        <span className="p-input-icon-left">
+                        <span className="p-input-icon-left w-100">
                             <i className="pi pi-search" aria-hidden="true" />
-                            <InputText value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('Search clubs by name')} aria-label={t('Search clubs by name')} maxLength={50} style={{ minWidth: '14rem' }} />
+                            <InputText value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('Search clubs by name')} aria-label={t('Search clubs by name')} maxLength={50} className="w-100" />
                         </span>
                         {found && found.length === 0 && search.trim() &&
                             <span className="text-faint fs-8">{t('No other club called like "{{trim}}".', { trim: search.trim() })}</span>}

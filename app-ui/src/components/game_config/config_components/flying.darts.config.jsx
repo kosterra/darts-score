@@ -17,7 +17,7 @@ const FlyingDartsConfig = ({ value = 'players', onChange }) => (
     <div>
         <p className="setting-title">{t('Dart animation')}</p>
         <div className="row mx-0 mt-0 setting-body">
-            <div className="col d-flex flex-column gap-2">
+            <div className="col d-flex flex-column align-items-center gap-2">
                 <SelectButton
                     value={value}
                     onChange={(e) => e.value && onChange(e.value)}
@@ -25,7 +25,7 @@ const FlyingDartsConfig = ({ value = 'players', onChange }) => (
                     className="p-selectbutton-pills flex-wrap"
                     aria-label={t('Dart animation')}
                 />
-                <span className="text-faint fs-8">{HINTS[value]}</span>
+                <span className="text-faint fs-8 text-center">{HINTS[value]}</span>
             </div>
         </div>
     </div>

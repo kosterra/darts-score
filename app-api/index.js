@@ -54,7 +54,7 @@ import { startNotificationJobs } from './src/utils/notification.jobs.js';
 import { startBackupJobs } from './src/utils/backups.js';
 import { clientIp } from './src/utils/spam.guard.js';
 import { getAppUrl, startMailServerChecks } from './src/utils/mail.utils.js';
-import { languageOfHeader, metaOf, renderIndex, robotsOf, sitemapOf } from './src/utils/page.meta.js';
+import { languageOfHeader, metaOf, pathInLanguage, renderIndex, robotsOf, sitemapOf, splitLanguage } from './src/utils/page.meta.js';
 import { securityTxtOf } from './src/utils/security.txt.js';
 import { getLegalSettings } from './src/utils/legal.settings.js';
 import { getStartPageSettings } from './src/utils/start.page.settings.js';
@@ -308,6 +308,18 @@ rulesRoutes(app);
 // without a UI build, redirect them to the Swagger UI at the root
 // ---------------------------------------------------------------------------
 let indexHtml = null;
+// the public pages as the app shows them, in each language (app-ui/scripts/prerender.mjs); {} without
+let prerendered = null;
+const prerenderedOf = (language, page) => {
+    if (prerendered === null) {
+        try {
+            prerendered = JSON.parse(readFileSync(path.join(UI_DIST, 'prerender.json'), 'utf8'));
+        } catch {
+            prerendered = {};
+        }
+    }
+    return prerendered[language]?.[page];
+};
 app.use(async (req, res) => {
     // an API path that no route answered is not a page of the app
     if (req.path === '/api' || req.path.startsWith('/api/')) return res.status(404).json({ message: 'Not found' });
@@ -316,13 +328,19 @@ app.use(async (req, res) => {
     if (path.extname(req.path) && !req.path.endsWith('.html')) return res.status(404).json({ message: 'Not found' });
     try {
         indexHtml ??= readFileSync(path.join(UI_DIST, 'index.html'), 'utf8');
-        const language = languageOfHeader(req.get('accept-language'));
+        // the language of the address (/de/…), otherwise the one the browser asks for
+        const { language: chosen, path: asked } = splitLanguage(req.path);
+        // one address per page: /de/quick/ is /de/quick
+        const page = asked.length > 1 ? asked.replace(/\/+$/, '') : asked;
+        const language = chosen ?? languageOfHeader(req.get('accept-language'));
         // a shared darts evening is previewed with its name
-        const token = req.path.match(/^\/evening\/shared\/([A-Za-z0-9_-]{8,40})$/)?.[1];
+        const token = page.match(/^\/evening\/shared\/([A-Za-z0-9_-]{8,40})$/)?.[1];
         const evening = token ? (await db.quickEvening.findOne({ shareToken: token }, 'name').lean())?.name : undefined;
-        const meta = metaOf(req.path, language, { evening, publicSite: (await getStartPageSettings()).publicSite });
+        const meta = metaOf(page, language, { evening, publicSite: (await getStartPageSettings()).publicSite });
         res.set('Cache-Control', 'no-cache');
-        res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: req.path, language, nonce: res.locals.cspNonce }));
+        // the content follows the browser's language at an address without one
+        if (!chosen) res.vary('Accept-Language');
+        res.type('html').send(renderIndex(indexHtml, meta, { base: baseOf(req), path: pathInLanguage(page, chosen), page, language, nonce: res.locals.cspNonce, prerendered: prerenderedOf(language, page) }));
     } catch (err) {
         logger.error(err, 'Failed to serve the app');
         res.status(500).send('Legmate could not be loaded. Please try again in a moment.');

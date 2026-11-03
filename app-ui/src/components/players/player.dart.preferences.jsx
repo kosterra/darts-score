@@ -105,70 +105,76 @@ const PlayerDartPreferences = ({ player, clubId, onSaved, onStatus, onError, par
                 <p className="setting-title">{t('Flights and barrels')}</p>
                 <div className="row mx-0 mt-0 setting-body">
                     <div className="col d-flex flex-column gap-3">
-                        <div className="player-flight-preview">
-                            {/* standing still for now; spin turns it slowly round its axis */}
-                            <DartSide color={flight.color} shape={flight.shape} design={flight.design} barrel={flight.barrel} spin={false} diagonal />
-                        </div>
-
-                        {standing && (
-                            <div className="flight-points">
-                                <div className="d-flex flex-wrap align-items-baseline gap-2">
-                                    <span className="flight-points-balance">{standing.points.balance}</span>
-                                    <span className="text-default fs-7 fw-semibold">{t('flight points')}</span>
-                                    <span className="text-faint fs-8">· {standing.points.earned}{' '}{t('earned,')}{' '}{standing.points.spent}{' '}{t('spent ·')}{' '}{owned(standing.shapes) + owned(standing.designs) + owned(standing.barrels)}{' '}{t('of')}{' '}{standing.shapes.length + standing.designs.length + standing.barrels.length}{' '}{t('collected')}</span>
+                        {/* on a wide screen the dart beside the points and the colour, the tiles below across the whole width */}
+                        <div className="row g-3">
+                            <div className="col-12 col-lg-5">
+                                <div className="player-flight-preview h-100 align-items-center">
+                                    {/* standing still for now; spin turns it slowly round its axis */}
+                                    <DartSide color={flight.color} shape={flight.shape} design={flight.design} barrel={flight.barrel} spin={false} diagonal />
                                 </div>
-                                <span className="text-faint fs-8">
-                                    {standing.levelName && <>{t('You are')}{' '}{standing.levelName}{standing.average != null ? t(', with an X01 average of {{average}}', { average: standing.average }) : t(', without an X01 average yet (it counts from 5 X01 games)')}. </>}
-                                    {t('Earned by playing and training: unlock the flight shapes, designs and barrels you like with them. Many also need a player level or an X01 average; the master flights belong to the levels, the legendary ones only come with a feat.')}
-                                    {' '}
-                                    <Button type="button" link className="p-0 fs-8 align-baseline" label={showRules ? t('Hide how') : t('How do I earn them?')} onClick={() => setShowRules(shown => !shown)} />
-                                </span>
-                                {showRules && (
-                                    <dl className="flight-points-rules">
-                                        {standing.points.breakdown.map(rule => (
-                                            <div key={rule.id}>
-                                                <dt>{rule.label}</dt>
-                                                <dd>{rule.per}{' '}{t('each')}{' '}<span className="text-faint">· {rule.count}{' '}{t('so far,')}{' '}{rule.points}{' '}{t('points')}</span></dd>
-                                            </div>
-                                        ))}
-                                    </dl>
+                            </div>
+                            <div className="col-12 col-lg-7 d-flex flex-column gap-3">
+                                {standing && (
+                                    <div className="flight-points">
+                                        <div className="d-flex flex-wrap align-items-baseline gap-2">
+                                            <span className="flight-points-balance">{standing.points.balance}</span>
+                                            <span className="text-default fs-7 fw-semibold">{t('flight points')}</span>
+                                            <span className="text-faint fs-8">· {standing.points.earned}{' '}{t('earned,')}{' '}{standing.points.spent}{' '}{t('spent ·')}{' '}{owned(standing.shapes) + owned(standing.designs) + owned(standing.barrels)}{' '}{t('of')}{' '}{standing.shapes.length + standing.designs.length + standing.barrels.length}{' '}{t('collected')}</span>
+                                        </div>
+                                        <span className="text-faint fs-8">
+                                            {standing.levelName && <>{t('You are')}{' '}{standing.levelName}{standing.average != null ? t(', with an X01 average of {{average}}', { average: standing.average }) : t(', without an X01 average yet (it counts from 5 X01 games)')}. </>}
+                                            {t('Earned by playing and training: unlock the flight shapes, designs and barrels you like with them. Many also need a player level or an X01 average; the master flights belong to the levels, the legendary ones only come with a feat.')}
+                                            {' '}
+                                            <Button type="button" link className="p-0 fs-8 align-baseline" label={showRules ? t('Hide how') : t('How do I earn them?')} onClick={() => setShowRules(shown => !shown)} />
+                                        </span>
+                                        {showRules && (
+                                            <dl className="flight-points-rules">
+                                                {standing.points.breakdown.map(rule => (
+                                                    <div key={rule.id}>
+                                                        <dt>{rule.label}</dt>
+                                                        <dd>{rule.per}{' '}{t('each')}{' '}<span className="text-faint">· {rule.count}{' '}{t('so far,')}{' '}{rule.points}{' '}{t('points')}</span></dd>
+                                                    </div>
+                                                ))}
+                                            </dl>
+                                        )}
+                                    </div>
                                 )}
-                            </div>
-                        )}
-                        {standingFailed && <span className="text-faint fs-8">{t('The flights you can unlock could not be loaded. Please reload the page.')}</span>}
+                                {standingFailed && <span className="text-faint fs-8">{t('The flights you can unlock could not be loaded. Please reload the page.')}</span>}
 
-                        <div className="d-flex flex-column gap-2">
-                            <span className="text-subtle fs-8">{t('Colour')}</span>
-                            <div className="d-flex flex-wrap gap-2" role="radiogroup" aria-label={t('Flight colour')}>
-                                <button
-                                    type="button"
-                                    role="radio"
-                                    aria-checked={preferences.flightColor === 'auto'}
-                                    className={`flight-swatch ${preferences.flightColor === 'auto' ? 'is-selected' : ''}`}
-                                    style={{ background: `conic-gradient(${PLAYER_COLORS.map((color, index) => `${color} ${index * 25}% ${(index + 1) * 25}%`).join(', ')})` }}
-                                    title={t('My colour in the game')}
-                                    aria-label={t('My colour in the game')}
-                                    onClick={() => save({ flightColor: 'auto' })}
-                                />
-                                {FLIGHT_COLORS.map(color => (
-                                    <button
-                                        key={color.value}
-                                        type="button"
-                                        role="radio"
-                                        aria-checked={preferences.flightColor === color.value}
-                                        className={`flight-swatch ${preferences.flightColor === color.value ? 'is-selected' : ''}`}
-                                        style={{ background: color.value }}
-                                        title={color.label}
-                                        aria-label={color.label}
-                                        onClick={() => save({ flightColor: color.value })}
-                                    />
-                                ))}
+                                <div className="d-flex flex-column gap-2">
+                                    <span className="text-subtle fs-8">{t('Colour')}</span>
+                                    <div className="d-flex flex-wrap gap-2" role="radiogroup" aria-label={t('Flight colour')}>
+                                        <button
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={preferences.flightColor === 'auto'}
+                                            className={`flight-swatch ${preferences.flightColor === 'auto' ? 'is-selected' : ''}`}
+                                            style={{ background: `conic-gradient(${PLAYER_COLORS.map((color, index) => `${color} ${index * 25}% ${(index + 1) * 25}%`).join(', ')})` }}
+                                            title={t('My colour in the game')}
+                                            aria-label={t('My colour in the game')}
+                                            onClick={() => save({ flightColor: 'auto' })}
+                                        />
+                                        {FLIGHT_COLORS.map(color => (
+                                            <button
+                                                key={color.value}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={preferences.flightColor === color.value}
+                                                className={`flight-swatch ${preferences.flightColor === color.value ? 'is-selected' : ''}`}
+                                                style={{ background: color.value }}
+                                                title={color.label}
+                                                aria-label={color.label}
+                                                onClick={() => save({ flightColor: color.value })}
+                                            />
+                                        ))}
+                                    </div>
+                                    <span className="text-faint fs-8">
+                                        {design && !design.colorable
+                                            ? t('{{label}} has colours of its own; the colour is for the other designs.', { label: design.label })
+                                            : preferences.flightColor === 'auto' ? t('In your colour of the game, as on the scores and charts.') : t('The same colour in every game.')}
+                                    </span>
+                                </div>
                             </div>
-                            <span className="text-faint fs-8">
-                                {design && !design.colorable
-                                    ? t('{{label}} has colours of its own; the colour is for the other designs.', { label: design.label })
-                                    : preferences.flightColor === 'auto' ? t('In your colour of the game, as on the scores and charts.') : t('The same colour in every game.')}
-                            </span>
                         </div>
 
                         {standing && (

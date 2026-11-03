@@ -108,14 +108,14 @@ const UserEditor = ({ user, onHide, onSaved, onChanged, onError }) => {
                         <div className="col-12 col-sm-6">
                             <span className="p-float-label">
                                 <InputText id="edit-firstname" value={account.firstname} onChange={onChange('firstname')} onBlur={accountSave.flush} invalid={!isName(account.firstname)} className="w-100" />
-                                <label htmlFor="edit-firstname">{t('Firstname')}</label>
+                                <label htmlFor="edit-firstname">{t('First name')}</label>
                             </span>
                             {hint(!isName(account.firstname), t('2 to 25 letters.'))}
                         </div>
                         <div className="col-12 col-sm-6">
                             <span className="p-float-label">
                                 <InputText id="edit-lastname" value={account.lastname} onChange={onChange('lastname')} onBlur={accountSave.flush} invalid={!isName(account.lastname)} className="w-100" />
-                                <label htmlFor="edit-lastname">{t('Lastname')}</label>
+                                <label htmlFor="edit-lastname">{t('Last name')}</label>
                             </span>
                             {hint(!isName(account.lastname), t('2 to 25 letters.'))}
                         </div>

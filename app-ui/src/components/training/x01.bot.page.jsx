@@ -146,7 +146,16 @@ const X01BotPage = () => {
     };
 
     if (isGlobalAdmin) {
-        return <div className="container-fluid p-4 text-subtle">{t('Global admins belong to no club and have no player to train with.')}</div>;
+        return (
+            <div className="container-fluid p-4 border-0">
+                <Panel header={t('X01 against the bot')} className="page-narrow">
+                    <div className="text-center d-flex flex-column align-items-center gap-2 p-4">
+                        <FaRobot className="fs-3 text-faint" aria-hidden="true" />
+                        <span className="text-subtle">{t('Global admins belong to no club and have no player to train with.')}</span>
+                    </div>
+                </Panel>
+            </div>
+        );
     }
 
     return (
@@ -169,7 +178,7 @@ const X01BotPage = () => {
                     <div>
                         <p className="setting-title">{t('Strength')}</p>
                         <div className="row mx-0 mt-0 setting-body">
-                            <div className="col d-flex flex-column gap-3">
+                            <div className="col d-flex flex-column align-items-center text-center gap-3">
                                 <SelectButton value={choice} options={PRESET_MODES} onChange={(e) => e.value && setChoice(e.value)} className="p-selectbutton-pills flex-wrap" aria-label={t('A fixed bot')} />
                                 <SelectButton value={choice} options={PLAYER_MODES} onChange={(e) => e.value && setChoice(e.value)} className="p-selectbutton-pills flex-wrap" aria-label={t('A bot like the player')} />
                                 {!player

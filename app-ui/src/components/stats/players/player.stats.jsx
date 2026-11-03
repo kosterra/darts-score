@@ -182,6 +182,8 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
     // Shanghai, Killer, … and Bob's 27, 121 Checkout, … : per kind
     const rulesGames = Object.entries(kpis.rules ?? {}).filter(([kind]) => gameOf(kind));
     const twoDigits = (value) => value == null ? null : value.toFixed(2);
+    // Cricket, Elimination and Around the Clock in one row; with More games two by two, so none is left alone
+    const gameColumn = rulesGames.length > 0 ? 'col-12 col-xl-6' : 'col-12 col-xl-4';
 
     return (
         <>
@@ -210,15 +212,17 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                     {!isOwn && <CompareLink vs={player.id} label={t('Compare with you')} className="align-self-start fs-8" />}
                     {/* the look back at the year, all year long (in the menu only in December and January) */}
                     {isOwn && <Link to="/year" className="align-self-start fs-8"><i className="pi pi-star me-1" aria-hidden="true" />{t('Your year in darts')}</Link>}
-                    <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0">
-                        {facts.map(([label, value]) => (
-                            <div key={label}>
-                                <dt className="text-faint fs-8 fw-normal">{label}</dt>
-                                <dd className="text-default fw-semibold m-0 tabular-nums">{value}</dd>
-                            </div>
-                        ))}
-                    </dl>
                 </div>
+                {/* the facts in one row across the header: on a wide screen under the picture, shirt, darts
+                    and badges (order), on a phone right under the name, before the shirt and darts */}
+                <dl className="hero-facts d-flex flex-wrap column-gap-5 row-gap-2 m-0 w-100 order-xl-1">
+                    {facts.map(([label, value]) => (
+                        <div key={label}>
+                            <dt className="text-faint fs-8 fw-normal">{label}</dt>
+                            <dd className="text-default fw-semibold m-0 tabular-nums">{value}</dd>
+                        </div>
+                    ))}
+                </dl>
                 {/* the shirt they play in: the club's, or from Pro on one of their own */}
                 {player.shirt &&
                     <div className="player-hero-shirt d-flex flex-column gap-2">
@@ -253,7 +257,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                         }
                     </div>
                 }
-                <div className="w-100">
+                <div className="w-100 order-xl-2">
                     <FilterPanel {...describeFilters(filters, DEFAULT_FILTERS, { formats, withType: false, withOthers: false, withScope: true })}>
                         <ComparisonFilters
                             filters={filters}
@@ -327,7 +331,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                             </Panel>
                         }
                         <div className="row g-4">
-                            <div className="col-12 col-xl-6">
+                            <div className={gameColumn}>
                                 <Panel header={t('Cricket')} className="h-100">
                                     {playedGames.cricket > 0
                                         ? (
@@ -346,7 +350,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                                     }
                                 </Panel>
                             </div>
-                            <div className="col-12 col-xl-6">
+                            <div className={gameColumn}>
                                 <Panel header={t('Elimination')} className="h-100">
                                     {elimination.games > 0
                                         ? (
@@ -365,7 +369,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                                     }
                                 </Panel>
                             </div>
-                            <div className="col-12 col-xl-6">
+                            <div className={gameColumn}>
                                 <Panel header={t('Around the Clock')} className="h-100">
                                     {clock.games > 0
                                         ? (

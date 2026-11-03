@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { languageOfHeader, metaOf, renderIndex, robotsOf, sitemapOf } from './page.meta.js';
+import { languageOfHeader, metaOf, pathInLanguage, renderIndex, robotsOf, sitemapOf, splitLanguage } from './page.meta.js';
 
 const HTML = '<!doctype html>\n<html lang="en">\n  <head>\n    <meta name="description" content="old" />\n    <title>Legmate</title>\n  </head>\n</html>';
 
@@ -51,6 +51,47 @@ describe('the meta of a page', () => {
         // an installation that opens with the login lists the other public pages only
         expect(sitemapOf('https://oche.example', { publicSite: false })).not.toContain('<loc>https://oche.example/</loc>');
         expect(metaOf('/', 'en', { publicSite: false }).index).toBe(false);
+    });
+});
+
+describe('the addresses of the languages', () => {
+    it('takes the language off the address, and puts it on', () => {
+        expect(splitLanguage('/de/darts-terms')).toEqual({ language: 'de', path: '/darts-terms' });
+        expect(splitLanguage('/fr')).toEqual({ language: 'fr', path: '/' });
+        expect(splitLanguage('/darts-terms')).toEqual({ language: null, path: '/darts-terms' });
+        // only a whole part of the address is a language
+        expect(splitLanguage('/design')).toEqual({ language: null, path: '/design' });
+        expect(pathInLanguage('/quick', 'it')).toBe('/it/quick');
+        expect(pathInLanguage('/', 'es')).toBe('/es');
+        expect(pathInLanguage('/quick', 'en')).toBe('/quick');
+        expect(pathInLanguage('/quick', null)).toBe('/quick');
+    });
+
+    it('names the page in every language beside its own address', () => {
+        const html = renderIndex(HTML, metaOf('/quick', 'de'), { base: 'https://oche.example', path: '/de/quick', page: '/quick', language: 'de' });
+        expect(html).toContain('<link rel="canonical" href="https://oche.example/de/quick" />');
+        expect(html).toContain('<link rel="alternate" hreflang="en" href="https://oche.example/quick" />');
+        expect(html).toContain('<link rel="alternate" hreflang="fr" href="https://oche.example/fr/quick" />');
+        expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://oche.example/quick" />');
+        // a page not to be listed has none
+        expect(renderIndex(HTML, metaOf('/login'), { base: 'https://x', path: '/login', language: 'en' })).not.toContain('hreflang');
+    });
+
+    it('puts the page as the app shows it into the HTML of a listed page only', () => {
+        const page = '<!doctype html>\n<html lang="en"><head><title>Legmate</title></head><body><div id="root"></div></body></html>';
+        const listed = renderIndex(page, metaOf('/darts-terms'), { base: 'https://x', path: '/darts-terms', language: 'en', prerendered: '<h1>Darts A–Z</h1>' });
+        expect(listed).toContain('<div id="root"><div data-prerendered><h1>Darts A–Z</h1></div></div>');
+        const hidden = renderIndex(page, metaOf('/login'), { base: 'https://x', path: '/login', language: 'en', prerendered: '<h1>Log in</h1>' });
+        expect(hidden).toContain('<div id="root"></div>');
+    });
+
+    it('lists every language of a page in the sitemap, each with the others', () => {
+        const sitemap = sitemapOf('https://oche.example');
+        expect(sitemap).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
+        expect(sitemap).toContain('<loc>https://oche.example/de/darts-terms</loc>');
+        expect(sitemap).toContain('<loc>https://oche.example/es</loc>');
+        expect(sitemap).toContain('<xhtml:link rel="alternate" hreflang="it" href="https://oche.example/it/darts-terms" />');
+        expect(sitemapOf('https://oche.example', { publicSite: false })).not.toContain('<loc>https://oche.example/de</loc>');
     });
 });
 

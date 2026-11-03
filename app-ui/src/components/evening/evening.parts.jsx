@@ -93,7 +93,7 @@ export const EveningHeadToHead = ({ report, players }) => {
     return (
         <>
             <p className="text-faint fs-8 mt-0 mb-3">{t('Wins of the player on the left against the player above.')}</p>
-            <div className="overflow-auto">
+            <div className="overflow-auto evening-h2h">
                 <table className="h2h-matrix">
                     <thead>
                         <tr>

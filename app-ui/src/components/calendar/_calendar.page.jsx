@@ -315,7 +315,8 @@ const CalendarPage = () => {
 
     return (
         <div className="container-fluid p-4">
-            <div className="calendar-columns">
+            {/* stretched: a short calendar is as tall as the panels beside it */}
+            <div className="calendar-columns align-items-stretch">
                 <Panel header={t('Calendar')} icons={
                     <SelectButton
                         value={view}

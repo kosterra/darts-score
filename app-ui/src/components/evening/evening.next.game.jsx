@@ -53,7 +53,7 @@ const NextGame = ({ evening, onStart, busy }) => {
     const playedBy = (id) => evening.games.filter(game => game.finished && game.players.includes(id)).length;
 
     return (
-        <div className="evening-next page-narrow">
+        <div className="evening-next">
             <p className="game-setup-section-title">{t('Players')}</p>
             <p className="text-faint fs-8 mt-0">{chosen ? t('Tap the players in the order they throw (2 to 4).') : t('Suggested: who played least, against someone new. Tap to choose others.')}</p>
             {/* the cards of the setup pages, numbered in the order they throw */}
@@ -92,7 +92,7 @@ const NextGame = ({ evening, onStart, busy }) => {
                 <QuickSettings settings={settings} onChange={change} />
             </div>
             <div className="game-setup-start">
-                <Button type="button" label={t('Start the game')} icon="pi pi-play" loading={busy} disabled={!ready} onClick={() => onStart(settings, players.map(id => ({ id, nickname: nameOf(id) })))} />
+                <Button type="button" label={t('Start the game')} icon="pi pi-play" size="small" loading={busy} disabled={!ready} onClick={() => onStart(settings, players.map(id => ({ id, nickname: nameOf(id) })))} />
                 <span className="game-setup-summary">{ready ? `${players.map(nameOf).join(' – ')} · ${quickSetupText(settings.kind, settings)}` : t('Choose 2 to 4 players')}</span>
             </div>
         </div>

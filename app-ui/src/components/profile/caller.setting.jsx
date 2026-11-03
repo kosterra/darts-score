@@ -53,7 +53,7 @@ const CallerSetting = ({ voice, onChange }) => {
                         value={voice}
                         options={KINDS}
                         onChange={(e) => e.value && onChange(e.value)}
-                        className="p-selectbutton-pills flex-wrap"
+                        className="p-selectbutton-pills pills-inline flex-wrap"
                         aria-label={t('Caller voice')}
                     />
                     <span className="text-faint fs-8">{t('The voice that calls the scores when the caller is on in a game. The device takes one of its voices of that kind where it has one.')}</span>

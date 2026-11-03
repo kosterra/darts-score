@@ -1168,6 +1168,15 @@ $fair-play-suspicious: $accentAmber;
 // the mail server: a link from a notification lands on it below the top bar
 .scroll-anchor { scroll-margin-top: 5rem; }
 
+// the system settings two by two on a wide screen: the panels of a row the same height
+// (Mail server sits in its scroll anchor, one level deeper)
+.settings-grid > [class*='col-'] {
+    > .p-panel, > .scroll-anchor, > .scroll-anchor > .p-panel { height: 100%; }
+    > .p-panel, > .scroll-anchor > .p-panel { display: flex; flex-direction: column; }
+    .p-panel > .p-toggleable-content { flex-grow: 1; display: flex; flex-direction: column; }
+    .p-panel > .p-toggleable-content > .p-panel-content { flex-grow: 1; }
+}
+
 .mail-limit-input { width: 12rem; }
 
 // the mails of the last seven days, a bar each; red where the limit was reached

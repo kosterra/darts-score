@@ -141,7 +141,7 @@ const MailTemplates = ({ onSaved }) => {
         <Panel header={t('Mail templates')} icons={<SaveStatus {...templateSave} className="me-2" />}>
             <ConfirmDialog group="mail-template-reset" />
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('The mails the app sends. Change the subject, the text and the button; placeholders like')}{' '}{t('{{firstname}}')}{' '}{t('are filled in for each mail. Paragraphs are separated by an empty line. The layout with the name of the app, the button and the footer is the same for every mail.')}{' '}{t('Saved as you go.')}
                 </span>
                 <div className="d-flex flex-column gap-1">
@@ -152,7 +152,7 @@ const MailTemplates = ({ onSaved }) => {
                         optionLabel="label"
                         optionValue="code"
                         onChange={pick(setLanguage)}
-                        className="p-selectbutton-pills flex-wrap"
+                        className="p-selectbutton-pills pills-inline flex-wrap"
                         aria-label={t('Language of the mails')}
                     />
                     <span className="text-faint fs-8">{t('Everyone gets the mails in the language of their account; a new account in the language of the admin who invited them.')}</span>
@@ -160,23 +160,28 @@ const MailTemplates = ({ onSaved }) => {
                 {!data.mailEnabled &&
                     <Message severity="info" className="w-100 justify-content-start" text={t('Mail is not set up on this installation: no mails are sent. You can still prepare the texts.')} />}
 
-                <Dropdown
-                    value={selectedId}
-                    options={options}
-                    onChange={pick(setSelectedId)}
-                    itemTemplate={(option) => (
-                        <span className="d-flex align-items-center justify-content-between gap-3 w-100">
-                            {option.label}
-                            {option.customized && <Tag value={t('Changed')} severity="info" />}
-                        </span>
-                    )}
-                    aria-label={t('Mail')}
-                    className="mail-template-select"
-                />
+                {/* which mail is edited, named like the fields under it */}
+                <div className="d-flex flex-column gap-1">
+                    <label htmlFor="mail-template" className="text-subtle fs-8">{t('Mail')}</label>
+                    <Dropdown
+                        inputId="mail-template"
+                        value={selectedId}
+                        options={options}
+                        onChange={pick(setSelectedId)}
+                        itemTemplate={(option) => (
+                            <span className="d-flex align-items-center justify-content-between gap-3 w-100">
+                                {option.label}
+                                {option.customized && <Tag value={t('Changed')} severity="info" />}
+                            </span>
+                        )}
+                        aria-label={t('Mail')}
+                        className="mail-template-select"
+                    />
+                </div>
 
                 {template && draft &&
                     <div className="row g-4">
-                        <div className="col-12 col-xl-6 d-flex flex-column gap-3">
+                        <div className="col-12 d-flex flex-column gap-3">
                             <span className="text-faint fs-8">{template.description}{template.customized ? t(' Changed from the default.') : ''}</span>
                             <label className="d-flex flex-column gap-1">
                                 <span className="text-subtle fs-8">{t('Subject')}</span>
@@ -206,7 +211,7 @@ const MailTemplates = ({ onSaved }) => {
                                 <Button type="button" label={t('Send me a test')} icon="pi pi-send" size="small" severity="secondary" onClick={test} loading={busy === 'test'} disabled={!data.mailEnabled || Boolean(previewError)} title={data.mailEnabled ? t('To your own address, with sample values') : t('Mail is not set up')} />
                             </div>
                         </div>
-                        <div className="col-12 col-xl-6 d-flex flex-column gap-2">
+                        <div className="col-12 d-flex flex-column gap-2">
                             <span className="text-subtle fs-8">{t('Preview, with sample values')}</span>
                             {previewError
                                 ? <Message severity="warn" text={previewError} className="w-100 justify-content-start" />

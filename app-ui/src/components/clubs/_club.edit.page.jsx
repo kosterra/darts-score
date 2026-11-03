@@ -182,14 +182,14 @@ const ClubEditPage = () => {
                             <p className="game-setup-section-title">{t('The club')}</p>
                             <p className="setting-title">{t('Logo and name')}</p>
                             <div className="row mx-0 mt-0 setting-body">
-                                <div className="col my-player-main">
+                                <div className="col club-identity">
                                     <ImageUploader
                                         name={name}
                                         previewUrl={logoPreview}
                                         onFileChange={(file) => { setLogoPreview(URL.createObjectURL(file)); logoSave.change(file, { now: true }); }}
                                         onFileDelete={() => { setLogoPreview(''); logoSave.change(null, { now: true }); }}
                                     />
-                                    <label className="d-flex flex-column gap-1 profile-field">
+                                    <label className="d-flex flex-column gap-1 club-identity-name">
                                         <span className="text-subtle fs-8">{t('Name')}</span>
                                         <InputText value={name} onChange={(event) => changeClub({ name: event.target.value })} onBlur={clubSave.flush} minLength={3} maxLength={50} required invalid={name.trim().length < 3} />
                                         <span className={`fs-8 ${name.trim().length < 3 ? 'text-danger' : 'text-faint'}`}>{t('3 to 50 characters.')}</span>
@@ -214,7 +214,7 @@ const ClubEditPage = () => {
                             </div>
                             <p className="setting-title">{t('Country')}</p>
                             <div className="row mx-0 mt-0 setting-body">
-                                <div className="col d-flex flex-column gap-1 pt-1">
+                                <div className="col d-flex flex-column gap-1 pt-1 club-country">
                                     <CountryPicker value={country} onChange={(value) => changeClub({ country: value ?? '' }, { now: true })} />
                                     <span className="text-faint fs-8">{t('Where the club plays: its flag is shown next to its name in the lists of clubs.')}</span>
                                 </div>
@@ -243,6 +243,34 @@ const ClubEditPage = () => {
                             </div>
                         </div>
 
+                        <p className="game-setup-section-title">{t('Public page')}</p>
+                        <SettingSwitch
+                            id="club-public"
+                            title={t('Public club')}
+                            hint={t('Listed by name on the public start page, with its figures. Whether people with an account can find and join the club is set under New members.')}
+                            checked={isPublic}
+                            onChange={(value) => saveSetting({ isPublic: value })}
+                        />
+                        <SettingSwitch
+                            id="club-live"
+                            title={t('Show running games')}
+                            hint={t('Live scores of games in progress appear on the public start page.')}
+                            checked={shown.publicLiveGames !== false}
+                            disabled={!isPublic}
+                            onChange={(value) => saveSetting({ publicLiveGames: value })}
+                        />
+                        <SettingSwitch
+                            id="club-results"
+                            title={t('Show results')}
+                            hint={t('Finished games appear under the latest results. Players are shown without their name unless their nickname is public: their own choice with a login, yours without.')}
+                            checked={shown.publicResults !== false}
+                            disabled={!isPublic}
+                            onChange={(value) => saveSetting({ publicResults: value })}
+                        />
+                    </div>
+
+                    <div className="col-12 col-xl-6">
+                        {/* two columns of about the same length: the club and how it shows itself on the left, who runs it and its rules here */}
                         <p className="game-setup-section-title">{t('Admins')}</p>
                         <p className="setting-title">{t('Who runs the club')}</p>
                         <div className="row mx-0 mt-0 setting-body">
@@ -289,33 +317,6 @@ const ClubEditPage = () => {
                                 </div>
                             </div>
                         </form>
-                    </div>
-
-                    <div className="col-12 col-xl-6">
-                        <p className="game-setup-section-title">{t('Public page')}</p>
-                        <SettingSwitch
-                            id="club-public"
-                            title={t('Public club')}
-                            hint={t('Listed by name on the public start page, with its figures. Whether people with an account can find and join the club is set under New members.')}
-                            checked={isPublic}
-                            onChange={(value) => saveSetting({ isPublic: value })}
-                        />
-                        <SettingSwitch
-                            id="club-live"
-                            title={t('Show running games')}
-                            hint={t('Live scores of games in progress appear on the public start page.')}
-                            checked={shown.publicLiveGames !== false}
-                            disabled={!isPublic}
-                            onChange={(value) => saveSetting({ publicLiveGames: value })}
-                        />
-                        <SettingSwitch
-                            id="club-results"
-                            title={t('Show results')}
-                            hint={t('Finished games appear under the latest results. Players are shown without their name unless their nickname is public: their own choice with a login, yours without.')}
-                            checked={shown.publicResults !== false}
-                            disabled={!isPublic}
-                            onChange={(value) => saveSetting({ publicResults: value })}
-                        />
 
                         <p className="game-setup-section-title mt-4">{t('New members')}</p>
                         <p className="setting-title">{t('How they join')}</p>
@@ -382,7 +383,7 @@ const ClubEditPage = () => {
                                 <span className="text-faint fs-8" style={{ flex: '1 1 16rem' }}>
                                     {t('With all its games and trainings. Remove its players first, under')}{' '}<Link to="/players" onClick={() => selectClub(club.id)}>{t('Club → Players')}</Link>{t('; players of other clubs stay there.')}
                                 </span>
-                                <DeletePopup data={club} header={t('Delete Club')} message={t('the club {{name}} with all its games', { name: club.name })} handleDelete={deleteClub} label={t('Delete club')} size="small" />
+                                <DeletePopup data={club} header={t('Delete club')} message={t('the club {{name}} with all its games', { name: club.name })} handleDelete={deleteClub} label={t('Delete club')} size="small" />
                             </div>
                         </div>
                     </div>
@@ -390,10 +391,17 @@ const ClubEditPage = () => {
             </Panel>
             {/* the club shirt its members play in */}
             <ClubShirtEditor club={club} key={`shirt-${club.id}`} onSaved={refreshClubs} />
-            {/* what the club earned together, and the goals its admins set */}
-            <ClubGoalsEditor club={club} key={`goals-${club.id}`} onError={showError} />
-            {/* connections to other clubs, to play shared tournaments */}
-            <ClubConnections club={club} key={`connections-${club.id}`} onSaved={showSaved} onError={showError} onClubChanged={refreshClubs} />
+            {/* side by side on a wide screen: neither fills a whole row on its own */}
+            <div className="row g-4 mt-0">
+                <div className="col-12 col-xl-6">
+                    {/* what the club earned together, and the goals its admins set */}
+                    <ClubGoalsEditor club={club} key={`goals-${club.id}`} onError={showError} />
+                </div>
+                <div className="col-12 col-xl-6">
+                    {/* connections to other clubs, to play shared tournaments */}
+                    <ClubConnections club={club} key={`connections-${club.id}`} onSaved={showSaved} onError={showError} onClubChanged={refreshClubs} />
+                </div>
+            </div>
             {/* the club's own rules for its games */}
             <ClubGameRules club={club} key={club.id} onSaved={refreshClubs} />
         </div>

@@ -53,6 +53,7 @@ const EveningNewPage = () => {
                     </p>
 
                     <p className="game-setup-section-title">{t('Players')}</p>
+                    {/* as wide as the setup's other fields, from its left edge */}
                     <div className="quick-names">
                         {names.map((entry, index) => (
                             <div key={index} className="quick-name">
@@ -69,7 +70,7 @@ const EveningNewPage = () => {
                                     <Button type="button" icon="pi pi-times" text severity="secondary" aria-label={t('Remove player {{value}}', { value: index + 1 })} onClick={() => setNames(current => current.filter((_, i) => i !== index))} />}
                             </div>
                         ))}
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div className="d-flex flex-wrap align-items-center gap-2 column-gap-3">
                             {names.length < MAX_PLAYERS
                                 ? <Button type="button" label={t('Add a player')} icon="pi pi-plus" size="small" text onClick={() => setNames(current => [...current, ''])} />
                                 : <span />}
@@ -81,7 +82,7 @@ const EveningNewPage = () => {
                     <InputText value={name} onChange={(event) => setName(event.target.value)} maxLength={60} placeholder={t('Optional, e.g. Friday at Lena\'s')} className="w-100" aria-label={t('Name of the evening')} />
 
                     <div className="game-setup-start">
-                        <Button type="submit" label={t('Start the evening')} icon="pi pi-play" loading={starting} disabled={Boolean(missing)} />
+                        <Button type="submit" label={t('Start the evening')} icon="pi pi-play" size="small" loading={starting} disabled={Boolean(missing)} />
                         <span className="game-setup-summary" aria-live="polite">{missing ?? t('{{count}} players', { count: filled.length })}</span>
                     </div>
                 </form>

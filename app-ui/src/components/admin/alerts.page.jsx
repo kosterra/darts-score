@@ -12,7 +12,8 @@ import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 
 import AdminService from '../../services/admin.service';
-import StatTile from '../stats/players/stat.tile';
+import { KpiHero } from '../stats/players/kpi';
+import { ACCENT } from '../../utils/palette';
 import { AdminToolbar } from './admin.common';
 import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
@@ -181,14 +182,14 @@ const AlertsPage = () => {
 
     return (
         <div className="d-flex flex-column gap-4">
-            <div className="row g-3">
-                <div className="col-6 col-lg-3"><StatTile label={t('Open alerts')} value={openCount ?? '–'} /></div>
-                <div className="col-6 col-lg-3"><StatTile label={t('Critical')} value={status === 'open' ? (alerts?.filter(alert => alert.severity === 'critical').length ?? '–') : '–'} /></div>
-                <div className="col-6 col-lg-3"><StatTile label={t('Blocked accounts')} value={blocks.users.length} /></div>
-                <div className="col-6 col-lg-3"><StatTile label={t('Blocked addresses')} value={blocks.ips.length} /></div>
-            </div>
-
             <Panel header={t('Alerts')}>
+                {/* the alerts and blocks at a glance, at the top of the panel as on the other admin pages */}
+                <div className="kpi-headline mb-4">
+                    <KpiHero label={t('Open alerts')} value={openCount ?? '–'} color={ACCENT.green} />
+                    <KpiHero label={t('Critical')} value={status === 'open' ? (alerts?.filter(alert => alert.severity === 'critical').length ?? '–') : '–'} color={ACCENT.green} />
+                    <KpiHero label={t('Blocked accounts')} value={blocks.users.length} color={ACCENT.green} />
+                    <KpiHero label={t('Blocked addresses')} value={blocks.ips.length} color={ACCENT.green} />
+                </div>
                 <AdminToolbar actions={<>
                         {alerts && <span className="text-faint fs-7">{alerts.length} {alerts.length === 1 ? t('alert') : t('alerts')}</span>}
                         {status === 'open' &&

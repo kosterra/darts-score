@@ -152,7 +152,7 @@ const X01Config = () => {
             });
             navigate('/x01/' + newGame.id);
         } catch (error) {
-            toast.current.show({ severity: 'error', summary: t('Start Game'), detail: t('Failed to create the game. ') + error.message, life: 4000 });
+            toast.current.show({ severity: 'error', summary: t('Start game'), detail: t('Failed to create the game. ') + error.message, life: 4000 });
             setStarting(false);
         }
     };

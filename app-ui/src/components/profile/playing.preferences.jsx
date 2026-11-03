@@ -7,6 +7,7 @@ import SectionTitle from '../elements/section.title';
 import useGamePreferences, { accountSaver } from '../../utils/use.game.preferences';
 import useAutoSave from '../../utils/use.auto.save';
 import { useAuth } from '../../utils/auth.context';
+import { callerSupported } from '../../utils/caller';
 import { t } from '../../utils/i18n';
 
 const WAYS_OUT = [
@@ -29,9 +30,10 @@ const INPUTS = [
  * How the player likes to play, saved with their account so it follows them
  * to every device: the ways out, sending a visit by itself, the keypad for
  * the left hand, quieter celebrations, the caller's voice and board or keypad.
- * Each choice shown and saved at once.
+ * Each choice shown and saved at once. part: 'all', 'game' (all but the
+ * caller) or 'caller' (the caller's voice alone, under a title of its own).
  */
-const PlayingPreferences = () => {
+const PlayingPreferences = ({ part = 'all' }) => {
     const { setUser } = useAuth();
     const [saved] = useGamePreferences();
     // the choices made here, shown at once and sent together (one save at a time, the newest wins)
@@ -45,6 +47,18 @@ const PlayingPreferences = () => {
         preferencesSave.change(chosen.current, { now: true });
     };
 
+    const caller = <CallerSetting voice={preferences.callerVoice} onChange={(callerVoice) => change({ callerVoice })} />;
+    if (part === 'caller') {
+        // a browser without speech has no caller to choose
+        if (!callerSupported()) return null;
+        return (
+            <>
+                <SectionTitle saves={[preferencesSave]}>{t('Caller')}</SectionTitle>
+                {caller}
+            </>
+        );
+    }
+
     return (
         <>
             <SectionTitle saves={[preferencesSave]}>{t('On every device')}</SectionTitle>
@@ -56,7 +70,7 @@ const PlayingPreferences = () => {
                     value={preferences.waysOut}
                     options={WAYS_OUT}
                     onChange={(e) => e.value && change({ waysOut: e.value })}
-                    className="p-selectbutton-pills flex-wrap"
+                    className="p-selectbutton-pills pills-inline flex-wrap"
                     aria-label={t('Ways out in X01')}
                 />
                 <span className="text-faint fs-8">{WAYS_OUT_HINTS[preferences.waysOut]}{' '}{t('A club may play without them.')}</span>
@@ -69,7 +83,7 @@ const PlayingPreferences = () => {
                     value={preferences.inputMode}
                     options={INPUTS}
                     onChange={(e) => e.value !== undefined && change({ inputMode: e.value })}
-                    className="p-selectbutton-pills flex-wrap"
+                    className="p-selectbutton-pills pills-inline flex-wrap"
                     aria-label={t('Entering the darts')}
                 />
                 <span className="text-faint fs-8">{t('What a device starts with until you choose there: the board, or the keypad (on a phone).')}</span>
@@ -96,7 +110,7 @@ const PlayingPreferences = () => {
                 checked={preferences.celebrations === 'quiet'}
                 onChange={(value) => change({ celebrations: value ? 'quiet' : 'full' })}
             />
-            <CallerSetting voice={preferences.callerVoice} onChange={(callerVoice) => change({ callerVoice })} />
+            {part === 'all' && caller}
             <p className="text-faint fs-8 mt-3 mb-0">{t('Your favourite formats come first in the setups: pin one with its star. The setups and trainings start as you left them, on every device.')}</p>
         </>
     );

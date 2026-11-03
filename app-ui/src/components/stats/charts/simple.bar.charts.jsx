@@ -33,6 +33,7 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
 
     return (
         <ChartCard title={t('Score per visit')} description={t('How often each score range was thrown, as a share of all visits.{{value}}', { value: players.length > 1 ? ' Click a name below the chart to show or hide that player.' : '' })}>
+            {totals.every(total => !total) ? <p className="text-faint fs-7">{t('No visits yet.')}</p> : (
             <ResponsiveContainer width="100%" height={Math.max(260, rows.length * (players.length > 1 ? 30 : 26))}>
                 <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 40, left: 10, bottom: 0 }} barGap={2}>
                     <CartesianGrid {...GRID} horizontal={false} vertical />
@@ -47,6 +48,7 @@ export const ScoreRangesChart = ({ data = [], players = [] }) => {
                     {players.length > 1 && <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />}
                 </BarChart>
             </ResponsiveContainer>
+            )}
         </ChartCard>
     );
 };
@@ -64,6 +66,7 @@ export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
     ];
     return (
         <ChartCard title={t('Scoring vs. finishing')} description={t('Average at the start and in the middle of a leg, against the average at the end of the leg, where the doubles decide.')}>
+            {!scoring.some(entry => entry?.opening || entry?.finishing) ? <p className="text-faint fs-7">{t('No averages yet.')}</p> : (
             <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={rows} margin={{ top: 20, right: 16, left: -10, bottom: 0 }} barGap={6}>
                     <CartesianGrid {...GRID} />
@@ -78,6 +81,7 @@ export const ScoringFinishingChart = ({ scoring = [], players = [] }) => {
                     {players.length > 1 && <Legend {...LEGEND} onClick={series.toggle} formatter={series.legendLabel} />}
                 </BarChart>
             </ResponsiveContainer>
+            )}
         </ChartCard>
     );
 };

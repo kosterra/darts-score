@@ -8,6 +8,7 @@
  */
 
 import SERVER_TEXTS from '../locales/server.json';
+import { languageOfPath, pathInLanguage } from './language.path';
 
 export const LANGUAGES = [
     { code: 'en', label: 'English' },
@@ -155,10 +156,12 @@ let pageTexts = null;
 
 /**
  * Picks the language and loads its texts; the app starts after this.
+ * chosen: the language of the address (/de/…), before any other; also the
+ * language the public pages are rendered in ahead for the search engines.
  */
-export const initLanguage = async () => {
-    language = storedLanguage() ?? browserLanguage();
-    document.documentElement.lang = language;
+export const initLanguage = async (chosen) => {
+    language = CODES.includes(chosen) ? chosen : storedLanguage() ?? browserLanguage();
+    if (typeof document !== 'undefined') document.documentElement.lang = language;
     if (language !== 'en') {
         try {
             dictionary = (await LOADERS[language]()).default ?? {};
@@ -201,7 +204,10 @@ export const setLanguage = (code, { reload = true, beforeLogin = false } = {}) =
     } catch {
         // without storage the choice lasts until the app is closed
     }
-    if (reload && code !== language) window.location.reload();
+    if (!reload || code === language) return;
+    // at an address of a language: the same page at the address of the new one
+    if (languageOfPath(window.location.pathname)) window.location.assign(pathInLanguage(window.location.pathname, code) + window.location.search + window.location.hash);
+    else window.location.reload();
 };
 
 /**

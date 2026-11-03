@@ -286,3 +286,38 @@
   .club-goal-target { width: 8rem; }
   .club-goal-until { flex: 1 1 10rem; }
 }
+
+// Edit club: the logo small beside the name, the name taking the rest of the box
+.club-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3 $space-4;
+  padding-top: 0.4rem;
+
+  .file-upload .file-upload-avatar.p-avatar { width: 6rem; height: 6rem; font-size: 2.2rem; }
+  // the drop zone under the picture, closer to it (on a phone it is beside it already)
+  @media (min-width: 576px) {
+    .file-upload .drop-zone { margin: $space-2 0 0 !important; padding: 0.6rem 0.9rem !important; }
+  }
+}
+
+.club-identity-name {
+  flex: 1 1 14rem;
+  min-width: 0;
+
+  .p-inputtext { width: 100%; }
+}
+
+// the country as wide as the other fields of the club
+.club-country .p-dropdown.profile-club { max-width: none; }
+
+// My clubs: a new club as a row of the list's width, the name taking the room up to the button
+.my-clubs-create.club-create-row {
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  border-radius: $radius-md;
+  background: var(--surface-raised);
+
+  .p-inputtext { flex: 1 1 14rem; min-width: 0; }
+}

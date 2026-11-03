@@ -14,7 +14,7 @@ import { ClubFilter } from '../admin/club.filter';
 import PageLoader from '../elements/page.loader';
 import DeletePopup from '../elements/delete.popup';
 import FairPlayDetails from './fair.play.details';
-import { LEVEL_LABELS, listOf } from './fair.play.lists';
+import { LEVEL_LABELS, listOf, ruleColumns } from './fair.play.lists';
 import { fairPlayRules } from './fair.play.rules';
 import { useAuth } from '../../utils/auth.context';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
@@ -265,6 +265,8 @@ const FairPlayPage = ({ all = false }) => {
                             {entries.map(entry => {
                                 const viewable = !['training', 'rulesTraining', 'birth'].includes(entry.type) && (!all || entry.club.id === activeClub?.id);
                                 const expanded = open.has(entry.id);
+                                // Repair or Restore date is the main action (filled); "Looks fine" beside it then grey, not a second green
+                                const mainAction = (entry.repairable && entry.review?.status !== 'ok') || entry.type === 'birth';
                                 return (
                                     <li key={`${entry.type}-${entry.id}`} className={`fair-play-entry is-${entry.level}`}>
                                         {/* across all clubs: whose club it is comes first */}
@@ -314,7 +316,7 @@ const FairPlayPage = ({ all = false }) => {
                                             {entry.repairable && entry.review?.status !== 'ok' &&
                                                 <Button type="button" label={t('Repair')} icon="pi pi-wrench" size="small" disabled={busy === entry.id} onClick={() => setRepairing(entry)} />}
                                             {entry.review?.status !== 'ok' &&
-                                                <Button type="button" label={entry.level === 'suspicious' ? t('Looks fine') : t('False alarm')} icon="pi pi-check" size="small" outlined disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'ok' })} />}
+                                                <Button type="button" label={entry.level === 'suspicious' ? t('Looks fine') : t('False alarm')} icon="pi pi-check" size="small" {...(mainAction ? { severity: 'secondary' } : { outlined: true })} disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'ok' })} />}
                                             {entry.level !== 'impossible' && entry.review?.status !== 'watch' &&
                                                 <Button type="button" label={t('Watch')} icon="pi pi-eye" size="small" severity="secondary" disabled={busy === entry.id} onClick={() => setReviewing({ entry, status: 'watch' })} />}
                                             {entry.type === 'birth' &&
@@ -339,17 +341,24 @@ const FairPlayPage = ({ all = false }) => {
             {/* what the checks look for, with the limits they use */}
             {data.thresholds && Object.keys(data.thresholds).length > 0 &&
                 <Panel header={t('Rules')}>
-                    <ul className="fair-play-rules list-unstyled m-0 d-flex flex-column gap-3">
-                        {fairPlayRules(data.thresholds).map(rule => (
-                            <li key={rule.id} className="d-flex align-items-start gap-3">
-                                <span className={`fair-play-level is-${rule.level} flex-shrink-0 justify-content-center`} style={{ minWidth: '6.5rem' }}>{LEVEL_LABELS[rule.level]}</span>
-                                <div className="d-flex flex-column">
-                                    <span className="text-default fw-semibold fs-7">{rule.title}</span>
-                                    <span className="text-subtle fs-8">{rule.description}</span>
-                                </div>
-                            </li>
+                    {/* two columns on a desktop, each kind of rule kept together in one of them */}
+                    <div className="row g-4">
+                        {ruleColumns(fairPlayRules(data.thresholds)).map((column, index, columns) => (
+                            <div key={index} className={columns.length > 1 ? 'col-12 col-xl-6' : 'col-12'}>
+                                <ul className="fair-play-rules list-unstyled m-0 d-flex flex-column gap-3">
+                                    {column.map(rule => (
+                                        <li key={rule.id} className="d-flex align-items-start gap-3">
+                                            <span className={`fair-play-level is-${rule.level} flex-shrink-0 justify-content-center`} style={{ minWidth: '6.5rem' }}>{LEVEL_LABELS[rule.level]}</span>
+                                            <div className="d-flex flex-column">
+                                                <span className="text-default fw-semibold fs-7">{rule.title}</span>
+                                                <span className="text-subtle fs-8">{rule.description}</span>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 </Panel>
             }
         </div>

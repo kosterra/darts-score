@@ -53,7 +53,7 @@ const SupportSettings = () => {
     return (
         <Panel header={t('Support Legmate')} icons={<SaveStatus {...supportSave} className="me-2" />}>
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('Links for gifts to this installation, shown on the page Support Legmate (in the footer of the public pages and on About), only when set. The sponsoring page of the project on GitHub is always shown there.')}{' '}{t('Saved as you go.')}{' '}<Link to="/support">{t('Open the page')}</Link>
                 </span>
                 <label className="d-flex flex-column gap-1" htmlFor="support-twint">

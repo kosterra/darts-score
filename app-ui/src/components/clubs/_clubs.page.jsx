@@ -132,7 +132,7 @@ const ClubsPage = () => {
                 </ul>
 
                 {/* a new club below the clubs: the clubs are what the page is mostly opened for */}
-                <form onSubmit={onCreate} className="my-clubs-create mt-4">
+                <form onSubmit={onCreate} className="my-clubs-create club-create-row mt-3">
                     <InputText
                         id="club-name"
                         value={newName}

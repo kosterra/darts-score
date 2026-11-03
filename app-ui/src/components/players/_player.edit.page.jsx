@@ -69,6 +69,7 @@ const PlayerEditPage = () => {
     // how the saving goes in the parts that save themselves
     const [checkoutStatus, setCheckoutStatus] = useState(null);
     const [dartStatus, setDartStatus] = useState(null);
+    const [flightsStatus, setFlightsStatus] = useState(null);
     // the fields as last valid: a new picture goes with them
     const lastValid = useRef(null);
 
@@ -144,10 +145,11 @@ const PlayerEditPage = () => {
     const publicProfile = publicChosen ?? Boolean(player.publicProfile);
     const nicknameShort = fields.nickname.trim().length < 3;
 
-    const field = (key, label, hint, wrong = false) => (
-        <label className="d-flex flex-column gap-1 profile-field">
+    // every field as wide as its box (mw-100: not the narrower width of the user profile's fields)
+    const field = (key, label, hint, wrong = false, className = '') => (
+        <label className={`d-flex flex-column gap-1 profile-field mw-100 ${className}`}>
             <span className="text-subtle fs-8">{label}</span>
-            <InputText value={fields[key]} onChange={(event) => changeFields({ [key]: event.target.value })} onBlur={fieldsSave.flush} disabled={maintainedByPlayer} required invalid={wrong} />
+            <InputText value={fields[key]} onChange={(event) => changeFields({ [key]: event.target.value })} onBlur={fieldsSave.flush} disabled={maintainedByPlayer} required invalid={wrong} className="w-100 mw-100" />
             {hint && <span className={`fs-8 ${wrong ? 'text-danger' : 'text-faint'}`}>{hint}</span>}
         </label>
     );
@@ -157,11 +159,15 @@ const PlayerEditPage = () => {
             <Toast ref={toast} position="bottom-right" />
             <UpLink to="/players" label={t('Players')} />
             <Panel header={t('Edit {{nickname}}', { nickname: player.nickname })}>
-                <p className="text-subtle fs-7 mt-0 mb-3">
-                    {player.guest
-                        ? t('A guest of a game: their name, nickname, picture and date of birth.')
-                        : t('How the player appears in the club, their login and their settings for the games. Everything is saved as you go.')}
-                </p>
+                {/* the way to the player's statistics beside the intro, not alone in the middle of a column */}
+                <div className="d-flex flex-wrap justify-content-between align-items-center column-gap-4 row-gap-2 mb-3">
+                    <p className="text-subtle fs-7 m-0">
+                        {player.guest
+                            ? t('A guest of a game: their name, nickname, picture and date of birth.')
+                            : t('How the player appears in the club, their login and their settings for the games. Everything is saved as you go.')}
+                    </p>
+                    <Button type="button" label={t('Statistics and badges')} icon="pi pi-chart-line" size="small" severity="secondary" onClick={() => navigate(`/players/${player.id}`)} />
+                </div>
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">
                         <div className="mb-4">
@@ -185,7 +191,7 @@ const PlayerEditPage = () => {
                                             onFileDelete={() => { setPreview(''); pictureSave.change(null, { now: true }); }}
                                         />
                                     }
-                                    {field('nickname', t('Nickname'), t('How the club and the games call the player, 3 to 25 characters.'), !maintainedByPlayer && nicknameShort)}
+                                    {field('nickname', t('Nickname'), t('How the club and the games call the player, 3 to 25 characters.'), !maintainedByPlayer && nicknameShort, 'my-player-nickname')}
                                 </div>
                             </div>
                             <p className="setting-title">{t('Name')}</p>
@@ -198,14 +204,14 @@ const PlayerEditPage = () => {
                             <p className="setting-title">{t('Country')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col d-flex flex-column gap-1 pt-1">
-                                    <CountryPicker value={fields.country} onChange={(country) => changeFields({ country: country ?? '' }, { now: true })} disabled={maintainedByPlayer} />
+                                    <CountryPicker value={fields.country} onChange={(country) => changeFields({ country: country ?? '' }, { now: true })} disabled={maintainedByPlayer} className="w-100" />
                                     <span className="text-faint fs-8">{maintainedByPlayer ? t('{{nickname}} has a login and chooses the country on their profile.', { nickname: player.nickname }) : t('Where the player comes from: the flag is shown next to the nickname.')}</span>
                                 </div>
                             </div>
                             <p className="setting-title">{t('Date of birth')}</p>
                             <div className="row mx-0 mt-0 setting-body">
                                 <div className="col pt-1">
-                                    <label className="d-flex flex-column gap-1 profile-field">
+                                    <label className="d-flex flex-column gap-1 profile-field mw-100">
                                         <Calendar
                                             value={toDate(fields.dateOfBirth)}
                                             onChange={(event) => changeFields({ dateOfBirth: fromDate(event.value) }, { now: true })}
@@ -216,7 +222,7 @@ const PlayerEditPage = () => {
                                             showIcon
                                             icon="pi pi-calendar"
                                             aria-label={t('Date of birth')}
-                                            className="my-player-birth"
+                                            className="w-100"
                                         />
                                         {fields.dateOfBirth
                                             ? <span className="text-faint fs-8">{t('For fair handicaps between players of different ages, and the Hall of Shame: a player without one is never in it.')}</span>
@@ -224,13 +230,22 @@ const PlayerEditPage = () => {
                                     </label>
                                 </div>
                             </div>
-                            <div className="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
-                                <Button type="button" label={t('Statistics and badges')} icon="pi pi-chart-line" size="small" severity="secondary" onClick={() => navigate(`/players/${player.id}`)} />
-                            </div>
                         </div>
+                    </div>
 
-                        {!player.guest && (
-                            <>
+                    {!player.guest && (
+                        <div className="col-12 col-xl-6">
+                            <SectionTitle saves={[checkoutStatus, dartStatus]}>{t('In games')}</SectionTitle>
+                            <p className="setting-title">{t('Ways out in X01')}</p>
+                            <div className="row mx-0 mt-0 setting-body">
+                                <div className="col">
+                                    <PlayerCheckoutPreferences player={player} onStatus={setCheckoutStatus} />
+                                </div>
+                            </div>
+                            <PlayerDartPreferences part="animation" player={player} onStatus={setDartStatus} onError={(error) => showError(t('Darts on the board'), error)} />
+
+                            {/* the club's part here too, so the two columns end about together */}
+                            <div className="mt-4">
                                 <SectionTitle saves={[publicSave]}>{t('In the club')}</SectionTitle>
                                 <SettingSwitch
                                     id={`player-public-${player.id}`}
@@ -271,20 +286,14 @@ const PlayerEditPage = () => {
                                         onLeft={(summary) => navigate('/players', { state: { notice: `${summary}: ${player.nickname}` } })}
                                     />
                                 </>}
-                            </>
-                        )}
-                    </div>
-
-                    {!player.guest && (
-                        <div className="col-12 col-xl-6">
-                            <SectionTitle saves={[checkoutStatus, dartStatus]}>{t('In games')}</SectionTitle>
-                            <p className="setting-title">{t('Ways out in X01')}</p>
-                            <div className="row mx-0 mt-0 setting-body">
-                                <div className="col">
-                                    <PlayerCheckoutPreferences player={player} onStatus={setCheckoutStatus} />
-                                </div>
                             </div>
-                            <PlayerDartPreferences player={player} onStatus={setDartStatus} onError={(error) => showError(t('Darts on the board'), error)} />
+                        </div>
+                    )}
+                    {/* the flights and barrels are many tiles: across the whole width, under both columns */}
+                    {!player.guest && (
+                        <div className="col-12">
+                            <SectionTitle saves={[flightsStatus]}>{t('Their darts')}</SectionTitle>
+                            <PlayerDartPreferences part="flights" player={player} onStatus={setFlightsStatus} onError={(error) => showError(t('Darts on the board'), error)} />
                         </div>
                     )}
                 </div>

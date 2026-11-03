@@ -174,6 +174,7 @@ const ProfilePage = () => {
                     {isGlobalAdmin && <> <Tag value={ROLE_LABELS[user.role]} severity="secondary" className="ms-1" /></>}
                 </p>
                 {/* laid out as the game setup: a section title, then a box per setting */}
+                {/* the account and how you get in on the left; how the app looks and this device on the right, so the two columns end about together */}
                 {section.value === 'account' &&
                 <div className="row g-4">
                     <div className="col-12 col-xl-6">
@@ -234,7 +235,7 @@ const ProfilePage = () => {
                                             value={profile.startPage}
                                             options={[{ label: t('Dashboard'), value: 'dashboard' }, { label: t('My statistics'), value: 'myStatistics' }]}
                                             onChange={(e) => e.value && e.value !== profile.startPage && changeProfile({ startPage: e.value })}
-                                            className="p-selectbutton-pills flex-wrap"
+                                            className="p-selectbutton-pills pills-inline flex-wrap"
                                             aria-label={t('Start page')}
                                         />
                                         <span className="text-faint fs-8">
@@ -249,28 +250,6 @@ const ProfilePage = () => {
                             <Button type="button" label={t('Log out')} icon="pi pi-sign-out" size="small" severity="secondary" onClick={logout} />
                         </div>
 
-                    {/* how the app shows itself: language, dates and the look, each saved at once */}
-                    <SectionTitle saves={[languageSave, dateStatus, lookStatus]}>{t('Display')}</SectionTitle>
-                        <p className="setting-title">{t('Language')}</p>
-                        <div className="row mx-0 mt-0 setting-body">
-                            <div className="col d-flex flex-column gap-2">
-                                <SelectButton
-                                    value={language}
-                                    options={LANGUAGES}
-                                    optionLabel="label"
-                                    optionValue="code"
-                                    onChange={(e) => onChangeLanguage(e.value)}
-                                    className="p-selectbutton-pills flex-wrap"
-                                    aria-label={t('Language')}
-                                />
-                                <span className="text-faint fs-8">{t('The app and the mails you get come in this language.')}</span>
-                            </div>
-                        </div>
-                        <DateFormatSetting onStatus={setDateStatus} />
-                    <AppearanceSetting onStatus={setLookStatus} />
-                    </div>
-
-                    <div className="col-12 col-xl-6">
                     <form onSubmit={onChangePassword}>
                         <p className="game-setup-section-title">{t('Security')}</p>
                         <p className="setting-title">{t('Change password')}</p>
@@ -287,6 +266,29 @@ const ProfilePage = () => {
                     </form>
                     <TwoStepSetting onSaved={(detail) => showSuccess(t('Saved'), detail)} onError={showError} />
                     <PasskeysSetting onSaved={(detail) => showSuccess(t('Passkeys'), detail)} />
+                    </div>
+
+                    <div className="col-12 col-xl-6">
+                    {/* how the app shows itself: language, dates and the look, each saved at once */}
+                    <SectionTitle saves={[languageSave, dateStatus, lookStatus]}>{t('Display')}</SectionTitle>
+                        <p className="setting-title">{t('Language')}</p>
+                        <div className="row mx-0 mt-0 setting-body">
+                            <div className="col d-flex flex-column gap-2">
+                                <SelectButton
+                                    value={language}
+                                    options={LANGUAGES}
+                                    optionLabel="label"
+                                    optionValue="code"
+                                    onChange={(e) => onChangeLanguage(e.value)}
+                                    className="p-selectbutton-pills pills-inline flex-wrap"
+                                    aria-label={t('Language')}
+                                />
+                                <span className="text-faint fs-8">{t('The app and the mails you get come in this language.')}</span>
+                            </div>
+                        </div>
+                        <DateFormatSetting onStatus={setDateStatus} />
+                    <AppearanceSetting onStatus={setLookStatus} />
+
                     {/* Legmate on the home screen of this device */}
                     <div className="mt-4"><AppInstallSetting /></div>
                     {/* the welcome tour once more, the first steps back */}
@@ -298,22 +300,19 @@ const ProfilePage = () => {
 
                 {section.value === 'player' && <MyPlayers part="player" onError={showError} />}
 
-                {section.value === 'notifications' &&
-                    <div className="row g-4">
-                        <div className="col-12 col-xxl-9">
-                            <NotificationSettings />
-                        </div>
-                    </div>}
+                {/* as wide as the intro above it */}
+                {section.value === 'notifications' && <NotificationSettings />}
 
                 {section.value === 'playing' &&
                     <div className="row g-4">
                         {/* how you like to play, with your account on every device */}
                         <div className="col-12 col-xl-6">
-                            <PlayingPreferences />
+                            <PlayingPreferences part="game" />
                         </div>
-                        {/* your player's own: the club sees them too */}
-                        <div className="col-12 col-xl-6">
+                        {/* your player's own: the club sees them too; the caller under it, so the columns end about together */}
+                        <div className="col-12 col-xl-6 d-flex flex-column gap-4">
                             <MyPlayers part="playing" onError={showError} />
+                            <div><PlayingPreferences part="caller" /></div>
                         </div>
                     </div>}
             </Panel>

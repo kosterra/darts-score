@@ -669,19 +669,8 @@
 }
 
 // the setup of an Around the Clock game: doubles and trebles moving on
-.clock-skip-switch {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  margin: 0 auto $space-4;
-  padding: 0.7rem 0.9rem;
-  max-width: 30rem;
-  border-radius: $radius-md;
-  background: var(--surface-raised);
-  cursor: pointer;
-
-  .p-inputswitch { flex-shrink: 0; }
-}
+// a .setting-switch as wide as the other boxes; the whole of it switches
+.clock-skip-switch { cursor: pointer; }
 
 // the Around the Clock game: the round in the middle of the page
 .clock-game-board {

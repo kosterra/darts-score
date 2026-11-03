@@ -56,10 +56,10 @@ const MfaSettings = () => {
     return (
         <Panel header={t('Two-step login')} icons={<SaveStatus {...mfaSave} className="me-2" />}>
             <div className="d-flex flex-column gap-3">
-                <span className="text-subtle fs-7">
+                <span className="text-subtle fs-7 text-measure">
                     {t('After the password, a code of an authenticator app on the phone, or one of ten recovery codes. A device can be trusted for 30 days. For a lost phone, reset it under Users.')}{' '}{t('Saved as you go.')}
                 </span>
-                <SelectButton value={policy} options={POLICIES} optionLabel="label" optionValue="value" onChange={(e) => e.value && e.value !== policy && change({ policy: e.value }, { now: true })} className="p-selectbutton-pills flex-wrap" aria-label={t('Two-step login')} />
+                <SelectButton value={policy} options={POLICIES} optionLabel="label" optionValue="value" onChange={(e) => e.value && e.value !== policy && change({ policy: e.value }, { now: true })} className="p-selectbutton-pills pills-inline flex-wrap" aria-label={t('Two-step login')} />
                 <span className="text-faint fs-8">{POLICIES.find(entry => entry.value === policy)?.hint}</span>
                 {requiring &&
                     <div className="d-flex flex-wrap align-items-center gap-3">
