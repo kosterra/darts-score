@@ -54,7 +54,8 @@ export const install = async () => {
 };
 
 // already opened from the home screen
-export const isInstalled = () => window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+// (no window when the public pages are rendered ahead for the search engines: not installed)
+export const isInstalled = () => typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true);
 
 // Safari on an iPhone or iPad (an iPad says it is a Mac, but has touch)
 export const isIosSafari = () => {

@@ -27,6 +27,24 @@ export const PUBLIC_PAGES = {
     '/login': { title: 'Log in', description: DEFAULT_DESCRIPTION },
 };
 
+// The addresses of a language: /de/darts-terms is Darts A–Z in German, the
+// address without one English (also for the search engines' x-default). The app
+// knows the same (app-ui/src/utils/language.path.js).
+export const PATH_LANGUAGES = ['de', 'fr', 'it', 'es'];
+const PREFIX = new RegExp(`^/(${PATH_LANGUAGES.join('|')})(?=/|$)`);
+
+// "/de/quick" → { language: 'de', path: '/quick' }; "/quick" → { language: null, path: '/quick' }
+export const splitLanguage = (pathname) => {
+    const language = pathname.match(PREFIX)?.[1] ?? null;
+    return { language, path: language ? pathname.replace(PREFIX, '') || '/' : pathname };
+};
+
+// the address of a page in a language: '/quick', 'de' → '/de/quick'
+export const pathInLanguage = (path, language) => {
+    if (!PATH_LANGUAGES.includes(language)) return path;
+    return path === '/' ? `/${language}` : `/${language}${path}`;
+};
+
 // the language a browser asks for first among those of the app: "de-CH,de;q=0.9,en;q=0.8" → de
 export const languageOfHeader = (header = '') => {
     const asked = String(header).split(',')
@@ -65,11 +83,6 @@ export const metaOf = (pathname, language = 'en', { evening, publicSite = true }
     };
 };
 
-/**
- * index.html with the meta of the page: the title, the description, the
- * Open Graph and Twitter tags of the preview, the canonical address and,
- * for pages not to be listed, noindex. base: the address of the installation.
- */
 // for the search engines, on the start page: the website and its name, who it is from with
 // the logo, and that it is a free web app for darts (schema.org)
 const structuredData = (base, description) => JSON.stringify({
@@ -84,12 +97,26 @@ const structuredData = (base, description) => JSON.stringify({
     ],
 }).replace(/</g, '\\u003c');
 
-export const renderIndex = (html, { title, description, index }, { base, path, language, nonce }) => {
+// the same page in every language, for the search engines: English also for any other
+const alternatesOf = (base, page) => [
+    ...['en', ...PATH_LANGUAGES].map(code => `<link rel="alternate" hreflang="${code}" href="${escape(base + pathInLanguage(page, code))}" />`),
+    `<link rel="alternate" hreflang="x-default" href="${escape(base + page)}" />`,
+];
+
+/**
+ * index.html with the meta of the page: the title, the description, the
+ * Open Graph and Twitter tags of the preview, the canonical address with the
+ * page in the other languages and, for pages not to be listed, noindex.
+ * base: the address of the installation; path: the address asked for, page:
+ * the page without its language (/de/quick → /quick); prerendered: the page
+ * as the app shows it (dist/prerender.json), for those that run no script.
+ */
+export const renderIndex = (html, { title, description, index }, { base, path, page = path, language, nonce, prerendered }) => {
     const url = `${base}${path}`;
     const tags = [
         `<title>${escape(title)}</title>`,
         `<meta name="description" content="${escape(description)}" />`,
-        index ? `<link rel="canonical" href="${escape(url)}" />` : '<meta name="robots" content="noindex" />',
+        ...(index ? [`<link rel="canonical" href="${escape(url)}" />`, ...alternatesOf(base, page)] : ['<meta name="robots" content="noindex" />']),
         '<meta property="og:type" content="website" />',
         `<meta property="og:site_name" content="${BRAND}" />`,
         `<meta property="og:title" content="${escape(title)}" />`,
@@ -101,27 +128,35 @@ export const renderIndex = (html, { title, description, index }, { base, path, l
         `<meta property="og:image:height" content="${OG_IMAGE.height}" />`,
         `<meta property="og:image:alt" content="${escape(translate(language, 'The darts scoreboard'))}" />`,
         '<meta name="twitter:card" content="summary_large_image" />',
-        ...(path === '/' && index && base ? [`<script type="application/ld+json"${nonce ? ` nonce="${nonce}"` : ''}>${structuredData(base, description)}</script>`] : []),
+        ...(page === '/' && index && base ? [`<script type="application/ld+json"${nonce ? ` nonce="${nonce}"` : ''}>${structuredData(base, description)}</script>`] : []),
     ].join('\n    ');
     let out = html
         .replace(/<meta name="description"[^>]*>\s*/i, '')
         .replace(/<title>[^<]*<\/title>/i, tags)
         .replace(/<html lang="[^"]*"/i, `<html lang="${language}"`);
+    // the app's own HTML, so it is not escaped; the app replaces it when it starts
+    if (index && prerendered) out = out.replace('<div id="root"></div>', `<div id="root"><div data-prerendered>${prerendered}</div></div>`);
     // the Content-Security-Policy admits inline scripts only with this request's nonce;
     // the one inline script in index.html (the no-flash theme) gets it here
     if (nonce) out = out.replace(/<script(?![^>]*\bsrc=)(?![^>]*\bnonce=)/gi, `<script nonce="${nonce}"`);
     return out;
 };
 
-// the public pages for the search engines
-export const sitemapOf = (base, { publicSite = true } = {}) => [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...Object.entries(PUBLIC_PAGES)
-        .filter(([path]) => metaOf(path, 'en', { publicSite }).index)
-        .map(([path]) => `  <url><loc>${escape(base + path)}</loc><changefreq>${path === '/whats-new' ? 'weekly' : 'monthly'}</changefreq></url>`),
-    '</urlset>',
-    '',
-].join('\n');
+// the public pages for the search engines, each in every language with the others beside it
+export const sitemapOf = (base, { publicSite = true } = {}) => {
+    const pages = Object.keys(PUBLIC_PAGES).filter(path => metaOf(path, 'en', { publicSite }).index);
+    const urls = pages.flatMap(path => ['en', ...PATH_LANGUAGES].map(language => [
+        `  <url><loc>${escape(base + pathInLanguage(path, language))}</loc>`,
+        ...['en', ...PATH_LANGUAGES].map(code => `    <xhtml:link rel="alternate" hreflang="${code}" href="${escape(base + pathInLanguage(path, code))}" />`),
+        `    <changefreq>${path === '/whats-new' ? 'weekly' : 'monthly'}</changefreq></url>`,
+    ].join('\n')));
+    return [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+        ...urls,
+        '</urlset>',
+        '',
+    ].join('\n');
+};
 
 export const robotsOf = (base) => `User-agent: *\nDisallow: /api/\n${base ? `Sitemap: ${base}/sitemap.xml\n` : ''}`;

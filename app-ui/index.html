@@ -18,6 +18,8 @@
     <title>Legmate</title>
     <!-- the look from the first moment, before the styles arrive: no flash (see src/utils/appearance.js) -->
     <script>
+      // with a script the app shows the page: the copy rendered ahead for the search engines stays hidden
+      document.documentElement.classList.add('js');
       try {
         var look = JSON.parse(localStorage.getItem('darts-score.appearance') || 'null') || {};
         var theme = look.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : look.theme;
@@ -28,6 +30,7 @@
       html, body { background-color: var(--c-page-bg, #222121); color: var(--c-page-text, #f2f2f2); margin: 0; }
       :root[data-theme="light"] { --c-page-bg: #f4f3ef; --c-page-text: #262626; }
       :root[data-theme="black"] { --c-page-bg: #000; }
+      .js [data-prerendered] { display: none; }
     </style>
   </head>
   <body>
