@@ -15,6 +15,10 @@ import { locale, t } from '../../../utils/i18n';
 const RATING_START = 1000;
 // the latest changes listed under the chart
 const SHOWN_CHANGES = 5;
+// the dates on the time axis (fewer on a phone)
+const DATE_TICKS = 5;
+const PHONE_DATE_TICKS = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const signed = (value) => `${value > 0 ? '+' : ''}${new Intl.NumberFormat(locale(), { maximumFractionDigits: 1 }).format(value)}`;
 
@@ -22,8 +26,9 @@ const signed = (value) => `${value > 0 ? '+' : ''}${new Intl.NumberFormat(locale
  * A player's club rating over time: the rating at the end of each day it
  * changed, a line at 1000 where everyone starts, and the latest changes with
  * whom they played. Loaded when it is shown (its own request), always from
- * the club's games whatever the page's filters. On a phone the axis shows
- * fewer dates.
+ * the club's games whatever the page's filters. The axis is time, so a long
+ * pause without games shows as a long stretch (not as one step); on a phone
+ * it shows fewer dates.
  */
 const RatingTrendChart = ({ playerId }) => {
     const [data, setData] = useState(null);
@@ -37,18 +42,24 @@ const RatingTrendChart = ({ playerId }) => {
         return () => { cancelled = true; };
     }, [playerId]);
 
-    const rows = (data?.history ?? []).map(point => ({ ...point, label: formatDate(point.at, { year: 'short' }) }));
+    const rows = (data?.history ?? []).map(point => ({ ...point, time: new Date(point.at).getTime() }));
     const changes = (data?.lastChanges ?? []).slice(0, SHOWN_CHANGES);
     // the axis in steps of 50, always with 1000 on it
     const values = rows.map(row => row.rating);
     const low = Math.floor(Math.min(RATING_START, ...values) / 50) * 50;
     const high = Math.ceil(Math.max(RATING_START, ...values) / 50) * 50;
     const ticks = Array.from({ length: (high - low) / 50 + 1 }, (_, index) => low + index * 50);
+    // the dates evenly spread from the first to the last (a single day gets a day either side)
+    const first = Math.min(...rows.map(row => row.time));
+    const last = Math.max(...rows.map(row => row.time));
+    const [start, end] = first === last ? [first - DAY_MS, last + DAY_MS] : [first, last];
+    const dateCount = phone ? PHONE_DATE_TICKS : DATE_TICKS;
+    const dateTicks = Array.from({ length: dateCount }, (_, index) => Math.round(start + ((end - start) * index) / (dateCount - 1)));
     const green = readable(ACCENT.green);
     const red = readable(ACCENT.red);
 
     return (
-        <ChartCard title={t('Rating over time')} description={t('The club rating: wins weighed by whom they beat, from 5 games on')} className="rating-trend-chart">
+        <ChartCard title={t('Rating over time')} description={t('Everyone starts at 1000 (the dashed line). A win adds points, a defeat takes some away, more when the opponent is stronger. The first 5 games move it most.')} className="rating-trend-chart">
             {data === null
                 ? <Skeleton height="240px" />
                 : rows.length === 0
@@ -56,12 +67,12 @@ const RatingTrendChart = ({ playerId }) => {
                     : (
                         <>
                             <ResponsiveContainer width="100%" height={240}>
-                                <LineChart data={rows} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
+                                <LineChart data={rows} margin={{ top: 10, right: 32, left: -10, bottom: 0 }}>
                                     <CartesianGrid {...GRID} />
-                                    <XAxis dataKey="label" {...AXIS} minTickGap={phone ? 48 : 24} interval="preserveStartEnd" />
+                                    <XAxis dataKey="time" type="number" scale="time" domain={[start, end]} ticks={dateTicks} tickFormatter={(time) => formatDate(time, { year: 'short' })} {...AXIS} interval={0} />
                                     <YAxis {...AXIS} domain={[low, high]} ticks={ticks} interval={0} />
-                                    <Tooltip cursor={TOOLTIP.cursor} content={<ChartTooltip formatValue={(value) => Math.round(Number(value))} />} />
-                                    <ReferenceLine y={RATING_START} stroke={ACCENT.cream} strokeOpacity={0.4} strokeDasharray="4 4" label={{ value: String(RATING_START), fill: ACCENT.cream, fontSize: 12, position: 'insideTopRight' }} />
+                                    <Tooltip cursor={TOOLTIP.cursor} content={<ChartTooltip labelFormatter={(time) => formatDate(time)} formatValue={(value) => Math.round(Number(value))} />} />
+                                    <ReferenceLine y={RATING_START} stroke={ACCENT.cream} strokeOpacity={0.4} strokeDasharray="4 4" />
                                     <Line type="monotone" dataKey="rating" name={t('Club rating')} stroke={ACCENT.green} strokeWidth={2.5} dot={rows.length <= 30 ? { r: 2.5, fill: ACCENT.green, strokeWidth: 0 } : false} activeDot={{ r: 4 }} isAnimationActive={false} />
                                 </LineChart>
                             </ResponsiveContainer>
