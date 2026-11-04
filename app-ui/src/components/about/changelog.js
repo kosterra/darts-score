@@ -12,7 +12,7 @@ const CHANGELOG = [
         version: 'Next release',
         changes: [
             t('Bob\'s 27 scoreboard: the same points rank by how far one got, and an attempt that failed says where it ended – out at D6.'),
-            t('Trainings with the board or the keypad end at their last dart again: the result and the new entry on the scoreboard come at once, where the page went back to the setup without saving.'),
+            t('Fix: a training with the board or the keypad ends at its last dart again, with the result and the new entry on the scoreboard; the page went back to the setup without saving it.'),
         ],
     },
     {

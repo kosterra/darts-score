@@ -34,7 +34,7 @@ release build hides it.
 | Change | What's new |
 |---|---|
 | A new feature or something players see or do differently | a line, or extend the line of the area |
-| A fix of something already **released** that players could notice | a line ("… no longer …", "… now …") |
+| A fix of something already **released** that players could notice | a line starting with `Fix: ` ("Fix: … no longer …", "Fix: … again") — the page shows it with a Fix tag instead of New and counts it as a fix |
 | A fix of a feature **still in Next release** (not released yet) | no line of its own: correct that feature's line in Next release if what it says changed |
 | Admin features | a line when club admins use it; installation admins only when it matters to them |
 | Refactoring, tests, CI, dependencies, internal tools | nothing (they go into the PR notes under Development) |
@@ -55,6 +55,10 @@ a ninth.
   app's own words for its buttons and screens ("Enter score", "Personal bests").
 - An example in quotes helps: "Your match: board 2, against Ben".
 - Through `t()`: `t('…')` with the English text as the key.
+- A fix starts with `Fix: ` and then says what works now, lower case after the colon:
+  `t('Fix: a filter of a list no longer scrolls the page back to the top.')`. Its
+  translations start with the app's "Fix: " ("Korrektur: ", "Correction : ",
+  "Correzione: ", "Corrección: "). Without it, a fix is shown as New.
 
 ## Translations
 
