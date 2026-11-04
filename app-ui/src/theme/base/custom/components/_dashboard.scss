@@ -885,8 +885,11 @@
   gap: 0.1rem;
   max-width: 100%;
 
-  .form-trend { font-size: $text-base; }
+  .form-trend { flex-wrap: nowrap; white-space: nowrap; font-size: $text-base; }
   .recharts-wrapper { max-width: 100%; }
+  // a narrow tile at any width (also a phone turned sideways): the arrow and the change say it,
+  // the word stays for screen readers and in the title
+  .form-trend-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 }
 
 // on a phone the arrow and the change say it: the word (rising, steady, falling) stays for

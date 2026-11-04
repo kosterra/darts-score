@@ -16,6 +16,7 @@ const CHANGELOG = [
             t('Trainings on a phone: your picture in the header instead of the Throwing tag, and the bars that float at the bottom sit clear of the menu.'),
             t('The bot comes to life in X01 against the bot: it blinks and looks around while you throw, watches the board at its own turn, beams at a ton or a leg it won, sulks after a bust and stares at your 180 – on a phone too, small beside your picture.'),
             t('Fix: a training with the board or the keypad ends at its last dart again, with the result and the new entry on the scoreboard; the page went back to the setup without saving it.'),
+            t('Fix: the Form tile on the dashboard shows only its arrow and the change, also on a phone turned sideways, where the word ran out of the tile.'),
         ],
     },
     {
