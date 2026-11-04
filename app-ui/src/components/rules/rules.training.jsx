@@ -18,6 +18,7 @@ import PracticeGoalNews from '../goals/practice.goal.news';
 import UpLink from '../elements/up.link';
 import RulesTrainingBoard from './rules.training.board';
 import RulesDoubles from './rules.doubles';
+import RulesProgress from './rules.progress';
 import LiveHero from '../games/common/live.hero';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
@@ -295,22 +296,34 @@ const RulesTraining = () => {
                     rulesId={kind}
                     title={[definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean)].join(' · ')}
                     // the double to throw at is the big figure already: not again under the title
-                    subtitle={definition.heroTarget ? undefined : target}
+                    subtitle={definition.heroTarget || definition.noteTarget ? undefined : target}
                     rows={[{
                         player: running.player,
                         isTurn: true,
                         line: status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
-                        score: definition.hero ? definition.hero(replay.state, ctx) : target,
+                        // the big figure, with its unit smaller beside it (Bob's 27: "441 points")
+                        score: definition.hero
+                            ? definition.heroUnit
+                                ? <>{definition.hero(replay.state, ctx)}<span className="rules-hero-unit">{definition.heroUnit(replay.state, ctx)}</span></>
+                                : definition.hero(replay.state, ctx)
+                            : target,
                         // the double to throw at in the accent, played again when it changes (also by an undo)
                         scoreClass: definition.heroTarget ? 'rules-hero-target' : '',
                         scoreKey: definition.heroTarget ? `${target}-${undone?.count ?? 0}` : undefined,
                         // the way out to throw, as in X01; without one the target (or what the training stands at)
                         below: ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
                             : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
-                                : definition.heroNote
-                                    // the score of the training (e.g. Bob's 27's points): big and white, not a small way out
-                                    ? <span className="x01-live-route rules-hero-note tabular-nums">{definition.heroNote(replay.state, ctx)}</span>
-                                    : <span className="x01-live-route">{target}</span>,
+                                : definition.noteTarget
+                                    // the double to throw at under the points, in the accent (played again when it
+                                    // changes, also by an undo), and the curve of the points so far
+                                    ? <span className="rules-hero-below">
+                                        <span key={`${target}-${undone?.count ?? 0}`} className="rules-hero-double">{definition.heroNote(replay.state, ctx)}</span>
+                                        {definition.progress && <RulesProgress points={definition.progress(replay.state, ctx)} length={definition.progressLength} />}
+                                    </span>
+                                    : definition.heroNote
+                                        // the score of the training (e.g. the darts so far): big and white, not a small way out
+                                        ? <span className="x01-live-route rules-hero-note tabular-nums">{definition.heroNote(replay.state, ctx)}</span>
+                                        : <span className="x01-live-route">{target}</span>,
                     }]}
                 />
                 <div className="row g-4 justify-content-center x01-play">

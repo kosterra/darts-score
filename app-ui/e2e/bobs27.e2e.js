@@ -29,7 +29,8 @@ const startTraining = async (page) => {
     await page.getByRole('button', { name: 'Start training' }).click();
 };
 
-const hero = (page) => page.locator('.result-hero-score');
+// the double to throw at, under the points in the header
+const hero = (page) => page.locator('.rules-hero-double');
 const slots = (page) => page.locator('.rules-visit-dart');
 const current = (page) => page.locator('.rules-double.is-current .rules-double-name');
 
@@ -96,7 +97,7 @@ test('at the end what every double took, and the new entry on the scoreboard in 
     await expect(latest).toBeInViewport();
 
     // the latest attempts carry the training's sign; one of them opens to its doubles
-    await page.locator('.p-selectbutton').getByText('Recent', { exact: true }).click();
+    await page.locator('.p-selectbutton').getByText('Newest', { exact: true }).click();
     await expect(page.locator('.atc-row .rules-board-icon').first()).toBeVisible();
     const older = page.locator('.atc-row.is-openable').nth(1);
     await older.click();

@@ -33,6 +33,40 @@ const doubleCells = (state, valueOf, toneOf, over = false) => DOUBLE_TARGETS.map
  * bull. Each hit adds the double's value; no hit takes it off. Below 1 the
  * training is over.
  */
+// how many visits without a hit in a row, from the double at "from" on, end the
+// training at this score (Infinity when even missing every double left does not)
+const missesToFail = (score, from) => {
+    let left = score;
+    for (let index = from; index < DOUBLE_TARGETS.length; index += 1) {
+        left -= doubleValue(DOUBLE_TARGETS[index]);
+        if (left <= 0) return index - from + 1;
+    }
+    return Infinity;
+};
+// how close a score is to the end: 'danger' the next double has to be a hit, 'warn' up to
+// three misses in a row end it, 'safe' otherwise
+const riskOf = (score, from) => {
+    const misses = missesToFail(score, from);
+    return misses <= 1 ? 'danger' : misses <= 3 ? 'warn' : 'safe';
+};
+
+/**
+ * Bob's 27 so far: the points at the start, after every double and now (in a
+ * visit), each with how close it is to the end (see riskOf). A double with a
+ * hit in this visit is safe already, so it counts from the next one.
+ */
+export const bobsProgress = (state) => {
+    let score = 27;
+    const points = [{ score, risk: riskOf(score, 0) }];
+    state.perDouble.forEach((hits, index) => {
+        const value = doubleValue(DOUBLE_TARGETS[index]);
+        score += hits ? hits * value : -value;
+        points.push({ score, risk: riskOf(score, index + 1) });
+    });
+    if (state.inVisit) points.push({ score: state.score, risk: riskOf(state.score, state.hitsInVisit ? state.index + 1 : state.index) });
+    return points;
+};
+
 // what a checkout training has left and the darts for it in this visit (at most
 // the darts left of the attempt), for the ways out
 const wayOut = (state, darts) => ({ left: state.left, dartsLeft: Math.min(3 - state.inAttempt % 3, darts - state.inAttempt) });
@@ -71,10 +105,15 @@ export const BOBS_27 = {
     },
     done: (state) => state.failed || state.index >= DOUBLE_TARGETS.length,
     target: (state) => doubleName(DOUBLE_TARGETS[state.index]),
-    // the double to throw at is the big figure of the header, the points under it
-    hero: (state) => doubleName(DOUBLE_TARGETS[state.index]),
-    heroTarget: true,
-    heroNote: (state) => tn(state.score, '{{count}} point', '{{count}} points'),
+    // the points are the big figure of the header, the double to throw at under them (in the
+    // accent), and a curve of the points so far in the colour of how close the end is
+    hero: (state) => state.score,
+    heroUnit: (state) => (state.score === 1 ? t('point') : t('points')),
+    heroNote: (state) => doubleName(DOUBLE_TARGETS[state.index]),
+    noteTarget: true,
+    progress: bobsProgress,
+    // the whole way, D1 to the bull
+    progressLength: DOUBLE_TARGETS.length,
     // the darts thrown in this visit
     inVisit: (state) => state.inVisit,
     // the hits of every double, 0 to 3 (a visit without one is the worst)

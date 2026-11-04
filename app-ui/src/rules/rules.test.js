@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
 import { progressOf, replayGame, replayTraining, withGameState } from './engine';
 import { GAMES, GOLF, HALVE_IT, KILLER, SHANGHAI, TACTICS } from './games';
-import { BOBS_27, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
+import { BOBS_27, bobsProgress, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
 
 const visit = (player, ...darts) => ({ player, darts });
 const game = (definition, visits, settings = {}, players = ['a', 'b']) => ({ players, settings, visits });
@@ -160,6 +160,18 @@ describe('trainings', () => {
         expect(missed.state.score).toBe(25);
     });
 
+    it("Bob's 27 says how close every step is to the end, a hit in the visit making its double safe", () => {
+        const missing = (doubles) => bobsProgress(train(BOBS_27, Array(3 * doubles).fill('M')).state);
+        expect(missing(4).map(({ score, risk }) => [score, risk])).toEqual([
+            [27, 'safe'], [25, 'safe'], [21, 'warn'], [15, 'warn'], [7, 'danger'],
+        ]);
+        // on 7 at D5 (10): one hit and the double is safe, the next three misses end it
+        const hit = bobsProgress(train(BOBS_27, [...Array(12).fill('M'), 'H']).state);
+        expect(hit.at(-1)).toEqual({ score: 17, risk: 'warn' });
+        expect(BOBS_27.hero(train(BOBS_27, []).state)).toBe(27);
+        expect(BOBS_27.heroNote(train(BOBS_27, []).state)).toBe('D1');
+    });
+
     it("Bob's 27 ends at 0 or below", () => {
         const darts = Array(3 * 6).fill('M');
         const result = train(BOBS_27, darts);
@@ -178,9 +190,10 @@ describe('trainings', () => {
         ]);
         expect(cells[20]).toMatchObject({ name: 'Bull', short: 'Bull', value: null, current: false });
         expect(BOBS_27.inVisit(state)).toBe(1);
-        expect(BOBS_27.hero(state)).toBe('D3');
+        expect(BOBS_27.heroNote(state)).toBe('D3');
         // 27 + 4 for two hits of D1, − 4 for none at D2, + 6 for a hit of D3
-        expect(BOBS_27.heroNote(state)).toBe('33 points');
+        expect(BOBS_27.hero(state)).toBe(33);
+        expect(BOBS_27.heroUnit(state)).toBe('points');
     });
 
     it("Bob's 27 over at 0: no double to throw at any more", () => {

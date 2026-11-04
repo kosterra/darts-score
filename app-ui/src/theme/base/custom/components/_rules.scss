@@ -523,3 +523,65 @@
     font-size: $text-xl;
     font-weight: $weight-bold;
 }
+
+// Bob's 27: the points big and white with the word smaller beside them, the double to throw
+// at under them in the accent, then the curve of the points so far
+.rules-hero-unit {
+    margin-left: 0.35rem;
+    color: var(--text-subtle);
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+    letter-spacing: 0;
+}
+
+.rules-hero-below {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    margin-top: 0.15rem;
+    order: 4;
+}
+
+.rules-hero-double {
+    color: $accentGreen;
+    font-size: $text-2xl;
+    font-weight: $weight-heavy;
+    line-height: 1;
+    animation: rules-target-in 0.35s ease-out;
+}
+
+.rules-progress {
+    width: 11rem;
+    height: 2rem;
+    overflow: visible;
+
+    .rules-progress-base {
+        stroke: $surfaceHighColor;
+        stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .rules-progress-line {
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+
+        &.is-safe { stroke: $accentGreen; }
+        &.is-warn { stroke: $accentAmber; }
+        &.is-danger { stroke: $accentRed; }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rules-hero-double { animation: none; }
+}
+
+// the views of the scoreboard each as wide as its word, so "Personal bests" fits on a phone
+.p-selectbutton.rules-board-views .p-button {
+    flex: 1 1 auto;
+    width: auto;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+    white-space: nowrap;
+}

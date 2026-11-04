@@ -181,6 +181,8 @@
     z-index: 5;
     flex-direction: row-reverse;
     justify-content: space-between;
+    // the summary in the middle of the button's height, not at its foot
+    align-items: center;
     gap: $space-3;
     padding: 0.6rem 0.6rem 0.6rem 0.9rem;
     border-radius: $radius-md;

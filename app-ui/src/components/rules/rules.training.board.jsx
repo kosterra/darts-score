@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Panel } from 'primereact/panel';
+import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
 import { Avatar } from 'primereact/avatar';
 import { FaMedal } from 'react-icons/fa6';
@@ -24,21 +25,29 @@ const SCROLL_MS = 500;
 
 const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
+// the rows shown first, and how many more each "Show more" adds
+const PAGE = 10;
+
 const VIEWS = [
-    { label: t('Best'), value: 'best' },
-    { label: t('Recent'), value: 'recent' },
+    { label: t('Top 10'), value: 'top' },
+    // each player once, with their best
+    { label: t('Personal bests'), value: 'best' },
+    // the latest attempts of everyone, newest first
+    { label: t('Newest'), value: 'recent' },
 ];
 
 /**
- * The scoreboard of a training in the club: every player's best, or the
- * latest attempts. "highlight" marks the attempt just saved: it shows a few
+ * The scoreboard of a training in the club: the best attempts whoever played
+ * them (the first view), every player's best, or the latest attempts; ten at
+ * first, ten more at a time. "highlight" marks the attempt just saved: it shows a few
  * rows below its place and moves up to it, in view (on a phone the board is
  * scrolled to first). An attempt opens to what every double took, for the
  * trainings around the board (from its darts).
  */
 const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
     const [entries, setEntries] = useState(null);
-    const [view, setView] = useState('best');
+    const [view, setView] = useState('top');
+    const [shown, setShown] = useState(PAGE);
     // the attempt just saved: 'enter' below its place, then 'slide' up to it
     const [phase, setPhase] = useState(null);
     // the attempt showing its doubles
@@ -61,24 +70,32 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
 
     const higher = definition.higherIsBetter !== false;
     const better = (a, b) => (higher ? b.score - a.score : a.score - b.score);
-    const bestRows = useMemo(() => {
+    const lists = useMemo(() => {
         const best = new Map();
         (entries ?? []).forEach(entry => {
             const known = best.get(entry.player?.id);
             if (!known || better(entry, known) < 0) best.set(entry.player?.id, entry);
         });
-        return [...best.values()].sort(better).slice(0, 15);
+        // the same score: the earlier attempt first
+        return {
+            top: [...(entries ?? [])].sort((a, b) => better(a, b) || new Date(a.createdAt) - new Date(b.createdAt)),
+            best: [...best.values()].sort(better),
+            recent: entries ?? [],
+        };
     // better follows from the definition
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [entries, higher]);
-    const rows = view === 'best' ? bestRows : (entries ?? []).slice(0, 15);
+    const all = lists[view];
+    const rows = all.slice(0, shown);
+    const ranked = view !== 'recent';
 
     // the attempt just saved, once it is loaded: in a list that has it (Best only when it
     // is the player's best), first a few rows below its place, then up to it
     useLayoutEffect(() => {
         if (!highlight || arrived.current === highlight || !entries?.some(entry => entry.id === highlight)) return;
         arrived.current = highlight;
-        if (view === 'best' && !bestRows.some(entry => entry.id === highlight)) setView('recent');
+        // in the list shown when it made it there, else among the latest
+        if (view !== 'recent' && !lists[view].slice(0, shown).some(entry => entry.id === highlight)) setView('recent');
         // on a narrow screen the scoreboard is further down: bring it into view first
         const board = boardRef.current?.getBoundingClientRect();
         const away = board && (board.top < 0 || board.top > window.innerHeight * 0.5);
@@ -139,7 +156,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
         <div ref={boardRef} className={`atc-panel-anchor ${rows.length ? 'h-100' : ''}`}>
         <Panel header={t('Scoreboard')} className={rows.length ? 'h-100' : ''}>
             <div className="d-flex justify-content-center mb-3">
-                <SelectButton value={view} options={VIEWS} onChange={(e) => { if (e.value) { setView(e.value); setPhase(null); } }} className="p-selectbutton-pills" aria-label={t('Scoreboard')} />
+                <SelectButton value={view} options={VIEWS} onChange={(e) => { if (e.value) { setView(e.value); setShown(PAGE); setPhase(null); } }} className="p-selectbutton-pills rules-board-views" aria-label={t('Scoreboard')} />
             </div>
             {entries === null
                 ? <Lines count={4} />
@@ -150,7 +167,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                         {visible.map((entry) => {
                             const player = entry.player ?? {};
                             const rank = rows.indexOf(entry) + 1;
-                            const podium = view === 'best' && rank <= 3;
+                            const podium = ranked && rank <= 3;
                             const arriving = entry.id === highlight && phase;
                             const opens = canOpen && entry.darts?.length > 0;
                             const doubles = open === entry.id ? doublesOf(entry) : null;
@@ -164,8 +181,8 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                                 >
                                     {podium
                                         ? <span className={`badge-medal badge-medal-sm badge-${MEDALS[rank - 1]} atc-medal`} role="img" aria-label={t('Place {{place}}', { place: rank })}><FaMedal aria-hidden="true" /></span>
-                                        // the place in Best; the latest attempts carry the training's sign
-                                        : view === 'best'
+                                        // the place in Top 10 and Best; the latest attempts carry the training's sign
+                                        : ranked
                                             ? <span className="atc-rank">{rank}</span>
                                             : <span className="atc-rank rules-board-icon" aria-hidden="true"><Icon /></span>}
                                     <Avatar
@@ -179,7 +196,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                                             {player.nickname ?? t('Unknown player')}
                                             {entry.id === highlight && <span className="atc-row-new">{t('New')}</span>}
                                         </span>
-                                        <span className="atc-row-detail">{formatDate(entry.createdAt)}</span>
+                                        <span className="atc-row-detail">{formatDate(entry.createdAt, { year: 'short' })}</span>
                                     </span>
                                     <span className="atc-row-time">{definition.format(entry.score)}</span>
                                     {opens && <i className={`pi pi-chevron-${open === entry.id ? 'up' : 'down'} rules-board-chevron`} aria-hidden="true" />}
@@ -189,6 +206,10 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                             );
                         })}
                     </ol>}
+            {all.length > rows.length &&
+                <div className="d-flex justify-content-center mt-2">
+                    <Button label={t('Show {{count}} more', { count: Math.min(PAGE, all.length - rows.length) })} icon="pi pi-angle-down" text size="small" onClick={() => setShown(count => count + PAGE)} />
+                </div>}
         </Panel>
         </div>
     );
