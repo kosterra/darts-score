@@ -109,7 +109,8 @@ test('the danger zone: missing the darts left at a double would end it, counted 
     await startTraining(page);
     const miss = page.getByRole('button', { name: 'Miss', exact: true });
     const hit = page.getByRole('button', { name: 'Hit', exact: true });
-    const danger = page.locator('.rules-danger');
+    // in the panel, or floating at the bottom on a phone: the one in view
+    const danger = page.locator('.rules-danger:visible');
     // D1 to D4 missed: 7 points left at D5 (10)
     for (let dart = 0; dart < 12; dart++) await miss.click();
     await expect(danger).toContainText('Danger zone');

@@ -349,6 +349,18 @@ const RulesTraining = () => {
         const target = definition.target(replay.state, ctx);
         const doubles = definition.doubles ? definition.doubles(replay.state, ctx) : null;
         const danger = definition.danger ? definition.danger(replay.state, ctx) : null;
+        // the danger zone: Bob's 27 over, or a checkout attempt lost, without a hit in the darts left
+        const dangerStrip = (className = '') => danger && (
+            <div key={`${danger.double ?? danger.left}`} className={`rules-danger is-left-${danger.dartsLeft} ${className}`} role="status">
+                <i className="pi pi-exclamation-triangle" aria-hidden="true" />
+                <span>
+                    <strong>{t('Danger zone')}</strong>
+                    {' '}
+                    {danger.text}
+                </span>
+                <span key={danger.dartsLeft} className="rules-danger-count tabular-nums" aria-hidden="true">{danger.dartsLeft}</span>
+            </div>
+        );
         return (
             // x01-live: the gutters of a game, so nothing is wider than a phone
             <div className="container-fluid bg-transparent border-0 x01-game-page x01-live">
@@ -390,17 +402,8 @@ const RulesTraining = () => {
                     <div className="col-12 col-lg-7">
                         {/* every double in turn: done in the colour of what it took, the one now in the accent */}
                         {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} live className="mb-3" />}
-                        {/* the danger zone: Bob's 27 over, or a checkout attempt lost, without a hit in the darts left */}
-                        {danger &&
-                            <div key={`${danger.double ?? danger.left}`} className={`rules-danger is-left-${danger.dartsLeft}`} role="status">
-                                <i className="pi pi-exclamation-triangle" aria-hidden="true" />
-                                <span>
-                                    <strong>{t('Danger zone')}</strong>
-                                    {' '}
-                                    {danger.text}
-                                </span>
-                                <span key={danger.dartsLeft} className="rules-danger-count tabular-nums" aria-hidden="true">{danger.dartsLeft}</span>
-                            </div>}
+                        {/* the danger zone above the input; on a phone it floats at the bottom instead (below) */}
+                        {dangerStrip('d-none d-md-flex')}
                         {definition.input === 'hitmiss'
                             ? <div className="rules-hitmiss">
                                 <Button label={t('Hit')} icon="pi pi-check" onClick={() => throwDart('H')} />
@@ -454,8 +457,12 @@ const RulesTraining = () => {
                 </div>
                 {/* on a phone the panel is below the board or the keypad: the darts of the visit,
                     where the training stands and Undo float above the menu bar, as in X01 */}
+                {/* with Hit and Miss the danger zone floats on its own above the menu bar */}
+                {definition.input === 'hitmiss' && danger && <div className="rules-danger-dock d-md-none">{dangerStrip()}</div>}
                 {definition.input !== 'hitmiss' &&
-                    <div className="x01-visit-bar is-floating rules-visit-bar d-md-none">
+                    // the danger zone on top of the bar, one piece with it
+                    <div className={`x01-visit-bar is-floating rules-visit-bar d-md-none ${danger ? 'has-danger' : ''}`}>
+                        {dangerStrip()}
                         <div className="x01-visit-bar-darts" aria-hidden="true">
                             {[0, 1, 2].map(index => <span key={index} className={visitDarts[index] ? '' : 'is-empty'}>{visitDarts[index] ?? '–'}</span>)}
                         </div>

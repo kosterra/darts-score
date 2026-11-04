@@ -643,3 +643,39 @@
 @media (prefers-reduced-motion: reduce) {
     .rules-danger, .rules-danger .rules-danger-count { animation: none; }
 }
+
+// on a phone the danger zone floats at the bottom, above the menu bar: on its own with Hit and
+// Miss (a solid surface under its pulse, as it lies over the page), on top of the visit bar of
+// the board and the keypad; smaller there
+@media (max-width: 767.98px) {
+    .rules-danger-dock {
+        position: fixed;
+        right: 0.5rem;
+        bottom: calc(46px + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)) + 0.4rem);
+        left: 0.5rem;
+        z-index: 899;
+        border-radius: $radius-md;
+        background: var(--surface);
+        box-shadow: 0 0.5rem 1.5rem shadow(0.55);
+
+        .rules-danger { margin: 0; }
+    }
+
+    .rules-danger-dock .rules-danger,
+    .x01-visit-bar.is-floating .rules-danger {
+        gap: $space-2;
+        padding: 0.45rem 0.7rem;
+        font-size: $text-sm;
+
+        .rules-danger-count { min-width: 1.6rem; font-size: $text-xl; }
+    }
+
+    .x01-visit-bar.is-floating.has-danger {
+        grid-template-areas: "danger danger" "darts actions" "total actions";
+
+        .rules-danger { grid-area: danger; margin: 0 0 0.35rem; }
+    }
+
+    // room at the bottom of the page for the floating danger zone
+    .x01-game-page:has(.rules-danger-dock) { padding-bottom: 9rem; }
+}
