@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
-import { progressOf, replayGame, replayTraining, withGameState } from './engine';
+import { progressOf, replayGame, replayTraining, settingsOf, withGameState } from './engine';
 import { GAMES, GOLF, HALVE_IT, KILLER, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
 
@@ -185,11 +185,29 @@ describe('trainings', () => {
         const at = (darts) => bobsDanger(train(BOBS_27, darts).state);
         // 27 → 25 → 21 → 15 → 7 after missing D1 to D4: D5 (10) has to be hit
         expect(at(Array(9).fill('M'))).toBe(null);
-        expect(at(Array(12).fill('M'))).toEqual({ double: 'D5', dartsLeft: 3 });
-        expect(at(Array(13).fill('M'))).toEqual({ double: 'D5', dartsLeft: 2 });
-        expect(at(Array(14).fill('M'))).toEqual({ double: 'D5', dartsLeft: 1 });
+        expect(at(Array(12).fill('M'))).toMatchObject({ double: 'D5', dartsLeft: 3, text: 'Hit D5 with one of your next 3 darts, or the training is over.' });
+        expect(at(Array(13).fill('M'))).toMatchObject({ double: 'D5', dartsLeft: 2 });
+        expect(at(Array(14).fill('M'))).toMatchObject({ double: 'D5', dartsLeft: 1, text: 'Hit D5 with your last dart, or the training is over.' });
         // one hit and the double is safe
         expect(at([...Array(12).fill('M'), 'H'])).toBe(null);
+    });
+
+    it('the checkout trainings are in the danger zone on the last darts of an attempt', () => {
+        const at = (definition, darts, settings = {}) => {
+            const { state, settings: used } = train(definition, darts, { ...settingsOf(definition, {}), ...settings });
+            return definition.danger(state, { settings: used });
+        };
+        // 121 in nine darts: the third visit; in six darts the second
+        expect(at(CHECKOUT_121, Array(5).fill('0'))).toBe(null);
+        expect(at(CHECKOUT_121, Array(6).fill('0'))).toMatchObject({ left: 121, dartsLeft: 3, text: 'Last 3 darts for 121, or the next target is one lower.' });
+        expect(at(CHECKOUT_121, Array(8).fill('0'))).toMatchObject({ dartsLeft: 1, text: 'Last dart for 121, or the next target is one lower.' });
+        expect(at(CHECKOUT_121, Array(3).fill('0'), { darts: 6 })).toMatchObject({ dartsLeft: 3 });
+        // Catch 40: the second visit of a finish
+        expect(at(CATCH_40, ['0', '0'])).toBe(null);
+        expect(at(CATCH_40, ['S1', '0', '0'])).toMatchObject({ left: 60, dartsLeft: 3, text: 'Last 3 darts for 60, or this finish scores nothing.' });
+        // random checkouts: three darts an attempt, only the last one
+        expect(at(RANDOM_CHECKOUTS, ['0'], { targets: [40, 32] })).toBe(null);
+        expect(at(RANDOM_CHECKOUTS, ['0', '0'], { targets: [40, 32] })).toMatchObject({ left: 40, dartsLeft: 1, text: 'Last dart for 40, or this finish is lost.' });
     });
 
     it("Bob's 27 ends at 0 or below", () => {

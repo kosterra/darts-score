@@ -26,7 +26,7 @@ import { trainingOf } from '../../rules/trainings';
 import { replayTraining, settingsOf } from '../../rules/engine';
 import { parseDart } from '../../rules/darts';
 import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
-import { t, tn } from '../../utils/i18n';
+import { t } from '../../utils/i18n';
 import useGameRules from '../games/common/game.rules';
 import GameResultHeader from '../stats/common/game.result.header';
 import PlayerService from '../../services/player.service';
@@ -390,14 +390,14 @@ const RulesTraining = () => {
                     <div className="col-12 col-lg-7">
                         {/* every double in turn: done in the colour of what it took, the one now in the accent */}
                         {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} live className="mb-3" />}
-                        {/* the danger zone (Bob's 27): without a hit in the darts left at this double it is over */}
+                        {/* the danger zone: Bob's 27 over, or a checkout attempt lost, without a hit in the darts left */}
                         {danger &&
-                            <div key={danger.double} className={`rules-danger is-left-${danger.dartsLeft}`} role="status">
+                            <div key={`${danger.double ?? danger.left}`} className={`rules-danger is-left-${danger.dartsLeft}`} role="status">
                                 <i className="pi pi-exclamation-triangle" aria-hidden="true" />
                                 <span>
                                     <strong>{t('Danger zone')}</strong>
                                     {' '}
-                                    {tn(danger.dartsLeft, 'Hit {{double}} with your last dart, or the training is over.', 'Hit {{double}} with one of your next {{count}} darts, or the training is over.', { double: danger.double })}
+                                    {danger.text}
                                 </span>
                                 <span key={danger.dartsLeft} className="rules-danger-count tabular-nums" aria-hidden="true">{danger.dartsLeft}</span>
                             </div>}
