@@ -4,6 +4,8 @@ import { test, expect } from '@playwright/test';
 const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
+test.skip(({ isMobile }) => isMobile, 'once is enough: the awards are worked out the same at every width');
+
 test('the club\'s year with its awards, and a year without games', async ({ page }) => {
     await post('/__test/logged-out', { loggedOut: false });
     await post('/__test/role', { admin: false });

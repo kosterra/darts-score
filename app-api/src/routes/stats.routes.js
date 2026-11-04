@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validate } from '../utils/validation.js';
 import { validatePlayerIds } from '../validators/game.validators.js';
-import { getPlayerStats } from '../controllers/player.stats.controller.js';
+import { getPlayerRating, getPlayerStats } from '../controllers/player.stats.controller.js';
 import { getX01Stats } from '../controllers/x01.stats.controller.js';
 import { getPlayersX01Stats } from '../controllers/players.x01.stats.controller.js';
 import { getHeadToHead } from '../controllers/head.to.head.controller.js';
@@ -61,6 +61,8 @@ export default (app) => {
     // Retrieve stats for a player
     router.get('/player/:id', playerInClub, getPlayerStats);
     router.get('/player/:id/games', playerInClub, getPlayerGames);
+    // the club rating of a player over time, for the chart on their page
+    router.get('/player/:id/rating', playerInClub, getPlayerRating);
     // "Your year in darts": a look back at a year (?year)
     router.get('/player/:id/year', playerInClub, getYearReview);
     // Retrieve stats for a x01 game

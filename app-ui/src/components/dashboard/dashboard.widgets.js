@@ -66,6 +66,8 @@ export const DASHBOARD_WIDGETS = [
     { id: 'upNext', title: t('Up next'), description: t('What waits for you: tournaments to enter and your matches, games left running, requests to answer'), kind: 'upNext', size: 'F', personal: true },
     { id: 'favourites', title: t('Your favourites'), description: t('The games you play most lately, to start again with one tap'), kind: 'favourites', size: 'L', personal: true },
     { id: 'training', title: t('Your training'), description: t('Average and checkout rate against the bot, compared with your games, and how regularly you train'), kind: 'training', size: 'M', personal: true },
+    // the user's own weekly goals, in all their clubs (see components/goals)
+    { id: 'practiceGoals', title: t('Your goals this week'), description: t('Your goals for the week: trainings, scores and games, in all your clubs'), kind: 'practiceGoals', size: 'S', personal: true },
     { id: 'me', title: t('You'), description: t('Each player\'s own level, X01 average and form, with the way to their statistics'), kind: 'me', size: 'S' },
     { id: 'totals', title: t('Club in numbers'), description: t('Key figures: games, averages, checkouts and club bests'), kind: 'totals', size: 'F' },
     { id: 'activityCalendar', title: t('Activity'), description: t('A calendar of the last six months, greener the more games'), kind: 'activityCalendar', size: 'L' },
@@ -89,6 +91,8 @@ export const DASHBOARD_WIDGETS = [
     { id: 'leaderWinsElimination', title: t('Most Elimination wins'), description: t('Wins in Elimination games'), kind: 'leaderboard', board: 'winsElimination', unit: 'wins', format: integer, size: 'S' },
     { id: 'leaderWinsClock', title: t('Most Around the Clock wins'), description: t('Wins in Around the Clock games'), kind: 'leaderboard', board: 'winsClock', unit: 'wins', format: integer, size: 'S' },
     { id: 'leaderMostDarts', title: t('Most darts thrown'), description: t('Darts thrown over all game types'), kind: 'leaderboard', board: 'mostDarts', unit: 'darts', format: integer, size: 'S' },
+    // the club rating (see app-api utils/compare.js): members whose rating settled, playing within a year
+    { id: 'leaderRating', title: t('Strongest'), description: t('The club rating: wins weighed by whom they beat, from 5 games on'), kind: 'leaderboard', board: 'rating', unit: 'points', format: integer, size: 'S' },
 ];
 
 /**
@@ -96,7 +100,7 @@ export const DASHBOARD_WIDGETS = [
  * user's own games, trainings and requests there, 'club' the whole club.
  * No widget looks at several clubs at once.
  */
-const OWN = new Set(['upNext', 'favourites', 'training', 'me']);
+const OWN = new Set(['upNext', 'favourites', 'training', 'practiceGoals', 'me']);
 export const scopeOf = (widget) => (OWN.has(widget.id) ? 'you' : 'club');
 export const SCOPES = {
     you: { label: t('Yours'), hint: t('Only your own games, trainings and requests in this club') },
@@ -113,14 +117,15 @@ export const DEFAULT_WIDGET_IDS = ['totals', 'me', 'timeline', 'activityCalendar
 const widgetOf = (id) => DASHBOARD_WIDGETS.find(widget => widget.id === id);
 // the widgets with their own widths, the head-to-head a third here to sit beside two small ones
 export const DEFAULT_LAYOUT = DEFAULT_WIDGET_IDS.map(id => ({ id, size: id === 'headToHead' ? 'S' : widgetOf(id).size }));
-// one's own Dashboard until arranged: what waits, the favourites beside the club's goals (both short),
-// oneself beside the recent games (both tall)
+// one's own Dashboard until arranged: what waits, one's goals of the week beside the favourites (both short),
+// the club's goals beside oneself (half each), the recent games across
 export const PERSONAL_DEFAULT_LAYOUT = [
     { id: 'upNext', size: 'F' },
+    { id: 'practiceGoals', size: 'S' },
     { id: 'favourites', size: 'L' },
-    { id: 'clubGoals', size: 'S' },
-    { id: 'me', size: 'S' },
-    { id: 'timeline', size: 'L' },
+    { id: 'clubGoals', size: 'M' },
+    { id: 'me', size: 'M' },
+    { id: 'timeline', size: 'F' },
 ];
 
 /**

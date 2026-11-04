@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.11.1
+  version: 2026.11.2
   license:
     name: AGPL-3.0-only
     url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -83,6 +83,8 @@ tags:
     description: Games and trainings that cannot be real, wrong data or worth a look (club admins; global admins for every club)
   - name: Notifications
     description: The logged-in user's notifications
+  - name: Goals
+    description: The logged-in user's own weekly practice goals
 paths:
   /api/health:
     get:
@@ -3972,6 +3974,124 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Id'
       operationId: deleteNotificationsByid
+  /api/goals:
+    get:
+      tags:
+        - Goals
+      summary: The user's weekly practice goals with how far each is
+      description: >-
+        The goals of the logged-in user (up to three, in all their clubs), with how far each is in the current week (Monday to
+        Sunday, the server's time), the week, the weeks in a row with all goals reached and the last eight weeks. Only the user sees
+        them. A global admin plays in no club and has none.
+      responses:
+        '200':
+          description: The goals and the week
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeGoals'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getGoals
+    put:
+      tags:
+        - Goals
+      summary: Save the user's weekly practice goals
+      description: >-
+        The whole list, up to three. Each a kind (trainings, trainingScore, x01Average, games, num180s, playDays), a target from 1 to
+        the kind's largest (trainings 50, trainingScore 10000, x01Average 180, games 100, num180s 100, playDays 7), the training for
+        trainingScore (and optionally for trainings: atc, bot or a training of the rules engine) and for x01Average whether the
+        trainings against the bot count. A goal sent back with its id and the same settings stays the same goal; a new or changed
+        one gets a new id.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - goals
+              properties:
+                goals:
+                  type: array
+                  maxItems: 3
+                  items:
+                    type: object
+                    required:
+                      - kind
+                      - target
+                    properties:
+                      id:
+                        type: [string, 'null']
+                        maxLength: 40
+                      kind:
+                        type: string
+                        enum: [trainings, trainingScore, x01Average, games, num180s, playDays]
+                      target:
+                        type: integer
+                        minimum: 1
+                        maximum: 10000
+                      training:
+                        type: [string, 'null']
+                        enum: [atc, bot, bobs27, checkout121, randomcheckouts, scoring, doublesaround, catch40, null]
+                      withBot:
+                        type: [boolean, 'null']
+      responses:
+        '200':
+          description: The goals as saved, with how far each is
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeGoals'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putGoals
+  /api/goals/history:
+    get:
+      tags:
+        - Goals
+      summary: The past weeks of the user's practice goals
+      description: The weeks that ended, newest first, each with its goals as they were, how far each came and whether all were reached.
+      parameters:
+        - name: weeks
+          in: query
+          description: How many weeks (1 to 26, default 12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 26
+            default: 12
+      responses:
+        '200':
+          description: The past weeks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  weeks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        week:
+                          type: string
+                          description: The Monday of the week, YYYY-MM-DD
+                        goals:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/PracticeGoal'
+                        allReached:
+                          type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: getGoalsHistory
   /api/players:
     get:
       tags:
@@ -4882,6 +5002,9 @@ paths:
       tags:
         - Statistics
       summary: Club dashboard data - facts about the club (with its latest club badges and how many of all it has), leaderboards over all finished games, recent and running games
+      description: >-
+        leaderboards.rating is the club rating's board, "Strongest": the top 5 members (no guests) whose rating has settled
+        (5 rated games) and who played a rated game within a year, as [{ player, value (the rating), games }].
       responses:
         '200':
           description: OK
@@ -5122,6 +5245,66 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       operationId: getStatsPlayerByid
+  /api/stats/player/{id}/rating:
+    get:
+      tags:
+        - Statistics
+      summary: The club rating of a player over time
+      description: >-
+        For the chart on the player's page: the rating at the end of each day it changed (at most 120 points, a long history thinned out,
+        the latest always kept), and the latest 10 changes with the game and the opponents. Always the club's games, whatever the filters
+        of the page.
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: The history and the latest changes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        at:
+                          type: string
+                          format: date-time
+                        rating:
+                          type: integer
+                  lastChanges:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        at:
+                          type: string
+                          format: date-time
+                        change:
+                          type: number
+                          description: The points won (positive) or lost, to one decimal
+                        sourceId:
+                          type: [string, 'null']
+                          description: The game
+                        opponents:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              nickname:
+                                type: [string, 'null']
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: The player is not known in the club
+      operationId: getStatsPlayerByidRating
   /api/stats/player/{id}/games:
     get:
       tags:
@@ -6033,7 +6216,7 @@ paths:
             type: string
       responses:
         '200':
-          description: '{ kind, game, players: [{ id, nickname, country, shirt }], club: { name, logo, accent }, expiresAt }; for a darts evening { kind: evening, evening, game: the quick game running now or null, expiresAt }'
+          description: '{ kind, game, players: [{ id, nickname, country, shirt }], club: { name, logo, accent }, expiresAt }; for a darts evening { kind: evening, evening, game: the quick game running now or null, expiresAt }; for the boards of a tournament or a club night { kind: tournamentBoards | nightBoards, title, club, boards: [{ number, out, status, calledAt, round, players: [{ id, nickname, country }], legs, sets, score }], queue: [{ round, players }] (the first 8), expiresAt }'
         '404':
           description: The link is not valid (any more), or the game is gone
         '422':
@@ -7108,6 +7291,14 @@ paths:
                 open:
                   type: boolean
                   description: Open the registration at once (new tournaments only)
+                boards:
+                  type: object
+                  description: 'The boards the matches are played on: { count } (0 to 16, 0 without boards); a new tournament without it takes the club''s'
+                  properties:
+                    count:
+                      type: integer
+                      minimum: 0
+                      maximum: 16
       responses:
         '201':
           description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
@@ -7129,7 +7320,7 @@ paths:
       summary: One tournament
       responses:
         '200':
-          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me)'
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me). Each match still to be played (ready or running) with both players known has chances: { [playerId]: percent to win, adding up to 100 }, from the club rating of every club taking part'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -7557,6 +7748,201 @@ paths:
             type: string
             pattern: '^(\d+-\d+|g\d+-\d+-\d+)$'
       operationId: putTournamentsByidMatchesBymatchResult
+  /api/tournaments/{id}/boards:
+    put:
+      tags:
+        - Tournaments
+      summary: Set how many boards the matches are played on and take boards out (club admins); free boards are called at once
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - count
+              properties:
+                count:
+                  type: integer
+                  minimum: 0
+                  maximum: 16
+                  description: 0 plays without boards
+                out:
+                  type: array
+                  description: The numbers of the boards taken out; a match called to one goes back to the queue, first
+                  items:
+                    type: integer
+                    minimum: 1
+                    maximum: 16
+      responses:
+        '200':
+          description: 'The tournament as GET /api/tournaments/{id}, with boards, boardView and each match''s board, held, readyAt and calledAt'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament or match
+        '409':
+          description: 'Refused: the tournament is over or not running, the board is not played on, a game is going on there, or a player would be on two boards'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: putTournamentsByidBoards
+  /api/tournaments/{id}/matches/{match}/board:
+    put:
+      tags:
+        - Tournaments
+      summary: Move a match to a board, or swap it with the match not started there (club admins); no notice is sent for a move
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - board
+              properties:
+                board:
+                  type: integer
+                  minimum: 1
+                  maximum: 16
+      responses:
+        '200':
+          description: 'The tournament as GET /api/tournaments/{id}, with boards, boardView and each match''s board, held, readyAt and calledAt'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament or match
+        '409':
+          description: 'Refused: the tournament is over or not running, the board is not played on, a game is going on there, or a player would be on two boards'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: match
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(\d+-\d+|g\d+-\d+-\d+)$'
+      operationId: putTournamentsByidMatchesBymatchBoard
+  /api/tournaments/{id}/matches/{match}/held:
+    put:
+      tags:
+        - Tournaments
+      summary: Hold a match back (a player is not there) or let it into the queue again (club admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - held
+              properties:
+                held:
+                  type: boolean
+      responses:
+        '200':
+          description: 'The tournament as GET /api/tournaments/{id}, with boards, boardView and each match''s board, held, readyAt and calledAt'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No such tournament or match
+        '409':
+          description: 'Refused: the tournament is over or not running, the board is not played on, a game is going on there, or a player would be on two boards'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: match
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^(\d+-\d+|g\d+-\d+-\d+)$'
+      operationId: putTournamentsByidMatchesBymatchHeld
+  /api/tournaments/{id}/boards/screen:
+    post:
+      tags:
+        - Tournaments
+      summary: A link for the big screen of the boards and the queue (any member of a club taking part)
+      responses:
+        '200':
+          description: '{ token, expiresAt }: the big screen of the boards opens at /screen/{token}'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '404':
+          description: No such tournament, or the night is not played on boards
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postTournamentsByidBoardsScreen
+  /api/tournaments/{id}/boards/screen/send:
+    post:
+      tags:
+        - Tournaments
+      summary: Send the big screen of the boards to the TV showing a code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '404':
+          description: No such tournament or night on boards, or no TV shows this code
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postTournamentsByidBoardsScreenSend
   /api/leagues:
     get:
       tags:
@@ -7634,7 +8020,7 @@ paths:
       summary: 'One league'
       responses:
         '200':
-          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer)'
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer). Each match still to be played (ready or running) has chances: { [playerId]: percent to win, adding up to 100 }, from the club rating'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -7956,7 +8342,7 @@ paths:
       summary: 'The calendar of the club: the weekly club nights, every club night in the time with who comes, and the days of its tournaments and leagues'
       responses:
         '200':
-          description: '{ from, to, nights, myPlayer, clubNights: [ { day, weekday, start, end, note, cancelled, coming, notComing (admins), notComingCount, me } ], events: [ { id, type, at, name, link, round | day } ] }'
+          description: '{ from, to, nights, boards (how many the club plays on), myPlayer, clubNights: [ { day, weekday, start, end, note, cancelled, coming, notComing (admins), notComingCount, me } ], events: [ { id, type, at, name, link, round | day } ] }'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -8160,6 +8546,298 @@ paths:
         '422':
           description: The time of the evening is missing or too long
       operationId: getCalendarNightsBydayEvening
+  /api/calendar/boards:
+    put:
+      tags:
+        - Calendar
+      summary: How many boards the club plays on, the default of its tournaments and club nights (club admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - count
+              properties:
+                count:
+                  type: integer
+                  minimum: 0
+                  maximum: 16
+      responses:
+        '200':
+          description: '{ boards }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not an admin of the club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+      operationId: putCalendarBoards
+  /api/calendar/nights/{day}/boards:
+    get:
+      tags:
+        - Calendar
+      summary: A club night played on boards, or null when it is not (yet)
+      responses:
+        '200':
+          description: '{ id, day, boards: { count, out }, setup: { kind, startingScore, legOutMode, numberOfLegs, variant, targetScore, gameOutMode }, players: [{ id, nickname, firstname, lastname, profileImg }], entries: [{ id, players, status (queued, called, playing, done, cancelled), board, held, game: { kind, id } | null, winner, readyAt, calledAt, doneAt }], boardView: { count, out, boards: [{ number, out, key, status }], queue: [entry id], held: [entry id] }, myPlayer, canRun } or null'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      operationId: getCalendarNightsBydayBoards
+    put:
+      tags:
+        - Calendar
+      summary: 'Play a club night on boards, or change it (club admins): the boards, the players there and the game every pairing plays; the pairings are made and called by the API'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  minimum: 0
+                  maximum: 16
+                out:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                    maximum: 16
+                players:
+                  type: array
+                  maxItems: 40
+                  description: The players there (members of the club); those who said they come when left out of a new night
+                  items:
+                    type: string
+                setup:
+                  type: object
+                  description: The game of every pairing, as a quick game is set up
+                  properties:
+                    kind:
+                      type: string
+                      enum: [x01, cricket, elimination]
+                    startingScore:
+                      type: integer
+                      enum: [301, 501]
+                    legOutMode:
+                      type: string
+                      enum: [Double Out, Straight Out]
+                    numberOfLegs:
+                      type: integer
+                      enum: [1, 3, 5]
+                    variant:
+                      type: string
+                      enum: [Standard, Cut-throat]
+                    targetScore:
+                      type: integer
+                      enum: [301, 501]
+                    gameOutMode:
+                      type: string
+                      enum: [Double Out, Straight Out]
+      responses:
+        '200':
+          description: The night on boards, as GET /api/calendar/nights/{day}/boards
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No club night on that day, or it is not played on boards, or no such match
+        '409':
+          description: 'Refused: the night is cancelled or over, the board is not played on, a game is going on there, or a player would be on two boards'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      operationId: putCalendarNightsBydayBoards
+  /api/calendar/nights/{day}/boards/entries/{entry}:
+    put:
+      tags:
+        - Calendar
+      summary: 'Change a pairing (club admins), one of: move it to a board (or swap), hold it back, cancel it'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                board:
+                  type: integer
+                  minimum: 1
+                  maximum: 16
+                held:
+                  type: boolean
+                status:
+                  type: string
+                  enum: [cancelled]
+      responses:
+        '200':
+          description: The night on boards, as GET /api/calendar/nights/{day}/boards
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No club night on that day, or it is not played on boards, or no such match
+        '409':
+          description: 'Refused: the night is cancelled or over, the board is not played on, a game is going on there, or a player would be on two boards'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: entry
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: putCalendarNightsBydayBoardsEntriesByentry
+  /api/calendar/nights/{day}/boards/entries/{entry}/start:
+    post:
+      tags:
+        - Calendar
+      summary: Start the game of a pairing (its players or a club admin), a club game of the night's setup; a pairing playing answers with its game
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first:
+                  type: [string, 'null']
+                  description: The player who throws first
+      responses:
+        '200':
+          description: '{ game: { kind, id } } of a pairing already playing'
+        '201':
+          description: '{ game: { kind, id } }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club, or (where the club admins do it) not one of its admins
+        '404':
+          description: No club night on that day, or it is not played on boards, or no such match
+        '409':
+          description: 'Refused: the night is cancelled or over, the board is not played on, a game is going on there, or a player would be on two boards'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: entry
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: postCalendarNightsBydayBoardsEntriesByentryStart
+  /api/calendar/nights/{day}/boards/screen:
+    post:
+      tags:
+        - Calendar
+      summary: A link for the big screen of the boards of a club night (any member of the club)
+      responses:
+        '200':
+          description: '{ token, expiresAt }: the big screen of the boards opens at /screen/{token}'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '404':
+          description: No such tournament, or the night is not played on boards
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      operationId: postCalendarNightsBydayBoardsScreen
+  /api/calendar/nights/{day}/boards/screen/send:
+    post:
+      tags:
+        - Calendar
+      summary: Send the big screen of the boards of a club night to the TV showing a code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: '{ sent: true }'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Not a member of the club
+        '404':
+          description: No such tournament or night on boards, or no TV shows this code
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      parameters:
+        - $ref: '#/components/parameters/ClubId'
+        - name: day
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      operationId: postCalendarNightsBydayBoardsScreenSend
+  /api/boards/mine:
+    get:
+      tags:
+        - Calendar
+      summary: 'The matches of the user asking that hold a board now, in a tournament or a club night of any of their clubs ("Your match: board 2")'
+      responses:
+        '200':
+          description: '[{ source (tournament or night), id (the tournament, or the day of the night), key (the match or pairing), club: { id, name }, title, link, board, status (called or playing), opponent: { id, nickname, profileImg }, game: { kind, id } | null, calledAt }]'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getBoardsMine
   /api/calendar/feed-link:
     get:
       tags:
@@ -8464,6 +9142,71 @@ components:
               type: integer
         ownEnabled:
           type: boolean
+    PracticeGoal:
+      type: object
+      description: A weekly practice goal with how far it is in its week
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [trainings, trainingScore, x01Average, games, num180s, playDays]
+        target:
+          type: integer
+        training:
+          type: [string, 'null']
+        withBot:
+          type: boolean
+        description:
+          type: string
+          example: 3 trainings
+        progress:
+          type: [number, 'null']
+          description: The count, the best score of the training (null without one) or the best X01 average
+        share:
+          type: number
+          description: How far towards the goal, 0 to 1
+        reached:
+          type: boolean
+        reachedAt:
+          type: [string, 'null']
+          format: date-time
+    PracticeGoals:
+      type: object
+      properties:
+        goals:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeGoal'
+        week:
+          type: [object, 'null']
+          properties:
+            from:
+              type: string
+              format: date-time
+            until:
+              type: string
+              format: date-time
+              description: The next Monday at midnight (not included)
+            key:
+              type: string
+              description: The Monday, YYYY-MM-DD
+        streak:
+          type: integer
+          description: Weeks in a row with all goals reached, the current one once all are
+        recent:
+          type: array
+          description: The last eight weeks, oldest first
+          items:
+            type: object
+            properties:
+              week:
+                type: string
+              state:
+                type: string
+                enum: [reached, missed, none, running]
+        maxGoals:
+          type: integer
     NotificationChoice:
       type: object
       properties:
@@ -9468,6 +10211,27 @@ components:
       properties:
         playerId:
           type: string
+        rating:
+          type: object
+          description: The club rating (always the club's games, whatever the filters)
+          properties:
+            rating:
+              type: integer
+            games:
+              type: integer
+              description: The rated games
+            provisional:
+              type: boolean
+              description: Fewer than 5 rated games
+            rank:
+              type: [integer, 'null']
+              description: The place on the club's board (settled members who played within a year), null when not on it
+            of:
+              type: integer
+              description: How many are on the board
+            best:
+              type: [integer, 'null']
+              description: The highest rating since it settled
         playedGames:
           type: object
           properties:
@@ -9698,6 +10462,14 @@ components:
           type: string
           example: D16
           description: '''auto'' or a double the X01 ways out finish on first'
+        secondDouble:
+          type: string
+          example: D20
+          description: '''auto'' or the double the ways out finish on after the favourite (counts only with a favourite)'
+        thirdDouble:
+          type: string
+          example: D8
+          description: '''auto'' or the double after the second favourite (counts only with a second)'
         mainTreble:
           type: string
           example: auto

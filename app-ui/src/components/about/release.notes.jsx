@@ -7,9 +7,11 @@ import { t, tn } from '../../utils/i18n';
 
 // the newest releases shown at first
 const RECENT_RELEASES = 4;
-// the version of this build, not released yet (any build but the release of main):
-// its changes are coming soon, the latest released version is the one after it
-const UPCOMING = import.meta.env.VITE_APP_RELEASED ? null : import.meta.env.VITE_APP_VERSION;
+// the changes not released yet wait in this entry (changelog.js); the version is set
+// right before the release's pull request, so the build's own version is out already.
+// The release of main shows none (it has none either)
+const UPCOMING = 'Next release';
+const RELEASES = import.meta.env.VITE_APP_RELEASED ? CHANGELOG.filter(release => release.version !== UPCOMING) : CHANGELOG;
 // a topic in front of a change ("Fair play: ..."), short enough to read as its title
 const TOPIC = /^([^:.]{2,60}):\s+/;
 
@@ -44,27 +46,27 @@ const Change = ({ change }) => {
 const ReleaseNotes = () => {
     const [allReleases, setAllReleases] = useState(false);
     // open at first: what is coming, and the latest version that is out
-    const [open, setOpen] = useState(() => new Set(CHANGELOG.slice(0, CHANGELOG[0]?.version === UPCOMING ? 2 : 1).map(release => release.version)));
+    const [open, setOpen] = useState(() => new Set(RELEASES.slice(0, RELEASES[0]?.version === UPCOMING ? 2 : 1).map(release => release.version)));
     const toggle = (version) => setOpen(current => {
         const next = new Set(current);
         if (next.has(version)) next.delete(version);
         else next.add(version);
         return next;
     });
-    const shown = allReleases ? CHANGELOG : CHANGELOG.slice(0, RECENT_RELEASES);
+    const shown = allReleases ? RELEASES : RELEASES.slice(0, RECENT_RELEASES);
     // the newest version that is out
-    const latest = CHANGELOG.findIndex(release => release.version !== UPCOMING);
+    const latest = RELEASES.findIndex(release => release.version !== UPCOMING);
 
     return (
         <div className="d-flex flex-column gap-3 p-1">
             {shown.map((release, index) => {
                 const isOpen = open.has(release.version);
                 const fixes = release.changes.filter(change => change.startsWith(t('Fix: '))).length;
-                const id = `release-${release.version.replaceAll('.', '-')}`;
+                const id = `release-${release.version.replace(/[^\w]+/g, '-')}`;
                 return (
                     <section key={release.version} className={`release ${isOpen ? 'is-open' : ''} ${release.version === UPCOMING ? 'is-upcoming' : ''}`}>
                         <button type="button" className="release-head" aria-expanded={isOpen} aria-controls={id} onClick={() => toggle(release.version)}>
-                            <span className="release-version">{release.version}</span>
+                            <span className="release-version">{release.version === UPCOMING ? t('Next release') : release.version}</span>
                             {release.version === UPCOMING
                                 ? <Tag value={t('Coming soon')} severity="warning" icon="pi pi-clock" />
                                 : index === latest && <Tag value={t('Latest')} />}
@@ -81,10 +83,10 @@ const ReleaseNotes = () => {
                     </section>
                 );
             })}
-            {CHANGELOG.length > RECENT_RELEASES &&
+            {RELEASES.length > RECENT_RELEASES &&
                 <Button
                     type="button"
-                    label={allReleases ? t('Only the latest versions') : t('Show all {{length}} versions', { length: CHANGELOG.length })}
+                    label={allReleases ? t('Only the latest versions') : t('Show all {{length}} versions', { length: RELEASES.length })}
                     icon={`pi ${allReleases ? 'pi-chevron-up' : 'pi-chevron-down'}`}
                     size="small"
                     severity="secondary"

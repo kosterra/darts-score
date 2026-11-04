@@ -15,6 +15,7 @@ import { runTournamentJobs } from './tournaments.js';
 import { runLeagueJobs } from './leagues.js';
 import { runEveningJobs } from './evenings.js';
 import { clubNightsBetween, dayKey } from '../rules/calendar.js';
+import { closePracticeWeeks, lastWeekGoals, nudgeOf, weekProgress } from './practice.goals.js';
 
 /**
  * What the app does once an hour for the notifications: the mails of the
@@ -204,6 +205,29 @@ export const remindEndingGoals = async (now = new Date()) => {
     }
 };
 
+// the last day of the week, from this hour on: how far the weekly goals are
+export const PRACTICE_NUDGE_HOUR = 10;
+
+/**
+ * Sunday from PRACTICE_NUDGE_HOUR: each user with a weekly goal not reached
+ * yet hears how far the closest one is, once a week (if they want it).
+ */
+export const remindPracticeGoals = async (now = new Date()) => {
+    if (now.getDay() !== 0 || now.getHours() < PRACTICE_NUDGE_HOUR) return;
+    const users = await db.user.find({ 'practiceGoals.0': { $exists: true }, blockedAt: null, role: { $ne: ROLES.GLOBAL_ADMIN } }, 'practiceGoals notifications').lean();
+    for (const user of users) {
+        const wanted = preferenceOf(user.notifications, 'practiceGoalNudge');
+        if (!wanted.inApp && wanted.mail === 'off') continue;
+        const { week, goals } = await weekProgress(user, now);
+        const nudge = nudgeOf(goals);
+        if (!nudge || !(await once(`practiceNudge:${user._id}:${week.key}`))) continue;
+        await deliverQuietly([{ user: user._id, kind: 'practiceGoalNudge', ...nudge, link: '/profile#playing' }]);
+    }
+};
+
+// the week that ended closes from the hour of the weekly mails on (a later day if the server was off)
+export const closePracticeWeeksDue = async (now = new Date()) => (digestDue('weekly', null, now) ? closePracticeWeeks(now) : 0);
+
 /**
  * Many errors of the app within a day: the global admins hear it once a day.
  */
@@ -319,7 +343,7 @@ export const sendWeeklySummaries = async (now = new Date()) => {
     if (!isMailConfigured() || !digestDue('weekly', null, now) || now.getDay() !== 1) return 0;
     const week = weekKey(now);
     let sent = 0;
-    const users = await db.user.find({ blockedAt: null, notifications: { $exists: true } }, 'email firstname language notifications role').lean();
+    const users = await db.user.find({ blockedAt: null, notifications: { $exists: true } }, 'email firstname language notifications role practiceGoals').lean();
     for (const user of users) {
         const language = languageOf(user);
         const token = unsubscribeToken('user', user._id, 'all');
@@ -327,6 +351,10 @@ export const sendWeeklySummaries = async (now = new Date()) => {
             if (user.role !== ROLES.GLOBAL_ADMIN && preferenceOf(user.notifications, 'weeklySummary').mail === 'weekly' && await once(`weeklySummary:${user._id}:${week}`)) {
                 const players = await db.player.find({ user: user._id, guest: { $ne: true } }, 'badges').lean();
                 const lines = (await Promise.all(players.map(player => playerWeek(player, language, now)))).flat();
+                // the user's own weekly goals, as the week ended
+                for (const { goal, progress, target } of await lastWeekGoals(user, now)) {
+                    lines.push(`• ${tr(language, 'Goal {{goal}}: {{progress}} of {{target}}', { goal: translate(language, goal), progress, target })}`);
+                }
                 if (lines.length) {
                     await sendTemplateMail('weeklySummary', user.email, { firstname: user.firstname, summary: lines.join('\n'), link: `${getAppUrl()}/me`, manageUrl: manageUrl() }, language, { headers: headersOf(token) });
                     sent += 1;
@@ -400,8 +428,8 @@ export const sendUsageReports = async (now = new Date()) => {
 
 export const runNotificationJobs = async (now = new Date()) => {
     for (const [name, job] of Object.entries({
-        remindRunningGames, remindUnusedInvites, remindEndingGoals, remindErrorSpike, remindClubNights,
-        sendDigests, sendWeeklySummaries, runTournamentJobs, runLeagueJobs, runEveningJobs,
+        remindRunningGames, remindUnusedInvites, remindEndingGoals, remindErrorSpike, remindClubNights, remindPracticeGoals,
+        sendDigests, closePracticeWeeksDue, sendWeeklySummaries, runTournamentJobs, runLeagueJobs, runEveningJobs,
     })) {
         try {
             await job(now);

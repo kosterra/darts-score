@@ -2,6 +2,7 @@
 import { addDays, clubNightsBetween, competitionEvents, dayKey, nightsError } from '../../src/rules/calendar.js';
 import { allTournaments } from './tournaments.mjs';
 import { allLeagues } from './leagues.mjs';
+import { mockClubBoards } from './boards.mjs';
 
 let nights = [];
 let cancelled = [];
@@ -33,7 +34,7 @@ const viewOf = (players, me, isAdmin, from, to) => {
     const name = (id) => players.find(p => p.id === id)?.nickname ?? '?';
     const who = (day, answer) => answers.filter(a => a.day === day && a.answer === answer).map(a => ({ player: a.player, nickname: name(a.player) }));
     return {
-        from, to, nights, myPlayer: me,
+        from, to, nights, myPlayer: me, boards: mockClubBoards(),
         clubNights: clubNightsBetween(nights, cancelled, from, to).map(night => ({
             ...night, coming: who(night.day, 'yes'), notComing: isAdmin ? who(night.day, 'no') : [], notComingCount: who(night.day, 'no').length,
             me: answers.find(a => a.day === night.day && a.player === me)?.answer ?? null,

@@ -1,5 +1,7 @@
 import { shirtOf } from '../../../app-api/src/utils/shirts.js';
+import { withMockChances } from './ratings.mjs';
 // tournaments for the mock API, with the real bracket rules
+import { boardsView, fill, hold, moveTo, setBoards, tournamentItems } from '../../src/rules/boards.js';
 import { MIN_PLAYERS, advance, bracketMatches, drawBracket, drawGroups, groupMatches, groupsDone, isDecided, knockoutDraw, knockoutOfGroups, retract, roundsOfPreset } from '../../src/rules/tournaments.js';
 
 const DAY = 864e5;
@@ -10,12 +12,48 @@ let next = 1;
 // for the calendar
 export const allTournaments = () => tournaments;
 
+// the boards of a tournament: changes { key, board?, held? } from the rules applied to its matches; a board given calls it (once)
+const NO_BOARDS = { count: 0, out: [] };
+const applyBoards = (tr, changes) => {
+    for (const change of changes) {
+        const match = tr.matches.find(entry => entry.id === change.key);
+        if (!match) continue;
+        if ('board' in change) {
+            match.board = change.board;
+            if (change.board && !match.calledAt) match.calledAt = new Date().toISOString();
+        }
+        if ('held' in change) match.held = change.held;
+    }
+};
+// the free boards take the next matches, as the API does after every change
+const fillBoards = (tr) => {
+    if (tr.boards?.count && ['drawn', 'running'].includes(tr.status)) applyBoards(tr, fill(tr.boards, tournamentItems(tr)));
+};
+// for the screen and the user's own boards (boards.mjs)
+export const tournamentBoardView = (tr) => boardsView(tr.boards ?? NO_BOARDS, tournamentItems(tr));
+// a game on a board won (POST /__test/boards { finish: match }): the first player wins 3–1, the board takes the next match
+export const finishOnBoard = (key) => {
+    for (const tr of tournaments) {
+        const match = tr.matches.find(entry => entry.id === key);
+        if (!match) continue;
+        Object.assign(match, { status: 'done', winner: match.players[0], score: { legs: [3, 1] }, decidedAt: new Date().toISOString() });
+        if (match.group == null) advance(new Map(tr.matches.map(entry => [entry.id, entry])), match);
+        fillBoards(tr);
+        return true;
+    }
+    return false;
+};
+
 const viewOf = (tr, players, me) => ({
     ...tr,
+    // the chances on the open matches, from the club rating
+    matches: withMockChances(tr.matches ?? [], players.map(p => p.id)),
     players: Object.fromEntries(players.map(p => [p.id, { id: p.id, nickname: p.nickname, firstname: p.firstname, lastname: p.lastname, shirt: shirtOf(p) }])),
     counts: { in: tr.entries.filter(e => e.status === 'in').length, out: tr.entries.filter(e => e.status === 'out').length, invited: tr.entries.filter(e => e.status === 'invited').length },
     me: tr.entries.find(e => e.player === me) ?? null,
     myPlayer: me,
+    boards: tr.boards ?? NO_BOARDS,
+    boardView: tournamentBoardView(tr),
 });
 
 export const seedTournaments = (players, scenario) => {
@@ -27,6 +65,22 @@ export const seedTournaments = (players, scenario) => {
         const rounds = [{ size: 0, date: at(5), rules: roundsOfPreset('clubNight', 8)[0].rules }, ...roundsOfPreset('clubNight', 8).map((r, i) => ({ ...r, date: at(12 + i * 7) }))];
         const t = base({ name: 'Group Cup', status: 'closed', format: 'groups', preset: 'clubNight', closesAt: at(-1), rounds });
         t.entries = ids.map(p => ({ player: p, status: 'in' }));
+        tournaments.push(t);
+    }
+    // played on two boards: the groups going on, the user's match called to board 1, a game live on board 2, the rest in the queue
+    if (scenario === 'boards') {
+        const rounds = [{ size: 0, date: at(0), rules: roundsOfPreset('clubNight', 8)[0].rules }, ...roundsOfPreset('clubNight', 8).map((r, i) => ({ ...r, date: at(i + 1) }))];
+        const t = base({ name: 'Club Championship', status: 'running', format: 'groups', preset: 'clubNight', closesAt: at(-2), rounds, boards: { count: 2, out: [] } });
+        t.entries = ids.map(p => ({ player: p, status: 'in' }));
+        const groups = drawGroups(ids, { size: 3, seeding: 'seeded' });
+        t.matches = [...groupMatches(groups), ...bracketMatches({ size: 4, slots: Array(4).fill(null) })];
+        t.draw = { at: at(-1), seeding: 'seeded', size: 4, groups, groupSize: 3, advance: 2, knockoutAt: null };
+        // the user's match first in the queue, so it is called to board 1
+        const own = t.matches.find(m => m.group != null && m.players.includes(ids[0]));
+        t.matches.filter(m => m.group != null).forEach((m, i) => { m.readyAt = new Date(Date.now() - (m === own ? 99 : 50 - i) * 60e3).toISOString(); });
+        fillBoards(t);
+        const live = t.matches.find(m => m.board === 2);
+        if (live) { live.status = 'running'; live.game = 'x2'; }
         tournaments.push(t);
     }
     if (scenario === 'registration' || scenario === 'all') {
@@ -106,7 +160,32 @@ export const tournamentMock = (req, res, path, json, send, { players, me, isAdmi
     const rest = m[2] ?? '';
     const byId = new Map(t.matches.map(x => [x.id, x]));
     if (!rest && req.method === 'GET') return view(t);
-    if (!rest && req.method === 'PUT') { Object.assign(t, json); return view(t); }
+    if (!rest && req.method === 'PUT') { Object.assign(t, json); fillBoards(t); return view(t); }
+    // the boards: how many and which are out, a match moved or held back, the big screen of them
+    if (rest === '/boards' && req.method === 'PUT') {
+        if (['finished', 'cancelled'].includes(t.status)) return send(res, 409, { message: 'This tournament is over.' });
+        const result = setBoards(tournamentItems(t), json);
+        t.boards = result.boards;
+        applyBoards(t, result.changes);
+        return view(t);
+    }
+    const onBoard = rest.match(/^\/matches\/([\w-]+)\/(board|held)$/);
+    if (onBoard) {
+        const result = onBoard[2] === 'board'
+            ? moveTo(t.boards ?? NO_BOARDS, tournamentItems(t), onBoard[1], json.board)
+            : hold(t.boards ?? NO_BOARDS, tournamentItems(t), onBoard[1], Boolean(json.held));
+        if (result.error) return send(res, 409, { message: result.error });
+        applyBoards(t, result.changes);
+        fillBoards(t);
+        return view(t);
+    }
+    if (rest === '/boards/screen') return send(res, 200, { token: `boards-tournament-${t.id}`, expiresAt: new Date(Date.now() + 12 * 3600e3).toISOString() });
+    if (rest === '/boards/screen/send') {
+        const pairing = [...(globalThis.mockPairings ?? new Map()).values()].find(entry => entry.code === json.code);
+        if (!pairing) return send(res, 404, { message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+        pairing.token = `boards-tournament-${t.id}`;
+        return send(res, 200, { sent: true });
+    }
     if (!rest && req.method === 'DELETE') { tournaments = tournaments.filter(x => x !== t); return send(res, 200, {}); }
     if (rest === '/open') { t.status = 'registration'; t.entries = players.map(p => ({ player: p.id, status: 'invited' })); return view(t); }
     if (rest === '/close') { t.status = 'closed'; return view(t); }
@@ -146,6 +225,7 @@ export const tournamentMock = (req, res, path, json, send, { players, me, isAdmi
             if (t.draw.knockoutAt) return send(res, 409, { message: 'The knockout stage is drawn from the groups: this result stays.' });
             Object.assign(x, { status: 'walkover', winner: json.winner, score: null });
             t.status = 'running';
+            fillBoards(t);
             if (groupsDone(t.matches)) {
                 const draw = knockoutDraw(t.draw.groups, t.matches, t.draw.advance);
                 t.matches = [...t.matches.filter(m => m.group != null), ...bracketMatches(draw)];
@@ -156,6 +236,7 @@ export const tournamentMock = (req, res, path, json, send, { players, me, isAdmi
         if (isDecided(x) && !retract(byId, x)) return send(res, 409, { message: 'The next match has started: this result stays.' });
         x.status = 'walkover'; x.winner = json.winner; x.score = null;
         if (!advance(byId, x)) { t.status = 'finished'; t.winner = json.winner; t.finishedAt = new Date(); }
+        fillBoards(t);
         return view(t);
     }
     return send(res, 404, { message: 'unhandled tournament mock' });

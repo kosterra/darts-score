@@ -79,8 +79,19 @@ export default (mongoose) => {
           score:    { type: mongoose.Schema.Types.Mixed, default: null },
           decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user', default: null },
           decidedAt: { type: Date, default: null },
+          // on boards (see rules/boards.js): the board it is called to, held back (a player not there),
+          // since when both players are known, and when the players heard their board (once only)
+          board:    { type: Number, default: null },
+          held:     { type: Boolean, default: false },
+          readyAt:  { type: Date, default: null },
+          calledAt: { type: Date, default: null },
         }],
         default: [],
+      },
+      // played on boards side by side: how many (0 = off) and those taken out; each match called to a free one
+      boards: {
+        count: { type: Number, min: 0, max: 16, default: 0 },
+        out:   { type: [Number], default: [] },
       },
       winner:     { type: String, default: null },
       finishedAt: { type: Date, default: null },
@@ -88,7 +99,8 @@ export default (mongoose) => {
       // what the reminders were sent about, so each goes out once
       reminded:   { type: [String], default: [] },
     },
-    { timestamps: true, minimize: false }
+    // two games finishing at once both save the matches: the second retries (see utils/tournaments.js)
+    { timestamps: true, minimize: false, optimisticConcurrency: true }
   );
 
   schema.method('toJSON', function () {

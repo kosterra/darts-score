@@ -32,6 +32,8 @@ import leagueModel from './league.model.js';
 import attendanceModel from './attendance.model.js';
 import quickEveningModel from './quick.evening.model.js';
 import screenPairingModel from './screen.pairing.model.js';
+import practiceGoalWeekModel from './practice.goal.week.model.js';
+import boardNightModel from './board.night.model.js';
 
 const db = {
   mongoose,
@@ -69,6 +71,8 @@ const db = {
   attendance: attendanceModel(mongoose),
   quickEvening: quickEveningModel(mongoose),
   screenPairing: screenPairingModel(mongoose),
+  practiceGoalWeek: practiceGoalWeekModel(mongoose),
+  boardNight: boardNightModel(mongoose),
 };
 
 export default db;

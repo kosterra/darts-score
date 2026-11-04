@@ -25,6 +25,7 @@ vi.mock('../models/db.model.js', () => ({
         atc: collection('atc'), rulesTraining: collection('rulesTraining'), deletionRequest: collection('deletionRequest'),
         playerContact: collection('playerContact'), playerClaim: collection('playerClaim'), notification: collection('notification'), session: collection('session'),
         joinRequest: collection('joinRequest'), integrityReview: collection('integrityReview'), alert: collection('alert'),
+        practiceGoalWeek: collection('practiceGoalWeek'),
     },
 }));
 
@@ -56,6 +57,8 @@ describe('deleting an account', () => {
         expect(of('rulesTraining', 'updateMany')[0].args[1]).toEqual({ $set: { 'player.nickname': nickname } });
         expect(of('user', 'deleteOne')[0].args[0]).toEqual({ _id: 'u1' });
         expect(of('notification', 'deleteMany')[0].args[0]).toEqual({ user: 'u1' });
+        // the weeks of the practice goals go with it
+        expect(of('practiceGoalWeek', 'deleteMany')[0].args[0]).toEqual({ user: 'u1' });
         expect(of('club', 'updateMany')).toContainEqual(expect.objectContaining({ args: [{ admins: 'u1' }, { $pull: { admins: 'u1', adminSince: { user: 'u1' } } }] }));
         expect(of('alert', 'updateMany')[0].args).toEqual([{ user: 'u1' }, { $set: { userEmail: '' } }]);
     });

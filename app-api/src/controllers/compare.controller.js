@@ -7,7 +7,7 @@ import { viewOf } from '../utils/game.view.js';
 import { countBadges, getShameBadge } from '../utils/badges.js';
 import { isShameChild, shameMinAgeOf } from '../utils/shame.js';
 import { seesTrainingsOf } from '../utils/training.privacy.js';
-import { RATING_MIN_GAMES, RATING_START, RIVAL_MIN_GAMES, clubRatings, duelRecord, opponentsOf, rivalsOf, rulesFigures, winChances, x01Highlights } from '../utils/compare.js';
+import { RATING_MIN_GAMES, RATING_START, RIVAL_MIN_GAMES, clubRatings, duelRecord, ratingTallies, opponentsOf, rivalsOf, rulesFigures, winChances, x01Highlights } from '../utils/compare.js';
 import { calculateX01PlayersStats } from './players.x01.stats.controller.js';
 import { calculatePlayerStats } from './player.stats.controller.js';
 
@@ -27,7 +27,7 @@ const tooMany = (req, res) => {
 };
 
 // the club's rating, from what its games added to it (see club.tally.model.js)
-const loadRatings = async (clubId) => clubRatings(await db.clubTally.find({ club: clubId }, 'at players winners friendly').lean());
+const loadRatings = async (clubId) => clubRatings(await ratingTallies(clubId));
 const ratingOf = (ratings, playerId) => {
     const entry = ratings.get(String(playerId)) ?? { rating: RATING_START, games: 0 };
     return { ...entry, provisional: entry.games < RATING_MIN_GAMES };

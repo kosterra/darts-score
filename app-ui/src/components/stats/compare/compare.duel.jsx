@@ -120,6 +120,11 @@ const DuelSummary = ({ data, players, colours, type }) => {
                 {chances &&
                     <div className="d-flex flex-column gap-2">
                         <span className="text-faint fs-8">{t('Chances for the next game, from the club rating')}</span>
+                        {/* two players: the favourite's chance in a sentence */}
+                        {ids.length === 2 && (() => {
+                            const [favourite, other] = chances[ids[1]] > chances[ids[0]] ? [ids[1], ids[0]] : ids;
+                            return <span className="duel-chances-sentence text-default fw-semibold">{t('{{name}} wins {{pct}} % against {{other}}', { name: nicknameOf(favourite), pct: chances[favourite], other: nicknameOf(other) })}</span>;
+                        })()}
                         <div className="duel-chances" role="img" aria-label={ids.map(id => `${nicknameOf(id)} ${chances[id]} %`).join(', ')}>
                             {ids.map(id => <span key={id} style={{ width: `${chances[id]}%`, background: colourOf(id) }}>{chances[id] >= 12 ? `${chances[id]} %` : ''}</span>)}
                         </div>

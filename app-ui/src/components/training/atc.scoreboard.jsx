@@ -20,6 +20,8 @@ const PODIUM = 3;
 const AROUND = 2;
 // how long a new time shows at the bottom before it moves up to its place
 const ENTER_MS = 700;
+// the time a smooth scroll to the board takes, before the new time starts to move
+const SCROLL_MS = 500;
 
 const MEDALS = ['gold', 'silver', 'bronze'];
 
@@ -129,9 +131,8 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
         setExpanded(false);
         // on a narrow screen the scoreboard is further down: bring it into view first
         const board = boardRef.current?.getBoundingClientRect();
-        if (board && (board.top < 0 || board.top > window.innerHeight * 0.5)) {
-            boardRef.current.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
-        }
+        const away = board && (board.top < 0 || board.top > window.innerHeight * 0.5);
+        if (away) boardRef.current.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
         // no movement: straight to their places (which reports the arrival)
         if (reducedMotion()) {
             setPhase('landed');
@@ -141,7 +142,7 @@ const ATCScoreboard = ({ entries, noun = 'times', arrival, view, onViewChange, d
         const timer = setTimeout(() => {
             animateNext.current = true;
             setPhase('slide');
-        }, ENTER_MS);
+        }, ENTER_MS + (away ? SCROLL_MS : 0));
         return () => clearTimeout(timer);
     // only when new trainings arrive (the entries with them are loaded by then)
     // eslint-disable-next-line react-hooks/exhaustive-deps

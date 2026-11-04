@@ -26,6 +26,7 @@ import { MyPlayers } from '../players/_my.player.page';
 import SectionTitle from '../elements/section.title';
 import useAutoSave from '../../utils/use.auto.save';
 import OnboardingSetting from '../onboarding/onboarding.setting';
+import PracticeGoalsEditor from '../goals/practice.goals.editor';
 
 const MIN_PASSWORD_LENGTH = 8;
 // "the club I used last" in the list: a value of its own, since an empty one shows as nothing chosen
@@ -308,6 +309,8 @@ const ProfilePage = () => {
                         {/* how you like to play, with your account on every device */}
                         <div className="col-12 col-xl-6">
                             <PlayingPreferences part="game" />
+                            {/* one's own goals for each week, in all the clubs */}
+                            <div id="goals" className="mt-4"><PracticeGoalsEditor onError={showError} /></div>
                         </div>
                         {/* your player's own: the club sees them too; the caller under it, so the columns end about together */}
                         <div className="col-12 col-xl-6 d-flex flex-column gap-4">

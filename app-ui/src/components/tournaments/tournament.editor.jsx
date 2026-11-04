@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
+import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Message } from 'primereact/message';
@@ -13,7 +14,8 @@ import { Tag } from 'primereact/tag';
 import TournamentService from '../../services/tournament.service';
 import ClubService from '../../services/club.service';
 import { useAuth } from '../../utils/auth.context';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
+import { MAX_BOARDS } from '../../rules/boards';
 import { GROUP_ROUND, INVITE_CHANNELS, MAX_PLAYERS_CHOICES, PRESETS, STARTING_SCORES, cleanRules, isDecided, maxLegs, presetById, presetRules, roundSizes, rulesError } from '../../rules/tournaments';
 import { INVITE_WORDS, PRESET_WORDS, roundName, rulesText } from './tournament.words';
 import { Lines } from '../elements/skeletons';
@@ -136,7 +138,7 @@ const TournamentEditor = () => {
 
     useEffect(() => {
         if (!id) {
-            setForm({ name: '', description: '', format: 'knockout', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), invite: 'mail', invitedClubs: [], rounds: roundsFor(16, 'clubClassic') });
+            setForm({ name: '', description: '', format: 'knockout', maxPlayers: 16, preset: 'clubClassic', closesAt: defaultCloses(), invite: 'mail', invitedClubs: [], boards: null, rounds: roundsFor(16, 'clubClassic') });
             return;
         }
         TournamentService.loadTournament(id).then(loaded => {
@@ -146,6 +148,7 @@ const TournamentEditor = () => {
                 closesAt: new Date(loaded.closesAt),
                 invite: loaded.invite ?? 'mail',
                 invitedClubs: (loaded.invitedClubs ?? []).map(String),
+                boards: loaded.boards?.count ?? 0,
                 rounds: loaded.rounds.map(round => ({ ...round, date: round.date ? new Date(round.date) : null })),
             });
         }).catch(err => setError(err.message));
@@ -192,12 +195,14 @@ const TournamentEditor = () => {
         const same = (a, b) => JSON.stringify(cleanRules(a)) === JSON.stringify(cleanRules(b));
         return { ...current, rounds, preset: preset && rounds.every(round => same(round.rules, rulesOf(current.preset, round.size, current.maxPlayers))) ? current.preset : null };
     });
+    // a new tournament starts with the club's boards
+    const boardCount = form.boards ?? activeClub?.boards ?? 0;
     const problems = form.rounds.map(round => rulesError(round.rules)).filter(Boolean);
 
     const save = async (open) => {
         setError('');
         setBusy(open ? 'open' : 'save');
-        const setup = { name: form.name, description: form.description, format: form.format, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, invite: form.invite, invitedClubs: form.invitedClubs ?? [], rounds: form.rounds };
+        const setup = { name: form.name, description: form.description, format: form.format, maxPlayers: form.maxPlayers, preset: form.preset, closesAt: form.closesAt, invite: form.invite, invitedClubs: form.invitedClubs ?? [], boards: { count: boardCount }, rounds: form.rounds };
         try {
             let saved;
             if (!stored) saved = await TournamentService.createTournament({ ...setup, open });
@@ -264,6 +269,12 @@ const TournamentEditor = () => {
                         <div className="col-12 col-md-6">
                             <SetupBox title={t('Registration until')} hint={t('Until then the members enter or decline; after it the registration closes by itself and the draw can be held.')}>
                                 <DateTimeField value={form.closesAt} onChange={(value) => value && set({ closesAt: value })} disabled={!early} minDate={new Date()} ariaLabel={t('Registration until')} />
+                            </SetupBox>
+                        </div>
+                        <div className="col-12">
+                            <SetupBox title={t('Boards')} hint={t('With boards, the matches are called to a free board and the players hear it.')}>
+                                <InputNumber value={boardCount} onValueChange={(event) => set({ boards: event.value ?? 0 })} min={0} max={MAX_BOARDS} showButtons buttonLayout="horizontal" decrementButtonIcon="pi pi-minus" incrementButtonIcon="pi pi-plus" inputClassName="text-center" aria-label={t('Boards')} inputId="tournament-boards" />
+                                <span className="text-subtle fs-8">{boardCount ? tn(boardCount, '{{count}} match at a time', '{{count}} matches at a time') : t('No boards: the players start their matches themselves.')}</span>
                             </SetupBox>
                         </div>
                         <div className="col-12">

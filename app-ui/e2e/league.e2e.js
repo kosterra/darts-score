@@ -5,6 +5,8 @@ import { test, expect } from '@playwright/test';
 const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
+test.skip(({ isMobile }) => isMobile, 'once is enough: the schedule and the decisions are the same at every width');
+
 test.beforeEach(async ({ page }) => {
     await post('/__test/logged-out', { loggedOut: false });
     await post('/__test/role', { admin: true });

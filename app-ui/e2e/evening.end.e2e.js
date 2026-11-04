@@ -5,6 +5,8 @@ import { test, expect } from '@playwright/test';
 const MOCK = 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
+test.skip(({ isMobile }) => isMobile, 'once is enough: ending an evening works the same at every width');
+
 test('ending a darts evening', async ({ page }) => {
     const { id } = await (await post('/__test/evening', { name: 'Pub night' })).json();
     await page.goto(`/evening/${id}`);

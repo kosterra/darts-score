@@ -31,6 +31,10 @@ import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils
 import { ACCENT } from '../../utils/palette';
 import PlayerOption from '../elements/player.option';
 import usePlayerLevels from '../../utils/use.player.levels';
+import useAutoSave from '../../utils/use.auto.save';
+import BoardService from '../../services/board.service';
+import BoardsPanel from '../boards/boards.panel';
+import MyMatch from '../boards/my.match';
 
 /**
  * What can be done with a match: start it (its players or an admin, with who
@@ -113,12 +117,21 @@ const TournamentPage = () => {
 
     const load = useCallback(() => TournamentService.loadTournament(id).then(setTournament).catch(err => setError(err.message)), [id]);
     useEffect(() => { load(); }, [load]);
-    // the bracket follows running matches
+    // the player's own match on a board, while it is called or played
+    const myBoard = tournament?.matches?.find(match => match.board && ['ready', 'running'].includes(match.status) && match.players.includes(tournament.myPlayer)) ?? null;
+    // the bracket follows running matches; more often while the player's match is on a board
     useEffect(() => {
         if (!['drawn', 'running'].includes(tournament?.status)) return undefined;
-        const timer = setInterval(load, 30 * 1000);
+        const timer = setInterval(load, (myBoard ? 15 : 30) * 1000);
         return () => clearInterval(timer);
-    }, [tournament?.status, load]);
+    }, [tournament?.status, load, myBoard]);
+    // the number of boards, saved as you go; shown at once
+    const [boardCount, setBoardCount] = useState(null);
+    const countSave = useAutoSave(async (count) => {
+        const result = await BoardService.setTournamentBoards(id, { count, out: (tournament?.boards?.out ?? []).filter(number => number <= count) });
+        setTournament(result);
+        setBoardCount(null);
+    });
     // members who joined after the invitations, for the admins to add
     useEffect(() => {
         if (isClubAdmin && ['registration', 'closed'].includes(tournament?.status)) PlayerService.searchPlayers('').then(setMembers).catch(() => setMembers([]));
@@ -211,6 +224,25 @@ const TournamentPage = () => {
         const result = await run('result', () => TournamentService.setResult(tournament.id, match.id, winner), t('{{name}} goes on.', { name: nameOf(tournament, winner) }));
         if (result) setSelected(null);
     };
+
+    // the boards: the matches as the panel shows them
+    const boardView = tournament.boardView;
+    const onBoards = drawn && !over && boardView?.count > 0;
+    const matchDetail = (match) => (match.group != null ? groupName(match.group) : roundName(match.size));
+    const itemOf = (key) => {
+        const match = tournament.matches.find(entry => entry.id === key);
+        if (!match) return null;
+        return {
+            key, players: match.players.filter(Boolean), detail: matchDetail(match),
+            status: match.status === 'running' ? 'playing' : match.board ? 'called' : 'queued',
+            game: match.game ? { kind: 'x01', id: match.game } : null,
+        };
+    };
+    const boardsAction = (key, action) => run(key, action);
+    const takeOut = (number, out) => boardsAction(`out-${number}`, () => BoardService.setTournamentBoards(tournament.id, {
+        count: boardView.count,
+        out: out ? [...boardView.out, number] : boardView.out.filter(entry => entry !== number),
+    }));
 
     // a player of the tournament with their picture, as in the other lists
     const avatarOf = (playerId) => {
@@ -307,6 +339,31 @@ const TournamentPage = () => {
                 </div>
             </header>
 
+            {myBoard && onBoards &&
+                <MyMatch
+                    match={{ board: myBoard.board, status: myBoard.status === 'running' ? 'playing' : 'called', opponent: nameOf(tournament, myBoard.players.find(player => player !== tournament.myPlayer)), detail: matchDetail(myBoard), game: myBoard.game ? { kind: 'x01', id: myBoard.game } : null }}
+                    onStart={() => setSelected(myBoard)}
+                />}
+
+            {onBoards &&
+                <BoardsPanel
+                    view={boardCount != null ? { ...boardView, count: boardCount } : boardView}
+                    itemOf={itemOf}
+                    playerOf={(playerId) => tournament.players?.[playerId]}
+                    myPlayer={tournament.myPlayer}
+                    canRun={isHostAdmin}
+                    canStart={(item) => isClubAdmin || item.players.includes(tournament.myPlayer)}
+                    onStart={(item) => setSelected(tournament.matches.find(match => match.id === item.key))}
+                    onCount={(count) => { setBoardCount(count); countSave.change(count, { now: true }); }}
+                    onOut={takeOut}
+                    onMove={(key, board) => boardsAction(key, () => BoardService.moveMatch(tournament.id, key, board))}
+                    onHold={(key, held) => boardsAction(key, () => BoardService.holdMatch(tournament.id, key, held))}
+                    countSave={countSave}
+                    screen={{ create: () => BoardService.tournamentScreen(tournament.id), send: (code) => BoardService.sendTournamentScreen(tournament.id, code) }}
+                    busy={busy}
+                    hint={t('A match is called to the next free board as soon as both players are known; a finished game frees its board at once.')}
+                />}
+
             {closed && isHostAdmin &&
                 <Panel header={t('The draw')}>
                     {tournament.counts.in >= MIN_PLAYERS
@@ -336,7 +393,7 @@ const TournamentPage = () => {
                                     </div>}
                                 <SelectButton
                                     value={seeding}
-                                    options={[{ label: t('Seeded'), value: 'seeded' }, { label: t('At random'), value: 'random' }]}
+                                    options={[{ label: t('By rating'), value: 'seeded' }, { label: t('At random'), value: 'random' }]}
                                     onChange={(event) => event.value && setSeeding(event.value)}
                                     className="p-selectbutton-pills pills-inline"
                                 />

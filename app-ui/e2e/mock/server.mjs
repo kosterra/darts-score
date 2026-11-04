@@ -10,12 +10,13 @@
 // (e.g. AS_PLAYER, CLUB_ADMIN, LOGGED_OUT, NEW_USER; DASH=0 for a club
 // without its statistics), and the tests
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
-// /__test/tournaments { scenario }, /__test/leagues { scenario }, /__test/calendar { scenario }, /__test/session { leftMs } and
+// /__test/tournaments { scenario }, /__test/leagues { scenario }, /__test/calendar { scenario }, /__test/goals { scenario }, /__test/session { leftMs } and
 // /__test/notifications (two of them, one unread), /__test/evening (one with finished games),
-// /__test/mfa { enabled } and /__test/passkeys { passkeys: [names] }.
+// /__test/boards { scenario | finish | reset }, /__test/mfa { enabled } and /__test/passkeys { passkeys: [names] }.
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
+import { seedRulesTrainings } from './rules.trainings.mjs';
 import { checkBirthChange, checkTraining, checkX01, checkCricket, checkElimination, checkClock, compact, levelOf, repairX01, x01Legs, THRESHOLDS } from '../../../app-api/src/utils/integrity.js';
 import fs from 'fs';
 import { BADGES as realBadges, BADGE_CATEGORIES as realCategories, SHAME_BADGES } from '../../../app-api/src/utils/badges.js';
@@ -23,7 +24,10 @@ import http from 'node:http';
 import { seedTournaments, tournamentMock } from './tournaments.mjs';
 import { leagueMock, seedLeagues } from './leagues.mjs';
 import { calendarMock, seedCalendar } from './calendar.mjs';
+import { boardsMock, seedBoards } from './boards.mjs';
+import { goalsAfterTraining, goalsMock, seedGoals } from './goals.mjs';
 import { duelRecord, clubRatings, winChances } from '../../../app-api/src/utils/compare.js';
+import { mockRatingFacts, mockRatingHistory, mockRatings } from './ratings.mjs';
 import { latestClubBadges, CLUB_BADGES, GOAL_METRICS, replayClubBadges, topClubBadges, publicClubBadge, goalProgress } from '../../../app-api/src/utils/club.badges.js';
 import { clubKpis, headToHead as h2h, clubRecords, gameLog } from '../../../app-api/src/utils/club.insights.js';
 import { flightStanding, unlockCheck, CATALOG, FEATS, POINT_RULES, RARITIES } from '../../../app-api/src/utils/flights.js';
@@ -146,7 +150,12 @@ http.createServer((req, res) => {
     req.on('end', async () => {
         let json = {};
         try { json = body ? JSON.parse(body) : {}; } catch { json = {}; }
+        // the scoreboard of Bob's 27 & co.: /__test/rules-trainings { scenario: 'bobs27' } (see rules.trainings.mjs)
+        if (path === '/__test/rules-trainings') { seedRulesTrainings(players, json.scenario); return send(res, 200, {}); }
         if (path === '/__test/calendar') { seedCalendar(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
+        // the user's weekly practice goals: /__test/goals { scenario: 'set' } three of them with past weeks, else none
+        if (path === '/__test/goals') { seedGoals(json.scenario); return send(res, 200, {}); }
+        if (path.startsWith('/api/goals') && goalsMock(req, res, path, json, send, { url }) !== false) return;
         // the club evening of a night: the club games among its players, with the API's own report
         const clubNight = path.match(/^\/api\/calendar\/nights\/(\d{4}-\d{2}-\d{2})\/evening$/);
         if (clubNight) {
@@ -158,6 +167,9 @@ http.createServer((req, res) => {
                 .map(g => ({ ...g, _id: g.id, data: g }));
             return send(res, 200, { players: chosen, games: own.map(gameSummary), report: eveningReport({ players: chosen }, own) });
         }
+        // boards: /__test/boards { scenario: 'night', day } a club night on two boards, { finish: key } a game on a board won, { reset } (see boards.mjs)
+        if (path === '/__test/boards') { seedBoards(json, players.filter(p => !p.guest)); return send(res, 200, {}); }
+        if (/^\/api\/(calendar|boards\/|screen\/boards-)/.test(path) && boardsMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', club }) !== false) return;
         if (path.startsWith('/api/calendar') && calendarMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1', isAdmin: club.role === 'admin', url }) !== false) return;
         if (path === '/__test/leagues') { seedLeagues(players.filter(p => !p.guest), json.scenario); return send(res, 200, {}); }
         if (path.startsWith('/api/leagues') && leagueMock(req, res, path, json, send, { players: players.filter(p => !p.guest), me: 'p1' }) !== false) return;
@@ -184,7 +196,7 @@ http.createServer((req, res) => {
         if (path === '/api/auth/onboarding') { const now = new Date().toISOString(); if (json.tour) user.onboarding.tourDoneAt = json.tour === 'done' ? now : null; if (json.firstSteps) user.onboarding.firstStepsHiddenAt = json.firstSteps === 'hidden' ? now : null; return send(res, 200, user); }
         if (path === '/api/stats/first-steps') return send(res, 200, process.env.AS_PLAYER ? { role: 'member', items: [{ id: 'you', done: true }, { id: 'firstGame', done: false }, { id: 'training', done: false }, { id: 'notifications', done: true }, { id: 'app', done: null }] } : { role: 'admin', items: [{ id: 'clubProfile', done: false }, { id: 'players', done: true }, { id: 'rules', done: false }, { id: 'firstGame', done: false }, { id: 'you', done: true }] });
         if (path === '/api/public/site') return send(res, 200, { publicSite: !process.env.PRIVATE_SITE });
-        if (path === '/api/public/legal') return send(res, 200, { ...legal, notes: typeof legal.notes === 'object' ? (legal.notes[(req.headers['accept-language'] || 'en').slice(0, 2)] || legal.notes.en || '') : legal.notes, mailEnabled: true, keep: { sessionHours: 5, trustedDeviceDays: 30, quickGameDays: 30, quickUnfinishedDays: 3, notificationDays: 365, fairPlayDays: 31, errorLogDays: 30, claimLinkDays: 30, usageDays: 190 } });
+        if (path === '/api/public/legal') return send(res, 200, { ...legal, notes: typeof legal.notes === 'object' ? (legal.notes[(req.headers['accept-language'] || 'en').slice(0, 2)] || legal.notes.en || '') : legal.notes, mailEnabled: true, keep: { sessionHours: 5, trustedDeviceDays: 30, quickGameDays: 30, quickUnfinishedDays: 3, notificationDays: 365, fairPlayDays: 31, errorLogDays: 30, claimLinkDays: 30, usageDays: 190, boardNightDays: 60 } });
         if (path === '/api/admin/legal') { if (typeof legal.notes !== 'object') legal.notes = { en: legal.notes, de: '', fr: '', it: '', es: '' }; if (req.method === 'PUT') legal = { ...legal, ...json }; return send(res, 200, { ...legal, limits: { operator: 200, address: 500, email: 254, notes: 2000 } }); }
         if (path === '/api/auth/delete-account' && req.method === 'GET') return send(res, 200, { globalAdmin: null, clubs: process.env.SOLE_ADMIN ? [{ id: 'c1', name: 'Red Lion Darts', members: 6, candidates: [{ id: 'u2', name: 'Ben Huber' }, { id: 'u3', name: 'Lena Frei' }] }, { id: 'c9', name: 'Garage Darts', members: 1, candidates: [] }] : [] });
         if (path === '/api/auth/delete-account' && process.env.SOLE_ADMIN && (json.clubs ?? []).length !== 2) return send(res, 409, { message: 'Hand Garage Darts over or delete it first.' });
@@ -596,7 +608,10 @@ http.createServer((req, res) => {
                 badges: { count: 9, latest: [{ id: 'max180-10', group: 'max180', title: 'Maximum Collector', description: 'Throw 10 180s', tier: 2, tiers: 4, earnedAt: `${year}-11-02T21:00:00Z` }, { id: 'max180-1', group: 'max180', title: 'One Hundred and Eighty!', description: 'Throw your first 180', tier: 1, tiers: 4, earnedAt: `${year}-02-11T21:00:00Z` }] },
             });
         }
-        if (/^\/api\/stats\/player\/p\d+$/.test(path)) return send(res, 200, { ...(process.env.FORM_CHART ? (() => {
+        // the club rating of a player over time
+        const ratingPath = path.match(/^\/api\/stats\/player\/(p\d+)\/rating$/);
+        if (ratingPath) return send(res, 200, mockRatingHistory(players.filter(p => !p.guest), ratingPath[1]));
+        if (/^\/api\/stats\/player\/p\d+$/.test(path)) return send(res, 200, { rating: mockRatingFacts(players.filter(p => !p.guest).map(p => p.id), path.split('/').pop()), ...(process.env.FORM_CHART ? (() => {
             const months = ['2023-12', '2024-01', '2024-02', '2024-03', '2025-03', '2025-10', '2025-12', '2026-10'];
             const rates = [100, 67, 100, 100, 67, 100, 67, 43]; const avgs = [41, 36, 43, 49, 54, 44, 43, 43]; const games = [3, 3, 1, 3, 9, 1, 3, 7];
             // the hits of a player who aims at the 20: most around it, a few everywhere else
@@ -761,7 +776,7 @@ http.createServer((req, res) => {
                 club: { id: 'c1', name: CLUB_NAME, description: 'Darts every Thursday', logo: null, createdAt: ago(400), isPublic: true, playerCount: 6, adminCount: 1, ...(globalThis.clubBadgeData ? { latestBadges: latestClubBadges(globalThis.clubBadgeData.earned), badgeCount: globalThis.clubBadgeData.earned.length, badgeTotal: CLUB_BADGES.length } : {}) },
                 totals: { gamesPlayed: 48, running: 4, x01: 30, cricket: 10, elimination: 5, clock: 3, lastGameAt: ago(1) },
                 players: players.map(p => ({ id: p.id, firstname: p.firstname, lastname: p.lastname, nickname: p.nickname, profileImg: '', guest: false })),
-                leaderboards: { mostWins: board(i => 20 - i * 3), winRate: board(i => 60 - i * 5), x01Average: board(i => 55 - i * 4), most180s: board(i => 9 - i), highestCheckout: board(i => 140 - i * 10), mostGames: board(i => 40 - i * 4), winsX01: board(i => 12 - i), winsCricket: board(i => 5 - i), winsElimination: board(i => 3), winsClock: board(i => 2), mostDarts: board(i => 4000 - i * 300) },
+                leaderboards: { mostWins: board(i => 20 - i * 3), winRate: board(i => 60 - i * 5), x01Average: board(i => 55 - i * 4), most180s: board(i => 9 - i), highestCheckout: board(i => 140 - i * 10), mostGames: board(i => 40 - i * 4), winsX01: board(i => 12 - i), winsCricket: board(i => 5 - i), winsElimination: board(i => 3), winsClock: board(i => 2), mostDarts: board(i => 4000 - i * 300), rating: mockRatings(players.filter(p => !p.guest).map(p => p.id)).board.slice(0, 5) },
                 recentGames: [
                     { id: 'r1', type: 'x01', playedAt: ago(0.02), running: true, format: '501 · Best of 3 sets · Best of 3 legs', players: [{ player: 'p1', sets: 1, legs: 2 }, { player: 'p2', sets: 0, legs: 1 }] },
                     { id: 'r2', type: 'cricket', playedAt: ago(1), running: false, format: 'Cricket', players: [{ player: 'p2', score: 120, isWinner: true }, { player: 'p3', score: 65 }] },
@@ -817,19 +832,25 @@ http.createServer((req, res) => {
             const best = Math.min(...own.map(e => e[field]));
             const entry = { id: `e${++seq}`, ...json, player: ref(p), createdAt: new Date().toISOString() };
             entries.push(entry);
-            return setTimeout(() => send(res, 201, { ...entry, isRecord: own.length > 0 && entry[field] < best, newBadges: [] }), 300);
+            return setTimeout(() => send(res, 201, { ...entry, isRecord: own.length > 0 && entry[field] < best, newBadges: [], ...goalsAfterTraining('atc') }), 300);
         }
         if (path === '/api/players/checkout-profiles') {
             // Anna: D20 learned from her games; the others without enough darts
             const profiles = Object.fromEntries((json.playerIds ?? []).map(id => {
                 const player = players.find(p => p.id === id);
-                const set = player?.preferences?.favouriteDouble;
+                const prefs = player?.preferences ?? {};
+                const favouriteDoubles = [];
+                for (const double of [prefs.favouriteDouble, prefs.secondDouble, prefs.thirdDouble]) {
+                    if (!double || double === 'auto') break;
+                    if (!favouriteDoubles.includes(double)) favouriteDoubles.push(double);
+                }
+                const set = favouriteDoubles[0];
                 const learnedDouble = id === 'p1' ? 'D20' : null;
-                const doubleOrder = set && set !== 'auto' ? [set, ...(learnedDouble && learnedDouble !== set ? [learnedDouble] : [])] : learnedDouble ? ['D20', 'D16'] : [];
+                const doubleOrder = set ? [...favouriteDoubles, ...(learnedDouble && !favouriteDoubles.includes(learnedDouble) ? [learnedDouble] : [])] : learnedDouble ? ['D20', 'D16'] : [];
                 return [id, {
                     doubles: learnedDouble ? [{ double: 'D20', hit: 12, total: 30, rate: 40 }, { double: 'D16', hit: 5, total: 20, rate: 25 }] : [],
-                    doubleDarts: learnedDouble ? 50 : 0, doubleOrder, favouriteDouble: doubleOrder[0] ?? null,
-                    doubleSource: set && set !== 'auto' ? 'set' : learnedDouble ? 'history' : null,
+                    doubleDarts: learnedDouble ? 50 : 0, doubleOrder, favouriteDouble: doubleOrder[0] ?? null, favouriteDoubles,
+                    doubleSource: set ? 'set' : learnedDouble ? 'history' : null,
                     mainTreble: player?.preferences?.mainTreble && player.preferences.mainTreble !== 'auto' ? player.preferences.mainTreble : null,
                     trebleSource: player?.preferences?.mainTreble && player.preferences.mainTreble !== 'auto' ? 'set' : null,
                     learnedDouble, learnedTreble: null,
@@ -880,7 +901,7 @@ http.createServer((req, res) => {
                 const best = same.length ? (lower ? Math.min(...same.map(e => e.score)) : Math.max(...same.map(e => e.score))) : null;
                 const entry = { ...json, id: `t${++seq}`, player: { id: json.player.id, nickname: players.find(p => p.id === json.player.id)?.nickname ?? '?' }, createdAt: new Date().toISOString() };
                 list.unshift(entry);
-                return send(res, 201, { ...entry, isRecord: best !== null && (lower ? json.score < best : json.score > best), previousBest: best, newBadges: process.env.BADGE ? [{ id: 'one-two-one', title: 'One-Two-One', description: 'Check out 121', group: 'training', tier: 1, tiers: 3 }] : [] });
+                return send(res, 201, { ...entry, isRecord: best !== null && (lower ? json.score < best : json.score > best), previousBest: best, ...goalsAfterTraining(json.kind), newBadges: process.env.BADGE ? [{ id: 'one-two-one', title: 'One-Two-One', description: 'Check out 121', group: 'training', tier: 1, tiers: 3 }] : [] });
             }
             if (req.method === 'DELETE') { const i = list.findIndex(e => e.id === rt[1]); if (i >= 0) list.splice(i, 1); return send(res, 200, {}); }
             const kind = url.searchParams.get('kind');
@@ -1056,6 +1077,8 @@ http.createServer((req, res) => {
             ] });
         }
         if (path.startsWith('/api/stats/badges/game/')) return send(res, 200, { finished: true, players: [], club: process.env.CLUB_BADGES ? [{ ...publicClubBadge(CLUB_BADGES.find(b => b.id === 'clubGames-100')), earnedAt: new Date(), nickname: 'Anna' }] : [] });
+        // the clubs a club is connected with, to play shared tournaments: none here
+        if (req.method === 'GET' && /^\/api\/clubs\/[^/]+\/connections(\/connectable)?$/.test(path)) return send(res, 200, []);
         console.log('unhandled', req.method, path);
         send(res, 200, req.method === 'GET' ? [] : {});
     });

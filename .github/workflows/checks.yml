@@ -2,10 +2,16 @@ name: checks
 permissions:
   contents: read
 
-# Everything that has to pass before a version is built: on every pull
-# request, and called by the workflows of develop and of a release
+# Everything that has to pass before a version is built: called by the
+# workflow of develop (every commit, once) and by a manual rebuild of a
+# release, and on pull requests into develop (Dependabot). A pull request into
+# main has none of its own: its commits are those of develop, already checked,
+# and main's branch protection requires those results ("checks / api", "checks
+# / ui", "checks / e2e" of the commit) before it can be merged.
 on:
   pull_request:
+    branches-ignore:
+      - main
   workflow_call:
 
 jobs:

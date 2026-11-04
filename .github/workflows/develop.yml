@@ -9,9 +9,11 @@ on:
     branches:
       - develop
 
+# a running check finishes (a release is opened from its commit and needs its result);
+# pushes in the meantime wait, and only the newest of them runs
 concurrency:
   group: develop
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   checks:

@@ -11,11 +11,15 @@ import GameSetupMemory from '../game_config/config_components/game.setup.memory'
 import DartBoard from '../games/common/dartboard';
 import DartKeypad from '../games/common/dart.keypad';
 import useInputMode, { INPUTS } from '../games/common/use.input.mode';
+import useAutoSend from '../games/common/use.auto.send';
 import Celebration from '../badges/celebration';
 import NewBadges from '../badges/new.badges';
 import { ClubBadgeNews } from '../badges/club.badges';
+import PracticeGoalNews from '../goals/practice.goal.news';
 import UpLink from '../elements/up.link';
 import RulesTrainingBoard from './rules.training.board';
+import RulesDoubles from './rules.doubles';
+import RulesProgress from './rules.progress';
 import LiveHero from '../games/common/live.hero';
 import RulesService from '../../services/rules.service';
 import { trainingOf } from '../../rules/trainings';
@@ -48,10 +52,11 @@ const writeRunning = (kind, running) => {
     }
 };
 
-const Status = ({ items }) => (
+// changed: the labels whose values an undo just changed, flashing once (again with every undo: flash)
+const Status = ({ items, changed = [], flash = 0 }) => (
     <div className="rules-status">
         {items.map(([label, value]) => (
-            <div key={label} className="rules-status-item">
+            <div key={changed.includes(label) ? `${label}-${flash}` : label} className={`rules-status-item ${changed.includes(label) ? 'is-undone' : ''}`}>
                 <span className="rules-status-value">{value}</span>
                 <span className="rules-status-label">{label}</span>
             </div>
@@ -87,6 +92,7 @@ const TrainingResult = ({ definition, finished, actions }) => {
                     : t('Your first {{title}}: this is your best now.', { title: definition.title });
     const options = (definition.options ?? []).map(option => option.values.find(value => value.value === finished.settings?.[option.key])?.label).filter(Boolean);
     const id = player.id ?? 'player';
+    const doubles = definition.doubles && finished.darts ? definition.doubles(replayTraining(definition, finished).state) : null;
 
     return (
         <>
@@ -105,10 +111,13 @@ const TrainingResult = ({ definition, finished, actions }) => {
                 rows={short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true }))}
                 figures={{ [id]: Object.fromEntries(short.map(([, value], index) => [`figure-${index}`, value])) }}
                 actions={actions}
-                // the long figures in the header too, under the player
-                footer={long.map(([label, value]) => (
-                    <p key={label} className="text-center text-subtle fs-7 mt-3 mb-0"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
-                ))}
+                // the long figures in the header too, under the player, and what every double took
+                footer={<>
+                    {long.map(([label, value]) => (
+                        <p key={label} className="text-center text-subtle fs-7 mt-3 mb-0"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
+                    ))}
+                    {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} className="mt-3" />}
+                </>}
             />
         </>
     );
@@ -155,7 +164,12 @@ const TrainingWaysOut = ({ ways }) => {
                     </div>
                 </div>
             }
-            {routes.length > 0 && profile?.doubleSource === 'set' && <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</span>}
+            {routes.length > 0 && profile?.doubleSource === 'set' &&
+                <span className="x01-ways-note">
+                    {(profile.favouriteDoubles?.length ?? 0) > 1
+                    ? t('Your favourite doubles first: {{doubles}} (set in the profile).', { doubles: profile.favouriteDoubles.join(', ') })
+                    : <>{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</>}
+                </span>}
             {routes.length > 0 && profile?.doubleSource === 'history' && profile.doubles?.[0] &&
                 <span className="x01-ways-note">{t('Your best doubles first: {{double}} hit {{rate}} % of {{total}} darts in your games.', { double: profile.doubles[0].double, rate: profile.doubles[0].rate, total: profile.doubles[0].total })}</span>}
         </div>
@@ -167,7 +181,8 @@ const RulesTraining = () => {
     const definition = trainingOf(kind);
     const memoryKey = `rules.${kind}`;
     const [remembered, setRemembered] = useState(() => loadSetup(memoryKey));
-    // { player, settings, darts } while training
+    // { player, settings, darts, pending } while training; pending: the darts of the visit
+    // tapped on the board or the keypad, not entered yet (as in a game)
     const [running, setRunning] = useState(() => readRunning(kind));
     const [players, setPlayers] = useState([]);
     const [settings, setSettings] = useState(() => ({ ...(definition ? settingsOf(definition, {}) : {}), ...(remembered?.settings ?? {}) }));
@@ -175,6 +190,8 @@ const RulesTraining = () => {
     // the training just finished: { saved, error, saving }
     const [finished, setFinished] = useState(null);
     const [celebration, setCelebration] = useState(null);
+    // the last undo, so the restored state shows what changed: { count, status (before it) }
+    const [undone, setUndone] = useState(null);
     // the scoreboard reloads after a training is saved
     const [boardVersion, setBoardVersion] = useState(0);
     const toast = useRef(null);
@@ -183,7 +200,24 @@ const RulesTraining = () => {
 
     useEffect(() => writeRunning(kind, running), [kind, running]);
 
-    const replay = useMemo(() => running && definition ? replayTraining(definition, running) : null, [running, definition]);
+    // with the board or the keypad a visit is entered as a whole ("Enter score"); Hit and Miss count at once
+    const staged = definition?.input !== 'hitmiss';
+    const pending = useMemo(() => running?.pending ?? [], [running]);
+    // where the training stands with the darts of the visit already counted, so the figures and
+    // the ways out follow every dart tapped
+    const replay = useMemo(() => running && definition ? replayTraining(definition, { ...running, darts: [...running.darts, ...pending] }) : null, [running, pending, definition]);
+    // the visit goes by itself after its third dart, when the player wants it (as in a game)
+    useAutoSend(staged ? pending : []);
+    // Enter enters the visit, also after darts were tapped on the board
+    useEffect(() => {
+        if (!staged) return undefined;
+        const enter = (e) => {
+            if (e.key !== 'Enter' || e.target.closest?.('form, button, input, [role="dialog"]')) return;
+            document.getElementById('submitThrows')?.click();
+        };
+        document.addEventListener('keyup', enter);
+        return () => document.removeEventListener('keyup', enter);
+    }, [staged]);
     // the ways out of a checkout training, as the player wants them in X01, with their own doubles
     const [preferences] = useGamePreferences();
     const [checkoutProfile, setCheckoutProfile] = useState(null);
@@ -203,7 +237,7 @@ const RulesTraining = () => {
     }, [replay, definition, preferences.waysOut, checkoutProfile]);
 
     const saveResult = useCallback(async (done, attempt) => {
-        setFinished({ saving: true, result: done.result, player: attempt.player, settings: attempt.settings });
+        setFinished({ saving: true, result: done.result, player: attempt.player, settings: attempt.settings, darts: attempt.darts });
         try {
             const saved = await RulesService.createTraining({
                 kind,
@@ -214,7 +248,7 @@ const RulesTraining = () => {
                 darts: attempt.darts.map(String),
                 startedAt: attempt.startedAt,
             });
-            setFinished({ saved, result: done.result, player: attempt.player, settings: attempt.settings });
+            setFinished({ saved, result: done.result, player: attempt.player, settings: attempt.settings, darts: attempt.darts });
             setBoardVersion(version => version + 1);
             const badgeGroups = saved.newBadges?.length ? [{ player: attempt.player, badges: saved.newBadges }] : [];
             if (saved.isRecord || badgeGroups.length) {
@@ -226,17 +260,18 @@ const RulesTraining = () => {
                 });
             }
         } catch {
-            setFinished({ error: true, result: done.result, player: attempt.player, settings: attempt.settings });
+            setFinished({ error: true, result: done.result, player: attempt.player, settings: attempt.settings, darts: attempt.darts });
         }
     }, [kind, definition]);
 
     // over: saved once, and the page shows the result
     useEffect(() => {
-        if (!replay?.done || !running) return;
+        // a visit that ends the training is entered first
+        if (!replay?.done || !running || pending.length) return;
         const attempt = running;
         setRunning(null);
         saveResult(replay, attempt);
-    }, [replay, running, saveResult]);
+    }, [replay, running, pending, saveResult]);
 
     if (!definition) return <Navigate replace to="/training/more" />;
 
@@ -250,13 +285,38 @@ const RulesTraining = () => {
         setRunning({ player, settings: prepared, darts: [], startedAt: new Date().toISOString() });
     };
 
+    // the darts of the visit so far (an attempt of a checkout training may end before its third)
+    const inVisitOf = (state, count) => (definition.inVisit ? definition.inVisit(state, { settings: replay.settings }) : count % 3);
+    // the visit is complete: three darts, or the attempt (or the training) ended with fewer
+    const visitFull = staged && pending.length > 0 && (replay.done || inVisitOf(replay.state, running.darts.length + pending.length) === 0);
+
     const throwDart = (value) => {
-        if (!running || replay?.done) return;
+        if (!running || replay?.done || visitFull) return;
         const dart = definition.input === 'hitmiss' ? value : parseDart(String(value)).field;
-        setRunning({ ...running, darts: [...running.darts, dart] });
+        setUndone(null);
+        if (staged) setRunning({ ...running, pending: [...pending, dart] });
+        else setRunning({ ...running, darts: [...running.darts, dart] });
     };
-    const undoDart = () => running?.darts.length && setRunning({ ...running, darts: running.darts.slice(0, -1) });
+    // Enter score: the darts of the visit count; the ones not tapped are misses
+    const enterVisit = () => {
+        if (!running || !pending.length) return;
+        const darts = [...running.darts, ...pending];
+        while (!visitFull && darts.length - running.darts.length < 3) {
+            const after = replayTraining(definition, { ...running, darts });
+            if (after.done || inVisitOf(after.state, darts.length) === 0) break;
+            darts.push('0');
+        }
+        setUndone(null);
+        setRunning({ ...running, darts, pending: [] });
+    };
+    const undoDart = () => {
+        if (!running?.darts.length && !pending.length) return;
+        setUndone(last => ({ count: (last?.count ?? 0) + 1, status: definition.status(replay.state, { settings: replay.settings }) }));
+        if (pending.length) setRunning({ ...running, pending: pending.slice(0, -1) });
+        else setRunning({ ...running, darts: running.darts.slice(0, -1) });
+    };
     const quit = () => {
+        setUndone(null);
         setRunning(null);
         setFinished(null);
     };
@@ -266,33 +326,63 @@ const RulesTraining = () => {
     // the training under way
     if (running && replay && !replay.done) {
         const ctx = { settings: replay.settings };
-        const lastDarts = running.darts.slice(-3);
+        // the darts of this visit: an attempt of a checkout training may end before its third
+        const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
+        // with the board or the keypad: the darts tapped, not entered yet
+        const visitDarts = staged ? pending : inVisit ? running.darts.slice(-inVisit) : [];
+        const canUndo = running.darts.length > 0 || pending.length > 0;
+        const status = definition.status(replay.state, ctx);
+        const changed = undone ? status.filter(([, value], index) => String(undone.status[index]?.[1]) !== String(value)).map(([label]) => label) : [];
+        const target = definition.target(replay.state, ctx);
+        const doubles = definition.doubles ? definition.doubles(replay.state, ctx) : null;
         return (
-            <div className="container-fluid bg-transparent border-0 x01-game-page">
+            // x01-live: the gutters of a game, so nothing is wider than a phone
+            <div className="container-fluid bg-transparent border-0 x01-game-page x01-live">
                 <LiveHero
                     rulesId={kind}
                     title={[definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean)].join(' · ')}
-                    subtitle={definition.target(replay.state, ctx)}
+                    // the double to throw at is the big figure already: not again under the title
+                    subtitle={definition.heroTarget || definition.noteTarget ? undefined : target}
                     rows={[{
                         player: running.player,
                         isTurn: true,
-                        line: definition.status(replay.state, ctx).map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
-                        score: definition.hero ? definition.hero(replay.state, ctx) : definition.target(replay.state, ctx),
-                        // the way out to throw, as in X01; without one the target
+                        line: status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
+                        // the big figure, with its unit smaller beside it (Bob's 27: "441 points")
+                        score: definition.hero
+                            ? definition.heroUnit
+                                ? <>{definition.hero(replay.state, ctx)}<span className="rules-hero-unit">{definition.heroUnit(replay.state, ctx)}</span></>
+                                : definition.hero(replay.state, ctx)
+                            : target,
+                        // the double to throw at in the accent, played again when it changes (also by an undo)
+                        scoreClass: definition.heroTarget ? 'rules-hero-target' : '',
+                        scoreKey: definition.heroTarget ? `${target}-${undone?.count ?? 0}` : undefined,
+                        // the way out to throw, as in X01; without one the target (or what the training stands at)
                         below: ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
                             : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
-                                : <span className="x01-live-route">{definition.target(replay.state, ctx)}</span>,
+                                : definition.noteTarget
+                                    // the double to throw at under the points, in the accent (played again when it
+                                    // changes, also by an undo), and the curve of the points so far
+                                    ? <span className="rules-hero-below">
+                                        <span key={`${target}-${undone?.count ?? 0}`} className="rules-hero-double">{definition.heroNote(replay.state, ctx)}</span>
+                                        {definition.progress && <RulesProgress points={definition.progress(replay.state, ctx)} length={definition.progressLength} />}
+                                    </span>
+                                    : definition.heroNote
+                                        // the score of the training (e.g. the darts so far): big and white, not a small way out
+                                        ? <span className="x01-live-route rules-hero-note tabular-nums">{definition.heroNote(replay.state, ctx)}</span>
+                                        : <span className="x01-live-route">{target}</span>,
                     }]}
                 />
-                <div className="row g-4 justify-content-center">
+                <div className="row g-4 justify-content-center x01-play">
                     <div className="col-12 col-lg-7">
+                        {/* every double in turn: done in the colour of what it took, the one now in the accent */}
+                        {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} live className="mb-3" />}
                         {definition.input === 'hitmiss'
                             ? <div className="rules-hitmiss">
                                 <Button label={t('Hit')} icon="pi pi-check" onClick={() => throwDart('H')} />
                                 <Button label={t('Miss')} icon="pi pi-times" severity="secondary" onClick={() => throwDart('M')} />
                             </div>
                             : input === 'keypad'
-                                ? <DartKeypad canThrow onDart={throwDart} onClearLast={undoDart} entered={running.darts.length % 3} />
+                                ? <DartKeypad canThrow={!visitFull} onDart={throwDart} onClearLast={undoDart} entered={pending.length} />
                                 : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} markers={[]} /></div></div>}
                     </div>
                     <div className="col-12 col-lg-5 d-flex flex-column gap-4">
@@ -307,18 +397,52 @@ const RulesTraining = () => {
                                 aria-label={t('Enter the darts with')}
                             />
                         )}>
-                            <Status items={definition.status(replay.state, ctx)} />
-                            <div className="rules-darts-row mt-3" aria-label={t('Last darts')}>
-                                {[0, 1, 2].map(index => <span key={index} className={lastDarts[index] ? '' : 'is-empty'}>{lastDarts[index] === 'H' ? t('Hit') : lastDarts[index] === 'M' ? t('Miss') : lastDarts[index] ?? '–'}</span>)}
-                            </div>
+                            <Status items={status} changed={changed} flash={undone?.count} />
+                            {/* the three darts of the visit: hit or miss (or the field), the next one framed */}
+                            <ol className="rules-visit mt-3" aria-label={t('Darts of this visit')}>
+                                {[0, 1, 2].map(index => {
+                                    const dart = visitDarts[index];
+                                    const kind = dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : dart ? 'is-thrown' : index === visitDarts.length && !visitFull ? 'is-next' : 'is-empty';
+                                    const flash = undone && index === visitDarts.length;
+                                    return (
+                                        <li key={flash ? `${index}-${undone.count}` : index} className={`rules-visit-dart ${kind} ${flash ? 'is-undone' : ''}`} aria-current={kind === 'is-next' ? 'step' : undefined}>
+                                            <span className="rules-visit-number">{t('Dart {{number}}', { number: index + 1 })}</span>
+                                            <span className="rules-visit-mark">
+                                                {dart === 'H' ? <><i className="pi pi-check" aria-hidden="true" />{t('Hit')}</>
+                                                    : dart === 'M' ? <><i className="pi pi-times" aria-hidden="true" />{t('Miss')}</>
+                                                        : dart ?? '–'}
+                                            </span>
+                                        </li>
+                                    );
+                                })}
+                            </ol>
+                            {/* after an undo: where it stands again */}
+                            {undone && <p key={undone.count} className="rules-undone" role="status"><i className="pi pi-undo" aria-hidden="true" />{t('Dart {{dart}} undone: {{target}} again', { dart: visitDarts.length + 1, target })}</p>}
                             {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}
-                            <div className="d-flex gap-2 justify-content-center mt-3">
-                                <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!running.darts.length} onClick={undoDart} />
+                            <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
+                                {staged && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" disabled={!pending.length} onClick={enterVisit} />}
+                                <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!canUndo} onClick={undoDart} />
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />
                             </div>
                         </Panel>
                     </div>
                 </div>
+                {/* on a phone the panel is below the board or the keypad: the darts of the visit,
+                    where the training stands and Undo float above the menu bar, as in X01 */}
+                {definition.input !== 'hitmiss' &&
+                    <div className="x01-visit-bar is-floating rules-visit-bar d-md-none">
+                        <div className="x01-visit-bar-darts" aria-hidden="true">
+                            {[0, 1, 2].map(index => <span key={index} className={visitDarts[index] ? '' : 'is-empty'}>{visitDarts[index] ?? '–'}</span>)}
+                        </div>
+                        <div className="x01-visit-total" aria-live="polite">
+                            {status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>)}
+                        </div>
+                        <div className="x01-visit-actions">
+                            <Button label={t('Enter score')} icon="pi pi-check" className="justify-content-center x01-enter" disabled={!pending.length} onClick={enterVisit} />
+                            <Button icon="pi pi-undo" severity="danger" className="x01-undo" aria-label={t('Undo dart')} disabled={!canUndo} onClick={undoDart} />
+                        </div>
+                    </div>
+                }
                 <Toast ref={toast} position="bottom-right" />
             </div>
         );
@@ -351,6 +475,12 @@ const RulesTraining = () => {
                         />
                     </div>
                 }
+                {/* what it did for one's own weekly goals, as wide as the result */}
+                {(finished?.saved?.goalsReached?.length > 0 || finished?.saved?.practiceGoals?.some(goal => !goal.reached)) &&
+                    <div className="col-12 col-xl-10">
+                        <PracticeGoalNews goals={finished.saved.practiceGoals} reached={finished.saved.goalsReached ?? []} />
+                    </div>
+                }
                 {(finished?.saved?.newBadges?.length > 0 || finished?.saved?.clubBadges?.length > 0) &&
                     // on a panel of their own, as wide as the result; the club's below the player's
                     <div className="col-12 col-xl-10">
@@ -362,7 +492,8 @@ const RulesTraining = () => {
                         </Panel>
                     </div>
                 }
-                <div className="col-12 col-xl-6">
+                {/* after a training the scoreboard comes first on a narrow screen, where the new entry is seen */}
+                <div className="col-12 col-xl-6 order-2 order-xl-1">
                     <Panel header={definition.title} icons={rulesButton}>
                         {rules}
                         {/* the open rules start with the description already */}
@@ -400,7 +531,7 @@ const RulesTraining = () => {
                         />
                     </Panel>
                 </div>
-                <div className="col-12 col-xl-4">
+                <div className={`col-12 col-xl-4 ${finished ? 'order-1' : 'order-3'} order-xl-2`}>
                     <RulesTrainingBoard definition={definition} version={boardVersion} highlight={finished?.saved?.id} />
                 </div>
             </div>

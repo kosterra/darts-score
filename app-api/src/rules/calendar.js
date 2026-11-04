@@ -60,6 +60,22 @@ export const otherMonth = (month, by) => {
 export const weekdayOf = (key) => noonOf(key).getUTCDay();
 
 /**
+ * The week of a date, Monday to Sunday in the local time of whoever asks (the
+ * server's for the weekly mails and goals): from the Monday at midnight to the
+ * next Monday at midnight (not included), and its key, the Monday's day.
+ * Built from the calendar day, so a week with a change of the clocks is still
+ * one week.
+ */
+export const weekRange = (date) => {
+    const at = new Date(date);
+    const from = new Date(at.getFullYear(), at.getMonth(), at.getDate() - ((at.getDay() + 6) % 7));
+    const until = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 7);
+    return { from, until, key: dayKey(from) };
+};
+// the Monday of the week of a date: "2026-11-02"
+export const weekKey = (date) => weekRange(date).key;
+
+/**
  * Why the weekly club nights cannot be kept like this, or null.
  * nights: [{ weekday, start, end, note }]
  */

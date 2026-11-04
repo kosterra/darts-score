@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
 import { progressOf, replayGame, replayTraining, withGameState } from './engine';
 import { GAMES, GOLF, HALVE_IT, KILLER, SHANGHAI, TACTICS } from './games';
-import { BOBS_27, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
+import { BOBS_27, bobsProgress, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
 
 const visit = (player, ...darts) => ({ player, darts });
 const game = (definition, visits, settings = {}, players = ['a', 'b']) => ({ players, settings, visits });
@@ -160,11 +160,60 @@ describe('trainings', () => {
         expect(missed.state.score).toBe(25);
     });
 
+    it("Bob's 27 says how close every step is to the end, a hit in the visit making its double safe", () => {
+        const missing = (doubles) => bobsProgress(train(BOBS_27, Array(3 * doubles).fill('M')).state);
+        expect(missing(4).map(({ score, risk }) => [score, risk])).toEqual([
+            [27, 'safe'], [25, 'safe'], [21, 'warn'], [15, 'warn'], [7, 'danger'],
+        ]);
+        // on 7 at D5 (10): one hit and the double is safe, the next three misses end it
+        const hit = bobsProgress(train(BOBS_27, [...Array(12).fill('M'), 'H']).state);
+        expect(hit.at(-1)).toEqual({ score: 17, risk: 'warn' });
+        expect(BOBS_27.hero(train(BOBS_27, []).state)).toBe(27);
+        expect(BOBS_27.heroNote(train(BOBS_27, []).state)).toBe('D1');
+    });
+
     it("Bob's 27 ends at 0 or below", () => {
         const darts = Array(3 * 6).fill('M');
         const result = train(BOBS_27, darts);
         expect(result.done).toBe(true);
         expect(result.result.failed).toBe(true);
+    });
+
+    it("Bob's 27 shows the hits of every double, the one to throw at and the darts of the visit", () => {
+        const { state } = train(BOBS_27, ['H', 'M', 'H', 'M', 'M', 'M', 'H']);
+        const cells = BOBS_27.doubles(state);
+        expect(cells).toHaveLength(21);
+        expect(cells.slice(0, 3)).toEqual([
+            { name: 'D1', short: '1', value: 2, tone: 2, current: false },
+            { name: 'D2', short: '2', value: 0, tone: 0, current: false },
+            { name: 'D3', short: '3', value: null, tone: null, current: true },
+        ]);
+        expect(cells[20]).toMatchObject({ name: 'Bull', short: 'Bull', value: null, current: false });
+        expect(BOBS_27.inVisit(state)).toBe(1);
+        expect(BOBS_27.heroNote(state)).toBe('D3');
+        // 27 + 4 for two hits of D1, − 4 for none at D2, + 6 for a hit of D3
+        expect(BOBS_27.hero(state)).toBe(33);
+        expect(BOBS_27.heroUnit(state)).toBe('points');
+    });
+
+    it("Bob's 27 over at 0: no double to throw at any more", () => {
+        const { state } = train(BOBS_27, Array(18).fill('M'));
+        const cells = BOBS_27.doubles(state);
+        expect(cells.some(cell => cell.current)).toBe(false);
+        expect(cells.filter(cell => cell.value === 0)).toHaveLength(state.index);
+    });
+
+    it('Doubles around the board rates the darts every double took', () => {
+        const { state } = train(DOUBLES_AROUND, ['H', 'M', 'H', 'M', 'M', 'M', 'M', 'H']);
+        expect(DOUBLES_AROUND.doubles(state).slice(0, 4).map(cell => [cell.value, cell.tone, cell.current])).toEqual([[1, 3, false], [2, 2, false], [5, 0, false], [null, null, true]]);
+    });
+
+    it('the checkout trainings count the darts of the visit from the start of the attempt', () => {
+        // 121 − 120 leaves 1, a bust after two darts: the next attempt starts with a new visit
+        expect(CHECKOUT_121.inVisit(train(CHECKOUT_121, ['T20', 'T20'], { attempts: 2, darts: 9 }).state)).toBe(0);
+        expect(CHECKOUT_121.inVisit(train(CHECKOUT_121, Array(4).fill('S1'), { attempts: 2, darts: 9 }).state)).toBe(1);
+        expect(CATCH_40.inVisit(train(CATCH_40, ['T11', 'D14', 'S1']).state)).toBe(1);
+        expect(RANDOM_CHECKOUTS.inVisit(train(RANDOM_CHECKOUTS, ['S1', 'S1'], { attempts: 2, targets: [40, 32] }).state)).toBe(2);
     });
 
     it('121 Checkout goes up when done and down when not', () => {

@@ -41,6 +41,8 @@ const percent = (part, whole) => whole ? `${Math.round(part * 100 / whole)} %` :
 const weeks = (count) => tn(count, '{{count}} week', '{{count}} weeks');
 
 const STREAK_FLAMES = 5;
+// below this many rated games the club rating is still settling (as in app-api utils/compare.js)
+const RATING_MIN_GAMES = 5;
 
 // the profile opens with the selected club's games
 const DEFAULT_FILTERS = {
@@ -99,6 +101,25 @@ const scrollTo = (id) => (event) => {
 };
 const scrollToBadges = scrollTo('badges');
 const scrollToShame = scrollTo('hall-of-shame');
+const scrollToRating = scrollTo('rating');
+
+/**
+ * The club rating as a fact of the header: the rating with the place on the
+ * club's board, or that it is still settling. It always counts the club's
+ * games, which a hint says when the page shows all clubs.
+ */
+const ratingFact = (rating, allClubs) => {
+    if (!rating) return '–';
+    const value = rating.provisional
+        ? t('still settling ({{games}} of {{min}} games)', { games: rating.games, min: RATING_MIN_GAMES })
+        : <a href="#rating" onClick={scrollToRating}>{rating.rank ? `${formatNumber(rating.rating)} · ${t('{{rank}} of {{count}}', { rank: rating.rank, count: rating.of })}` : formatNumber(rating.rating)}</a>;
+    return (
+        <>
+            {value}
+            {allClubs && <span className="d-block text-faint fs-9 fw-normal">{t("The club rating always counts this club's games.")}</span>}
+        </>
+    );
+};
 
 /**
  * A player's profile: who they are, how they are doing (games, wins, streak,
@@ -173,6 +194,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
         )],
         [t('Best streak'), weeks(streak.best)],
         [t('Badges'), badges ? <a href="#badges" onClick={scrollToBadges}>{badges.earnedCount}{' '}{t('of')}{' '}{badges.total}</a> : '–'],
+        [t('Club rating'), ratingFact(stats.rating, filters.scope === 'all')],
     ];
 
     const x01 = kpis.x01 ?? {};

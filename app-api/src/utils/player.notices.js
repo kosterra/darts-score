@@ -124,14 +124,15 @@ export const noteTrainingRecords = async ({ req, player, title, score, better, f
  * Who moved up past whom in the club rating with a game: [{ id, place,
  * passed: [ids] }] for the players of the game who climbed, and per player
  * passed the ones who passed them. Places are only taken from
- * RATING_MIN_GAMES games on, when a rating is no longer provisional.
+ * RATING_MIN_GAMES games on, when a rating is no longer provisional, and
+ * only among the club's members when `among` names them (as its board does).
  * tallies: the club's game tallies; sourceId: the game.
  */
-export const ratingMoves = (tallies, sourceId, { clubRatings, minGames }) => {
+export const ratingMoves = (tallies, sourceId, { clubRatings, minGames, among = null }) => {
     const game = tallies.find(tally => tally.sourceId === sourceId);
-    if (!game || game.friendly || (game.winners ?? []).length !== 1) return { climbed: [], passedBy: new Map(), after: [] };
+    if (!game || game.friendly || !(game.winners ?? []).length) return { climbed: [], passedBy: new Map(), after: [] };
     const placesOf = (ratings) => [...ratings]
-        .filter(([, entry]) => entry.games >= minGames)
+        .filter(([id, entry]) => entry.games >= minGames && (!among || among.has(id)))
         .sort((a, b) => b[1].rating - a[1].rating)
         .map(([id]) => id);
     const before = placesOf(clubRatings(tallies.filter(tally => tally.sourceId !== sourceId)));
@@ -158,9 +159,13 @@ export const ratingMoves = (tallies, sourceId, { clubRatings, minGames }) => {
  */
 export const noteRatingChanges = async (clubId, sourceId) => {
     const db = (await import('../models/db.model.js')).default;
-    const { clubRatings, RATING_MIN_GAMES } = await import('./compare.js');
-    const tallies = await db.clubTally.find({ club: clubId }, 'at players winners friendly sourceId').lean();
-    const { climbed, passedBy, after } = ratingMoves(tallies, sourceId, { clubRatings, minGames: RATING_MIN_GAMES });
+    const { clubRatings, ratingTallies, RATING_MIN_GAMES } = await import('./compare.js');
+    const [tallies, members] = await Promise.all([
+        ratingTallies(clubId),
+        db.player.find({ clubs: clubId, guest: { $ne: true } }, '_id').lean(),
+    ]);
+    const among = new Set(members.map(member => String(member._id)));
+    const { climbed, passedBy, after } = ratingMoves(tallies, sourceId, { clubRatings, minGames: RATING_MIN_GAMES, among });
     if (!climbed.length) return;
     const ids = [...new Set([...climbed.map(entry => entry.id), ...passedBy.keys()])];
     const players = new Map((await db.player.find({ _id: { $in: ids } })).map(player => [String(player._id), player]));

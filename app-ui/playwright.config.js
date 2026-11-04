@@ -29,6 +29,8 @@ export default defineConfig({
     ],
     webServer: [
         { command: `node e2e/mock/server.mjs`, port: MOCK, env: { MOCK_PORT: String(MOCK) }, reuseExistingServer: !process.env.CI, stdout: 'pipe', timeout: 60_000 },
-        { command: `npx vite --port ${UI} --strictPort`, port: UI, env: { API_PROXY_TARGET: `http://localhost:${MOCK}` }, reuseExistingServer: !process.env.CI, stdout: 'pipe', timeout: 120_000 },
+        // without V8's fast API calls: Node 24 (in Playwright's image) can abort with "Lazy deopt after a
+        // fast API call" while Vite sends a large module, which took the server down mid-run
+        { command: `node --no-turbo-fast-api-calls node_modules/vite/bin/vite.js --port ${UI} --strictPort`, port: UI, env: { API_PROXY_TARGET: `http://localhost:${MOCK}` }, reuseExistingServer: !process.env.CI, stdout: 'pipe', timeout: 120_000 },
     ],
 });

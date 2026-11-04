@@ -7,6 +7,7 @@ import { viewOf } from './game.view.js';
 import { syncClubAfterGame } from './club.badge.service.js';
 import { levelInputs, playerLevel } from './levels.js';
 import { progressNotices, tellPlayer } from './player.notices.js';
+import { checkGoalsAfterGame } from './practice.goals.js';
 
 export const GAME_MODELS = {
     x01: () => db.x01,
@@ -122,6 +123,8 @@ export const syncGameBadges = async (clubId, game, type = null) => {
         const ids = (game.players ?? []).filter(id => db.mongoose.isValidObjectId(id));
         const players = await db.player.find({ _id: { $in: ids }, ...knownInClub(clubId), guest: { $ne: true } });
         for (const player of players) await syncPlayerBadges(player, { notify: true });
+        // and the weekly goals of its players with a login
+        await checkGoalsAfterGame(game);
     } catch (err) {
         logger.error(err, 'Failed to update badges after a game');
     }
@@ -140,6 +143,7 @@ export const syncTournamentGameBadges = async (game, type = null) => {
         // personal badges for everyone who played, regardless of which club they belong to
         const players = await db.player.find({ _id: { $in: ids }, guest: { $ne: true } });
         for (const player of players) await syncPlayerBadges(player, { notify: true });
+        await checkGoalsAfterGame(game);
         if (!type || !game.tournament?.id) return [];
         const tournament = await db.tournament.findById(game.tournament.id, 'club invitedClubs entries').lean();
         if (!tournament) return [];

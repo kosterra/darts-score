@@ -9,8 +9,8 @@ import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 import { nameOf, roundName } from './tournament.words';
 
-// what a match says next to its players
-const stateOf = (match) => ({
+// what a match says next to its players; one called to a board says which
+const stateOf = (match) => (match.status === 'ready' && match.board ? { label: t('Board {{number}}', { number: match.board }), className: 'is-ready' } : null) ?? ({
     running: { label: t('Live'), className: 'is-live' },
     walkover: { label: t('Walkover'), className: 'is-quiet' },
     bye: { label: t('Bye'), className: 'is-quiet' },
@@ -25,6 +25,9 @@ const PlayerRow = ({ tournament, match, side }) => {
     const score = match.score?.sets?.[side] ?? match.score?.legs?.[side];
     const mine = id && id === tournament.myPlayer;
     const player = id ? tournament.players?.[id] : null;
+    // a match still to be played: the favourite's chance to win, from the club rating
+    const chance = match.status === 'ready' && id ? match.chances?.[id] : undefined;
+    const favourite = chance > 50;
     return (
         <span className={`bracket-player ${won ? 'is-winner' : ''} ${lost ? 'is-loser' : ''} ${mine ? 'is-mine' : ''}`}>
             <span className="bracket-name d-flex align-items-center gap-2 min-w-0">
@@ -34,6 +37,7 @@ const PlayerRow = ({ tournament, match, side }) => {
                 {seed && <span className="bracket-seed" title={t('Seed {{seed}}', { seed })}>{seed}</span>}
             </span>
             {score !== undefined && <span className="bracket-score">{score}</span>}
+            {score === undefined && favourite && <span className="bracket-chance" title={t('Chance to win')}>{chance} %</span>}
         </span>
     );
 };

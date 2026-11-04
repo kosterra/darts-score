@@ -71,6 +71,9 @@ export default (mongoose) => {
       // "auto" learns it from their games, otherwise e.g. "D16" or "T19"
       preferences: {
         favouriteDouble: { type: String, default: 'auto' },
+        // the next doubles to finish on after the favourite ("auto": the ones from the games)
+        secondDouble:    { type: String, default: 'auto' },
+        thirdDouble:     { type: String, default: 'auto' },
         mainTreble:      { type: String, default: 'auto' },
         // whether the darts fly onto the board to tap (a game may decide for everyone),
         // and how their flights look ('auto': the player's colour in the game)

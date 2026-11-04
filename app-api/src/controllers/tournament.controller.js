@@ -3,10 +3,12 @@ import db from '../models/db.model.js';
 import { CLUB_ROLES } from '../models/user.model.js';
 import { MIN_PLAYERS, SHOWN_DAYS_AFTER } from '../rules/tournaments.js';
 import {
-    answerEntry, cancelTournament, checkSetup, closeRegistration, countEligible, holdDraw, openRegistration,
+    answerEntry, cancelTournament, changeBoards, checkSetup, closeRegistration, countEligible, holdDraw, holdMatch, moveMatch, openRegistration,
     readReplyToken, scheduleError, setResult, startMatch, tournamentView,
 } from '../utils/tournaments.js';
+import { screenToken, sendToPairing } from '../utils/screens.js';
 import { connectedClubIds } from '../utils/club.links.js';
+import { withChances } from '../utils/compare.js';
 
 /**
  * The tournaments of the selected club: its admins set them up, open the
@@ -51,7 +53,11 @@ const loadShared = async (req, res) => {
     return tournament;
 };
 
-const answerWith = async (req, res, tournament, status = 200) => res.status(status).json(await tournamentView(tournament, { playerId: await myPlayerId(req) }));
+// with the chances on the open matches, from the rating of every club taking part
+const answerWith = async (req, res, tournament, status = 200) => res.status(status).json(await withChances(
+    await tournamentView(tournament, { playerId: await myPlayerId(req) }),
+    [tournament.club, ...(tournament.invitedClubs ?? [])],
+));
 
 // which connected clubs are invited to a shared tournament, from the body:
 // undefined leaves them unchanged; only clubs the host is connected with are kept.
@@ -120,7 +126,9 @@ export const create = async (req, res) => {
             if (problem) return res.status(422).json({ message: problem });
         }
         const invitedClubs = (await resolveInvitedClubs(req.club._id, req.body)) ?? [];
-        const tournament = await db.tournament.create({ ...setup, invitedClubs, club: req.club._id, createdBy: req.user._id });
+        // on boards as the admins chose, else as many as the club has
+        const boards = { count: req.body.boards?.count ?? req.club.boards ?? 0, out: [] };
+        const tournament = await db.tournament.create({ ...setup, invitedClubs, boards, club: req.club._id, createdBy: req.user._id });
         logger.info(`Tournament ${tournament._id} "${tournament.name}" set up by ${req.user.email}`);
         if (req.body.open) await openRegistration(tournament);
         await answerWith(req, res, tournament, 201);
@@ -151,6 +159,8 @@ export const update = async (req, res) => {
             tournament.invitedClubs = invitedClubs;
         }
         await tournament.save();
+        // more or fewer boards: the matches are called anew
+        if (req.body.boards?.count !== undefined && req.body.boards.count !== (tournament.boards?.count ?? 0)) await changeBoards(tournament, { count: req.body.boards.count });
         await answerWith(req, res, tournament);
     } catch (err) {
         fail(res, err, 'save the tournament');
@@ -272,6 +282,61 @@ export const result = async (req, res) => {
     } catch (err) {
         fail(res, err, 'save the result');
     }
+};
+
+// ---------------------------------------------------------------------------
+// Boards: the matches called to free boards (see utils/tournaments.js)
+// ---------------------------------------------------------------------------
+
+// an admin sets how many boards are played on and takes boards out
+export const boards = async (req, res) => {
+    try {
+        const tournament = await loadManaged(req, res);
+        if (!tournament) return;
+        await changeBoards(tournament, { count: req.body.count, out: req.body.out ?? tournament.boards?.out ?? [] });
+        await answerWith(req, res, tournament);
+    } catch (err) {
+        fail(res, err, 'save the boards');
+    }
+};
+
+// an admin moves a match to a board, or swaps it with the match there
+export const board = async (req, res) => {
+    try {
+        const tournament = await loadManaged(req, res);
+        if (!tournament) return;
+        await moveMatch(tournament, req.params.match, req.body.board);
+        await answerWith(req, res, tournament);
+    } catch (err) {
+        fail(res, err, 'move the match');
+    }
+};
+
+// an admin holds a match back (a player is not there) or lets it into the queue again
+export const held = async (req, res) => {
+    try {
+        const tournament = await loadManaged(req, res);
+        if (!tournament) return;
+        await holdMatch(tournament, req.params.match, req.body.held);
+        await answerWith(req, res, tournament);
+    } catch (err) {
+        fail(res, err, 'hold the match back');
+    }
+};
+
+// the big screen of the boards, for any member of a club taking part: { token, expiresAt }
+export const boardsScreenLink = async (req, res) => {
+    const tournament = await loadShared(req, res);
+    if (!tournament) return;
+    logger.info(`${req.user.email} opened the big screen of the boards of the tournament ${tournament._id}`);
+    res.json(screenToken('tournamentBoards', tournament._id));
+};
+
+export const boardsScreenSend = async (req, res) => {
+    const tournament = await loadShared(req, res);
+    if (!tournament) return;
+    if (!(await sendToPairing(req.body.code, 'tournamentBoards', tournament._id))) return res.status(404).json({ message: 'No TV shows this code. Check the code on the TV, or open /tv there again.' });
+    res.json({ sent: true });
 };
 
 export const cancel = async (req, res) => {

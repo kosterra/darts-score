@@ -10,6 +10,7 @@ import { gameOf } from '../rules/games.js';
 import { withGameState } from '../rules/engine.js';
 import { participatesInTournament, tournamentGameDeleted, tournamentGameFinished } from '../utils/tournaments.js';
 import { leagueGameDeleted, leagueGameFinished } from '../utils/leagues.js';
+import { boardGameDeleted, boardGameFinished } from '../utils/boards.js';
 
 /**
  * A game of the rules engine with its results worked out here from its visits,
@@ -178,6 +179,8 @@ export const createGameController = (Model, gameName, type = null) => {
                 if (data.tournament?.id) await tournamentGameFinished(data, answer(data));
                 // likewise a league match counts in its table
                 if (data.league?.id) await leagueGameFinished(data, answer(data));
+                // a club night on boards: its board is called again
+                if (!data.tournament?.id && !data.league?.id) await boardGameFinished(data, answer(data));
             }
             res.json(answer(data));
         } catch (err) {
@@ -196,6 +199,7 @@ export const createGameController = (Model, gameName, type = null) => {
             await removeWithBadges(Model.modelName, data);
             if (data.tournament?.id) await tournamentGameDeleted(data);
             if (data.league?.id) await leagueGameDeleted(data);
+            if (!data.tournament?.id && !data.league?.id) await boardGameDeleted(data);
             checkLater(() => noteDeleted(req, 'game'));
             await db.deletionRequest.updateMany({ game: id, status: 'open' }, { status: 'deleted', decidedBy: req.user._id, decidedByName: `${req.user.firstname} ${req.user.lastname}`, decidedAt: new Date() });
             res.json({ message: `${label} game deleted successfully.` });

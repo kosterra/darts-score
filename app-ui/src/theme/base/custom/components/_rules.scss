@@ -202,25 +202,219 @@
     }
 }
 
-.rules-darts-row {
-    display: flex;
-    gap: 0.35rem;
-    flex-wrap: wrap;
-    justify-content: center;
+// the three darts of the visit: a hit green with a tick, a miss red with a cross,
+// the next dart framed, the ones after it faint
+.rules-visit {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 
-    span {
-        min-width: 2.6rem;
-        padding: 0.15rem 0.4rem;
-        border-radius: $radius-md;
-        background: $surfaceHighColor;
-        color: $textDefaultColor;
-        font-size: $text-sm;
+.rules-visit-dart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding: 0.4rem 0.25rem;
+    border-radius: $radius-md;
+    background: $surfaceHighColor;
+
+    .rules-visit-number {
+        color: $textFaintColor;
+        font-size: $text-xs;
+    }
+
+    .rules-visit-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        min-height: 1.6rem;
+        color: $textFaintColor;
+        font-size: $text-lg;
+        font-weight: $weight-bold;
+
+        .pi { font-size: 1rem; font-weight: $weight-bold; }
+    }
+
+    &.is-hit {
+        background: soft($accentGreen, 0.28);
+        .rules-visit-mark, .rules-visit-number { color: $accentGreen; }
+    }
+
+    &.is-miss {
+        background: soft($accentRed, 0.24);
+        .rules-visit-mark, .rules-visit-number { color: $accentRed; }
+    }
+
+    &.is-thrown .rules-visit-mark { color: $textDefaultColor; }
+
+    // the dart to throw now: lighter than the others, no frame
+    &.is-next {
+        background: ink(0.12);
+        .rules-visit-number { color: $textDefaultColor; font-weight: $weight-semibold; }
+    }
+
+    &.is-empty { opacity: 0.6; }
+
+    // the dart an undo gave back
+    &.is-undone { animation: rules-undone 1.2s ease-out; }
+}
+
+// after an undo: what it changed flashes once, and a line says where it stands
+@keyframes rules-undone {
+    0%, 35% { box-shadow: 0 0 0 3px soft($accentAmber, 0.7); }
+    100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+.rules-status .rules-status-item.is-undone { animation: rules-undone 1.2s ease-out; }
+
+.rules-undone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: $space-3 0 0;
+    color: $accentAmber;
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    animation: rules-undone-note 0.35s ease-out;
+
+    .pi { font-size: $text-sm; }
+}
+
+@keyframes rules-undone-note {
+    from { opacity: 0; transform: translateY(-0.25rem); }
+    to { opacity: 1; transform: none; }
+}
+
+// the double to throw at as the big figure of the header, in the accent; a new one
+// (or one an undo brought back) pops in
+.result-hero-score.rules-hero-target {
+    color: $accentGreen;
+    animation: rules-target-in 0.35s ease-out;
+}
+
+.x01-hero-player.is-turn .result-hero-score.rules-hero-target { color: $accentGreen; }
+
+@keyframes rules-target-in {
+    from { opacity: 0.2; transform: scale(0.8); }
+    to { opacity: 1; transform: none; }
+}
+
+// the doubles from D1 to the bull: two rows on a phone, one from a tablet on
+.rules-doubles {
+    margin: 0;
+
+    .rules-doubles-label {
+        margin-bottom: $space-2;
+        color: $textFaintColor;
+        font-size: $text-xs;
         text-align: center;
     }
+}
 
-    .is-empty {
-        color: $textFaintColor;
+.rules-doubles-cells {
+    display: grid;
+    grid-template-columns: repeat(11, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(21, minmax(0, 1fr));
     }
+}
+
+.rules-double {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.2rem 0;
+    border: 2px solid transparent;
+    border-radius: $radius-sm;
+    background: $surfaceHighColor;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+
+    .rules-double-name {
+        color: $textSubtleColor;
+        font-size: $text-xs;
+        font-weight: $weight-semibold;
+        white-space: nowrap;
+    }
+
+    .rules-double-value {
+        min-height: 1.1rem;
+        color: $textDefaultColor;
+        font-size: $text-sm;
+        font-weight: $weight-bold;
+    }
+
+    // still to come
+    &.is-open { opacity: 0.55; }
+
+    // what the double took: red for nothing, then ever stronger green
+    &.is-tone-0 { background: soft($accentRed, 0.3); .rules-double-value { color: $accentRed; } }
+    &.is-tone-1 { background: soft($accentGreen, 0.2); }
+    &.is-tone-2 { background: soft($accentGreen, 0.42); }
+    &.is-tone-3 { background: soft($accentGreen, 0.7); }
+
+    // the double to throw at now
+    &.is-current {
+        opacity: 1;
+        border-color: $accentGreen;
+        background: soft($accentGreen, 0.14);
+        transform: scale(1.08);
+        animation: rules-target-in 0.35s ease-out;
+
+        .rules-double-name, .rules-double-value { color: $accentGreen; }
+    }
+
+    // the double just finished
+    &.is-last { animation: rules-double-done 0.5s ease-out; }
+}
+
+@keyframes rules-double-done {
+    0% { transform: scale(1.25); }
+    100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rules-visit-dart.is-undone,
+    .rules-status .rules-status-item.is-undone,
+    .rules-undone,
+    .result-hero-score.rules-hero-target,
+    .rules-double.is-current,
+    .rules-double.is-last { animation: none; }
+}
+
+// the scoreboard: the latest attempts carry the training's sign, an attempt opens to its doubles
+.atc-rank.rules-board-icon {
+    color: $gameColorMore;
+    font-size: 1rem;
+}
+
+.atc-row.is-openable {
+    cursor: pointer;
+
+    &:hover { background: ink(0.08); }
+    &:focus-visible { @include focus-ring; }
+}
+
+.rules-board-chevron {
+    flex-shrink: 0;
+    // close to the result, so the name and date keep their room on a phone
+    margin-left: -0.35rem;
+    color: $textFaintColor;
+    font-size: $text-xs;
+}
+
+.rules-board-doubles {
+    padding: $space-2 $space-1 $space-3;
 }
 
 // the rules of a game in its header: a quiet button, the rules opening below it
@@ -318,4 +512,76 @@
     border-color: $primaryColor;
     color: var(--text-default);
     .pi { color: $primaryColor; }
+}
+
+// the score of a training under the double to throw at (Bob's 27's points): as present as the
+// double, white, not the small amber of a way out
+.x01-live-route.rules-hero-note,
+.x01-hero-score .x01-live-route.rules-hero-note {
+    color: $textDefaultColor;
+    height: auto;
+    font-size: $text-xl;
+    font-weight: $weight-bold;
+}
+
+// Bob's 27: the points big and white with the word smaller beside them, the double to throw
+// at under them in the accent, then the curve of the points so far
+.rules-hero-unit {
+    margin-left: 0.35rem;
+    color: var(--text-subtle);
+    font-size: $text-lg;
+    font-weight: $weight-semibold;
+    letter-spacing: 0;
+}
+
+.rules-hero-below {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-2;
+    margin-top: 0.15rem;
+    order: 4;
+}
+
+.rules-hero-double {
+    color: $accentGreen;
+    font-size: $text-2xl;
+    font-weight: $weight-heavy;
+    line-height: 1;
+    animation: rules-target-in 0.35s ease-out;
+}
+
+.rules-progress {
+    width: 11rem;
+    height: 2rem;
+    overflow: visible;
+
+    .rules-progress-base {
+        stroke: $surfaceHighColor;
+        stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .rules-progress-line {
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+
+        &.is-safe { stroke: $accentGreen; }
+        &.is-warn { stroke: $accentAmber; }
+        &.is-danger { stroke: $accentRed; }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rules-hero-double { animation: none; }
+}
+
+// the views of the scoreboard each as wide as its word, so "Personal bests" fits on a phone
+.p-selectbutton.rules-board-views .p-button {
+    flex: 1 1 auto;
+    width: auto;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+    white-space: nowrap;
 }

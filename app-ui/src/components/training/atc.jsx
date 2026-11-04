@@ -20,6 +20,7 @@ import ATCConfigOptions from './atc.config.options';
 import Celebration from '../badges/celebration';
 import NewBadges from '../badges/new.badges';
 import { ClubBadgeNews } from '../badges/club.badges';
+import PracticeGoalNews from '../goals/practice.goal.news';
 import useStopwatch from '../../utils/use.stopwatch';
 import useClockMoment from '../../utils/use.clock.moment';
 import ClockMoment from '../games/common/clock.moments';
@@ -65,6 +66,8 @@ const ATC = () => {
     const [earned, setEarned] = useState([]);
     // the club badges the last training tipped
     const [clubEarned, setClubEarned] = useState([]);
+    // what the trainings just saved did for one's own weekly goals: { goals, reached }
+    const [goalNews, setGoalNews] = useState(null);
     // shown once the new trainings have reached their places on the scoreboard
     const pendingCelebration = useRef(null);
     // the scoreboard has its own mode and scoring; it follows the setup and the training just saved
@@ -74,6 +77,9 @@ const ATC = () => {
     // the trainings just saved, shown moving up once the scoreboard has loaded them
     const pendingArrival = useRef(null);
     const entriesRequest = useRef(0);
+    // whether the moment of the last dart covers the scoreboard, and the arrival waiting for it
+    const momentCovers = useRef(false);
+    const heldArrival = useRef(null);
     // the trainings just saved: they move up the scoreboard; { ids, entries }
     const [arrival, setArrival] = useState(null);
     const finishing = useRef(false);
@@ -106,27 +112,35 @@ const ATC = () => {
         setScoreboardView(view => ({ ...view, mode, scoring }));
     }, [mode, scoring]);
 
+    // the trainings loaded, with those just saved moving up to their places
+    const show = useCallback((entries) => {
+        setATCEntries(entries);
+        if (!pendingArrival.current) return;
+        const coming = pendingArrival.current;
+        // "best per player" only lists personal bests: a training that is not
+        // one would not be seen moving up, so the scoreboard shows all attempts
+        setScoreboardView(view => {
+            if (view.list !== 'best') return view;
+            const listed = new Set(scoreboardRows(entries, view).map(row => row.entry.id));
+            return coming.ids.every(id => listed.has(id)) ? view : { ...view, list: 'all' };
+        });
+        setArrival(coming);
+        pendingArrival.current = null;
+    }, []);
+
     useEffect(() => {
         const request = ++entriesRequest.current;
         if (!pendingArrival.current) setArrival(null);
         ATCService.loadATCEntries(scoreboardView.mode, scoreboardView.scoring).then(entries => {
             // only the answer to the latest request counts
             if (request !== entriesRequest.current) return;
-            setATCEntries(entries);
-            if (pendingArrival.current) {
-                const coming = pendingArrival.current;
-                // "best per player" only lists personal bests: a training that is not
-                // one would not be seen moving up, so the scoreboard shows all attempts
-                setScoreboardView(view => {
-                    if (view.list !== 'best') return view;
-                    const listed = new Set(scoreboardRows(entries, view).map(row => row.entry.id));
-                    return coming.ids.every(id => listed.has(id)) ? view : { ...view, list: 'all' };
-                });
-                setArrival(coming);
-                pendingArrival.current = null;
+            if (pendingArrival.current && momentCovers.current) {
+                heldArrival.current = () => { if (request === entriesRequest.current) show(entries); };
+                return;
             }
+            show(entries);
         }).catch(() => {});
-    }, [scoreboardView.mode, scoreboardView.scoring, entriesVersion]);
+    }, [scoreboardView.mode, scoreboardView.scoring, entriesVersion, show]);
 
     // shows the trainings just saved on the scoreboard of their mode and scoring
     const showOnScoreboard = (savedMode, savedScoring, entries) => {
@@ -149,6 +163,15 @@ const ATC = () => {
         nameOf: (playerId) => active?.players.find(entry => entry.id === playerId)?.nickname ?? '',
         indexOf: (playerId) => active?.round.order.indexOf(playerId) ?? 0,
     });
+    // on a narrow screen the scoreboard is under the round, where the moment of the last
+    // dart plays over it: the trainings just saved wait for it, so they are seen moving up
+    momentCovers.current = Boolean(clockMoment) && !window.matchMedia?.('(min-width: 1200px)').matches;
+    useEffect(() => {
+        if (clockMoment || !heldArrival.current) return;
+        const release = heldArrival.current;
+        heldArrival.current = null;
+        release();
+    }, [clockMoment]);
 
     // every player's personal best in the mode and scoring being played, from the
     // scoreboard (which follows the setup): the time in hundredths, or the fewest darts
@@ -182,6 +205,9 @@ const ATC = () => {
         const badgeGroups = savedTrainings.filter(({ saved }) => saved.newBadges?.length > 0).map(({ player: who, saved }) => ({ player: who, badges: saved.newBadges }));
         setEarned(badgeGroups);
         setClubEarned(savedTrainings.flatMap(({ saved }) => saved.clubBadges ?? []));
+        // only one's own training answers with the goals
+        const own = savedTrainings.filter(({ saved }) => saved.practiceGoals);
+        setGoalNews(own.length ? { goals: own.at(-1).saved.practiceGoals, reached: own.flatMap(({ saved }) => saved.goalsReached ?? []) } : null);
         if (!records.length && !badgeGroups.length) return null;
         const what = `${mode}${darts ? t(' with the fewest darts') : ''}`;
         return {
@@ -300,11 +326,12 @@ const ATC = () => {
                                     players={active?.players ?? finished?.players ?? players}
                                     mode={active?.mode ?? finished?.mode ?? mode}
                                     scoring={scoring}
-                                    onSettings={inProgress || finished?.saving ? undefined : () => { setFinished(null); setArrival(null); setEarned([]); setClubEarned([]); setStage('setup'); }}
+                                    onSettings={inProgress || finished?.saving ? undefined : () => { setFinished(null); setArrival(null); setEarned([]); setClubEarned([]); setGoalNews(null); setStage('setup'); }}
                                 />
                             }
                             {!inProgress && <NewBadges groups={earned} className="mt-3" />}
                             {!inProgress && clubEarned.length > 0 && <div className="mt-3"><ClubBadgeNews badges={clubEarned} training /></div>}
+                            {!inProgress && goalNews && <PracticeGoalNews {...goalNews} className="mt-3" />}
                             {!playing && <>
                             {remembered && <GameSetupMemory training onReset={startFresh} />}
                             <p className="game-setup-section-title">{t('Player')}</p>
@@ -349,7 +376,8 @@ const ATC = () => {
                                 ? finished
                                     ? <ATCDartsResult
                                         finished={finished}
-                                        placeOf={(id) => finished.saved[id] ? resultLine(rows, finished.saved[id]) : null}
+                                        // once the scoreboard has it (it may wait for the moment of the last dart)
+                                        placeOf={(id) => finished.saved[id] && atcEntries.some(entry => entry.id === finished.saved[id].id) ? resultLine(rows, finished.saved[id]) : null}
                                         onRetry={() => saveRound(finished)}
                                         onPlayAgain={playAgain}
                                         onDone={() => setFinished(null)}

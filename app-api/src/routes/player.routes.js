@@ -152,6 +152,8 @@ export default (app) => {
     // A player's favourite double and main treble, and their darts on the board (admins, or the player themselves)
     router.put('/:id/preferences',
         body('favouriteDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('favouriteDouble must be auto or a double, e.g. D16.'),
+        body('secondDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('secondDouble must be auto or a double, e.g. D20.'),
+        body('thirdDouble').optional().isIn(['auto', ...DOUBLES]).withMessage('thirdDouble must be auto or a double, e.g. D8.'),
         body('mainTreble').optional().isIn(['auto', ...MAIN_TREBLES]).withMessage(`mainTreble must be auto or one of ${MAIN_TREBLES.join(', ')}.`),
         body('flyingDarts').optional().isBoolean({ strict: true }).withMessage('flyingDarts must be true or false.'),
         body('flightColor').optional().isIn(['auto', ...FLIGHT_COLORS]).withMessage('flightColor must be auto or one of the flight colours.'),
