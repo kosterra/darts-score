@@ -294,7 +294,8 @@ const RulesTraining = () => {
                 <LiveHero
                     rulesId={kind}
                     title={[definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean)].join(' · ')}
-                    subtitle={target}
+                    // the double to throw at is the big figure already: not again under the title
+                    subtitle={definition.heroTarget ? undefined : target}
                     rows={[{
                         player: running.player,
                         isTurn: true,

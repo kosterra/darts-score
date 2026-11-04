@@ -219,7 +219,6 @@
     align-items: center;
     gap: 0.1rem;
     padding: 0.4rem 0.25rem;
-    border: 2px solid transparent;
     border-radius: $radius-md;
     background: $surfaceHighColor;
 
@@ -252,10 +251,9 @@
 
     &.is-thrown .rules-visit-mark { color: $textDefaultColor; }
 
-    // the dart to throw now
+    // the dart to throw now: lighter than the others, no frame
     &.is-next {
-        border-color: $accentGreen;
-        background: transparent;
+        background: ink(0.12);
         .rules-visit-number { color: $textDefaultColor; font-weight: $weight-semibold; }
     }
 

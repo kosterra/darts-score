@@ -508,6 +508,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: $space-3;
   }
+  // one player alone (a training, a solo game) takes the whole width, not half of it
+  .x01-hero-players.count-1 { grid-template-columns: minmax(0, 1fr); }
 
   .x01-hero-player, .x01-hero-player.is-mirrored {
     flex-direction: column;
