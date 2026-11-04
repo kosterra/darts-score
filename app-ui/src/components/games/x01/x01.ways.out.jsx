@@ -25,7 +25,16 @@ const Plan = ({ darts, leaves, note, preferred }) => (
 const ProfileNote = ({ profile, about }) => {
     if (!profile) return null;
     if (about === 'double') {
-        if (profile.doubleSource === 'set') return <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</span>;
+        // the favourite doubles in their order, or the one
+        if (profile.doubleSource === 'set') {
+            return (
+                <span className="x01-ways-note">
+                    {(profile.favouriteDoubles?.length ?? 0) > 1
+                    ? t('Your favourite doubles first: {{doubles}} (set in the profile).', { doubles: profile.favouriteDoubles.join(', ') })
+                    : <>{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</>}
+                </span>
+            );
+        }
         if (profile.doubleSource === 'history') {
             const best = profile.doubles[0];
             return <span className="x01-ways-note">{t('Your best doubles first: {{double}} hit {{rate}} % of {{total}} darts in your games.', { double: best.double, rate: best.rate, total: best.total })}</span>;

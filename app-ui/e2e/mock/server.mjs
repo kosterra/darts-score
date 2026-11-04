@@ -838,13 +838,19 @@ http.createServer((req, res) => {
             // Anna: D20 learned from her games; the others without enough darts
             const profiles = Object.fromEntries((json.playerIds ?? []).map(id => {
                 const player = players.find(p => p.id === id);
-                const set = player?.preferences?.favouriteDouble;
+                const prefs = player?.preferences ?? {};
+                const favouriteDoubles = [];
+                for (const double of [prefs.favouriteDouble, prefs.secondDouble, prefs.thirdDouble]) {
+                    if (!double || double === 'auto') break;
+                    if (!favouriteDoubles.includes(double)) favouriteDoubles.push(double);
+                }
+                const set = favouriteDoubles[0];
                 const learnedDouble = id === 'p1' ? 'D20' : null;
-                const doubleOrder = set && set !== 'auto' ? [set, ...(learnedDouble && learnedDouble !== set ? [learnedDouble] : [])] : learnedDouble ? ['D20', 'D16'] : [];
+                const doubleOrder = set ? [...favouriteDoubles, ...(learnedDouble && !favouriteDoubles.includes(learnedDouble) ? [learnedDouble] : [])] : learnedDouble ? ['D20', 'D16'] : [];
                 return [id, {
                     doubles: learnedDouble ? [{ double: 'D20', hit: 12, total: 30, rate: 40 }, { double: 'D16', hit: 5, total: 20, rate: 25 }] : [],
-                    doubleDarts: learnedDouble ? 50 : 0, doubleOrder, favouriteDouble: doubleOrder[0] ?? null,
-                    doubleSource: set && set !== 'auto' ? 'set' : learnedDouble ? 'history' : null,
+                    doubleDarts: learnedDouble ? 50 : 0, doubleOrder, favouriteDouble: doubleOrder[0] ?? null, favouriteDoubles,
+                    doubleSource: set ? 'set' : learnedDouble ? 'history' : null,
                     mainTreble: player?.preferences?.mainTreble && player.preferences.mainTreble !== 'auto' ? player.preferences.mainTreble : null,
                     trebleSource: player?.preferences?.mainTreble && player.preferences.mainTreble !== 'auto' ? 'set' : null,
                     learnedDouble, learnedTreble: null,

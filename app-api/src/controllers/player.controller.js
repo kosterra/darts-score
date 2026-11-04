@@ -413,6 +413,8 @@ export const setPreferences = async (req, res) => {
     const current = player.preferences ?? {};
     player.preferences = {
         favouriteDouble: req.body.favouriteDouble ?? current.favouriteDouble ?? 'auto',
+        secondDouble: req.body.secondDouble ?? current.secondDouble ?? 'auto',
+        thirdDouble: req.body.thirdDouble ?? current.thirdDouble ?? 'auto',
         mainTreble: req.body.mainTreble ?? current.mainTreble ?? 'auto',
         flyingDarts: req.body.flyingDarts ?? current.flyingDarts ?? false,
         flightColor: req.body.flightColor ?? current.flightColor ?? 'auto',

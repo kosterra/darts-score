@@ -28,6 +28,16 @@ describe('checkoutProfile', () => {
         expect(profile.learnedDouble).toBe('D16');
     });
 
+    it('puts the three favourite doubles first, in their order, then the learned ones', () => {
+        const games = [game({ 16: { hit: 6, total: 20 }, 20: { hit: 1, total: 8 } })];
+        const profile = checkoutProfile(games, 'p1', { favouriteDouble: 'D18', secondDouble: 'D20', thirdDouble: 'D10' });
+        expect(profile.doubleOrder).toEqual(['D18', 'D20', 'D10', 'D16']);
+        expect(profile).toMatchObject({ favouriteDouble: 'D18', favouriteDoubles: ['D18', 'D20', 'D10'], doubleSource: 'set' });
+        // a third without a second, and a double twice, do not count
+        expect(checkoutProfile(games, 'p1', { favouriteDouble: 'D18', secondDouble: 'auto', thirdDouble: 'D10' }).favouriteDoubles).toEqual(['D18']);
+        expect(checkoutProfile(games, 'p1', { favouriteDouble: 'D18', secondDouble: 'D18', thirdDouble: 'D10' }).favouriteDoubles).toEqual(['D18', 'D10']);
+    });
+
     it('learns the main treble from the hits in the 20 and the 19 bed', () => {
         expect(checkoutProfile([game({}, { T19: 20, S19: 40, T20: 5, S20: 20 })], 'p1').mainTreble).toBe('T19');
         expect(checkoutProfile([game({}, { T19: 15, S19: 25, T20: 10, S20: 30 })], 'p1').mainTreble).toBe('T20');

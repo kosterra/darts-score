@@ -13,8 +13,10 @@ const WHOLE_ROW = { flexBasis: '100%' };
 const nameOf = (double) => double === 'D25' ? 'Bull (D25)' : double;
 
 /**
- * A player's favourite double and main treble, which put their own ways out
- * first during an X01 game. Automatic learns them from the player's games;
+ * A player's favourite, second and third favourite double and main treble,
+ * which put their own ways out first (the doubles in their order) during an
+ * X01 game and a checkout training. The second counts once there is a
+ * favourite, the third once there is a second. Automatic learns them from the player's games;
  * a change is shown and saved at once.
  *
  * player: { id, preferences }
@@ -22,7 +24,7 @@ const nameOf = (double) => double === 'D25' ? 'Bull (D25)' : double;
  * onSaved(player) with the player as saved; onStatus(autosave) how the saving goes
  */
 const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
-    const [preferences, setPreferences] = useState({ favouriteDouble: 'auto', mainTreble: 'auto', handicap: 'accept', ...player.preferences });
+    const [preferences, setPreferences] = useState({ favouriteDouble: 'auto', secondDouble: 'auto', thirdDouble: 'auto', mainTreble: 'auto', handicap: 'accept', ...player.preferences });
     // what the games say, for the "Automatic" choice
     const [learned, setLearned] = useState(null);
 
@@ -49,6 +51,11 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
     // what the games say, when they are enough to tell
     const learnedDouble = learned?.learnedDouble ?? null;
     const learnedTreble = learned?.learnedTreble ?? null;
+    // a double chosen in one place is not offered in the others
+    const doublesFor = (key) => {
+        const taken = ['favouriteDouble', 'secondDouble', 'thirdDouble'].filter(other => other !== key).map(other => preferences[other]);
+        return DOUBLES.filter(double => !taken.includes(double)).map(double => ({ label: nameOf(double), value: double }));
+    };
     const automatic = (value, what) => value ? t('Automatic ({{value}} from the games)', { value: nameOf(value) }) : t('Automatic (not enough {{what}} yet)', { what });
 
     return (
@@ -57,8 +64,28 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
                 <span className="text-subtle fs-8">{t('Favourite double')}</span>
                 <Dropdown
                     value={preferences.favouriteDouble}
-                    options={[{ label: automatic(learnedDouble, t('darts at doubles')), value: 'auto' }, ...DOUBLES.map(double => ({ label: nameOf(double), value: double }))]}
+                    options={[{ label: automatic(learnedDouble, t('darts at doubles')), value: 'auto' }, ...doublesFor('favouriteDouble')]}
                     onChange={(e) => save({ favouriteDouble: e.value })}
+                    className="w-100"
+                />
+            </label>
+            <label className="d-flex flex-column gap-1 mw-100" style={WHOLE_ROW}>
+                <span className="text-subtle fs-8">{t('Second favourite double')}</span>
+                <Dropdown
+                    value={preferences.secondDouble ?? 'auto'}
+                    options={[{ label: t('Automatic (from the games)'), value: 'auto' }, ...doublesFor('secondDouble')]}
+                    onChange={(e) => save({ secondDouble: e.value })}
+                    disabled={preferences.favouriteDouble === 'auto'}
+                    className="w-100"
+                />
+            </label>
+            <label className="d-flex flex-column gap-1 mw-100" style={WHOLE_ROW}>
+                <span className="text-subtle fs-8">{t('Third favourite double')}</span>
+                <Dropdown
+                    value={preferences.thirdDouble ?? 'auto'}
+                    options={[{ label: t('Automatic (from the games)'), value: 'auto' }, ...doublesFor('thirdDouble')]}
+                    onChange={(e) => save({ thirdDouble: e.value })}
+                    disabled={preferences.favouriteDouble === 'auto' || (preferences.secondDouble ?? 'auto') === 'auto'}
                     className="w-100"
                 />
             </label>
@@ -72,7 +99,7 @@ const PlayerCheckoutPreferences = ({ player, clubId, onSaved, onStatus }) => {
                 />
             </label>
             <span className="text-faint fs-8 player-checkout-preferences-hint">
-                {t('In X01 the ways out finish on the favourite double first and the scoring tips stay on the main treble.')}
+                {t('In X01 and the checkout trainings the ways out finish on your favourite doubles first, in their order, and the scoring tips stay on the main treble.')}
             </span>
             <label className="d-flex flex-column gap-1 mw-100" style={WHOLE_ROW}>
                 <span className="text-subtle fs-8">{t('Handicap')}</span>

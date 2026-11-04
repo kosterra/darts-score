@@ -164,7 +164,12 @@ const TrainingWaysOut = ({ ways }) => {
                     </div>
                 </div>
             }
-            {routes.length > 0 && profile?.doubleSource === 'set' && <span className="x01-ways-note">{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</span>}
+            {routes.length > 0 && profile?.doubleSource === 'set' &&
+                <span className="x01-ways-note">
+                    {(profile.favouriteDoubles?.length ?? 0) > 1
+                    ? t('Your favourite doubles first: {{doubles}} (set in the profile).', { doubles: profile.favouriteDoubles.join(', ') })
+                    : <>{t('Your favourite double first:')}{' '}{profile.favouriteDouble}{' '}{t('(set in the profile).')}</>}
+                </span>}
             {routes.length > 0 && profile?.doubleSource === 'history' && profile.doubles?.[0] &&
                 <span className="x01-ways-note">{t('Your best doubles first: {{double}} hit {{rate}} % of {{total}} darts in your games.', { double: profile.doubles[0].double, rate: profile.doubles[0].rate, total: profile.doubles[0].total })}</span>}
         </div>
@@ -397,7 +402,7 @@ const RulesTraining = () => {
                             <ol className="rules-visit mt-3" aria-label={t('Darts of this visit')}>
                                 {[0, 1, 2].map(index => {
                                     const dart = visitDarts[index];
-                                    const kind = dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : dart ? 'is-thrown' : index === visitDarts.length ? 'is-next' : 'is-empty';
+                                    const kind = dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : dart ? 'is-thrown' : index === visitDarts.length && !visitFull ? 'is-next' : 'is-empty';
                                     const flash = undone && index === visitDarts.length;
                                     return (
                                         <li key={flash ? `${index}-${undone.count}` : index} className={`rules-visit-dart ${kind} ${flash ? 'is-undone' : ''}`} aria-current={kind === 'is-next' ? 'step' : undefined}>

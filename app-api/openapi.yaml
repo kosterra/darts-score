@@ -10462,6 +10462,14 @@ components:
           type: string
           example: D16
           description: '''auto'' or a double the X01 ways out finish on first'
+        secondDouble:
+          type: string
+          example: D20
+          description: '''auto'' or the double the ways out finish on after the favourite (counts only with a favourite)'
+        thirdDouble:
+          type: string
+          example: D8
+          description: '''auto'' or the double after the second favourite (counts only with a second)'
         mainTreble:
           type: string
           example: auto

@@ -18,6 +18,7 @@ const model = (game, playerId) => game.playerModels?.[playerId] ?? {};
  * The player's checkout profile from their X01 games and preferences:
  * { doubles: [{ double, hit, total, rate }] best first, doubleDarts,
  *   doubleOrder (the doubles to finish on, best first), favouriteDouble,
+ *   favouriteDoubles (the up to three the player set, in their order),
  *   doubleSource ('set' | 'history' | null), mainTreble, trebleSource,
  *   learnedDouble, learnedTreble (what the games say, whatever was set) }
  */
@@ -52,8 +53,14 @@ export const checkoutProfile = (games, playerId, preferences = {}) => {
         .map(({ score: _score, ...entry }) => entry);
     const learned = doubleDarts >= MIN_DOUBLE_DARTS ? doubles.map(entry => entry.double) : [];
 
-    const setDouble = DOUBLES.includes(preferences.favouriteDouble) ? preferences.favouriteDouble : null;
-    const doubleOrder = setDouble ? [setDouble, ...learned.filter(double => double !== setDouble)] : learned;
+    // the favourite, second and third favourite double the player set, in order: a choice left
+    // on automatic ends the list (a third without a second does not count), each double once
+    const setDoubles = [];
+    for (const double of [preferences.favouriteDouble, preferences.secondDouble, preferences.thirdDouble]) {
+        if (!DOUBLES.includes(double)) break;
+        if (!setDoubles.includes(double)) setDoubles.push(double);
+    }
+    const doubleOrder = [...setDoubles, ...learned.filter(double => !setDoubles.includes(double))];
 
     const setTreble = MAIN_TREBLES.includes(preferences.mainTreble) ? preferences.mainTreble : null;
     const learnedTreble = beds[20] + beds[19] >= MIN_BED_HITS
@@ -65,7 +72,8 @@ export const checkoutProfile = (games, playerId, preferences = {}) => {
         doubleDarts,
         doubleOrder,
         favouriteDouble: doubleOrder[0] ?? null,
-        doubleSource: setDouble ? 'set' : learned.length ? 'history' : null,
+        favouriteDoubles: setDoubles,
+        doubleSource: setDoubles.length ? 'set' : learned.length ? 'history' : null,
         mainTreble: setTreble ?? learnedTreble,
         trebleSource: setTreble ? 'set' : learnedTreble ? 'history' : null,
         learnedDouble: learned[0] ?? null,
