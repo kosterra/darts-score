@@ -1000,3 +1000,80 @@
   // a row of tags with only those badges takes no room either
   .x01-live-tags:not(:has(> :not(.x01-shames))) { display: none; }
 }
+
+// the bot's face in the header of a training against it (components/training/bot.face.jsx):
+// it fills its circle; idle it blinks, looks around and wobbles its antenna on rhythms of their
+// own, throwing it looks down at the board, happy it bounces, sad its antenna droops,
+// surprised it jumps. Still with reduced motion.
+.x01-bot-avatar {
+    overflow: hidden;
+
+    .bot-face { display: block; width: 100%; height: 100%; }
+}
+
+.bot-face {
+    .bot-look, .bot-blink, .bot-antenna, .bot-body { transition: transform 0.4s ease; }
+    .bot-blink { transform-box: fill-box; transform-origin: center; }
+    .bot-antenna { transform-box: view-box; transform-origin: 64px 40px; }
+    .bot-body { transform-box: view-box; transform-origin: 64px 128px; }
+
+    &.is-idle {
+        .bot-look { animation: bot-look 9.7s ease-in-out infinite; }
+        .bot-blink { animation: bot-blink 5.3s infinite; }
+        .bot-antenna { animation: bot-wobble 7.1s ease-in-out infinite; }
+    }
+
+    // at the board: the eyes down and narrower, a blink now and then
+    &.is-throwing {
+        .bot-look { transform: translateY(3px); }
+        .bot-blink { animation: bot-blink 3.7s infinite; }
+    }
+
+    &.is-happy .bot-body { animation: bot-bounce 0.55s ease-in-out 3; }
+    &.is-sad .bot-antenna { transform: rotate(22deg); }
+    &.is-surprised {
+        .bot-look { transform: scale(1.18); transform-box: fill-box; transform-origin: center; }
+        .bot-antenna { animation: bot-jump 0.5s ease-out 2; }
+    }
+}
+
+@keyframes bot-look {
+    0%, 30% { transform: translateX(0); }
+    36%, 46% { transform: translateX(-4px); }
+    54%, 64% { transform: translateX(4px); }
+    70%, 100% { transform: translateX(0); }
+}
+
+@keyframes bot-blink {
+    0%, 93%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+}
+
+@keyframes bot-wobble {
+    0%, 84%, 100% { transform: rotate(0deg); }
+    88% { transform: rotate(-9deg); }
+    92% { transform: rotate(6deg); }
+    96% { transform: rotate(-3deg); }
+}
+
+@keyframes bot-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+@keyframes bot-jump {
+    0%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bot-face * { animation: none !important; transition: none !important; }
+}
+
+// on a phone, against the bot: both pictures small beside each other above the names, so the
+// bot's face is seen there too
+@media (max-width: 767.98px) {
+    .x01-live-hero .x01-hero-players.has-bot .x01-hero-portrait { display: flex; order: 0; margin: 0.25rem 0 0.4rem; }
+    .x01-hero-players.has-bot .x01-hero-avatar.p-avatar { width: 2.75rem; height: 2.75rem; font-size: 1rem; }
+    .x01-hero-players.has-bot .x01-turn-halo { inset: -0.5rem; }
+}
