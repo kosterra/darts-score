@@ -90,3 +90,24 @@ test('Scoring with the keypad and the board: the visit floats above the menu bar
     await expect(enter).toBeDisabled();
     await page.screenshot({ path: `test-results/training-enter-${test.info().project.name}.png` });
 });
+
+test('Scoring with the board to its last dart: the training ends there, and its entry is on the scoreboard', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'the logic once, at desktop width');
+    await post('/__test/rules-trainings', {});
+    await page.addInitScript(() => localStorage.setItem('oche.x01Input', 'board'));
+    await page.goto('/training/scoring');
+    await choosePlayer(page);
+    await page.getByRole('button', { name: 'Start training' }).click();
+
+    // 30 darts in the single 20: nine visits entered, the tenth ends the training by itself
+    const twenty = page.locator('.dartboard-img [id="S20"]').first();
+    const enter = page.locator('#submitThrows');
+    for (let visit = 0; visit < 10; visit++) {
+        for (let dart = 0; dart < 3; dart++) await twenty.click();
+        if (visit < 9) await enter.click();
+    }
+    await expect(page.getByRole('button', { name: 'Start training' })).toBeVisible();
+    const latest = page.locator('.atc-row.is-latest');
+    await expect(latest).toBeVisible();
+    await expect(latest).toContainText('60.0');
+});

@@ -35,6 +35,9 @@ import useGamePreferences from '../../utils/use.game.preferences';
 
 // a training under way survives a reload of the page
 const runningKey = (kind) => `oche.rulesTraining.${kind}`;
+// how long the dart that ends a training shows before the result
+const LAST_DART_MS = 450;
+
 const readRunning = (kind) => {
     try {
         const saved = JSON.parse(localStorage.getItem(runningKey(kind)));
@@ -264,6 +267,15 @@ const RulesTraining = () => {
         }
     }, [kind, definition]);
 
+    // a dart that ends the training enters its visit by itself, a moment after it shows: there is
+    // nothing more to throw, and the result comes at once
+    const ending = staged && pending.length > 0 && Boolean(replay?.done);
+    useEffect(() => {
+        if (!ending) return undefined;
+        const timer = setTimeout(() => setRunning(current => (current ? { ...current, darts: [...current.darts, ...(current.pending ?? [])], pending: [] } : current)), LAST_DART_MS);
+        return () => clearTimeout(timer);
+    }, [ending]);
+
     // over: saved once, and the page shows the result
     useEffect(() => {
         // a visit that ends the training is entered first
@@ -324,7 +336,8 @@ const RulesTraining = () => {
     const header = <UpLink to="/training/more" label={t('More trainings')} />;
 
     // the training under way
-    if (running && replay && !replay.done) {
+    // also while the visit that ends it is not entered yet: it shows, with Enter score (or Undo)
+    if (running && replay && (!replay.done || pending.length > 0)) {
         const ctx = { settings: replay.settings };
         // the darts of this visit: an attempt of a checkout training may end before its third
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
