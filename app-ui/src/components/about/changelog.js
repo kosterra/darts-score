@@ -13,6 +13,7 @@ const CHANGELOG = [
         changes: [
             t('A danger zone in the trainings: in Bob\'s 27 when missing the darts left at a double would end it, in 121 Checkout, Catch 40 and Random checkouts on the last darts of a finish – a pulsing red strip says so and counts them down, 3, 2, 1.'),
             t('Bob\'s 27 scoreboard: the same points rank by how far one got, and an attempt that failed says where it ended – out at D6.'),
+            t('Trainings on a phone: your picture in the header instead of the Throwing tag, and the bars that float at the bottom sit clear of the menu.'),
             t('Fix: a training with the board or the keypad ends at its last dart again, with the result and the new entry on the scoreboard; the page went back to the setup without saving it.'),
         ],
     },

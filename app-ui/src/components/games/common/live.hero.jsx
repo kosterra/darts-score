@@ -65,7 +65,8 @@ const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [], actions = n
                             </span>
                             {line && <span className="x01-live-leg">{line}</span>}
                             <span className="x01-live-tags">
-                                {isTurn && <span className="x01-live-turn">{t('Throwing')}</span>}
+                                {/* who throws only says something with more than one (a training alone has none) */}
+                                {isTurn && rows.length > 1 && <span className="x01-live-turn">{t('Throwing')}</span>}
                                 {tags}
                                 {heldBy(shame, player.id).length > 0 &&
                                     // the shame badges keep together: they go to the next line as one
