@@ -613,10 +613,10 @@
     background: soft($accentRed, 0.22);
     color: $textDefaultColor;
     font-size: $text-md;
-    animation: rules-danger-pulse 1.4s ease-in-out infinite;
+    animation: rules-danger-pulse 2s ease-in-out infinite;
 
-    &.is-left-2 { animation-duration: 1s; }
-    &.is-left-1 { animation-duration: 0.6s; }
+    &.is-left-2 { animation-duration: 1.6s; }
+    &.is-left-1 { animation-duration: 1.2s; }
 
     > .pi { color: $accentRed; font-size: 1.1rem; }
 
