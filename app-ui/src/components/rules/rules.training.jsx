@@ -307,7 +307,10 @@ const RulesTraining = () => {
                         // the way out to throw, as in X01; without one the target (or what the training stands at)
                         below: ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
                             : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
-                                : <span className="x01-live-route">{definition.heroNote ? definition.heroNote(replay.state, ctx) : target}</span>,
+                                : definition.heroNote
+                                    // the score of the training (e.g. Bob's 27's points): big and white, not a small way out
+                                    ? <span className="x01-live-route rules-hero-note tabular-nums">{definition.heroNote(replay.state, ctx)}</span>
+                                    : <span className="x01-live-route">{target}</span>,
                     }]}
                 />
                 <div className="row g-4 justify-content-center x01-play">

@@ -513,3 +513,13 @@
     color: var(--text-default);
     .pi { color: $primaryColor; }
 }
+
+// the score of a training under the double to throw at (Bob's 27's points): as present as the
+// double, white, not the small amber of a way out
+.x01-live-route.rules-hero-note,
+.x01-hero-score .x01-live-route.rules-hero-note {
+    color: $textDefaultColor;
+    height: auto;
+    font-size: $text-xl;
+    font-weight: $weight-bold;
+}
