@@ -11,6 +11,7 @@ import GameSetupMemory from '../game_config/config_components/game.setup.memory'
 import DartBoard from '../games/common/dartboard';
 import DartKeypad from '../games/common/dart.keypad';
 import useInputMode, { INPUTS } from '../games/common/use.input.mode';
+import useAutoSend from '../games/common/use.auto.send';
 import Celebration from '../badges/celebration';
 import NewBadges from '../badges/new.badges';
 import { ClubBadgeNews } from '../badges/club.badges';
@@ -175,7 +176,8 @@ const RulesTraining = () => {
     const definition = trainingOf(kind);
     const memoryKey = `rules.${kind}`;
     const [remembered, setRemembered] = useState(() => loadSetup(memoryKey));
-    // { player, settings, darts } while training
+    // { player, settings, darts, pending } while training; pending: the darts of the visit
+    // tapped on the board or the keypad, not entered yet (as in a game)
     const [running, setRunning] = useState(() => readRunning(kind));
     const [players, setPlayers] = useState([]);
     const [settings, setSettings] = useState(() => ({ ...(definition ? settingsOf(definition, {}) : {}), ...(remembered?.settings ?? {}) }));
@@ -193,7 +195,24 @@ const RulesTraining = () => {
 
     useEffect(() => writeRunning(kind, running), [kind, running]);
 
-    const replay = useMemo(() => running && definition ? replayTraining(definition, running) : null, [running, definition]);
+    // with the board or the keypad a visit is entered as a whole ("Enter score"); Hit and Miss count at once
+    const staged = definition?.input !== 'hitmiss';
+    const pending = useMemo(() => running?.pending ?? [], [running]);
+    // where the training stands with the darts of the visit already counted, so the figures and
+    // the ways out follow every dart tapped
+    const replay = useMemo(() => running && definition ? replayTraining(definition, { ...running, darts: [...running.darts, ...pending] }) : null, [running, pending, definition]);
+    // the visit goes by itself after its third dart, when the player wants it (as in a game)
+    useAutoSend(staged ? pending : []);
+    // Enter enters the visit, also after darts were tapped on the board
+    useEffect(() => {
+        if (!staged) return undefined;
+        const enter = (e) => {
+            if (e.key !== 'Enter' || e.target.closest?.('form, button, input, [role="dialog"]')) return;
+            document.getElementById('submitThrows')?.click();
+        };
+        document.addEventListener('keyup', enter);
+        return () => document.removeEventListener('keyup', enter);
+    }, [staged]);
     // the ways out of a checkout training, as the player wants them in X01, with their own doubles
     const [preferences] = useGamePreferences();
     const [checkoutProfile, setCheckoutProfile] = useState(null);
@@ -242,11 +261,12 @@ const RulesTraining = () => {
 
     // over: saved once, and the page shows the result
     useEffect(() => {
-        if (!replay?.done || !running) return;
+        // a visit that ends the training is entered first
+        if (!replay?.done || !running || pending.length) return;
         const attempt = running;
         setRunning(null);
         saveResult(replay, attempt);
-    }, [replay, running, saveResult]);
+    }, [replay, running, pending, saveResult]);
 
     if (!definition) return <Navigate replace to="/training/more" />;
 
@@ -260,16 +280,35 @@ const RulesTraining = () => {
         setRunning({ player, settings: prepared, darts: [], startedAt: new Date().toISOString() });
     };
 
+    // the darts of the visit so far (an attempt of a checkout training may end before its third)
+    const inVisitOf = (state, count) => (definition.inVisit ? definition.inVisit(state, { settings: replay.settings }) : count % 3);
+    // the visit is complete: three darts, or the attempt (or the training) ended with fewer
+    const visitFull = staged && pending.length > 0 && (replay.done || inVisitOf(replay.state, running.darts.length + pending.length) === 0);
+
     const throwDart = (value) => {
-        if (!running || replay?.done) return;
+        if (!running || replay?.done || visitFull) return;
         const dart = definition.input === 'hitmiss' ? value : parseDart(String(value)).field;
         setUndone(null);
-        setRunning({ ...running, darts: [...running.darts, dart] });
+        if (staged) setRunning({ ...running, pending: [...pending, dart] });
+        else setRunning({ ...running, darts: [...running.darts, dart] });
+    };
+    // Enter score: the darts of the visit count; the ones not tapped are misses
+    const enterVisit = () => {
+        if (!running || !pending.length) return;
+        const darts = [...running.darts, ...pending];
+        while (!visitFull && darts.length - running.darts.length < 3) {
+            const after = replayTraining(definition, { ...running, darts });
+            if (after.done || inVisitOf(after.state, darts.length) === 0) break;
+            darts.push('0');
+        }
+        setUndone(null);
+        setRunning({ ...running, darts, pending: [] });
     };
     const undoDart = () => {
-        if (!running?.darts.length) return;
+        if (!running?.darts.length && !pending.length) return;
         setUndone(last => ({ count: (last?.count ?? 0) + 1, status: definition.status(replay.state, { settings: replay.settings }) }));
-        setRunning({ ...running, darts: running.darts.slice(0, -1) });
+        if (pending.length) setRunning({ ...running, pending: pending.slice(0, -1) });
+        else setRunning({ ...running, darts: running.darts.slice(0, -1) });
     };
     const quit = () => {
         setUndone(null);
@@ -284,7 +323,9 @@ const RulesTraining = () => {
         const ctx = { settings: replay.settings };
         // the darts of this visit: an attempt of a checkout training may end before its third
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
-        const visitDarts = inVisit ? running.darts.slice(-inVisit) : [];
+        // with the board or the keypad: the darts tapped, not entered yet
+        const visitDarts = staged ? pending : inVisit ? running.darts.slice(-inVisit) : [];
+        const canUndo = running.darts.length > 0 || pending.length > 0;
         const status = definition.status(replay.state, ctx);
         const changed = undone ? status.filter(([, value], index) => String(undone.status[index]?.[1]) !== String(value)).map(([label]) => label) : [];
         const target = definition.target(replay.state, ctx);
@@ -336,7 +377,7 @@ const RulesTraining = () => {
                                 <Button label={t('Miss')} icon="pi pi-times" severity="secondary" onClick={() => throwDart('M')} />
                             </div>
                             : input === 'keypad'
-                                ? <DartKeypad canThrow onDart={throwDart} onClearLast={undoDart} entered={running.darts.length % 3} />
+                                ? <DartKeypad canThrow={!visitFull} onDart={throwDart} onClearLast={undoDart} entered={pending.length} />
                                 : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} markers={[]} /></div></div>}
                     </div>
                     <div className="col-12 col-lg-5 d-flex flex-column gap-4">
@@ -373,8 +414,9 @@ const RulesTraining = () => {
                             {/* after an undo: where it stands again */}
                             {undone && <p key={undone.count} className="rules-undone" role="status"><i className="pi pi-undo" aria-hidden="true" />{t('Dart {{dart}} undone: {{target}} again', { dart: visitDarts.length + 1, target })}</p>}
                             {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}
-                            <div className="d-flex gap-2 justify-content-center mt-3">
-                                <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!running.darts.length} onClick={undoDart} />
+                            <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
+                                {staged && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" disabled={!pending.length} onClick={enterVisit} />}
+                                <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!canUndo} onClick={undoDart} />
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />
                             </div>
                         </Panel>
@@ -391,7 +433,8 @@ const RulesTraining = () => {
                             {status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>)}
                         </div>
                         <div className="x01-visit-actions">
-                            <Button icon="pi pi-undo" severity="secondary" className="x01-undo" aria-label={t('Undo dart')} disabled={!running.darts.length} onClick={undoDart} />
+                            <Button label={t('Enter score')} icon="pi pi-check" className="justify-content-center x01-enter" disabled={!pending.length} onClick={enterVisit} />
+                            <Button icon="pi pi-undo" severity="danger" className="x01-undo" aria-label={t('Undo dart')} disabled={!canUndo} onClick={undoDart} />
                         </div>
                     </div>
                 }

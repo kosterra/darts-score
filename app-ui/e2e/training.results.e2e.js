@@ -52,7 +52,7 @@ test('Around the Clock with the fewest darts: the result, then the new round in 
     await expect(page.locator('.atc-result-place')).toContainText('1st');
 });
 
-test('Scoring with the keypad and the board: the visit floats above the menu bar on a phone', async ({ page, isMobile }) => {
+test('Scoring with the keypad and the board: the visit floats above the menu bar on a phone, Enter score enters it', async ({ page, isMobile }) => {
     await page.addInitScript(() => localStorage.setItem('oche.x01Input', 'keypad'));
     await page.goto('/training/scoring');
     await choosePlayer(page);
@@ -82,4 +82,11 @@ test('Scoring with the keypad and the board: the visit floats above the menu bar
     await page.locator('.dartboard-img [id="S20"]').first().click();
     await expect(bar).toBeInViewport();
     await expect(bar.locator('.x01-visit-bar-darts')).toContainText('S20');
+
+    // Enter score enters the visit (the darts not tapped are misses): the bar is empty again
+    const enter = bar.getByRole('button', { name: 'Enter score' });
+    await enter.click();
+    await expect(bar.locator('.x01-visit-bar-darts')).not.toContainText('S20');
+    await expect(enter).toBeDisabled();
+    await page.screenshot({ path: `test-results/training-enter-${test.info().project.name}.png` });
 });

@@ -58,7 +58,7 @@ test('the double to throw at, the darts of the visit and an undo', async ({ page
     await expect(page.locator('.rules-double').first()).toContainText('2');
     await expect(page.locator('.rules-double').first()).toHaveClass(/is-tone-2/);
     await expect(slots(page).nth(0)).toHaveClass(/is-next/);
-    await expect(page.locator('.x01-live-route')).toHaveText('31 points');
+    await expect(page.locator('.result-hero-score')).toHaveText('31points');
 
     // undo goes back into the visit of D1 and says so
     await page.getByRole('button', { name: 'Undo dart' }).click();
@@ -67,7 +67,7 @@ test('the double to throw at, the darts of the visit and an undo', async ({ page
     await expect(slots(page).nth(2)).toHaveClass(/is-next/);
     await expect(slots(page).nth(1)).toHaveClass(/is-miss/);
     await expect(page.locator('.rules-undone')).toHaveText('Dart 3 undone: D1 again');
-    await expect(page.locator('.x01-live-route')).toHaveText('29 points');
+    await expect(page.locator('.result-hero-score')).toHaveText('29points');
 
     await page.getByRole('button', { name: 'Undo dart' }).click();
     await expect(slots(page).nth(1)).toHaveClass(/is-next/);
