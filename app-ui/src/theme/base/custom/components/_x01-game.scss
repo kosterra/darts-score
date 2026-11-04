@@ -560,7 +560,8 @@
   .x01-visit-bar.is-floating {
     position: fixed;
     right: 0.5rem;
-    bottom: calc(3.75rem + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)) + 0.5rem);
+    // right on the menu bar (3.75rem and the safe area), as the start of a setup: nothing of the page shows between
+    bottom: calc(3.75rem + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)));
     left: 0.5rem;
     z-index: 899;
     // the darts above the visit total on the left, the buttons on the right
