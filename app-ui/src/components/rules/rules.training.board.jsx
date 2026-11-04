@@ -69,7 +69,8 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
     }, [definition.id, version]);
 
     const higher = definition.higherIsBetter !== false;
-    const better = (a, b) => (higher ? b.score - a.score : a.score - b.score);
+    // the better score first; the same score by the training's own tiebreak (Bob's 27: further on the board)
+    const better = (a, b) => (higher ? b.score - a.score : a.score - b.score) || (definition.tiebreak?.(a, b) ?? 0);
     const lists = useMemo(() => {
         const best = new Map();
         (entries ?? []).forEach(entry => {
@@ -84,7 +85,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
         };
     // better follows from the definition
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [entries, higher]);
+    }, [entries, higher, definition]);
     const all = lists[view];
     const rows = all.slice(0, shown);
     const ranked = view !== 'recent';
@@ -198,7 +199,11 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null }) => {
                                         </span>
                                         <span className="atc-row-detail">{formatDate(entry.createdAt, { year: 'short' })}</span>
                                     </span>
-                                    <span className="atc-row-time">{definition.format(entry.score)}</span>
+                                    <span className="atc-row-time rules-board-score">
+                                        {definition.format(entry.score)}
+                                        {/* how far a failed attempt got (Bob's 27: "out at D6"), what ranks it among the same points */}
+                                        {definition.entryNote?.(entry) && <span className="rules-board-note">{definition.entryNote(entry)}</span>}
+                                    </span>
                                     {opens && <i className={`pi pi-chevron-${open === entry.id ? 'up' : 'down'} rules-board-chevron`} aria-hidden="true" />}
                                 </li>
                                 {doubles && <li className="rules-board-doubles"><RulesDoubles cells={doubles} label={definition.doublesLabel} /></li>}

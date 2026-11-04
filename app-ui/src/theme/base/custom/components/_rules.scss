@@ -585,3 +585,18 @@
     padding-left: 0.75rem;
     white-space: nowrap;
 }
+
+// the score of an attempt with, under it, how far a failed one got
+.rules-board-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+
+    .rules-board-note {
+        color: $textFaintColor;
+        font-size: $text-xs;
+        font-weight: $weight-semibold;
+        white-space: nowrap;
+    }
+}

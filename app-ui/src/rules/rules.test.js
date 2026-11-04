@@ -172,6 +172,15 @@ describe('trainings', () => {
         expect(BOBS_27.heroNote(train(BOBS_27, []).state)).toBe('D1');
     });
 
+    it("Bob's 27 ranks the same points by how far the attempt got, and says where a failed one ended", () => {
+        const out = (reached) => ({ score: 0, result: { score: 0, reached, failed: true } });
+        const sorted = [out(5), out(9), { score: 0, darts: Array(21).fill('M') }, out(6)].sort(BOBS_27.tiebreak);
+        // the one without a result counts from its darts: 21 darts, 7 doubles
+        expect(sorted.map(entry => entry.result?.reached ?? 'darts')).toEqual([9, 'darts', 6, 5]);
+        expect(BOBS_27.entryNote(out(9))).toBe('out at D9');
+        expect(BOBS_27.entryNote({ score: 441, result: { reached: 21 } })).toBe(null);
+    });
+
     it("Bob's 27 ends at 0 or below", () => {
         const darts = Array(3 * 6).fill('M');
         const result = train(BOBS_27, darts);

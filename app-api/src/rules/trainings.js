@@ -71,6 +71,9 @@ export const bobsProgress = (state) => {
 // the darts left of the attempt), for the ways out
 const wayOut = (state, darts) => ({ left: state.left, dartsLeft: Math.min(3 - state.inAttempt % 3, darts - state.inAttempt) });
 
+// how many doubles a saved attempt played (older ones from their darts: three a double)
+const reachedOf = (entry) => entry.result?.reached ?? Math.floor((entry.darts?.length ?? 0) / 3);
+
 export const BOBS_27 = {
     id: 'bobs27',
     title: t('Bob\'s 27'),
@@ -122,6 +125,10 @@ export const BOBS_27 = {
     status: (state) => [[t('Points'), state.score], [t('Dart'), `${state.inVisit + 1} / 3`]],
     result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, darts: state.darts, failed: state.failed }),
     higherIsBetter: true,
+    // the same points (above all 0, out before the bull): the one that got further first
+    tiebreak: (a, b) => reachedOf(b) - reachedOf(a),
+    // where an attempt that failed ended, beside its date on the scoreboard
+    entryNote: (entry) => (entry.score === 0 && reachedOf(entry) > 0 ? t('out at {{double}}', { double: doubleName(DOUBLE_TARGETS[reachedOf(entry) - 1]) }) : null),
     format: (score) => tn(score, '{{count}} point', '{{count}} points'),
     figures: (result) => [
         [t('Points'), result.score],
