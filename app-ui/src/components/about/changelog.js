@@ -9,12 +9,15 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.2',
         changes: [
             t('Boards: a tournament or a club night plays on as many boards as the club has. Every match is called to a free board as soon as its players are free, the players see "Your match: board 2, against Ben" on their phone and the dashboard, a finished game frees its board for the next one at once, and the big screen shows all boards with the queue. Admins move, hold back and take boards out.'),
             t('The club rating comes to the front: on the player page with its course, as "Strongest" on the dashboard, "Anna wins 64 % against Ben" in the comparison and the chance to win on every open match of a tournament or league. It now also counts doubles and the games of shared tournaments, and a newcomer finds their level faster, so the numbers shift once.'),
             t('Weekly goals of your own: three trainings, Bob\'s 27 above 100, an X01 average of 50 or play on three days – set under Profile → Playing, they count in all your clubs, show how far you are on the dashboard, celebrate when one is reached and remind you on Sunday when one is still open.'),
-            t('Bob\'s 27 easier to follow: the double to throw at big on top and a strip of all 21 doubles, each dart of the visit shown as a hit or a miss, an undo says what it took back, and at the end – and for every past attempt on the scoreboard – how often each double was hit.'),
+            t('Bob\'s 27 easier to follow: your points big on top with the double to throw at under them and a curve that turns orange and red as the end comes closer, a strip of all 21 doubles, each dart of the visit shown as a hit or a miss, an undo says what it took back, and at the end – and for every past attempt – how often each double was hit.'),
+            t('The scoreboards of the trainings open on the top 10 of the club, whoever threw them, with Show more; Personal bests and Newest are a tap away.'),
+            t('Trainings with the board or the keypad enter a visit with Enter score, as in a game – or by themselves after the third dart, when you want it – and on a phone the result and the scoreboard come into view at the end.'),
+            t('A second and a third favourite double under Profile → Playing: the ways out in X01 and the checkout trainings finish on your favourites first, in their order.'),
         ],
     },
     {
