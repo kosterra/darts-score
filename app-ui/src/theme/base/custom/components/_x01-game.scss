@@ -510,6 +510,8 @@
   }
   // one player alone (a training, a solo game) takes the whole width, not half of it
   .x01-hero-players.count-1 { grid-template-columns: minmax(0, 1fr); }
+  // without a tag (one player throws alone) the row of the tags takes no room
+  .x01-live-tags:empty { display: none; }
   // and there is room for the picture: small, above the name, with the glow of the one throwing
   .x01-live-hero .x01-hero-players.count-1 .x01-hero-portrait { display: flex; order: 0; margin: 0.35rem 0 0.5rem; }
   .x01-hero-players.count-1 .x01-hero-avatar.p-avatar { width: 3.25rem; height: 3.25rem; font-size: 1.1rem; }
@@ -994,4 +996,6 @@
     .game-rules-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   }
   .x01-shames { display: none; }
+  // a row of tags with only those badges takes no room either
+  .x01-live-tags:not(:has(> :not(.x01-shames))) { display: none; }
 }
