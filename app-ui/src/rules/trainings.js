@@ -71,6 +71,18 @@ export const bobsProgress = (state) => {
 // the darts left of the attempt), for the ways out
 const wayOut = (state, darts) => ({ left: state.left, dartsLeft: Math.min(3 - state.inAttempt % 3, darts - state.inAttempt) });
 
+/**
+ * Bob's 27 in the danger zone: without a hit in the darts left at this double
+ * the training is over. { double, dartsLeft } (3, 2 or 1), or null when a
+ * miss of the whole visit still leaves points (or this visit has a hit).
+ */
+export const bobsDanger = (state) => {
+    if (state.index >= DOUBLE_TARGETS.length || state.hitsInVisit > 0) return null;
+    const number = DOUBLE_TARGETS[state.index];
+    if (state.score - doubleValue(number) > 0) return null;
+    return { double: doubleName(number), dartsLeft: 3 - state.inVisit };
+};
+
 // how many doubles a saved attempt played (older ones from their darts: three a double)
 const reachedOf = (entry) => entry.result?.reached ?? Math.floor((entry.darts?.length ?? 0) / 3);
 
@@ -115,6 +127,7 @@ export const BOBS_27 = {
     heroNote: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     noteTarget: true,
     progress: bobsProgress,
+    danger: bobsDanger,
     // the whole way, D1 to the bull
     progressLength: DOUBLE_TARGETS.length,
     // the darts thrown in this visit

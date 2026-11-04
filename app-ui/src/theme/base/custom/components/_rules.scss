@@ -600,3 +600,46 @@
         white-space: nowrap;
     }
 }
+
+// Bob's 27 in the danger zone: a red strip above Hit and Miss, the darts left counting down
+// (each new number pops in); it pulses with a red glow, faster the fewer darts are left
+.rules-danger {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-3;
+    padding: 0.6rem 0.85rem;
+    border-radius: $radius-md;
+    background: soft($accentRed, 0.22);
+    color: $textDefaultColor;
+    font-size: $text-md;
+    animation: rules-danger-pulse 1.4s ease-in-out infinite;
+
+    &.is-left-2 { animation-duration: 1s; }
+    &.is-left-1 { animation-duration: 0.6s; }
+
+    > .pi { color: $accentRed; font-size: 1.1rem; }
+
+    strong { color: $accentRed; font-weight: $weight-bold; }
+
+    .rules-danger-count {
+        flex-shrink: 0;
+        margin-left: auto;
+        min-width: 2.2rem;
+        color: $accentRed;
+        font-size: $text-2xl;
+        font-weight: $weight-heavy;
+        line-height: 1;
+        text-align: center;
+        animation: rules-target-in 0.35s ease-out;
+    }
+}
+
+@keyframes rules-danger-pulse {
+    0%, 100% { background: soft($accentRed, 0.16); box-shadow: 0 0 0 0 soft($accentRed, 0); }
+    50% { background: soft($accentRed, 0.4); box-shadow: 0 0 0 0.3rem soft($accentRed, 0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rules-danger, .rules-danger .rules-danger-count { animation: none; }
+}

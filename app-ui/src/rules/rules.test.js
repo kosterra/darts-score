@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
 import { progressOf, replayGame, replayTraining, withGameState } from './engine';
 import { GAMES, GOLF, HALVE_IT, KILLER, SHANGHAI, TACTICS } from './games';
-import { BOBS_27, bobsProgress, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
+import { BOBS_27, bobsDanger, bobsProgress, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
 
 const visit = (player, ...darts) => ({ player, darts });
 const game = (definition, visits, settings = {}, players = ['a', 'b']) => ({ players, settings, visits });
@@ -179,6 +179,17 @@ describe('trainings', () => {
         expect(sorted.map(entry => entry.result?.reached ?? 'darts')).toEqual([9, 'darts', 6, 5]);
         expect(BOBS_27.entryNote(out(9))).toBe('out at D9');
         expect(BOBS_27.entryNote({ score: 441, result: { reached: 21 } })).toBe(null);
+    });
+
+    it("Bob's 27 is in the danger zone when missing the darts left at a double ends it", () => {
+        const at = (darts) => bobsDanger(train(BOBS_27, darts).state);
+        // 27 → 25 → 21 → 15 → 7 after missing D1 to D4: D5 (10) has to be hit
+        expect(at(Array(9).fill('M'))).toBe(null);
+        expect(at(Array(12).fill('M'))).toEqual({ double: 'D5', dartsLeft: 3 });
+        expect(at(Array(13).fill('M'))).toEqual({ double: 'D5', dartsLeft: 2 });
+        expect(at(Array(14).fill('M'))).toEqual({ double: 'D5', dartsLeft: 1 });
+        // one hit and the double is safe
+        expect(at([...Array(12).fill('M'), 'H'])).toBe(null);
     });
 
     it("Bob's 27 ends at 0 or below", () => {
