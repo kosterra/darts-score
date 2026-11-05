@@ -11,8 +11,8 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
-            t('The result of a training: the figures in one row beside your score, the hardest doubles too, and on a phone under it, with the darts per double in rows of seven.'),
-            t('Scoring training: the points, the average and the darts big in the header while you throw, and no longer twice below.'),
+            t('The header of a training, while you throw and at the end, in one style: the figures on tiles beside your score, on a phone under it behind a thin line. In Scoring the points, the average and the darts, in Doubles around the board the darts and the doubles hit, big there instead of twice below.'),
+            t('The result of a training: the hardest doubles beside the other figures, and on a phone the darts per double in rows of seven.'),
         ],
     },
     {

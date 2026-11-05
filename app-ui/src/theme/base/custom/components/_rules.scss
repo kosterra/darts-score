@@ -538,30 +538,28 @@
     align-items: stretch;
     gap: $space-3;
 
-    // on a phone under the name, behind a thin line, as the figures of a result
+    // on a phone the tiles share the width (the thin line above is the training's, below)
     @media (max-width: 575.98px) {
         width: 100%;
         gap: $space-2;
-        margin-top: $space-1;
+    }
+
+    // under a target (Doubles around the board): a little space to it, and after it on a phone
+    .x01-hero-score > & {
+        order: 4;
+        margin-top: $space-3;
+    }
+}
+
+// a training on a phone: a thin line between the player and the big figures,
+// as the figures of a result
+@media (max-width: 575.98px) {
+    .rules-training-live .x01-hero-players.count-1 .result-hero-score {
+        width: 100%;
+        margin-top: $space-2;
         padding-top: $space-3;
         border-top: 1px solid $surfaceHighColor;
-    }
-}
-
-// three figures share the width: smaller than one score alone
-.x01-hero-score .result-hero-score:has(.rules-hero-figures) {
-    font-size: 2.25rem;
-
-    // on a phone the tiles share the header's whole width
-    @media (max-width: 575.98px) {
-        width: 100%;
-        font-size: 1.6rem;
-    }
-}
-
-@media (max-width: 575.98px) {
-    .x01-hero-score:has(.rules-hero-figures) {
-        width: 100%;
+        text-align: center;
     }
 }
 
@@ -581,6 +579,18 @@
         flex: 1 1 0;
         min-width: 0;
         padding: $space-2 $space-1;
+    }
+
+    // the figure: smaller than one score alone, as the tiles share the width
+    > .tabular-nums {
+        color: $textDefaultColor;
+        font-size: 2.25rem;
+        font-weight: $weight-bold;
+        line-height: 1;
+
+        @media (max-width: 575.98px) {
+            font-size: 1.6rem;
+        }
     }
 }
 

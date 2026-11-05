@@ -360,7 +360,8 @@ export const DOUBLES_AROUND = {
     target: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     hero: (state) => doubleName(DOUBLE_TARGETS[state.index]),
     heroTarget: true,
-    heroNote: (state) => tn(state.darts, '{{count}} dart', '{{count}} darts'),
+    // the darts and the doubles hit big under the double (instead of the status)
+    heroFigures: (state) => [[t('Darts'), state.darts], [t('Doubles hit'), `${state.index} / 21`]],
     // the darts every double took: one is the best, five or more the worst
     doubles: (state) => doubleCells(state, index => state.perDouble[index], darts => (darts <= 1 ? 3 : darts === 2 ? 2 : darts <= 4 ? 1 : 0)),
     doublesLabel: t('Darts per double'),
