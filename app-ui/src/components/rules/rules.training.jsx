@@ -69,15 +69,16 @@ const Status = ({ items, changed = [], flash = 0 }) => (
 
 // a figure equal to the result itself (e.g. Points next to "697 points") is the result's label, not a second figure
 const sameAsScore = (definition, score, value) => String(value) === String(score) || String(value) === definition.format(score);
-// short figures as big numbers; a long one (e.g. the hardest doubles) gets a line of its own
+// short figures as big numbers; a long one is smaller beside them
 const SHORT = 9;
 
 /**
  * The result of a training in the header of a finished game: what was
  * trained, the player with the result as the score (a new personal best
- * glows gold, as a winner), the other figures beside it, and the next
- * attempt or the setup as the game's actions. The long figures (e.g. the
- * hardest doubles) and how it stands against the best are lines below.
+ * glows gold, as a winner; with scoreTile on the first tile instead), the
+ * other figures on tiles beside it (long ones smaller), and the next attempt
+ * or the setup as the game's actions; how it stands against the best is the
+ * line under the title.
  */
 const TrainingResult = ({ definition, finished, actions }) => {
     const { score } = finished.result;
@@ -109,11 +110,20 @@ const TrainingResult = ({ definition, finished, actions }) => {
                 title={[definition.title, ...options].join(' · ')}
                 subtitle={best}
                 // the number alone, as a game's score; the unit is in the label below
-                scoreOf={() => own?.[1] ?? definition.format(score)}
+                scoreOf={() => (definition.scoreTile ? null : own?.[1] ?? definition.format(score))}
                 scoreDetailOf={() => own?.[0] ?? t('Result')}
-                // the long figures (e.g. the hardest doubles) beside the others, smaller
-                rows={[...short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true })), ...long.map(([label], index) => ({ key: `long-${index}`, label, neutral: true, long: true }))]}
-                figures={{ [id]: Object.fromEntries([...short.map(([, value], index) => [`figure-${index}`, value]), ...long.map(([, value], index) => [`long-${index}`, value])]) }}
+                // the result itself on the first tile instead of under the name (scoreTile), gold for a new best;
+                // the long figures beside the others, smaller
+                rows={[
+                    ...(definition.scoreTile ? [{ key: 'score', label: own?.[0] ?? t('Result'), neutral: true, record: Boolean(saved?.isRecord) }] : []),
+                    ...short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true })),
+                    ...long.map(([label], index) => ({ key: `long-${index}`, label, neutral: true, long: true })),
+                ]}
+                figures={{ [id]: Object.fromEntries([
+                    ...(definition.scoreTile ? [['score', own?.[1] ?? definition.format(score)]] : []),
+                    ...short.map(([, value], index) => [`figure-${index}`, value]),
+                    ...long.map(([, value], index) => [`long-${index}`, value]),
+                ]) }}
                 actions={actions}
                 // what every double took
                 footer={doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} className="mt-3" />}

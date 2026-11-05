@@ -13,7 +13,7 @@ import { t } from '../../../utils/i18n';
  * ones marked, and what to do next ("actions"). "celebrate": right after the
  * game was won, the winner glows gold. A player alone has the figures beside
  * them instead of a table. "footer": what else belongs to the result, at the end.
- * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral?, long? (a long text, smaller beside a player alone) }]
+ * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral?, long? (a long text, smaller beside a player alone), record? (a new best, in gold) }]
  */
 const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, footer = null, celebrate = false, className = 'mb-4' }) => {
     // the winner, or in doubles both partners
@@ -61,8 +61,11 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                             {winner &&
                                 <span className={`result-hero-winner ${won(player) ? '' : 'is-placeholder'}`} aria-hidden={!won(player)}>{t('Winner')}</span>
                             }
-                            <span className="result-hero-score">{scoreOf(player)}</span>
-                            <span className="text-faint fs-8">{scoreDetailOf(player)}</span>
+                            {/* no score here when it is on a tile beside the player */}
+                            {scoreOf(player) != null && <>
+                                <span className="result-hero-score">{scoreOf(player)}</span>
+                                <span className="text-faint fs-8">{scoreDetailOf(player)}</span>
+                            </>}
                         </div>
                 ))}
             </div>
@@ -74,7 +77,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                         const playerFigures = figures[players[0]?.id] ?? {};
                         const value = playerFigures[figure.key];
                         return (
-                            <div key={figure.key} className={figure.long ? 'is-long' : undefined}>
+                            <div key={figure.key} className={[figure.long && 'is-long', figure.record && 'is-record'].filter(Boolean).join(' ') || undefined}>
                                 <dt>{figure.label}</dt>
                                 <dd>
                                     {value == null ? '–' : figure.format ? figure.format(value, playerFigures) : value}

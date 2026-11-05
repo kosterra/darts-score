@@ -821,7 +821,13 @@
         font-variant-numeric: tabular-nums;
     }
 
-    // a long text (e.g. the hardest doubles): smaller, so it stays on one line
+    // the result itself on a tile, a new best in the gold of a winner
+    > .is-record dd {
+        color: $accentGold;
+        text-shadow: 0 0 1.2rem with-alpha($accentGold, 0.35);
+    }
+
+    // a long text: smaller, so it stays on one line
     > .is-long dd {
         font-size: $text-xl;
         line-height: 1.8rem;
