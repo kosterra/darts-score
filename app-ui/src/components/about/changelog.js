@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('The danger zone only in Bob\'s 27, where missing ends the training; in the checkout trainings their figures on tiles in the header instead.'),
             t('X01 games in the lists: the sets won when the game goes over several sets, the legs won when it is one set.'),
             t('The header of a training, while you throw and at the end, in one style: the figures on tiles beside your score, on a phone under it behind a thin line. In Scoring the points, the average and the darts, in Doubles around the board the darts and the doubles hit, big there instead of twice below.'),
             t('The result of Doubles around the board: the darts and the hit rate on tiles, the hardest doubles only in the darts per double, which on a phone come in rows of seven.'),

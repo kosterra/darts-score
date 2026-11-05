@@ -86,18 +86,6 @@ export const bobsDanger = (state) => {
     return { double, dartsLeft, text: tn(dartsLeft, 'Hit {{double}} with your last dart, or the training is over.', 'Hit {{double}} with one of your next {{count}} darts, or the training is over.', { double }) };
 };
 
-/**
- * A checkout training in the danger zone: the last darts of an attempt, at
- * most "from" of them (the last visit; with three darts an attempt only its
- * last dart, or the strip would never go). { left, dartsLeft, text } or null;
- * "one" and "other" are the words for one dart and for more.
- */
-const checkoutDanger = (state, darts, from, one, other) => {
-    const dartsLeft = darts - state.inAttempt;
-    if (dartsLeft < 1 || dartsLeft > from) return null;
-    return { left: state.left, dartsLeft, text: tn(dartsLeft, one, other, { left: state.left }) };
-};
-
 // how many doubles a saved attempt played (older ones from their darts: three a double)
 const reachedOf = (entry) => entry.result?.reached ?? Math.floor((entry.darts?.length ?? 0) / 3);
 
@@ -150,6 +138,8 @@ export const BOBS_27 = {
     // the hits of every double, 0 to 3 (a visit without one is the worst)
     doubles: (state) => doubleCells(state, index => state.perDouble[index], hits => hits, state.failed),
     doublesLabel: t('Hits out of 3 per double'),
+    // on tiles under the curve (instead of the status): how far it got and the dart of the visit
+    heroFigures: (state) => [[t('Double'), `${Math.min(state.index + 1, 21)} / 21`], [t('Dart'), `${state.inVisit + 1} / 3`]],
     status: (state) => [[t('Points'), state.score], [t('Dart'), `${state.inVisit + 1} / 3`]],
     result: (state) => ({ score: state.failed ? 0 : state.score, reached: state.index, hits: state.hits, darts: state.darts, failed: state.failed }),
     higherIsBetter: true,
@@ -212,9 +202,10 @@ export const CHECKOUT_121 = {
     hero: (state) => state.left,
     checkout: (state, { settings }) => wayOut(state, settings.darts),
     // the last visit of an attempt: not checked out, the next target is one lower
-    danger: (state, { settings }) => checkoutDanger(state, settings.darts, 3, 'Last dart for {{left}}, or the next target is one lower.', 'Last {{count}} darts for {{left}}, or the next target is one lower.'),
     // an attempt ends early when it is checked out or bust: its visits count from its start
     inVisit: (state) => state.inAttempt % 3,
+    // on tiles under what is left and the way out (instead of the status)
+    heroFigures: (state, { settings }) => [[t('Target'), state.target], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
     status: (state, { settings }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
@@ -277,8 +268,9 @@ export const RANDOM_CHECKOUTS = {
     hero: (state) => state.left,
     checkout: (state) => wayOut(state, 3),
     // three darts an attempt: only its last dart
-    danger: (state) => checkoutDanger(state, 3, 1, 'Last dart for {{left}}, or this finish is lost.', 'Last {{count}} darts for {{left}}, or this finish is lost.'),
     inVisit: (state) => state.inAttempt,
+    // on tiles under what is left and the way out (instead of the status)
+    heroFigures: (state, { settings }) => [[t('Checked out'), state.done], [t('Attempt'), `${state.index + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     status: (state, { settings }) => [[t('Checked out'), state.done], [t('Attempt'), `${state.index + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     result: (state, { settings }) => ({ score: Math.round(state.done / settings.attempts * 100), done: state.done, attempts: settings.attempts, best: state.best, darts: state.darts }),
     higherIsBetter: true,
@@ -319,7 +311,6 @@ export const SCORING = {
     },
     done: (state, { settings }) => state.darts >= settings.darts,
     target: () => t('Score as much as you can'),
-    hero: (state) => (state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'),
     // the points, the average and the darts big in the header, side by side (instead of the status)
     heroFigures: (state, { settings }) => [[t('Points'), state.points], [t('Average'), state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     status: (state, { settings }) => [[t('Points'), state.points], [t('Average'), state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'], [t('Darts'), `${state.darts} / ${settings.darts}`]],
@@ -421,8 +412,9 @@ export const CATCH_40 = {
     hero: (state) => state.left,
     checkout: (state) => wayOut(state, 6),
     // the second visit of a finish: not checked out, it scores nothing
-    danger: (state) => checkoutDanger(state, 6, 3, 'Last dart for {{left}}, or this finish scores nothing.', 'Last {{count}} darts for {{left}}, or this finish scores nothing.'),
     inVisit: (state) => state.inAttempt % 3,
+    // on tiles under what is left and the way out (instead of the status): which of the 40 finishes
+    heroFigures: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target - 60} / 40`], [t('Darts'), `${state.inAttempt} / 6`]],
     status: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt} / 6`]],
     result: (state) => ({ score: state.points, done: state.done, darts: state.darts }),
     higherIsBetter: true,

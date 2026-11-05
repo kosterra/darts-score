@@ -544,9 +544,9 @@
         gap: $space-2;
     }
 
-    // under a target (Doubles around the board): a little space to it, and after it on a phone
+    // under the big figure and the way out: a little space to them, and after them where the header stacks
     .x01-hero-score > & {
-        order: 4;
+        order: 6;
         margin-top: $space-3;
     }
 }
