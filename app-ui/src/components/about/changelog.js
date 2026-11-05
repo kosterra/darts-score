@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('The result of a training: the figures in one row beside your score, on a phone three side by side under it.'),
+        ],
+    },
+    {
         version: '2026.11.3',
         changes: [
             t('A danger zone in the trainings: in Bob\'s 27 when missing the darts left at a double would end it, in 121 Checkout, Catch 40 and Random checkouts on the last darts of a finish – a pulsing red strip says so and counts them down, 3, 2, 1.'),
