@@ -20,6 +20,8 @@ import GameScreenButton from '../../screen/game.screen.button';
 import QuickHeroBrand from '../../quick/quick.hero.brand';
 import useWaysOut from './use.ways.out';
 import { houseRuleLines } from '../../../utils/club.rules.labels';
+import BotFace from '../../training/bot.face';
+import useBotMood from '../../../utils/use.bot.mood';
 import { t } from '../../../utils/i18n';
 
 // "3 games" in the language of the app (the word in English, as the key of its texts)
@@ -69,6 +71,9 @@ const X01LiveHeader = () => {
     const handicap = hasHandicap(game);
     const [rulesButton, rules] = useGameRules('x01', houseRuleLines('x01', game));
     const waysOut = useWaysOut();
+    // against the bot: its face moves and reacts to the game
+    const bot = players.find(player => player.isBot && game.players.includes(player.id));
+    const botMood = useBotMood(game, bot?.id);
 
     // a visit of 100 or more: a short "TON!" next to the score of the player who threw it
     const [ton, setTon] = useState(null);
@@ -109,7 +114,7 @@ const X01LiveHeader = () => {
             </div>
             {rules}
 
-            <div className={`x01-hero-players count-${sides.length}`}>
+            <div className={`x01-hero-players count-${sides.length} ${bot ? 'has-bot' : ''}`}>
                 {sides.map(({ player, partner, team }, index) => {
                     const model = game.playerModels[player.id];
                     const isTurn = game.currentPlayerTurn === player.id;
@@ -137,13 +142,17 @@ const X01LiveHeader = () => {
                         <div key={team.join('-')} className={`x01-hero-player ${isTurn ? 'is-turn' : ''} ${sides.length === 2 && index === 1 ? 'is-mirrored' : ''}`} aria-current={isTurn ? 'true' : undefined}>
                             <span className="result-hero-portrait x01-hero-portrait">
                                 {isTurn && <span className="x01-turn-halo" style={{ '--player-colour': PLAYER_COLORS[index] }} aria-hidden="true" />}
-                                <Avatar
-                                    label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname, player.lastname)}
-                                    image={resolvePlayerImg(player.profileImg)}
-                                    shape="circle"
-                                    className="bg-surface-high result-hero-avatar x01-hero-avatar"
-                                    style={{ '--player-colour': PLAYER_COLORS[index] }}
-                                />
+                                {player.isBot
+                                    ? <span className="p-avatar p-avatar-circle p-avatar-image bg-surface-high result-hero-avatar x01-hero-avatar x01-bot-avatar" style={{ '--player-colour': PLAYER_COLORS[index] }}>
+                                        <BotFace mood={botMood} />
+                                    </span>
+                                    : <Avatar
+                                        label={player.profileImg ? undefined : resolvePlayerInitials(player.firstname, player.lastname)}
+                                        image={resolvePlayerImg(player.profileImg)}
+                                        shape="circle"
+                                        className="bg-surface-high result-hero-avatar x01-hero-avatar"
+                                        style={{ '--player-colour': PLAYER_COLORS[index] }}
+                                    />}
                             </span>
                             <div className="x01-hero-info">
                                 <span className="x01-hero-name text-truncate" title={player.nickname}>

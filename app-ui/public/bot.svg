@@ -1,5 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <!-- the training bot: a friendly robot whose antenna is a little dart -->
+  <!-- the training bot: a friendly robot whose antenna is a little dart; now and then it blinks,
+       looks around and its antenna wobbles, each on a rhythm of its own (still with reduced motion).
+       The same drawing, with moods, is components/training/bot.face.jsx: keep the two in step. -->
+  <style>
+    .look { animation: look 9.7s ease-in-out infinite; }
+    .blink { transform-box: fill-box; transform-origin: center; animation: blink 5.3s infinite; }
+    .antenna { transform-box: view-box; transform-origin: 64px 40px; animation: wobble 7.1s ease-in-out infinite; }
+    @keyframes look {
+      0%, 30% { transform: translateX(0); }
+      36%, 46% { transform: translateX(-4px); }
+      54%, 64% { transform: translateX(4px); }
+      70%, 100% { transform: translateX(0); }
+    }
+    @keyframes blink {
+      0%, 93%, 100% { transform: scaleY(1); }
+      95% { transform: scaleY(0.1); }
+    }
+    @keyframes wobble {
+      0%, 84%, 100% { transform: rotate(0deg); }
+      88% { transform: rotate(-9deg); }
+      92% { transform: rotate(6deg); }
+      96% { transform: rotate(-3deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .look, .blink, .antenna { animation: none; }
+    }
+  </style>
   <defs>
     <radialGradient id="bg" cx="50%" cy="38%" r="70%">
       <stop offset="0" stop-color="#3b5a4b"/>
@@ -17,9 +43,11 @@
   </defs>
   <rect width="128" height="128" fill="url(#bg)"/>
   <!-- the antenna: a dart standing on its point -->
-  <line x1="64" y1="40" x2="64" y2="24" stroke="#e9eef2" stroke-width="2.4" stroke-linecap="round"/>
-  <rect x="61.2" y="13" width="5.6" height="13" rx="2.4" fill="#9aa5b1"/>
-  <path d="M64 13 L55 3 L60 1 L64 6 L68 1 L73 3 Z" fill="#ec8b80" stroke="#b9645b" stroke-width="0.8" stroke-linejoin="round"/>
+  <g class="antenna">
+    <line x1="64" y1="40" x2="64" y2="24" stroke="#e9eef2" stroke-width="2.4" stroke-linecap="round"/>
+    <rect x="61.2" y="13" width="5.6" height="13" rx="2.4" fill="#9aa5b1"/>
+    <path d="M64 13 L55 3 L60 1 L64 6 L68 1 L73 3 Z" fill="#ec8b80" stroke="#b9645b" stroke-width="0.8" stroke-linejoin="round"/>
+  </g>
   <!-- ears -->
   <rect x="21" y="58" width="9" height="20" rx="4" fill="#8f9aa4"/>
   <rect x="98" y="58" width="9" height="20" rx="4" fill="#8f9aa4"/>
@@ -27,10 +55,14 @@
   <rect x="28" y="40" width="72" height="58" rx="18" fill="url(#head)" stroke="#7f8a94" stroke-width="2"/>
   <rect x="35" y="49" width="58" height="34" rx="12" fill="#253029"/>
   <!-- eyes, glowing in the app's green, and a little shine in each -->
-  <circle cx="51" cy="65" r="8" fill="url(#eye)"/>
-  <circle cx="77" cy="65" r="8" fill="url(#eye)"/>
-  <circle cx="48.5" cy="62" r="2" fill="#ffffff" opacity="0.85"/>
-  <circle cx="74.5" cy="62" r="2" fill="#ffffff" opacity="0.85"/>
+  <g class="look">
+    <g class="blink">
+      <circle cx="51" cy="65" r="8" fill="url(#eye)"/>
+      <circle cx="77" cy="65" r="8" fill="url(#eye)"/>
+      <circle cx="48.5" cy="62" r="2" fill="#ffffff" opacity="0.85"/>
+      <circle cx="74.5" cy="62" r="2" fill="#ffffff" opacity="0.85"/>
+    </g>
+  </g>
   <!-- a smile -->
   <path d="M55 76 Q64 81 73 76" fill="none" stroke="#7ecca5" stroke-width="2.4" stroke-linecap="round"/>
   <!-- the speaker grille on the chin -->

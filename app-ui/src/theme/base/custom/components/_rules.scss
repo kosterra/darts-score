@@ -538,7 +538,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: $space-2;
+    gap: 0.75rem;
     margin-top: 0.15rem;
     order: 4;
 }
@@ -584,4 +584,99 @@
     padding-right: 0.75rem;
     padding-left: 0.75rem;
     white-space: nowrap;
+}
+
+// the score of an attempt with, under it, how far a failed one got
+.rules-board-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+
+    .rules-board-note {
+        color: $textFaintColor;
+        font-size: $text-xs;
+        font-weight: $weight-semibold;
+        white-space: nowrap;
+    }
+}
+
+// Bob's 27 in the danger zone: a red strip above Hit and Miss, the darts left counting down
+// (each new number pops in); it pulses with a red glow, faster the fewer darts are left
+.rules-danger {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-3;
+    padding: 0.6rem 0.85rem;
+    border-radius: $radius-md;
+    background: soft($accentRed, 0.22);
+    color: $textDefaultColor;
+    font-size: $text-md;
+    animation: rules-danger-pulse 2.8s ease-in-out infinite;
+
+    &.is-left-2 { animation-duration: 2.3s; }
+    &.is-left-1 { animation-duration: 1.8s; }
+
+    > .pi { color: $accentRed; font-size: 1.1rem; }
+
+    strong { color: $accentRed; font-weight: $weight-bold; }
+
+    .rules-danger-count {
+        flex-shrink: 0;
+        margin-left: auto;
+        min-width: 2.2rem;
+        color: $accentRed;
+        font-size: $text-2xl;
+        font-weight: $weight-heavy;
+        line-height: 1;
+        text-align: center;
+        animation: rules-target-in 0.35s ease-out;
+    }
+}
+
+@keyframes rules-danger-pulse {
+    0%, 100% { background: soft($accentRed, 0.16); box-shadow: 0 0 0 0 soft($accentRed, 0); }
+    50% { background: soft($accentRed, 0.4); box-shadow: 0 0 0 0.3rem soft($accentRed, 0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rules-danger, .rules-danger .rules-danger-count { animation: none; }
+}
+
+// on a phone the danger zone floats at the bottom, above the menu bar: on its own with Hit and
+// Miss (a solid surface under its pulse, as it lies over the page), on top of the visit bar of
+// the board and the keypad; smaller there
+@media (max-width: 767.98px) {
+    .rules-danger-dock {
+        position: fixed;
+        right: 0.5rem;
+        // right on the menu bar (3.75rem and the safe area), as the start of a setup: nothing of the page shows between
+        bottom: calc(3.75rem + env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px)));
+        left: 0.5rem;
+        z-index: 899;
+        border-radius: $radius-md;
+        background: var(--surface);
+        box-shadow: 0 0.5rem 1.5rem shadow(0.55);
+
+        .rules-danger { margin: 0; }
+    }
+
+    .rules-danger-dock .rules-danger,
+    .x01-visit-bar.is-floating .rules-danger {
+        gap: $space-2;
+        padding: 0.45rem 0.7rem;
+        font-size: $text-sm;
+
+        .rules-danger-count { min-width: 1.6rem; font-size: $text-xl; }
+    }
+
+    .x01-visit-bar.is-floating.has-danger {
+        grid-template-areas: "danger danger" "darts actions" "total actions";
+
+        .rules-danger { grid-area: danger; margin: 0 0 0.35rem; }
+    }
+
+    // room at the bottom of the page for the floating danger zone
+    .x01-game-page:has(.rules-danger-dock) { padding-bottom: 9rem; }
 }

@@ -104,3 +104,26 @@ test('at the end what every double took, and the new entry on the scoreboard in 
     await expect(older).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator('.rules-board-doubles .rules-double')).toHaveCount(21);
 });
+
+test('the danger zone: missing the darts left at a double would end it, counted down, gone with a hit', async ({ page, isMobile }) => {
+    await startTraining(page);
+    const miss = page.getByRole('button', { name: 'Miss', exact: true });
+    const hit = page.getByRole('button', { name: 'Hit', exact: true });
+    // in the panel, or floating at the bottom on a phone: the one in view
+    const danger = page.locator('.rules-danger:visible');
+    // D1 to D4 missed: 7 points left at D5 (10)
+    for (let dart = 0; dart < 12; dart++) await miss.click();
+    await expect(danger).toContainText('Danger zone');
+    await expect(danger).toContainText('Hit D5 with one of your next 3 darts');
+    await miss.click();
+    await expect(danger).toContainText('next 2 darts');
+    await miss.click();
+    await expect(danger).toContainText('Hit D5 with your last dart');
+    await expect(danger).toHaveClass(/is-left-1/);
+    await page.screenshot({ path: `test-results/bobs27-danger-${test.info().project.name}.png` });
+    if (isMobile) return;
+    // the last dart hits: safe again
+    await hit.click();
+    await expect(danger).toHaveCount(0);
+});
+

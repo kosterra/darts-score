@@ -21,8 +21,8 @@ export const seedRulesTrainings = (players, scenario) => {
     globalThis.rulesTrainings = [];
     if (scenario !== 'bobs27') return;
     const random = seeded(27);
-    // newest first, as the API lists them
-    [[0, 0.45, 1], [1, 0.3, 2], [2, 0.55, 3], [0, 0.35, 6], [3, 0.25, 9], [1, 0.4, 12]].forEach(([index, rate, daysAgo], number) => {
+    // newest first, as the API lists them; the last two fail before the bull (0 points)
+    [[0, 0.45, 1], [1, 0.3, 2], [2, 0.55, 3], [0, 0.35, 6], [3, 0.25, 9], [1, 0.4, 12], [4, 0.05, 13], [5, 0.1, 14]].forEach(([index, rate, daysAgo], number) => {
         const player = players[index];
         const { darts, result } = attempt('bobs27', rate, random);
         globalThis.rulesTrainings.push({

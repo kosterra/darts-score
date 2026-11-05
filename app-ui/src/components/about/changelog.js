@@ -9,6 +9,17 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.3',
+        changes: [
+            t('A danger zone in the trainings: in Bob\'s 27 when missing the darts left at a double would end it, in 121 Checkout, Catch 40 and Random checkouts on the last darts of a finish – a pulsing red strip says so and counts them down, 3, 2, 1.'),
+            t('Bob\'s 27 scoreboard: the same points rank by how far one got, and an attempt that failed says where it ended – out at D6.'),
+            t('Trainings on a phone: your picture in the header instead of the Throwing tag, and the bars that float at the bottom sit clear of the menu.'),
+            t('The bot comes to life in X01 against the bot: it blinks and looks around while you throw, watches the board at its own turn, beams at a ton or a leg it won, sulks after a bust and stares at your 180 – on a phone too, small beside your picture.'),
+            t('Fix: a training with the board or the keypad ends at its last dart again, with the result and the new entry on the scoreboard; the page went back to the setup without saving it.'),
+            t('Fix: the Form tile on the dashboard shows only its arrow and the change, also on a phone turned sideways, where the word ran out of the tile.'),
+        ],
+    },
+    {
         version: '2026.11.2',
         changes: [
             t('Boards: a tournament or a club night plays on as many boards as the club has. Every match is called to a free board as soon as its players are free, the players see "Your match: board 2, against Ben" on their phone and the dashboard, a finished game frees its board for the next one at once, and the big screen shows all boards with the queue. Admins move, hold back and take boards out.'),
