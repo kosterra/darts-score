@@ -320,6 +320,8 @@ export const SCORING = {
     done: (state, { settings }) => state.darts >= settings.darts,
     target: () => t('Score as much as you can'),
     hero: (state) => (state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'),
+    // the points and the average both big in the header, side by side
+    heroFigures: (state) => [[t('Points'), state.points], [t('Average'), state.darts ? (state.points / state.darts * 3).toFixed(1) : '–']],
     status: (state, { settings }) => [[t('Points'), state.points], [t('Average'), state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     result: (state) => ({ score: Math.round(state.points / state.darts * 3 * 10) / 10, points: state.points, darts: state.darts, tons: state.tons, best: state.best }),
     higherIsBetter: true,

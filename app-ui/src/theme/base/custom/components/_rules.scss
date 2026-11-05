@@ -524,6 +524,32 @@
     font-weight: $weight-bold;
 }
 
+// several big figures side by side, each over its name (Scoring: the points and the average)
+.rules-hero-figures {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 2.5rem;
+
+    @media (max-width: 575.98px) {
+        gap: $space-6;
+    }
+}
+
+.rules-hero-figure {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $space-1;
+}
+
+.rules-hero-figure-label {
+    color: var(--text-faint);
+    font-size: $text-sm;
+    font-weight: $weight-regular;
+    letter-spacing: 0;
+    text-shadow: none;
+}
+
 // Bob's 27: the points big and white with the word smaller beside them, the double to throw
 // at under them in the accent, then the curve of the points so far
 .rules-hero-unit {

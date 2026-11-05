@@ -374,7 +374,17 @@ const RulesTraining = () => {
                         isTurn: true,
                         line: status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
                         // the big figure, with its unit smaller beside it (Bob's 27: "441 points")
-                        score: definition.hero
+                        score: definition.heroFigures
+                            // several figures side by side, each over its name (Scoring: the points and the average)
+                            ? <span className="rules-hero-figures">
+                                {definition.heroFigures(replay.state, ctx).map(([label, value]) => (
+                                    <span key={label} className="rules-hero-figure">
+                                        <span className="tabular-nums">{value}</span>
+                                        <span className="rules-hero-figure-label">{label}</span>
+                                    </span>
+                                ))}
+                            </span>
+                            : definition.hero
                             ? definition.heroUnit
                                 ? <>{definition.hero(replay.state, ctx)}<span className="rules-hero-unit">{definition.heroUnit(replay.state, ctx)}</span></>
                                 : definition.hero(replay.state, ctx)
@@ -383,7 +393,9 @@ const RulesTraining = () => {
                         scoreClass: definition.heroTarget ? 'rules-hero-target' : '',
                         scoreKey: definition.heroTarget ? `${target}-${undone?.count ?? 0}` : undefined,
                         // the way out to throw, as in X01; without one the target (or what the training stands at)
-                        below: ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
+                        // the figures carry their names, the target is under the title already
+                        below: definition.heroFigures ? null
+                            : ways?.routes[0] ? <span className="x01-live-route">{formatRoute(ways.routes[0])}</span>
                             : ways?.setup ? <span className="x01-live-route is-setup">{formatRoute(ways.setup.darts)}</span>
                                 : definition.noteTarget
                                     // the double to throw at under the points, in the accent (played again when it
