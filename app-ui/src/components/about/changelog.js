@@ -12,7 +12,7 @@ const CHANGELOG = [
         version: 'Next release',
         changes: [
             t('The result of a training: the figures in one row beside your score, on a phone three side by side under it.'),
-            t('Scoring training: the points and the average both big in the header while you throw.'),
+            t('Scoring training: the points, the average and the darts big in the header while you throw, and no longer twice below.'),
         ],
     },
     {

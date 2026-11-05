@@ -12,6 +12,11 @@
   margin-bottom: $space-5;
   padding: 1.1rem 1.5rem;
   border-radius: $radius-md;
+
+  // one player alone (a training): the portrait's halo and the figures clear of the bottom edge
+  @media (min-width: 576px) {
+    &:has(.x01-hero-players.count-1) { padding-bottom: 1.75rem; }
+  }
 }
 
 .x01-hero-players {

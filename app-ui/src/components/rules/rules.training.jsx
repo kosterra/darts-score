@@ -372,7 +372,8 @@ const RulesTraining = () => {
                     rows={[{
                         player: running.player,
                         isTurn: true,
-                        line: status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
+                        // the big figures say it all already
+                        line: definition.heroFigures ? null : status.map(([label, value], index) => <span key={label}>{index > 0 && ' · '}{label}{' '}<strong>{value}</strong></span>),
                         // the big figure, with its unit smaller beside it (Bob's 27: "441 points")
                         score: definition.heroFigures
                             // several figures side by side, each over its name (Scoring: the points and the average)
@@ -437,9 +438,10 @@ const RulesTraining = () => {
                                 aria-label={t('Enter the darts with')}
                             />
                         )}>
-                            <Status items={status} changed={changed} flash={undone?.count} />
+                            {/* the figures of the header again, unless they are all big there */}
+                            {!definition.heroFigures && <Status items={status} changed={changed} flash={undone?.count} />}
                             {/* the three darts of the visit: hit or miss (or the field), the next one framed */}
-                            <ol className="rules-visit mt-3" aria-label={t('Darts of this visit')}>
+                            <ol className={`rules-visit ${definition.heroFigures ? '' : 'mt-3'}`} aria-label={t('Darts of this visit')}>
                                 {[0, 1, 2].map(index => {
                                     const dart = visitDarts[index];
                                     const kind = dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : dart ? 'is-thrown' : index === visitDarts.length && !visitFull ? 'is-next' : 'is-empty';
