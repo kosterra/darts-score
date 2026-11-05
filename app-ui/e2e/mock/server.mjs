@@ -574,8 +574,8 @@ http.createServer((req, res) => {
             const me = path.split('/')[4];
             return send(res, 200, { total: 3, players: players.map(p => ({ id: p.id, nickname: p.nickname })), games: [
                 { id: 'g901', type: 'cricket', format: 'Cricket', playedAt: ago(1), running: false, players: [{ player: 'p2', isWinner: true, score: 36 }, { player: me, isWinner: false, score: 0 }] },
-                { id: 'g902', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', playedAt: ago(1), running: false, players: [{ player: 'p2', isWinner: false, sets: 1, legs: 3 }, { player: me, isWinner: true, sets: 2, legs: 4 }] },
-                { id: 'g903', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', playedAt: ago(2), running: true, players: [{ player: me, isWinner: false, sets: 1, legs: 1 }, { player: 'p3', isWinner: false, sets: 0, legs: 2 }] },
+                { id: 'g902', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', inSets: true, playedAt: ago(1), running: false, players: [{ player: 'p2', isWinner: false, sets: 1, legs: 3 }, { player: me, isWinner: true, sets: 2, legs: 4 }] },
+                { id: 'g903', type: 'x01', format: '501 · Best of 3 sets · Best of 3 legs', inSets: true, playedAt: ago(2), running: true, players: [{ player: me, isWinner: false, sets: 1, legs: 1 }, { player: 'p3', isWinner: false, sets: 0, legs: 2 }] },
             ] });
         }
         // the club's year: its figures and awards (an old year without games)
@@ -778,14 +778,14 @@ http.createServer((req, res) => {
                 players: players.map(p => ({ id: p.id, firstname: p.firstname, lastname: p.lastname, nickname: p.nickname, profileImg: '', guest: false })),
                 leaderboards: { mostWins: board(i => 20 - i * 3), winRate: board(i => 60 - i * 5), x01Average: board(i => 55 - i * 4), most180s: board(i => 9 - i), highestCheckout: board(i => 140 - i * 10), mostGames: board(i => 40 - i * 4), winsX01: board(i => 12 - i), winsCricket: board(i => 5 - i), winsElimination: board(i => 3), winsClock: board(i => 2), mostDarts: board(i => 4000 - i * 300), rating: mockRatings(players.filter(p => !p.guest).map(p => p.id)).board.slice(0, 5) },
                 recentGames: [
-                    { id: 'r1', type: 'x01', playedAt: ago(0.02), running: true, format: '501 · Best of 3 sets · Best of 3 legs', players: [{ player: 'p1', sets: 1, legs: 2 }, { player: 'p2', sets: 0, legs: 1 }] },
+                    { id: 'r1', type: 'x01', playedAt: ago(0.02), running: true, format: '501 · Best of 3 sets · Best of 3 legs', inSets: true, players: [{ player: 'p1', sets: 1, legs: 2 }, { player: 'p2', sets: 0, legs: 1 }] },
                     { id: 'r2', type: 'cricket', playedAt: ago(1), running: false, format: 'Cricket', players: [{ player: 'p2', score: 120, isWinner: true }, { player: 'p3', score: 65 }] },
                     { id: 'r3', type: 'elimination', playedAt: ago(1.1), running: false, format: 'Target 301', players: [{ player: 'p1', score: 301, isWinner: true }, { player: 'p4', score: 145 }] },
                     { id: 'r4', type: 'clock', playedAt: ago(2), running: false, format: 'Around the Clock · All', players: [{ player: 'p3', isWinner: true }, { player: 'p5' }] },
                     { id: 'r5', type: 'x01', playedAt: ago(2.1), running: false, format: '501 · First to 1 set · First to 1 leg', players: [{ player: 'p1', sets: 1, legs: 1, isWinner: true }, { player: 'p2', sets: 0, legs: 0 }] },
                 ],
                 runningGames: [
-                    { id: 'r1', type: 'x01', playedAt: ago(0.02), players: [{ player: 'p1', sets: 1, legs: 2 }, { player: 'p2', sets: 0, legs: 1 }] },
+                    { id: 'r1', type: 'x01', playedAt: ago(0.02), inSets: true, players: [{ player: 'p1', sets: 1, legs: 2 }, { player: 'p2', sets: 0, legs: 1 }] },
                     { id: 'r6', type: 'elimination', playedAt: ago(3), players: [{ player: 'p2', score: 0 }, { player: 'p1', score: 294 }, { player: 'p6', score: 145 }] },
                     { id: 'r7', type: 'cricket', playedAt: ago(30), players: [{ player: 'p1', score: 20 }, { player: 'p2', score: 0 }] },
                     { id: 'r8', type: 'clock', playedAt: ago(40), players: [{ player: 'p3' }, { player: 'p4' }] },

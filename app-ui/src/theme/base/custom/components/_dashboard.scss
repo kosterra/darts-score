@@ -125,11 +125,11 @@
     }
 }
 
-// the players of a game in columns: the names, then the sets and the legs (or the score), aligned
+// the players of a game in columns: the names, then the sets or the legs (or the score), aligned
 .game-players {
     display: grid;
-    // the names keep room for a short one; longer ones are shortened, the figures never
-    grid-template-columns: minmax(4.5rem, max-content) repeat(var(--figures, 1), max-content);
+    // the names keep room for a short one; longer ones are shortened, the figure never
+    grid-template-columns: minmax(4.5rem, max-content) max-content;
     column-gap: 0.75rem;
     row-gap: 0.15rem;
     align-items: baseline;

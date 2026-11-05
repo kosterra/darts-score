@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('X01 games in the lists: the sets won when the game goes over several sets, the legs won when it is one set.'),
             t('The header of a training, while you throw and at the end, in one style: the figures on tiles beside your score, on a phone under it behind a thin line. In Scoring the points, the average and the darts, in Doubles around the board the darts and the doubles hit, big there instead of twice below.'),
             t('The result of a training: the hardest doubles beside the other figures, and on a phone the darts per double in rows of seven.'),
         ],

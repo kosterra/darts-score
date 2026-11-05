@@ -113,6 +113,8 @@ const summarizeGame = (type, game) => ({
     // a game of the rules engine by its kind
     type: type === 'rules' ? game.kind : type,
     format: describeFormat(type, game),
+    // X01 over more than one set counts the sets won, one set alone the legs
+    ...(type === 'x01' && { inSets: (game.numberOfSets ?? 1) > 1 }),
     running: Boolean(game.gameIsRunning) && !game.hasWinner,
     playedAt: game.updatedAt,
     players: (game.players ?? []).map(playerId => {
