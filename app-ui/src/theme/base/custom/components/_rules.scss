@@ -329,6 +329,13 @@
     }
 }
 
+// in a result on a phone three rows of seven, so every cell has room (the bull too)
+@media (max-width: 575.98px) {
+    .rules-doubles:not(.is-live) .rules-doubles-cells {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+}
+
 .rules-double {
     display: flex;
     flex-direction: column;

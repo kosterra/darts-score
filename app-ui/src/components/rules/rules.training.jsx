@@ -111,16 +111,12 @@ const TrainingResult = ({ definition, finished, actions }) => {
                 // the number alone, as a game's score; the unit is in the label below
                 scoreOf={() => own?.[1] ?? definition.format(score)}
                 scoreDetailOf={() => own?.[0] ?? t('Result')}
-                rows={short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true }))}
-                figures={{ [id]: Object.fromEntries(short.map(([, value], index) => [`figure-${index}`, value])) }}
+                // the long figures (e.g. the hardest doubles) beside the others, smaller
+                rows={[...short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true })), ...long.map(([label], index) => ({ key: `long-${index}`, label, neutral: true, long: true }))]}
+                figures={{ [id]: Object.fromEntries([...short.map(([, value], index) => [`figure-${index}`, value]), ...long.map(([, value], index) => [`long-${index}`, value])]) }}
                 actions={actions}
-                // the long figures in the header too, under the player, and what every double took
-                footer={<>
-                    {long.map(([label, value]) => (
-                        <p key={label} className="text-center text-subtle fs-7 mt-3 mb-0"><span className="text-faint">{label}:</span>{' '}<strong className="text-default">{value}</strong></p>
-                    ))}
-                    {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} className="mt-3" />}
-                </>}
+                // what every double took
+                footer={doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} className="mt-3" />}
             />
         </>
     );

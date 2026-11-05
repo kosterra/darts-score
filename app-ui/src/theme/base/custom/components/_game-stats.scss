@@ -817,6 +817,13 @@
         line-height: 1.1;
         font-variant-numeric: tabular-nums;
     }
+
+    // a long text (e.g. the hardest doubles): smaller, so it stays on one line beside the others
+    > .is-long dd {
+        font-size: $text-xl;
+        line-height: 1.6;
+        white-space: nowrap;
+    }
 }
 
 // on a phone the figures go under the score, three in a row behind a line
@@ -836,6 +843,11 @@
         > div {
             flex: 1 1 28%;
             min-width: 0;
+        }
+
+        // a long text on a row of its own
+        > .is-long {
+            flex-basis: 100%;
         }
 
         dd {

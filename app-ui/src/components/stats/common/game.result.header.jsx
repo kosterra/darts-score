@@ -13,7 +13,7 @@ import { t } from '../../../utils/i18n';
  * ones marked, and what to do next ("actions"). "celebrate": right after the
  * game was won, the winner glows gold. A player alone has the figures beside
  * them instead of a table. "footer": what else belongs to the result, at the end.
- * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral? }]
+ * rows: [{ key, label, format?, detail?, lowerIsBetter?, neutral?, long? (a long text, smaller beside a player alone) }]
  */
 const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetailOf, rows, figures, actions, footer = null, celebrate = false, className = 'mb-4' }) => {
     // the winner, or in doubles both partners
@@ -74,7 +74,7 @@ const GameResultHeader = ({ game, players, title, subtitle, scoreOf, scoreDetail
                         const playerFigures = figures[players[0]?.id] ?? {};
                         const value = playerFigures[figure.key];
                         return (
-                            <div key={figure.key}>
+                            <div key={figure.key} className={figure.long ? 'is-long' : undefined}>
                                 <dt>{figure.label}</dt>
                                 <dd>
                                     {value == null ? '–' : figure.format ? figure.format(value, playerFigures) : value}
