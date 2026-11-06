@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Panel } from 'primereact/panel';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -5,6 +6,7 @@ import { PiClockCountdownBold } from 'react-icons/pi';
 import { FaRobot } from 'react-icons/fa6';
 
 import { KpiHero } from './kpi';
+import TrainingTrend from './training.trend';
 import { trainingOf } from '../../../rules/trainings';
 import { rulesIcon } from '../../rules/rules.icons';
 import { formatTrainingTime } from '../../../utils/training.time';
@@ -40,33 +42,39 @@ const Sparkline = ({ values = [], lower = false, color }) => {
     );
 };
 
-// one kind of training: what it is, the best result big, a line under it, how often and the trend
-const TrainingCard = ({ icon: Icon, title, value, detail, count, color, spark }) => (
-    <div className="training-card" style={{ '--kpi-color': color }}>
-        <div className="training-card-head">
-            <span className="kpi-chip-icon" aria-hidden="true"><Icon /></span>
-            <span className="d-flex flex-column min-w-0">
-                <span className="training-card-title">{title}</span>
-                <span className="training-card-count">{count}</span>
-            </span>
-        </div>
-        <div className="training-card-body">
-            <span className="d-flex flex-column min-w-0">
-                <span className="training-card-value">{value ?? '–'}</span>
-                {detail && <span className="training-card-detail">{detail}</span>}
-            </span>
-            {spark}
-        </div>
-    </div>
-);
+// one kind of training: what it is, the best result big, a line under it, how often and the trend;
+// with onOpen a button that opens every attempt over time
+const TrainingCard = ({ icon: Icon, title, value, detail, count, color, spark, onOpen }) => {
+    const Tag = onOpen ? 'button' : 'div';
+    return (
+        <Tag type={onOpen ? 'button' : undefined} className={`training-card ${onOpen ? 'is-openable' : ''}`} style={{ '--kpi-color': color }} onClick={onOpen} aria-haspopup={onOpen ? 'dialog' : undefined}>
+            <div className="training-card-head">
+                <span className="kpi-chip-icon" aria-hidden="true"><Icon /></span>
+                <span className="d-flex flex-column min-w-0">
+                    <span className="training-card-title">{title}</span>
+                    <span className="training-card-count">{count}</span>
+                </span>
+            </div>
+            <div className="training-card-body">
+                <span className="d-flex flex-column min-w-0">
+                    <span className="training-card-value">{value ?? '–'}</span>
+                    {detail && <span className="training-card-detail">{detail}</span>}
+                </span>
+                {spark}
+            </div>
+        </Tag>
+    );
+};
 
 /**
  * Every training of a player in one panel: how many, how many lately and
  * when the last one was, then a card per kind with its best, how often and
- * the trend of the last results.
+ * the trend of the last results; a card of the rules engine opens every
+ * attempt over time.
  * summary: { total, last30Days, lastAt, atc, bot, rules } from the API
  */
-const TrainingsPanel = ({ summary }) => {
+const TrainingsPanel = ({ summary, playerId }) => {
+    const [trend, setTrend] = useState(null);
     if (!summary?.total) return null;
     const { atc, bot, rules } = summary;
     const rulesKinds = Object.entries(rules ?? {}).filter(([kind, entry]) => trainingOf(kind) && entry.count > 0);
@@ -118,10 +126,12 @@ const TrainingsPanel = ({ summary }) => {
                             value={entry.best == null ? null : definition.format(entry.best)}
                             detail={entry.latest?.length && entry.latest.at(-1) !== entry.best ? t('best · last {{last}}', { last: definition.format(entry.latest.at(-1)) }) : t('best')}
                             spark={<Sparkline values={entry.latest} lower={lower} color={COLORS.rules} />}
+                            onOpen={playerId ? () => setTrend(kind) : undefined}
                         />
                     );
                 })}
             </div>
+            {trend && <TrainingTrend kind={trend} playerId={playerId} onHide={() => setTrend(null)} />}
         </Panel>
     );
 };

@@ -899,7 +899,7 @@ http.createServer((req, res) => {
                 const same = list.filter(e => e.kind === json.kind && e.player.id === json.player.id);
                 const lower = json.kind === 'doublesaround' || json.kind === 'shortleg';
                 const best = same.length ? (lower ? Math.min(...same.map(e => e.score)) : Math.max(...same.map(e => e.score))) : null;
-                const entry = { ...json, id: `t${++seq}`, player: { id: json.player.id, nickname: players.find(p => p.id === json.player.id)?.nickname ?? '?' }, createdAt: new Date().toISOString() };
+                const entry = { ...json, id: `t${++seq}`, player: { id: json.player.id, nickname: players.find(p => p.id === json.player.id)?.nickname ?? '?' }, createdAt: json.createdAt ?? new Date().toISOString() };
                 list.unshift(entry);
                 return send(res, 201, { ...entry, isRecord: best !== null && (lower ? json.score < best : json.score > best), previousBest: best, ...goalsAfterTraining(json.kind), newBadges: process.env.BADGE ? [{ id: 'one-two-one', title: 'One-Two-One', description: 'Check out 121', group: 'training', tier: 1, tiers: 3 }] : [] });
             }

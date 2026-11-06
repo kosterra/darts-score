@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Your trainings over time: a tap on a training in the statistics of a player shows every attempt as a line with the best so far, how many, the best and how the last attempts compare with the first ones.'),
             t('Two new games under More games: Baseball (nine innings on 1 to 9, a run per ring of the inning\'s number, the bullseye a home run, a tie goes to extra innings on the bull) and Scram for two (the stopper closes the numbers, the scorer scores on the ones still open, then they swap). Each with its win badges, in the comparison and in the club\'s rules; the All-rounder and Every game have a step for all eleven games.'),
             t('Four new trainings: Treble practice (a set number of darts at the T20, T19 or T18, entered with Treble, Single, Double or Miss), Bull practice (Bullseye, 25 or Miss), the Checkout ladder (61 to 100, one visit a finish: checked out one rung up, missed one down) and Shortest leg (legs of 501 on your own, your best leg counts). Each with its scoreboard, weekly goals and a new badge, Every Drill, for doing all eleven kinds of training.'),
             t('The danger zone only in Bob\'s 27, where missing ends the training; in the checkout trainings their figures on tiles in the header instead.'),

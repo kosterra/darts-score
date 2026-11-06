@@ -400,3 +400,22 @@
         flex-shrink: 0;
     }
 }
+
+// a card that opens every attempt over time: a button with the hover of a card
+button.training-card {
+    width: 100%;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover { background: ink(0.08); }
+    &:focus-visible { @include focus-ring; }
+}
+
+// every attempt of a training over time
+.training-trend-dialog { width: min(44rem, calc(100vw - 2rem)); }

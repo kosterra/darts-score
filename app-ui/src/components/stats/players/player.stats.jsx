@@ -427,7 +427,7 @@ const PlayerStats = ({ player, isOwn = false, afterFigures = null }) => {
                             }
                             {stats.trainingSummary?.total > 0 &&
                                 <div className="col-12">
-                                    <TrainingsPanel summary={stats.trainingSummary} />
+                                    <TrainingsPanel summary={stats.trainingSummary} playerId={player.id} />
                                 </div>
                             }
                         </div>
