@@ -857,6 +857,9 @@
             font-size: 1.6rem;
         }
 
+        // four figures and more: two by two, so the numbers keep their room
+        &:has(> :nth-child(4)) > div { flex-basis: calc(50% - #{$space-1}); }
+
         // a long text on a row of its own
         > .is-long {
             flex-basis: 100%;

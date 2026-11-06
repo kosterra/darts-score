@@ -109,18 +109,16 @@ const TrainingResult = ({ definition, finished, actions }) => {
                 players={[{ ...player, id }]}
                 title={[definition.title, ...options].join(' · ')}
                 subtitle={best}
-                // the number alone, as a game's score; the unit is in the label below
-                scoreOf={() => (definition.scoreTile ? null : own?.[1] ?? definition.format(score))}
-                scoreDetailOf={() => own?.[0] ?? t('Result')}
-                // the result itself on the first tile instead of under the name (scoreTile), gold for a new best;
+                // no number under the name: the result itself is the first tile, gold for a new best;
                 // the long figures beside the others, smaller
+                scoreOf={() => null}
                 rows={[
-                    ...(definition.scoreTile ? [{ key: 'score', label: own?.[0] ?? t('Result'), neutral: true, record: Boolean(saved?.isRecord) }] : []),
+                    { key: 'score', label: own?.[0] ?? t('Result'), neutral: true, record: Boolean(saved?.isRecord) },
                     ...short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true })),
                     ...long.map(([label], index) => ({ key: `long-${index}`, label, neutral: true, long: true })),
                 ]}
                 figures={{ [id]: Object.fromEntries([
-                    ...(definition.scoreTile ? [['score', own?.[1] ?? definition.format(score)]] : []),
+                    ['score', own?.[1] ?? definition.format(score)],
                     ...short.map(([, value], index) => [`figure-${index}`, value]),
                     ...long.map(([, value], index) => [`long-${index}`, value]),
                 ]) }}

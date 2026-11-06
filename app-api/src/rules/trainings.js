@@ -364,9 +364,6 @@ export const DOUBLES_AROUND = {
     },
     higherIsBetter: false,
     format: (score) => tn(score, '{{count}} dart', '{{count}} darts'),
-    // the darts on a tile beside the hit rate, as in the header while throwing (the hardest
-    // doubles show in the darts per double below)
-    scoreTile: true,
     figures: (result) => [
         [t('Darts'), result.score],
         [t('Hit rate'), percent(21, result.score)],
