@@ -1089,6 +1089,16 @@ a.badge-feed-tile:hover { background: $surfaceHighColor; }
     }
 }
 
+// who made a club badge happen (picture and nickname) and, small in the corner, when
+.club-badge-earned {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    min-width: 0;
+    margin-top: 0.2rem;
+}
+
 // how far towards a badge or a goal (of the club or one's own)
 .goal-progress {
     display: block;

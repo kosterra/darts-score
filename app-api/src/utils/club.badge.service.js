@@ -219,6 +219,10 @@ export const clubBadgesOverview = async (club) => {
     const { metrics, progress } = await syncClubBadges(club);
     const stored = await db.club.findById(club._id, 'badges goals').lean();
     const earnedById = new Map((stored?.badges ?? []).map(entry => [entry.badge, entry]));
+    // who made each happen, with their picture
+    const ids = [...new Set((stored?.badges ?? []).map(entry => entry.player).filter(id => id && db.mongoose.isValidObjectId(id)).map(String))];
+    const players = await db.player.find({ _id: { $in: ids } }, 'nickname firstname lastname profileImg').lean();
+    const playerById = new Map(players.map(player => [String(player._id), { id: String(player._id), nickname: player.nickname, firstname: player.firstname, lastname: player.lastname, profileImg: player.profileImg ?? null }]));
     return {
         earnedCount: CLUB_BADGES.filter(badge => earnedById.has(badge.id)).length,
         total: CLUB_BADGES.length,
@@ -226,7 +230,7 @@ export const clubBadgesOverview = async (club) => {
             const earned = earnedById.get(badge.id);
             return {
                 ...publicClubBadge(badge),
-                earned: earned ? { earnedAt: earned.earnedAt, sourceType: earned.sourceType ?? null, sourceId: earned.sourceId ?? null, nickname: earned.nickname ?? null } : null,
+                earned: earned ? { earnedAt: earned.earnedAt, sourceType: earned.sourceType ?? null, sourceId: earned.sourceId ?? null, nickname: earned.nickname ?? null, player: earned.player ? playerById.get(String(earned.player)) ?? null : null } : null,
                 progress: Math.min(Math.floor(metrics[badge.metric] ?? 0), badge.target),
             };
         }),

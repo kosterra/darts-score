@@ -1,6 +1,9 @@
+import { Avatar } from 'primereact/avatar';
+
 import ClubMedal from './club.medal';
 import GoalProgress from '../elements/goal.progress';
 import { formatDate } from '../../utils/dates';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -24,8 +27,27 @@ export const ClubMedalRow = ({ badges = [], count = badges.length, size = 'xs' }
     );
 };
 
-// when and by whom a club badge was earned: "12.11.2026 · Anna made it happen"
-const earnedLine = (earned) => [formatDate(earned.earnedAt), earned.nickname ? t('{{nickname}} made it happen', { nickname: earned.nickname }) : null].filter(Boolean).join(' · ');
+// who made a club badge happen, with their picture, and when, small in the corner
+const EarnedBy = ({ earned }) => {
+    const player = earned.player;
+    const nickname = player?.nickname ?? earned.nickname;
+    return (
+        <span className="club-badge-earned">
+            {nickname
+                ? <span className="d-inline-flex align-items-center gap-2 min-w-0 text-subtle fs-8" title={t('{{nickname}} made it happen', { nickname })}>
+                    <Avatar
+                        label={player ? resolvePlayerInitials(player.firstname ?? nickname, player.lastname ?? '') : nickname.charAt(0)}
+                        image={player ? resolvePlayerImg(player.profileImg) : undefined}
+                        shape="circle"
+                        className="avatar-xs bg-surface-high flex-shrink-0"
+                    />
+                    <span className="text-truncate">{nickname}</span>
+                </span>
+                : <span />}
+            <span className="text-faint fs-9 text-nowrap">{formatDate(earned.earnedAt)}</span>
+        </span>
+    );
+};
 
 /**
  * Every badge of the club by category: the earned ones with when and by whom,
@@ -50,7 +72,7 @@ export const ClubBadgeList = ({ badges = [] }) => {
                                         <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
                                         <span className="text-faint fs-8">{badge.description}</span>
                                         {badge.earned
-                                            ? <span className="text-subtle fs-8">{earnedLine(badge.earned)}</span>
+                                            ? <EarnedBy earned={badge.earned} />
                                             : badge.target > 1 &&
                                                 <span className="d-flex flex-column gap-1">
                                                     <GoalProgress value={badge.progress} target={badge.target} label={badge.title} />

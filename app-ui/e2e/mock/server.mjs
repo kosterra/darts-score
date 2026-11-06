@@ -748,7 +748,7 @@ http.createServer((req, res) => {
             const byId = new Map(earned.map(e => [e.badge, e]));
             return {
                 earnedCount: earned.length, total: CLUB_BADGES.length,
-                badges: CLUB_BADGES.map(b => { const e = byId.get(b.id); return { ...publicClubBadge(b), earned: e ? { earnedAt: e.earnedAt, sourceType: e.sourceType, sourceId: e.sourceId, nickname: nick[e.player] ?? null } : null, progress: Math.min(metrics[b.metric] ?? 0, b.target) }; }),
+                badges: CLUB_BADGES.map(b => { const e = byId.get(b.id); return { ...publicClubBadge(b), earned: e ? { earnedAt: e.earnedAt, sourceType: e.sourceType, sourceId: e.sourceId, nickname: nick[e.player] ?? null, player: players.find(p => p.id === e.player) ?? null } : null, progress: Math.min(metrics[b.metric] ?? 0, b.target) }; }),
                 goals: goals.map(g => ({ ...g, title: GOAL_METRICS[g.metric].title, description: GOAL_METRICS[g.metric].describe(g.target), progress: Math.min(goalProgress(g, events, []), g.target) })),
             };
         };
