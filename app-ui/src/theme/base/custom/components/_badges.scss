@@ -790,20 +790,6 @@ $tar: #17110c;
         font-size: $text-base;
     }
 
-    .badge-ranking-bar {
-        display: block;
-        height: 0.3rem;
-        border-radius: $radius-pill;
-        background: $surfaceHighColor;
-        overflow: hidden;
-
-        span {
-            display: block;
-            height: 100%;
-            border-radius: $radius-pill;
-            background: $momentGoldColor;
-        }
-    }
 
     .badge-ranking-cut {
         margin: $space-2 0 0;
@@ -838,6 +824,22 @@ $tar: #17110c;
     }
 }
 
+// a share as a thin bar (the badge ranking, what is played or trained most)
+.badge-ranking-bar {
+    display: block;
+    height: 0.3rem;
+    border-radius: $radius-pill;
+    background: $surfaceHighColor;
+    overflow: hidden;
+
+    span {
+        display: block;
+        height: 100%;
+        border-radius: $radius-pill;
+        background: $momentGoldColor;
+    }
+}
+
 .badge-ranking-bar.is-green span {
     background: $accentGreen;
 }
@@ -855,14 +857,26 @@ $tar: #17110c;
     }
 }
 
-// in a row across a full-width panel: all in one row while each has 14rem, else as many as fit
+// in a row across a full-width panel: a tile each, all in one row while each has 11rem, else
+// as many as fit; the name over the count, the bar of its share in the game's colour
 .training-popular.is-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(max(14rem, calc((100% - (var(--count) - 1) * 2rem) / var(--count))), 1fr));
-    gap: 0.9rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: $space-3;
 
-    // a long name ("Around the Clock") on two lines rather than cut
-    .text-truncate { white-space: normal; }
+    li {
+        align-items: flex-start;
+        gap: $space-3;
+        padding: 0.75rem 0.9rem;
+        border-radius: $radius-md;
+        background: $surfaceRaisedColor;
+    }
+
+    .popular-name { color: var(--text-default); font-size: $text-md; font-weight: $weight-semibold; line-height: 1.2; }
+    .popular-count { color: var(--text-faint); font-size: $text-xs; }
+    .popular-count strong { margin-right: 0.3rem; color: var(--text-default); font-size: $text-xl; font-weight: $weight-bold; font-variant-numeric: tabular-nums; }
+    .badge-ranking-bar { margin-top: 0.15rem; }
+    .badge-ranking-bar span { background: var(--popular-color); }
 }
 
 // the players page: a level's icon in its colour, as a round mark
