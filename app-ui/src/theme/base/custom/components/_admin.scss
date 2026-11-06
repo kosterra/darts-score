@@ -909,6 +909,15 @@ $fair-play-suspicious: $accentAmber;
   background: #f2f3f1;
 }
 
+// the players of a game in the list, the names in a column of one width in every row, so the
+// scores stand one under another down the list
+.games-players {
+    display: grid;
+    grid-template-columns: minmax(0, 14rem) max-content;
+    align-items: center;
+    gap: $space-2 $space-5;
+}
+
 // an editor under a row of a list, instead of a popup
 .row-editor {
     display: flex;
