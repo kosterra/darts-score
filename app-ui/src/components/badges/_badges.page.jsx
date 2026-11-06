@@ -83,7 +83,8 @@ const Ranking = ({ players, all, total }) => (
                             <span className="badge-ranking-bar" aria-hidden="true"><span style={{ width: `${total ? player.earnedCount / total * 100 : 0}%` }} /></span>
                             <WeekStreak streak={player.weekStreak} />
                         </span>
-                        <span className="d-none d-sm-flex gap-1 flex-shrink-0">
+                        {/* room for three, right-aligned, so every bar ends at the same place */}
+                        <span className="badge-ranking-latest d-none d-sm-flex gap-1 flex-shrink-0 justify-content-end">
                             {player.latest.map(badge => <BadgeMedal key={badge.id} badge={badge} size="sm" />)}
                         </span>
                     </Link>

@@ -791,6 +791,9 @@ $tar: #17110c;
     }
 
 
+    // the latest badges: room for three small medals in every row
+    .badge-ranking-latest { width: calc(3 * 2.25rem + 2 * #{$space-1}); }
+
     .badge-ranking-cut {
         margin: $space-2 0 0;
         border-color: $surfaceHighColor;
