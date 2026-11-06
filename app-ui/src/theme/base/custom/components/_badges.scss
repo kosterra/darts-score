@@ -801,6 +801,53 @@ $tar: #17110c;
     }
 }
 
+// the feed and the rarest as tiles like the ranking: the medal, the badge over its description,
+// on the right who (with their picture) and when
+.badge-feed {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.badge-feed-tile {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: 0.6rem 0.9rem;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+a.badge-feed-tile:hover { background: $surfaceHighColor; }
+
+.badge-feed-who {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    flex-shrink: 0;
+    max-width: 45%;
+    min-width: 0;
+}
+
+.badge-feed-holder {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    max-width: 100%;
+    padding: 0.15rem 0.5rem 0.15rem 0.15rem;
+    border-radius: $radius-pill;
+    color: var(--text-default);
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    text-decoration: none;
+
+    &:hover { background: ink(0.08); }
+}
+
 // a badge with its title and who has it: the feed, the rarest
 .badge-feed-row {
     display: flex;

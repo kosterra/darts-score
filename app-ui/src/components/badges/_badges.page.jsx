@@ -129,17 +129,23 @@ const BadgesOverview = () => {
                 <Panel header={t('Recently earned')} className="h-100">
                     {(overview.recent ?? []).length === 0
                         ? <span className="text-faint fs-7">{t('No badges earned yet.')}</span>
-                        : <ul className="list-unstyled m-0 d-flex flex-column gap-2">
+                        : <ul className="badge-feed list-unstyled m-0">
                             {overview.recent.map((entry, index) => (
                                 <li key={`${entry.player.id}-${entry.badge.id}-${index}`}>
-                                    {/* the whole line leads to the player's badges */}
-                                    <Link to={toPlayer(entry.player)} className="link-row badge-feed-row">
+                                    {/* the whole tile leads to the player's badges: the badge, then who and when */}
+                                    <Link to={toPlayer(entry.player)} className="badge-feed-tile">
                                         <BadgeMedal badge={entry.badge} size="sm" />
                                         <span className="d-flex flex-column flex-grow-1 min-w-0">
-                                            <span className="text-default fs-7 fw-semibold text-truncate" title={entry.badge.description}>{entry.badge.title}</span>
-                                            <span className="text-subtle fs-8 text-truncate">{entry.player.nickname}</span>
+                                            <span className="text-default fs-7 fw-semibold text-truncate">{entry.badge.title}</span>
+                                            {entry.badge.description && <span className="text-faint fs-8 text-truncate">{entry.badge.description}</span>}
                                         </span>
-                                        <span className="text-faint fs-8 text-nowrap">{dayjs(entry.earnedAt).fromNow()}</span>
+                                        <span className="badge-feed-who">
+                                            <span className="d-inline-flex align-items-center gap-2 text-default fs-8 fw-semibold">
+                                                <PlayerAvatar player={entry.player} className="avatar-xs" />
+                                                <span className="text-truncate">{entry.player.nickname}</span>
+                                            </span>
+                                            <span className="text-faint fs-9 text-nowrap">{dayjs(entry.earnedAt).fromNow()}</span>
+                                        </span>
                                     </Link>
                                 </li>
                             ))}
@@ -227,19 +233,20 @@ const BadgesOverview = () => {
                         <p className="text-faint fs-8 mt-0">{t('Badges only one or two players of the club have.')}</p>
                         {(overview.rare ?? []).length === 0
                             ? <span className="text-faint fs-7">{t('No badge is rare in the club yet.')}</span>
-                            : <ul className="list-unstyled m-0 d-flex flex-column gap-3">
+                            : <ul className="badge-feed list-unstyled m-0">
                                 {overview.rare.map(entry => (
-                                    <li key={entry.badge.id} className="badge-feed-row">
+                                    <li key={entry.badge.id} className="badge-feed-tile">
                                         <BadgeMedal badge={entry.badge} size="sm" />
                                         <span className="d-flex flex-column flex-grow-1 min-w-0">
                                             <span className="text-default fs-7 fw-semibold">{entry.badge.title}</span>
                                             <span className="text-faint fs-8">{entry.badge.description}</span>
                                         </span>
-                                        <span className="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                                        {/* who has it, each leading to their badges */}
+                                        <span className="badge-feed-who">
                                             {entry.holders.map(holder => (
-                                                <Link key={holder.id} to={toPlayer(holder)} className="d-inline-flex align-items-center gap-2 text-subtle fs-8">
-                                                    {holder.nickname}
+                                                <Link key={holder.id} to={toPlayer(holder)} className="badge-feed-holder">
                                                     <PlayerAvatar player={holder} className="avatar-xs" />
+                                                    <span className="text-truncate">{holder.nickname}</span>
                                                 </Link>
                                             ))}
                                         </span>
