@@ -308,6 +308,18 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-11-club-badge-ladders',
+        description: 'Work out the new club badges (trainings, ton-plus visits, high finishes, tournaments, leagues, more steps of the games) from what each club played, without telling the members about the ones earned long ago',
+        run: async () => {
+            const { syncClubBadges } = await import('./club.badge.service.js');
+            const clubs = await db.club.find({});
+            let badges = 0;
+            for (const club of clubs) badges += (await syncClubBadges(club, { notify: false })).fresh.length;
+            logger.info(`Club badges: ${badges} new ones earned in ${clubs.length} clubs`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {
