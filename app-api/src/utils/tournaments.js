@@ -547,6 +547,9 @@ const finished = async (tournament) => {
         const player = id && await db.player.findById(id);
         if (player) await syncPlayerBadges(player, { notify: true }).catch(err => logger.warn(`Could not update the badges of ${id}: ${err.message}`));
     }
+    // the clubs' badges for tournaments played to the final: the host and the clubs it invited
+    const { syncClubsAfterEnd } = await import('./club.badge.service.js');
+    await syncClubsAfterEnd([tournament.club, ...(tournament.invitedClubs ?? [])]);
 };
 
 /**

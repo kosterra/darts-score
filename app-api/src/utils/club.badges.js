@@ -1,5 +1,4 @@
 import { gameFeats } from './badges.js';
-import { isRulesGame } from './rules.kinds.js';
 import { teamsOf } from '../rules/x01.js';
 
 /**
@@ -15,13 +14,6 @@ const WEEK_MS = 7 * DAY_MS;
 // weeks start on a Monday, as for the players' weekly streaks
 const FIRST_MONDAY_MS = Date.UTC(1970, 0, 5);
 const YEAR_MS = 365.25 * DAY_MS;
-// the game types and the kinds of training a club can play
-// (the first nine earned Every Game in the Book, all of them The Whole Book)
-export const CLUB_GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'shanghai', 'killer', 'halveit', 'golf', 'tactics', 'baseball', 'scram'];
-const CLUB_FIRST_GAME_TYPES = 9;
-// (the first seven earned Training Ground, all of them Every Drill in the Club)
-export const CLUB_TRAINING_KINDS = ['atc', 'bobs27', 'checkout121', 'randomcheckouts', 'scoring', 'doublesaround', 'catch40', 'trebles', 'bulls', 'ladder', 'shortleg'];
-const CLUB_FIRST_TRAINING_KINDS = 7;
 const formatCount = (n) => new Intl.NumberFormat('en').format(n);
 
 // how the club's medals are shown, in this order
@@ -35,7 +27,13 @@ export const CLUB_BADGE_GROUPS = [
     {
         group: 'clubGames', category: 'together', title: 'Club games', metric: 'games',
         describe: (n) => `${formatCount(n)} games played in the club`,
-        tiers: [[100, 'Busy Oche'], [1000, 'Thousand Games'], [10000, 'Ten Thousand Games']],
+        tiers: [[100, 'Busy Oche'], [500, 'Five Hundred Games'], [1000, 'Thousand Games'], [2500, 'Oche on Fire'], [5000, 'Five Thousand Games'], [10000, 'Ten Thousand Games']],
+    },
+    {
+        // a club trains more than it plays: the steps higher than those of the games
+        group: 'clubTrainings', category: 'together', title: 'Trainings together', metric: 'trainings',
+        describe: (n) => `${formatCount(n)} trainings done in the club`,
+        tiers: [[250, 'Practice Night'], [1000, 'Thousand Trainings'], [2500, 'Practice Makes Perfect'], [10000, 'Ten Thousand Trainings'], [25000, 'Training Factory']],
     },
     {
         group: 'clubDarts', category: 'together', title: 'Darts thrown', metric: 'darts',
@@ -46,6 +44,16 @@ export const CLUB_BADGE_GROUPS = [
         group: 'club180s', category: 'together', title: '180s together', metric: 'num180s',
         describe: (n) => `${formatCount(n)} × 180 thrown in the club`,
         tiers: [[10, 'Ten Maximums'], [100, 'Hundred Maximums'], [1000, 'Thousand Maximums']],
+    },
+    {
+        group: 'clubTonPlus', category: 'together', title: 'Ton-plus visits', metric: 'tonPlus',
+        describe: (n) => `${formatCount(n)} visits of 100 or more in the club`,
+        tiers: [[100, 'Ton Up'], [1000, 'Thousand Tons'], [10000, 'Ten Thousand Tons']],
+    },
+    {
+        group: 'clubHighFinishes', category: 'together', title: 'High finishes', metric: 'highFinishes',
+        describe: (n) => `${formatCount(n)} checkouts of 100 or more in the club`,
+        tiers: [[10, 'Ton-Plus Finishers'], [100, 'Hundred High Finishes'], [1000, 'Thousand High Finishes']],
     },
     {
         group: 'clubNight', category: 'clubLife', title: 'Club night', metric: 'bestNight',
@@ -68,14 +76,15 @@ export const CLUB_BADGE_GROUPS = [
         tiers: [[1, 'One Year on the Oche'], [2, 'Two Years on the Oche'], [5, 'Five Years on the Oche']],
     },
     {
-        group: 'clubEveryGame', category: 'together', title: 'Every game', metric: 'gameTypes',
-        describe: (n) => `All ${n} games played in the club`,
-        tiers: [[CLUB_FIRST_GAME_TYPES, 'Every Game in the Book'], [CLUB_GAME_TYPES.length, 'The Whole Book']],
+        // a tournament of the club or one it was invited to, played to the final
+        group: 'clubTournaments', category: 'clubLife', title: 'Tournaments', metric: 'tournaments',
+        describe: (n) => n === 1 ? 'A tournament played to the final in the club' : `${formatCount(n)} tournaments played to the final in the club`,
+        tiers: [[1, 'First Tournament'], [10, 'Tournament Club']],
     },
     {
-        group: 'clubEveryTraining', category: 'together', title: 'Every training', metric: 'trainingKinds',
-        describe: (n) => `All ${n} kinds of training done in the club`,
-        tiers: [[CLUB_FIRST_TRAINING_KINDS, 'Training Ground'], [CLUB_TRAINING_KINDS.length, 'Every Drill in the Club']],
+        group: 'clubLeagues', category: 'clubLife', title: 'Leagues', metric: 'leagues',
+        describe: (n) => n === 1 ? 'A league season played to the end in the club' : `${formatCount(n)} league seasons played to the end in the club`,
+        tiers: [[1, 'First League Season'], [5, 'Five League Seasons']],
     },
     {
         group: 'clubFirst180', category: 'firsts', title: 'First 180', metric: 'max180Firsts',
@@ -174,17 +183,17 @@ const dayOf = (time) => Math.floor(time / DAY_MS);
  * Replays what a club played and returns its badges, each with the game or
  * training that tipped it and the player who played it (for the firsts the one
  * who threw it), and the metrics for the progress to the next tiers.
- * events: [{ kind: 'game', type, id, at, players, darts, num180s, firsts } |
- *          { kind: 'training', type: 'atc' | 'rulesTraining', trainingKind, id, at, player }]
+ * events: [{ kind: 'game', type, id, at, players, darts, num180s, tonPlus, highFinishes, firsts } |
+ *          { kind: 'training', type: 'atc' | 'rulesTraining', trainingKind, id, at, player } |
+ *          { kind: 'tournament' | 'league', type: 'tournament' | 'league', id, at, player (the winner) }]
  * members: the number of members now; createdAt: when the club began; now
  */
 export const replayClubBadges = (events, { members = 0, createdAt = null, now = new Date() } = {}) => {
     const metrics = {
-        games: 0, darts: 0, num180s: 0, bestNight: 0, weekStreak: 0, bestWeekStreak: 0, members, years: 0,
-        gameTypes: 0, trainingKinds: 0, max180Firsts: 0, bigFishFirsts: 0, nineDarterFirsts: 0, shanghaiFinishFirsts: 0,
+        games: 0, trainings: 0, darts: 0, num180s: 0, tonPlus: 0, highFinishes: 0, tournaments: 0, leagues: 0,
+        bestNight: 0, weekStreak: 0, bestWeekStreak: 0, members, years: 0,
+        max180Firsts: 0, bigFishFirsts: 0, nineDarterFirsts: 0, shanghaiFinishFirsts: 0,
     };
-    const types = new Set();
-    const kinds = new Set();
     let day = null;
     let dayPlayers = new Set();
     let lastWeek = null;
@@ -202,6 +211,12 @@ export const replayClubBadges = (events, { members = 0, createdAt = null, now = 
     for (const event of [...events].sort((a, b) => new Date(a.at) - new Date(b.at))) {
         const time = new Date(event.at).getTime();
         const players = event.kind === 'game' ? event.players ?? [] : [event.player].filter(Boolean);
+        // a tournament or a league season played to its end: tipped by its winner
+        if (event.kind === 'tournament' || event.kind === 'league') {
+            metrics[event.kind === 'tournament' ? 'tournaments' : 'leagues'] += 1;
+            award(() => ({ earnedAt: event.at, sourceType: event.type, sourceId: event.id, player: event.player ?? null }));
+            continue;
+        }
         // the players of the day, and the weeks with a game or training in a row
         if (dayOf(time) !== day) {
             day = dayOf(time);
@@ -222,9 +237,8 @@ export const replayClubBadges = (events, { members = 0, createdAt = null, now = 
             metrics.games += 1;
             metrics.darts += event.darts ?? 0;
             metrics.num180s += event.num180s ?? 0;
-            types.add(isRulesGame(event.type) || CLUB_GAME_TYPES.includes(event.type) ? event.type : null);
-            types.delete(null);
-            metrics.gameTypes = types.size;
+            metrics.tonPlus += event.tonPlus ?? 0;
+            metrics.highFinishes += event.highFinishes ?? 0;
             for (const [key, metric] of Object.entries(FIRSTS)) {
                 const by = event.firsts?.[key];
                 if (by?.length && metrics[metric] === 0) {
@@ -233,8 +247,7 @@ export const replayClubBadges = (events, { members = 0, createdAt = null, now = 
                 }
             }
         } else {
-            kinds.add(event.trainingKind);
-            metrics.trainingKinds = kinds.size;
+            metrics.trainings += 1;
         }
         award((badge) => ({
             earnedAt: event.at,

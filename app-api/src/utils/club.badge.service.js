@@ -40,17 +40,24 @@ export const saveTally = async (clubId, type, game, { onlyPlayers = null } = {})
 
 // what a club played: its game tallies and its trainings, as events for the replay
 const loadClubEvents = async (clubId) => {
-    const [tallies, atc, rules] = await Promise.all([
+    const [tallies, atc, rules, tournaments, leagues] = await Promise.all([
         db.clubTally.find({ club: clubId }, 'sourceType sourceId at players darts num180s tonPlus highFinishes firsts').lean(),
         db.atc.find({ club: clubId }, 'createdAt player').lean(),
         db.rulesTraining.find({ club: clubId }, 'kind createdAt player').lean(),
+        // the club's own tournaments and those it was invited to, played to the final
+        db.tournament.find({ $or: [{ club: clubId }, { invitedClubs: clubId }], status: 'finished' }, 'finishedAt winner').lean(),
+        db.league.find({ club: clubId, status: 'finished' }, 'finishedAt winner').lean(),
     ]);
+    const ends = [
+        ...tournaments.map(entry => ({ kind: 'tournament', type: 'tournament', id: String(entry._id), at: entry.finishedAt, player: entry.winner ?? null })),
+        ...leagues.map(entry => ({ kind: 'league', type: 'league', id: String(entry._id), at: entry.finishedAt, player: entry.winner ?? null })),
+    ];
     const trainings = [
         ...atc.map(entry => ({ kind: 'training', type: 'atc', trainingKind: 'atc', id: String(entry._id), at: entry.createdAt, player: entry.player?.id ? String(entry.player.id) : null })),
         ...rules.map(entry => ({ kind: 'training', type: 'rulesTraining', trainingKind: entry.kind, id: String(entry._id), at: entry.createdAt, player: entry.player?.id ? String(entry.player.id) : null })),
     ];
     const games = tallies.map(tally => ({ kind: 'game', type: tally.sourceType, id: tally.sourceId, ...tally }));
-    return { games, trainings, tallies };
+    return { games, trainings, ends, tallies };
 };
 
 const memberCount = (clubId) => db.player.countDocuments({ clubs: clubId, guest: { $ne: true } });
@@ -110,8 +117,8 @@ export const clubOf = async (clubOrId) => (Array.isArray(clubOrId?.badges) ? clu
 export const syncClubBadges = async (clubOrId, { notify = true } = {}) => {
     const club = await clubOf(clubOrId);
     if (!club) return { fresh: [], metrics: {}, progress: {} };
-    const [{ games, trainings, tallies }, members] = await Promise.all([loadClubEvents(club._id), memberCount(club._id)]);
-    const { earned, metrics } = replayClubBadges([...games, ...trainings], { members, createdAt: club.createdAt });
+    const [{ games, trainings, ends, tallies }, members] = await Promise.all([loadClubEvents(club._id), memberCount(club._id)]);
+    const { earned, metrics } = replayClubBadges([...games, ...trainings, ...ends], { members, createdAt: club.createdAt });
 
     const known = new Set((club.badges ?? []).map(entry => entry.badge));
     const fresh = earned.filter(entry => !known.has(entry.badge));
@@ -162,7 +169,18 @@ export const syncClubAfterGame = async (clubId, type, game, { onlyPlayers = null
     }
 };
 
-// after a training: the club's badges (every kind of training) and goals
+// after a tournament or a league season ended: the badges of each club it counts for
+export const syncClubsAfterEnd = async (clubIds) => {
+    for (const clubId of [...new Set(clubIds.map(String))]) {
+        try {
+            await syncClubBadges(clubId);
+        } catch (err) {
+            logger.error(err, 'Failed to update the club badges after a tournament or league');
+        }
+    }
+};
+
+// after a training: the club's badges (the trainings) and goals
 export const syncClubAfterTraining = async (clubId) => {
     try {
         return (await syncClubBadges(clubId)).fresh;

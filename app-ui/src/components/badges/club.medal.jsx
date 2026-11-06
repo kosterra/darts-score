@@ -1,4 +1,4 @@
-import { FaBolt, FaCakeCandles, FaCalendarDays, FaChessBoard, FaDragon, FaDumbbell, FaFish, FaGem, FaLock, FaMoon, FaRoute, FaShieldHalved, FaUsers } from 'react-icons/fa6';
+import { FaBolt, FaCakeCandles, FaCalendarDays, FaDragon, FaDumbbell, FaFireFlameCurved, FaFish, FaFlagCheckered, FaGem, FaListOl, FaLock, FaMoon, FaRoute, FaShieldHalved, FaTrophy, FaUsers } from 'react-icons/fa6';
 import { GiDart } from 'react-icons/gi';
 import { t } from '../../utils/i18n';
 
@@ -10,8 +10,11 @@ const GROUP_ICONS = {
     clubWeeks: FaCalendarDays,
     clubMembers: FaUsers,
     clubAnniversary: FaCakeCandles,
-    clubEveryGame: FaChessBoard,
-    clubEveryTraining: FaDumbbell,
+    clubTrainings: FaDumbbell,
+    clubTonPlus: FaFireFlameCurved,
+    clubHighFinishes: FaFlagCheckered,
+    clubTournaments: FaTrophy,
+    clubLeagues: FaListOl,
     clubFirst180: FaBolt,
     clubFirstBigFish: FaFish,
     clubFirstNineDarter: FaGem,
