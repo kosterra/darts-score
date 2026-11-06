@@ -1094,6 +1094,17 @@ a.badge-feed-tile:hover { background: $surfaceHighColor; }
         align-items: stretch;
         gap: $space-2;
     }
+
+    // the description always two lines, so the bars of a row of tiles start at the same height
+    .club-badge-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        min-height: calc(2 * 1.5em);
+        line-height: 1.5;
+    }
 }
 
 // the steps of a series of club badges: earned in gold with a tick, the one running now

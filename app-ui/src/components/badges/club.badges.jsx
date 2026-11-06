@@ -85,7 +85,7 @@ export const ClubBadgeList = ({ badges = [] }) => {
                                             <ClubMedal badge={latest ?? badge} locked={!latest} size="sm" />
                                             <span className="d-flex flex-column min-w-0">
                                                 <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
-                                                <span className="text-faint fs-8">{badge.description}</span>
+                                                <span className="club-badge-description text-faint fs-8" title={badge.description}>{badge.description}</span>
                                             </span>
                                         </span>
                                         <span className="d-flex flex-column gap-1 min-w-0">
