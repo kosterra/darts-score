@@ -106,6 +106,7 @@ const BadgesOverview = () => {
     const shame = useClubShame();
     const [search, setSearch] = useState('');
     const [showAll, setShowAll] = useState(false);
+    const [allUnclaimed, setAllUnclaimed] = useState(false);
 
     useEffect(() => {
         StatsService.loadClubBadges().then(setOverview).catch(error => console.error('Failed to load badges', error));
@@ -261,16 +262,29 @@ const BadgesOverview = () => {
                         {unclaimed.length === 0
                             ? <span className="text-faint fs-7">{t('Every badge has been won in the club.')}</span>
                             : <>
-                                <ul className={`badge-unclaimed list-unstyled m-0 ${shame?.enabled ? 'is-wide' : ''}`}>
-                                    {unclaimed.slice(0, UNCLAIMED_SHOWN).map(badge => (
-                                        <li key={badge.id} title={badge.description}>
+                                {/* tiles like the other lists: the locked medal, the badge over what it takes */}
+                                <ul className="badge-unclaimed list-unstyled m-0">
+                                    {(allUnclaimed ? unclaimed : unclaimed.slice(0, UNCLAIMED_SHOWN)).map(badge => (
+                                        <li key={badge.id}>
                                             <BadgeMedal badge={badge} size="sm" locked />
-                                            <span className="text-subtle fs-8 text-center">{badge.title}</span>
+                                            <span className="d-flex flex-column min-w-0">
+                                                <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
+                                                <span className="text-faint fs-8">{badge.description}</span>
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
                                 {unclaimed.length > UNCLAIMED_SHOWN &&
-                                    <span className="d-block text-faint fs-8 mt-3">{tn(unclaimed.length - UNCLAIMED_SHOWN, 'and {{count}} more', 'and {{count}} more')}</span>}
+                                    <Button
+                                        type="button"
+                                        label={allUnclaimed ? t('Show fewer') : t('Show all {{length}}', { length: unclaimed.length })}
+                                        icon={allUnclaimed ? 'pi pi-chevron-up' : 'pi pi-chevron-down'}
+                                        size="small"
+                                        text
+                                        className="mt-2"
+                                        aria-expanded={allUnclaimed}
+                                        onClick={() => setAllUnclaimed(!allUnclaimed)}
+                                    />}
                             </>}
                     </Panel>
                 </div>

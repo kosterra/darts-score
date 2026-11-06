@@ -306,19 +306,52 @@ $badgeMetals: (
     font-size: $text-lg;
 }
 
-// The Hall of Shame: each shame badge with who holds it, in two columns when
-// there is room
+// The Hall of Shame: each shame badge as a tile, in two columns when there is room; those
+// someone holds first with a rust edge and the holder on the right, the free ones quieter
 .hall-of-shame {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-    gap: $space-4 $space-5;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: $space-2 $space-3;
 }
 
 .hall-of-shame-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: $space-3;
     min-width: 0;
+    padding: 0.6rem 0.9rem;
+    border-radius: $radius-md;
+    border-left: 3px solid transparent;
+    background: $surfaceRaisedColor;
+
+    &.is-held {
+        border-left-color: $shameColor;
+        background: with-alpha($shameColor, 0.08);
+    }
+}
+
+.hall-of-shame-title {
+    color: var(--text-subtle);
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+
+    .is-held & { color: var(--text-default); }
+}
+
+.hall-of-shame-holder {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    flex-shrink: 0;
+    max-width: 40%;
+    min-width: 0;
+}
+
+.hall-of-shame-free {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    font-size: $text-xs;
 }
 
 // a shame badge named after a darts term: what the term means
@@ -855,22 +888,20 @@ a.badge-feed-tile:hover { background: $surfaceHighColor; }
     gap: $space-3;
 }
 
-// the badges nobody has yet: a grid of locked medals
+// the badges nobody has yet: tiles of locked medals, the badge over what it takes
 .badge-unclaimed {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-    gap: $space-4 $space-3;
-
-    // across the full width: the twelve shown in one row (auto-fit: fewer share it out)
-    &.is-wide {
-        @media (min-width: 1200px) { grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); }
-    }
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: $space-2 $space-3;
 
     li {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 0.4rem;
+        gap: $space-3;
+        min-width: 0;
+        padding: 0.6rem 0.9rem;
+        border-radius: $radius-md;
+        background: $surfaceRaisedColor;
     }
 }
 
