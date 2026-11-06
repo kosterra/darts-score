@@ -12,6 +12,7 @@ import { whenPlayed } from '../stats/common/game.text';
 import RoundsLineChart from '../stats/charts/rounds.line.chart';
 import UpLink from '../elements/up.link';
 import RulesList from './rules.list';
+import { PLAYER_COLORS } from '../stats/charts/chart.theme';
 import { gameOf } from '../../rules/games';
 import { progressOf, replayGame, withGameState } from '../../rules/engine';
 import { t } from '../../utils/i18n';
@@ -87,11 +88,14 @@ const RulesGameStats = () => {
     const winners = players.filter(player => game.playerModels?.[player.id]?.hasWonGame);
     const options = (definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean);
 
-    // the visits round by round, every player's darts side by side
+    // the visits round by round, every player's darts side by side, with what they had after it
+    // (the value of the chart after their nth visit)
     const rounds = [];
+    const visitsOf = {};
     replay.visits.forEach(visit => {
+        visitsOf[visit.player] = (visitsOf[visit.player] ?? 0) + 1;
         rounds[visit.round - 1] = rounds[visit.round - 1] ?? {};
-        rounds[visit.round - 1][visit.player] = visit.darts;
+        rounds[visit.round - 1][visit.player] = { darts: visit.darts, after: definition.progress ? progress[visitsOf[visit.player]]?.[visit.player] : null };
     });
 
     return (
@@ -133,20 +137,38 @@ const RulesGameStats = () => {
                         </div>
                     }
                     <div className="col-12 col-xl-5">
+                        {/* as the visits of Cricket: the darts as small tags, the newest round on top */}
                         <Panel header={t('Visits')} className="h-100">
-                            <div className="overflow-auto">
-                                <table className="rules-scoreboard">
+                            <div className="x01-legs-wrap x01-visits">
+                                <table className="x01-legs">
                                     <thead>
                                         <tr>
-                                            <th>{t('Round')}</th>
-                                            {players.map(player => <th key={player.id} title={player.nickname}>{player.nickname.slice(0, 10)}</th>)}
+                                            <th scope="col">{t('Round')}</th>
+                                            {players.map((player, index) => (
+                                                <th key={player.id} scope="col" colSpan={2}>
+                                                    <span className="d-inline-flex align-items-center text-nowrap">
+                                                        <span className="result-hero-dot" style={{ background: PLAYER_COLORS[index] }} aria-hidden="true" />{player.nickname}
+                                                    </span>
+                                                </th>
+                                            ))}
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {rounds.map((round, index) => (
+                                    <tbody className="is-static">
+                                        {rounds.map((round, index) => ({ round, index })).reverse().map(({ round, index }) => (
                                             <tr key={index}>
-                                                <td>{index + 1}</td>
-                                                {players.map(player => <td key={player.id}>{round?.[player.id]?.join(' ') ?? '–'}</td>)}
+                                                <td className="fw-semibold">{index + 1}</td>
+                                                {players.map(player => {
+                                                    const visit = round?.[player.id];
+                                                    if (!visit) return [<td key={`${player.id}-d`} />, <td key={`${player.id}-s`} />];
+                                                    return [
+                                                        <td key={`${player.id}-d`}>
+                                                            <span className="x01-visit-darts">{visit.darts.map((dart, d) => <span key={d}>{dart === '0' ? t('Miss') : dart}</span>)}</span>
+                                                        </td>,
+                                                        <td key={`${player.id}-s`} className="text-end text-nowrap">
+                                                            {visit.after != null && <span className="x01-visit-left">{visit.after}</span>}
+                                                        </td>,
+                                                    ];
+                                                })}
                                             </tr>
                                         ))}
                                     </tbody>
