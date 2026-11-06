@@ -1109,7 +1109,7 @@ a.badge-feed-tile:hover { background: $surfaceHighColor; }
         font-variant-numeric: tabular-nums;
         cursor: default;
 
-        .pi { font-size: 0.6rem; }
+        svg { flex-shrink: 0; width: 0.6rem; height: 0.6rem; }
 
         &.is-earned { background: with-alpha($accentGold, 0.16); color: $accentGold; font-weight: $weight-semibold; }
         &.is-next { background: ink(0.12); color: var(--text-default); font-weight: $weight-semibold; }

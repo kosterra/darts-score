@@ -1,4 +1,5 @@
 import { Avatar } from 'primereact/avatar';
+import { FaCheck, FaHourglassHalf, FaLock } from 'react-icons/fa6';
 
 import ClubMedal from './club.medal';
 import GoalProgress from '../elements/goal.progress';
@@ -92,7 +93,7 @@ export const ClubBadgeList = ({ badges = [] }) => {
                                                 <ol className="club-ladder list-unstyled m-0" aria-label={t('All steps')}>
                                                     {steps.map(step => (
                                                         <li key={step.id} className={step.earned ? 'is-earned' : step === next ? 'is-next' : ''} title={stepTitle(step)}>
-                                                            <i className={`pi ${step.earned ? 'pi-check' : step === next ? 'pi-hourglass' : 'pi-lock'}`} aria-hidden="true" />
+                                                            {step.earned ? <FaCheck aria-hidden="true" /> : step === next ? <FaHourglassHalf aria-hidden="true" /> : <FaLock aria-hidden="true" />}
                                                             {formatNumber(step.target)}
                                                         </li>
                                                     ))}
