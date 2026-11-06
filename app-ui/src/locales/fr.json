@@ -5479,6 +5479,8 @@
  "{{count}} round left": "encore {{count}} manche",
  "{{count}} rounds": "{{count}} tours",
  "{{count}} rounds left": "encore {{count}} manches",
+ "{{count}} rule": "{{count}} règle",
+ "{{count}} rules": "{{count}} règles",
  "{{count}} score left worked out again from the darts.": "{{count}} reste recalculé d'après les fléchettes.",
  "{{count}} scores left worked out again from the darts.": "{{count}} restes recalculés d'après les fléchettes.",
  "{{count}} session": "{{count}} session",

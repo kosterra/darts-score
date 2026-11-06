@@ -415,6 +415,29 @@ $fair-play-suspicious: $accentAmber;
   &.is-suspicious { @include label-tone($fair-play-suspicious); }
 }
 
+// the rules of the checks: tiles of a level side by side, its colour on the edge
+.fair-play-rules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: $space-2 $space-3;
+
+  @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.fair-play-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: $radius-md;
+  border-left: 3px solid transparent;
+  background: $surfaceRaisedColor;
+
+  &.is-impossible { border-left-color: $fair-play-impossible; }
+  &.is-error { border-left-color: $fair-play-error; }
+  &.is-suspicious { border-left-color: $fair-play-suspicious; }
+}
+
 .fair-play-players {
   display: flex;
   flex-wrap: wrap;
