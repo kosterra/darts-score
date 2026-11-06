@@ -1087,6 +1087,13 @@ a.badge-feed-tile:hover { background: $surfaceHighColor; }
     &.is-locked {
         opacity: 0.75;
     }
+
+    // a series: the medal and the title on top, the progress, the ladder and who below
+    &.is-series {
+        flex-direction: column;
+        align-items: stretch;
+        gap: $space-2;
+    }
 }
 
 // the steps of a series of club badges: earned in gold with a tick, the one running now

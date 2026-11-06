@@ -79,11 +79,16 @@ export const ClubBadgeList = ({ badges = [] }) => {
                                 const latest = [...steps].reverse().find(badge => badge.earned);
                                 const badge = next ?? latest;
                                 return (
-                                    <li key={badge.group} className={`club-badge-card ${latest ? '' : 'is-locked'}`}>
-                                        <ClubMedal badge={latest ?? badge} locked={!latest} size="sm" />
-                                        <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
-                                            <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
-                                            <span className="text-faint fs-8">{badge.description}</span>
+                                    <li key={badge.group} className={`club-badge-card is-series ${latest ? '' : 'is-locked'}`}>
+                                        {/* the medal beside the title, the rest across the whole tile under them */}
+                                        <span className="d-flex align-items-center gap-3 min-w-0">
+                                            <ClubMedal badge={latest ?? badge} locked={!latest} size="sm" />
+                                            <span className="d-flex flex-column min-w-0">
+                                                <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
+                                                <span className="text-faint fs-8">{badge.description}</span>
+                                            </span>
+                                        </span>
+                                        <span className="d-flex flex-column gap-1 min-w-0">
                                             {next && next.target > 1 &&
                                                 <span className="d-flex flex-column gap-1">
                                                     <GoalProgress value={next.progress} target={next.target} label={next.title} />
