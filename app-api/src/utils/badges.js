@@ -56,8 +56,10 @@ const TACTICS_TARGETS = 12;
 // the trainings: a checkout rate counts from so many attempts, Bob's 27 has 21 doubles
 const MIN_CHECKOUT_ATTEMPTS = 10;
 const BOBS_27_DOUBLES = 21;
-// every kind of training: Around the Clock and those of the rules engine
-const TRAINING_KINDS_ALL = 7;
+// every kind of training: Around the Clock and those of the rules engine (the first seven
+// earned All the Drills, all of them Every Drill)
+const TRAINING_KINDS_FIRST = 7;
+const TRAINING_KINDS_ALL = 11;
 const GAME_WIN_METRICS = { x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock', shanghai: 'winsShanghai', killer: 'winsKiller', halveit: 'winsHalveIt', golf: 'winsGolf', tactics: 'winsTactics' };
 const formatCount = (n) => new Intl.NumberFormat('en').format(n);
 
@@ -355,8 +357,8 @@ export const BADGE_GROUPS = [
     },
     {
         group: 'everyTraining', category: 'training', title: 'Every training', metric: 'trainingKinds',
-        describe: () => 'Finish every kind of training at least once: Around the Clock and the six others',
-        tiers: [[TRAINING_KINDS_ALL, 'All the Drills']],
+        describe: (n) => `Finish ${n} different kinds of training at least once`,
+        tiers: [[TRAINING_KINDS_FIRST, 'All the Drills'], [TRAINING_KINDS_ALL, 'Every Drill']],
     },
 ];
 

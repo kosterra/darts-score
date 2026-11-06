@@ -455,7 +455,11 @@ describe('the newer games and trainings', () => {
         expect(ids([training('doublesaround', 38)])).toEqual(expect.arrayContaining(['doublesAround-60', 'doublesAround-40']));
         const kinds = ['bobs27', 'checkout121', 'randomcheckouts', 'scoring', 'doublesaround', 'catch40'].map(kind => training(kind, 1));
         expect(ids(kinds)).not.toContain('everyTraining-7');
-        expect(ids([...kinds, { type: 'atc', id: 'a1', at: at(), data: { mode: 'Single', scoring: 'Time', timeMs: 60000 } }])).toContain('everyTraining-7');
+        const seven = [...kinds, { type: 'atc', id: 'a1', at: at(), data: { mode: 'Single', scoring: 'Time', timeMs: 60000 } }];
+        expect(ids(seven)).toContain('everyTraining-7');
+        expect(ids(seven)).not.toContain('everyTraining-11');
+        // the four newer ones too: every drill
+        expect(ids([...seven, ...['trebles', 'bulls', 'ladder', 'shortleg'].map(kind => training(kind, 1))])).toContain('everyTraining-11');
     });
 
     it('Bob\'s Bust only while the trainings are shown, washed off by all 21 doubles', () => {

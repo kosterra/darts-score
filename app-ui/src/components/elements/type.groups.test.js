@@ -8,7 +8,7 @@ describe('the type filter in the address', () => {
         expect(typesFrom('x01,cricket', GAME_TYPE_GROUPS)).toEqual(['x01', 'cricket']);
         expect(typesFrom('x01', GAME_TYPE_GROUPS)).toEqual(['x01']);
         expect(typesFrom('rules', GAME_TYPE_GROUPS)).toEqual(['shanghai', 'killer', 'halveit', 'golf', 'tactics']);
-        expect(typesFrom('rules', TRAINING_TYPE_GROUPS)).toHaveLength(6);
+        expect(typesFrom('rules', TRAINING_TYPE_GROUPS)).toHaveLength(10);
     });
 
     it('leaves out what is no type of the list', () => {

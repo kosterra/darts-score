@@ -20,6 +20,10 @@ export const RULES_TRAININGS = {
     scoring: { title: 'Scoring', higherIsBetter: true },
     doublesaround: { title: 'Doubles around the board', higherIsBetter: false },
     catch40: { title: 'Catch 40', higherIsBetter: true },
+    trebles: { title: 'Treble practice', higherIsBetter: true },
+    bulls: { title: 'Bull practice', higherIsBetter: true },
+    ladder: { title: 'Checkout ladder', higherIsBetter: true },
+    shortleg: { title: 'Shortest leg', higherIsBetter: false },
 };
 
 export const GAME_KINDS = Object.keys(RULES_GAMES);

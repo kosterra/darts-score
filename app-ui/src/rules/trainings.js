@@ -1,7 +1,8 @@
 /**
  * The newer trainings, each as one definition of the rules engine (see
  * engine.js): Bob's 27, 121 Checkout, Random checkouts, Scoring, Doubles
- * around the board and Catch 40.
+ * around the board, Catch 40, Treble practice, Bull practice, Checkout ladder
+ * and Shortest leg.
  */
 import { afterDart, isCheckout } from './darts.js';
 import { t, tn } from '../utils/i18n.js';
@@ -425,5 +426,244 @@ export const CATCH_40 = {
     ],
 };
 
-export const TRAININGS = [BOBS_27, CHECKOUT_121, RANDOM_CHECKOUTS, SCORING, DOUBLES_AROUND, CATCH_40];
+/**
+ * Treble practice: a set number of darts at one treble. Every dart is a
+ * treble, a double or a single of the number, or a miss; the share of
+ * trebles counts.
+ */
+export const TREBLES = {
+    id: 'trebles',
+    title: t('Treble practice'),
+    description: t('A set number of darts at one treble, the 20, 19 or 18: how many of them land in the treble?'),
+    rules: [
+        t('Throw the darts set at the treble chosen, three a visit.'),
+        t('Every dart is a treble, a double or a single of the number, or a miss (anything else).'),
+        t('The share of trebles counts; the share on the number at all shows beside it.'),
+    ],
+    input: 'buttons',
+    // the four ways a dart at the treble can land, quicker than the board
+    buttons: (settings) => [
+        { value: `T${settings.number}`, label: t('Treble'), icon: 'pi pi-check' },
+        { value: `S${settings.number}`, label: t('Single'), severity: 'secondary' },
+        { value: `D${settings.number}`, label: t('Double'), severity: 'secondary' },
+        { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
+    ],
+    options: [
+        { key: 'number', label: t('Treble'), values: [{ value: 20, label: 'T20' }, { value: 19, label: 'T19' }, { value: 18, label: 'T18' }], default: 20 },
+        { key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 },
+    ],
+    init: () => ({ darts: 0, trebles: 0, onNumber: 0, points: 0, inVisit: 0, visitTrebles: 0, bestVisit: 0 }),
+    dart: (state, dart, { settings }) => {
+        state.darts += 1;
+        state.inVisit += 1;
+        if (dart.number === settings.number) {
+            state.onNumber += 1;
+            state.points += dart.points;
+            if (dart.ring === 'T') {
+                state.trebles += 1;
+                state.visitTrebles += 1;
+            }
+        }
+        if (state.inVisit === 3) {
+            state.bestVisit = Math.max(state.bestVisit, state.visitTrebles);
+            state.inVisit = 0;
+            state.visitTrebles = 0;
+        }
+        return state;
+    },
+    done: (state, { settings }) => state.darts >= settings.darts,
+    target: (state, { settings }) => `T${settings.number}`,
+    hero: (state, { settings }) => `T${settings.number}`,
+    heroTarget: true,
+    // the trebles, their share and the darts big under the treble (instead of the status)
+    heroFigures: (state, { settings }) => [[t('Trebles'), state.trebles], [t('Treble rate'), percent(state.trebles, state.darts)], [t('Darts'), `${state.darts} / ${settings.darts}`]],
+    status: (state, { settings }) => [[t('Trebles'), state.trebles], [t('Treble rate'), percent(state.trebles, state.darts)], [t('Darts'), `${state.darts} / ${settings.darts}`]],
+    result: (state) => ({ score: Math.round(state.trebles / state.darts * 100), trebles: state.trebles, onNumber: state.onNumber, points: state.points, darts: state.darts, bestVisit: state.bestVisit }),
+    higherIsBetter: true,
+    format: (score) => `${score} %`,
+    figures: (result) => [
+        [t('Treble rate'), `${result.score} %`],
+        [t('Trebles'), `${result.trebles} / ${result.darts}`],
+        [t('On the number'), percent(result.onNumber, result.darts)],
+        [t('Points'), result.points],
+    ],
+};
+
+/**
+ * Bull practice: a set number of darts at the bull. The bullseye (50) and
+ * the outer bull (25) are hits; the share of hits counts.
+ */
+export const BULLS = {
+    id: 'bulls',
+    title: t('Bull practice'),
+    description: t('A set number of darts at the bull: how many hit the bullseye or the outer bull?'),
+    rules: [
+        t('Throw the darts set at the bull, three a visit.'),
+        t('The bullseye (50) and the outer bull (25) are hits, anything else a miss.'),
+        t('The share of hits counts; the bullseyes and the points show beside it.'),
+    ],
+    input: 'buttons',
+    buttons: () => [
+        { value: 'D25', label: t('Bullseye'), icon: 'pi pi-check' },
+        { value: 'S25', label: '25', severity: 'secondary' },
+        { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
+    ],
+    options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],
+    init: () => ({ darts: 0, bullseyes: 0, outers: 0 }),
+    dart: (state, dart) => {
+        state.darts += 1;
+        if (dart.number === 25) {
+            if (dart.ring === 'D') state.bullseyes += 1;
+            else state.outers += 1;
+        }
+        return state;
+    },
+    done: (state, { settings }) => state.darts >= settings.darts,
+    target: () => t('Bull'),
+    hero: () => t('Bull'),
+    heroTarget: true,
+    heroFigures: (state, { settings }) => [[t('Bullseyes'), state.bullseyes], [t('Outer bulls'), state.outers], [t('Darts'), `${state.darts} / ${settings.darts}`]],
+    status: (state, { settings }) => [[t('Bullseyes'), state.bullseyes], [t('Outer bulls'), state.outers], [t('Darts'), `${state.darts} / ${settings.darts}`]],
+    result: (state) => ({ score: Math.round((state.bullseyes + state.outers) / state.darts * 100), bullseyes: state.bullseyes, outers: state.outers, points: state.bullseyes * 50 + state.outers * 25, darts: state.darts }),
+    higherIsBetter: true,
+    format: (score) => `${score} %`,
+    figures: (result) => [
+        [t('Hit rate'), `${result.score} %`],
+        [t('Bullseyes'), result.bullseyes],
+        [t('Outer bulls'), result.outers],
+        [t('Points'), result.points],
+    ],
+};
+
+// the rungs of the checkout ladder
+const LADDER_BOTTOM = 61;
+const LADDER_TOP = 100;
+
+/**
+ * Checkout ladder: the finishes from 61 to 100, one visit of three darts
+ * each. Checked out: one rung up (100 stays 100); not: one down (not below
+ * 61). The highest finish checked out counts.
+ */
+export const LADDER = {
+    id: 'ladder',
+    title: t('Checkout ladder'),
+    description: t('Climb the finishes from 61 to 100, one visit each: checked out, one rung up; missed, one down. How high do you climb?'),
+    rules: [
+        t('Start on 61 and check it out with a double in one visit of three darts, as in X01 (a bust ends the visit).'),
+        t('Checked out: the next finish is one higher, up to 100. Not checked out: one lower, never below 61.'),
+        t('After the attempts set the highest finish checked out counts.'),
+    ],
+    input: 'board',
+    options: [{ key: 'attempts', label: t('Attempts'), values: [{ value: 20, label: t('20 attempts') }, { value: 40, label: t('40 attempts') }], default: 20 }],
+    init: () => ({ target: LADDER_BOTTOM, left: LADDER_BOTTOM, inAttempt: 0, attempt: 0, done: 0, best: 0, darts: 0 }),
+    dart: (state, dart) => {
+        state.darts += 1;
+        state.inAttempt += 1;
+        const after = afterDart(state.left, dart);
+        let finished = null;
+        if (after.out) finished = true;
+        else if (after.bust || state.inAttempt >= 3) finished = false;
+        else state.left = after.left;
+        if (finished !== null) {
+            if (finished) {
+                state.done += 1;
+                state.best = Math.max(state.best, state.target);
+                state.target = Math.min(LADDER_TOP, state.target + 1);
+            } else {
+                state.target = Math.max(LADDER_BOTTOM, state.target - 1);
+            }
+            state.attempt += 1;
+            state.left = state.target;
+            state.inAttempt = 0;
+        }
+        return state;
+    },
+    done: (state, { settings }) => state.attempt >= settings.attempts,
+    target: (state) => t('Check out {{left}}', { left: state.left }),
+    hero: (state) => state.left,
+    checkout: (state) => wayOut(state, 3),
+    inVisit: (state) => state.inAttempt,
+    // on tiles under what is left and the way out: the highest so far, the attempt and the dart
+    heroFigures: (state, { settings }) => [[t('Highest'), state.best || '–'], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
+    status: (state, { settings }) => [[t('Highest'), state.best || '–'], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
+    result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
+    higherIsBetter: true,
+    format: (score) => (score ? String(score) : '–'),
+    figures: (result) => [
+        [t('Highest checkout'), result.score || '–'],
+        [t('Checked out'), `${result.done} / ${result.attempts}`],
+        [t('Next finish'), result.last],
+    ],
+};
+
+// the score a leg of Shortest leg starts from
+const LEG_START = 501;
+
+/**
+ * Shortest leg: legs of 501 with a double out, alone, as in X01 (a bust
+ * ends the visit and its points do not count). The fewest darts of a leg
+ * count; the darts of every leg show beside them.
+ */
+export const SHORTEST_LEG = {
+    id: 'shortleg',
+    title: t('Shortest leg'),
+    description: t('Legs of 501 on your own, double out: how few darts do you need? Your best leg counts, the others show beside it.'),
+    rules: [
+        t('Play the legs set from 501 with a double out, as in X01: a bust ends the visit and its points do not count.'),
+        t('Every dart thrown counts for the leg; a nine-darter is perfect.'),
+        t('The fewest darts of a leg count; the darts per leg and the average show beside them.'),
+    ],
+    input: 'board',
+    options: [{ key: 'legs', label: t('Legs'), values: [{ value: 3, label: t('3 legs') }, { value: 5, label: t('5 legs') }, { value: 10, label: t('10 legs') }], default: 3 }],
+    init: () => ({ left: LEG_START, visitStart: LEG_START, inVisit: 0, legDarts: 0, darts: 0, legs: [] }),
+    dart: (state, dart) => {
+        state.darts += 1;
+        state.legDarts += 1;
+        state.inVisit += 1;
+        const after = afterDart(state.left, dart);
+        if (after.out) {
+            state.legs.push(state.legDarts);
+            state.left = LEG_START;
+            state.visitStart = LEG_START;
+            state.legDarts = 0;
+            state.inVisit = 0;
+        } else if (after.bust) {
+            state.left = state.visitStart;
+            state.inVisit = 0;
+        } else {
+            state.left = after.left;
+            if (state.inVisit === 3) {
+                state.inVisit = 0;
+                state.visitStart = state.left;
+            }
+        }
+        return state;
+    },
+    done: (state, { settings }) => state.legs.length >= settings.legs,
+    // out of a finish's reach: what is left to score
+    target: (state) => (state.left > 170 ? t('{{left}} left', { left: state.left }) : t('Check out {{left}}', { left: state.left })),
+    hero: (state) => state.left,
+    // the ways out once a finish is in reach
+    checkout: (state) => (state.left <= 170 ? { left: state.left, dartsLeft: 3 - state.inVisit } : null),
+    inVisit: (state) => state.inVisit,
+    heroFigures: (state, { settings }) => [[t('Leg'), `${Math.min(state.legs.length + 1, settings.legs)} / ${settings.legs}`], [t('Darts'), state.legDarts], [t('Best leg'), state.legs.length ? Math.min(...state.legs) : '–']],
+    status: (state, { settings }) => [[t('Leg'), `${Math.min(state.legs.length + 1, settings.legs)} / ${settings.legs}`], [t('Darts'), state.legDarts], [t('Best leg'), state.legs.length ? Math.min(...state.legs) : '–']],
+    result: (state) => ({
+        score: Math.min(...state.legs),
+        legs: state.legs,
+        darts: state.darts,
+        // the points of every leg over all the darts, as the average of X01
+        average: Math.round(LEG_START * state.legs.length / state.darts * 3 * 10) / 10,
+    }),
+    higherIsBetter: false,
+    format: (score) => tn(score, '{{count}} dart', '{{count}} darts'),
+    figures: (result) => [
+        [t('Best leg'), result.score],
+        [t('Darts per leg'), (result.darts / result.legs.length).toFixed(1)],
+        [t('Average'), Number(result.average).toFixed(1)],
+        [t('Legs'), result.legs.join(' · ')],
+    ],
+};
+
+export const TRAININGS = [BOBS_27, CHECKOUT_121, RANDOM_CHECKOUTS, SCORING, DOUBLES_AROUND, CATCH_40, TREBLES, BULLS, LADDER, SHORTEST_LEG];
 export const trainingOf = (id) => TRAININGS.find(training => training.id === id) ?? null;

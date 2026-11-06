@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
 import { progressOf, replayGame, replayTraining, withGameState } from './engine';
 import { GAMES, GOLF, HALVE_IT, KILLER, SHANGHAI, TACTICS } from './games';
-import { BOBS_27, bobsDanger, bobsProgress, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, RANDOM_CHECKOUTS, SCORING, TRAININGS } from './trainings';
+import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES } from './trainings';
 
 const visit = (player, ...darts) => ({ player, darts });
 const game = (definition, visits, settings = {}, players = ['a', 'b']) => ({ players, settings, visits });
@@ -265,6 +265,53 @@ describe('trainings', () => {
         const first = train(CATCH_40, ['T11', 'D14']);
         expect(first.state.points).toBe(3);
         expect(first.state.target).toBe(62);
+    });
+
+    it('Treble practice counts the share of trebles, and the darts on the number', () => {
+        const { result, done } = train(TREBLES, ['T20', 'S20', 'D20', 'T5', 'T20', '0'], { number: 20, darts: 30 });
+        expect(done).toBe(false);
+        const all = train(TREBLES, [...Array(10).fill('T20'), ...Array(20).fill('S20')], { number: 20, darts: 30 });
+        expect(all.done).toBe(true);
+        expect(all.result).toMatchObject({ score: 33, trebles: 10, onNumber: 30, points: 1000, bestVisit: 3 });
+        expect(result).toBeNull();
+        // a treble of another number is a miss
+        expect(train(TREBLES, ['T19', 'T19', 'T19'], { number: 20, darts: 30 }).state).toMatchObject({ trebles: 0, onNumber: 0 });
+        expect(TREBLES.buttons({ number: 19 }).map(button => button.value)).toEqual(['T19', 'S19', 'D19', '0']);
+    });
+
+    it('Bull practice counts the bullseye and the outer bull as hits', () => {
+        const { result } = train(BULLS, [...Array(10).fill('D25'), ...Array(5).fill('S25'), ...Array(15).fill('0')], { darts: 30 });
+        expect(result).toMatchObject({ score: 50, bullseyes: 10, outers: 5, points: 625 });
+    });
+
+    it('Checkout ladder climbs from 61 to 100 and goes down after a miss', () => {
+        const up = train(LADDER, ['S11', 'D25'], { attempts: 20 });
+        expect(up.state).toMatchObject({ target: 62, best: 61, done: 1 });
+        const down = train(LADDER, ['S11', 'D25', 'S1', 'S1', 'S1'], { attempts: 20 });
+        expect(down.state).toMatchObject({ target: 61, best: 61, attempt: 2 });
+        // never below 61, and one visit an attempt
+        expect(train(LADDER, ['0', '0', '0'], { attempts: 20 }).state).toMatchObject({ target: 61, attempt: 1, inAttempt: 0 });
+        expect(LADDER.checkout(train(LADDER, ['S1'], { attempts: 20 }).state)).toEqual({ left: 60, dartsLeft: 2 });
+    });
+
+    it('Checkout ladder stays at the top on 100', () => {
+        const state = { ...LADDER.init(), target: 100, left: 100 };
+        LADDER.dart(state, { points: 60, ring: 'T', number: 20 });
+        LADDER.dart(state, { points: 40, ring: 'D', number: 20 });
+        expect(state).toMatchObject({ target: 100, best: 100 });
+    });
+
+    it('Shortest leg counts the darts of every leg; a bust ends the visit, its points lost', () => {
+        const nine = ['T20', 'T20', 'T20', 'T20', 'T20', 'T20', 'T20', 'T19', 'D12'];
+        const { result, done } = train(SHORTEST_LEG, [...nine, ...nine, ...nine], { legs: 3 });
+        expect(done).toBe(true);
+        expect(result).toMatchObject({ score: 9, legs: [9, 9, 9], darts: 27, average: 167 });
+        // 501 − 180 × 2 = 141; T20 T20 busts (141 − 120 = 21, then −60): back to 141 for the next visit
+        const bust = train(SHORTEST_LEG, ['T20', 'T20', 'T20', 'T20', 'T20', 'T20', 'T20', 'T20', 'T20'], { legs: 3 });
+        expect(bust.state).toMatchObject({ left: 141, inVisit: 0, legDarts: 9 });
+        expect(SHORTEST_LEG.checkout(bust.state)).toEqual({ left: 141, dartsLeft: 3 });
+        expect(SHORTEST_LEG.checkout(SHORTEST_LEG.init())).toBeNull();
+        expect(SHORTEST_LEG.figures(result).at(-1)).toEqual(['Legs', '9 · 9 · 9']);
     });
 
     it('the checkout trainings know what is left and the darts for it in the visit', () => {

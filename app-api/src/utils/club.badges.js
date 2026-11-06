@@ -17,7 +17,9 @@ const FIRST_MONDAY_MS = Date.UTC(1970, 0, 5);
 const YEAR_MS = 365.25 * DAY_MS;
 // the game types and the kinds of training a club can play
 export const CLUB_GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'shanghai', 'killer', 'halveit', 'golf', 'tactics'];
-export const CLUB_TRAINING_KINDS = ['atc', 'bobs27', 'checkout121', 'randomcheckouts', 'scoring', 'doublesaround', 'catch40'];
+// (the first seven earned Training Ground, all of them Every Drill in the Club)
+export const CLUB_TRAINING_KINDS = ['atc', 'bobs27', 'checkout121', 'randomcheckouts', 'scoring', 'doublesaround', 'catch40', 'trebles', 'bulls', 'ladder', 'shortleg'];
+const CLUB_FIRST_TRAINING_KINDS = 7;
 const formatCount = (n) => new Intl.NumberFormat('en').format(n);
 
 // how the club's medals are shown, in this order
@@ -71,7 +73,7 @@ export const CLUB_BADGE_GROUPS = [
     {
         group: 'clubEveryTraining', category: 'together', title: 'Every training', metric: 'trainingKinds',
         describe: (n) => `All ${n} kinds of training done in the club`,
-        tiers: [[CLUB_TRAINING_KINDS.length, 'Training Ground']],
+        tiers: [[CLUB_FIRST_TRAINING_KINDS, 'Training Ground'], [CLUB_TRAINING_KINDS.length, 'Every Drill in the Club']],
     },
     {
         group: 'clubFirst180', category: 'firsts', title: 'First 180', metric: 'max180Firsts',

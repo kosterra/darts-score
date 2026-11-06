@@ -209,8 +209,10 @@ const RulesTraining = () => {
 
     useEffect(() => writeRunning(kind, running), [kind, running]);
 
-    // with the board or the keypad a visit is entered as a whole ("Enter score"); Hit and Miss count at once
-    const staged = definition?.input !== 'hitmiss';
+    // with the board or the keypad a visit is entered as a whole ("Enter score"); Hit and Miss (or the
+    // training's own buttons) count at once
+    const quick = definition?.input === 'hitmiss' || definition?.input === 'buttons';
+    const staged = !quick;
     const pending = useMemo(() => running?.pending ?? [], [running]);
     // where the training stands with the darts of the visit already counted, so the figures and
     // the ways out follow every dart tapped
@@ -239,7 +241,10 @@ const RulesTraining = () => {
     }, [checksOut, playerId]);
     const ways = useMemo(() => {
         if (!replay || replay.done || !definition?.checkout || preferences.waysOut === 'off') return null;
-        const { left, dartsLeft } = definition.checkout(replay.state, { settings: replay.settings });
+        // nothing to check out yet (a leg from 501)
+        const out = definition.checkout(replay.state, { settings: replay.settings });
+        if (!out) return null;
+        const { left, dartsLeft } = out;
         const throwing = { dartsLeft, outMode: 'Double Out', doubles: checkoutProfile?.doubleOrder ?? [] };
         const routes = checkoutRoutes(left, throwing);
         return { routes, setup: routes.length ? null : setupSuggestions(left, throwing)[0] ?? null, profile: checkoutProfile };
@@ -367,6 +372,9 @@ const RulesTraining = () => {
                 <span key={danger.dartsLeft} className="rules-danger-count tabular-nums" aria-hidden="true">{danger.dartsLeft}</span>
             </div>
         );
+        // the training's own buttons (Treble, Single, …), and the name of a dart entered with one
+        const buttons = definition.input === 'buttons' ? definition.buttons(replay.settings) : null;
+        const buttonLabel = (dart) => buttons?.find(button => button.value === dart)?.label ?? dart;
         // the figures of the training big in the header, each on a tile over its name
         const heroFigures = definition.heroFigures &&
             <span className="rules-hero-figures">
@@ -432,13 +440,17 @@ const RulesTraining = () => {
                                 <Button label={t('Hit')} icon="pi pi-check" onClick={() => throwDart('H')} />
                                 <Button label={t('Miss')} icon="pi pi-times" severity="secondary" onClick={() => throwDart('M')} />
                             </div>
+                            : buttons
+                                ? <div className={`rules-hitmiss is-${buttons.length}`}>
+                                    {buttons.map(button => <Button key={button.value} label={button.label} icon={button.icon} severity={button.severity} onClick={() => throwDart(button.value)} />)}
+                                </div>
                             : input === 'keypad'
                                 ? <DartKeypad canThrow={!visitFull} onDart={throwDart} onClearLast={undoDart} entered={pending.length} />
                                 : <div className="x01-board-plain"><div className="x01-board-col"><DartBoard handleClick={(value) => throwDart(value)} markers={[]} /></div></div>}
                     </div>
                     <div className="col-12 col-lg-5 d-flex flex-column gap-4">
                         {/* the board or the keypad in the panel's header, as in the games */}
-                        <Panel header={t('Training')} icons={definition.input === 'hitmiss' ? null : (
+                        <Panel header={t('Training')} icons={quick ? null : (
                             <SelectButton
                                 value={input}
                                 options={INPUTS}
@@ -462,7 +474,7 @@ const RulesTraining = () => {
                                             <span className="rules-visit-mark">
                                                 {dart === 'H' ? <><i className="pi pi-check" aria-hidden="true" />{t('Hit')}</>
                                                     : dart === 'M' ? <><i className="pi pi-times" aria-hidden="true" />{t('Miss')}</>
-                                                        : dart ?? '–'}
+                                                        : dart ? buttonLabel(dart) : '–'}
                                             </span>
                                         </li>
                                     );
@@ -482,8 +494,8 @@ const RulesTraining = () => {
                 {/* on a phone the panel is below the board or the keypad: the darts of the visit,
                     where the training stands and Undo float above the menu bar, as in X01 */}
                 {/* with Hit and Miss the danger zone floats on its own above the menu bar */}
-                {definition.input === 'hitmiss' && danger && <div className="rules-danger-dock d-md-none">{dangerStrip()}</div>}
-                {definition.input !== 'hitmiss' &&
+                {quick && danger && <div className="rules-danger-dock d-md-none">{dangerStrip()}</div>}
+                {!quick &&
                     // the danger zone on top of the bar, one piece with it
                     <div className={`x01-visit-bar is-floating rules-visit-bar d-md-none ${danger ? 'has-danger' : ''}`}>
                         {dangerStrip()}

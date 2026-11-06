@@ -4033,7 +4033,7 @@ paths:
                         maximum: 10000
                       training:
                         type: [string, 'null']
-                        enum: [atc, bot, bobs27, checkout121, randomcheckouts, scoring, doublesaround, catch40, null]
+                        enum: [atc, bot, bobs27, checkout121, randomcheckouts, scoring, doublesaround, catch40, trebles, bulls, ladder, shortleg, null]
                       withBot:
                         type: [boolean, 'null']
       responses:
@@ -6901,6 +6901,10 @@ paths:
               - scoring
               - doublesaround
               - catch40
+              - trebles
+              - bulls
+              - ladder
+              - shortleg
       responses:
         '200':
           description: The trainings
@@ -9483,6 +9487,10 @@ components:
             - scoring
             - doublesaround
             - catch40
+            - trebles
+            - bulls
+            - ladder
+            - shortleg
         player:
           type: object
           required:

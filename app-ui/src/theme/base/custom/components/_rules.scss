@@ -200,6 +200,16 @@
     .p-button-icon {
         margin: 0;
     }
+
+    // three buttons of a training (Bullseye, 25, Miss): the hit across the top, the others under it
+    &.is-3 > .p-button:first-child {
+        grid-column: span 2;
+    }
+
+    // four (Treble, Single, Double, Miss): two rows, a little lower
+    &.is-4 .p-button {
+        min-height: 4.5rem;
+    }
 }
 
 // the three darts of the visit: a hit green with a tick, a miss red with a cross,
@@ -549,6 +559,13 @@
         order: 6;
         margin-top: $space-3;
     }
+}
+
+// the score column of the header takes the width of its tiles: three of them are wider than
+// the fixed column of a game and would reach out of the header
+.x01-hero-score:has(> .rules-hero-figures) {
+    width: auto;
+    min-width: 10rem;
 }
 
 // a training on a phone: a thin line between the player and the big figures,

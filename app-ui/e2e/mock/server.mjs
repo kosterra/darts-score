@@ -897,7 +897,7 @@ http.createServer((req, res) => {
             const list = globalThis.rulesTrainings;
             if (req.method === 'POST') {
                 const same = list.filter(e => e.kind === json.kind && e.player.id === json.player.id);
-                const lower = json.kind === 'doublesaround';
+                const lower = json.kind === 'doublesaround' || json.kind === 'shortleg';
                 const best = same.length ? (lower ? Math.min(...same.map(e => e.score)) : Math.max(...same.map(e => e.score))) : null;
                 const entry = { ...json, id: `t${++seq}`, player: { id: json.player.id, nickname: players.find(p => p.id === json.player.id)?.nickname ?? '?' }, createdAt: new Date().toISOString() };
                 list.unshift(entry);

@@ -152,7 +152,8 @@ export const withGameState = (definition, game) => {
 /**
  * A training: one player throws until the definition says it is done.
  * A training definition:
- *   id, title, description, rules, icon, options, input: 'board' | 'hitmiss'
+ *   id, title, description, rules, icon, options, input: 'board' | 'hitmiss' | 'buttons'
+ *   (buttons(settings): the fields a dart can be, each a button, e.g. T20 / S20 / D20 / 0)
  *   prepare(settings) → settings fixed at the start (e.g. the random checkouts)
  *   init(settings) → state
  *   dart(state, dart, ctx) → the state after one dart (ctx: { settings })

@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Four new trainings: Treble practice (a set number of darts at the T20, T19 or T18, entered with Treble, Single, Double or Miss), Bull practice (Bullseye, 25 or Miss), the Checkout ladder (61 to 100, one visit a finish: checked out one rung up, missed one down) and Shortest leg (legs of 501 on your own, your best leg counts). Each with its scoreboard, weekly goals and a new badge, Every Drill, for doing all eleven kinds of training.'),
             t('The danger zone only in Bob\'s 27, where missing ends the training; in the checkout trainings their figures on tiles in the header instead.'),
             t('X01 games in the lists: the sets won when the game goes over several sets, the legs won when it is one set.'),
             t('The header of a training, while you throw and at the end, in one style: the figures on tiles beside your score, on a phone under it behind a thin line. In Scoring the points, the average and the darts, in Doubles around the board the darts and the doubles hit, big there instead of twice below.'),

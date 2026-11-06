@@ -1,5 +1,5 @@
-import { GiArcheryTarget, GiChessKnight, GiCycle, GiDiceTarget, GiGolfFlag, GiPerspectiveDiceSixFacesRandom, GiSkullCrossedBones, GiStairsGoal, GiTargetArrows } from 'react-icons/gi';
-import { FaDivide, FaFireFlameCurved, FaHandHolding } from 'react-icons/fa6';
+import { GiArcheryTarget, GiBullseye, GiChessKnight, GiCycle, GiDiceTarget, GiGolfFlag, GiLadder, GiPerspectiveDiceSixFacesRandom, GiSkullCrossedBones, GiStairsGoal, GiTargetArrows } from 'react-icons/gi';
+import { FaCrosshairs, FaDivide, FaFireFlameCurved, FaHandHolding, FaStopwatch } from 'react-icons/fa6';
 
 // the sign of every game and training of the rules engine, the same everywhere
 export const RULES_ICONS = {
@@ -14,6 +14,10 @@ export const RULES_ICONS = {
     scoring: FaFireFlameCurved,
     doublesaround: GiCycle,
     catch40: FaHandHolding,
+    trebles: FaCrosshairs,
+    bulls: GiBullseye,
+    ladder: GiLadder,
+    shortleg: FaStopwatch,
 };
 
 export const rulesIcon = (kind) => RULES_ICONS[kind] ?? GiTargetArrows;
