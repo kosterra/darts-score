@@ -163,7 +163,7 @@ const RulesGameStats = () => {
                                                     return (
                                                         <td key={player.id} className="text-nowrap">
                                                             {visit &&
-                                                                <span className="rules-visit">
+                                                                <span className="rules-result-visit">
                                                                     <span className="x01-visit-darts">{visit.darts.map((dart, d) => <span key={d}>{dart === '0' ? t('Miss') : dart}</span>)}</span>
                                                                     {visit.after != null && <span className="x01-visit-left">{visit.after}</span>}
                                                                 </span>}
