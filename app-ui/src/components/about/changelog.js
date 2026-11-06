@@ -9,7 +9,7 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.4',
         changes: [
             t('A tidier look across the app: your badges in less space with the ones you are closest to on top, the club badges with their whole ladders, the Hall of Shame, the lists of games, the visits of the newer games, the results of the trainings and the form for a new player.'),
             t('Club badges: more steps for the games played in the club (500, 2,500 and 5,000), new ones for the trainings done (from 250, higher than the games), the ton-plus visits, the high finishes, the tournaments played to the final and the league seasons played to the end; the badges for playing every kind of game and of training are gone.'),
