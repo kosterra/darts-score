@@ -88,16 +88,19 @@ const ShameCard = ({ badge }) => (
  * A shame badge the player does not have right now: washed off, or never had.
  */
 const ShameEntry = ({ badge }) => (
-    <li className="shame-entry">
+    <li className={`shame-entry ${badge.count > 0 ? 'is-washed' : 'is-never'}`}>
         <ShameMedal badge={badge} size="sm" washed />
-        <div className="d-flex flex-column gap-1 min-w-0">
-            <span className="d-flex flex-wrap align-items-center gap-2">
-                <span className={badge.count > 0 ? 'text-default fw-semibold' : 'text-subtle fw-semibold'}>{badge.title}</span>
-                {badge.count > 0
-                    ? <span className="shame-label is-washed">{t('Washed off')}{' '}{formatDate(badge.washedAt)}</span>
-                    : <span className="text-faint fs-8">{t('Never')}</span>}
-                {badge.count > 1 && <span className="shame-times">{badge.count}{' '}{t('times')}</span>}
+        <div className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
+            {/* the badge with Never on the right, or under it when it was washed off (and how often) */}
+            <span className="d-flex align-items-start justify-content-between gap-2">
+                <span className="shame-entry-title">{badge.title}</span>
+                {!(badge.count > 0) && <span className="shame-never">{t('Never')}</span>}
             </span>
+            {badge.count > 0 &&
+                <span className="d-flex flex-wrap align-items-center gap-2">
+                    <span className="shame-label is-washed">{t('Washed off')}{' '}{formatDate(badge.washedAt)}</span>
+                    {badge.count > 1 && <span className="shame-times">{badge.count}{' '}{t('times')}</span>}
+                </span>}
             <span className="text-faint fs-8">{badge.description}</span>
         </div>
     </li>
@@ -145,7 +148,8 @@ const HallOfShameSection = ({ shame, name }) => {
                     </>
                 }
                 <ul className="shame-others list-unstyled m-0">
-                    {others.map(badge => <ShameEntry key={badge.id} badge={badge} />)}
+                    {/* the ones they had first, then those they never had */}
+                    {[...others.filter(badge => badge.count > 0), ...others.filter(badge => !(badge.count > 0))].map(badge => <ShameEntry key={badge.id} badge={badge} />)}
                 </ul>
             </Panel>
             }

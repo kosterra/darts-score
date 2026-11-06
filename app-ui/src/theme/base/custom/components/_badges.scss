@@ -394,7 +394,7 @@ $badgeMetals: (
 
 .shame-times {
     color: $shameColor;
-    font-size: $text-sm;
+    font-size: $text-xs;
     font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
 }
@@ -421,11 +421,11 @@ $badgeMetals: (
     text-transform: uppercase;
 }
 
-// the rest, washed off or never had: a quiet list
+// the rest, washed off or never had: quiet tiles, those never had quieter still
 .shame-others {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: $space-4 $space-5;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: $space-2 $space-3;
 }
 
 .shame-entry {
@@ -433,6 +433,25 @@ $badgeMetals: (
     align-items: flex-start;
     gap: $space-3;
     min-width: 0;
+    padding: 0.7rem 0.9rem;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+
+    &.is-never { background: ink(0.03); }
+}
+
+.shame-entry-title {
+    color: var(--text-default);
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+
+    .is-never & { color: var(--text-subtle); }
+}
+
+.shame-never {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    font-size: $text-xs;
 }
 
 // Tarred and feathered: the opposite of the celebration, for whoever just
