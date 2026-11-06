@@ -1089,14 +1089,16 @@ a.badge-feed-tile:hover { background: $surfaceHighColor; }
     }
 }
 
-// who made a club badge happen (picture and nickname) and, small in the corner, when
+// who made a club badge happen (picture and nickname) and under it, small in the bottom
+// right corner, when: a narrow tile has no room for both on one line
 .club-badge-earned {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: $space-2;
+    flex-direction: column;
+    gap: 0.1rem;
     min-width: 0;
     margin-top: 0.2rem;
+
+    > :last-child { align-self: flex-end; line-height: 1; }
 }
 
 // how far towards a badge or a goal (of the club or one's own)
