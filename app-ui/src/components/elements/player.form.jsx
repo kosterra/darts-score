@@ -118,15 +118,14 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
         setShowDialog(false);
     };
 
+    // the message under a field only when there is one, so the fields sit close together
     const getFormErrorMessage = (name) =>
-        errors[name]
-            ? <small className="p-error">{errors[name].message}</small>
-            : <small className="p-error">&nbsp;</small>;
+        errors[name] && <small className="p-error">{errors[name].message}</small>;
 
     const footerContent = (
-        <div className="d-flex justify-content-end align-items-end gap-3">
-            <Button type="button" label={t('Close')} icon="pi pi-times" severity="secondary" onClick={resetDialog} />
-            <Button type="submit" label={t('Create')} icon="pi pi-save" disabled={choosesClub && !clubId} />
+        <div className="d-flex justify-content-end align-items-center gap-2">
+            <Button type="button" label={t('Cancel')} text severity="secondary" size="small" onClick={resetDialog} />
+            <Button type="submit" label={t('Create')} icon="pi pi-save" size="small" disabled={choosesClub && !clubId} />
         </div>
     );
 
@@ -140,134 +139,95 @@ const usePlayerForm = ({ onPlayerAdd, clubs, defaultClubId, label }) => {
     const firstname = watch('firstname');
     const lastname  = watch('lastname');
 
+    // a text field of the form with its label above it
+    const textField = (name, label, required) => (
+        <div className="player-form-field">
+            <label htmlFor={name}>{label}</label>
+            <Controller
+                name={name}
+                control={control}
+                rules={{ required }}
+                render={({ field }) => (
+                    <InputText id={name} {...field} className={classNames('w-100 p-inputtext-sm', { 'p-invalid': errors[name] })} />
+                )}
+            />
+            {getFormErrorMessage(name)}
+        </div>
+    );
+
+    // compact: the picture with its upload on the left, the fields two by two beside it
+    // (on a phone the picture above them, the fields one under another)
     const form = showDialog && (
         <div className="row-editor player-form-inline">
             <div className="row-editor-head">
-                <span className="text-default fw-semibold">{t('Add New Player')}</span>
+                <span className="text-default fw-semibold">{t('New player')}</span>
                 <Button type="button" icon="pi pi-times" text severity="secondary" aria-label={t('Close')} onClick={resetDialog} />
             </div>
-                <form onSubmit={handleSubmit(onSubmit)} className="flex flex-column gap-2">
-                    <div className="row">
-                        <div className="col-12 d-flex justify-content-center">
-                            <ImageUploader
-                                name={firstname + ' ' + lastname}
-                                previewUrl={previewUrl}
-                                onFileChange={onFileChange}
-                                onFileDelete={onFileDelete}
+            <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-3">
+                <div className="player-form-body">
+                    <ImageUploader
+                        name={firstname + ' ' + lastname}
+                        previewUrl={previewUrl}
+                        onFileChange={onFileChange}
+                        onFileDelete={onFileDelete}
+                        compact
+                    />
+                    <div className="player-form-fields">
+                        {choosesClub &&
+                            <div className="player-form-field is-wide">
+                                <label htmlFor="player-club">{t('Club')}</label>
+                                <Dropdown
+                                    inputId="player-club"
+                                    value={clubId}
+                                    options={clubs}
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    onChange={(e) => setClubId(e.value)}
+                                    filter={clubs.length > 8}
+                                    className="w-100 p-inputtext-sm"
+                                />
+                            </div>
+                        }
+                        {textField('firstname', t('First name'), t('First name is required'))}
+                        {textField('lastname', t('Last name'), t('Last name is required'))}
+                        {textField('nickname', t('Nickname'), t('Nickname is required'))}
+                        <div className="player-form-field">
+                            <label htmlFor="dateOfBirth">{t('Date of birth')}</label>
+                            <Controller
+                                name="dateOfBirth"
+                                control={control}
+                                rules={{
+                                    required: t('Date of birth is required'),
+                                    validate: (value) => value <= today() || t('Date of birth must be in the past'),
+                                }}
+                                render={({ field }) => (
+                                    // typed as 14.03.2012 (the dots come by themselves), or picked:
+                                    // a click on the month or year in the header jumps to choosing those
+                                    <Calendar
+                                        inputId="dateOfBirth"
+                                        value={toDate(field.value)}
+                                        onChange={(e) => field.onChange(fromDate(e.value))}
+                                        onBlur={field.onBlur}
+                                        dateFormat={calendarFormat()}
+                                        mask="99.99.9999"
+                                        maxDate={new Date()}
+                                        viewDate={field.value ? undefined : tenYearsAgo()}
+                                        showIcon
+                                        icon="pi pi-calendar"
+                                        pt={{ input: { root: { inputMode: 'numeric', autoComplete: 'bday' } } }}
+                                        className={classNames('w-100 p-inputtext-sm', { 'p-invalid': errors.dateOfBirth })}
+                                        inputClassName={classNames({ 'p-invalid': errors.dateOfBirth })}
+                                    />
+                                )}
                             />
+                            {errors.dateOfBirth
+                                ? getFormErrorMessage('dateOfBirth')
+                                : <small className="text-faint">{t('For fair handicaps between players of different ages.')}</small>}
                         </div>
-                        <div className="col d-flex flex-column justify-content-center align-items-center p-2 pt-4 gap-4">
-                            {choosesClub &&
-                                <div className="py-1 w-100 w-sm-50">
-                                    <span className="p-float-label w-100">
-                                        <Dropdown
-                                            inputId="player-club"
-                                            value={clubId}
-                                            options={clubs}
-                                            optionLabel="name"
-                                            optionValue="id"
-                                            onChange={(e) => setClubId(e.value)}
-                                            filter={clubs.length > 8}
-                                            className="w-100"
-                                        />
-                                        <label htmlFor="player-club">{t('Club')}</label>
-                                    </span>
-                                    <small className="text-faint">&nbsp;</small>
-                                </div>
-                            }
-                            <div className="py-1 w-100 w-sm-50">
-                                <span className="p-float-label w-100">
-                                    <Controller
-                                        name="firstname"
-                                        control={control}
-                                        rules={{ required: t('First name is required') }}
-                                        render={({ field }) => (
-                                            <InputText
-                                                id="firstname"
-                                                {...field}
-                                                className={classNames('w-100', { 'p-invalid': errors.firstname })}
-                                            />
-                                        )}
-                                    />
-                                    <label htmlFor="firstname">{t('First name')}</label>
-                                </span>
-                                {getFormErrorMessage('firstname')}
-                            </div>
-                            <div className="py-1 w-100 w-sm-50">
-                                <span className="p-float-label w-100">
-                                    <Controller
-                                        name="lastname"
-                                        control={control}
-                                        rules={{ required: t('Last name is required') }}
-                                        render={({ field }) => (
-                                            <InputText
-                                                id="lastname"
-                                                {...field}
-                                                className={classNames('w-100', { 'p-invalid': errors.lastname })}
-                                            />
-                                        )}
-                                    />
-                                    <label htmlFor="lastname">{t('Last name')}</label>
-                                </span>
-                                {getFormErrorMessage('lastname')}
-                            </div>
-                            <div className="py-1 w-100 w-sm-50">
-                                <span className="p-float-label w-100">
-                                    <Controller
-                                        name="nickname"
-                                        control={control}
-                                        rules={{ required: t('Nickname is required') }}
-                                        render={({ field }) => (
-                                            <InputText
-                                                id="nickname"
-                                                {...field}
-                                                className={classNames('w-100', { 'p-invalid': errors.nickname })}
-                                            />
-                                        )}
-                                    />
-                                    <label htmlFor="nickname">{t('Nickname')}</label>
-                                </span>
-                                {getFormErrorMessage('nickname')}
-                            </div>
-                            <div className="py-1 w-100 w-sm-50">
-                                <span className="p-float-label w-100">
-                                    <Controller
-                                        name="dateOfBirth"
-                                        control={control}
-                                        rules={{
-                                            required: t('Date of birth is required'),
-                                            validate: (value) => value <= today() || t('Date of birth must be in the past'),
-                                        }}
-                                        render={({ field }) => (
-                                            // typed as 14.03.2012 (the dots come by themselves), or picked:
-                                            // a click on the month or year in the header jumps to choosing those
-                                            <Calendar
-                                                inputId="dateOfBirth"
-                                                value={toDate(field.value)}
-                                                onChange={(e) => field.onChange(fromDate(e.value))}
-                                                onBlur={field.onBlur}
-                                                dateFormat={calendarFormat()}
-                                                mask="99.99.9999"
-                                                maxDate={new Date()}
-                                                viewDate={field.value ? undefined : tenYearsAgo()}
-                                                showIcon
-                                                icon="pi pi-calendar"
-                                                pt={{ input: { root: { inputMode: 'numeric', autoComplete: 'bday' } } }}
-                                                className={classNames('w-100', { 'p-invalid': errors.dateOfBirth })}
-                                                inputClassName={classNames({ 'p-invalid': errors.dateOfBirth })}
-                                            />
-                                        )}
-                                    />
-                                    <label htmlFor="dateOfBirth">{t('Date of birth')}</label>
-                                </span>
-                                {errors.dateOfBirth
-                                    ? getFormErrorMessage('dateOfBirth')
-                                    : <small className="text-faint">{t('For fair handicaps between players of different ages.')}</small>}
-                            </div>
-                        </div>
-                        {footerContent}
                     </div>
-                </form>
+                </div>
+                {footerContent}
+            </form>
         </div>
     );
 

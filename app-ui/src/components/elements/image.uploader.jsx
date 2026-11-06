@@ -12,7 +12,9 @@ const ImageUploader = (props) => {
         name,
         previewUrl,
         onFileChange,
-        onFileDelete
+        onFileDelete,
+        // smaller, for a form that should stay short (the new player in a game's setup)
+        compact = false,
     } = props;
 
     const [isDragging, setIsDragging] = useState(false);
@@ -91,14 +93,14 @@ const ImageUploader = (props) => {
                 }
             </div>
             <div
-                className={`drop-zone m-3 p-4 pe-auto ${isDragging ? 'is-dragging' : ''}`}
+                className={`drop-zone ${compact ? '' : 'm-3 p-4'} pe-auto ${isDragging ? 'is-dragging' : ''}`}
                 onDragOver={handleOnDragOver}
                 onDragLeave={handleOnDragLeave}
                 onDrop={handleOnDrop}
                 onClick={() => fileInput.current.click()}
             >
                 {/* dragging only where there is a mouse */}
-                <span className="fs-7 text-faint"><ins>{t('Upload')}</ins><span className="drop-zone-drag">{' '}{t('or Drag and drop image')}</span></span>
+                <span className={`${compact ? 'fs-9' : 'fs-7'} text-faint`}><ins>{t('Upload')}</ins><span className="drop-zone-drag">{' '}{t('or Drag and drop image')}</span></span>
                 <input
                     type="file"
                     accept="image/png, image/jpg, image/jpeg"
