@@ -92,7 +92,7 @@ export const ClubBadgeList = ({ badges = [] }) => {
                                                 <ol className="club-ladder list-unstyled m-0" aria-label={t('All steps')}>
                                                     {steps.map(step => (
                                                         <li key={step.id} className={step.earned ? 'is-earned' : step === next ? 'is-next' : ''} title={stepTitle(step)}>
-                                                            {step.earned && <i className="pi pi-check" aria-hidden="true" />}
+                                                            <i className={`pi ${step.earned ? 'pi-check' : step === next ? 'pi-hourglass' : 'pi-lock'}`} aria-hidden="true" />
                                                             {formatNumber(step.target)}
                                                         </li>
                                                     ))}
