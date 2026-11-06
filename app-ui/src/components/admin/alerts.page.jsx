@@ -18,7 +18,7 @@ import { AdminToolbar } from './admin.common';
 import { formatDateTime } from './admin.format';
 import { TABLE_DEFAULTS, tableState, useUrlState } from '../../utils/use.url.state';
 import { announceAlertsChange } from './alert.events';
-import { t } from '../../utils/i18n';
+import { t, tn } from '../../utils/i18n';
 import { TableLoading } from '../elements/skeletons';
 import FilterPills from '../elements/filter.pills';
 
@@ -277,17 +277,25 @@ const AlertsPage = () => {
             </div>
 
             <Panel header={t('Rules')}>
-                <ul className="list-unstyled m-0 d-flex flex-column gap-3">
-                    {rules.map(rule => (
-                        <li key={rule.id} className="d-flex align-items-start gap-3">
-                            <Tag {...SEVERITY_TAGS[rule.severity]} className="flex-shrink-0" style={{ minWidth: '4.5rem' }} />
-                            <div className="d-flex flex-column">
-                                <span className="text-default fw-semibold fs-7">{rule.title}</span>
-                                <span className="text-subtle fs-8">{rule.description}</span>
+                {/* as the rules of fair play: a section per severity, its rules as tiles with its colour on the edge */}
+                <div className="d-flex flex-column gap-4">
+                    {Object.keys(SEVERITY_TAGS).map(severity => ({ severity, list: rules.filter(rule => rule.severity === severity) })).filter(({ list }) => list.length).map(({ severity, list }) => (
+                        <section key={severity} className="d-flex flex-column gap-3">
+                            <div className="d-flex align-items-center gap-3">
+                                <h3 className="game-setup-section-title flex-grow-1 m-0">{SEVERITY_TAGS[severity].value}</h3>
+                                <span className="text-faint fs-8">{tn(list.length, '{{count}} rule', '{{count}} rules')}</span>
                             </div>
-                        </li>
+                            <ul className="fair-play-rules list-unstyled m-0">
+                                {list.map(rule => (
+                                    <li key={rule.id} className={`fair-play-rule is-${severity}`}>
+                                        <span className="text-default fw-semibold fs-7">{rule.title}</span>
+                                        <span className="text-subtle fs-8">{rule.description}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
                     ))}
-                </ul>
+                </div>
             </Panel>
 
             <ConfirmDialog />

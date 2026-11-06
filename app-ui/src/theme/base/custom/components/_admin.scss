@@ -436,6 +436,9 @@ $fair-play-suspicious: $accentAmber;
   &.is-impossible { border-left-color: $fair-play-impossible; }
   &.is-error { border-left-color: $fair-play-error; }
   &.is-suspicious { border-left-color: $fair-play-suspicious; }
+  // the rules of the spam alerts
+  &.is-critical { border-left-color: $accentRed; }
+  &.is-warning { border-left-color: $accentAmber; }
 }
 
 .fair-play-players {

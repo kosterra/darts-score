@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('A tidier look across the app: your badges in less space with the ones you are closest to on top, the club badges with their whole ladders, the Hall of Shame, the lists of games, the visits of the newer games, the results of the trainings and the form for a new player.'),
             t('Club badges: more steps for the games played in the club (500, 2,500 and 5,000), new ones for the trainings done (from 250, higher than the games), the ton-plus visits, the high finishes, the tournaments played to the final and the league seasons played to the end; the badges for playing every kind of game and of training are gone.'),
             t('Your trainings over time: a tap on a training in the statistics of a player shows every attempt as a line with the best so far, how many, the best and how the last attempts compare with the first ones.'),
             t('Two new games under More games: Baseball (nine innings on 1 to 9, a run per ring of the inning\'s number, the bullseye a home run, a tie goes to extra innings on the bull) and Scram for two (the stopper closes the numbers, the scorer scores on the ones still open, then they swap; the numbers in view as on the cricket board, the closed ones crossed out). Each with its win badges, in the comparison and in the club\'s rules; the All-rounder and Every game have a step for all eleven games.'),

@@ -235,46 +235,34 @@ $badgeMetals: (
     }
 }
 
-// A badge series on a player's page: description on the left, tiers on the right
-.badge-series {
+// A player's badges: a card per series, two (or more) side by side; the nearest ones on top
+.badge-series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.badge-next-up {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+// the medal beside the name and what is next, then the progress and the ladder
+.badge-series-card {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: $space-4 $space-6;
-    padding: $space-4 $space-2;
+    flex-direction: column;
+    gap: $space-2;
+    min-width: 0;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
 
-    & + .badge-series {
-        border-top: 1px solid $shade700;
-    }
-
-    .badge-series-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-        // the medals follow the name, not the far edge of a wide panel
-        flex: 0 1 22rem;
-        min-width: 0;
-    }
-
-    .badge-series-tiers {
-        display: flex;
-        flex-wrap: wrap;
-        gap: $space-4;
-    }
-
-    .badge-tier {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.4rem;
-        width: 5.5rem;
-        text-align: center;
-    }
-
-    .badge-tier-name {
-        line-height: 1.2;
-        overflow-wrap: anywhere;
-    }
+    &.is-locked { opacity: 0.8; }
 }
 
 // Game rules on the About page
