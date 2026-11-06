@@ -1,5 +1,6 @@
 import { check, body } from 'express-validator';
 import { DART, GAME_KINDS, TRAINING_KINDS } from '../utils/rules.kinds.js';
+import { gameOf } from '../rules/games.js';
 
 const VALID_PLAYER_COUNTS = [1, 2, 3, 4];
 const VALID_SET_LEG_MODES = ['Best of', 'First to'];
@@ -190,6 +191,14 @@ export const validatePlayerIds = [
 export const validateRulesGame = [
     check('kind').isIn(GAME_KINDS).withMessage(`kind must be one of: ${GAME_KINDS.join(', ')}.`),
     body('players').isArray({ min: 1, max: 8 }).withMessage('A game has 1 to 8 players.'),
+    // a game for so many players exactly (Scram: two)
+    body('players').custom((players, { req }) => {
+        const definition = gameOf(req.body.kind);
+        if (definition && definition.minPlayers === definition.maxPlayers && players.length !== definition.minPlayers) {
+            throw new Error(`${definition.id} is played by ${definition.minPlayers} players.`);
+        }
+        return true;
+    }),
     body('players.*').isMongoId().withMessage('Invalid player.'),
     body('settings').optional().isObject().withMessage('settings must be an object.'),
     body('visits').optional().isArray({ max: 2000 }).withMessage('visits must be a list.'),

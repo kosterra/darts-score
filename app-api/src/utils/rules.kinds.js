@@ -10,6 +10,8 @@ export const RULES_GAMES = {
     halveit: 'Halve-It',
     golf: 'Golf',
     tactics: 'Tactics',
+    baseball: 'Baseball',
+    scram: 'Scram',
 };
 
 // the trainings, by kind, with their name and whether a higher score is better

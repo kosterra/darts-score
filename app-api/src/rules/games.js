@@ -1,6 +1,6 @@
 /**
  * The newer games, each as one definition of the rules engine (see engine.js):
- * Shanghai, Killer, Halve-It, Golf and Tactics.
+ * Shanghai, Killer, Halve-It, Golf, Tactics, Baseball and Scram.
  */
 import { isBull, isDouble, isTreble } from './darts.js';
 import { t, tn } from '../utils/i18n.js';
@@ -388,7 +388,179 @@ export const TACTICS = {
     preview: (state, id, darts) => tn(sum(darts.filter(dart => TACTICS_NUMBERS.includes(dart.number)).map(marksOf)), '{{count}} mark this visit', '{{count}} marks this visit'),
 };
 
-export const GAMES = [SHANGHAI, KILLER, HALVE_IT, GOLF, TACTICS];
+// Baseball: nine innings on 1 to 9, extra innings on the bull while the lead is shared
+const BASEBALL_INNINGS = 9;
+const BASEBALL_EXTRA = 3;
+const BULL = 25;
+// the runs of a dart: the number of the inning a run per ring (single 1, double 2, treble 3);
+// the bullseye is a home run, 4 runs, in every inning; in extra innings the outer bull is 1
+const runsOf = (dart, inning) => {
+    if (dart.number === BULL && dart.ring === 'D') return 4;
+    const target = inning > BASEBALL_INNINGS ? BULL : inning;
+    return dart.number === target ? dart.multiplier : 0;
+};
+const inningName = (inning) => (inning > BASEBALL_INNINGS ? t('Bull') : String(inning));
+// the players with the most runs
+const leadersOf = (state, ids = Object.keys(state.players)) => {
+    const top = Math.max(...ids.map(id => state.players[id].runs));
+    return ids.filter(id => state.players[id].runs === top);
+};
+
+/**
+ * Baseball: nine innings, inning 1 on the 1, inning 2 on the 2, … A single
+ * scores a run, a double two, a treble three; the bullseye is a home run (4)
+ * in any inning. A lead shared after nine goes to extra innings on the bull
+ * (at most three), played by the leaders only. The most runs win.
+ */
+export const BASEBALL = {
+    id: 'baseball',
+    title: t('Baseball'),
+    description: t('Nine innings on the numbers 1 to 9: every hit of the inning\'s number is a run, the bullseye a home run. A tie goes to extra innings on the bull.'),
+    rules: [
+        t('Inning 1 is played on the 1, inning 2 on the 2, and so on up to 9: three darts each.'),
+        t('A single of the inning\'s number is one run, a double two, a treble three.'),
+        t('The bullseye is a home run in every inning: four runs.'),
+        t('After nine innings the most runs win. Level at the top: the leaders play extra innings on the bull (outer bull one run), up to three.'),
+    ],
+    minPlayers: 1,
+    maxPlayers: 8,
+    options: [],
+    init: (settings, ids) => ({ players: playersOf(ids, () => ({ runs: 0, innings: [], darts: 0, homeRuns: 0 })), extra: null }),
+    visit: (state, id, darts, { round }) => {
+        const player = state.players[id];
+        const runs = sum(darts.map(dart => runsOf(dart, round)));
+        player.runs += runs;
+        player.innings.push(runs);
+        player.darts += darts.length;
+        player.homeRuns += darts.filter(dart => dart.number === BULL && dart.ring === 'D').length;
+        // the inning over for everyone who plays it: a shared lead goes on, the leaders alone
+        const playing = state.extra ?? Object.keys(state.players);
+        if (round >= BASEBALL_INNINGS && playing.every(other => state.players[other].innings.length >= round)) {
+            const leaders = leadersOf(state, playing);
+            state.extra = leaders.length > 1 && round < BASEBALL_INNINGS + BASEBALL_EXTRA ? leaders : state.extra;
+            state.decided = leaders.length === 1 || round >= BASEBALL_INNINGS + BASEBALL_EXTRA;
+        }
+        return state;
+    },
+    active: (state, id) => !state.extra || state.extra.includes(id),
+    over: (state, { roundComplete }) => Boolean(roundComplete && state.decided),
+    score: (player) => player.runs,
+    progress: { label: t('Runs'), value: (player) => player.runs },
+    hero: (player) => ({
+        score: player.runs,
+        // the runs are the big number already: the home runs under it
+        note: tn(player.homeRuns, '{{count}} home run', '{{count}} home runs'),
+        line: [[t('Last inning'), player.innings.at(-1) ?? '–'], [t('Runs per inning'), player.innings.length ? (player.runs / player.innings.length).toFixed(1) : '–']],
+    }),
+    moment: (before, after) => (after.runs - before.runs >= 9 ? { words: t('Grand slam!'), number: String(after.runs - before.runs), sign: t('Baseball') } : null),
+    target: (state, id, { round }) => (round > BASEBALL_INNINGS
+        ? t('Extra inning {{inning}}: the bull', { inning: round - BASEBALL_INNINGS })
+        : t('Inning {{inning}} of 9: the {{inning}}', { inning: round })),
+    columns: [
+        { key: 'runs', label: t('Runs'), value: (player) => player.runs },
+        { key: 'homeRuns', label: t('Home runs'), value: (player) => player.homeRuns },
+    ],
+    figures: (player) => [
+        [t('Runs'), player.runs],
+        [t('Runs per inning'), player.innings.length ? (player.runs / player.innings.length).toFixed(1) : '–'],
+        [t('Best inning'), player.innings.length ? Math.max(...player.innings) : '–'],
+        [t('Home runs'), player.homeRuns],
+    ],
+    preview: (state, id, darts, { round }) => tn(sum(darts.map(dart => runsOf(dart, round))), 'Inning {{inning}}: {{count}} run', 'Inning {{inning}}: {{count}} runs', { inning: inningName(round) }),
+};
+
+// Scram: the numbers in play, the bull last
+const SCRAM_NUMBERS = {
+    cricket: [20, 19, 18, 17, 16, 15, BULL],
+    all: [...Array.from({ length: 20 }, (_, index) => 20 - index), BULL],
+};
+const numbersOf = (settings) => SCRAM_NUMBERS[settings?.numbers] ?? SCRAM_NUMBERS.cricket;
+const numberName = (number) => (number === BULL ? t('Bull') : String(number));
+
+/**
+ * Scram: two players, two innings. In the first the first player is the
+ * stopper, who closes a number with any hit on it; the other scores the
+ * points of every dart on a number still open. All closed: the roles swap.
+ * After the second innings the most points win.
+ */
+export const SCRAM = {
+    id: 'scram',
+    title: t('Scram'),
+    description: t('Two players, two innings: one closes the numbers, the other scores on the ones still open. Then the roles swap, and the most points win.'),
+    rules: [
+        t('In the first innings the first player is the stopper: any hit on a number in play closes it.'),
+        t('The other player is the scorer: every dart on a number still open scores its points (the bull 25, the bullseye 50).'),
+        t('When the stopper has closed every number, the roles swap and the numbers open again.'),
+        t('After the second innings the most points win.'),
+    ],
+    minPlayers: 2,
+    maxPlayers: 2,
+    options: [{ key: 'numbers', label: t('Numbers'), values: [{ value: 'cricket', label: t('15 to 20 and the bull') }, { value: 'all', label: t('1 to 20 and the bull') }], default: 'cricket' }],
+    init: (settings, ids) => ({ order: ids, innings: 1, closed: [], over: false, players: playersOf(ids, id => ({ id, points: 0, darts: 0, stopDarts: 0, scoreDarts: 0, closed: 0 })) }),
+    visit: (state, id, darts, { settings }) => {
+        const player = state.players[id];
+        const numbers = numbersOf(settings);
+        const stopper = state.order[state.innings - 1];
+        player.darts += darts.length;
+        if (id === stopper) {
+            player.stopDarts += darts.length;
+            for (const dart of darts) {
+                if (numbers.includes(dart.number) && !state.closed.includes(dart.number)) {
+                    state.closed.push(dart.number);
+                    player.closed += 1;
+                }
+            }
+            if (numbers.every(number => state.closed.includes(number))) {
+                if (state.innings === 1) {
+                    state.innings = 2;
+                    state.closed = [];
+                } else {
+                    state.over = true;
+                }
+            }
+        } else {
+            player.scoreDarts += darts.length;
+            player.points += sum(darts.filter(dart => numbers.includes(dart.number) && !state.closed.includes(dart.number)).map(dart => dart.points));
+        }
+        return state;
+    },
+    over: (state) => state.over,
+    score: (player) => player.points,
+    progress: { label: t('Points'), value: (player) => player.points },
+    hero: (player, state, ctx) => {
+        const stopping = state.order[state.innings - 1] === player.id;
+        return {
+            score: player.points,
+            note: stopping ? t('Stopper: closing') : t('Scorer'),
+            line: [[t('Innings'), `${state.innings} / 2`], [t('Open'), numbersOf(ctx?.settings).filter(number => !state.closed.includes(number)).length]],
+        };
+    },
+    moment: () => null,
+    target: (state, id, { settings }) => {
+        const open = numbersOf(settings).filter(number => !state.closed.includes(number)).map(numberName).join(' · ');
+        return state.order[state.innings - 1] === id
+            ? t('Close: {{numbers}}', { numbers: open })
+            : t('Score on: {{numbers}}', { numbers: open });
+    },
+    columns: [
+        { key: 'points', label: t('Points'), value: (player) => player.points },
+        { key: 'role', label: t('Role'), value: (player, state) => (state.order[state.innings - 1] === player.id ? t('Stopper') : t('Scorer')) },
+    ],
+    figures: (player) => [
+        [t('Points'), player.points],
+        [t('Points per visit'), player.scoreDarts ? (player.points / player.scoreDarts * 3).toFixed(1) : '–'],
+        [t('Darts to close'), player.stopDarts || '–'],
+    ],
+    preview: (state, id, darts, { settings }) => {
+        const numbers = numbersOf(settings);
+        const open = darts.filter(dart => numbers.includes(dart.number) && !state.closed.includes(dart.number));
+        return state.order[state.innings - 1] === id
+            ? tn(new Set(open.map(dart => dart.number)).size, '{{count}} number closed this visit', '{{count}} numbers closed this visit')
+            : t('{{points}} points this visit', { points: sum(open.map(dart => dart.points)) });
+    },
+};
+
+export const GAMES = [SHANGHAI, KILLER, HALVE_IT, GOLF, TACTICS, BASEBALL, SCRAM];
 export const gameOf = (id) => GAMES.find(game => game.id === id) ?? null;
 export const TACTICS_TARGETS = TACTICS_NUMBERS;
 export const HALVE_IT_ROUNDS = HALVE_IT_TARGETS;

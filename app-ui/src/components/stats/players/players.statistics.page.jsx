@@ -88,7 +88,7 @@ const MAX_PLAYERS = ChartConfigOptions.fillColors.values.length;
 
 /**
  * Compares two or more players of the selected club: head to head in one of
- * the nine games (their games together), or each on their own side by side
+ * the eleven games (their games together), or each on their own side by side
  * (all their games). The players, the mode and the filters live in the
  * address, so a comparison can be shared as a link.
  */

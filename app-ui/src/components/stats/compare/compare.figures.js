@@ -61,6 +61,17 @@ const DUEL_FIGURES = {
         ['marksPerRound', t('Marks per round'), { format: fixed(2), weight: 2 }],
         ['closedPerGame', t('Numbers closed per game')],
     ],
+    baseball: [
+        ['wins', t('Won games'), { weight: 2.5 }],
+        ['runsPerGame', t('Runs per game'), { weight: 2 }],
+        ['homeRuns', t('Home runs')],
+        ['bestRound', t('Most runs in a game')],
+    ],
+    scram: [
+        ['wins', t('Won games'), { weight: 2.5 }],
+        ['pointsPerGame', t('Points per game'), { weight: 2 }],
+        ['dartsToClose', t('Darts to close'), { lowerIsBetter: true }],
+    ],
 };
 
 const rowOf = (key, label, { format, ...options } = {}, values) => ({
@@ -141,7 +152,7 @@ export const sideGroups = (sidePlayers) => {
         {
             key: 'rules',
             title: t('More games'),
-            rows: ['shanghai', 'killer', 'halveit', 'golf', 'tactics'].flatMap(kind => [
+            rows: ['shanghai', 'killer', 'halveit', 'golf', 'tactics', 'baseball', 'scram'].flatMap(kind => [
                 rowOf(`${kind}Wins`, t('{{game}}: wins', { game: GAME_TITLES[kind] }), {}, values(player => player.rules?.[kind]?.wins)),
             ]),
         },
@@ -161,7 +172,7 @@ export const sideGroups = (sidePlayers) => {
 };
 
 // the game types to compare head to head, with their names
-export const COMPARE_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'shanghai', 'killer', 'halveit', 'golf', 'tactics'];
+export const COMPARE_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'shanghai', 'killer', 'halveit', 'golf', 'tactics', 'baseball', 'scram'];
 export const typeTitle = (type) => GAME_TITLES[type] ?? type;
 
 // where a game between the players is set up, with them already chosen

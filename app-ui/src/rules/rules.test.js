@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
 import { progressOf, replayGame, replayTraining, withGameState } from './engine';
-import { GAMES, GOLF, HALVE_IT, KILLER, SHANGHAI, TACTICS } from './games';
+import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES } from './trainings';
 
 const visit = (player, ...darts) => ({ player, darts });
@@ -61,6 +61,70 @@ describe('the engine', () => {
             expect(definition.title, definition.id).toBeTruthy();
             expect(definition.rules.length, definition.id).toBeGreaterThan(1);
         }
+    });
+});
+
+describe('Baseball', () => {
+    // nine innings for two players: each inning the darts of a and of b
+    const innings = (a, b) => Array.from({ length: 9 }, (_, index) => [visit('a', ...a(index + 1)), visit('b', ...b(index + 1))]).flat();
+
+    it('a run per ring of the inning\'s number, the bullseye a home run', () => {
+        const visits = innings(n => [`T${n}`, `S${n}`, '0'], n => (n === 1 ? ['D25', '0', '0'] : ['0', '0', '0']));
+        const result = replayGame(BASEBALL, game(BASEBALL, visits));
+        expect(result.over).toBe(true);
+        expect(result.state.players.a).toMatchObject({ runs: 36, homeRuns: 0 });
+        expect(result.state.players.b).toMatchObject({ runs: 4, homeRuns: 1 });
+        expect(result.standings[0].id).toBe('a');
+    });
+
+    it('a shared lead goes to extra innings on the bull, played by the leaders alone', () => {
+        // c threw nothing: out of the extra innings, a and b play the bull
+        const three = [];
+        for (let n = 1; n <= 9; n += 1) three.push(visit('a', `S${n}`, '0', '0'), visit('b', `S${n}`, '0', '0'), visit('c', '0', '0', '0'));
+        const extra = replayGame(BASEBALL, game(BASEBALL, three, {}, ['a', 'b', 'c']));
+        expect(extra.over).toBe(false);
+        expect(extra.current).toBe('a');
+        expect(BASEBALL.target(extra.state, 'a', { round: extra.round })).toContain('bull');
+        const decided = replayGame(BASEBALL, game(BASEBALL, [...three, visit('a', 'S25', '0', '0'), visit('b', '0', '0', '0')], {}, ['a', 'b', 'c']));
+        expect(decided.over).toBe(true);
+        expect(decided.standings.map(row => row.id)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('three extra innings at most, then the lead is shared', () => {
+        const visits = innings(n => [`S${n}`, '0', '0'], n => [`S${n}`, '0', '0']);
+        for (let extra = 0; extra < 3; extra += 1) visits.push(visit('a', '0', '0', '0'), visit('b', '0', '0', '0'));
+        const result = replayGame(BASEBALL, game(BASEBALL, visits));
+        expect(result.over).toBe(true);
+        expect(result.standings.map(row => row.place)).toEqual([1, 1]);
+    });
+});
+
+describe('Scram', () => {
+    it('the stopper closes with any hit, the scorer scores on the open numbers, then they swap', () => {
+        const visits = [
+            visit('a', 'S20', 'T19', 'D18'),
+            // 20 and 19 closed: only the 17 scores
+            visit('b', 'T20', 'T19', 'T17'),
+            visit('a', 'S17', 'S16', 'S15'),
+            visit('b', 'D25', '0', '0'),
+            visit('a', 'S25', '0', '0'),
+        ];
+        const first = replayGame(SCRAM, game(SCRAM, visits));
+        expect(first.state.players.b.points).toBe(51 + 50);
+        // every number closed: b is the stopper now and throws next
+        expect(first.state.innings).toBe(2);
+        expect(first.current).toBe('b');
+        expect(SCRAM.target(first.state, 'b', { settings: first.settings })).toContain('Close');
+        const second = [...visits, visit('b', 'S20', 'S19', 'S18'), visit('a', 'T17', '0', '0'), visit('b', 'S17', 'S16', 'S15'), visit('a', '0', '0', '0'), visit('b', 'D25', '0', '0')];
+        const result = replayGame(SCRAM, game(SCRAM, second));
+        expect(result.over).toBe(true);
+        expect(result.state.players.a.points).toBe(51);
+        expect(result.standings[0].id).toBe('b');
+    });
+
+    it('all the numbers 1 to 20 and the bull when chosen', () => {
+        const result = replayGame(SCRAM, game(SCRAM, [visit('a', 'S20', 'S19', 'S18'), visit('b', 'S1', '0', '0')], { numbers: 'all' }));
+        expect(result.state.players.b.points).toBe(1);
     });
 });
 

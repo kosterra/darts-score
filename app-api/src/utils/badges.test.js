@@ -383,10 +383,18 @@ describe('the newer games and trainings', () => {
     const shameOf = (events, options) => replayBadges(events, P, options).shame.map(e => e.badge);
     const miss = ['0', '0', '0'];
 
-    it('has a win series for each newer game, and the all-rounder over all nine', () => {
-        for (const group of ['shanghaiWins', 'killerWins', 'halveItWins', 'golfWins', 'tacticsWins']) expect(BADGE_GROUPS.some(entry => entry.group === group), group).toBe(true);
+    it('has a win series for each newer game, and the all-rounder over all eleven', () => {
+        for (const group of ['shanghaiWins', 'killerWins', 'halveItWins', 'golfWins', 'tacticsWins', 'baseballWins', 'scramWins']) expect(BADGE_GROUPS.some(entry => entry.group === group), group).toBe(true);
         expect(BADGE_GROUPS.some(entry => entry.group === 'rulesWins')).toBe(false);
-        expect(BADGES.filter(badge => badge.group === 'allRounder').map(badge => badge.target)).toEqual([3, 6, 9]);
+        expect(BADGES.filter(badge => badge.group === 'allRounder').map(badge => badge.target)).toEqual([3, 6, 9, 11]);
+    });
+
+    it('a Baseball and a Scram win count for their own series', () => {
+        const nine = Array.from({ length: 9 }, (_, index) => [{ player: P, darts: [`T${index + 1}`, '0', '0'] }, { player: O, darts: miss }]).flat();
+        expect(ids([rules('baseball', nine, { winner: P })])).toContain('baseballWins-1');
+        const scram = [{ player: P, darts: ['S20', 'S19', 'S18'] }, { player: O, darts: ['T17', '0', '0'] }, { player: P, darts: ['S17', 'S16', 'S15'] }, { player: O, darts: miss }, { player: P, darts: ['S25', '0', '0'] },
+            { player: O, darts: ['S20', 'S19', 'S18'] }, { player: P, darts: ['T17', 'T17', 'T17'] }, { player: O, darts: ['S17', 'S16', 'S15'] }, { player: P, darts: miss }, { player: O, darts: ['S25', '0', '0'] }];
+        expect(ids([rules('scram', scram, { winner: P })])).toContain('scramWins-1');
     });
 
     it('Killer: untouchable, a triple kill, and friendly fire washed off with three lives taken', () => {

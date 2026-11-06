@@ -16,7 +16,9 @@ const WEEK_MS = 7 * DAY_MS;
 const FIRST_MONDAY_MS = Date.UTC(1970, 0, 5);
 const YEAR_MS = 365.25 * DAY_MS;
 // the game types and the kinds of training a club can play
-export const CLUB_GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'shanghai', 'killer', 'halveit', 'golf', 'tactics'];
+// (the first nine earned Every Game in the Book, all of them The Whole Book)
+export const CLUB_GAME_TYPES = ['x01', 'cricket', 'elimination', 'clock', 'shanghai', 'killer', 'halveit', 'golf', 'tactics', 'baseball', 'scram'];
+const CLUB_FIRST_GAME_TYPES = 9;
 // (the first seven earned Training Ground, all of them Every Drill in the Club)
 export const CLUB_TRAINING_KINDS = ['atc', 'bobs27', 'checkout121', 'randomcheckouts', 'scoring', 'doublesaround', 'catch40', 'trebles', 'bulls', 'ladder', 'shortleg'];
 const CLUB_FIRST_TRAINING_KINDS = 7;
@@ -68,7 +70,7 @@ export const CLUB_BADGE_GROUPS = [
     {
         group: 'clubEveryGame', category: 'together', title: 'Every game', metric: 'gameTypes',
         describe: (n) => `All ${n} games played in the club`,
-        tiers: [[CLUB_GAME_TYPES.length, 'Every Game in the Book']],
+        tiers: [[CLUB_FIRST_GAME_TYPES, 'Every Game in the Book'], [CLUB_GAME_TYPES.length, 'The Whole Book']],
     },
     {
         group: 'clubEveryTraining', category: 'together', title: 'Every training', metric: 'trainingKinds',

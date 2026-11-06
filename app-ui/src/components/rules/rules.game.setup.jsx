@@ -58,7 +58,11 @@ const RulesGameSetup = () => {
     };
 
     const min = definition.minPlayers;
-    const missing = players.length < min
+    // a game for so many players exactly (Scram: two)
+    const exact = min === definition.maxPlayers ? min : null;
+    const missing = exact && players.length > exact
+        ? tn(exact, 'This game is played by {{count}} player.', 'This game is played by {{count}} players.')
+        : players.length < min
         ? (players.length === 0 && min === 1 ? t('Choose the players') : tn(min - players.length, 'Choose {{count}} more player to start.', 'Choose {{count}} more players to start.'))
         : null;
     const chosen = (definition.options ?? []).map(option => option.values.find(value => value.value === settings[option.key])?.label).filter(Boolean);

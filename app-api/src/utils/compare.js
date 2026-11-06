@@ -67,7 +67,7 @@ export const duelRecord = (games, playerIds, { type = null } = {}) => {
 
 /**
  * What the games of one of the newer kinds (Shanghai, Killer, Halve-It, Golf,
- * Tactics) show for a player, worked out from their visits by the app's rules.
+ * Tactics, Baseball, Scram) show for a player, worked out from their visits by the app's rules.
  * Only games played to their end count.
  */
 export const rulesFigures = (kind, games, playerId) => {
@@ -114,6 +114,15 @@ export const rulesFigures = (kind, games, playerId) => {
             pointsPerGame: perGame(state => state.points),
             marksPerRound: sum(state => state.darts) ? round(sum(state => state.totalMarks) / sum(state => state.darts) * 3, 2) : null,
             closedPerGame: perGame(state => Object.values(state.marks ?? {}).filter(marks => marks >= 3).length),
+        };
+        case 'baseball': return {
+            runsPerGame: perGame(state => state.runs),
+            homeRuns: sum(state => state.homeRuns),
+            bestRound: count ? Math.max(...states.map(state => state.runs)) : null,
+        };
+        case 'scram': return {
+            pointsPerGame: perGame(state => state.points),
+            dartsToClose: perGame(state => state.stopDarts),
         };
         default: return {};
     }

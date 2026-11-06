@@ -28,7 +28,7 @@ const SHOWCASE = [
         eyebrow: t('Scoring'),
         title: t('Every dart counted, every way out shown'),
         text: t('Tap the darts on the board or the keypad, or type the score of a visit. Legmate keeps the score of every player, shows the ways out from 170 down, and celebrates the 180s and the big finishes.'),
-        points: [t('X01 from 101 to 1001, sets and legs, double in and out'), t('Cricket, Elimination, Around the Clock, Shanghai, Killer, Halve-It, Golf and Tactics'), t('Undo, handicaps and a guest for a single game'), t('The rules of every game one tap away')],
+        points: [t('X01 from 101 to 1001, sets and legs, double in and out'), t('Cricket, Elimination, Around the Clock, Shanghai, Killer, Halve-It, Golf, Tactics, Baseball and Scram'), t('Undo, handicaps and a guest for a single game'), t('The rules of every game one tap away')],
         shot: 'cricket-game',
         alt: t('A Cricket game in Legmate: the marks of every player and the board to tap the darts on'),
     },
@@ -94,7 +94,7 @@ const WAYS = [
 ];
 
 const FEATURES = [
-    { icon: <FaBullseye />, title: t('Nine games'), text: t('X01, Cricket, Elimination and Around the Clock, plus Shanghai, Killer, Halve-It, Golf and Tactics, for one to four players.') },
+    { icon: <FaBullseye />, title: t('Eleven games'), text: t('X01, Cricket, Elimination and Around the Clock, plus Shanghai, Killer, Halve-It, Golf, Tactics, Baseball and Scram, for one to four players.') },
     { icon: <MdQueryStats />, title: t('Statistics that mean something'), text: t('Averages, checkout rates and head-to-head for every player and game.') },
     { icon: <FaRegClock />, title: t('Training'), text: t('Around the Clock against the stopwatch, X01 against a bot as strong as you, and six more trainings from Bob\'s 27 to Catch 40.') },
     { icon: <FaRobot />, title: t('A bot to practise with'), text: t('Easy, normal, hard or pro, or one that plays at your own level.') },

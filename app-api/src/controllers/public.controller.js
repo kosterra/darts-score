@@ -34,7 +34,7 @@ const describeFormat = (type, game) => {
         case 'elimination': return `Target ${game.targetScore}`;
         case 'clock': return `Around the Clock · ${game.mode ?? 'All'}`;
         case 'rules': return RULES_GAMES[game.kind] ?? '';
-        case 'shanghai': case 'killer': case 'halveit': case 'golf': case 'tactics': return RULES_GAMES[type];
+        case 'shanghai': case 'killer': case 'halveit': case 'golf': case 'tactics': case 'baseball': case 'scram': return RULES_GAMES[type];
         default: return 'Cricket';
     }
 };

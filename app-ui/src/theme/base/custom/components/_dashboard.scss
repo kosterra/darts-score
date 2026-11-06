@@ -167,6 +167,8 @@
     &.game-type-halveit { --game-type-color: #{$accentPink}; }
     &.game-type-golf { --game-type-color: #{$accentPink}; }
     &.game-type-tactics { --game-type-color: #{$accentPink}; }
+    &.game-type-baseball { --game-type-color: #{$accentPink}; }
+    &.game-type-scram { --game-type-color: #{$accentPink}; }
 }
 
 // Game types, each in its own colour: a small label with a short line in that
@@ -200,6 +202,8 @@
     &.game-type-halveit { --game-type-color: #{$accentPink}; }
     &.game-type-golf { --game-type-color: #{$accentPink}; }
     &.game-type-tactics { --game-type-color: #{$accentPink}; }
+    &.game-type-baseball { --game-type-color: #{$accentPink}; }
+    &.game-type-scram { --game-type-color: #{$accentPink}; }
 }
 
 // Player picker on the statistics page
