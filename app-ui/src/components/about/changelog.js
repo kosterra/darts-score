@@ -9,6 +9,20 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.4',
+        changes: [
+            t('A tidier look across the app: your badges in less space with the ones you are closest to on top, the club badges with their whole ladders, the Hall of Shame, the lists of games, the visits of the newer games, the results of the trainings and the form for a new player.'),
+            t('Club badges: more steps for the games played in the club (500, 2,500 and 5,000), new ones for the trainings done (from 250, higher than the games), the ton-plus visits, the high finishes, the tournaments played to the final and the league seasons played to the end; the badges for playing every kind of game and of training are gone.'),
+            t('Your trainings over time: a tap on a training in the statistics of a player shows every attempt as a line with the best so far, how many, the best and how the last attempts compare with the first ones.'),
+            t('Two new games under More games: Baseball (nine innings on 1 to 9, a run per ring of the inning\'s number, the bullseye a home run, a tie goes to extra innings on the bull) and Scram for two (the stopper closes the numbers, the scorer scores on the ones still open, then they swap; the numbers in view as on the cricket board, the closed ones crossed out). Each with its win badges, in the comparison and in the club\'s rules; the All-rounder and Every game have a step for all eleven games.'),
+            t('Four new trainings: Treble practice (a set number of darts at the T20, T19 or T18, entered with Treble, Single, Double or Miss), Bull practice (Bullseye, 25 or Miss), the Checkout ladder (61 to 100, one visit a finish: checked out one rung up, missed one down) and Shortest leg (legs of 501 on your own, your best leg counts). Each with its scoreboard, weekly goals and a new badge, Every Drill, for doing all eleven kinds of training.'),
+            t('The danger zone only in Bob\'s 27, where missing ends the training; in the checkout trainings their figures on tiles in the header instead.'),
+            t('X01 games in the lists: the sets won when the game goes over several sets, the legs won when it is one set.'),
+            t('The header of a training, while you throw and at the end, in one style: the figures on tiles beside your score, on a phone under it behind a thin line. In Scoring the points, the average and the darts, in Doubles around the board the darts and the doubles hit, big there instead of twice below.'),
+            t('The result of Doubles around the board: the darts and the hit rate on tiles, the hardest doubles only in the darts per double, which on a phone come in rows of seven.'),
+        ],
+    },
+    {
         version: '2026.11.3',
         changes: [
             t('A danger zone in the trainings: in Bob\'s 27 when missing the darts left at a double would end it, in 121 Checkout, Catch 40 and Random checkouts on the last darts of a finish – a pulsing red strip says so and counts them down, 3, 2, 1.'),

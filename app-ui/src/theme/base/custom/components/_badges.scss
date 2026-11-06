@@ -235,46 +235,34 @@ $badgeMetals: (
     }
 }
 
-// A badge series on a player's page: description on the left, tiers on the right
-.badge-series {
+// A player's badges: a card per series, two (or more) side by side; the nearest ones on top
+.badge-series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.badge-next-up {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: $space-3;
+
+    @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+// the medal beside the name and what is next, then the progress and the ladder
+.badge-series-card {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: $space-4 $space-6;
-    padding: $space-4 $space-2;
+    flex-direction: column;
+    gap: $space-2;
+    min-width: 0;
+    padding: $space-3;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
 
-    & + .badge-series {
-        border-top: 1px solid $shade700;
-    }
-
-    .badge-series-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-        // the medals follow the name, not the far edge of a wide panel
-        flex: 0 1 22rem;
-        min-width: 0;
-    }
-
-    .badge-series-tiers {
-        display: flex;
-        flex-wrap: wrap;
-        gap: $space-4;
-    }
-
-    .badge-tier {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.4rem;
-        width: 5.5rem;
-        text-align: center;
-    }
-
-    .badge-tier-name {
-        line-height: 1.2;
-        overflow-wrap: anywhere;
-    }
+    &.is-locked { opacity: 0.8; }
 }
 
 // Game rules on the About page
@@ -306,19 +294,52 @@ $badgeMetals: (
     font-size: $text-lg;
 }
 
-// The Hall of Shame: each shame badge with who holds it, in two columns when
-// there is room
+// The Hall of Shame: each shame badge as a tile, in two columns when there is room; those
+// someone holds first with a rust edge and the holder on the right, the free ones quieter
 .hall-of-shame {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-    gap: $space-4 $space-5;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: $space-2 $space-3;
 }
 
 .hall-of-shame-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: $space-3;
     min-width: 0;
+    padding: 0.6rem 0.9rem;
+    border-radius: $radius-md;
+    border-left: 3px solid transparent;
+    background: $surfaceRaisedColor;
+
+    &.is-held {
+        border-left-color: $shameColor;
+        background: with-alpha($shameColor, 0.08);
+    }
+}
+
+.hall-of-shame-title {
+    color: var(--text-subtle);
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+
+    .is-held & { color: var(--text-default); }
+}
+
+.hall-of-shame-holder {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    flex-shrink: 0;
+    max-width: 40%;
+    min-width: 0;
+}
+
+.hall-of-shame-free {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    font-size: $text-xs;
 }
 
 // a shame badge named after a darts term: what the term means
@@ -361,7 +382,7 @@ $badgeMetals: (
 
 .shame-times {
     color: $shameColor;
-    font-size: $text-sm;
+    font-size: $text-xs;
     font-weight: $weight-bold;
     font-variant-numeric: tabular-nums;
 }
@@ -388,11 +409,11 @@ $badgeMetals: (
     text-transform: uppercase;
 }
 
-// the rest, washed off or never had: a quiet list
+// the rest, washed off or never had: quiet tiles, those never had quieter still
 .shame-others {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: $space-4 $space-5;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: $space-2 $space-3;
 }
 
 .shame-entry {
@@ -400,6 +421,25 @@ $badgeMetals: (
     align-items: flex-start;
     gap: $space-3;
     min-width: 0;
+    padding: 0.7rem 0.9rem;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+
+    &.is-never { background: ink(0.03); }
+}
+
+.shame-entry-title {
+    color: var(--text-default);
+    font-size: $text-md;
+    font-weight: $weight-semibold;
+
+    .is-never & { color: var(--text-subtle); }
+}
+
+.shame-never {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    font-size: $text-xs;
 }
 
 // Tarred and feathered: the opposite of the celebration, for whoever just
@@ -790,26 +830,62 @@ $tar: #17110c;
         font-size: $text-base;
     }
 
-    .badge-ranking-bar {
-        display: block;
-        height: 0.3rem;
-        border-radius: $radius-pill;
-        background: $surfaceHighColor;
-        overflow: hidden;
 
-        span {
-            display: block;
-            height: 100%;
-            border-radius: $radius-pill;
-            background: $momentGoldColor;
-        }
-    }
+    // the latest badges: room for three small medals in every row
+    .badge-ranking-latest { width: calc(3 * 2.25rem + 2 * #{$space-1}); }
 
     .badge-ranking-cut {
         margin: $space-2 0 0;
         border-color: $surfaceHighColor;
         opacity: 1;
     }
+}
+
+// the feed and the rarest as tiles like the ranking: the medal, the badge over its description,
+// on the right who (with their picture) and when
+.badge-feed {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.badge-feed-tile {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: 0.6rem 0.9rem;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+a.badge-feed-tile:hover { background: $surfaceHighColor; }
+
+.badge-feed-who {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    flex-shrink: 0;
+    max-width: 45%;
+    min-width: 0;
+}
+
+.badge-feed-holder {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    max-width: 100%;
+    padding: 0.15rem 0.5rem 0.15rem 0.15rem;
+    border-radius: $radius-pill;
+    color: var(--text-default);
+    font-size: $text-sm;
+    font-weight: $weight-semibold;
+    text-decoration: none;
+
+    &:hover { background: ink(0.08); }
 }
 
 // a badge with its title and who has it: the feed, the rarest
@@ -819,22 +895,36 @@ $tar: #17110c;
     gap: $space-3;
 }
 
-// the badges nobody has yet: a grid of locked medals
+// the badges nobody has yet: tiles of locked medals, the badge over what it takes
 .badge-unclaimed {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-    gap: $space-4 $space-3;
-
-    // across the full width: the twelve shown in one row (auto-fit: fewer share it out)
-    &.is-wide {
-        @media (min-width: 1200px) { grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr)); }
-    }
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: $space-2 $space-3;
 
     li {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        gap: 0.4rem;
+        gap: $space-3;
+        min-width: 0;
+        padding: 0.6rem 0.9rem;
+        border-radius: $radius-md;
+        background: $surfaceRaisedColor;
+    }
+}
+
+// a share as a thin bar (the badge ranking, what is played or trained most)
+.badge-ranking-bar {
+    display: block;
+    height: 0.3rem;
+    border-radius: $radius-pill;
+    background: $surfaceHighColor;
+    overflow: hidden;
+
+    span {
+        display: block;
+        height: 100%;
+        border-radius: $radius-pill;
+        background: $momentGoldColor;
     }
 }
 
@@ -855,14 +945,26 @@ $tar: #17110c;
     }
 }
 
-// in a row across a full-width panel: all in one row while each has 14rem, else as many as fit
+// in a row across a full-width panel: a tile each, all in one row while each has 11rem, else
+// as many as fit; the name over the count, the bar of its share in the game's colour
 .training-popular.is-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(max(14rem, calc((100% - (var(--count) - 1) * 2rem) / var(--count))), 1fr));
-    gap: 0.9rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: $space-3;
 
-    // a long name ("Around the Clock") on two lines rather than cut
-    .text-truncate { white-space: normal; }
+    li {
+        align-items: flex-start;
+        gap: $space-3;
+        padding: 0.75rem 0.9rem;
+        border-radius: $radius-md;
+        background: $surfaceRaisedColor;
+    }
+
+    .popular-name { color: var(--text-default); font-size: $text-md; font-weight: $weight-semibold; line-height: 1.2; }
+    .popular-count { color: var(--text-faint); font-size: $text-xs; }
+    .popular-count strong { margin-right: 0.3rem; color: var(--text-default); font-size: $text-xl; font-weight: $weight-bold; font-variant-numeric: tabular-nums; }
+    .badge-ranking-bar { margin-top: 0.15rem; }
+    .badge-ranking-bar span { background: var(--popular-color); }
 }
 
 // the players page: a level's icon in its colour, as a round mark
@@ -992,6 +1094,63 @@ $tar: #17110c;
     &.is-locked {
         opacity: 0.75;
     }
+
+    // a series: the medal and the title on top, the progress, the ladder and who below
+    &.is-series {
+        flex-direction: column;
+        align-items: stretch;
+        gap: $space-2;
+    }
+
+    // the description always two lines, so the bars of a row of tiles start at the same height
+    .club-badge-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        min-height: calc(2 * 1.5em);
+        line-height: 1.5;
+    }
+}
+
+// the steps of a series of club badges: earned in gold with a tick, the one running now
+// brighter with an hourglass, the later ones faint with a lock
+.club-ladder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.2rem;
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        padding: 0.05rem 0.4rem;
+        border-radius: $radius-pill;
+        background: ink(0.05);
+        color: var(--text-faint);
+        font-size: $text-xs;
+        font-variant-numeric: tabular-nums;
+        cursor: default;
+
+        svg { flex-shrink: 0; width: 0.6rem; height: 0.6rem; }
+
+        &.is-earned { background: with-alpha($accentGold, 0.16); color: $accentGold; font-weight: $weight-semibold; }
+        &.is-next { background: ink(0.12); color: var(--text-default); font-weight: $weight-semibold; }
+    }
+}
+
+// who made a club badge happen (picture and nickname) and under it, small in the bottom
+// right corner, when: a narrow tile has no room for both on one line
+.club-badge-earned {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    margin-top: 0.2rem;
+
+    > :last-child { align-self: flex-end; line-height: 1; }
 }
 
 // how far towards a badge or a goal (of the club or one's own)

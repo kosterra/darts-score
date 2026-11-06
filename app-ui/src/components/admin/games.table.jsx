@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -277,17 +277,19 @@ const GamesTable = ({ scope = 'club', initialType = 'all', initialPlayerId = nul
         );
     };
 
+    // the players with their score close after the longest name, one under another; the room
+    // left over goes before the status
     const playersBody = (game) => (
-        <div className="d-flex flex-column gap-2">
+        <div className="games-players">
             {game.players.map(id => {
                 const model = game.playerModels?.[id] ?? {};
                 return (
-                    <div key={id} className="d-flex align-items-center justify-content-between gap-3">
+                    <Fragment key={id}>
                         <PlayerCell player={playersById.get(id)}>
                             {model.hasWonGame && <FaTrophy className="ms-2 text-gold" aria-label={t('Winner')} />}
                         </PlayerCell>
                         <span className="text-subtle fs-8 text-nowrap">{GAME_TYPES[game.type].score(model, game, id)}</span>
-                    </div>
+                    </Fragment>
                 );
             })}
         </div>

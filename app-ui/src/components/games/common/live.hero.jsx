@@ -20,9 +20,10 @@ import { t } from '../../../utils/i18n';
  * a new scoreKey plays the score's animation again (e.g. taking the lead).
  * rulesId: the game's rules (see about/rules), opened from the header;
  * houseRules: the club's house rules the game is played with, in words;
- * actions: more next to the rules, e.g. Big screen.
+ * actions: more next to the rules, e.g. Big screen; stage: where the game stands for everyone
+ * (Golf's hole), shown clearly above the players.
  */
-const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [], actions = null }) => {
+const LiveHero = ({ title, subtitle, stage = null, rows, rulesId, houseRules = [], actions = null }) => {
     // the shame badges each player holds in the club, shown small next to the tags
     const shame = useClubShame();
     const [rulesButton, rules] = useGameRules(rulesId, houseRules);
@@ -43,6 +44,7 @@ const LiveHero = ({ title, subtitle, rows, rulesId, houseRules = [], actions = n
                 </div>
             </div>
             {rules}
+            {stage && <div className="x01-live-stage" aria-live="polite">{stage}</div>}
 
             <div className={`x01-hero-players count-${rows.length}`}>
                 {rows.map(({ player, isTurn, line, tags, score, scoreClass = '', scoreKey, below }, index) => (

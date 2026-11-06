@@ -13,6 +13,8 @@ export const GAME_TITLES = {
     halveit: t('Halve-It'),
     golf: t('Golf'),
     tactics: t('Tactics'),
+    baseball: t('Baseball'),
+    scram: t('Scram'),
 };
 
 export const SETTING_LABELS = {
@@ -39,6 +41,7 @@ export const SETTING_LABELS = {
     ownDouble: t('A killer hits their own double'),
     targets: t('Targets'),
     holes: t('Holes'),
+    numbers: t('Numbers'),
 };
 
 // what a house rule means, under its choices
@@ -72,6 +75,7 @@ export const valueLabel = (game, key, value) => {
         case 'rounds': return game === 'shanghai' ? (value === 20 ? t('20 rounds (1 to 20)') : t('7 rounds (1 to 7)')) : tn(value, '{{count}} round', '{{count}} rounds');
         case 'lives': return tn(value, '{{count}} life', '{{count}} lives');
         case 'holes': return tn(value, '{{count}} hole', '{{count}} holes');
+        case 'numbers': return value === 'all' ? t('1 to 20 and the bull') : t('15 to 20 and the bull');
         case 'variant': case 'mode': case 'setMode': case 'legMode': return t(String(value));
         default: return String(value);
     }

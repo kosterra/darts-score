@@ -17,7 +17,7 @@ const MODELS = {
     elimination: () => db.elimination,
     clock: () => db.clock,
 };
-export const COMPARE_TYPES = [...Object.keys(MODELS), 'shanghai', 'killer', 'halveit', 'golf', 'tactics'];
+export const COMPARE_TYPES = [...Object.keys(MODELS), 'shanghai', 'killer', 'halveit', 'golf', 'tactics', 'baseball', 'scram'];
 // a comparison has at most as many players as the charts have colours
 export const MAX_COMPARED = 8;
 const tooMany = (req, res) => {

@@ -21,7 +21,7 @@ info:
 
 
     **Global admins** look after the installation (`/api/admin`, `/api/users`) and belong to no club.
-  version: 2026.11.3
+  version: 2026.11.4
   license:
     name: AGPL-3.0-only
     url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -1423,7 +1423,7 @@ paths:
         - Clubs
       summary: Save the club's own rules for its games (club admins)
       description: >-
-        Per game (x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics) whether the club plays it, its defaults,
+        Per game (x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics, baseball, scram) whether the club plays it, its defaults,
         the choices it offers and the settings it locks, including the house rules (X01 legStarter, roundLimit and bull; Cricket
         roundLimit; Shanghai instantWin; Killer become and ownDouble; Halve-It targets). Also the club's own formats (at most 20,
         each { id, game, name, settings, friendly }), builtInFormats, friendlyChoice (players may mark a game as friendly),
@@ -4033,7 +4033,7 @@ paths:
                         maximum: 10000
                       training:
                         type: [string, 'null']
-                        enum: [atc, bot, bobs27, checkout121, randomcheckouts, scoring, doublesaround, catch40, null]
+                        enum: [atc, bot, bobs27, checkout121, randomcheckouts, scoring, doublesaround, catch40, trebles, bulls, ladder, shortleg, null]
                       withBot:
                         type: [boolean, 'null']
       responses:
@@ -5447,7 +5447,7 @@ paths:
       summary: The player comparison, head to head in one game type
       description: >-
         Two to eight players in their games together (or with others too) in one of the nine games (type x01, cricket, elimination,
-        clock, shanghai, killer, halveit, golf, tactics), in one answer: playedGames; record (wins, for X01 legs, sets and the matches
+        clock, shanghai, killer, halveit, golf, tactics, baseball, scram), in one answer: playedGames; record (wins, for X01 legs, sets and the matches
         won in the deciding leg, the current streak, the last ten results, and pairs - who beats whom); each player's figures of the
         game (for the newer games worked out from their visits); games for the timeline; highlights of X01 (best game average, highest
         checkout with their game, 180s, and total180s - the player's 180s in all the club's games); shame (the Hall of Shame badges got in these games, where the club has one); badges (per player the badges earned in these games and their whole collection, { earned, total }); ratings (the
@@ -5471,7 +5471,7 @@ paths:
                     type: string
                 type:
                   type: string
-                  enum: [x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics]
+                  enum: [x01, cricket, elimination, clock, shanghai, killer, halveit, golf, tactics, baseball, scram]
                 includeOthers:
                   type: boolean
                 dateFilter:
@@ -6901,6 +6901,10 @@ paths:
               - scoring
               - doublesaround
               - catch40
+              - trebles
+              - bulls
+              - ladder
+              - shortleg
       responses:
         '200':
           description: The trainings
@@ -9408,6 +9412,8 @@ components:
             - halveit
             - golf
             - tactics
+            - baseball
+            - scram
         players:
           type: array
           minItems: 1
@@ -9483,6 +9489,10 @@ components:
             - scoring
             - doublesaround
             - catch40
+            - trebles
+            - bulls
+            - ladder
+            - shortleg
         player:
           type: object
           required:

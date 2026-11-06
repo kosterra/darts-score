@@ -415,6 +415,32 @@ $fair-play-suspicious: $accentAmber;
   &.is-suspicious { @include label-tone($fair-play-suspicious); }
 }
 
+// the rules of the checks: tiles of a level side by side, its colour on the edge
+.fair-play-rules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: $space-2 $space-3;
+
+  @media (max-width: 575.98px) { grid-template-columns: minmax(0, 1fr); }
+}
+
+.fair-play-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: $radius-md;
+  border-left: 3px solid transparent;
+  background: $surfaceRaisedColor;
+
+  &.is-impossible { border-left-color: $fair-play-impossible; }
+  &.is-error { border-left-color: $fair-play-error; }
+  &.is-suspicious { border-left-color: $fair-play-suspicious; }
+  // the rules of the spam alerts
+  &.is-critical { border-left-color: $accentRed; }
+  &.is-warning { border-left-color: $accentAmber; }
+}
+
 .fair-play-players {
   display: flex;
   flex-wrap: wrap;
@@ -909,6 +935,15 @@ $fair-play-suspicious: $accentAmber;
   background: #f2f3f1;
 }
 
+// the players of a game in the list, the names in a column of one width in every row, so the
+// scores stand one under another down the list
+.games-players {
+    display: grid;
+    grid-template-columns: minmax(0, 14rem) max-content;
+    align-items: center;
+    gap: $space-2 $space-5;
+}
+
 // an editor under a row of a list, instead of a popup
 .row-editor {
     display: flex;
@@ -922,6 +957,61 @@ $fair-play-suspicious: $accentAmber;
         align-items: center;
         justify-content: space-between;
         gap: $space-4;
+    }
+}
+
+// a new player, compact: the picture with its upload on the left, the fields two by two beside
+// it, each with its label above; on a phone the picture beside its upload above the fields,
+// one field under another
+.player-form-inline {
+    max-width: 44rem;
+    // room before what follows it (the player cards of a setup)
+    margin-bottom: $space-4;
+
+    .player-form-body {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: $space-4;
+        align-items: start;
+    }
+
+    .player-form-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: $space-3;
+        align-items: start;
+    }
+
+    .player-form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        min-width: 0;
+
+        > label { color: $textSubtleColor; font-size: $text-sm; font-weight: $weight-semibold; }
+        > small { font-size: $text-xs; line-height: 1.3; }
+
+        &.is-wide { grid-column: 1 / -1; }
+    }
+
+    .file-upload {
+        gap: $space-2;
+
+        .file-upload-avatar.p-avatar { width: 5.5rem; height: 5.5rem; font-size: 2rem; }
+
+        .drop-zone {
+            width: 7.5rem;
+            padding: 0.45rem 0.75rem;
+            text-align: center;
+        }
+
+        // a picture is chosen with a click here; dragging needs no words in so small a box
+        .drop-zone-drag { display: none; }
+    }
+
+    @media (max-width: 575.98px) {
+        .player-form-body { grid-template-columns: minmax(0, 1fr); }
+        .player-form-fields { grid-template-columns: minmax(0, 1fr); }
     }
 }
 

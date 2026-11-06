@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Toast } from 'primereact/toast';
 
 import ATCDartsRound from '../../training/atc.darts.round';
+import ATCTargetBoard from '../../training/atc.target.board';
 import PageLoader from '../../elements/page.loader';
 import ClockService from '../../../services/clock.service';
 import PlayerService from '../../../services/player.service';
@@ -113,18 +114,25 @@ const ClockGame = () => {
                     };
                 })}
             />
-            <div className="clock-game-board">
-                <ATCDartsRound
-                    players={players}
-                    mode={game.mode}
-                    round={state}
-                    onDart={onDart}
-                    onUndo={onUndo}
-                    canUndo={game.throws?.length > 0}
-                    rings={skipsAhead(game)}
-                    withPlayers={false}
-                    notice={notice}
-                />
+            {/* as the other games: on a wide screen the board on the left (big, the target lit), the
+                turn and the buttons on the right; on a phone the round alone with its small board */}
+            <div className="row g-4 clock-game-board">
+                <div className="col-lg-6 d-none d-lg-flex justify-content-center align-items-start">
+                    <ATCTargetBoard target={state.players[state.order[state.current]]?.target ?? 0} mode={game.mode} className="is-big" />
+                </div>
+                <div className="col-12 col-lg-6">
+                    <ATCDartsRound
+                        players={players}
+                        mode={game.mode}
+                        round={state}
+                        onDart={onDart}
+                        onUndo={onUndo}
+                        canUndo={game.throws?.length > 0}
+                        rings={skipsAhead(game)}
+                        withPlayers={false}
+                        notice={notice}
+                    />
+                </div>
             </div>
             <ClockMoment moment={moment} onDone={endMoment} mode={game.mode} />
             <Toast ref={toast} position="bottom-right" />

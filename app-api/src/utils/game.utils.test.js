@@ -54,7 +54,8 @@ describe('createGameFilterQuery', () => {
         const result = createGameFilterQuery({ playerIds: ['p1'], includeOthers: false, dateFilter: '1 M' });
         const diffDays = (result.createdAt.$lt - result.createdAt.$gte) / (1000 * 60 * 60 * 24);
         expect(diffDays).toBeGreaterThan(27);
-        expect(diffDays).toBeLessThanOrEqual(32);
+        // a month with the end of summer time in it is an hour longer
+        expect(diffDays).toBeLessThanOrEqual(32 + 1 / 24);
     });
 
     it('adds createdAt range for "1 Y"', () => {

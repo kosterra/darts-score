@@ -1,6 +1,10 @@
+import { Avatar } from 'primereact/avatar';
+import { FaCheck, FaHourglassHalf, FaLock } from 'react-icons/fa6';
+
 import ClubMedal from './club.medal';
 import GoalProgress from '../elements/goal.progress';
 import { formatDate } from '../../utils/dates';
+import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -24,41 +28,86 @@ export const ClubMedalRow = ({ badges = [], count = badges.length, size = 'xs' }
     );
 };
 
-// when and by whom a club badge was earned: "12.11.2026 · Anna made it happen"
-const earnedLine = (earned) => [formatDate(earned.earnedAt), earned.nickname ? t('{{nickname}} made it happen', { nickname: earned.nickname }) : null].filter(Boolean).join(' · ');
+// who made a club badge happen, with their picture, and when, small in the corner
+const EarnedBy = ({ earned }) => {
+    const player = earned.player;
+    const nickname = player?.nickname ?? earned.nickname;
+    return (
+        <span className="club-badge-earned">
+            {nickname
+                ? <span className="d-inline-flex align-items-center gap-2 min-w-0 text-subtle fs-8" title={t('{{nickname}} made it happen', { nickname })}>
+                    <Avatar
+                        label={player ? resolvePlayerInitials(player.firstname ?? nickname, player.lastname ?? '') : nickname.charAt(0)}
+                        image={player ? resolvePlayerImg(player.profileImg) : undefined}
+                        shape="circle"
+                        className="avatar-xs bg-surface-high flex-shrink-0"
+                    />
+                    <span className="text-truncate">{nickname}</span>
+                </span>
+                : <span />}
+            <span className="text-faint fs-9 text-nowrap">{formatDate(earned.earnedAt)}</span>
+        </span>
+    );
+};
+
+// a step of a ladder as its tooltip says it: the badge, and when and by whom it was earned
+const stepTitle = (badge) => [
+    badge.title,
+    badge.earned && formatDate(badge.earned.earnedAt),
+    badge.earned && (badge.earned.player?.nickname ?? badge.earned.nickname) && t('{{nickname}} made it happen', { nickname: badge.earned.player?.nickname ?? badge.earned.nickname }),
+].filter(Boolean).join(' · ');
 
 /**
- * Every badge of the club by category: the earned ones with when and by whom,
- * the others with how far the club is (the next tier of a series only).
+ * Every badge of the club by category, a tile per series: the step the club is
+ * working on (or the top one once all are earned) with how far it is, under it
+ * the whole ladder of the series (the earned steps in gold, the next outlined),
+ * and who made the latest earned step happen, and when.
  */
 export const ClubBadgeList = ({ badges = [] }) => {
-    // of a series: the earned tiers and the next one to reach
-    const shown = badges.filter((badge, index) => badge.earned || !badges.slice(0, index).some(other => other.group === badge.group && !other.earned));
+    const series = [...new Set(badges.map(badge => badge.group))].map(group => badges.filter(badge => badge.group === group));
     return (
         <div className="d-flex flex-column gap-4">
             {CATEGORIES.map(({ category, title }) => {
-                const entries = shown.filter(badge => badge.category === category);
+                const entries = series.filter(steps => steps[0].category === category);
                 if (!entries.length) return null;
                 return (
                     <section key={category} className="d-flex flex-column gap-3">
                         <h3 className="game-setup-section-title m-0">{title}</h3>
                         <ul className="club-badges-grid">
-                            {entries.map(badge => (
-                                <li key={badge.id} className={`club-badge-card ${badge.earned ? '' : 'is-locked'}`}>
-                                    <ClubMedal badge={badge} locked={!badge.earned} size="sm" />
-                                    <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
-                                        <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
-                                        <span className="text-faint fs-8">{badge.description}</span>
-                                        {badge.earned
-                                            ? <span className="text-subtle fs-8">{earnedLine(badge.earned)}</span>
-                                            : badge.target > 1 &&
+                            {entries.map(steps => {
+                                const next = steps.find(badge => !badge.earned);
+                                const latest = [...steps].reverse().find(badge => badge.earned);
+                                const badge = next ?? latest;
+                                return (
+                                    <li key={badge.group} className={`club-badge-card is-series ${latest ? '' : 'is-locked'}`}>
+                                        {/* the medal beside the title, the rest across the whole tile under them */}
+                                        <span className="d-flex align-items-center gap-3 min-w-0">
+                                            <ClubMedal badge={latest ?? badge} locked={!latest} size="sm" />
+                                            <span className="d-flex flex-column min-w-0">
+                                                <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
+                                                <span className="club-badge-description text-faint fs-8" title={badge.description}>{badge.description}</span>
+                                            </span>
+                                        </span>
+                                        <span className="d-flex flex-column gap-1 min-w-0">
+                                            {next && next.target > 1 &&
                                                 <span className="d-flex flex-column gap-1">
-                                                    <GoalProgress value={badge.progress} target={badge.target} label={badge.title} />
-                                                    <span className="text-faint fs-9 tabular-nums">{formatNumber(badge.progress)} / {formatNumber(badge.target)}</span>
+                                                    <GoalProgress value={next.progress} target={next.target} label={next.title} />
+                                                    <span className="text-faint fs-9 tabular-nums">{formatNumber(next.progress)} / {formatNumber(next.target)}</span>
                                                 </span>}
-                                    </span>
-                                </li>
-                            ))}
+                                            {steps.length > 1 &&
+                                                <ol className="club-ladder list-unstyled m-0" aria-label={t('All steps')}>
+                                                    {steps.map(step => (
+                                                        <li key={step.id} className={step.earned ? 'is-earned' : step === next ? 'is-next' : ''} title={stepTitle(step)}>
+                                                            {step.earned ? <FaCheck aria-hidden="true" /> : step === next ? <FaHourglassHalf aria-hidden="true" /> : <FaLock aria-hidden="true" />}
+                                                            {formatNumber(step.target)}
+                                                        </li>
+                                                    ))}
+                                                </ol>}
+                                            {latest && <EarnedBy earned={latest.earned} />}
+                                        </span>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     </section>
                 );

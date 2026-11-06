@@ -51,6 +51,8 @@ const GROUP_ICONS = {
     halveItWins: RULES_ICONS.halveit,
     golfWins: RULES_ICONS.golf,
     tacticsWins: RULES_ICONS.tactics,
+    baseballWins: RULES_ICONS.baseball,
+    scramWins: RULES_ICONS.scram,
     bobs27: RULES_ICONS.bobs27,
     checkout121: RULES_ICONS.checkout121,
     catch40: RULES_ICONS.catch40,

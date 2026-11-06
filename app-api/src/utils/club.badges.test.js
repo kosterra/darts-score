@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CLUB_BADGES, CLUB_GAME_TYPES, CLUB_TRAINING_KINDS, goalProgress, replayClubBadges, tallyOf, topClubBadges } from './club.badges.js';
+import { CLUB_BADGES, goalProgress, replayClubBadges, tallyOf, topClubBadges } from './club.badges.js';
 
 let minute = 0;
 const at = (day = 0) => new Date(Date.UTC(2026, 0, 5 + day, 18, minute++));
@@ -49,10 +49,32 @@ describe('club badges', () => {
         expect(ids(replayClubBadges([game(['a'], {}, 0), game(['a'], {}, 14), game(['a'], {}, 21), game(['a'], {}, 28)]))).not.toContain('clubWeeks-4');
     });
 
-    it('every game type and every kind of training', () => {
-        const types = CLUB_GAME_TYPES.map(type => ({ ...game(['a']), type }));
-        expect(ids(replayClubBadges(types))).toContain(`clubEveryGame-${CLUB_GAME_TYPES.length}`);
-        expect(ids(replayClubBadges(CLUB_TRAINING_KINDS.map(kind => training(kind))))).toContain(`clubEveryTraining-${CLUB_TRAINING_KINDS.length}`);
+    it('the trainings of the club, with steps higher than the games', () => {
+        const trainings = Array.from({ length: 250 }, (_, index) => training(index % 2 ? 'atc' : 'bobs27', 'p1', Math.floor(index / 50)));
+        const result = replayClubBadges(trainings);
+        expect(ids(result)).toContain('clubTrainings-250');
+        expect(result.metrics.trainings).toBe(250);
+        // a kind of every game or training is no badge any more
+        expect(CLUB_BADGES.some(badge => /Every/.test(badge.group))).toBe(false);
+    });
+
+    it('the ton-plus visits and the high finishes add up over the games', () => {
+        const games = Array.from({ length: 10 }, () => game(['a', 'b'], { tonPlus: 10, highFinishes: 1 }));
+        const result = replayClubBadges(games);
+        expect(ids(result)).toEqual(expect.arrayContaining(['clubTonPlus-100', 'clubHighFinishes-10']));
+        expect(result.earned.find(entry => entry.badge === 'clubHighFinishes-10').sourceId).toBe(games[9].id);
+    });
+
+    it('tournaments and league seasons played to the end, tipped by their winner', () => {
+        const ends = [
+            { kind: 'tournament', type: 'tournament', id: 'tour1', at: at(1), player: 'p3' },
+            { kind: 'league', type: 'league', id: 'lea1', at: at(2), player: 'p4' },
+        ];
+        const result = replayClubBadges([game(['p1', 'p2']), ...ends]);
+        expect(result.earned.find(entry => entry.badge === 'clubTournaments-1')).toMatchObject({ sourceId: 'tour1', player: 'p3' });
+        expect(result.earned.find(entry => entry.badge === 'clubLeagues-1')).toMatchObject({ sourceId: 'lea1', player: 'p4' });
+        // they are no games: the club played one
+        expect(result.metrics.games).toBe(1);
     });
 
     it('the members and the years count as of now, tipped by nobody', () => {

@@ -11,7 +11,7 @@ import { gameTitle as titleOf } from './kind.titles';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import { locale, t, tn } from '../../utils/i18n';
 import { OverviewSkeleton } from '../elements/skeletons';
-import { ACCENT } from '../../utils/palette';
+import { ACCENT, GAME_COLORS } from '../../utils/palette';
 
 const GREEN = ACCENT.green;
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value ?? 0);
@@ -35,8 +35,23 @@ const GamesOverview = () => {
     const top = overview.popular[0];
     const most = top?.count || 1;
     // the game types played most; in a row across a full-width panel (row), else one under the other
-    const popular = (row = false) => (
-        <ul className={`training-popular list-unstyled m-0 ${row ? 'is-row' : ''}`} style={{ '--count': overview.popular.length }}>
+    const popular = (row = false) => (row
+        ? <ul className="training-popular list-unstyled m-0 is-row">
+            {overview.popular.map(entry => (
+                <li key={entry.type} style={{ '--popular-color': GAME_COLORS[entry.type] ?? GAME_COLORS.rules }}>
+                    <GameTypeIcon type={entry.type} />
+                    <span className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
+                        <span className="popular-name">{titleOf(entry.type)}</span>
+                        <span className="popular-count">
+                            <strong>{formatNumber(entry.count)}</strong>
+                            {entry.last30Days ? tn(entry.last30Days, '{{count}} in the last 30 days', '{{count}} in the last 30 days') : null}
+                        </span>
+                        <span className="badge-ranking-bar" aria-hidden="true"><span style={{ width: `${entry.count / most * 100}%` }} /></span>
+                    </span>
+                </li>
+            ))}
+        </ul>
+        : <ul className="training-popular list-unstyled m-0">
             {overview.popular.map(entry => (
                 <li key={entry.type}>
                     <GameTypeIcon type={entry.type} />
@@ -49,8 +64,7 @@ const GamesOverview = () => {
                     </span>
                 </li>
             ))}
-        </ul>
-    );
+        </ul>);
 
     return (
         <div className="d-flex flex-column gap-4 mb-4">

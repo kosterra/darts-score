@@ -18,18 +18,7 @@ export const listOf = (entry) => {
 };
 
 /**
- * The rules in two columns, each level kept whole in one of them: the levels
- * (in their order) fill the first column while it stays at most half of all,
- * the rest go in the second. [[rules of the first], [rules of the second]];
- * the second left out when empty.
+ * The rules by level, in their order: [{ level, rules }].
  */
-export const ruleColumns = (rules) => {
-    const levels = [...new Set(rules.map(rule => rule.level))].map(level => rules.filter(rule => rule.level === level));
-    const first = [];
-    const second = [];
-    for (const group of levels) {
-        if (!second.length && (!first.length || first.length + group.length <= rules.length / 2)) first.push(...group);
-        else second.push(...group);
-    }
-    return second.length ? [first, second] : [first];
-};
+export const rulesByLevel = (rules) => [...new Set(rules.map(rule => rule.level))]
+    .map(level => ({ level, rules: rules.filter(rule => rule.level === level) }));

@@ -49,7 +49,8 @@ test('the double to throw at, the darts of the visit and an undo', async ({ page
     await expect(slots(page).nth(0)).toHaveClass(/is-hit/);
     await expect(slots(page).nth(1)).toHaveClass(/is-miss/);
     await expect(slots(page).nth(2)).toHaveClass(/is-next/);
-    await expect(page.locator('.rules-status')).toContainText('3 / 3');
+    // the dart of the visit on a tile in the header
+    await expect(page.locator('.rules-hero-figures')).toContainText('3 / 3');
 
     // the third dart ends the visit: the next double, D1 with its hit in the strip
     await hit.click();

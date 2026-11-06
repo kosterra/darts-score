@@ -9,56 +9,96 @@ import BadgeMedal from './badge.medal';
 import ShameMedal from './shame.medal';
 import { BadgesSkeleton } from '../elements/skeletons';
 import FlightCollection from '../flights/flight.collection';
-import { FaSoap } from 'react-icons/fa6';
+import { FaCheck, FaHourglassHalf, FaLock, FaSoap } from 'react-icons/fa6';
 import { locale, t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 
 const formatNumber = (value) => new Intl.NumberFormat(locale()).format(value);
+// how many of the nearest badges show on top
+const NEXT_UP = 6;
+
+// how close the next badge of a series is, from 0 to 1 (fewer is better: the target against the best so far)
+const closeness = (badge) => {
+    if (!badge || !(badge.progress > 0)) return 0;
+    if (badge.lower) return Math.min(1, badge.target / badge.progress);
+    return badge.target > 1 ? Math.min(1, badge.progress / badge.target) : 0;
+};
+
+// the progress towards a badge: a bar with the numbers, or the best so far where fewer is better
+const NextProgress = ({ badge }) => (badge.lower
+    ? badge.progress > 0 && <span className="text-faint fs-8">{t('Your best so far:')}{' '}{formatNumber(badge.progress)}{' '}{t('darts')}</span>
+    : badge.target > 1 &&
+        <span className="d-flex align-items-center gap-2">
+            <ProgressBar value={Math.round(badge.progress / badge.target * 100)} showValue={false} className="flex-grow-1" style={{ height: '0.35rem' }} />
+            <span className="text-faint fs-8 tabular-nums text-nowrap">{formatNumber(badge.progress)} / {formatNumber(badge.target)}</span>
+        </span>);
 
 /**
- * One series of badges (e.g. 180s): its tiers side by side, and what is
- * needed for the next one.
+ * One series of badges (e.g. 180s) as a card: the latest medal beside its name
+ * and what is next with how far it is, then the whole ladder of the series
+ * (earned in gold with a tick, the next with an hourglass, the later ones
+ * locked; each with what it takes on hover).
  */
 const BadgeSeries = ({ badges }) => {
     const next = badges.find(badge => !badge.earned);
-    const earnedCount = badges.filter(badge => badge.earned).length;
+    const latest = [...badges].reverse().find(badge => badge.earned);
 
     return (
-        <li className="badge-series">
-            {/* the medals right after the name and what is next, not at the far end of a wide row */}
-            <div className="badge-series-info">
-                <span className="text-default fw-semibold">{badges[0].groupTitle}</span>
-                {badges.length === 1
-                    ? (
-                        <span className="text-faint fs-7">{badges[0].description}</span>
-                    )
-                    : next
-                    ? (
-                        <>
-                            <span className="text-faint fs-7">{t('Next:')}{' '}{next.title} · {next.description}</span>
-                            {next.lower && next.progress > 0 &&
-                                <span className="text-faint fs-8">{t('Your best so far:')}{' '}{formatNumber(next.progress)}{' '}{t('darts')}</span>
-                            }
-                            {!next.lower && next.target > 1 &&
-                                <div className="d-flex align-items-center gap-2">
-                                    <ProgressBar value={Math.round(next.progress / next.target * 100)} showValue={false} className="flex-grow-1" style={{ height: '0.35rem', maxWidth: '16rem' }} />
-                                    <span className="text-faint fs-8 tabular-nums">{formatNumber(next.progress)} / {formatNumber(next.target)}</span>
-                                </div>
-                            }
-                        </>
-                    )
-                    : <span className="text-subtle fs-7">{earnedCount === 1 ? t('Earned') : t('Complete')}</span>
-                }
-            </div>
-            <ul className="badge-series-tiers list-unstyled m-0">
-                {badges.map(badge => (
-                    <li key={badge.id} className="badge-tier" title={`${badge.title}: ${badge.description}`}>
-                        <BadgeMedal badge={badge} locked={!badge.earned} />
-                        <span className={`badge-tier-name fs-8 ${badge.earned ? 'text-default' : 'text-faint'}`}>{badge.title}</span>
+        <li className={`badge-series-card ${latest ? '' : 'is-locked'}`}>
+            <span className="d-flex align-items-center gap-3 min-w-0">
+                <BadgeMedal badge={latest ?? badges[0]} locked={!latest} size="sm" />
+                <span className="d-flex flex-column min-w-0">
+                    <span className="text-default fs-7 fw-semibold text-truncate">{badges[0].groupTitle}</span>
+                    <span className="text-faint fs-8">
+                        {badges.length === 1
+                            ? badges[0].description
+                            : next ? <>{t('Next:')}{' '}{next.title} · {next.description}</> : t('All earned')}
+                    </span>
+                </span>
+            </span>
+            {next && <NextProgress badge={next} />}
+            {badges.length > 1 &&
+                <ol className="club-ladder list-unstyled m-0" aria-label={t('All steps')}>
+                    {badges.map(badge => (
+                        <li key={badge.id} className={badge.earned ? 'is-earned' : badge === next ? 'is-next' : ''} title={badge.description}>
+                            {badge.earned ? <FaCheck aria-hidden="true" /> : badge === next ? <FaHourglassHalf aria-hidden="true" /> : <FaLock aria-hidden="true" />}
+                            {badge.title}
+                        </li>
+                    ))}
+                </ol>}
+        </li>
+    );
+};
+
+/**
+ * The badges a player is closest to: the next of each series they started,
+ * nearest first.
+ */
+const NextUp = ({ series }) => {
+    const nearest = series
+        .map(badges => badges.find(badge => !badge.earned))
+        .filter(badge => closeness(badge) > 0)
+        .sort((a, b) => closeness(b) - closeness(a))
+        .slice(0, NEXT_UP);
+    if (!nearest.length) return null;
+    return (
+        <section className="d-flex flex-column gap-3">
+            <h3 className="stats-section-title mb-0">{t('Next up')}</h3>
+            <ul className="badge-next-up list-unstyled m-0">
+                {nearest.map(badge => (
+                    <li key={badge.id} className="badge-series-card" title={badge.description}>
+                        <span className="d-flex align-items-center gap-3 min-w-0">
+                            <BadgeMedal badge={badge} locked size="sm" />
+                            <span className="d-flex flex-column min-w-0">
+                                <span className="text-default fs-7 fw-semibold text-truncate">{badge.title}</span>
+                                <span className="text-faint fs-8 text-truncate">{badge.description}</span>
+                            </span>
+                        </span>
+                        <NextProgress badge={badge} />
                     </li>
                 ))}
             </ul>
-        </li>
+        </section>
     );
 };
 
@@ -88,16 +128,19 @@ const ShameCard = ({ badge }) => (
  * A shame badge the player does not have right now: washed off, or never had.
  */
 const ShameEntry = ({ badge }) => (
-    <li className="shame-entry">
+    <li className={`shame-entry ${badge.count > 0 ? 'is-washed' : 'is-never'}`}>
         <ShameMedal badge={badge} size="sm" washed />
-        <div className="d-flex flex-column gap-1 min-w-0">
-            <span className="d-flex flex-wrap align-items-center gap-2">
-                <span className={badge.count > 0 ? 'text-default fw-semibold' : 'text-subtle fw-semibold'}>{badge.title}</span>
-                {badge.count > 0
-                    ? <span className="shame-label is-washed">{t('Washed off')}{' '}{formatDate(badge.washedAt)}</span>
-                    : <span className="text-faint fs-8">{t('Never')}</span>}
-                {badge.count > 1 && <span className="shame-times">{badge.count}{' '}{t('times')}</span>}
+        <div className="d-flex flex-column gap-1 flex-grow-1 min-w-0">
+            {/* the badge with Never on the right, or under it when it was washed off (and how often) */}
+            <span className="d-flex align-items-start justify-content-between gap-2">
+                <span className="shame-entry-title">{badge.title}</span>
+                {!(badge.count > 0) && <span className="shame-never">{t('Never')}</span>}
             </span>
+            {badge.count > 0 &&
+                <span className="d-flex flex-wrap align-items-center gap-2">
+                    <span className="shame-label is-washed">{t('Washed off')}{' '}{formatDate(badge.washedAt)}</span>
+                    {badge.count > 1 && <span className="shame-times">{badge.count}{' '}{t('times')}</span>}
+                </span>}
             <span className="text-faint fs-8">{badge.description}</span>
         </div>
     </li>
@@ -145,7 +188,8 @@ const HallOfShameSection = ({ shame, name }) => {
                     </>
                 }
                 <ul className="shame-others list-unstyled m-0">
-                    {others.map(badge => <ShameEntry key={badge.id} badge={badge} />)}
+                    {/* the ones they had first, then those they never had */}
+                    {[...others.filter(badge => badge.count > 0), ...others.filter(badge => !(badge.count > 0))].map(badge => <ShameEntry key={badge.id} badge={badge} />)}
                 </ul>
             </Panel>
             }
@@ -197,10 +241,11 @@ const PlayerBadgeCollection = ({ playerId, onLoaded }) => {
                         <span className="text-subtle">{data.earnedCount}{' '}{t('of')}{' '}{data.total}{' '}{t('collected')}</span>
                         <ProgressBar value={Math.round(data.earnedCount / data.total * 100)} showValue={false} style={{ height: '0.5rem', width: '16rem', maxWidth: '100%' }} />
                     </div>
+                    <NextUp series={categories.flatMap(category => category.series)} />
                     {categories.map(category => (
-                        <section key={category.category}>
+                        <section key={category.category} className="d-flex flex-column gap-3">
                             <h3 className="stats-section-title mb-0">{category.title} · {category.earned} / {category.total}</h3>
-                            <ul className="list-unstyled m-0 d-flex flex-column">
+                            <ul className="badge-series-grid list-unstyled m-0">
                                 {category.series.map(badges => <BadgeSeries key={badges[0].group} badges={badges} />)}
                             </ul>
                         </section>

@@ -14,6 +14,7 @@
  *   score(playerState) → the number that ranks the players
  *   higherIsBetter (default true)
  *   target(state, id, ctx) → what to aim at now, in words
+ *   roundStage: the target is the round, the same for everyone (Golf's hole): the header shows it as the stage
  *   columns: [{ key, label, value(playerState, state, ctx) }] for the scoreboard
  *   figures(playerState, state) → [[label, value]] for the statistics
  *   preview(state, id, darts, ctx) → in words what the darts entered so far do
@@ -152,7 +153,8 @@ export const withGameState = (definition, game) => {
 /**
  * A training: one player throws until the definition says it is done.
  * A training definition:
- *   id, title, description, rules, icon, options, input: 'board' | 'hitmiss'
+ *   id, title, description, rules, icon, options, input: 'board' | 'hitmiss' | 'buttons'
+ *   (buttons(settings): the fields a dart can be, each a button, e.g. T20 / S20 / D20 / 0)
  *   prepare(settings) → settings fixed at the start (e.g. the random checkouts)
  *   init(settings) → state
  *   dart(state, dart, ctx) → the state after one dart (ctx: { settings })

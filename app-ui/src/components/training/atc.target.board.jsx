@@ -19,7 +19,7 @@ const segment = (inner, outer, start, end) =>
  * ring the mode asks for: the double, the treble, the singles or the whole
  * number; the bull at the end.
  */
-const ATCTargetBoard = ({ target, mode }) => {
+const ATCTargetBoard = ({ target, mode, className = '' }) => {
     const bull = target >= TARGETS - 1;
     const number = bull ? null : target + 1;
     const lit = (ring) => {
@@ -31,7 +31,7 @@ const ATCTargetBoard = ({ target, mode }) => {
     };
 
     return (
-        <svg viewBox="0 0 100 100" className="atc-target-board" aria-hidden="true">
+        <svg viewBox="0 0 100 100" className={`atc-target-board ${className}`} aria-hidden="true">
             <circle cx={C} cy={C} r="49" fill="#1b1a18" />
             {ORDER.map((n, index) => {
                 const start = index * 18 - 9;

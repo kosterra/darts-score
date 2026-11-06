@@ -169,6 +169,9 @@ const decide = async (league, matches, match, winner, extra = {}) => {
         const names = await accountsOf([league.winner]);
         await tellPlayers(league, league.players.map(String), { kind: 'leagueWon', title: `${names.get(league.winner)?.nickname ?? '?'} wins ${league.name}` });
         logger.info(`League ${league._id} won by ${league.winner}`);
+        // the club's badges for league seasons played to the end
+        const { syncClubsAfterEnd } = await import('./club.badge.service.js');
+        await syncClubsAfterEnd([league.club]);
     }
 };
 

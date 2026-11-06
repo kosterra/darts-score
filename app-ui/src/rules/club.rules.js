@@ -63,11 +63,16 @@ export const GAME_SETTINGS = {
         { key: 'holes', values: [9, 18], default: 9, restrict: true },
     ],
     tactics: [],
+    baseball: [],
+    // the numbers in play: as in Cricket, or all of them
+    scram: [
+        { key: 'numbers', values: ['cricket', 'all'], default: 'cricket', restrict: true },
+    ],
 };
 
 export const CLUB_GAMES = Object.keys(GAME_SETTINGS);
 // the newer games are kept with their kind and their settings inside "settings"
-export const RULES_KINDS = ['shanghai', 'killer', 'halveit', 'golf', 'tactics'];
+export const RULES_KINDS = ['shanghai', 'killer', 'halveit', 'golf', 'tactics', 'baseball', 'scram'];
 
 // the targets Halve-It may be played on, in a club's own order
 export const HALVE_IT_POOL = [...range(1, 20).map(String), 'double', 'treble', '41', 'bull'];

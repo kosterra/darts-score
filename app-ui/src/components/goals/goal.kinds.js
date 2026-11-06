@@ -24,6 +24,10 @@ export const SCORE_TRAININGS = [
     { value: 'scoring', label: t('Scoring'), target: 50 },
     { value: 'doublesaround', label: t('Doubles around the board'), target: 60 },
     { value: 'catch40', label: t('Catch 40'), target: 40 },
+    { value: 'trebles', label: t('Treble practice'), target: 15 },
+    { value: 'bulls', label: t('Bull practice'), target: 20 },
+    { value: 'ladder', label: t('Checkout ladder'), target: 70 },
+    { value: 'shortleg', label: t('Shortest leg'), target: 24 },
 ];
 // the trainings to count: all of them ('all' here, none kept), or one
 export const ALL_TRAININGS = 'all';

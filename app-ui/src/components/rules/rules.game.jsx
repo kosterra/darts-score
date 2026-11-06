@@ -10,7 +10,7 @@ import DartKeypad from '../games/common/dart.keypad';
 import useInputMode from '../games/common/use.input.mode';
 import useBoardDarts from '../games/common/use.board.darts';
 import useDartMarkers from '../games/common/use.dart.markers';
-import { TacticsMarks } from './rules.scoreboard';
+import { ScramNumbers, TacticsMarks } from './rules.scoreboard';
 import GameScreenButton from '../screen/game.screen.button';
 import LiveHero from '../games/common/live.hero';
 import SaveStatus from '../games/common/save.status';
@@ -136,7 +136,10 @@ const RulesGame = () => {
     const preview = valid ? definition.preview(replay.state, current, entered.map(parseDart), ctx) : t('Invalid dart');
     const options = (definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean);
     const title = [definition.title, ...options].join(' · ');
-    const subtitle = current ? `${nameOf(current)}: ${definition.target(replay.state, current, ctx)}` : '';
+    // a round the same for everyone (the hole in Golf) as the stage in the middle of the header; otherwise
+    // what the player at the oche aims at under the title
+    const stage = definition.roundStage && current ? definition.target(replay.state, current, ctx) : null;
+    const subtitle = current && !stage ? `${nameOf(current)}: ${definition.target(replay.state, current, ctx)}` : '';
     const placeOf = Object.fromEntries(replay.standings.map(row => [row.id, row.place]));
     // every player as the header shows them: the big number, a line about their play, what is under the number
     const heroRows = players.map(player => {
@@ -173,6 +176,7 @@ const RulesGame = () => {
     ];
     const scoreboard = (
         <>
+            {kind === 'scram' && <ScramNumbers replay={replay} players={players} darts={valid ? entered.map(parseDart) : []} />}
             <LiveFigures players={players} rows={tableRows} />
             {kind === 'tactics' && <TacticsMarks replay={replay} players={players} />}
         </>
@@ -181,7 +185,7 @@ const RulesGame = () => {
     return (
         <div className="container-fluid bg-transparent border-0 x01-game-page">
             <SaveStatus unsent={unsent} finished={Boolean(game?.hasWinner)} />
-            <LiveHero rulesId={kind} title={title} subtitle={subtitle} rows={heroRows} houseRules={houseRuleLines(kind, game.settings)} actions={<GameScreenButton kind="rules" game={game} />} />
+            <LiveHero rulesId={kind} title={title} subtitle={subtitle} stage={stage} rows={heroRows} houseRules={houseRuleLines(kind, game.settings)} actions={<GameScreenButton kind="rules" game={game} />} />
             <VisitInput
                 nickname={nameOf(current)}
                 input={input}

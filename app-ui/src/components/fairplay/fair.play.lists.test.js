@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { listOf, ruleColumns } from './fair.play.lists';
+import { listOf, rulesByLevel } from './fair.play.lists';
 
 describe('fair play lists', () => {
     it('puts an entry on its list', () => {
@@ -12,11 +12,9 @@ describe('fair play lists', () => {
         expect(listOf({ level: 'suspicious', review: { status: 'ok' } })).toBe('fine');
     });
 
-    it('puts the rules in two columns, each level whole in one', () => {
+    it('groups the rules by level, in their order', () => {
         const rules = (level, count) => Array.from({ length: count }, (_, index) => ({ id: `${level}${index}`, level }));
-        const [first, second] = ruleColumns([...rules('impossible', 8), ...rules('error', 2), ...rules('suspicious', 15)]);
-        expect(first.map(rule => rule.level)).toEqual([...Array(8).fill('impossible'), 'error', 'error']);
-        expect(second).toHaveLength(15);
-        expect(ruleColumns(rules('suspicious', 3))).toHaveLength(1);
+        const groups = rulesByLevel([...rules('impossible', 8), ...rules('error', 2), ...rules('suspicious', 15)]);
+        expect(groups.map(group => [group.level, group.rules.length])).toEqual([['impossible', 8], ['error', 2], ['suspicious', 15]]);
     });
 });

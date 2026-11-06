@@ -60,6 +60,10 @@ export const THRESHOLDS = {
     doublesAroundFewDarts: 25,
     catch40High: 110,
     checkout121High: 160,
+    treblesHighRate: 50,
+    bullsHighRate: 60,
+    ladderTop: 100,
+    shortLegFewDarts: 12,
     // a training's darts entered faster than they can be thrown (seconds per dart)
     trainingImpossibleSecondsPerDart: 0.5,
     trainingFastSecondsPerDart: 1.3,
@@ -604,6 +608,10 @@ export const checkRulesTraining = (entry, history = []) => {
         doublesaround: score > 0 && score < THRESHOLDS.doublesAroundFewDarts && `Every double and the bull with ${score} darts`,
         catch40: score > THRESHOLDS.catch40High && `${score} of 120 points in Catch 40`,
         checkout121: score >= THRESHOLDS.checkout121High && `Checked out up to ${score} in 121 Checkout`,
+        trebles: score > THRESHOLDS.treblesHighRate && `${score} % trebles in Treble practice`,
+        bulls: score > THRESHOLDS.bullsHighRate && `${score} % bulls in Bull practice`,
+        ladder: score >= THRESHOLDS.ladderTop && `Checked out ${score} at the top of the Checkout ladder`,
+        shortleg: score > 0 && score < THRESHOLDS.shortLegFewDarts && `A leg of 501 in ${score} darts`,
     }[entry.kind];
     if (out) found.push(finding('suspicious', 'proPlay', 'The play of a professional', out, playerId));
 

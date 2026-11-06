@@ -56,9 +56,11 @@ const TACTICS_TARGETS = 12;
 // the trainings: a checkout rate counts from so many attempts, Bob's 27 has 21 doubles
 const MIN_CHECKOUT_ATTEMPTS = 10;
 const BOBS_27_DOUBLES = 21;
-// every kind of training: Around the Clock and those of the rules engine
-const TRAINING_KINDS_ALL = 7;
-const GAME_WIN_METRICS = { x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock', shanghai: 'winsShanghai', killer: 'winsKiller', halveit: 'winsHalveIt', golf: 'winsGolf', tactics: 'winsTactics' };
+// every kind of training: Around the Clock and those of the rules engine (the first seven
+// earned All the Drills, all of them Every Drill)
+const TRAINING_KINDS_FIRST = 7;
+const TRAINING_KINDS_ALL = 11;
+const GAME_WIN_METRICS = { x01: 'winsX01', cricket: 'winsCricket', elimination: 'winsElimination', clock: 'winsClock', shanghai: 'winsShanghai', killer: 'winsKiller', halveit: 'winsHalveIt', golf: 'winsGolf', tactics: 'winsTactics', baseball: 'winsBaseball', scram: 'winsScram' };
 const formatCount = (n) => new Intl.NumberFormat('en').format(n);
 
 // Series are shown in these categories, in this order
@@ -154,7 +156,7 @@ export const BADGE_GROUPS = [
     {
         group: 'allRounder', category: 'winning', title: 'All-rounder', metric: 'gameTypesWon',
         describe: (n) => `Win games of ${n} different game types`,
-        tiers: [[3, 'All-Rounder'], [6, 'Jack of All Games'], [9, 'Complete Player']],
+        tiers: [[3, 'All-Rounder'], [6, 'Jack of All Games'], [9, 'Complete Player'], [11, 'Every Game Won']],
     },
     {
         group: 'shanghaiWins', category: 'winning', title: 'Shanghai', metric: 'winsShanghai',
@@ -180,6 +182,16 @@ export const BADGE_GROUPS = [
         group: 'tacticsWins', category: 'winning', title: 'Tactics', metric: 'winsTactics',
         describe: (n) => n === 1 ? 'Win a Tactics game' : `Win ${n} Tactics games`,
         tiers: [[1, 'Tactician'], [10, 'Strategist'], [50, 'Grandmaster']],
+    },
+    {
+        group: 'baseballWins', category: 'winning', title: 'Baseball', metric: 'winsBaseball',
+        describe: (n) => n === 1 ? 'Win a Baseball game' : `Win ${n} Baseball games`,
+        tiers: [[1, 'Rookie Pitcher'], [10, 'Slugger'], [50, 'Hall of Famer']],
+    },
+    {
+        group: 'scramWins', category: 'winning', title: 'Scram', metric: 'winsScram',
+        describe: (n) => n === 1 ? 'Win a Scram game' : `Win ${n} Scram games`,
+        tiers: [[1, 'Stopper'], [10, 'Shutout'], [50, 'Scram Master']],
     },
     {
         group: 'untouchable', category: 'winning', title: 'Untouchable', metric: 'untouchables',
@@ -355,8 +367,8 @@ export const BADGE_GROUPS = [
     },
     {
         group: 'everyTraining', category: 'training', title: 'Every training', metric: 'trainingKinds',
-        describe: () => 'Finish every kind of training at least once: Around the Clock and the six others',
-        tiers: [[TRAINING_KINDS_ALL, 'All the Drills']],
+        describe: (n) => `Finish ${n} different kinds of training at least once`,
+        tiers: [[TRAINING_KINDS_FIRST, 'All the Drills'], [TRAINING_KINDS_ALL, 'Every Drill']],
     },
 ];
 
@@ -497,7 +509,7 @@ const newMetrics = () => ({
     whiteHorses: 0, bullHatTricks: 0, bestMarksPerRound: 0,
     // the games and trainings of the rules engine
     winsRules: 0, bobs27Best: 0, checkout121Best: 0, catch40Best: 0,
-    winsShanghai: 0, winsKiller: 0, winsHalveIt: 0, winsGolf: 0, winsTactics: 0, gameTypesWonSet: new Set(),
+    winsShanghai: 0, winsKiller: 0, winsHalveIt: 0, winsGolf: 0, winsTactics: 0, winsBaseball: 0, winsScram: 0, gameTypesWonSet: new Set(),
     untouchables: 0, instantShanghais: 0, tripleKills: 0, neverHalveds: 0, holesInOne: 0, cleanSheets: 0,
     randomCheckoutsBest: 0, scoringBest: 0, doublesAroundBest: 0, trainingKinds: 0, trainingKindsDone: new Set(), bobs27Finished: 0,
     friendlyFires: 0, firstBloods: 0, shanghaieds: 0, halfWits: 0, inTheRoughs: 0, lockedOuts: 0, bobsBusts: 0, bigKillGames: 0,

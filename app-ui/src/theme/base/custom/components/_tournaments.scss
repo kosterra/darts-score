@@ -706,10 +706,10 @@
 
     .kpi-chip { flex: 1 1 auto; min-width: 0; }
 
-    // the round as the title of the tile; its day under it as a value is read in the header (the
-    // text's colour and weight, 13px), the rules as the small faint line
+    // the round as the title of the tile, its day under it small, bold and subtle with a little
+    // room, the rules as the small faint line
     .kpi-chip-value { font-size: $text-md; font-weight: $weight-semibold; }
-    .kpi-chip-label { color: $textDefaultColor; font-size: $text-md; font-weight: $weight-semibold; }
+    .kpi-chip-label { margin-top: 0.25rem; color: $textSubtleColor; font-size: $text-xs; font-weight: $weight-bold; }
     .kpi-chip-detail { color: $textFaintColor; }
 }
 
