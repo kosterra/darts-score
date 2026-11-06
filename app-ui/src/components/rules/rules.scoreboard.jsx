@@ -1,4 +1,4 @@
-import { TACTICS_TARGETS } from '../../rules/games';
+import { TACTICS_TARGETS, scramNumbers } from '../../rules/games';
 import { t } from '../../utils/i18n';
 
 // the marks of a number in Tactics as on a cricket board: /, X, ⊗
@@ -58,3 +58,36 @@ export const TacticsMarks = ({ replay, players }) => (
         </tbody>
     </table>
 );
+
+/**
+ * The numbers of Scram as on a cricket board: the closed ones crossed out with
+ * chalk, those the stopper's darts being entered close in gold, the chalk drawn.
+ */
+export const ScramNumbers = ({ replay, players, darts }) => {
+    const { state, settings } = replay;
+    const numbers = scramNumbers(settings);
+    const stopper = state.order[state.innings - 1];
+    const closing = replay.current === stopper ? darts.map(dart => dart.number) : [];
+    const nameOf = (id) => players.find(player => player.id === id)?.nickname ?? '';
+    return (
+        <div className="scram-numbers mb-3">
+            <p className="text-faint fs-8 mb-2">
+                {t('Innings {{innings}}: {{stopper}} closes, {{scorer}} scores on the open numbers', { innings: state.innings, stopper: nameOf(stopper), scorer: nameOf(state.order.find(id => id !== stopper)) })}
+            </p>
+            <ul className="scram-numbers-list list-unstyled m-0">
+                {numbers.map(number => {
+                    const closed = state.closed.includes(number);
+                    const now = !closed && closing.includes(number);
+                    return (
+                        <li key={number} className={`scram-number ${closed ? 'is-closed' : ''} ${now ? 'is-new' : ''}`} title={closed || now ? t('Closed') : t('Still open')}>
+                            <span className="cricket-strip-number">
+                                {number === 25 ? t('Bull') : number}
+                                {(closed || now) && <span key={now ? 'drawn' : 'there'} className={`cricket-chalk ${now ? 'is-drawn' : ''}`} aria-hidden="true" />}
+                            </span>
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
+    );
+};

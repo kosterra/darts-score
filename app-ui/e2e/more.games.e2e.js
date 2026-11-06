@@ -48,6 +48,13 @@ test('Scram: two players only; a closed number scores nothing for the scorer', a
     await throwVisit(page, ['T20', 'T17', '0']);
     await expect(page.locator('.x01-live-hero')).toContainText('51');
     await expect(page.locator('.x01-live-hero')).toContainText('Close: 17 · 16 · 15 · Bull');
+    // the numbers in view as on the cricket board: 20, 19 and 18 crossed out, the rest open
+    await expect(page.locator('.scram-numbers-list:visible .scram-number.is-closed')).toHaveCount(3);
+    await expect(page.locator('.scram-numbers-list:visible .scram-number:not(.is-closed)')).toHaveCount(4);
+    // the stopper's darts being entered close in gold
+    await page.locator('.x01-keypad').getByRole('button', { name: 'Single 17', exact: true }).click();
+    await expect(page.locator('.scram-numbers-list:visible .scram-number.is-new')).toHaveText('17');
+    await page.screenshot({ path: `/tmp/claude-1000/-home-kostera-dev-darts-score/ce8cb453-b13d-4f4e-b1e2-6317907feace/scratchpad/scram-numbers-${test.info().project.name}.png` });
 });
 
 test('Baseball: the inning\'s number scores a run per ring, the bullseye a home run', async ({ page }) => {

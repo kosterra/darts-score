@@ -10,7 +10,7 @@ import DartKeypad from '../games/common/dart.keypad';
 import useInputMode from '../games/common/use.input.mode';
 import useBoardDarts from '../games/common/use.board.darts';
 import useDartMarkers from '../games/common/use.dart.markers';
-import { TacticsMarks } from './rules.scoreboard';
+import { ScramNumbers, TacticsMarks } from './rules.scoreboard';
 import GameScreenButton from '../screen/game.screen.button';
 import LiveHero from '../games/common/live.hero';
 import SaveStatus from '../games/common/save.status';
@@ -173,6 +173,7 @@ const RulesGame = () => {
     ];
     const scoreboard = (
         <>
+            {kind === 'scram' && <ScramNumbers replay={replay} players={players} darts={valid ? entered.map(parseDart) : []} />}
             <LiveFigures players={players} rows={tableRows} />
             {kind === 'tactics' && <TacticsMarks replay={replay} players={players} />}
         </>

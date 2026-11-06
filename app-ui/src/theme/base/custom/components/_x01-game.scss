@@ -760,6 +760,27 @@
   td.is-dead .cricket-marks { opacity: 0.35; }
 }
 
+// the numbers of Scram: open ones bright on a raised tile, closed ones crossed out in chalk,
+// those closing with the darts being entered in gold
+.scram-numbers-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+  gap: 0.3rem;
+}
+
+.scram-number {
+  padding: 0.4rem 0.2rem;
+  border-radius: $borderRadius;
+  background: $surfaceRaisedColor;
+  color: var(--text-default);
+  font-size: $text-sm;
+  font-weight: $weight-bold;
+  text-align: center;
+
+  &.is-closed { color: var(--text-faint); }
+  &.is-new { color: $accentGold; }
+}
+
 // the race to the target in Elimination
 .elimination-standings {
   display: flex;

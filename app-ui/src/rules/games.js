@@ -563,4 +563,5 @@ export const SCRAM = {
 export const GAMES = [SHANGHAI, KILLER, HALVE_IT, GOLF, TACTICS, BASEBALL, SCRAM];
 export const gameOf = (id) => GAMES.find(game => game.id === id) ?? null;
 export const TACTICS_TARGETS = TACTICS_NUMBERS;
+export const scramNumbers = numbersOf;
 export const HALVE_IT_ROUNDS = HALVE_IT_TARGETS;
