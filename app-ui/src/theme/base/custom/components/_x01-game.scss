@@ -140,11 +140,10 @@
   > * { white-space: nowrap; }
 }
 
-// the shame badges a player holds: a line of their own below the other tags,
-// side by side and never split over two lines
+// the shame badges a player holds: beside the other tags (on a line of their own only
+// when there is no room, so the Throwing tag does not add a line), never split
 .x01-shames {
   display: inline-flex;
-  flex-basis: 100%;
   justify-content: inherit;
   flex-wrap: nowrap;
   align-items: center;
@@ -1048,8 +1047,9 @@
     .game-rules-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   }
   .x01-shames { display: none; }
-  // a row of tags with only those badges takes no room either
-  .x01-live-tags:not(:has(> :not(.x01-shames))) { display: none; }
+  // a row of tags with only those badges takes no room either, for a player alone: with more, one
+  // of them always has Throwing there, so every row keeps its room and the scores stay level
+  .x01-hero-players.count-1 .x01-live-tags:not(:has(> :not(.x01-shames))) { display: none; }
 }
 
 // the bot's face in the header of a training against it (components/training/bot.face.jsx):

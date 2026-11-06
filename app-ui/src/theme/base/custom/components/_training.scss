@@ -672,10 +672,17 @@
 // a .setting-switch as wide as the other boxes; the whole of it switches
 .clock-skip-switch { cursor: pointer; }
 
-// the Around the Clock game: the round in the middle of the page
+// the Around the Clock game: on a wide screen the big board beside the round (its small board
+// left out there), as wide as the players in the header; the round alone on a phone
 .clock-game-board {
-  max-width: 44rem;
+  max-width: 76rem;
   margin: 0 auto;
+
+  .atc-target-board.is-big { width: min(100%, 32rem); }
+
+  @media (min-width: 992px) {
+    .atc-round .atc-target-board:not(.is-big) { display: none; }
+  }
 }
 
 // under Save time: Go on and Discard side by side, the same size
