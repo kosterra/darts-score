@@ -416,6 +416,16 @@
   font-weight: $weight-semibold;
 }
 
+// a visit of the newer games: the darts with the points so far right after them
+.rules-visit {
+  display: inline-flex;
+  align-items: center;
+
+  // the tags all as wide as a Miss, so the points stand one under another
+  .x01-visit-darts span { min-width: 2.6rem; text-align: center; }
+  .x01-visit-left { margin-left: $space-3; min-width: 0; }
+}
+
 .x01-visits-leg.p-dropdown {
   .p-dropdown-label { padding: 0.3rem 0.6rem; font-size: $text-sm; }
 }
