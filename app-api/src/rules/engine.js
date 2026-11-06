@@ -14,6 +14,7 @@
  *   score(playerState) → the number that ranks the players
  *   higherIsBetter (default true)
  *   target(state, id, ctx) → what to aim at now, in words
+ *   roundStage: the target is the round, the same for everyone (Golf's hole): the header shows it as the stage
  *   columns: [{ key, label, value(playerState, state, ctx) }] for the scoreboard
  *   figures(playerState, state) → [[label, value]] for the statistics
  *   preview(state, id, darts, ctx) → in words what the darts entered so far do

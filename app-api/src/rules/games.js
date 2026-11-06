@@ -58,6 +58,8 @@ export const SHANGHAI = {
         line: [[t('Last visit'), player.last ?? '–'], [t('Hit rate'), player.darts ? `${Math.round(player.hits / player.darts * 100)} %` : '–']],
     }),
     moment: (before, after) => (after.shanghai && !before.shanghai ? { words: t('Shanghai!'), number: 'S·D·T', sign: t('Shanghai') } : null),
+    // the same for everyone in a round: shown as the stage of the game in its header
+    roundStage: true,
     target: (state, id, { round, settings }) => t('Aim at the {{number}} · {{left}}', { number: round, left: tn(roundsLeft(round, settings.rounds), '{{count}} round left', '{{count}} rounds left') }),
     columns: [
         { key: 'points', label: t('Points'), value: (player) => player.points },
@@ -239,6 +241,8 @@ export const HALVE_IT = {
         const last = after.rounds.at(-1);
         return last >= 100 ? { words: t('{{points}} in one round!', { points: last }), number: String(last), sign: t('Halve-It') } : null;
     },
+    // the same for everyone in a round: shown as the stage of the game in its header
+    roundStage: true,
     target: (state, id, { round, settings }) => {
         const targets = halveItTargetsOf(settings);
         return t('Round {{round}} of {{rounds}}: {{target}}', { round, rounds: targets.length, target: targets[round - 1]?.label ?? '' });
@@ -307,6 +311,8 @@ export const GOLF = {
     },
     over: (state, { settings, round, roundComplete }) => roundComplete && round > settings.holes,
     score: (player) => player.strokes,
+    // the same for everyone in a round: shown as the stage of the game in its header
+    roundStage: true,
     target: (state, id, { round, settings }) => t('Hole {{hole}} of {{holes}}: the {{hole}}', { hole: round, holes: settings.holes }),
     columns: [
         { key: 'strokes', label: t('Strokes'), value: (player) => player.strokes },
@@ -453,6 +459,8 @@ export const BASEBALL = {
         line: [[t('Last inning'), player.innings.at(-1) ?? '–'], [t('Runs per inning'), player.innings.length ? (player.runs / player.innings.length).toFixed(1) : '–']],
     }),
     moment: (before, after) => (after.runs - before.runs >= 9 ? { words: t('Grand slam!'), number: String(after.runs - before.runs), sign: t('Baseball') } : null),
+    // the same for everyone in a round: shown as the stage of the game in its header
+    roundStage: true,
     target: (state, id, { round }) => (round > BASEBALL_INNINGS
         ? t('Extra inning {{inning}}: the bull', { inning: round - BASEBALL_INNINGS })
         : t('Inning {{inning}} of 9: the {{inning}}', { inning: round })),

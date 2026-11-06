@@ -24,8 +24,21 @@
   grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
   gap: 1rem 2.5rem;
   width: 100%;
-  max-width: 62rem;
+  // room for a whole nickname beside the portrait and the score
+  max-width: 76rem;
   margin: 0 auto;
+}
+
+// where a round-based game stands for everyone (Golf's hole), above the players
+.x01-live-stage {
+  align-self: center;
+  padding: 0.3rem 1rem;
+  border-radius: $radius-pill;
+  background: with-alpha($accentGold, 0.14);
+  color: $accentGold;
+  font-size: $text-lg;
+  font-weight: $weight-bold;
+  text-align: center;
 }
 
 .x01-hero-player {
