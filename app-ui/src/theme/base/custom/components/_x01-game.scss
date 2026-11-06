@@ -434,7 +434,9 @@
   display: inline-flex;
   align-items: center;
 
-  // the tags all as wide as a Miss, so the points stand one under another
+  // the tags all as wide as a Miss, and room for three of them (Golf stops after one or two),
+  // so the points stand one under another
+  .x01-visit-darts { min-width: calc(3 * 2.6rem + 2 * #{$space-1}); }
   .x01-visit-darts span { min-width: 2.6rem; text-align: center; }
   .x01-visit-left { margin-left: $space-3; min-width: 0; }
 }
