@@ -20,7 +20,17 @@ test('the club evening of tonight\'s club night', async ({ page }) => {
     await page.locator('.p-dropdown-item').first().click();
     await expect(page.locator('.club-night-chip')).toHaveCount(4);
     await expect(page.getByText('A club game: it counts for the statistics, badges and levels of the club.')).toBeVisible();
+
+    // someone goes home: still on the list, no longer in the next game; then back
+    const first = page.locator('.club-night-chip').first();
+    const name = (await first.locator('span span').first().textContent()).trim();
+    await first.getByRole('button', { name: `${name} went home` }).click();
+    await expect(first).toHaveClass(/is-gone/);
+    await expect(first).toContainText('went home at');
+    await expect(page.locator('.player-picker-grid').getByText(name, { exact: true })).toHaveCount(0);
     await page.screenshot({ path: `test-results/club-night-${test.info().project.name}.png`, fullPage: true });
+    await first.getByRole('button', { name: `${name} is back` }).click();
+    await expect(page.locator('.player-picker-grid').getByText(name, { exact: true })).toBeVisible();
 
     // the next game is a club game; back on the evening it is listed (other checks may have played tonight too)
     const before = await page.locator('.timeline-entry').count();

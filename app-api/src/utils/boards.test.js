@@ -88,6 +88,26 @@ describe('setting up a night on boards', () => {
         expect(night.entries.find(entry => entry.id === waiting.id)).toMatchObject({ status: 'cancelled', board: null });
     });
 
+    it('pairs nobody who went home, keeps when they went and brings them back', async () => {
+        const night = await service.saveNight(club, today, { players: [1, 2, 3, 4, 5, 6].map(id) });
+        const waiting = night.entries.find(entry => entry.status === 'queued');
+        await service.saveNight(club, today, { gone: [id(6)] });
+        expect(night.entries.find(entry => entry.id === waiting.id)).toMatchObject({ status: 'cancelled', board: null });
+        // still a player of the night (their games count), but not paired again
+        expect(night.players).toContain(id(6));
+        expect(night.entries.filter(entry => entry.status === 'queued').flatMap(entry => entry.players)).not.toContain(id(6));
+        const at = night.left[0].at;
+        expect(night.left).toEqual([{ id: id(6), at }]);
+        await service.saveNight(club, today, { gone: [id(6), id(5)] });
+        expect(night.left.find(entry => entry.id === id(6)).at).toBe(at);
+        // back again, and someone taken out of the night is not kept as gone home
+        await service.saveNight(club, today, { gone: [id(5)] });
+        expect(night.left.map(entry => entry.id)).toEqual([id(5)]);
+        await service.saveNight(club, today, { players: [1, 2, 3, 4, 6].map(id) });
+        expect(night.left).toEqual([]);
+        expect((await service.nightView(night)).left).toEqual([]);
+    });
+
     it('takes only the known settings of the game, and refuses a day without a club night', async () => {
         const night = await service.saveNight(club, today, { setup: { kind: 'cricket', variant: 'Cut-throat', numberOfLegs: 7, colour: 'red' } });
         expect(night.setup).toEqual({ ...service.NIGHT_SETUP, kind: 'cricket', variant: 'Cut-throat' });

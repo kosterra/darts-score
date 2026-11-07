@@ -24,6 +24,8 @@ export default (mongoose) => {
       },
       // the players there, by id
       players: { type: [String], default: [] },
+      // those of them who went home, and when: no longer paired, their games keep counting
+      left: { type: [{ _id: false, id: { type: String, required: true }, at: { type: Date, default: null } }], default: [] },
       entries: {
         type: [{
           _id: false,

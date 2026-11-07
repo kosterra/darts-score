@@ -25,6 +25,9 @@ const write = (key, value) => {
 
 export const chosenPlayers = (clubId, day) => read(PLAYERS_KEY(clubId, day), null);
 export const choosePlayers = (clubId, day, players) => write(PLAYERS_KEY(clubId, day), players);
+// who of them went home, and when: { [id]: ISO time }
+export const gonePlayers = (clubId, day) => read(`${PLAYERS_KEY(clubId, day)}.gone`, {});
+export const chooseGone = (clubId, day, gone) => write(`${PLAYERS_KEY(clubId, day)}.gone`, gone);
 
 // a game started from a club evening: its night, for the way back (kept two weeks)
 export const noteNightGame = (gameId, day) => {

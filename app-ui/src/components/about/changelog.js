@@ -11,7 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
-            t('Darts evenings: someone arriving later joins the evening by name, and whoever goes home is no longer suggested for a game (their games keep counting) and can come back; the table says when they came or left, and on evenings and club nights it can also be ordered by win rate.'),
+            t('Darts evenings and club nights: someone arriving later joins a darts evening by name, and whoever goes home is no longer suggested or paired for a game (their games keep counting) and can come back; the table says when they came or left, and it can also be ordered by win rate.'),
         ],
     },
     {

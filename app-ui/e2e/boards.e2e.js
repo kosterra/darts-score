@@ -101,4 +101,15 @@ test('a club night switched to boards calls the pairings', async ({ page, isMobi
     const boards = page.locator('.board-card');
     await expect(boards).toHaveCount(2);
     await expect(boards.first()).toContainText('Called');
+
+    // someone goes home: saved on the night, not called again, back on a tap
+    const chip = page.locator('.club-night-chip').last();
+    const name = (await chip.locator('span span').first().textContent()).trim();
+    await chip.getByRole('button', { name: `${name} went home` }).click();
+    await expect(chip).toContainText('went home at');
+    await expect.poll(async () => (await (await fetch(`${MOCK}/api/calendar/nights/${today()}/boards`)).json()).left.length).toBe(1);
+    await page.reload();
+    await expect(page.locator('.club-night-chip.is-gone')).toHaveCount(1);
+    await page.locator('.club-night-chip.is-gone').getByRole('button', { name: `${name} is back` }).click();
+    await expect(page.locator('.club-night-chip.is-gone')).toHaveCount(0);
 });

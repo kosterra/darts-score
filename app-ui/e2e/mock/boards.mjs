@@ -27,13 +27,14 @@ const applyNight = (night, changes) => {
 };
 // as the API: as many pairings waiting as boards, the free boards called, then the queue topped up again
 const refill = (night) => {
-    const top = () => topUp(night).forEach(players => night.entries.push({ id: `be${++entrySeq}`, players, status: 'queued', board: null, held: false, game: null, winner: null, readyAt: new Date().toISOString(), calledAt: null, doneAt: null }));
+    const gone = new Set((night.left ?? []).map(entry => entry.id));
+    const top = () => topUp({ ...night, players: night.players.filter(id => !gone.has(id)) }).forEach(players => night.entries.push({ id: `be${++entrySeq}`, players, status: 'queued', board: null, held: false, game: null, winner: null, readyAt: new Date().toISOString(), calledAt: null, doneAt: null }));
     top();
     applyNight(night, fill(night.boards, nightItems(night)));
     top();
 };
 
-const newNight = (day, players, count) => ({ id: `bn-${day}`, day, boards: { count, out: [] }, setup: { ...NIGHT_SETUP }, players, entries: [] });
+const newNight = (day, players, count) => ({ id: `bn-${day}`, day, boards: { count, out: [] }, setup: { ...NIGHT_SETUP }, players, left: [], entries: [] });
 
 const nightView = (night, players, me, isAdmin) => ({
     ...night,
@@ -149,6 +150,13 @@ export const boardsMock = (req, res, path, json, send, { players, me, isAdmin, c
             night.players = json.players;
             night.entries.filter(entry => ['queued', 'called'].includes(entry.status) && entry.players.some(p => !json.players.includes(p))).forEach(entry => Object.assign(entry, { status: 'cancelled', board: null }));
         }
+        if (json.gone) {
+            const before = new Map((night.left ?? []).map(entry => [entry.id, entry.at]));
+            night.left = json.gone.map(id => ({ id, at: before.get(id) ?? new Date().toISOString() }));
+        }
+        night.left = (night.left ?? []).filter(entry => night.players.includes(entry.id));
+        const gone = new Set(night.left.map(entry => entry.id));
+        night.entries.filter(entry => ['queued', 'called'].includes(entry.status) && entry.players.some(p => gone.has(p))).forEach(entry => Object.assign(entry, { status: 'cancelled', board: null }));
         if (json.setup) night.setup = { ...night.setup, ...json.setup };
         if (json.count !== undefined || json.out) {
             const result = setBoards(nightItems(night), { count: json.count ?? night.boards.count, out: json.out ?? night.boards.out });

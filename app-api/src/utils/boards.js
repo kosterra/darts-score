@@ -81,9 +81,15 @@ const applyChanges = (entries, changes, now = new Date()) => {
  * the free boards filled, and the queue topped up again. Puts the entries
  * on the night. → the entries called now
  */
+// the players of a night who are still there: who went home is no longer paired
+const playersThere = (night) => {
+    const gone = new Set((night.left ?? []).map(entry => String(entry.id)));
+    return [...(night.players ?? [])].map(String).filter(id => !gone.has(id));
+};
+
 const settleNight = (night, entries, now = new Date()) => {
     const boards = boardsOf(night);
-    const players = [...(night.players ?? [])].map(String);
+    const players = playersThere(night);
     const topUpQueue = () => {
         for (const pair of topUp({ boards, players, entries })) {
             entries.push({ id: newEntryId(), players: pair, status: 'queued', board: null, held: false, game: { kind: null, id: null }, winner: null, readyAt: now, calledAt: null, doneAt: null });
@@ -137,10 +143,11 @@ const setupOf = (sent, before) => {
 
 /**
  * An admin sets up the boards of a night or changes them: { count, out,
- * players, setup }, each optional. A new night starts with the club's
+ * players, gone, setup }, each optional. A new night starts with the club's
  * boards, the players who said they come and the usual game. A player taken
- * out leaves the pairings not started; boards that go send their pairing
- * back to the queue (first). → the night
+ * out or gone home (gone: the ids of the players who went home, each keeping
+ * when) leaves the pairings not started; who went home keeps their games.
+ * Boards that go send their pairing back to the queue (first). → the night
  */
 export const saveNight = async (club, day, body, { by = null, now = new Date() } = {}) => {
     checkDay(club, day, now);
@@ -160,8 +167,15 @@ export const saveNight = async (club, day, body, { by = null, now = new Date() }
         const members = new Set((await db.player.find({ _id: { $in: sent }, clubs: club._id }, '_id').lean()).map(player => String(player._id)));
         night.players = sent.filter(id => members.has(id));
     }
+    if (body.gone !== undefined) {
+        const before = new Map((night.left ?? []).map(entry => [String(entry.id), entry.at]));
+        night.left = [...new Set(body.gone.map(String))].map(id => ({ id, at: before.get(id) ?? now }));
+    }
+    // only players of the night can have gone home
+    const players = new Set(night.players.map(String));
+    night.left = (night.left ?? []).filter(entry => players.has(String(entry.id)));
     const entries = plainEntries(night);
-    const there = new Set(night.players.map(String));
+    const there = new Set(playersThere(night));
     for (const entry of entries) {
         if (['queued', 'called'].includes(entry.status) && entry.players.some(id => !there.has(id))) Object.assign(entry, { status: 'cancelled', board: null, doneAt: now });
     }
@@ -318,6 +332,8 @@ export const nightView = async (night, { playerId = null, isAdmin = false } = {}
         boards,
         setup: { ...NIGHT_SETUP, ...(json.setup ?? {}) },
         players: (json.players ?? []).map(id => found.get(String(id))).filter(Boolean).map(personOf),
+        // who went home, and when
+        left: (json.left ?? []).map(entry => ({ id: String(entry.id), at: entry.at ?? null })),
         entries: entries.map(entry => ({
             id: entry.id, players: entry.players, status: entry.status, board: entry.board ?? null, held: Boolean(entry.held),
             game: entry.game?.id ? { kind: entry.game.kind, id: String(entry.game.id) } : null,
