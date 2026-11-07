@@ -24,6 +24,7 @@ import {
 import UpLink from '../../elements/up.link';
 import { eliminationRematch } from '../../../utils/elimination.rematch';
 import { t } from '../../../utils/i18n';
+import { ELIMINATION_LEVEL, judgeLevel } from '../../../rules/levels.play';
 import { GAME_COLORS } from '../../../utils/palette';
 
 // the key figures of every player in the header; for knock-outs suffered less is better
@@ -131,6 +132,7 @@ const EliminationGameStats = ({ quick = false }) => {
                     scoreOf={(player) => figures[player.id]?.score ?? 0}
                     scoreDetailOf={(player) => (figures[player.id]?.score ?? 0) >= target ? t('reached {{target}}', { target: target }) : t('{{value}} to go', { value: target - (figures[player.id]?.score ?? 0) })}
                     rows={FIGURES}
+                    levelOf={(player) => judgeLevel(ELIMINATION_LEVEL, figures[player.id])}
                     figures={figures}
                     actions={actions}
                 />

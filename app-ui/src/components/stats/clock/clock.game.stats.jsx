@@ -16,6 +16,7 @@ import { TARGETS, hardestTargets, targetLabel } from '../../../utils/atc.darts';
 import UpLink from '../../elements/up.link';
 import { clockProgress, clockRematch, clockResults, replayClock, skipsAhead } from '../../../utils/clock.game';
 import { t } from '../../../utils/i18n';
+import { CLOCK_LEVEL, judgeLevel } from '../../../rules/levels.play';
 
 // the key figures of every player in the header
 const FIGURES = [
@@ -97,6 +98,7 @@ const ClockGameStats = () => {
                     scoreOf={(player) => resultOf(player.id).finished ? resultOf(player.id).darts : targetLabel(resultOf(player.id).target, game.mode)}
                     scoreDetailOf={(player) => resultOf(player.id).finished ? t('darts to finish') : t('next to hit')}
                     rows={FIGURES}
+                    levelOf={(player) => judgeLevel(CLOCK_LEVEL, resultOf(player.id), game.mode)}
                     figures={figures}
                     actions={actions}
                 />

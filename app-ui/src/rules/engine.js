@@ -28,6 +28,8 @@
  *     number), note (the line under it), line (about their play), tags: [text] }
  *   moment(before, after, id) → a big moment of the visit for the celebration, or null:
  *     { words, number, sign } (before and after: the player's state around the visit)
+ *   level: { by, of(playerState, state, settings), bands, lowerIsBetter, format } → the level a
+ *     player played at, an estimate for the statistics (see levels.play.js in the app)
  */
 import { parseDart } from './darts.js';
 
@@ -163,6 +165,8 @@ export const withGameState = (definition, game) => {
  *   result(state, ctx) → { score, ...figures } once it is over (score ranks the attempts)
  *   higherIsBetter, unit, format(score)
  *   figures(result) → [[label, value]]
+ *   level: { by, of(result, settings), bands, lowerIsBetter, format } → the level it was played
+ *     at, an estimate for the result (see levels.play.js in the app)
  *   status(state, ctx) → [[label, value]] shown while training
  * A dart for a 'hitmiss' training is 'H' or 'M'.
  */

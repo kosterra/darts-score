@@ -47,6 +47,21 @@ $labelRed: $accentRed;
     .p-tag-value { line-height: inherit; }
 }
 
+// the level one game or training was played at ("≈ Pro level"): an estimate,
+// so a quiet neutral label in the subtle text colour, never the colours of the
+// player levels (LevelBadge); it may wrap under a narrow player on a phone
+.play-level-tag {
+    @include label-shape;
+    @include label-neutral;
+    color: var(--text-subtle);
+    font-size: $text-xs;
+    white-space: normal;
+    text-align: center;
+    cursor: help;
+
+    &.is-placeholder { visibility: hidden; }
+}
+
 // the chosen entries in a multi select (e.g. the clubs of a filter): labels,
 // not round pills, with a small cross
 :where(.p-multiselect .p-multiselect-token) {

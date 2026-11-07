@@ -29,6 +29,7 @@ import { clearSetup, loadSetup, saveSetup } from '../../utils/setup.memory';
 import { t } from '../../utils/i18n';
 import useGameRules from '../games/common/game.rules';
 import GameResultHeader from '../stats/common/game.result.header';
+import { judgeLevel } from '../../rules/levels.play';
 import PlayerService from '../../services/player.service';
 import { checkoutRoutes, formatRoute, setupSuggestions } from '../../utils/checkout.routes';
 import useGamePreferences from '../../utils/use.game.preferences';
@@ -110,6 +111,7 @@ const TrainingResult = ({ definition, finished, actions }) => {
                 // no number under the name: the result itself is the first tile, gold for a new best;
                 // the long figures beside the others, smaller
                 scoreOf={() => null}
+                levelOf={() => judgeLevel(definition.level, finished.result, finished.settings)}
                 rows={[
                     { key: 'score', label: own?.[0] ?? t('Result'), neutral: true, record: Boolean(saved?.isRecord) },
                     ...short.map(([label], index) => ({ key: `figure-${index}`, label, neutral: true })),
