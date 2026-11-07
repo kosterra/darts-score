@@ -66,9 +66,13 @@ const X01State = props => {
     const saveKey = `${quick ? 'quick' : training ? 'x01training' : 'x01'}:${id}`;
     // the won game is on the server: its result can open
     const [winnerSaved, setWinnerSaved] = useState(false);
-    const { save, unsent } = useGameSaves(saveKey, async (game) => {
-        if (!(await Service.updateX01Game(game))) throw new Error(t('not saved'));
-    }, (game) => { if (game.hasWinner) setWinnerSaved(true); });
+    // bumped when the server refused a save for good: its state is loaded again
+    const [reload, setReload] = useState(0);
+    const { save, unsent } = useGameSaves(saveKey, (game, options) => Service.updateX01Game(game, options), (game) => { if (game.hasWinner) setWinnerSaved(true); }, (error) => {
+        // a game gone says so when it is loaded again
+        if (error.status !== 404) showError(t('Not saved'), error.message);
+        setReload(count => count + 1);
+    });
     // { key, name } while the 180 celebration plays
     const [oneEighty, setOneEighty] = useState(null);
     const endOneEighty = useCallback(() => setOneEighty(null), []);
@@ -89,7 +93,8 @@ const X01State = props => {
             return Promise.all(game.players.map(playerId => playerId === BOT_ID ? botPlayer(game.bot) : PlayerService.getPlayer(playerId)));
         };
 
-        loadWithUnsent(saveKey, () => Service.loadX01GameById(id), playersOf).then(({ game, players, kept }) => {
+        loadWithUnsent(saveKey, () => Service.loadX01GameById(id), playersOf).then(({ game, players, kept, dropped }) => {
+            if (dropped) showError(t('Not saved'), t('This device kept an older state of the game than the server has: the server\'s is shown.'));
             dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
             // a game already over on the server shows its result at once
             if (game.hasWinner && !kept) setWinnerSaved(true);
@@ -110,7 +115,7 @@ const X01State = props => {
             navigate(quick ? '/quick' : '/', { replace: true });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, navigate]);
+    }, [id, navigate, reload]);
 
     // the rules of the player at the oche: with a handicap they differ per player
     const currentInMode = () => inModeOf(state.game, state.game.currentPlayerTurn);

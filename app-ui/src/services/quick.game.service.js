@@ -34,7 +34,12 @@ const request = async (url, { method = 'GET', body, key } = {}) => {
         ...(body !== undefined && { body: JSON.stringify(body) }),
     });
     const data = translateAnswer(await response.json().catch(() => ({})));
-    if (!response.ok) throw new Error(data.errors?.join(' ') || data.message || response.statusText);
+    if (!response.ok) {
+        const error = new Error(data.errors?.join(' ') || data.message || response.statusText);
+        // e.g. 404: the game is gone
+        error.status = response.status;
+        throw error;
+    }
     return data;
 };
 

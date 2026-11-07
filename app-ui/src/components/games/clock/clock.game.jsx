@@ -29,6 +29,9 @@ const ClockGame = () => {
     const [players, setPlayers] = useState([]);
     const [failed, setFailed] = useState(false);
     const toast = useRef(null);
+    // bumped when the server refused a save for good: its state is loaded again
+    const [reload, setReload] = useState(0);
+    const notSaved = useCallback((detail) => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail, life: 4000 }), []);
 
     useEffect(() => {
         const load = async () => {
@@ -38,7 +41,8 @@ const ClockGame = () => {
                     const found = await PlayerService.findPlayersByIds(loaded.players);
                     return loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') });
                 };
-                const { game: loaded, players: found, kept } = await loadWithUnsent(`clock:${id}`, () => ClockService.loadClockGameById(id), playersOf);
+                const { game: loaded, players: found, kept, dropped } = await loadWithUnsent(`clock:${id}`, () => ClockService.loadClockGameById(id), playersOf);
+                if (dropped) notSaved(t('This device kept an older state of the game than the server has: the server\'s is shown.'));
                 // a finished game shows its result
                 if (loaded.hasWinner && !kept) return navigate(`/stats/games/clock/${id}`, { replace: true });
                 setPlayers(found);
@@ -48,7 +52,7 @@ const ClockGame = () => {
             }
         };
         load();
-    }, [id, navigate]);
+    }, [id, navigate, reload, notSaved]);
 
     const state = useMemo(() => game ? replayClock(game) : null, [game]);
     const [moment, endMoment] = useClockMoment(state, {
@@ -63,8 +67,12 @@ const ClockGame = () => {
     }, [savedOver, moment, navigate]);
 
     // without a connection the game is kept on this device and sent once it is back
-    const { save: keepAndSend, unsent } = useGameSaves(`clock:${id}`, (next) => ClockService.updateClockGame(next), (next) => {
-        if (next.hasWinner) setSavedOver(next.id);
+    const { save: keepAndSend, unsent } = useGameSaves(`clock:${id}`, (next, options) => ClockService.updateClockGame(next, options), (next) => {
+        setSavedOver(next.hasWinner ? next.id : null);
+    }, (error) => {
+        // a game gone says so when it is loaded again
+        if (error.status !== 404) notSaved(error.message);
+        setReload(count => count + 1);
     });
     const save = useCallback((next) => keepAndSend(next, { players, kind: 'Around the Clock' }), [keepAndSend, players]);
 
@@ -79,9 +87,10 @@ const ClockGame = () => {
         change([...(game.throws ?? []), Number(value)]);
     }, [game, state, change]);
 
+    // the winning dart is not taken back: the game is decided (and maybe counted by its tournament)
     const onUndo = useCallback(() => {
-        if (game?.throws?.length) change(game.throws.slice(0, -1));
-    }, [game, change]);
+        if (game?.throws?.length && !state?.done) change(game.throws.slice(0, -1));
+    }, [game, state, change]);
 
     if (failed) return <div className="container-fluid p-4 text-subtle">{t('This game could not be found in the selected club.')}</div>;
     if (!game || !state) return <PageLoader />;
@@ -127,7 +136,7 @@ const ClockGame = () => {
                         round={state}
                         onDart={onDart}
                         onUndo={onUndo}
-                        canUndo={game.throws?.length > 0}
+                        canUndo={game.throws?.length > 0 && !state.done}
                         rings={skipsAhead(game)}
                         withPlayers={false}
                         notice={notice}

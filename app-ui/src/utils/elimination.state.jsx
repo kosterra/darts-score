@@ -53,7 +53,14 @@ const EliminationState = ({ children, quick = false }) => {
     const requestSave = () => setSaveRequest(request => request + 1);
 
     // without a connection the game is kept on this device and sent once it is back
-    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'elimination'}:${id}`, (game) => EliminationService.updateEliminationGame(game), (game) => { if (game.hasWinner) setWinnerSaved(true); });
+    // bumped when the server refused a save for good: its state is loaded again
+    const [reload, setReload] = useState(0);
+    const notSaved = (detail) => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail, life: 4000 });
+    const { save, unsent } = useGameSaves(`${quick ? 'quick' : 'elimination'}:${id}`, (game, options) => EliminationService.updateEliminationGame(game, options), (game) => { if (game.hasWinner) setWinnerSaved(true); }, (error) => {
+        // a game gone says so when it is loaded again
+        if (error.status !== 404) notSaved(error.message);
+        setReload(count => count + 1);
+    });
 
     useEffect(() => {
         if (!saveRequest) return;
@@ -67,7 +74,10 @@ const EliminationState = ({ children, quick = false }) => {
             try {
                 setLoading('initGameLoading', true);
                 const playersOf = async (loaded) => quick ? quickPlayersOf(loaded) : Promise.all(loaded.players.map(PlayerService.getPlayer));
-                const { game, players } = await loadWithUnsent(`${quick ? 'quick' : 'elimination'}:${id}`, () => EliminationService.loadEliminationGameById(id), playersOf);
+                const { game, players, kept, dropped } = await loadWithUnsent(`${quick ? 'quick' : 'elimination'}:${id}`, () => EliminationService.loadEliminationGameById(id), playersOf);
+                if (dropped) notSaved(t('This device kept an older state of the game than the server has: the server\'s is shown.'));
+                // a game already over on the server shows its result
+                if (game.hasWinner && !kept) setWinnerSaved(true);
                 dispatch({ type: FETCH_GAME_SUCCESS, payload: game });
                 dispatch({ type: FETCH_PLAYERS_SUCCESS, payload: players });
 
@@ -85,7 +95,7 @@ const EliminationState = ({ children, quick = false }) => {
         fetchGame();
         // the service follows "quick", which a page never changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, navigate]);
+    }, [id, navigate, reload]);
 
     // -------------------- Helper Functions --------------------
     const setLoading = (eventName, setTo) =>

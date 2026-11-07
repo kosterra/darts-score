@@ -1,12 +1,12 @@
 import { translateAnswer } from '../utils/i18n';
-import { getHeaders } from '../utils/service.utils';
+import { answerError, getHeaders } from '../utils/service.utils';
 import { gameOf, storedOf } from '../rules/stored';
 
 const API_URL = '/api/games/clock';
 
 const request = async (url, options = {}) => {
     const response = await fetch(url, options);
-    if (!response.ok) throw new Error(response.statusText);
+    if (!response.ok) throw await answerError(response);
     return translateAnswer(await response.json());
 };
 
@@ -15,7 +15,8 @@ const createClockGame = async (game) => gameOf('clock', await request(API_URL, {
 
 const loadClockGameById = async (id) => gameOf('clock', await request(`${API_URL}/${id}`, { method: 'GET', headers: getHeaders(false) }));
 
-const updateClockGame = (game) => request(`${API_URL}/${game.id}`, { method: 'PUT', headers: getHeaders(true), body: JSON.stringify(storedOf('clock', game)) });
+// basedOn: the "updatedAt" of the stored state this one builds on (a 409 when the server has a newer one)
+const updateClockGame = (game, { basedOn } = {}) => request(`${API_URL}/${game.id}`, { method: 'PUT', headers: getHeaders(true), body: JSON.stringify({ ...storedOf('clock', game), ...(basedOn && { basedOn }) }) });
 
 // newest first
 const loadAllClockGames = async () => (await request(API_URL, { method: 'GET', headers: getHeaders(false) }))

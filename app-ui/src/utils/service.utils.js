@@ -56,6 +56,18 @@ export const getHeaders = (addContentTypeJSON = false, clubId = getActiveClubId(
 });
 
 /**
+ * The error of an answer that is not ok: the API's own message when it has
+ * one, with the status (e.g. 404 for a game gone, 409 for a save refused).
+ */
+export const answerError = async (response) => {
+    const data = translateAnswer(await response.json().catch(() => ({})));
+    const error = new Error(data.errors?.join(' ') || data.message || response.statusText || String(response.status));
+    error.status = response.status;
+    error.data = data;
+    return error;
+};
+
+/**
  * JSON request helper for the account, club and user services. Resolves with
  * the parsed response and rejects with the API's own error message.
  */

@@ -44,6 +44,9 @@ const RulesGame = () => {
     const [moment, setMoment] = useState(null);
     const endMoment = useCallback(() => setMoment(null), []);
     const toast = useRef(null);
+    // bumped when the server refused a save for good: its state is loaded again
+    const [reload, setReload] = useState(0);
+    const notSaved = useCallback((detail) => toast.current?.show({ severity: 'error', summary: t('Not saved'), detail, life: 4000 }), []);
 
     useEffect(() => {
         const load = async () => {
@@ -53,7 +56,8 @@ const RulesGame = () => {
                     const found = await PlayerService.findPlayersByIds(loaded.players);
                     return loaded.players.map(playerId => found.find(player => player.id === playerId) ?? { id: playerId, nickname: t('Unknown player') });
                 };
-                const { game: loaded, players: found, kept } = await loadWithUnsent(`rules:${id}`, () => RulesService.loadGame(id), playersOf);
+                const { game: loaded, players: found, kept, dropped } = await loadWithUnsent(`rules:${id}`, () => RulesService.loadGame(id), playersOf);
+                if (dropped) notSaved(t('This device kept an older state of the game than the server has: the server\'s is shown.'));
                 // a finished game shows its result
                 if (loaded.hasWinner && !kept) return navigate(`/stats/games/${loaded.kind}/${id}`, { replace: true });
                 setPlayers(found);
@@ -63,7 +67,7 @@ const RulesGame = () => {
             }
         };
         load();
-    }, [id, navigate]);
+    }, [id, navigate, reload, notSaved]);
 
     const replay = useMemo(() => game && definition ? replayGame(definition, game) : null, [game, definition]);
     const visitKey = `${game?.visits?.length ?? 0}-${replay?.current}`;
@@ -77,8 +81,12 @@ const RulesGame = () => {
     }, [savedOver, moment, navigate]);
 
     // without a connection the game is kept on this device and sent once it is back
-    const { save: keepAndSend, unsent } = useGameSaves(`rules:${id}`, (next) => RulesService.updateGame(next), (next) => {
-        if (next.hasWinner) setSavedOver(next);
+    const { save: keepAndSend, unsent } = useGameSaves(`rules:${id}`, (next, options) => RulesService.updateGame(next, options), (next) => {
+        setSavedOver(next.hasWinner ? next : null);
+    }, (error) => {
+        // a game gone says so when it is loaded again
+        if (error.status !== 404) notSaved(error.message);
+        setReload(count => count + 1);
     });
     const save = useCallback((next) => keepAndSend(next, { players, kind: definition?.title ?? t('Game') }), [keepAndSend, players, definition]);
 
@@ -129,8 +137,9 @@ const RulesGame = () => {
         if (big) setMoment({ key: Date.now(), name: nameOf(current), ...big });
         change(visits);
     };
+    // the winning visit is not taken back: the game is decided (and maybe counted by its tournament)
     const undo = () => {
-        if (game.visits?.length) change(game.visits.slice(0, -1));
+        if (game.visits?.length && !game.hasWinner) change(game.visits.slice(0, -1));
     };
 
     const preview = valid ? definition.preview(replay.state, current, entered.map(parseDart), ctx) : t('Invalid dart');
@@ -203,7 +212,7 @@ const RulesGame = () => {
                 busted={!valid}
                 onSubmit={submit}
                 onUndo={undo}
-                canUndo={(game.visits?.length ?? 0) > 0}
+                canUndo={(game.visits?.length ?? 0) > 0 && !game.hasWinner}
             />
             <OneEightyCelebration celebration={moment} onDone={endMoment} />
             <Toast ref={toast} position="bottom-right" />
