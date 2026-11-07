@@ -838,6 +838,31 @@ export const boardLabels = (definition, settings) => Object.entries(boardOf(defi
 export const defaultBoardKey = (definition) => boardKeyOf(definition, {});
 
 /**
+ * The scores a weekly goal "{{target}} or better" can ask for in a training on
+ * a board: the lowest and highest a result can be (121 Checkout from 121 up
+ * to one higher for every attempt after the first; the ladder from 61 up to
+ * 100 or what the attempts reach; shares in percent; in Doubles around the
+ * board and Shortest leg fewer darts are better, from 21 and 9), and the
+ * number a new goal starts with. { min, max, start }
+ */
+const GOAL_RANGES = {
+    bobs27: () => ({ min: 1, max: 27 + 3 * DOUBLE_TARGETS.reduce((sum, number) => sum + doubleValue(number), 0), start: 100 }),
+    checkout121: ({ attempts }) => ({ min: 121, max: 121 + attempts - 1, start: 125 }),
+    randomcheckouts: () => ({ min: 1, max: 100, start: 30 }),
+    scoring: () => ({ min: 1, max: 180, start: 50 }),
+    doublesaround: () => ({ min: DOUBLE_TARGETS.length, max: 1000, start: 60 }),
+    catch40: () => ({ min: 1, max: 120, start: 40 }),
+    trebles: () => ({ min: 1, max: 100, start: 15 }),
+    bulls: () => ({ min: 1, max: 100, start: 20 }),
+    ladder: ({ attempts }) => ({ min: LADDER_BOTTOM, max: Math.min(LADDER_TOP, LADDER_BOTTOM + attempts - 1), start: 70 }),
+    shortleg: () => ({ min: 9, max: 1000, start: 24 }),
+};
+export const goalRange = (definition, settings = {}) => {
+    const range = GOAL_RANGES[definition?.id]?.(boardOf(definition, settings)) ?? { min: 1, max: 10000, start: 100 };
+    return { ...range, start: Math.min(range.max, Math.max(range.min, range.start)) };
+};
+
+/**
  * The places of attempts best first: the same score shares a place (two at 130
  * are both 1st, the next is 3rd), unless the training's own tiebreak tells
  * them apart (Bob's 27: further on the board). better(a, b): the order of the

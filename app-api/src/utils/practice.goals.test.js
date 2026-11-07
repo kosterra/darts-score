@@ -98,6 +98,27 @@ describe('a goal as it is set', () => {
         expect(goalView(kept, 128).settings).toEqual({ attempts: 10, darts: 9 });
         expect(goalView({ id: 'g2', kind: 'games', target: 3 }, 1).settings).toBeNull();
     });
+
+    it('a score within what the training on its board can reach', () => {
+        const score = (training, target, settings) => goalError({ kind: 'trainingScore', target, training, settings });
+        // 121 Checkout from 121, one higher for every attempt after the first
+        expect(score('checkout121', 100)).toBe('A score in this training needs a number from 121 to 130.');
+        expect(score('checkout121', 121)).toBeNull();
+        expect(score('checkout121', 130, { attempts: 10 })).toBeNull();
+        expect(score('checkout121', 131, { attempts: 10 })).toMatch(/121 to 130/);
+        expect(score('checkout121', 170, { attempts: 50, darts: 6 })).toBeNull();
+        // the ladder from 61, up to 100 at most
+        expect(score('ladder', 60)).toMatch(/61 to 80/);
+        expect(score('ladder', 100, { attempts: 60 })).toBeNull();
+        expect(score('ladder', 101, { attempts: 60 })).toMatch(/61 to 100/);
+        // shares in percent; fewer darts are better, from a perfect 21 and a nine-darter
+        expect(score('trebles', 101)).toMatch(/1 to 100/);
+        expect(score('doublesaround', 20)).toMatch(/21 to/);
+        expect(score('shortleg', 8)).toMatch(/9 to/);
+        expect(score('shortleg', 24)).toBeNull();
+        expect(score('bobs27', 1437)).toBeNull();
+        expect(score('bobs27', 1438)).toMatch(/1 to 1437/);
+    });
 });
 
 describe('how far a goal is in the week', () => {

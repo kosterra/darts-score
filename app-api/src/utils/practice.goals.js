@@ -5,7 +5,7 @@ import { viewOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
 import { addDays } from '../rules/calendar.js';
 import { dayKeyIn, weekRangeIn } from '../rules/zones.js';
-import { boardKeyOf, boardLabels, boardOf, trainingOf } from '../rules/trainings.js';
+import { boardKeyOf, boardLabels, boardOf, goalRange, trainingOf } from '../rules/trainings.js';
 
 /**
  * The weekly practice goals of a user: up to three of their own, e.g. three
@@ -80,7 +80,8 @@ export const describeGoal = (goal) => GOAL_KINDS[goal.kind]?.describe(goal) ?? S
 
 /**
  * Why a goal cannot be kept like this, or null: a known kind, a whole number
- * from 1 to the kind's largest, the training it needs (one it knows).
+ * from 1 to the kind's largest, the training it needs (one it knows); a score
+ * one the training on its board can reach (121 Checkout in 10 attempts: 121 to 130).
  */
 export const goalError = (goal) => {
     const kind = GOAL_KINDS[goal?.kind];
@@ -97,6 +98,10 @@ export const goalError = (goal) => {
             const option = (definition.boards ?? []).includes(key) && definition.options.find(entry => entry.key === key);
             if (!option || !option.values.some(entry => entry.value === value)) return 'Choose the settings of the training.';
         }
+    }
+    if (goal.kind === 'trainingScore') {
+        const { min, max } = goalRange(trainingOf(goal.training), goal.settings ?? {});
+        if (target < min || target > max) return `A score in this training needs a number from ${min} to ${max}.`;
     }
     return null;
 };

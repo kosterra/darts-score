@@ -10,7 +10,7 @@ import SettingSwitch from '../elements/setting.switch';
 import useAutoSave from '../../utils/use.auto.save';
 import GoalsService from '../../services/goals.service';
 import { PracticeGoalList, WeekDots } from './practice.goal.list';
-import { ALL_TRAININGS, COUNT_TRAININGS, GOAL_KINDS, SCORE_TRAININGS, draftOf, figureOf, goalSettings, goalsValid, kindOf, newGoal, weekLeftText } from './goal.kinds';
+import { ALL_TRAININGS, COUNT_TRAININGS, GOAL_KINDS, SCORE_TRAININGS, draftOf, figureOf, fitTarget, goalSettings, goalsValid, kindOf, newGoal, targetRange, targetValid, weekLeftText } from './goal.kinds';
 import { trainingOf } from '../../rules/trainings';
 import { addDays } from '../../rules/calendar';
 import { formatDate } from '../../utils/dates';
@@ -61,8 +61,13 @@ const PracticeGoalsEditor = ({ onError }) => {
     const changeTraining = (index, training) => {
         const goal = drafts[index];
         // a score: the number to start from and the settings of that training
-        const fits = goal.kind === 'trainingScore' ? { target: SCORE_TRAININGS.find(entry => entry.value === training)?.target ?? goal.target, settings: goalSettings(goal.kind, training) } : {};
-        change(index, { training, ...fits });
+        const fits = goal.kind === 'trainingScore' ? newGoal(goal.kind, training) : {};
+        change(index, { training, ...(goal.kind === 'trainingScore' && { target: fits.target, settings: fits.settings }) });
+    };
+    // other settings of a score's training: the number stays, within what they allow (fewer attempts reach less high)
+    const changeSettings = (index, settings) => {
+        const goal = { ...drafts[index], settings };
+        change(index, { settings, target: fitTarget(goal) });
     };
     const add = () => update([...drafts, newGoal('trainings')]);
     const remove = (index) => update(drafts.filter((_, at) => at !== index));
@@ -85,7 +90,8 @@ const PracticeGoalsEditor = ({ onError }) => {
                     <div className="d-flex flex-column gap-3">
                         {drafts.map((goal, index) => {
                             const kind = kindOf(goal.kind);
-                            const invalid = !Number.isInteger(goal.target) || goal.target < 1 || goal.target > kind.max;
+                            const invalid = !targetValid(goal);
+                            const range = targetRange(goal);
                             return (
                                 <div key={goal.id ?? `new-${index}`} className="practice-goal-row">
                                     <Dropdown
@@ -108,8 +114,8 @@ const PracticeGoalsEditor = ({ onError }) => {
                                         // the field also answers when it shows its value: only a new number is a change
                                         onValueChange={(e) => (e.value ?? 0) !== goal.target && change(index, { target: e.value ?? 0 }, { now: false })}
                                         onBlur={goalsSave.flush}
-                                        min={1}
-                                        max={kind.max}
+                                        min={range.min}
+                                        max={range.max}
                                         useGrouping={false}
                                         invalid={invalid}
                                         aria-label={t('Target')}
@@ -126,7 +132,7 @@ const PracticeGoalsEditor = ({ onError }) => {
                                                         key={key}
                                                         value={goal.settings?.[key] ?? option.default}
                                                         options={option.values}
-                                                        onChange={(e) => e.value !== null && e.value !== undefined && change(index, { settings: { ...goalSettings(goal.kind, goal.training, goal.settings), [key]: e.value } })}
+                                                        onChange={(e) => e.value !== null && e.value !== undefined && changeSettings(index, { ...goalSettings(goal.kind, goal.training, goal.settings), [key]: e.value })}
                                                         className="p-selectbutton-pills pills-inline flex-wrap"
                                                         aria-label={option.label}
                                                     />
