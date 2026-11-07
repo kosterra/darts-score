@@ -2,7 +2,7 @@ import { thrownDarts } from './badges.js';
 import { outModeOf, startingScoreOf } from './x01.rules.js';
 import { cricketMarks } from './kpi.data.js';
 import { gameOf } from '../rules/games.js';
-import { trainingOf } from '../rules/trainings.js';
+import { boardKeyOf, trainingOf } from '../rules/trainings.js';
 import { replayGame, replayTraining, withGameState } from '../rules/engine.js';
 import { withView } from './game.view.js';
 import { sideKeysOf } from '../rules/x01.js';
@@ -59,9 +59,11 @@ export const THRESHOLDS = {
     scoringHighAverage: 100,
     doublesAroundFewDarts: 25,
     catch40High: 110,
+    // 121 Checkout climbs one a checkout: 160 takes 45 of 50 attempts from 121 to 160 in nine darts
     checkout121High: 160,
     treblesHighRate: 50,
     bullsHighRate: 60,
+    // the top rung: every one of 40 finishes from 61 to 100 in a visit, or 50 of 60
     ladderTop: 100,
     shortLegFewDarts: 12,
     // a training's darts entered faster than they can be thrown (seconds per dart)
@@ -572,7 +574,8 @@ export const checkRulesGame = (stored) => {
  * cannot be thrown or a score that is not what its darts give (impossible),
  * darts entered faster than they can be thrown, a score far out of reach for
  * a club player or a sudden jump over the player's best (suspicious).
- * history: the player's earlier trainings of the same kind.
+ * history: the player's earlier trainings of the same kind (only those with
+ * the same settings count for a jump).
  */
 export const checkRulesTraining = (entry, history = []) => {
     const found = [];
@@ -615,9 +618,9 @@ export const checkRulesTraining = (entry, history = []) => {
     }[entry.kind];
     if (out) found.push(finding('suspicious', 'proPlay', 'The play of a professional', out, playerId));
 
-    // a personal best far better than the one before
+    // a personal best far better than the one before, with the same settings (see boardOf)
     const higher = definition.higherIsBetter !== false;
-    const earlier = history.map(item => Number(item.score)).filter(value => Number.isFinite(value) && value > 0);
+    const earlier = history.filter(item => boardKeyOf(definition, item.settings) === boardKeyOf(definition, entry.settings)).map(item => Number(item.score)).filter(value => Number.isFinite(value) && value > 0);
     if (Number.isFinite(score) && score > 0 && earlier.length >= THRESHOLDS.personalBestHistory) {
         const best = higher ? Math.max(...earlier) : Math.min(...earlier);
         const jump = higher ? score > best * (1 + THRESHOLDS.personalBestJump) : score < best * (1 - THRESHOLDS.personalBestJump);

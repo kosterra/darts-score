@@ -343,7 +343,9 @@ export const BADGE_GROUPS = [
     {
         group: 'checkout121', category: 'training', title: '121 Checkout', metric: 'checkout121Best',
         describe: (n) => `Check out ${n} in 121 Checkout`,
-        tiers: [[121, 'One-Two-One'], [130, 'Climber'], [150, 'Summit']],
+        // the target climbs one a checkout: 130 takes 20 of 30 attempts (or 10 of 10), 140 25 of 30 or
+        // 35 of 50, 150 every one of 30 or 40 of 50 (121 + attempts - 1 at most)
+        tiers: [[121, 'One-Two-One'], [130, 'Climber'], [140, 'High Ground'], [150, 'Summit']],
     },
     {
         group: 'catch40', category: 'training', title: 'Catch 40', metric: 'catch40Best',

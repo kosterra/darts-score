@@ -5,6 +5,7 @@
  * and Shortest leg.
  */
 import { afterDart, isCheckout } from './darts.js';
+import { settingsOf } from './engine.js';
 import { t, tn } from '../utils/i18n.js';
 
 const DOUBLE_TARGETS = [...Array.from({ length: 20 }, (_, index) => index + 1), 25];
@@ -158,7 +159,9 @@ export const BOBS_27 = {
 
 /**
  * 121 Checkout: check out the target in nine darts (double out). Done: the
- * target goes up by one; not done: down by one (not below 61). Ten targets.
+ * target goes up by one; not done: down by one (not below 61). 10 to 50
+ * attempts: the most attempts are the only way up to 150 and beyond
+ * (121 + attempts - 1 at most).
  */
 export const CHECKOUT_121 = {
     id: 'checkout121',
@@ -171,9 +174,11 @@ export const CHECKOUT_121 = {
     ],
     input: 'board',
     options: [
-        { key: 'attempts', label: t('Attempts'), values: [{ value: 10, label: t('10 attempts') }, { value: 20, label: t('20 attempts') }], default: 10 },
+        { key: 'attempts', label: t('Attempts'), values: [{ value: 10, label: t('10 attempts') }, { value: 20, label: t('20 attempts') }, { value: 30, label: t('30 attempts') }, { value: 50, label: t('50 attempts') }], default: 10 },
         { key: 'darts', label: t('Darts per attempt'), values: [{ value: 9, label: t('9 darts') }, { value: 6, label: t('6 darts') }], default: 9 },
     ],
+    // the attempts set how high one can get, the darts how hard each is
+    boards: ['attempts', 'darts'],
     init: () => ({ target: 121, left: 121, inAttempt: 0, attempt: 0, done: 0, best: 0, darts: 0, results: [] }),
     dart: (state, dart, { settings }) => {
         state.darts += 1;
@@ -240,8 +245,14 @@ export const RANDOM_CHECKOUTS = {
     ],
     input: 'board',
     options: [{ key: 'attempts', label: t('Attempts'), values: [{ value: 10, label: t('10 attempts') }, { value: 20, label: t('20 attempts') }, { value: 50, label: t('50 attempts') }], default: 10 }],
+    // a share of 10 is easier to get high than one of 50
+    boards: ['attempts'],
     // the finishes are drawn when the training starts
     prepare: (settings) => ({ ...settings, targets: Array.from({ length: settings.attempts }, randomCheckout) }),
+    // the finishes as prepare draws them: one for every attempt, each one a visit can check out
+    prepared: {
+        targets: (targets, settings) => Array.isArray(targets) && targets.length === settings.attempts && targets.every(target => Number.isInteger(target) && isCheckout(target)),
+    },
     init: (settings) => ({ index: 0, left: settings.targets?.[0] ?? 40, inAttempt: 0, done: 0, darts: 0, best: 0, results: [] }),
     dart: (state, dart, { settings }) => {
         const target = settings.targets?.[state.index] ?? 40;
@@ -298,6 +309,8 @@ export const SCORING = {
     ],
     input: 'board',
     options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],
+    // an average of a few darts swings more than one of many
+    boards: ['darts'],
     init: () => ({ points: 0, darts: 0, tons: 0, visit: 0, best: 0 }),
     dart: (state, dart) => {
         state.points += dart.points;
@@ -449,6 +462,8 @@ export const TREBLES = {
         { key: 'number', label: t('Treble'), values: [{ value: 20, label: 'T20' }, { value: 19, label: 'T19' }, { value: 18, label: 'T18' }], default: 20 },
         { key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 },
     ],
+    // each treble on its own, and a share of a few darts swings more than one of many
+    boards: ['number', 'darts'],
     init: () => ({ darts: 0, trebles: 0, onNumber: 0, points: 0, inVisit: 0, visitTrebles: 0, bestVisit: 0 }),
     dart: (state, dart, { settings }) => {
         state.darts += 1;
@@ -506,6 +521,8 @@ export const BULLS = {
         { value: '0', label: t('Miss'), icon: 'pi pi-times', severity: 'secondary' },
     ],
     options: [{ key: 'darts', label: t('Darts'), values: [{ value: 30, label: t('30 darts') }, { value: 60, label: t('60 darts') }, { value: 99, label: t('99 darts') }], default: 30 }],
+    // a share of a few darts swings more than one of many
+    boards: ['darts'],
     init: () => ({ darts: 0, bullseyes: 0, outers: 0 }),
     dart: (state, dart) => {
         state.darts += 1;
@@ -539,7 +556,8 @@ const LADDER_TOP = 100;
 /**
  * Checkout ladder: the finishes from 61 to 100, one visit of three darts
  * each. Checked out: one rung up (100 stays 100); not: one down (not below
- * 61). The highest finish checked out counts.
+ * 61). The highest finish checked out counts. 20 attempts reach 80 at most,
+ * 40 reach 100 only without a miss, 60 with up to ten.
  */
 export const LADDER = {
     id: 'ladder',
@@ -551,7 +569,9 @@ export const LADDER = {
         t('After the attempts set the highest finish checked out counts.'),
     ],
     input: 'board',
-    options: [{ key: 'attempts', label: t('Attempts'), values: [{ value: 20, label: t('20 attempts') }, { value: 40, label: t('40 attempts') }], default: 20 }],
+    options: [{ key: 'attempts', label: t('Attempts'), values: [{ value: 20, label: t('20 attempts') }, { value: 40, label: t('40 attempts') }, { value: 60, label: t('60 attempts') }], default: 20 }],
+    // the attempts set how high one can climb
+    boards: ['attempts'],
     init: () => ({ target: LADDER_BOTTOM, left: LADDER_BOTTOM, inAttempt: 0, attempt: 0, done: 0, best: 0, darts: 0 }),
     dart: (state, dart) => {
         state.darts += 1;
@@ -612,6 +632,8 @@ export const SHORTEST_LEG = {
     ],
     input: 'board',
     options: [{ key: 'legs', label: t('Legs'), values: [{ value: 3, label: t('3 legs') }, { value: 5, label: t('5 legs') }, { value: 10, label: t('10 legs') }], default: 3 }],
+    // the best of ten legs comes easier than the best of three
+    boards: ['legs'],
     init: () => ({ left: LEG_START, visitStart: LEG_START, inVisit: 0, legDarts: 0, darts: 0, legs: [] }),
     dart: (state, dart) => {
         state.darts += 1;
@@ -664,3 +686,64 @@ export const SHORTEST_LEG = {
 
 export const TRAININGS = [BOBS_27, CHECKOUT_121, RANDOM_CHECKOUTS, SCORING, DOUBLES_AROUND, CATCH_40, TREBLES, BULLS, LADDER, SHORTEST_LEG];
 export const trainingOf = (id) => TRAININGS.find(training => training.id === id) ?? null;
+
+/**
+ * Why the settings of a training cannot be played, or null: every option one
+ * of its values (a missing one is the default), nothing the training does not
+ * know, and what it fixes at the start as it would (Random checkouts: a finish
+ * for every attempt). The API refuses a training with such settings.
+ */
+export const settingsProblem = (definition, settings) => {
+    if (settings === undefined || settings === null) return settingsProblem(definition, {});
+    if (typeof settings !== 'object' || Array.isArray(settings)) return 'settings must be an object.';
+    const options = definition.options ?? [];
+    const prepared = definition.prepared ?? {};
+    for (const [key, value] of Object.entries(settings)) {
+        const option = options.find(entry => entry.key === key);
+        if (option && !option.values.some(entry => entry.value === value)) return `${key} must be one of: ${option.values.map(entry => entry.value).join(', ')}.`;
+        if (!option && !Object.hasOwn(prepared, key)) return `${key} is not a setting of this training.`;
+    }
+    const full = settingsOf(definition, settings);
+    const wrong = Object.entries(prepared).find(([key, valid]) => !valid(full[key], full));
+    return wrong ? `${wrong[0]} is not what this training draws at its start.` : null;
+};
+
+/**
+ * The settings that split a training's scoreboard, with their values: a score
+ * is only compared (the scoreboard, records and "new best", the trend, a
+ * weekly goal) with those of the same, as 140 in 121 Checkout cannot be
+ * reached in 10 attempts. Each definition lists them in "boards"; a setting
+ * an older training does not have is the default. { attempts: 20, darts: 9 },
+ * {} for a training with one board.
+ */
+export const boardOf = (definition, settings = {}) => Object.fromEntries((definition?.boards ?? []).map(key => {
+    const option = definition.options.find(entry => entry.key === key);
+    const value = settings?.[key];
+    if (value === undefined || value === null) return [key, option.default];
+    // a value of the options as the option has it (an older one kept as text too); one it does not know stays apart
+    return [key, option.values.find(entry => String(entry.value) === String(value))?.value ?? value];
+}));
+
+// a board as one key: "attempts:20|darts:9", '' for a training with one board
+export const boardKeyOf = (definition, settings) => Object.entries(boardOf(definition, settings)).map(([key, value]) => `${key}:${value}`).join('|');
+
+// a board in words, one per setting: ['20 attempts', '9 darts'] ([] for one board)
+export const boardLabels = (definition, settings) => Object.entries(boardOf(definition, settings))
+    .map(([key, value]) => definition.options.find(entry => entry.key === key).values.find(entry => entry.value === value)?.label ?? String(value));
+
+// the board of the default settings: the one to show when nothing else says which
+export const defaultBoardKey = (definition) => boardKeyOf(definition, {});
+
+/**
+ * The places of attempts best first: the same score shares a place (two at 130
+ * are both 1st, the next is 3rd), unless the training's own tiebreak tells
+ * them apart (Bob's 27: further on the board). better(a, b): the order of the
+ * list, 0 for the same.
+ */
+export const placesOf = (list, better) => {
+    const places = [];
+    list.forEach((entry, index) => {
+        places.push(index > 0 && better(entry, list[index - 1]) === 0 ? places[index - 1] : index + 1);
+    });
+    return places;
+};

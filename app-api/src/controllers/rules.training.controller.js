@@ -10,6 +10,7 @@ import { trainingOf } from '../rules/trainings.js';
 import { replayTraining } from '../rules/engine.js';
 import { noteTrainingRecords } from '../utils/player.notices.js';
 import { practiceGoalsAfterTraining } from '../utils/practice.goals.js';
+import { boardCondition } from '../utils/rules.stats.js';
 
 // a start time the app sent: in the past and at most a day ago, or none
 const startedAtOf = (value) => {
@@ -23,7 +24,8 @@ const Training = db.rulesTraining;
 
 /**
  * Saves a training once it is over. The answer also says whether it beat the
- * player's best in this kind and which badges it earned, so the app can celebrate.
+ * player's best in this kind with the same settings (see boardOf) and which
+ * badges it earned, so the app can celebrate.
  */
 export const create = async (req, res) => {
     logger.debug('rules training create called');
@@ -42,8 +44,10 @@ export const create = async (req, res) => {
         if (Number(req.body.score) !== replayed.result.score) {
             logger.warn(`Training ${kind} of player ${playerId}: the app sent the score ${req.body.score}, the darts give ${replayed.result.score}`);
         }
-        const previousBest = await Training.findOne({ club: req.club._id, kind, 'player.id': playerId }).sort({ score: higher ? -1 : 1 }).lean();
-        const clubBest = await Training.findOne({ club: req.club._id, kind }).sort({ score: higher ? -1 : 1, createdAt: 1 }).lean();
+        // the bests of the same board: 140 in 20 attempts of 121 Checkout is no record over 130 in 10
+        const board = boardCondition(kind, replayed.settings);
+        const previousBest = await Training.findOne({ club: req.club._id, kind, 'player.id': playerId, ...board }).sort({ score: higher ? -1 : 1 }).lean();
+        const clubBest = await Training.findOne({ club: req.club._id, kind, ...board }).sort({ score: higher ? -1 : 1, createdAt: 1 }).lean();
         const data = await new Training({
             club: req.club._id,
             kind,

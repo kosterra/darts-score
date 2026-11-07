@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { CHECKOUT_121 } from '../rules/trainings.js';
 import { replayX01 } from '../rules/x01.js';
 import { BADGES, BADGE_CATEGORIES, BADGE_GROUPS, SHAME_BADGES, countBadges, currentWeekStreak, isLast, replayBadges, wonInDecidingLeg } from './badges.js';
 
@@ -482,6 +483,16 @@ describe('the newer games and trainings', () => {
         expect(ids(seven)).not.toContain('everyTraining-11');
         // the four newer ones too: every drill
         expect(ids([...seven, ...['trebles', 'bulls', 'ladder', 'shortleg'].map(kind => training(kind, 1))])).toContain('everyTraining-11');
+    });
+
+    it('121 Checkout: every tier within reach of the most attempts, the ones earned before kept', () => {
+        const tiers = BADGES.filter(badge => badge.group === 'checkout121');
+        expect(tiers.map(badge => badge.id)).toEqual(['checkout121-121', 'checkout121-130', 'checkout121-140', 'checkout121-150']);
+        // one higher a checkout from 121: the most attempts reach 121 + attempts - 1
+        const most = Math.max(...CHECKOUT_121.options.find(option => option.key === 'attempts').values.map(entry => entry.value));
+        expect(Math.max(...tiers.map(badge => badge.target))).toBeLessThan(121 + most - 1);
+        expect(ids([training('checkout121', 145)])).toEqual(expect.arrayContaining(['checkout121-121', 'checkout121-130', 'checkout121-140']));
+        expect(ids([training('checkout121', 145)])).not.toContain('checkout121-150');
     });
 
     it('Bob\'s Bust only while the trainings are shown, washed off by all 21 doubles', () => {

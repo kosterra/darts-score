@@ -4071,8 +4071,9 @@ paths:
         The whole list, up to three. Each a kind (trainings, trainingScore, x01Average, games, num180s, playDays), a target from 1 to
         the kind's largest (trainings 50, trainingScore 10000, x01Average 180, games 100, num180s 100, playDays 7), the training for
         trainingScore (and optionally for trainings: atc, bot or a training of the rules engine) and for x01Average whether the
-        trainings against the bot count. A goal sent back with its id and the same settings stays the same goal; a new or changed
-        one gets a new id.
+        trainings against the bot count. A trainingScore goal counts the trainings with its settings only (those of the training
+        that split its scoreboard, e.g. { attempts: 20, darts: 9 } for 121 Checkout; missing ones are the defaults). A goal sent
+        back with its id and the same settings stays the same goal; a new or changed one gets a new id.
       requestBody:
         required: true
         content:
@@ -4106,6 +4107,9 @@ paths:
                         enum: [atc, bot, bobs27, checkout121, randomcheckouts, scoring, doublesaround, catch40, trebles, bulls, ladder, shortleg, null]
                       withBot:
                         type: [boolean, 'null']
+                      settings:
+                        type: [object, 'null']
+                        description: For trainingScore, the settings it counts with (each one the training offers)
       responses:
         '200':
           description: The goals as saved, with how far each is
@@ -5226,8 +5230,9 @@ paths:
       summary: Get overall statistics for a player
       description: >-
         Key figures, levels, charts and badges of a player, in the club or all clubs, filtered like the profile. trainingSummary puts all
-        their trainings in one: how many, in the last 30 days and when last, and the bests of each kind (Around the Clock, X01 against the
-        bot, Bob's 27 and the other trainings of the rules engine). Trainings a player keeps to themselves are left out for the other players.
+        their trainings in one: how many, in the last 30 days and when last (a game against the bot only once finished), and the bests
+        of each kind (Around the Clock, X01 against the bot, Bob's 27 and the other trainings of the rules engine: rules[kind] is
+        { count, best, latest, board }, the best and the latest those of the settings played most, board those settings). Trainings a player keeps to themselves are left out for the other players.
       parameters:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Id'
@@ -6992,7 +6997,7 @@ paths:
       tags:
         - More trainings
       summary: Save a training once it is over (Bob's 27, 121 Checkout, …)
-      description: The answer says whether it beat the player's best of this kind and which badges it earned.
+      description: The answer says whether it beat the player's best of this kind with the same settings and which badges it earned.
       requestBody:
         required: true
         content:
@@ -9302,6 +9307,9 @@ components:
           type: [string, 'null']
         withBot:
           type: boolean
+        settings:
+          type: [object, 'null']
+          description: For trainingScore, the settings it counts with ({} for a training with one board), else null
         description:
           type: string
           example: 3 trainings
@@ -9646,6 +9654,12 @@ components:
           description: What ranks the attempts (higher is better, for Doubles around the board lower)
         settings:
           type: object
+          description: >-
+            The training's options, each one of the values it offers (a missing one is the default), and nothing else but what
+            the training draws at its start (Random checkouts: targets, one finish from 2 to 170 that a visit can check out for
+            every attempt). Other settings are refused (422). The options that change what a score means (e.g. the attempts of
+            121 Checkout, the darts of Scoring, the treble of Treble practice) split the records: isRecord and previousBest
+            compare with the trainings of the same.
         result:
           type: object
           description: What the app worked out, e.g. { score, done, attempts }

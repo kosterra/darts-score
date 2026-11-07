@@ -1,6 +1,7 @@
 import { check, body } from 'express-validator';
 import { DART, GAME_KINDS, TRAINING_KINDS } from '../utils/rules.kinds.js';
 import { gameOf } from '../rules/games.js';
+import { settingsProblem, trainingOf } from '../rules/trainings.js';
 
 const VALID_PLAYER_COUNTS = [1, 2, 3, 4];
 const VALID_SET_LEG_MODES = ['Best of', 'First to'];
@@ -212,7 +213,13 @@ export const validateRulesTraining = [
     check('kind').isIn(TRAINING_KINDS).withMessage(`kind must be one of: ${TRAINING_KINDS.join(', ')}.`),
     body('player.id').isMongoId().withMessage('player.id must be a player id.'),
     body('score').isFloat({ min: -10000, max: 100000 }).withMessage('score must be a number.'),
-    body('settings').optional().isObject().withMessage('settings must be an object.'),
+    // each setting one the training offers (no Scoring of three darts), and what it draws at its start as it would
+    body('settings').custom((settings, { req }) => {
+        const definition = trainingOf(req.body.kind);
+        const problem = definition && settingsProblem(definition, settings);
+        if (problem) throw new Error(problem);
+        return true;
+    }),
     body('result').optional().isObject().withMessage('result must be an object.'),
     body('darts').optional().isArray({ max: 5000 }).withMessage('darts must be a list.'),
     body('darts.*').optional().matches(DART).withMessage('Invalid dart.'),
