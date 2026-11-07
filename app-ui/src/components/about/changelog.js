@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: '2026.11.7',
         changes: [
+            t('On a phone the board, the keypad and the buttons of every game and training are fully in view without scrolling: where space is short the header gets compact and the marks or standings move below the board.'),
             t('Smaller things: the doubles of Bob\'s 27 and Doubles around the board in even rows on a phone; tournament and league times in the calendar on the club\'s clock; on a club night someone added later shows when they came; the level filter of the games and trainings lists as a compact dropdown, so the filters fit one line; About → Levels explains the level of a game; a weekly goal on a training\'s score starts and stays where the training can reach (121 Checkout from 121); a training record names its settings (121 Checkout with 30 attempts and 9 darts).'),
             t('Training scoreboards: picking a board there (e.g. T18 in Treble practice) also sets up the next training for it, so what you tap is what you play.'),
             t('Training scoreboards: the same result is ranked by what fits the training – in Bull practice more bullseyes, in Treble practice more points on the number, in the checkout trainings and Catch 40 more checkouts and fewer darts, in Scoring more ton-plus visits, in Shortest leg the better average.'),
@@ -18,12 +19,6 @@ const CHANGELOG = [
             t('Darts as tags, as in the visits of a game: the darts of the visit while training, the bar above the menu on a phone, and an attempt opened on a training scoreboard, which now shows its darts visit by visit for every training; how far a failed Bob\'s 27 got (out at D6) is a tag too.'),
             t('On a phone the lists of games (recent games, a player\'s latest games, the evenings) give the names the full width, the time on a small line above them, so names are no longer cut short; a global admin\'s banner while looking at a club is shorter there.'),
             t('Scoreboards of the trainings: the attempt just saved is marked in green with New, and in gold with New best only when it is a new personal best; the level after a long result no longer gets cut off on a phone.'),
-        ],
-    },
-    {
-        version: '2026.11.6',
-        changes: [
-            t('On a phone the board, the keypad and the buttons of every game and training are fully in view without scrolling: where space is short the header gets compact and the marks or standings move below the board.'),
         ],
     },
     {
