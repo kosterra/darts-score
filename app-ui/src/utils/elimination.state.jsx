@@ -8,7 +8,7 @@ import OneEightyCelebration from '../components/games/common/one.eighty.celebrat
 import KnockOut from '../components/games/common/knock.out';
 import ClubEliminationService from '../services/elimination.service';
 import { QuickEliminationService, quickPlayersOf } from '../services/quick.game.service';
-import { eliminationVisitOutcome, replayElimination } from '../rules/elimination';
+import { eliminationInDart, eliminationVisitOutcome, replayElimination } from '../rules/elimination';
 import PlayerService from '../services/player.service';
 import { loadWithUnsent, useGameSaves } from './unsent.games';
 import SaveStatus from '../components/games/common/save.status';
@@ -16,8 +16,6 @@ import { knockOutScene } from './elimination.moments';
 
 import {
     validateDartValue,
-    dartIsDouble,
-    dartIsTriple,
     lastDartIsDouble,
     lastDartIsTriple
 } from './game.utils';
@@ -105,17 +103,9 @@ const EliminationState = ({ children, quick = false }) => {
     };
 
     const updateCurrentThrowManual = (score, value, index) => {
+        // the in mode counts from the score before this dart: the darts after the opening double count
         if (value !== '' && validateDartValue(value)) {
-            const gameInMode = state.game.gameInMode;
-            const playerScore = state.game.playerModels[state.game.currentPlayerTurn]?.score ?? 0;
-            // Only apply in-mode restriction if the player hasn't started yet (score === 0)
-            if (playerScore === 0) {
-                if (gameInMode === 'Double In' && !dartIsDouble(value)) {
-                    value = '0';
-                } else if (gameInMode === 'Master In' && !dartIsDouble(value) && !dartIsTriple(value)) {
-                    value = '0';
-                }
-            }
+            value = eliminationInDart(state.game, state.game.currentThrow, index, value);
         }
 
         const newCurrentThrow = state.game.currentThrow.map((dart, i) =>
@@ -127,24 +117,10 @@ const EliminationState = ({ children, quick = false }) => {
 
     const updateCurrentThrowDartBoard = (score, value) => {
         const newCurrentThrow = [...state.game.currentThrow];
-        const gameInMode = state.game.gameInMode;
-        const playerScore = state.game.playerModels[state.game.currentPlayerTurn]?.score ?? 0;
-
-        // Apply in-mode restriction for players that haven't scored yet
-        if (validateDartValue(value) && playerScore === 0) {
-            if (gameInMode === 'Double In' && !dartIsDouble(value)) {
-                value = '0';
-            } else if (gameInMode === 'Master In' && !dartIsDouble(value) && !dartIsTriple(value)) {
-                value = '0';
-            }
-        }
-
-        for (let index = 0; index < newCurrentThrow.length; index++) {
-            if (newCurrentThrow[index] === '') {
-                newCurrentThrow[index] = value;
-                break;
-            }
-        }
+        const index = newCurrentThrow.indexOf('');
+        if (index < 0) return;
+        // the in mode counts from the score before this dart: the darts after the opening double count
+        newCurrentThrow[index] = validateDartValue(value) ? eliminationInDart(state.game, newCurrentThrow, index, value) : value;
 
         dispatch({ type: UPDATE_CURRENT_THROW, payload: newCurrentThrow });
     };
@@ -167,6 +143,8 @@ const EliminationState = ({ children, quick = false }) => {
             if (currentScore === target - 1) return true;
             if (currentScore === target && !lastDartIsDouble(state.game.currentThrow)) return true;
         } else if (mode === 'Master Out') {
+            // one short cannot be finished on a double or a treble
+            if (currentScore === target - 1) return true;
             if (currentScore === target &&
                 !lastDartIsDouble(state.game.currentThrow) &&
                 !lastDartIsTriple(state.game.currentThrow)) return true;
