@@ -10,6 +10,7 @@
 export const DEFAULT_TIME_ZONE = 'Europe/Zurich';
 
 const pad = (value) => String(value).padStart(2, '0');
+const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEKDAYS = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
 // a zone the runtime knows ("Europe/Zurich", "Europe/London", "UTC")
@@ -68,14 +69,20 @@ const offsetAt = (at, zone) => {
 /**
  * The moment of a day and a time on the clock of a zone ("2026-10-27",
  * "19:30", "Europe/Zurich" → 18:30 UTC). A time skipped when the clocks go
- * forward comes out an hour later, as a clock would show it.
+ * forward comes out an hour later, as a clock would show it (a skipped
+ * midnight is 01:00 on the same day); a time the clocks show twice when they
+ * go back is the first of the two.
  */
 export const instantIn = (key, time = '00:00', zone = DEFAULT_TIME_ZONE) => {
     const [year, month, day] = key.split('-').map(Number);
     const [hours, minutes] = String(time).split(':').map(Number);
     const wall = Date.UTC(year, month - 1, day, hours || 0, minutes || 0);
-    const first = new Date(wall - offsetAt(new Date(wall), zone));
-    return new Date(wall - offsetAt(first, zone));
+    // the offsets a day before and a day after: one each side of a change of the clocks
+    const offsets = new Set([offsetAt(new Date(wall - DAY_MS), zone), offsetAt(new Date(wall + DAY_MS), zone)]);
+    const candidates = [...offsets].map(offset => wall - offset).sort((a, b) => a - b);
+    // the earliest whose clock reads the time or, if the time was skipped, just after it
+    const found = candidates.find(at => wallClock(at, zone) >= wall) ?? candidates[candidates.length - 1];
+    return new Date(found);
 };
 
 // the time of a moment on the clock of a zone: "19:30"
