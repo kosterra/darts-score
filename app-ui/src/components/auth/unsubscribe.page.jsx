@@ -41,6 +41,8 @@ const UnsubscribePage = () => {
     };
 
     const contact = target?.type === 'contact';
+    // a link of one mail (a topic, a summary, the mail of the day) turns off only that one
+    const one = target && target.topic !== 'all';
     return (
         <AuthLayout hide={user ? 'both' : undefined} title={t('No more mails')}>
             {!target && !error && <Lines count={2} />}
@@ -48,7 +50,9 @@ const UnsubscribePage = () => {
             {target && !done &&
                 <div className="d-flex flex-column gap-3 pt-2">
                     <p className="m-0">
-                        {contact
+                        {one
+                            ? t('Get no more of these mails? Your other mails from Legmate still come.')
+                            : contact
                             ? t('Get no more mails about your player? Your club keeps your player with its games and statistics.')
                             : t('Get no more mails from Legmate? Mails about the security of your account still come.')}
                     </p>

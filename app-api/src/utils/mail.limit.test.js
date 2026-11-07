@@ -12,7 +12,7 @@ const apply = (doc, update) => {
 vi.mock('../models/logger.model.js', () => ({ default: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() } }));
 vi.mock('../models/db.model.js', () => ({
     default: {
-        setting: { findOne: () => ({ lean: async () => ({ value: { perDay: limit } }) }) },
+        setting: { findOne: () => ({ lean: async () => ({ value: { perDay: limit } }) }), updateOne: async (filter, update) => { limit = update.$set.value.perDay; } },
         user: { find: () => ({ lean: async () => [{ _id: 'admin' }] }) },
         usageDay: {
             findOne: ({ day }) => ({ lean: async () => days.get(day) ?? null }),
@@ -39,7 +39,7 @@ vi.mock('../models/db.model.js', () => ({
 }));
 vi.mock('./notify.js', () => ({ deliverQuietly: async (notices) => { told.push(...notices.map(notice => notice.kind)); } }));
 
-const { checkMailLimit, countMail, isLimitRefusal, noteLimitRefusal } = await import('./mail.limit.js');
+const { checkMailLimit, countMail, isLimitRefusal, noteLimitRefusal, saveMailLimit } = await import('./mail.limit.js');
 const { toLogEntry } = await import('./error.log.js');
 
 const now = new Date(2026, 9, 24, 12, 0);
@@ -88,5 +88,28 @@ describe('the daily mail limit', () => {
         const line = (code) => JSON.stringify({ severity: 'ERROR', msg: 'Failed to send', err: { type: 'Error', message: 'x', code } });
         expect(toLogEntry(line('ELIMIT')).level).toBe('warn');
         expect(toLogEntry(line('EAUTH')).level).toBe('error');
+    });
+
+    // last: saving the limit keeps it in the cache of the module
+    it('lets mails go out again the same day when it is raised or removed, not when it stays below the mails sent', async () => {
+        await saveMailLimit(300, now);
+        await send(300);
+        await expect(checkMailLimit(now)).rejects.toMatchObject({ code: 'ELIMIT' });
+        // lowered: still reached
+        await saveMailLimit(200, now);
+        await expect(checkMailLimit(now)).rejects.toMatchObject({ code: 'ELIMIT' });
+        // raised: today follows it, and the admins hear again when it is close
+        await saveMailLimit(400, now);
+        await expect(checkMailLimit(now)).resolves.toBeUndefined();
+        expect(days.get('2026-10-24')).toMatchObject({ mailLimit: 400, mailLimitReachedAt: null, mailLimitNearAt: null });
+        told.length = 0;
+        await send(100);
+        expect(told).toEqual(['mailLimitNear', 'mailLimitReached']);
+        await expect(checkMailLimit(now)).rejects.toMatchObject({ code: 'ELIMIT' });
+        // removed: no limit at all
+        await saveMailLimit(null, now);
+        await expect(checkMailLimit(now)).resolves.toBeUndefined();
+        await send(50);
+        expect(days.get('2026-10-24')).toMatchObject({ mails: 450, mailLimitReachedAt: null });
     });
 });
