@@ -779,3 +779,19 @@
   font-size: $text-sm;
   color: var(--text-faint);
 }
+
+// a narrow phone (under 400px): the training scoreboard keeps the name, date and level readable –
+// no avatar beside the place or medal, tighter gaps, the three lists' pills smaller
+@media (max-width: 399.98px) {
+  .atc-row {
+    gap: $space-2;
+    padding-inline: 0.6rem;
+
+    > .p-avatar { display: none; }
+  }
+
+  .rules-board-views.p-selectbutton .p-button {
+    padding-inline: 0.7rem;
+    font-size: $text-xs;
+  }
+}

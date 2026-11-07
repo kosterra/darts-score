@@ -370,7 +370,7 @@ const ClubNightPage = () => {
                 <Panel header={t('Table of the evening')} icons={report.played > 0 && <TableOrder value={order} onChange={setOrder} />}>
                     {report.played === 0
                         ? <span className="text-faint fs-7">{tonight ? t('The table fills with the first game.') : t('No game among these players that night.')}</span>
-                        : <EveningTable report={report} players={tablePlayers} order={order} />}
+                        : <EveningTable report={report} players={tablePlayers} order={order} zone={zoneOf(activeClub)} />}
                 </Panel>
 
                 {report.awards.length > 0 &&

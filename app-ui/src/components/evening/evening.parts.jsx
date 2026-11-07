@@ -12,6 +12,7 @@ import { colourOf } from '../../utils/evening.colours';
 import { orderTable } from '../../utils/evening.table';
 import { resolvePlayerInitials } from '../../utils/image.utils';
 import { t, tn } from '../../utils/i18n';
+import { timeIn } from '../../rules/zones';
 
 
 // a player of the evening: the initials on their colour
@@ -46,9 +47,11 @@ export const TableOrder = ({ value, onChange }) => (
 );
 
 // when a player came later or went home, beside their games (empty for the others)
-const comeAndGone = (player) => (player.leftAt
-    ? t('went home at {{time}}', { time: dayjs(player.leftAt).format('HH:mm') })
-    : player.joinedAt ? t('came at {{time}}', { time: dayjs(player.joinedAt).format('HH:mm') }) : '');
+// on a club's clock when given (a club night), else on the device's (a darts evening is played where it is)
+const clockOf = (at, zone) => (zone ? timeIn(at, zone) : dayjs(at).format('HH:mm'));
+const comeAndGone = (player, zone) => (player.leftAt
+    ? t('went home at {{time}}', { time: clockOf(player.leftAt, zone) })
+    : player.joinedAt ? t('came at {{time}}', { time: clockOf(player.joinedAt, zone) }) : '');
 
 /**
  * The table of the evening, as the rankings of the app: the best first, a
@@ -56,7 +59,7 @@ const comeAndGone = (player) => (player.leftAt
  * the wins of their games as a bar, and their figures beside (in X01 the
  * average, 180s and best checkout). order: 'wins' (as sent) or 'rate'.
  */
-export const EveningTable = ({ report, players, order = 'wins' }) => (
+export const EveningTable = ({ report, players, order = 'wins', zone = null }) => (
     <ol className="badge-ranking evening-standings list-unstyled m-0">
         {orderTable(report.table, order).map((row, index) => {
             const podium = row.wins > 0 && index < 3 ? PODIUM[index] : null;
@@ -73,7 +76,7 @@ export const EveningTable = ({ report, players, order = 'wins' }) => (
                             <span className="text-subtle fs-8 text-nowrap">{t('{{wins}} of {{games}} won', { wins: row.wins, games: row.games })}</span>
                         </span>
                         <span className="badge-ranking-bar is-green" aria-hidden="true"><span style={{ width: `${row.games ? row.wins / row.games * 100 : 0}%` }} /></span>
-                        {comeAndGone(player) && <span className="text-faint fs-9">{comeAndGone(player)}</span>}
+                        {comeAndGone(player, zone) && <span className="text-faint fs-9">{comeAndGone(player, zone)}</span>}
                     </span>
                     <dl className="evening-standing-figures">
                         <div><dt>{t('Win rate')}</dt><dd>{row.games ? `${row.winRate} %` : '–'}</dd></div>
