@@ -321,7 +321,7 @@ const LeaguePage = () => {
                                         <Button label={t('Move the matchday')} icon="pi pi-calendar" size="small" text onClick={() => setMoving(matchday)} />
                                     </div>}
                             </div>}
-                        <p className="text-faint fs-8 mt-3 mb-0">{over ? t('Tap a match for its result and statistics.') : t('Tap a match to start it, follow it or see its statistics. Each is played any time up to its matchday.')}</p>
+                        <p className="text-faint fs-8 mt-3 mb-0">{over ? t('Tap a played match for its statistics.') : t('Tap a match to start it, follow it or see its statistics. Each is played any time up to its matchday.')}</p>
                     </Panel>
                 </div>}
 

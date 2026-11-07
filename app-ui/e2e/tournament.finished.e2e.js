@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 // A tournament and a league that are over: the match tiles show each player's sets or legs
-// won (and where there is room the level played at), and a match's dialog only shows what
-// happened, without anything to start, decide or move.
+// won (and where there is room the level played at); a played match opens its statistics,
+// a walkover nothing: there is nothing left to start, decide or move.
 const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
@@ -40,25 +40,14 @@ test('a finished tournament shows the results and its matches only as they were 
     await bracket.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `test-results/finished-bracket-${test.info().project.name}.png`, fullPage: true });
 
-    // the dialog of the final: who won, the score, the statistics; nothing to decide
-    await final.click();
-    const dialog = page.locator('.tournament-dialog');
-    await expect(dialog.getByText(/won\.$/)).toBeVisible();
-    await expect(dialog.locator('.match-result')).toContainText('sets');
-    await expect(dialog.locator('.match-result .play-level-tag')).toHaveCount(2);
-    await expect(dialog.getByRole('link', { name: 'Statistics of the match' })).toBeVisible();
-    await expect(dialog.getByText('Decide without a game')).toHaveCount(0);
-    await expect(dialog.getByRole('button', { name: 'Goes on' })).toHaveCount(0);
-    await expect(dialog.getByRole('button', { name: 'Start the match' })).toHaveCount(0);
-    await page.screenshot({ path: `test-results/finished-dialog-${test.info().project.name}.png` });
-    await page.keyboard.press('Escape');
-
-    // the walkover's dialog: only who went on
+    // the walkover opens nothing; the final opens its statistics, no dialog
+    await expect(page.getByText('Tap a played match for its statistics.')).toBeVisible();
+    await expect(walkover).not.toHaveAttribute('href');
     await walkover.click();
-    await expect(dialog.getByText('(decided by an admin)')).toBeVisible();
-    await expect(dialog.locator('.match-result')).toHaveCount(0);
-    await expect(dialog.getByText('Decide without a game')).toHaveCount(0);
-    await expect(page.getByText('Tap a match for its result and statistics.')).toBeVisible();
+    await expect(page.locator('.tournament-dialog')).toHaveCount(0);
+    await expect(final).toHaveAttribute('href', /\/stats\/games\/x01\//);
+    await final.click();
+    await expect(page).toHaveURL(/\/stats\/games\/x01\//);
 });
 
 test('a finished league shows the results and its matches only as they were played', async ({ page }) => {
@@ -75,16 +64,11 @@ test('a finished league shows the results and its matches only as they were play
     await expect(played.locator('.bracket-score')).toHaveText([/^\d$/, /^\d$/]);
     await page.screenshot({ path: `test-results/finished-league-${test.info().project.name}.png`, fullPage: true });
 
-    await played.click();
-    const dialog = page.locator('.tournament-dialog');
-    await expect(dialog.locator('.match-result')).toContainText('legs');
-    await expect(dialog.getByRole('link', { name: 'Statistics of the match' })).toBeVisible();
-    await page.screenshot({ path: `test-results/finished-league-dialog-${test.info().project.name}.png` });
-    await page.keyboard.press('Escape');
-    await walkover.click();
-    await expect(dialog.getByText('(decided by an admin)')).toBeVisible();
-    for (const words of ['Decide without a game', 'Move the match']) await expect(dialog.getByText(words)).toHaveCount(0);
-    await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: 'Move the matchday' })).toHaveCount(0);
-    await expect(page.getByText('Tap a match for its result and statistics.')).toBeVisible();
+    await expect(page.getByText('Tap a played match for its statistics.')).toBeVisible();
+    // the walkover opens nothing, the played match its statistics
+    await walkover.click();
+    await expect(page.locator('.tournament-dialog')).toHaveCount(0);
+    await played.click();
+    await expect(page).toHaveURL(/\/stats\/games\/x01\//);
 });

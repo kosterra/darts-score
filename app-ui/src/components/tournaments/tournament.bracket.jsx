@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { SelectButton } from 'primereact/selectbutton';
 import { Avatar } from 'primereact/avatar';
 
@@ -70,10 +71,14 @@ const PlayerRow = ({ tournament, match, side }) => {
 
 export const MatchCard = ({ tournament, match, onSelect }) => {
     const state = stateOf(match);
-    const clickable = onSelect && !match.bye && (match.players[0] || match.players[1]);
-    const Tag = clickable ? 'button' : 'div';
+    // once it is all over a played match opens its statistics, a walkover nothing (no dialog to only read)
+    const over = ['finished', 'cancelled'].includes(tournament.status);
+    const stats = over && match.game ? `/stats/games/x01/${match.game}` : null;
+    const clickable = !over && onSelect && !match.bye && (match.players[0] || match.players[1]);
+    const Tag = stats ? Link : clickable ? 'button' : 'div';
+    const action = stats ? { to: stats, 'aria-label': t('Statistics of the match') } : clickable ? { type: 'button', onClick: () => onSelect(match) } : {};
     return (
-        <Tag type={clickable ? 'button' : undefined} className={`bracket-match ${match.bye ? 'is-bye' : ''} ${clickable ? 'is-clickable' : ''}`} onClick={clickable ? () => onSelect(match) : undefined}>
+        <Tag {...action} className={`bracket-match ${match.bye ? 'is-bye' : ''} ${clickable || stats ? 'is-clickable' : ''} ${stats ? 'text-decoration-none' : ''}`}>
             <PlayerRow tournament={tournament} match={match} side={0} />
             <PlayerRow tournament={tournament} match={match} side={1} />
             {state && <span className={`bracket-state ${state.className}`}>{state.label}</span>}

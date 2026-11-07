@@ -426,7 +426,7 @@ const TournamentPage = () => {
                     <div className={revealing ? 'bracket-reveal' : ''}>
                         <TournamentBracket tournament={tournament} onSelect={setSelected} />
                     </div>
-                    <p className="text-faint fs-8 mt-3 mb-0">{over ? t('Tap a match for its result and statistics.') : t('Tap a match to start it, follow it or see its statistics. The winner goes on by itself.')}</p>
+                    <p className="text-faint fs-8 mt-3 mb-0">{over ? t('Tap a played match for its statistics.') : t('Tap a match to start it, follow it or see its statistics. The winner goes on by itself.')}</p>
                 </Panel>}
 
             {(registration || closed) &&
