@@ -8,6 +8,7 @@ let tallies = [];
 let games = [];
 // a tournament returned by db.tournament.findById, for the cross-club access tests
 let sharedTournament = null;
+let clubZone = null;
 const notices = [];
 const mails = [];
 const created = [];
@@ -31,7 +32,7 @@ vi.mock('../models/db.model.js', () => ({
         user: { find: (query) => lean(byIds(users, query._id.$in)) },
         playerContact: { find: () => lean(contacts) },
         notification: { create: async (doc) => { notices.push(doc); return doc; } },
-        club: { findById: () => lean({ _id: 'club', name: 'Red Lion', admins: ['admin1'] }) },
+        club: { findById: () => lean({ _id: 'club', name: 'Red Lion', admins: ['admin1'], timeZone: clubZone }) },
         clubTally: { find: () => lean(tallies) },
         x01: {
             create: async (doc) => { const game = { ...doc, _id: `game${games.length + 1}` }; games.push(game); created.push(game); return game; },
@@ -77,6 +78,7 @@ beforeEach(() => {
     tallies = [];
     games = [];
     sharedTournament = null;
+    clubZone = null;
     for (const list of [notices, mails, created, badgesSynced]) list.length = 0;
 });
 
@@ -218,6 +220,23 @@ describe('the registration', () => {
         expect(service.readReplyToken(service.replyToken(id(900), 'p4'))).toBeNull();
     });
 
+    it('sends no reminder in the same hour as the invitation when the registration opens less than a day before its end', async () => {
+        const db = (await import('../models/db.model.js')).default;
+        const before = db.tournament;
+        const tournament = tournamentDoc({ closesAt: later(20 / 24) });
+        await service.openRegistration(tournament, now);
+        expect(tournament.reminded).toEqual(['registration']);
+        db.tournament = { find: async (query) => (query.status === 'registration' ? [tournament] : []) };
+        mails.length = 0;
+        await service.runTournamentJobs(now);
+        expect(mails).toEqual([]);
+        db.tournament = before;
+        // a week before its end, the reminder comes the day before
+        const early = tournamentDoc();
+        await service.openRegistration(early, now);
+        expect(early.reminded).toEqual([]);
+    });
+
     it('closes at its end and tells the admins, also when too few entered', async () => {
         const tournament = tournamentDoc({ status: 'registration' });
         tournament.entries = players.slice(0, 3).map(player => ({ player: player._id, status: 'in' }));
@@ -260,6 +279,18 @@ describe('shared tournaments between connected clubs', () => {
         // a member of the admin's club is added, and the entry keeps that club
         await service.answerEntry(tournament, id(7), 'in', { byAdmin: true, club: 'clubB' });
         expect(tournament.entries.find(entry => entry.player === id(7))).toMatchObject({ club: 'clubB', status: 'in' });
+    });
+
+    it("tells each player in the club they play for, so the notice opens in that club", async () => {
+        const tournament = sharedDoc();
+        await service.cancelTournament(tournament);
+        expect(notices.map(notice => [notice.user, notice.club])).toEqual([[id(101), 'clubA'], [id(102), 'clubB']]);
+        // the invitation in the app too
+        notices.length = 0;
+        const invited = sharedDoc();
+        invited.entries = invited.entries.map(entry => ({ ...entry, status: 'invited' }));
+        await service.invite(invited, invited.entries, 'reminder');
+        expect(notices.map(notice => [notice.user, notice.club])).toEqual([[id(101), 'clubA'], [id(102), 'clubB']]);
     });
 
     it('knows which clubs take part (host or invited), for cross-club game access', async () => {
@@ -595,6 +626,29 @@ describe('on boards', () => {
         expect(tournament.matches.find(match => match.id === '8-0')).toMatchObject({ board: null });
         await service.setResult(tournament, '8-1', onBoard(tournament, 2).players[0]);
         expect(onBoard(tournament, 2).id).toBe('8-0');
+    });
+});
+
+describe('the reminder of a round', () => {
+    it("tells the admins on the day of the next round on the club's clock", async () => {
+        const db = (await import('../models/db.model.js')).default;
+        const before = db.tournament;
+        const rules = roundsOfPreset('clubClassic', 4)[0].rules;
+        const tournament = tournamentDoc({
+            status: 'running', maxPlayers: 4,
+            // the final at 22:00 on 3.11. in New York: 4.11. in Zurich
+            rounds: [{ size: 4, date: new Date('2026-10-27T23:00:00Z'), rules, skipped: false }, { size: 2, date: new Date('2026-11-04T03:00:00Z'), rules, skipped: false }],
+            matches: [{ id: 'sf1', size: 4, status: 'ready', players: [id(1), id(2)] }],
+        });
+        db.tournament = { find: async (query) => (query.status?.$in ? [tournament] : []) };
+        // 15:00 on 3.11. in New York, 21:00 in Zurich
+        const at = new Date('2026-11-03T20:00:00Z');
+        await service.runTournamentJobs(at);
+        expect(notices).toEqual([]);
+        clubZone = 'America/New_York';
+        await service.runTournamentJobs(at);
+        expect(notices.map(notice => [notice.kind, notice.title])).toEqual([['tournamentOverdue', 'Autumn Cup: 1 matches of the Semi-finals not played yet']]);
+        db.tournament = before;
     });
 });
 

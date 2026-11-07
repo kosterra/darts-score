@@ -5,7 +5,7 @@ import { cleanRules, isDecided } from '../rules/tournaments.js';
 import { storedOf } from './game.view.js';
 import { deliverQuietly } from './notify.js';
 import { untilSaved } from './retry.js';
-import { zoneOf } from '../rules/zones.js';
+import { dayKeyIn, zoneOf } from '../rules/zones.js';
 import { shirtOf } from './shirts.js';
 
 /**
@@ -242,7 +242,8 @@ export const setResult = async (league, matchKey, winner, { by = null } = {}) =>
 
 /**
  * An admin moves a matchday: its matches without a date of their own are
- * then due on the new day; their players hear it.
+ * then due on the new day; their players hear it, and the admins are
+ * reminded again if it is not played by then.
  */
 export const moveMatchday = async (league, day, date) => {
     if (league.status !== 'running') throw failure('The league is not running.', 409);
@@ -251,6 +252,7 @@ export const moveMatchday = async (league, day, date) => {
     const matchday = league.matchdays.find(entry => entry.day === Number(day));
     if (!matchday) throw failure('There is no such matchday.', 404);
     league.matchdays = league.matchdays.map(entry => ({ day: entry.day, date: entry.day === Number(day) ? when : entry.date }));
+    league.reminded = league.reminded.filter(key => key !== `overdue:${Number(day)}`);
     await league.save();
     const players = [...new Set(league.matches.filter(match => match.day === Number(day) && !match.date && !isDecided(match)).flatMap(match => match.players))];
     await tellPlayers(league, players, { kind: 'leagueMoved', title: `${league.name}: matchday ${day} moved`, body: `Now due on ${dayText(when)}` });
@@ -259,7 +261,8 @@ export const moveMatchday = async (league, day, date) => {
 
 /**
  * An admin moves a single match (null: back to its matchday's day); its
- * players hear it.
+ * players hear it, and the admins are reminded again if it is not played by
+ * then.
  */
 export const moveMatch = async (league, matchKey, date) => {
     if (league.status !== 'running') throw failure('The league is not running.', 409);
@@ -271,6 +274,7 @@ export const moveMatch = async (league, matchKey, date) => {
     if (when && Number.isNaN(when.getTime())) throw failure('Choose a day.', 422);
     match.date = when;
     league.matches = matches;
+    league.reminded = league.reminded.filter(key => key !== `overdueMatch:${matchKey}`);
     await league.save();
     const due = dueOf(league, match);
     await tellPlayers(league, match.players, { kind: 'leagueMoved', title: `${league.name}: your match moved`, body: due ? `Now due on ${dayText(due)}` : '' });
@@ -309,21 +313,21 @@ export const leagueView = async (league, { playerId = null } = {}) => {
 // Once an hour
 // ---------------------------------------------------------------------------
 
-const dayOf = (date) => {
-    const at = new Date(date);
-    return new Date(at.getFullYear(), at.getMonth(), at.getDate()).getTime();
-};
-
 /**
- * The admins hear once of a matchday that is over with matches not played.
+ * The admins hear once of a matchday that is over with matches not played,
+ * and once of the matches moved to a day of their own that is over (each
+ * again when moved). The days are the club's.
  */
 export const runLeagueJobs = async (now = new Date()) => {
     const running = await db.league.find({ status: 'running' });
     for (const league of running) {
         try {
+            const zone = zoneOf(await db.club.findById(league.club, 'timeZone').lean());
+            const today = dayKeyIn(now, zone);
+            const over = (date) => dayKeyIn(date, zone) < today;
             for (const matchday of league.matchdays) {
                 const key = `overdue:${matchday.day}`;
-                if (dayOf(matchday.date) >= dayOf(now) || league.reminded.includes(key)) continue;
+                if (!over(matchday.date) || league.reminded.includes(key)) continue;
                 const open = league.matches.filter(match => match.day === matchday.day && !match.date && !isDecided(match)).length;
                 if (!open) continue;
                 league.reminded.push(key);
@@ -331,6 +335,16 @@ export const runLeagueJobs = async (now = new Date()) => {
                 await tellAdmins(league, {
                     kind: 'leagueOverdue',
                     title: `${league.name}: ${open} matches of matchday ${matchday.day} not played`,
+                    body: 'Start them, move them to another day, or decide them on the league page.',
+                });
+            }
+            const moved = league.matches.filter(match => match.date && over(match.date) && !isDecided(match) && !league.reminded.includes(`overdueMatch:${match.id}`));
+            if (moved.length) {
+                league.reminded.push(...moved.map(match => `overdueMatch:${match.id}`));
+                await league.save();
+                await tellAdmins(league, {
+                    kind: 'leagueOverdue',
+                    title: moved.length === 1 ? `${league.name}: a moved match not played` : `${league.name}: ${moved.length} moved matches not played`,
                     body: 'Start them, move them to another day, or decide them on the league page.',
                 });
             }

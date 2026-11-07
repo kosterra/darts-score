@@ -17,6 +17,7 @@ import { dateIn, deliverQuietly, languageOf, unsubscribeToken } from './notify.j
 import { tr } from './translate.js';
 import { untilSaved } from './retry.js';
 import { shirtOf } from './shirts.js';
+import { dayKeyIn, zoneOf } from '../rules/zones.js';
 
 /**
  * The tournaments of a club (knockout, see rules/tournaments.js): the
@@ -109,11 +110,6 @@ export const participatesInTournament = async (clubId, tournamentId) => {
 // Setting up
 // ---------------------------------------------------------------------------
 
-const dayOf = (date) => {
-    const at = new Date(date);
-    return new Date(at.getFullYear(), at.getMonth(), at.getDate()).getTime();
-};
-
 /**
  * What an admin sent to set up a tournament, checked: { setup } or { error }.
  * stored: the tournament as it is (null for a new one); what may change
@@ -195,11 +191,14 @@ const accountsOf = async (playerIds) => {
     return new Map(players.map(player => [String(player._id), player]));
 };
 
-// notifications to the players (with a login) of a tournament
+// the club a player plays for in a tournament: the host, or their connected club in a shared one
+const clubOfEntry = (tournament, playerId) => (tournament.entries ?? []).find(entry => String(entry.player) === String(playerId))?.club ?? tournament.club;
+
+// notifications to the players (with a login) of a tournament, each in the club they play for
 const tellPlayers = async (tournament, playerIds, notice) => {
     const players = await accountsOf(playerIds);
     await deliverQuietly([...players.values()].filter(player => player.user).map(player => ({
-        user: player.user, club: tournament.club, link: `/tournaments/${tournament._id}`, ...(typeof notice === 'function' ? notice(player) : notice),
+        user: player.user, club: clubOfEntry(tournament, player._id), link: `/tournaments/${tournament._id}`, ...(typeof notice === 'function' ? notice(player) : notice),
     })));
 };
 
@@ -240,7 +239,7 @@ export const invite = async (tournament, entries, kind = 'invite') => {
             const user = player.user ? users.get(String(player.user)) : null;
             if (user) {
                 const preference = preferenceOf(user.notifications, 'tournamentInvites');
-                if (preference.inApp) await db.notification.create({ user: user._id, club: tournament.club, link: `/tournaments/${tournament._id}`, ...notice, inApp: true, mail: 'off' });
+                if (preference.inApp) await db.notification.create({ user: user._id, club: clubOfEntry(tournament, player._id), link: `/tournaments/${tournament._id}`, ...notice, inApp: true, mail: 'off' });
                 if (preference.mail !== 'off' && mailing) {
                     const language = languageOf(user);
                     await sendTemplateMail(template, user.email, { firstname: user.firstname, ...vars(language), manageUrl: `${getAppUrl()}/profile#notifications` }, language);
@@ -265,13 +264,16 @@ export const invite = async (tournament, entries, kind = 'invite') => {
 // ---------------------------------------------------------------------------
 
 /**
- * Opens the registration: every member who can play is invited.
+ * Opens the registration: every member who can play is invited. When it
+ * ends within REMINDER_HOURS, the invitation is the reminder too.
  */
-export const openRegistration = async (tournament) => {
+export const openRegistration = async (tournament, now = new Date()) => {
     const members = await eligibleMembers(tournament.club);
     const known = new Map((tournament.entries ?? []).map(entry => [String(entry.player), entry]));
     tournament.entries = members.map(member => known.get(String(member._id)) ?? { player: member._id, club: tournament.club, status: 'invited' });
     tournament.status = 'registration';
+    const reminded = tournament.reminded ?? [];
+    if (new Date(tournament.closesAt) - now <= REMINDER_HOURS * 60 * 60 * 1000 && !reminded.includes('registration')) tournament.reminded = [...reminded, 'registration'];
     await tournament.save();
     const told = await invite(tournament, tournament.entries.filter(entry => entry.status === 'invited'));
     logger.info(`Registration of the tournament ${tournament._id} opened, ${told} members invited`);
@@ -850,10 +852,13 @@ export const runTournamentJobs = async (now = new Date()) => {
             // a bracket after the groups that was not filled (its save failed)
             if (knockoutDue(tournament)) await fillKnockoutWhenDue(tournament);
             const playing = tournament.rounds.filter(round => !round.skipped && round.date);
+            // the days on the host club's clock
+            const zone = zoneOf(await db.club.findById(tournament.club, 'timeZone').lean());
+            const today = dayKeyIn(now, zone);
             for (let index = 1; index < playing.length; index += 1) {
                 const round = playing[index];
                 const key = `overdue:${round.size}`;
-                if (dayOf(round.date) > dayOf(now) || tournament.reminded.includes(key)) continue;
+                if (dayKeyIn(round.date, zone) > today || tournament.reminded.includes(key)) continue;
                 const before = playing[index - 1].size;
                 const open = tournament.matches.filter(match => match.size === before && !isDecided(match)).length;
                 if (!open) continue;
