@@ -7259,11 +7259,10 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/PlayLevel'
-        - $ref: '#/components/parameters/LevelPlayer'
         - name: player
           in: query
           required: false
-          description: Only the trainings of this player
+          description: Only the trainings of this player (with level, those it played at that level)
           schema:
             type: string
             description: MongoDB ObjectId
