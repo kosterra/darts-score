@@ -10,7 +10,7 @@ import { t } from '../../utils/i18n';
 import { formatDate } from '../../utils/dates';
 import { Lines } from '../elements/skeletons';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
-import { replayTraining } from '../../rules/engine';
+import { replayTraining, trainingVisits } from '../../rules/engine';
 import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
@@ -175,8 +175,11 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
         positions.current = now;
     });
 
-    const canOpen = Boolean(definition.doubles);
-    const doublesOf = (entry) => (entry.darts?.length ? definition.doubles(replayTraining(definition, entry).state) : null);
+    // an attempt with its darts opens to them, visit by visit (and Bob's 27's hits per double)
+    const canOpen = true;
+    const doublesOf = (entry) => (entry.darts?.length && definition.doubles ? definition.doubles(replayTraining(definition, entry).state) : null);
+    // a dart as the visits of a game show it: Hit and Miss, a miss of the board as Miss
+    const dartLabel = (dart) => (dart === 'H' ? t('Hit') : dart === 'M' || dart === '0' ? t('Miss') : dart);
     // the level each attempt was played at, as the API keeps it; one saved before it did is judged
     // here from its darts, the same way
     const levelOf = (entry) => {
@@ -224,6 +227,7 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                             const arriving = entry.id === highlight && phase;
                             const opens = canOpen && entry.darts?.length > 0;
                             const doubles = open === entry.id ? doublesOf(entry) : null;
+                            const visits = open === entry.id ? trainingVisits(definition, entry) : null;
                             return (
                                 <Fragment key={entry.id}>
                                 <li
@@ -262,7 +266,18 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, highlig
                                     </span>
                                     {opens && <i className={`pi pi-chevron-${open === entry.id ? 'up' : 'down'} rules-board-chevron`} aria-hidden="true" />}
                                 </li>
-                                {doubles && <li className="rules-board-doubles"><RulesDoubles cells={doubles} label={definition.doublesLabel} /></li>}
+                                {open === entry.id &&
+                                    <li className="rules-board-doubles">
+                                        {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} />}
+                                        {/* the darts of the attempt, visit by visit, as tags */}
+                                        <div className="rules-board-visits" aria-label={t('Darts thrown')}>
+                                            {visits.map((visit, index) => (
+                                                <span key={index} className="x01-visit-darts">
+                                                    {visit.map((dart, d) => <span key={d} className={dart === 'H' ? 'is-hit' : dart === 'M' || dart === '0' ? 'is-miss' : ''}>{dartLabel(dart)}</span>)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </li>}
                                 </Fragment>
                             );
                         })}

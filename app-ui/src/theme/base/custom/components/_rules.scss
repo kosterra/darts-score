@@ -306,7 +306,14 @@
         .rules-visit-mark, .rules-visit-number { color: $accentRed; }
     }
 
-    &.is-thrown .rules-visit-mark { color: $textDefaultColor; }
+    // a dart thrown (Treble, D20, …): a tag as the darts are shown elsewhere
+    &.is-thrown .rules-visit-mark {
+        padding: 0 0.5rem;
+        border-radius: $radius-md;
+        background: ink(0.1);
+        color: $textDefaultColor;
+        font-size: $text-base;
+    }
 
     // the dart to throw now: lighter than the others, no frame
     &.is-next {
@@ -498,6 +505,17 @@
 
 .rules-board-doubles {
     padding: $space-2 $space-1 $space-3;
+}
+
+// the darts of an attempt opened on the scoreboard: a group of tags per visit
+.rules-board-visits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-2 $space-3;
+    margin-top: $space-2;
+
+    .is-hit { color: $accentGreen; }
+    .is-miss { color: $textFaintColor; }
 }
 
 // the rules of a game in its header: a quiet button, the rules opening below it
@@ -754,8 +772,12 @@
     align-items: flex-end;
     line-height: 1.2;
 
+    // how far a failed attempt got ("out at D6"): a quiet tag, as the darts are shown
     .rules-board-note {
-        color: $textFaintColor;
+        @include label-shape;
+        @include label-neutral;
+        margin-top: 0.15rem;
+        color: var(--text-subtle);
         font-size: $text-xs;
         font-weight: $weight-semibold;
         white-space: nowrap;

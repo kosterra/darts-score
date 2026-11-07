@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { afterDart, isCheckout, isValidDart, parseDart } from './darts';
-import { progressOf, replayGame, replayTraining, withGameState } from './engine';
+import { progressOf, replayGame, replayTraining, trainingVisits, withGameState } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, bobsDanger, bobsProgress, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES, boardKeyOf, boardLabels, boardOf, defaultBoardKey, placesOf, settingsProblem } from './trainings';
 
@@ -467,5 +467,15 @@ describe('trainings', () => {
         // Bob's 27: 0 points each, the one further on the board first
         expect(placesOf([{ score: 0, reached: 6 }, { score: 0, reached: 4 }, { score: 0, reached: 4 }], better)).toEqual([1, 2, 2]);
         expect(placesOf([], better)).toEqual([]);
+    });
+});
+
+describe('the visits of a training', () => {
+    it('groups the darts by three, or as the training ends a visit', () => {
+        expect(trainingVisits(SCORING, { settings: { darts: 30 }, darts: ['T20', 'T20', 'S20', 'S1', '0'] })).toEqual([['T20', 'T20', 'S20'], ['S1', '0']]);
+        expect(trainingVisits(BOBS_27, { darts: ['M', 'H', 'M', 'H', 'H', 'H'] })).toEqual([['M', 'H', 'M'], ['H', 'H', 'H']]);
+        // a checkout attempt over at its first dart is a visit of its own
+        const targets = Array.from({ length: 10 }, () => 40);
+        expect(trainingVisits(RANDOM_CHECKOUTS, { settings: { attempts: 10, targets }, darts: ['D20', 'S20', 'S10', 'D5'] })).toEqual([['D20'], ['S20', 'S10', 'D5']]);
     });
 });
