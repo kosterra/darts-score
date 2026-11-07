@@ -6,7 +6,7 @@ import { noteCreated, noteDeleted, noteFairPlay, checkLater } from '../utils/spa
 import { hiddenTrainingPlayers, mayDeleteTrainingOf } from '../utils/training.privacy.js';
 import { RULES_TRAININGS } from '../utils/rules.kinds.js';
 import { withPlayers } from './atc.controller.js';
-import { trainingOf } from '../rules/trainings.js';
+import { boardLabels, trainingOf } from '../rules/trainings.js';
 import { replayTraining } from '../rules/engine.js';
 import { levelFilterOf, withPlayLevels } from '../utils/play.levels.js';
 import { noteTrainingRecords } from '../utils/player.notices.js';
@@ -62,7 +62,7 @@ export const create = async (req, res) => {
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: RULES_TRAININGS[kind].title, names: [] }));
         checkLater(() => noteFairPlay(req.club._id, 'rulesTraining', data));
         checkLater(() => noteTrainingRecords({
-            req, player, title: RULES_TRAININGS[kind].title, score: data.score, previousBest, clubBest,
+            req, player, title: RULES_TRAININGS[kind].title, board: boardLabels(trainingOf(kind), replayed.settings), score: data.score, previousBest, clubBest,
             better: (a, b) => (higher ? a > b : a < b), link: `/training/${kind}`,
         }));
 

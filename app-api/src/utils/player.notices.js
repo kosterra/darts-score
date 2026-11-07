@@ -86,15 +86,28 @@ export const progressNotices = (player, { fresh = [], shameBefore = [], shameAft
 };
 
 /**
+ * A training with the board its record is on (the settings that split its
+ * scoreboard, see boardLabels): "121 Checkout with 30 attempts and 9 darts",
+ * the title alone for a training with one board. Words of their own (not
+ * "121 Checkout (30 attempts, 9 darts)") so they translate part by part.
+ */
+export const trainingOnBoard = (title, labels = []) => {
+    if (labels.length === 1) return `${title} with ${labels[0]}`;
+    if (labels.length === 2) return `${title} with ${labels[0]} and ${labels[1]}`;
+    return title;
+};
+
+/**
  * After a training: a new personal best (told when someone else entered it,
  * e.g. the scorer of the club night) and a club record taken from someone
  * else (told to them). better(a, b): whether score a beats b; format: the
  * score as shown, e.g. "41.2 s"; previousBest / clubBest: the trainings that
- * held them, or null.
+ * held them, or null; board: the labels of the settings the record is on.
  */
-export const noteTrainingRecords = async ({ req, player, title, score, better, format = String, previousBest, clubBest, link }) => {
+export const noteTrainingRecords = async ({ req, player, title: name, board = [], score, better, format = String, previousBest, clubBest, link }) => {
     const db = (await import('../models/db.model.js')).default;
     const club = req.club._id;
+    const title = trainingOnBoard(name, board);
     if (previousBest && better(score, previousBest.score) && String(player.user ?? '') !== String(req.user?._id ?? '')) {
         await tellPlayer(player, [{
             kind: 'personalBest',
