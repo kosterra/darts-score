@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeRules, hasHandicap, inModeOf, isBust, outModeOf, rulesOf, startingScoreOf } from './x01.rules';
+import { describeRules, hasHandicap, inModeOf, isBust, outModeOf, rulesOf, startingScoreOf, withInMode } from './x01.rules';
 
 const game = {
     startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out',
@@ -46,5 +46,30 @@ describe('bust', () => {
     it('takes a rest of 0 without darts for the player who has just won, not a bust', () => {
         expect(isBust(0, ['', '', ''], 'Double Out')).toBe(false);
         expect(isBust(0, [], 'Master Out')).toBe(false);
+    });
+});
+
+describe('withInMode', () => {
+    it('counts the darts before the opening double as misses', () => {
+        expect(withInMode(['S20', 'D5', 'T20'], 'Double In', false)).toEqual(['0', 'D5', 'T20']);
+        expect(withInMode(['T20', 'S5', ''], 'Double In', false)).toEqual(['0', '0', '']);
+        expect(withInMode(['T20', 'S5', 'S1'], 'Master In', false)).toEqual(['T20', 'S5', 'S1']);
+        expect(withInMode(['S20', 'S5', 'D1'], 'Master In', false)).toEqual(['0', '0', 'D1']);
+    });
+
+    it('goes by the darts before, not by what the visit scores: no treble before a single', () => {
+        // the first dart cleared while the second holds S5, then entered as T20
+        expect(withInMode(['', 'S5', ''], 'Double In', false)).toEqual(['', 'S5', '']);
+        expect(withInMode(['T20', 'S5', ''], 'Double In', false)).toEqual(['0', '0', '']);
+        expect(withInMode(['D20', 'S5', ''], 'Double In', false)).toEqual(['D20', 'S5', '']);
+    });
+
+    it('leaves the darts after one still being typed', () => {
+        expect(withInMode(['T', 'S5', ''], 'Double In', false)).toEqual(['T', 'S5', '']);
+    });
+
+    it('does nothing once the leg is started, or with Straight In', () => {
+        expect(withInMode(['S20', 'S5', 'S1'], 'Double In', true)).toEqual(['S20', 'S5', 'S1']);
+        expect(withInMode(['S20', 'S5', 'S1'], 'Straight In', false)).toEqual(['S20', 'S5', 'S1']);
     });
 });

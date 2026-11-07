@@ -20,11 +20,9 @@ import SaveStatus from '../components/games/common/save.status';
 
 import {
     normalizeDart,
-    validateDartValue,
-    dartIsDouble,
-    dartIsTriple
+    validateDartValue
 } from './game.utils';
-import { inModeOf, isBust, outModeOf, startingScoreOf } from './x01.rules';
+import { inModeOf, isBust, outModeOf, startingScoreOf, withInMode } from './x01.rules';
 
 import { FETCH_GAME_SUCCESS, FETCH_PLAYERS_SUCCESS, SET_GAME, SET_LOADING, UPDATE_CURRENT_THROW } from './constants';
 import { t } from './i18n';
@@ -123,64 +121,24 @@ const X01State = props => {
     // nothing scored in this leg yet: the in mode decides whether a dart counts
     const hasNotStarted = (score) => Number(score) === startingScoreOf(state.game, state.game.currentPlayerTurn);
 
+    // the leg was opened in an earlier visit: the in mode no longer applies
+    const startedBefore = () => !hasNotStarted(state.game.playerModels?.[state.game.currentPlayerTurn]?.score);
+    // the darts of the visit with the in mode, each by the darts before it
+    const inModeApplied = (darts) => withInMode(darts, currentInMode(), startedBefore());
+
+    // score: what is left after the darts so far (the in mode goes by the darts themselves)
     const updateCurrentThrowManual = (score, value, index) => {
         value = normalizeDart(value);
-        if (hasNotStarted(score) && value !== '' && validateDartValue(value)) {
-            if (currentInMode() === 'Double In') {
-                let startedInDouble = dartIsDouble(value);
-                if (!startedInDouble) {
-                    value = '0'
-                }
-            } else if (currentInMode() === 'Master In') {
-                let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
-                if (!startedInMaster) {
-                    value = '0';
-                }
-            }
-        }
-
-        const newCurrentThrow = state.game.currentThrow.map((dart, i) => {
-            if (i === index) {
-                dart = value;
-            }
-            return dart
-        });
-
-        dispatch({
-            type: UPDATE_CURRENT_THROW,
-            payload: newCurrentThrow
-        })
+        const newCurrentThrow = state.game.currentThrow.map((dart, i) => (i === index ? value : dart));
+        dispatch({ type: UPDATE_CURRENT_THROW, payload: inModeApplied(newCurrentThrow) });
     }
 
     const updateCurrentThrowDartBoard = (score, value) => {
         const newCurrentThrow = [...state.game.currentThrow];
-
-        for (let index = 0; index < newCurrentThrow.length; index++) {
-            if (hasNotStarted(score) && validateDartValue(value)) {
-                if (currentInMode() === 'Double In') {
-                    let startedInDouble = dartIsDouble(value);
-                    if (!startedInDouble) {
-                        value = '0'
-                    }
-                } else if (currentInMode() === 'Master In') {
-                    let startedInMaster = dartIsDouble(value) || dartIsTriple(value);
-                    if (!startedInMaster) {
-                        value = '0';
-                    }
-                }
-            }
-
-            if (newCurrentThrow[index] === '') {
-                newCurrentThrow[index] = value;
-                break;
-            }
-        }
-
-        dispatch({
-            type: UPDATE_CURRENT_THROW,
-            payload: newCurrentThrow
-        })
-
+        const index = newCurrentThrow.indexOf('');
+        if (index < 0) return;
+        newCurrentThrow[index] = value;
+        dispatch({ type: UPDATE_CURRENT_THROW, payload: inModeApplied(newCurrentThrow) });
     }
 
     const onClickValidateThrow = currentScore => {

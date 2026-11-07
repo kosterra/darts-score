@@ -1,6 +1,7 @@
 // The rules a player plays an X01 game by. With a handicap each player may
 // have their own starting score and in/out mode (kept in their player model);
 // without one, the game's settings apply to everyone.
+import { validateDartValue } from './game.utils';
 
 const own = (game, playerId) => game?.playerModels?.[playerId] ?? {};
 
@@ -46,5 +47,25 @@ export const isBust = (score, currentThrow = [], outMode = 'Double Out') => {
     if (outMode === 'Double Out') return score === 1 || (score === 0 && thrown.length > 0 && !last.startsWith('D'));
     if (outMode === 'Master Out') return score === 1 || (score === 0 && thrown.length > 0 && !/^[DT]/.test(last));
     return false;
+};
+
+/**
+ * The darts of a visit with the player's in mode: until a dart opens the leg
+ * (Double In: a double; Master In: a double or a treble) the others are
+ * misses, by the darts before them (not by what the visit scores in the end).
+ * started: the leg was opened in an earlier visit. A dart not entered yet or
+ * still being typed leaves those after it as they are, until it is known.
+ */
+export const withInMode = (darts, inMode, started) => {
+    if (started || (inMode !== 'Double In' && inMode !== 'Master In')) return darts;
+    const opens = inMode === 'Double In' ? /^d/i : /^[dt]/i;
+    const result = [...darts];
+    for (let index = 0; index < result.length; index++) {
+        const dart = String(result[index] ?? '').trim();
+        if (dart === '' || !validateDartValue(dart)) break;
+        if (Number(dart) !== 0 && opens.test(dart)) break;
+        result[index] = '0';
+    }
+    return result;
 };
 
