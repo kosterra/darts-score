@@ -19,7 +19,6 @@ import { useAuth } from '../../utils/auth.context';
 import { locale, t } from '../../utils/i18n';
 import { QUICK_DEFAULTS, QUICK_GAMES, QUICK_LEGS, QUICK_SCORES, QUICK_VARIANTS, newQuickGame, quickSetupText } from '../../utils/quick.games';
 import { chooseGone, choosePlayers, chosenPlayers, eveningWindow, gonePlayers, noteNightGame } from '../../utils/club.night';
-import { dayKey } from '../../rules/calendar';
 import NextGame from '../evening/evening.next.game';
 import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable, TableOrder } from '../evening/evening.parts';
 import GameTypeIcon from '../elements/game.type.icon';
@@ -39,7 +38,7 @@ import MyMatch from '../boards/my.match';
 import SaveStatus from '../elements/save.status';
 import SettingSwitch from '../elements/setting.switch';
 import SetupBox from '../elements/setup.box';
-import { zoneOf } from '../../rules/zones';
+import { dayKeyIn, zoneOf } from '../../rules/zones';
 
 // the table follows the games played on the other boards; more often while the player's own match is on a board
 const REFRESH_MS = 20 * 1000;
@@ -77,22 +76,35 @@ const ClubNightPage = () => {
     const [boardNight, setBoardNight] = useState(null);
     const [boardChoice, setBoardChoice] = useState({});
     const boardPatch = useRef({});
+    // the admin's changes to the boards so far, and how many of them a save has answered: a
+    // refresh in between does not undo what is still on its way
+    const boardEdits = useRef(0);
+    const boardAnswered = useRef(0);
     const [boardBusy, setBoardBusy] = useState('');
     // the table by wins (as always), or by win rate when some played much less
     const [order, setOrder] = useState('wins');
-    const today = dayKey(new Date());
+    // today on the club's clock, the clock of its club nights
+    const today = dayKeyIn(new Date(), zoneOf(activeClub));
     const tonight = day === today;
     // the boards of the night, saved as you go: the changes chosen since the last save sent together
     const boardSave = useAutoSave(async () => {
         const changes = boardPatch.current;
         boardPatch.current = {};
-        const result = await BoardService.saveNight(day, changes);
-        setBoardNight(result);
-        // the players chosen are the night's now, on every device
-        if (result?.players) setPlayers(result.players.map(player => player.id));
-        if (result?.left) setGone(goneOf(result));
+        const sent = boardEdits.current;
+        try {
+            const result = await BoardService.saveNight(day, changes);
+            setBoardNight(result);
+            // the players chosen are the night's now, on every device (unless chosen again meanwhile)
+            if (boardEdits.current === sent) {
+                if (result?.players) setPlayers(result.players.map(player => player.id));
+                if (result?.left) setGone(goneOf(result));
+            }
+        } finally {
+            boardAnswered.current = Math.max(boardAnswered.current, sent);
+        }
     });
     const chooseBoards = (changes, options = { now: true }) => {
+        boardEdits.current += 1;
         boardPatch.current = { ...boardPatch.current, ...changes };
         setBoardChoice(current => ({ ...current, ...changes }));
         boardSave.change({ ...boardPatch.current }, options);
@@ -115,13 +127,18 @@ const ClubNightPage = () => {
     }, [day, activeClub?.id]);
 
     const span = useMemo(() => (night ? eveningWindow(day, night.start, zoneOf(activeClub)) : null), [day, night, activeClub]);
-    const loadBoards = useCallback(() => BoardService.loadNight(day).then(found => {
-        setBoardNight(found);
-        if (found?.players?.length) {
-            setPlayers(found.players.map(player => player.id));
-            setGone(goneOf(found));
-        }
-    }).catch(() => {}), [day]);
+    const loadBoards = useCallback(() => {
+        const asked = boardEdits.current;
+        return BoardService.loadNight(day).then(found => {
+            setBoardNight(found);
+            // what the admin chose and is not saved yet stays as chosen
+            const changed = boardEdits.current !== asked || boardAnswered.current < boardEdits.current;
+            if (found?.players?.length && !changed) {
+                setPlayers(found.players.map(player => player.id));
+                setGone(goneOf(found));
+            }
+        }).catch(() => {});
+    }, [day]);
     useEffect(() => { loadBoards(); }, [loadBoards]);
     const myBoard = boardNight?.entries?.find(entry => entry.board && ['called', 'playing'].includes(entry.status) && entry.players.includes(boardNight.myPlayer)) ?? null;
     const load = useCallback(() => {
@@ -157,6 +174,8 @@ const ClubNightPage = () => {
         chooseGone(activeClub?.id, day, next);
         if (boardNight && isClubAdmin) chooseBoards({ gone: Object.keys(next) });
     };
+    // on boards the players and who went home are the night's: only the admins change them, the others see them
+    const canChoose = isClubAdmin || !boardNight?.players?.length;
     const here = evening.players.filter(player => !gone[player.id]);
     // the players of the table, with when they went home
     const tablePlayers = evening.players.map(player => ({ ...player, leftAt: gone[player.id] ?? null }));
@@ -263,13 +282,13 @@ const ClubNightPage = () => {
                                     <span>{nameOf(id)}</span>
                                     {gone[id] && <span className="evening-player-note">{t('went home at {{time}}', { time: dayjs(gone[id]).format('HH:mm') })}</span>}
                                 </span>
-                                {tonight && (gone[id]
+                                {tonight && canChoose && (gone[id]
                                     ? <button type="button" aria-label={t('{{name}} is back', { name: nameOf(id) })} title={t('Back')} onClick={() => goHome(id, false)}><i className="pi pi-replay" aria-hidden="true" /></button>
                                     : <button type="button" aria-label={t('{{name}} went home', { name: nameOf(id) })} title={t('Gone home')} onClick={() => goHome(id, true)}><i className="pi pi-sign-out" aria-hidden="true" /></button>)}
-                                <button type="button" aria-label={t('Take {{name}} out of tonight', { name: nameOf(id) })} title={t('Take out')} onClick={() => setChosen(players.filter(entry => entry !== id))}><i className="pi pi-times" aria-hidden="true" /></button>
+                                {canChoose && <button type="button" aria-label={t('Take {{name}} out of tonight', { name: nameOf(id) })} title={t('Take out')} onClick={() => setChosen(players.filter(entry => entry !== id))}><i className="pi pi-times" aria-hidden="true" /></button>}
                             </span>
                         ))}
-                        {notPlaying.length > 0 &&
+                        {canChoose && notPlaying.length > 0 &&
                             <Dropdown value={null} options={notPlaying.map(member => ({ label: member.nickname, value: member.id, player: member }))} itemTemplate={(option) => <PlayerOption player={option.player} level={levels[option.value]} />} onChange={(event) => setChosen([...players, event.value])} placeholder={t('Add a member')} filter className="club-night-add" />}
                     </div>
                 </Panel>
