@@ -93,3 +93,17 @@ test('121 Checkout: a scoreboard per attempts and darts, the same score sharing 
     await expect(rows.first()).toContainText('124');
     await post('/__test/rules-trainings', {});
 });
+
+test('the last darts stay in view once a visit is over, to check the last one', async ({ page }) => {
+    await start(page, 'trebles');
+    await tap(page, 'Treble');
+    await tap(page, 'Single');
+    await tap(page, 'Miss');
+    // the tiles of the visit are empty again; its darts are under them
+    const last = page.locator('.rules-last-darts');
+    await expect(last).toContainText('Last darts');
+    await expect(last.locator('.rules-last-dart')).toHaveText(['Treble', 'Single', 'Miss']);
+    await tap(page, 'Double');
+    await expect(last.locator('.rules-last-dart')).toHaveText(['Treble', 'Single', 'Miss']);
+    await page.screenshot({ path: `test-results/last-darts-${test.info().project.name}.png` });
+});

@@ -344,6 +344,8 @@ const RulesTraining = () => {
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
         // with the board or the keypad: the darts tapped, not entered yet
         const visitDarts = staged ? pending : inVisit ? running.darts.slice(-inVisit) : [];
+        // the last darts before this visit, to check a dart entered a moment ago (the tiles are empty again)
+        const lastDarts = running.darts.slice(0, running.darts.length - (staged ? 0 : inVisit)).slice(-3);
         const canUndo = running.darts.length > 0 || pending.length > 0;
         const status = definition.status(replay.state, ctx);
         const changed = undone ? status.filter(([, value], index) => String(undone.status[index]?.[1]) !== String(value)).map(([label]) => label) : [];
@@ -498,6 +500,15 @@ const RulesTraining = () => {
                                     );
                                 })}
                             </ol>
+                            {lastDarts.length > 0 && !over &&
+                                <p className="rules-last-darts" aria-label={t('Last darts')}>
+                                    <span className="text-faint">{t('Last darts')}</span>
+                                    {lastDarts.map((dart, index) => (
+                                        <span key={`${running.darts.length}-${index}`} className={`rules-last-dart ${dart === 'H' ? 'is-hit' : dart === 'M' ? 'is-miss' : ''}`}>
+                                            {dart === 'H' ? t('Hit') : dart === 'M' ? t('Miss') : buttonLabel(dart)}
+                                        </span>
+                                    ))}
+                                </p>}
                             {/* after an undo: where it stands again */}
                             {undone && <p key={undone.count} className="rules-undone" role="status"><i className="pi pi-undo" aria-hidden="true" />{t('Dart {{dart}} undone: {{target}} again', { dart: visitDarts.length + 1, target })}</p>}
                             {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}

@@ -532,14 +532,15 @@ export const TREBLES = {
     // the trebles, their share and the darts big under the treble (instead of the status)
     heroFigures: (state, { settings }) => [[t('Trebles'), state.trebles], [t('Treble rate'), percent(state.trebles, state.darts)], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     status: (state, { settings }) => [[t('Trebles'), state.trebles], [t('Treble rate'), percent(state.trebles, state.darts)], [t('Darts'), `${state.darts} / ${settings.darts}`]],
-    result: (state) => ({ score: Math.round(state.trebles / state.darts * 100), trebles: state.trebles, onNumber: state.onNumber, points: state.points, darts: state.darts, bestVisit: state.bestVisit }),
+    result: (state, { settings } = {}) => ({ score: Math.round(state.trebles / state.darts * 100), trebles: state.trebles, onNumber: state.onNumber, points: state.points, darts: state.darts, bestVisit: state.bestVisit, number: settings?.number ?? 20 }),
     higherIsBetter: true,
     format: (score) => `${score} %`,
     figures: (result) => [
         [t('Treble rate'), `${result.score} %`],
         [t('Trebles'), `${result.trebles} / ${result.darts}`],
         [t('On the number'), percent(result.onNumber, result.darts)],
-        [t('Points'), result.points],
+        // only the darts on the number count (a treble 3 ×, a double 2 ×): out of a treble with every dart
+        [t('Points on the {{number}}', { number: result.number ?? 20 }), `${result.points} / ${result.darts * (result.number ?? 20) * 3}`],
     ],
     // the hit rate on trebles (TREBLES_BANDS of levels.play.js): about 13 % of the darts for a 50
     // average, 27 % for 75, 38 % for 90; the 20, 19 and 18 alike

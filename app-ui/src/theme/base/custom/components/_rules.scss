@@ -328,6 +328,27 @@
 
 .rules-status .rules-status-item.is-undone { animation: rules-undone 1.2s ease-out; }
 
+// the last darts before this visit, small under its tiles: the one entered a moment ago can be checked
+.rules-last-darts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    margin: $space-2 0 0;
+    font-size: $text-xs;
+
+    .rules-last-dart {
+        @include label-shape;
+        @include label-neutral;
+        color: var(--text-subtle);
+        font-weight: $weight-semibold;
+
+        &.is-hit { color: var(--c-positive); }
+        &.is-miss { color: $accentRed; }
+    }
+}
+
 .rules-undone {
     display: flex;
     align-items: center;

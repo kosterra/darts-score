@@ -124,6 +124,17 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
                 </div>
             </div>
 
+            {/* the visit before, to check its last dart (its dots are empty again) */}
+            {round.lastVisit &&
+                <p className="rules-last-darts" aria-label={t('Last darts')}>
+                    <span className="text-faint">{solo ? t('Last darts') : `${t('Last darts')} · ${playerOf(round.lastVisit.player)?.nickname ?? ''}`}</span>
+                    {round.lastVisit.darts.map((dart, index) => (
+                        <span key={index} className={`rules-last-dart ${dart ? 'is-hit' : 'is-miss'}`}>
+                            {!dart ? t('Miss') : rings ? [t('Miss'), t('Single'), t('Double'), t('Treble')][Number(dart)] : t('Hit')}
+                        </span>
+                    ))}
+                </p>}
+
             {notice && <div className="atc-round-notice" role="status">{notice}</div>}
 
             {rings
