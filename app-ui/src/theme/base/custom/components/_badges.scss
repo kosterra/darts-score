@@ -1241,6 +1241,13 @@ a.badge-feed-tile:hover { background: $surfaceHighColor; }
     }
     .practice-goal-target { width: 6.5rem; }
     .practice-goal-bot { flex: 1 0 100%; }
+    // the settings of a goal on a score, a row of pills each, under the goal
+    .practice-goal-board {
+        display: flex;
+        flex: 1 0 100%;
+        flex-wrap: wrap;
+        gap: $space-2 $space-3;
+    }
 }
 
 // on the About page: the three kinds of badges (player, Hall of Shame, club), each set apart by a line

@@ -3,6 +3,8 @@
  * their trainings panel.
  */
 
+import { boardKeyOf, boardOf } from '../rules/trainings';
+
 // the first and the latest attempts compared, so many of each
 const COMPARED = 10;
 
@@ -36,4 +38,23 @@ export const progressOf = (rows, lower = false) => {
     const first = mean(rows.slice(0, size).map(row => row.score));
     const latest = mean(rows.slice(-size).map(row => row.score));
     return { change: lower ? first - latest : latest - first, size };
+};
+
+/**
+ * The boards (settings that split the scoreboard, see boardOf) a player has
+ * played a training on, the one played most first (the latest of them on a
+ * tie, as the trainings panel picks its best): [{ key, settings, count }].
+ * One board, key '', for a training without such settings.
+ */
+export const playedBoards = (trainings, playerId, definition) => {
+    const boards = new Map();
+    trainings
+        .filter(entry => String(entry.player?.id) === String(playerId))
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        .forEach((entry, index) => {
+            const key = boardKeyOf(definition, entry.settings);
+            const board = boards.get(key) ?? { key, settings: boardOf(definition, entry.settings), count: 0 };
+            boards.set(key, { ...board, count: board.count + 1, last: index });
+        });
+    return [...boards.values()].sort((a, b) => b.count - a.count || b.last - a.last).map(({ key, settings, count }) => ({ key, settings, count }));
 };

@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { Skeleton } from 'primereact/skeleton';
+import { SelectButton } from 'primereact/selectbutton';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { KpiHero } from './kpi';
 import ChartTooltip from '../charts/chart.tooltip';
 import { AXIS, GRID, TOOLTIP } from '../charts/chart.theme';
 import RulesService from '../../../services/rules.service';
-import { trainingOf } from '../../../rules/trainings';
+import { boardKeyOf, boardLabels, trainingOf } from '../../../rules/trainings';
 import useMediaQuery from '../../../utils/use.media.query';
 import { ACCENT, GAME_COLORS } from '../../../utils/palette';
 import { formatDate } from '../../../utils/dates';
-import { progressOf, trendOf } from '../../../utils/training.trend';
+import { playedBoards, progressOf, trendOf } from '../../../utils/training.trend';
 import { locale, t } from '../../../utils/i18n';
 
 // the dates on the attempt axis (fewer on a phone)
@@ -25,11 +26,15 @@ const signed = (value) => `${value > 0 ? '+' : ''}${new Intl.NumberFormat(locale
  * from their trainings panel: the results as a line with the personal best
  * as it grew (a dashed step), how many attempts, the best, and the latest
  * attempts against the first ones. Where fewer darts are better the axis is
- * upside down, so up is always better. Loaded when it opens.
+ * upside down, so up is always better. Only attempts with the same settings
+ * are compared (see boardOf): with several, pills choose them, at first those
+ * played most. Loaded when it opens.
  */
 const TrainingTrend = ({ kind, playerId, onHide }) => {
     const definition = trainingOf(kind);
     const [trainings, setTrainings] = useState(null);
+    // the settings shown (a key of boardKeyOf), null: those played most
+    const [chosen, setChosen] = useState(null);
     const phone = useMediaQuery('(max-width: 575.98px)');
 
     useEffect(() => {
@@ -42,7 +47,9 @@ const TrainingTrend = ({ kind, playerId, onHide }) => {
 
     if (!definition) return null;
     const lower = definition.higherIsBetter === false;
-    const rows = trainings ? trendOf(trainings, playerId, lower) : [];
+    const boards = trainings ? playedBoards(trainings, playerId, definition) : [];
+    const board = boards.find(entry => entry.key === chosen) ?? boards[0];
+    const rows = trainings ? trendOf(trainings.filter(entry => boardKeyOf(definition, entry.settings) === board?.key), playerId, lower) : [];
     const progress = progressOf(rows, lower);
     const best = rows.at(-1)?.best ?? null;
     const dateCount = Math.min(phone ? PHONE_DATE_TICKS : DATE_TICKS, rows.length);
@@ -61,6 +68,16 @@ const TrainingTrend = ({ kind, playerId, onHide }) => {
                 : rows.length === 0
                     ? <p className="text-faint fs-7 m-0">{t('No attempts in this club yet.')}</p>
                     : <div className="d-flex flex-column gap-3">
+                        {/* the settings trained with, each compared on its own */}
+                        {boards.length > 1 &&
+                            <SelectButton
+                                value={board.key}
+                                options={boards.map(entry => ({ label: boardLabels(definition, entry.settings).join(' · '), value: entry.key }))}
+                                onChange={(e) => e.value !== null && e.value !== undefined && setChosen(e.value)}
+                                className="p-selectbutton-pills pills-inline flex-wrap training-trend-boards"
+                                aria-label={t('Settings')}
+                            />}
+                        {boards.length === 1 && board.key && <p className="text-subtle fs-8 m-0">{boardLabels(definition, board.settings).join(' · ')}</p>}
                         <div className="kpi-headline">
                             <KpiHero label={t('Attempts')} value={rows.length} color={GAME_COLORS.rules} />
                             <KpiHero label={t('Best')} value={bare(best)} color={GAME_COLORS.rules} />
