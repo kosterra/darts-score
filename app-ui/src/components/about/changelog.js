@@ -9,7 +9,7 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
-        version: 'Next release',
+        version: '2026.11.7',
         changes: [
             t('Smaller things: the doubles of Bob\'s 27 and Doubles around the board in even rows on a phone; tournament and league times in the calendar on the club\'s clock; on a club night someone added later shows when they came; the level filter of the games and trainings lists as a compact dropdown, so the filters fit one line; About → Levels explains the level of a game; a weekly goal on a training\'s score starts and stays where the training can reach (121 Checkout from 121); a training record names its settings (121 Checkout with 30 attempts and 9 darts).'),
             t('Training scoreboards: picking a board there (e.g. T18 in Treble practice) also sets up the next training for it, so what you tap is what you play.'),
