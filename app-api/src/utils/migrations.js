@@ -338,10 +338,11 @@ const migrations = [
         },
     },
     {
-        id: '2026-11-play-levels',
-        description: 'Work out the level every player played each game and training at, for the lists and their filter by level',
+        // replaces 2026-11-play-levels (never released), which wrote the four steps pub to world class
+        id: '2026-11-12-play-levels-scale',
+        description: 'Work out the level every player played each game and training at, on the seven steps of the average levels, for the lists and their filter by level',
         run: async () => {
-            const counts = await fillPlayLevels();
+            const counts = await recomputePlayLevels();
             logger.info(`Play levels: ${Object.entries(counts).map(([kind, count]) => `${count} ${kind}`).join(', ')}`);
             return true;
         },
@@ -349,18 +350,19 @@ const migrations = [
 ];
 
 /**
- * The level every player played at (playLevels) for the games and trainings
- * that have none yet, one at a time. Writes that field alone: nothing else,
- * and "last updated" stays. Safe to run again: what has it is left out.
+ * The level every player played at (playLevels) worked out again for every
+ * game and training, one at a time, also those that have one (it may be of
+ * an older scale). Writes that field alone: nothing else, and "last updated"
+ * stays. Safe to run again.
  * → { [kind]: documents written }
  */
-export const fillPlayLevels = async () => {
+export const recomputePlayLevels = async () => {
     const { PLAY_LEVEL_KINDS } = await import('./play.levels.js');
     const counts = {};
     for (const [kind, levelsOf] of Object.entries(PLAY_LEVEL_KINDS)) {
         const Model = db[kind];
         counts[kind] = 0;
-        const cursor = Model.find({ playLevels: { $exists: false } }).lean().cursor();
+        const cursor = Model.find({}).lean().cursor();
         for await (const doc of cursor) {
             await Model.updateOne({ _id: doc._id }, { $set: { playLevels: levelsOf(doc) } }, { timestamps: false });
             counts[kind] += 1;

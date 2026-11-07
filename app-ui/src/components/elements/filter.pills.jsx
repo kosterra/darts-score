@@ -3,10 +3,19 @@ import { SelectButton } from 'primereact/selectbutton';
 
 import useMediaQuery from '../../utils/use.media.query';
 
+// the icon of an option: a PrimeIcons class ('pi pi-play') or an icon component, in its own colour if it has one
+const OptionIcon = ({ option, className = '' }) => {
+    if (!option.icon) return null;
+    if (typeof option.icon === 'string') return <i className={`${option.icon} ${className}`} aria-hidden="true" />;
+    const Icon = option.icon;
+    return <Icon className={className} style={option.iconColor ? { color: option.iconColor } : undefined} aria-hidden="true" />;
+};
+
 /**
  * The short filters of the lists as pills, the same everywhere: one choice
  * of a few, each with an icon where it helps.
- * options: [{ label, value, icon (a PrimeIcons class, e.g. 'pi pi-play') }];
+ * options: [{ label, value, icon (a PrimeIcons class, e.g. 'pi pi-play', or an
+ * icon component), iconColor? }];
  * dropdownOnPhone: a dropdown on a phone instead (for a choice of several);
  * label: a name shown before the group (e.g. "Status"), when the pills alone are not clear
  */
@@ -32,7 +41,7 @@ const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '',
                 options={options}
                 onChange={(e) => e.value != null && onChange(e.value)}
                 disabled={disabled}
-                itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-2">{option.icon && <i className={option.icon} aria-hidden="true" />}{option.label}</span>}
+                itemTemplate={(option) => <span className="d-inline-flex align-items-center gap-2"><OptionIcon option={option} />{option.label}</span>}
                 valueTemplate={(option) => (label && option
                     ? <span><span className="text-faint">{label}:</span> {option.label}</span>
                     : option?.label)}
@@ -50,7 +59,7 @@ const FilterPillsField = ({ value, options, onChange, ariaLabel, className = '',
         itemTemplate={(option) => (
             // the label of a pill, as PrimeReact draws it (the size of every pill)
             <span className="p-button-label d-inline-flex align-items-center gap-2">
-                {option.icon && <i className={`${option.icon} filter-pill-icon`} aria-hidden="true" />}
+                <OptionIcon option={option} className="filter-pill-icon" />
                 {option.label}
             </span>
         )}

@@ -5095,8 +5095,8 @@ paths:
       description: >-
         leaderboards.rating is the club rating's board, "Strongest": the top 5 members (no guests) whose rating has settled
         (5 rated games) and who played a rated game within a year, as [{ player, value (the rating), games }].
-        recentGames and runningGames: each player as { player, score, sets and legs (X01), isWinner, level (pub, amateur, pro
-        or worldClass, the level played at; null without enough darts to judge) }.
+        recentGames and runningGames: each player as { player, score, sets and legs (X01), isWinner, level (beginner, hobby,
+        amateur, semiPro, pro, worldClass or elite, the level played at; null without enough darts to judge) }.
       responses:
         '200':
           description: OK
@@ -9191,10 +9191,13 @@ components:
       schema:
         type: string
         enum:
-          - pub
+          - beginner
+          - hobby
           - amateur
+          - semiPro
           - pro
           - worldClass
+          - elite
     LevelPlayer:
       name: player
       in: query
@@ -10207,7 +10210,9 @@ components:
       type: array
       description: >-
         The level each player played at, an estimate worked out by the API from the visits or darts whenever it is saved
-        (what is sent is not taken); only players with enough darts to judge, never the bot
+        (what is sent is not taken); only players with enough darts to judge, never the bot. The levels are the steps of
+        the average levels, lowest first, each one meaning about what an X01 average from 0, 25, 40, 50, 60, 75 and 90
+        means
       items:
         type: object
         properties:
@@ -10217,10 +10222,13 @@ components:
           level:
             type: string
             enum:
-              - pub
+              - beginner
+              - hobby
               - amateur
+              - semiPro
               - pro
               - worldClass
+              - elite
     X01Game:
       allOf:
         - $ref: '#/components/schemas/Timestamps'

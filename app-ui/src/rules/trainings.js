@@ -6,6 +6,7 @@
  */
 import { afterDart, isCheckout } from './darts.js';
 import { settingsOf } from './engine.js';
+import { DOUBLES_BANDS, TREBLES_BANDS } from './levels.play.js';
 import { t, tn } from '../utils/i18n.js';
 
 const DOUBLE_TARGETS = [...Array.from({ length: 20 }, (_, index) => index + 1), 25];
@@ -14,6 +15,16 @@ const doubleValue = (number) => number * 2;
 const percent = (part, whole) => (whole ? `${Math.round(part / whole * 100)} %` : '–');
 // a figure of the level a training was played at, as shown beside it (see levels.play.js)
 const levelPercent = (value) => `${Math.round(value)} %`;
+// The bands of the levels are what a player of a 25, 40, 50, 60, 75 and 90 average scores in the
+// training, from the simulated thrower of levels.play.js (where hobby, amateur, semi-pro, pro,
+// world class and elite start).
+// 121 Checkout by darts per attempt and attempts
+const CHECKOUT_121_BANDS = {
+    9: { 10: [1, 120, 122, 124, 127, 128], 20: [1, 120, 122, 126, 133, 138], 30: [1, 120, 122, 129, 138, 146], 50: [1, 120, 123, 134, 150, 160] },
+    6: { 10: [1, 115, 119, 120, 122, 125], 20: [1, 115, 119, 121, 123, 129], 30: [1, 116, 119, 121, 124, 133], 50: [1, 115, 119, 121, 126, 140] },
+};
+// Shortest leg by the legs played: the best of ten comes easier than the best of three
+const SHORTEST_LEG_BANDS = { 3: [42, 31, 24, 20, 17, 14], 5: [40, 28, 23, 19, 16, 13], 10: [35, 26, 21, 18, 15, 13] };
 
 /**
  * The doubles of a training around the board as cells, D1 to the bull: the
@@ -157,8 +168,11 @@ export const BOBS_27 = {
         [t('Hit rate'), percent(result.hits, result.darts)],
         [t('Doubles played'), `${result.reached} / 21`],
     ],
-    // fixed with the developer: under 100 points pub, 100 to 400 amateur, 400 to 800 pro, 800 and more world class
-    level: { by: t('the points'), of: (result) => result.score, bands: [100, 400, 800] },
+    // the points of a run that gets through, as the doubles of the simulated thrower make them (see
+    // levels.play.js): about 100 for a 50 average, 285 for 75, 455 for 90. Getting through at all is
+    // rare below a 50 average (one run in six there, half of them at 60), so any points are hobby
+    // and a run that ends early (0) is the lowest step
+    level: { by: t('the points'), of: (result) => result.score, bands: [1, 60, 100, 160, 285, 455] },
 };
 
 /**
@@ -226,15 +240,14 @@ export const CHECKOUT_121 = {
         [t('Next target'), result.last],
     ],
     // the target goes one up or down an attempt, so it settles where about half of the attempts are
-    // checked out; from 121 it can only fall one an attempt, so any checkout is more than pub darts.
-    // In nine darts pros check out 121 more often than not (a few higher), world class climbs on;
-    // in six darts 121 is a pro's 30–40 %. More attempts reach a little higher.
+    // checked out: the typical highest checkout of the simulated thrower, by the darts and the
+    // attempts (more attempts let the better ones climb further); any checkout at all is hobby
     level: {
         by: t('the highest checkout'),
         of: (result) => result.score,
         bands: (result, settings) => {
-            const more = settings?.attempts >= 20 ? 2 : 0;
-            return settings?.darts === 6 ? [1, 115 + more, 121 + more] : [1, 121 + more, 126 + more];
+            const byAttempts = CHECKOUT_121_BANDS[settings?.darts === 6 ? 6 : 9];
+            return byAttempts[settings?.attempts] ?? byAttempts[10];
         },
     },
 };
@@ -308,10 +321,9 @@ export const RANDOM_CHECKOUTS = {
         [t('Checkout rate'), `${result.score} %`],
         [t('Highest checkout'), result.best || '–'],
     ],
-    // finishes up to 40 go out in a pro's visit some 60–70 % of the time, 41 to 100 30–40 %, above
-    // 100 5–12 %; over all the finishes from 2 to 170 that is about 28 % for a 75 average, 37 % for 95
-    // and 12 % for 50
-    level: { by: t('the checkout rate'), of: (result) => result.score, bands: [12, 25, 35], format: levelPercent },
+    // over all the finishes from 2 to 170, aimed at the usual way out: about 13 % for a 50 average,
+    // 28 % for 75 and 38 % for 90
+    level: { by: t('the checkout rate'), of: (result) => result.score, bands: [3, 8, 13, 20, 28, 38], format: levelPercent },
 };
 
 /**
@@ -357,8 +369,10 @@ export const SCORING = {
         [t('Ton+ visits'), result.tons],
         [t('Best visit'), result.best],
     ],
-    // as the 3-dart average of X01, fixed with the developer
-    level: { by: t('the 3-dart average'), of: (result) => result.score, bands: [50, 75, 95], format: (value) => Number(value).toFixed(1) },
+    // every dart at T20 and none at a double: higher than the average of X01 legs, which the darts
+    // at the finish pull down (a 50 average throws about 60 here, 75 about 88, 90 about 104; the
+    // X01 bot works the same way)
+    level: { by: t('the 3-dart average'), of: (result) => result.score, bands: [38, 50, 60, 71, 88, 104], format: (value) => Number(value).toFixed(1) },
 };
 
 /**
@@ -403,8 +417,9 @@ export const DOUBLES_AROUND = {
         [t('Darts'), result.score],
         [t('Hit rate'), percent(21, result.score)],
     ],
-    // fixed with the developer: pros hit 35–45 % of their darts at a double
-    level: { by: t('the hit rate on the doubles'), of: (result) => (result.score ? 21 / result.score * 100 : null), bands: [10, 25, 40], format: levelPercent },
+    // the hit rate on doubles (DOUBLES_BANDS of levels.play.js): a 90 average hits about 39 % of its
+    // darts at a double, near the checkout rate of the pros
+    level: { by: t('the hit rate on the doubles'), of: (result) => (result.score ? 21 / result.score * 100 : null), bands: DOUBLES_BANDS, format: levelPercent },
 };
 
 /**
@@ -458,9 +473,9 @@ export const CATCH_40 = {
         [t('Points'), result.score],
         [t('Checked out'), `${result.done} / 40`],
     ],
-    // in six darts at 61 to 100 a 75 average checks out some 15 % in two darts, 25 % more in three and
-    // 35 % more later: about 50 points; a 95 average 62, a 50 average about 25
-    level: { by: t('the points'), of: (result) => result.score, bands: [25, 50, 65] },
+    // six darts at each of 61 to 100, aimed at the usual way out: about 21 points for a 50 average,
+    // 43 for 75 and 56 for 90
+    level: { by: t('the points'), of: (result) => result.score, bands: [3, 12, 21, 30, 43, 56] },
 };
 
 /**
@@ -526,9 +541,9 @@ export const TREBLES = {
         [t('On the number'), percent(result.onNumber, result.darts)],
         [t('Points'), result.points],
     ],
-    // about 9 % of the darts at a treble for a 50 average, 22 % for 75, 35 % for 95; the 20, 19 and
-    // 18 alike
-    level: { by: t('the treble rate'), of: (result) => result.score, bands: [8, 20, 33], format: levelPercent },
+    // the hit rate on trebles (TREBLES_BANDS of levels.play.js): about 13 % of the darts for a 50
+    // average, 27 % for 75, 38 % for 90; the 20, 19 and 18 alike
+    level: { by: t('the treble rate'), of: (result) => result.score, bands: TREBLES_BANDS, format: levelPercent },
 };
 
 /**
@@ -577,9 +592,10 @@ export const BULLS = {
         [t('Outer bulls'), result.outers],
         [t('Points'), result.points],
     ],
-    // the bull (outer and bullseye) takes about one dart in eight of a 50 average, a pro's three in
-    // ten and the best players' close to one in two
-    level: { by: t('the hit rate on the bull'), of: (result) => result.score, bands: [12, 30, 45], format: levelPercent },
+    // the outer bull or the bullseye: a round target as wide as a treble is long, so it takes more
+    // darts than one would think: about 37 % for a 50 average, 70 % for 75, 85 % for 90 (the
+    // bullseye alone about a third of that at the top, as the pros' checkouts on it)
+    level: { by: t('the hit rate on the bull'), of: (result) => result.score, bands: [10, 25, 37, 50, 70, 85], format: levelPercent },
 };
 
 // the rungs of the checkout ladder
@@ -644,13 +660,15 @@ export const LADDER = {
         [t('Checked out'), `${result.done} / ${result.attempts}`],
         [t('Next finish'), result.last],
     ],
-    // one visit a finish: the ladder settles where about half of them go out, for pros in the
-    // 60s and low 70s, for the best around 80; any checkout at all is more than pub darts. More
-    // attempts reach a little higher.
+    // the share of the attempts checked out, one visit a finish of 61 and up: about 18 % for a 50
+    // average, 37 % for 75 and 48 % for 90, however many attempts. Not the highest checkout: the
+    // ladder falls back after every miss, so even a 90 average rarely gets far above 61 and the
+    // highest says little about the level
     level: {
-        by: t('the highest checkout'),
-        of: (result) => result.score,
-        bands: (result, settings) => (settings?.attempts >= 40 ? [61, 73, 83] : [61, 70, 80]),
+        by: t('the checkout rate'),
+        of: (result) => (result.attempts ? result.done / result.attempts * 100 : null),
+        bands: [3, 11, 18, 25, 37, 48],
+        format: levelPercent,
     },
 };
 
@@ -723,8 +741,9 @@ export const SHORTEST_LEG = {
         [t('Average'), Number(result.average).toFixed(1)],
         [t('Legs'), result.legs.join(' · ')],
     ],
-    // fixed with the developer: 25 darts or more pub, 18 to 24 amateur, 14 to 17 pro, 13 or fewer world class
-    level: { by: t('the darts in the best leg'), of: (result) => result.score, bands: [24, 17, 13], lowerIsBetter: true },
+    // the best leg of the simulated thrower, by the legs played: in three legs about 24 darts for a 50
+    // average, 17 for 75, 14 for 90 (as the developer had set it: 24, 17 and 13 for 50, 75 and 95)
+    level: { by: t('the darts in the best leg'), of: (result) => result.score, bands: (result, settings) => SHORTEST_LEG_BANDS[settings?.legs] ?? SHORTEST_LEG_BANDS[3], lowerIsBetter: true },
 };
 
 export const TRAININGS = [BOBS_27, CHECKOUT_121, RANDOM_CHECKOUTS, SCORING, DOUBLES_AROUND, CATCH_40, TREBLES, BULLS, LADDER, SHORTEST_LEG];

@@ -8,7 +8,7 @@ import { withView } from './game.view.js';
  * The level every player played a game or a training at, as the result page
  * of the app shows it (rules/levels.play.js, the app's copy), kept with the
  * game or training for the lists and their filter by level:
- * [{ player, level: 'pub' | 'amateur' | 'pro' | 'worldClass' }], only the
+ * [{ player, level: one of LEVELS, 'beginner' to 'elite' }], only the
  * players with enough darts to judge.
  */
 

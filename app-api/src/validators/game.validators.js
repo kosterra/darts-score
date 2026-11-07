@@ -175,7 +175,7 @@ export const validateATCCreate = [
     check('player.id').isMongoId().withMessage('player.id must be a player id.'),
 ];
 
-// the filter of a list by the level played at: ?level=pub|amateur|pro|worldClass (with ?player, of that player)
+// the filter of a list by the level played at: ?level=beginner|hobby|amateur|semiPro|pro|worldClass|elite (with ?player, of that player)
 export const validateLevelQuery = [
     query('level').optional().isIn(LEVELS).withMessage(`level must be one of: ${LEVELS.join(', ')}.`),
 ];

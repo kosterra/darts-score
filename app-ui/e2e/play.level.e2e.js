@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // The level a game was played at, as an estimate under every player of the result:
-// an X01 quick game, one player at about a pro's average, the other at a pub player's.
+// an X01 quick game, one player at about a world-class average, the other at a hobby player's.
 const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 const v = (player, ...darts) => ({ player, darts });
@@ -20,9 +20,9 @@ test('an X01 result says the level every player played at, and what it was judge
     await page.goto(`/quick/stats/x01/${created.id}`);
 
     const players = page.locator('.result-hero-player');
-    await expect(players.nth(0).locator('.play-level-tag')).toContainText('≈ Pro level');
-    await expect(players.nth(0).locator('.play-level-tag')).toHaveAttribute('title', 'Played at about pro level, judged by the 3-dart average (83.5).');
-    await expect(players.nth(1).locator('.play-level-tag')).toContainText('≈ Pub level');
+    await expect(players.nth(0).locator('.play-level-tag')).toContainText('≈ World class');
+    await expect(players.nth(0).locator('.play-level-tag')).toHaveAttribute('title', 'Played at about World class level, judged by the 3-dart average (83.5).');
+    await expect(players.nth(1).locator('.play-level-tag')).toContainText('≈ Hobby');
 });
 
 // The games list: the level after every player's result, and the filter by it, asked of the server
@@ -33,30 +33,30 @@ test('the games list shows the level each played at and filters by it', async ({
     await page.goto('/games');
     const rows = page.locator('.games-table tbody tr');
     const row = (nickname, other) => rows.filter({ hasText: nickname }).filter({ hasText: other });
-    // gl1: Anna (100 a visit) against Ben (15 a visit)
+    // gl1: Anna (100 a visit, elite) against Ben (15 a visit, beginner)
     const first = row('Anna', 'Ben').filter({ has: page.locator('.play-level-tag') }).first();
-    await expect(first.locator('.play-level-tag > [aria-hidden]')).toHaveText(['World class', 'Pub']);
-    await expect(first.locator('.play-level-tag').first()).toHaveAttribute('title', 'Played at about world-class level: an estimate from this result alone.');
+    await expect(first.locator('.play-level-tag > [aria-hidden]')).toHaveText(['Elite', 'Beginner']);
+    await expect(first.locator('.play-level-tag').first()).toHaveAttribute('title', 'Played at about Elite level: an estimate from this result alone.');
 
-    const asked = page.waitForRequest(request => request.url().includes('/api/games/x01?level=pro'));
+    const asked = page.waitForRequest(request => request.url().includes('/api/games/x01?level=worldClass'));
     if (testInfo.project.name === 'phone') {
         await page.getByRole('button', { name: 'Filters' }).click();
         await page.locator('.filter-dropdown', { hasText: 'Level:' }).click();
-        await page.getByRole('option', { name: 'Pro' }).click();
+        await page.getByRole('option', { name: 'World class' }).click();
     } else {
-        await page.getByRole('group', { name: 'Level played at' }).getByText('Pro', { exact: true }).click();
+        await page.getByRole('group', { name: 'Level played at' }).getByText('World class', { exact: true }).click();
     }
     await asked;
-    await expect(page).toHaveURL(/level=pro/);
-    // only gl2, where Cleo played at about pro level
+    await expect(page).toHaveURL(/level=worldClass/);
+    // only gl2, where Cleo played at about world-class level (81 a visit)
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText('Cleo');
 
     // filtered to Anna: the games where Anna played at that level
-    await page.goto('/games?level=amateur&player=p1');
+    await page.goto('/games?level=pro&player=p1');
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText('Cleo');
-    await page.goto('/games?level=worldClass&player=p1');
+    await page.goto('/games?level=elite&player=p1');
     await expect(rows).toHaveCount(1);
-    await expect(rows.first().locator('.play-level-tag > [aria-hidden]')).toHaveText(['World class', 'Pub']);
+    await expect(rows.first().locator('.play-level-tag > [aria-hidden]')).toHaveText(['Elite', 'Beginner']);
 });

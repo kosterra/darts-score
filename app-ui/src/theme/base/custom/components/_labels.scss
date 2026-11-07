@@ -47,21 +47,33 @@ $labelRed: $accentRed;
     .p-tag-value { line-height: inherit; }
 }
 
-// the level one game or training was played at ("≈ Pro level"): an estimate,
-// so a quiet neutral label in the subtle text colour, never the colours of the
-// player levels (LevelBadge); it may wrap under a narrow player on a phone
+// the level one game or training was played at ("≈ Pro"): a step of the average
+// levels, shown as the statistics show them (the chart's tooltip): the level's
+// icon and name in its colour on a soft tint of it (--level-color, from
+// average.levels.js, readable() on the light theme); it may wrap under a
+// narrow player on a phone
 .play-level-tag {
     @include label-shape;
-    @include label-neutral;
-    color: var(--text-subtle);
+    background: color-mix(in srgb, var(--level-color, var(--text-subtle)) 14%, transparent);
+    // a little of the text colour in it, so the paler steps (world class, elite) stay readable on
+    // the light theme too
+    color: color-mix(in srgb, var(--level-color, var(--text-subtle)) 75%, var(--text-default));
     font-size: $text-xs;
     white-space: normal;
     text-align: center;
     cursor: help;
 
+    .play-level-tag-words {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .play-level-tag-icon { flex-shrink: 0; }
+
     &.is-placeholder { visibility: hidden; }
 
-    // in lists the short name ("Pro") after a player's result: quieter still, on one line
+    // in lists after a player's result: on one line
     &.is-compact {
         padding: 0.05rem 0.4rem;
         white-space: nowrap;

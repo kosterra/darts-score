@@ -399,7 +399,7 @@ http.createServer((req, res) => {
             // POST /__test/evening { names? } → { id }; q1 beats q2, q3 beats q1, q2 beats q3 (301, one leg)
             if (path === '/__test/levels' && req.method === 'POST') {
                 // three finished X01 games of 501, the levels worked out as the API does: 100 a visit
-                // is world class, 81 pro, 60 amateur, 15 pub
+                // is elite, 81 world class, 60 pro, 15 beginner
                 const v = (player, ...darts) => ({ player, darts });
                 const turns = ([a, b], dartsA, dartsB) => Array.from({ length: 4 }, () => [v(a, ...dartsA), v(b, ...dartsB)]).flat();
                 const X01 = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'First to', numberOfSets: 1, legMode: 'First to', numberOfLegs: 1 };
@@ -984,7 +984,7 @@ http.createServer((req, res) => {
                 // ?level (and ?player) as the API filters: the games played at the level, by the player or anyone
                 const level = url.searchParams.get('level');
                 const player = url.searchParams.get('player');
-                if (level && !PLAY_LEVELS.includes(level)) return send(res, 422, { errors: ['level must be one of: pub, amateur, pro, worldClass.'] });
+                if (level && !PLAY_LEVELS.includes(level)) return send(res, 422, { errors: [`level must be one of: ${PLAY_LEVELS.join(', ')}.`] });
                 const atLevel = (g) => !level || (g.playLevels ?? []).some(e => e.level === level && (!player || e.player === player));
                 return send(res, 200, path.includes('/x01') ? [...games.values()].filter(g => !g.deleted && atLevel(g)) : []);
             }

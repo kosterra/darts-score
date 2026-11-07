@@ -1,26 +1,45 @@
 /**
  * The level a game or a training was played at, as a rough estimate from one
- * figure of it: pub, amateur, pro or world class. Not the level of a player
- * (that is the LevelBadge, from many games): one game or training alone.
+ * figure of it, on the steps of the average levels (utils/average.levels.js
+ * gives them their names, icons and colours): beginner, hobby, amateur,
+ * semi-pro, pro, world class and elite. Not the level of a player (that is
+ * the LevelBadge, from many games): one game or training alone.
  *
  * A level definition: { by: what it is judged by (shown), of: (...) => the
- * figure, or null when there is not enough to judge, bands: [amateurFrom,
- * proFrom, worldClassFrom] or a function of the same arguments as "of",
- * lowerIsBetter, format?: the figure as shown }. The newer games and the
+ * figure, or null when there is not enough to judge, bands: the six figures
+ * where hobby, amateur, semi-pro, pro, world class and elite start, or a
+ * function of the same arguments as "of" giving them, lowerIsBetter,
+ * format?: the figure as shown }. A step means the same in every game: the
+ * bands are what a player of a 25, 40, 50, 60, 75 and 90 average throws in
+ * it (worked out with a simulated thrower). The newer games and the
  * trainings have theirs next to their definition (games.js, trainings.js),
  * the older games here.
  */
 import { t } from '../utils/i18n.js';
 
-export const LEVELS = ['pub', 'amateur', 'pro', 'worldClass'];
+/**
+ * The steps, lowest first, with the 3-dart average of X01 each one starts
+ * from: the one scale of the app, the average levels of the statistics too.
+ */
+export const LEVEL_STEPS = [
+    { key: 'beginner', average: 0 },
+    { key: 'hobby', average: 25 },
+    { key: 'amateur', average: 40 },
+    { key: 'semiPro', average: 50 },
+    { key: 'pro', average: 60 },
+    { key: 'worldClass', average: 75 },
+    { key: 'elite', average: 90 },
+];
+
+export const LEVELS = LEVEL_STEPS.map(step => step.key);
 
 /**
- * The level of a figure by its bands, [amateurFrom, proFrom, worldClassFrom]:
+ * The level of a figure by its six bands (where hobby to elite start):
  * reaching a band (at least it, or at most it when lower is better) is that
  * level. Null without a figure or bands.
  */
 export const playLevel = (value, { bands, lowerIsBetter = false } = {}) => {
-    if (value == null || value === '' || !Array.isArray(bands) || bands.length !== 3) return null;
+    if (value == null || value === '' || !Array.isArray(bands) || bands.length !== LEVELS.length - 1) return null;
     const number = Number(value);
     if (!Number.isFinite(number)) return null;
     const reached = bands.filter(band => (lowerIsBetter ? number <= band : number >= band)).length;
@@ -48,18 +67,26 @@ const oneDecimal = (value) => Number(value).toFixed(1);
 const twoDecimals = (value) => Number(value).toFixed(2);
 const percent = (value) => `${Math.round(value)} %`;
 
-// the bands of the 3-dart average, fixed with the developer: pub under 50,
-// amateur 50 to 75, pro 75 to 95, world class 95 and more
-export const AVERAGE_BANDS = [50, 75, 95];
-// marks per round, fixed with the developer: the usual rule of thumb is about
-// an eighth of the points per dart (avg 50 ≈ 2.0, 75 ≈ 3.0, 95 ≈ 4.0)
-export const MARKS_BANDS = [2, 3, 4];
-// hit rate on doubles, fixed with the developer (Doubles around the board):
-// pros check out 35–45 % of their darts at a double
-export const DOUBLES_BANDS = [10, 25, 40];
-// hit rate on trebles: about 9 % of the darts at T20 for a 50 average, 22 % for
-// 75 and 35 % for 95 (the average is mostly trebles and singles of the 20)
-export const TREBLES_BANDS = [8, 20, 33];
+// How the bands were found: a simulated thrower whose darts scatter round the
+// point aimed at (a normal spread on the board, one dart in seven or so going
+// wider), the spread set so that whole legs of 501, aimed as the X01 bot aims
+// (x01.bot.js), come out at an average of 25, 40, 50, 60, 75 and 90; then each
+// game or training played with it many times, by its own rules where it has
+// them. The bands are what such a player typically scores, rounded.
+
+// the 3-dart average itself: where the steps start
+export const AVERAGE_BANDS = LEVEL_STEPS.slice(1).map(step => step.average);
+// marks per round in Cricket, aiming at the trebles of 20 to 15 and the bull until
+// each is closed, every mark counting (25 to 90 average: 1.5 to 5.0)
+export const MARKS_BANDS = [1.5, 2.1, 2.7, 3.3, 4.1, 5];
+// hit rate on doubles (Doubles around the board, Killer, Around the Clock on
+// doubles): the share of darts at a double that land in it (a 90 average about
+// 39 %, near the checkout rate of the pros)
+export const DOUBLES_BANDS = [5, 11, 16, 22, 30, 39];
+// hit rate on trebles (Treble practice, Around the Clock on trebles): about 13 %
+// of the darts at T20 for a 50 average, 27 % for 75 and 38 % for 90; the same
+// with the bot's own model of the average
+export const TREBLES_BANDS = [3, 8, 13, 18, 27, 38];
 
 /**
  * X01, from the figures of a player (x01.game.summary): the 3-dart average,
@@ -95,15 +122,15 @@ export const ELIMINATION_LEVEL = {
     format: oneDecimal,
 };
 
-// Around the Clock by mode, the hit rate on the number of the moment: a dart
-// at a single (the big part of the number) lands far more often than one at a
-// double or a treble
+// Around the Clock by mode, the hit rate on the number of the moment, 1 to 20
+// and the bull: a dart at a single (the big part of the number) lands far more
+// often than one at a double or a treble
 const CLOCK_BANDS = {
-    // any ring of the number: about 55 % of the darts land on it for a 50
-    // average, 70 % for 75, 85 % for 95
-    All: [50, 70, 85],
+    // any ring of the number, aiming at its outer single: about 72 % of the darts
+    // land on it for a 50 average, 90 % for 75, 95 % for 90
+    All: [33, 60, 72, 81, 90, 95],
     // only the single counts (a double or treble of it is a miss): a little less
-    Single: [45, 65, 80],
+    Single: [29, 54, 66, 78, 87, 91],
     // only doubles: as the doubles around the board
     Double: DOUBLES_BANDS,
     // only trebles: as treble practice
