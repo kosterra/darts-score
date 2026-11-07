@@ -4,8 +4,9 @@ import app from '../vite.config.ts';
 
 // The dev server of the browser checks (playwright.config.js): the app's own
 // config, plus
-// - every source file compiled as the server starts, not when a test first opens
-//   its page (e2e/global.setup.js then waits for it, with a browser on the main pages);
+// - the app compiled from its entry as the server starts, while Playwright launches
+//   (e2e/global.setup.js then opens the main pages in a browser and waits for them;
+//   warming every file of src took twice as long as it saved);
 // - GET /__e2e/checkout, the folder it serves, so a server left running from
 //   another checkout is not taken for this one;
 // - node_modules served where it really lies (a checkout that links it from another);
@@ -15,7 +16,7 @@ import app from '../vite.config.ts';
 export default mergeConfig(app, {
     cacheDir: '.cache/vite-e2e',
     server: {
-        warmup: { clientFiles: ['./src/main.jsx', './src/**/*.{js,jsx,ts,tsx}', '!./src/**/*.test.*', '!./src/prerender.jsx'] },
+        warmup: { clientFiles: ['./src/main.jsx'] },
         fs: { allow: [searchForWorkspaceRoot(process.cwd()), fs.realpathSync('node_modules')] },
     },
     plugins: [{

@@ -15,14 +15,15 @@ const checkoutOf = async (url, what, port) => {
     let answer;
     try { answer = await fetch(url); } catch (error) { throw new Error(`${what} at ${url} does not answer: ${error.message}`); }
     const body = answer.ok ? await answer.json().catch(() => null) : null;
-    if (path.resolve(body?.checkout ?? '') !== CHECKOUT) {
+    if (typeof body?.checkout !== 'string' || path.resolve(body.checkout) !== CHECKOUT) {
         throw new Error(`${what} on port ${port} is not this checkout's (${body?.checkout ?? 'an older or other server'}). `
             + `Stop it, or run on other ports: E2E_MOCK_PORT=… E2E_UI_PORT=… npm run e2e`);
     }
 };
 
-// the pages that load most of the app (the rest is compiled by the server's warm-up)
-const PAGES = ['/', '/players', '/players/p1', '/stats', '/games', '/trainings', '/training', '/badges', '/tournaments', '/leagues', '/calendar', '/x01', '/play', '/profile', '/admin/dashboard', '/quick'];
+// the app's shell and the parts most pages share (the player picker, the statistics, the public
+// pages): each further page costs ~2 s more here, and compiles in a moment when a test opens it
+const PAGES = ['/', '/x01', '/training/x01', '/players/p1', '/quick'];
 
 export default async function globalSetup() {
     await checkoutOf(`${MOCK_URL}/__test/checkout`, 'The mock', new URL(MOCK_URL).port);
