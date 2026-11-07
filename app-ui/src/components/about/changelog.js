@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('Bull practice scoreboard: at the same hit rate, more bullseyes come first, then more points.'),
             t('Fix: while a global admin looks at a club, the menu is the club\'s alone, as its admins see it; the administration is back with the button in the bar on top.'),
             t('Darts as tags, as in the visits of a game: the darts of the visit while training, the bar above the menu on a phone, and an attempt opened on a training scoreboard, which now shows its darts visit by visit for every training; how far a failed Bob\'s 27 got (out at D6) is a tag too.'),
             t('On a phone the lists of games (recent games, a player\'s latest games, the evenings) give the names the full width, the time on a small line above them, so names are no longer cut short; a global admin\'s banner while looking at a club is shorter there.'),

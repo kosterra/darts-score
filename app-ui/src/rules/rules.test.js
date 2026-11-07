@@ -479,3 +479,15 @@ describe('the visits of a training', () => {
         expect(trainingVisits(RANDOM_CHECKOUTS, { settings: { attempts: 10, targets }, darts: ['D20', 'S20', 'S10', 'D5'] })).toEqual([['D20'], ['S20', 'S10', 'D5']]);
     });
 });
+
+describe('the Bull practice scoreboard', () => {
+    it('puts more bullseyes first at the same hit rate, then more points', () => {
+        const entry = (score, bullseyes, outers) => ({ score, result: { score, bullseyes, outers, points: bullseyes * 50 + outers * 25 } });
+        const better = (a, b) => b.score - a.score || BULLS.tiebreak(a, b);
+        const list = [entry(20, 1, 5), entry(20, 2, 4), entry(23, 0, 7), entry(20, 2, 4)];
+        expect([...list].sort(better).map(e => [e.score, e.result.bullseyes])).toEqual([[23, 0], [20, 2], [20, 2], [20, 1]]);
+        expect(placesOf([...list].sort(better), better)).toEqual([1, 2, 2, 4]);
+        // an older attempt without its result: from its darts
+        expect(BULLS.tiebreak({ darts: ['D25', 'S25', '0'] }, { darts: ['S25', 'S25', '0'] })).toBeLessThan(0);
+    });
+});

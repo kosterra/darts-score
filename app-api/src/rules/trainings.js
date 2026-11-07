@@ -101,6 +101,15 @@ export const bobsDanger = (state) => {
     return { double, dartsLeft, text: tn(dartsLeft, 'Hit {{double}} with your last dart, or the training is over.', 'Hit {{double}} with one of your next {{count}} darts, or the training is over.', { double }) };
 };
 
+// the bullseyes and points of a saved Bull practice (older ones from their darts: D25 a bullseye)
+const bullsOf = (entry) => {
+    if (entry.result?.bullseyes != null) return { bullseyes: entry.result.bullseyes, points: entry.result.points ?? 0 };
+    const darts = (entry.darts ?? []).map(String);
+    const bullseyes = darts.filter(dart => dart === 'D25').length;
+    const outers = darts.filter(dart => dart === 'S25' || dart === '25').length;
+    return { bullseyes, points: bullseyes * 50 + outers * 25 };
+};
+
 // how many doubles a saved attempt played (older ones from their darts: three a double)
 const reachedOf = (entry) => entry.result?.reached ?? Math.floor((entry.darts?.length ?? 0) / 3);
 
@@ -585,6 +594,8 @@ export const BULLS = {
     heroFigures: (state, { settings }) => [[t('Bullseyes'), state.bullseyes], [t('Outer bulls'), state.outers], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     status: (state, { settings }) => [[t('Bullseyes'), state.bullseyes], [t('Outer bulls'), state.outers], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     result: (state) => ({ score: Math.round((state.bullseyes + state.outers) / state.darts * 100), bullseyes: state.bullseyes, outers: state.outers, points: state.bullseyes * 50 + state.outers * 25, darts: state.darts }),
+    // the same hit rate: more bullseyes first (and so more points)
+    tiebreak: (a, b) => bullsOf(b).bullseyes - bullsOf(a).bullseyes || bullsOf(b).points - bullsOf(a).points,
     higherIsBetter: true,
     format: (score) => `${score} %`,
     figures: (result) => [
