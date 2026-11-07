@@ -29,6 +29,13 @@
   margin: 0 auto;
 }
 
+// what is played, over the way it is played
+.x01-live-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 // where a round-based game stands for everyone (Golf's hole), above the players
 .x01-live-stage {
   align-self: center;
@@ -245,6 +252,15 @@
 }
 
 .x01-play { margin-bottom: 1.5rem; }
+
+// what a game shows beside the board (the marks, the standings): above it on a phone, so it is
+// seen without scrolling, beside it on a wide screen
+.x01-aside-after { display: none; }
+
+@media (min-width: 992px) {
+  .x01-aside-first { display: none; }
+  .x01-aside-after { display: block; }
+}
 
 .x01-board-col {
   display: flex;
@@ -1127,4 +1143,80 @@
     .x01-live-hero .x01-hero-players.has-bot .x01-hero-portrait { display: flex; order: 0; margin: 0.25rem 0 0.4rem; }
     .x01-hero-players.has-bot .x01-hero-avatar.p-avatar { width: 2.75rem; height: 2.75rem; font-size: 1rem; }
     .x01-hero-players.has-bot .x01-turn-halo { inset: -0.5rem; }
+}
+
+// a phone where the board, the keypad or the buttons would not be fully in view above the bars
+// at the bottom (html.input-tight, set by use.input.fit.js): a compact header, the input as big
+// as the room left (--fit-board, --fit-key), what a game shows beside it below it
+@media (max-width: 767.98px) {
+  .input-tight {
+    .x01-game-page { padding-top: 0.5rem; }
+
+    .x01-live-hero {
+      gap: 0.35rem;
+      padding: 0.45rem 0.75rem 0.55rem;
+      margin-bottom: 0.5rem;
+    }
+
+    // the title and what is played a line each, as high as the rules button beside them
+    .x01-live-hero .result-hero-top {
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: $space-2;
+    }
+    .x01-live-title {
+      font-size: $text-sm;
+      line-height: 1.25;
+      white-space: nowrap;
+
+      > * { overflow: hidden; text-overflow: ellipsis; }
+      > .fs-8 { font-size: $text-xs !important; }
+    }
+    .x01-live-stage { padding: 0.1rem 0.75rem; font-size: $text-base; }
+
+    // no picture (the bot's face stays, smaller): the name over the big number
+    .x01-live-hero .x01-hero-players.count-1:not(.has-bot) .x01-hero-portrait { display: none; }
+    .x01-live-hero .x01-hero-players.has-bot .x01-hero-portrait { margin: 0 0 0.15rem; }
+    .x01-hero-players.has-bot .x01-hero-avatar.p-avatar { width: 2rem; height: 2rem; font-size: $text-xs; }
+    .x01-hero-players.has-bot .x01-turn-halo { inset: -0.35rem; }
+    .x01-hero-players { gap: 0.25rem $space-3; }
+    .x01-hero-player, .x01-hero-player.is-mirrored { gap: 0; }
+    .x01-hero-name { font-size: $text-sm; }
+
+    // who throws: the name in the accent instead of a label on a line of its own
+    .x01-live-turn { display: none; }
+    // the row of the tags a little lower, as high for every player: the scores stay in line
+    .x01-live-tags { min-height: 1.1rem; }
+    .x01-hero-player.is-turn .x01-hero-name { color: $accentGreen; }
+
+    // the big number a little smaller, still the biggest thing in view
+    .x01-hero-score .result-hero-score { font-size: 2.1rem; line-height: 1.1; }
+    .x01-live-route { height: 1.1rem; margin: 0 0 0.1rem; }
+    .x01-live-won { gap: 0.6rem; }
+
+    // a training: the big number right under the name, without the line between them
+    .rules-training-live .x01-hero-players.count-1 .result-hero-score { margin-top: 0; padding-top: 0; border-top: 0; }
+    .rules-hero-figures, .x01-hero-score > .rules-hero-figures { margin-top: $space-1; }
+    .rules-hero-figure { gap: 0; padding: 0.3rem $space-1; }
+    .rules-hero-figure > .tabular-nums { font-size: $text-xl; }
+    .rules-hero-figure-label { font-size: $text-xs; }
+    .x01-live-route.rules-hero-note, .x01-hero-score .x01-live-route.rules-hero-note { font-size: $text-lg; }
+    .rules-hero-below { gap: 0.35rem; }
+    .rules-hero-double { font-size: $text-xl; }
+    .rules-progress { height: 1.5rem; }
+
+    // the board as big as the room left, without space around it
+    .x01-play { --bs-gutter-y: 0.5rem; }
+    .x01-board-col .dartboard-img { width: var(--fit-board, 100%); margin: 0.25rem auto 0; }
+
+    // the keys and buttons share the room left, never below a thumb's size (see use.input.fit.js)
+    .x01-key { min-height: var(--fit-key, 2.9rem); }
+    .rules-hitmiss .p-button { min-height: var(--fit-key, 5.5rem); }
+    .rules-hitmiss.is-4 .p-button { min-height: var(--fit-key, 4.5rem); }
+    .atc-round-button.p-button { min-height: var(--fit-key, 4.5rem); }
+
+    // the marks or the standings of a game below the board instead of above it
+    .x01-aside-first { display: none; }
+    .x01-aside-after { display: block; }
+  }
 }

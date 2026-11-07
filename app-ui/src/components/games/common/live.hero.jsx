@@ -33,7 +33,7 @@ const LiveHero = ({ title, subtitle, stage = null, rows, rulesId, houseRules = [
             <div className="result-hero-top">
                 <div className="d-flex align-items-center gap-3 min-w-0">
                     <QuickHeroBrand />
-                    <div className="d-flex flex-column min-w-0">
+                    <div className="x01-live-title">
                         <span className="text-default fw-semibold">{title}</span>
                         {subtitle && <span className="text-faint fs-8">{subtitle}</span>}
                     </div>
