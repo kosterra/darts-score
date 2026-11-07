@@ -361,9 +361,12 @@
     to { opacity: 1; transform: none; }
 }
 
-// the doubles from D1 to the bull: two rows on a phone, one from a tablet on
+// the doubles from D1 to the bull, by the room the strip itself has (a result, a row of the
+// scoreboard, the training under way): one row of 21 where every cell keeps about 1.9rem, else
+// three even rows of seven (the bull too); while training two rows, so the board stays in sight
 .rules-doubles {
     margin: 0;
+    container-type: inline-size;
 
     .rules-doubles-label {
         margin-bottom: $space-2;
@@ -375,21 +378,16 @@
 
 .rules-doubles-cells {
     display: grid;
-    grid-template-columns: repeat(11, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.25rem;
     margin: 0;
     padding: 0;
     list-style: none;
 
-    @media (min-width: 768px) {
-        grid-template-columns: repeat(21, minmax(0, 1fr));
-    }
-}
+    .rules-doubles.is-live & { grid-template-columns: repeat(11, minmax(0, 1fr)); }
 
-// in a result on a phone three rows of seven, so every cell has room (the bull too)
-@media (max-width: 575.98px) {
-    .rules-doubles:not(.is-live) .rules-doubles-cells {
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+    @container (min-width: 40rem) {
+        &, .rules-doubles.is-live & { grid-template-columns: repeat(21, minmax(0, 1fr)); }
     }
 }
 

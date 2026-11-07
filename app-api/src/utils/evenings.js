@@ -4,6 +4,8 @@ import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { NAME, QUICK_PLAYER_IDS, hashKey, newKey, quickGameError } from './quick.games.js';
 import { storedOf, viewOf } from './game.view.js';
+import { levelKindOf, withPlayLevels } from './play.levels.js';
+import { gameLevelOf } from '../rules/levels.play.js';
 import { countEvening } from './quick.tally.js';
 
 /**
@@ -222,12 +224,14 @@ export const gameSummary = (game) => {
         kind: game.kind,
         players: data.players ?? [],
         winner,
-        // each player's result: the legs won in X01, the score in Cricket and Elimination
+        // each player's result: the legs won in X01, the score in Cricket and Elimination, and
+        // the level played at (null without enough darts to judge)
         results: (data.players ?? []).map(id => {
             const model = view.playerModels?.[id] ?? {};
+            const level = gameLevelOf(game.kind, view, id)?.level ?? null;
             return game.kind === 'x01'
-                ? { player: id, legs: model.legsWon?.game ?? 0, isWinner: id === winner }
-                : { player: id, score: model.score ?? null, isWinner: id === winner };
+                ? { player: id, legs: model.legsWon?.game ?? 0, isWinner: id === winner, level }
+                : { player: id, score: model.score ?? null, isWinner: id === winner, level };
         }),
         finished: Boolean(game.hasWinner),
         running: Boolean(game.gameIsRunning) && !game.hasWinner,
@@ -291,7 +295,7 @@ export const takeOverGame = async (game, clubId, players) => {
             visits: (data.visits ?? []).map(visit => ({ ...visit, player: map(visit.player) })),
             flyingDarts: 'players',
         });
-        doc = await Model.create({ ...stored, club: clubId, friendly: false });
+        doc = await Model.create({ ...withPlayLevels(levelKindOf(game.kind), stored), club: clubId, friendly: false });
         // the game keeps the day it was played
         await Model.updateOne({ _id: doc._id }, { $set: { createdAt: game.createdAt, updatedAt: game.updatedAt } }, { timestamps: false });
         const { syncGameBadges } = await import('./badge.service.js');

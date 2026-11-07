@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('The level in the lists: the games and trainings lists, the recent games, the evenings and the scoreboards show each player\'s level (Pub, Amateur, Pro, World class) after their result, and the games and trainings can be filtered by it – for one player, the games they played at that level; the scores of the recent games line up from game to game, and the hits per double of a scoreboard entry come in even rows on a phone.'),
             t('How well was it played? The result of every game and training shows each player at about pub, amateur, pro or world-class level, judged by what fits the game – the 3-dart average in X01, the marks per round in Cricket, the hit rate on the doubles in Doubles around the board and so on – with the figure when you hold the label.'),
             t('Darts evenings and club nights: someone arriving later joins a darts evening by name, and whoever goes home is no longer suggested or paired for a game (their games keep counting) and can come back; the table says when they came or left, and it can also be ordered by win rate.'),
             t('Clubs play in their own time zone: chosen when a club is made (the one of your device) and under Edit club; club nights, their reminders, the calendar and its feed, league matchdays, the weekly goals, badges and the year in darts follow it – a league matchday keeps its time when the clocks change, and a game after midnight counts for the new day.'),

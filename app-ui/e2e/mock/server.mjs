@@ -12,7 +12,8 @@
 // switch with POST /__test/role { admin }, /__test/logged-out { loggedOut },
 // /__test/tournaments { scenario }, /__test/leagues { scenario }, /__test/calendar { scenario }, /__test/goals { scenario }, /__test/session { leftMs } and
 // /__test/notifications (two of them, one unread), /__test/evening (one with finished games),
-// /__test/boards { scenario | finish | reset }, /__test/mfa { enabled } and /__test/passkeys { passkeys: [names] }.
+// /__test/boards { scenario | finish | reset }, /__test/mfa { enabled }, /__test/passkeys { passkeys: [names] } and
+// /__test/levels (finished X01 games with the level each player played at, for the filter by level).
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
@@ -40,6 +41,7 @@ import { activityInsights, playersInsights } from '../../../app-api/src/utils/ad
 import { quickGameView } from '../../../app-api/src/utils/quick.games.js';
 import { x01StatsOf } from '../../../app-api/src/controllers/x01.stats.controller.js';
 import { storedOf } from '../../../app-api/src/utils/game.view.js';
+import { LEVELS as PLAY_LEVELS, atcPlayLevels, rulesTrainingPlayLevels, withPlayLevels } from '../../../app-api/src/utils/play.levels.js';
 import { eveningView, eveningReport, gameSummary, newEvening, eveningGameError, eveningError, addEveningPlayer, setEveningPlayerLeft } from '../../../app-api/src/utils/evenings.js';
 import { normalizeClubRules, normalizeGamePreferences, ruleViolations } from '../../../app-api/src/rules/club.rules.js';
 const quickGames = new Map();
@@ -395,6 +397,24 @@ http.createServer((req, res) => {
             };
             // a darts evening with finished games, for screenshots without playing them:
             // POST /__test/evening { names? } → { id }; q1 beats q2, q3 beats q1, q2 beats q3 (301, one leg)
+            if (path === '/__test/levels' && req.method === 'POST') {
+                // three finished X01 games of 501, the levels worked out as the API does: 100 a visit
+                // is world class, 81 pro, 60 amateur, 15 pub
+                const v = (player, ...darts) => ({ player, darts });
+                const turns = ([a, b], dartsA, dartsB) => Array.from({ length: 4 }, () => [v(a, ...dartsA), v(b, ...dartsB)]).flat();
+                const X01 = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'First to', numberOfSets: 1, legMode: 'First to', numberOfLegs: 1 };
+                [
+                    ['gl1', ['p1', 'p2'], ['T20', 'S20', 'S20'], ['S5', 'S5', 'S5'], 1],
+                    ['gl2', ['p3', 'p1'], ['T20', 'S20', 'S1'], ['S20', 'S20', 'S20'], 2],
+                    ['gl3', ['p2', 'p4'], ['S20', 'S20', 'S20'], ['S5', 'S5', 'S5'], 3],
+                ].forEach(([id, ids, a, b, days]) => {
+                    const stored = withPlayLevels('x01', storedOf('x01', { ...X01, players: ids, visits: turns(ids, a, b) }));
+                    // as if finished: the first player won
+                    Object.assign(stored.playerModels[ids[0]], { hasWonGame: true, setsWon: 1 });
+                    games.set(id, { ...stored, id, gameIsRunning: false, hasWinner: true, createdAt: ago(days), updatedAt: ago(days) });
+                });
+                return send(res, 200, { ids: ['gl1', 'gl2', 'gl3'] });
+            }
             if (path === '/__test/evening' && req.method === 'POST') {
                 const names = json.names ?? ['Ralph Koster', 'Reto Kurz', 'Rene Krummenacher'];
                 const id = `e${evenings.size + 1}`;
@@ -790,10 +810,10 @@ http.createServer((req, res) => {
                 leaderboards: { mostWins: board(i => 20 - i * 3), winRate: board(i => 60 - i * 5), x01Average: board(i => 55 - i * 4), most180s: board(i => 9 - i), highestCheckout: board(i => 140 - i * 10), mostGames: board(i => 40 - i * 4), winsX01: board(i => 12 - i), winsCricket: board(i => 5 - i), winsElimination: board(i => 3), winsClock: board(i => 2), mostDarts: board(i => 4000 - i * 300), rating: mockRatings(players.filter(p => !p.guest).map(p => p.id)).board.slice(0, 5) },
                 recentGames: [
                     { id: 'r1', type: 'x01', playedAt: ago(0.02), running: true, format: '501 · Best of 3 sets · Best of 3 legs', inSets: true, players: [{ player: 'p1', sets: 1, legs: 2 }, { player: 'p2', sets: 0, legs: 1 }] },
-                    { id: 'r2', type: 'cricket', playedAt: ago(1), running: false, format: 'Cricket', players: [{ player: 'p2', score: 120, isWinner: true }, { player: 'p3', score: 65 }] },
-                    { id: 'r3', type: 'elimination', playedAt: ago(1.1), running: false, format: 'Target 301', players: [{ player: 'p1', score: 301, isWinner: true }, { player: 'p4', score: 145 }] },
-                    { id: 'r4', type: 'clock', playedAt: ago(2), running: false, format: 'Around the Clock · All', players: [{ player: 'p3', isWinner: true }, { player: 'p5' }] },
-                    { id: 'r5', type: 'x01', playedAt: ago(2.1), running: false, format: '501 · First to 1 set · First to 1 leg', players: [{ player: 'p1', sets: 1, legs: 1, isWinner: true }, { player: 'p2', sets: 0, legs: 0 }] },
+                    { id: 'r2', type: 'cricket', playedAt: ago(1), running: false, format: 'Cricket', players: [{ player: 'p2', score: 120, isWinner: true, level: 'pro' }, { player: 'p3', score: 65, level: 'amateur' }] },
+                    { id: 'r3', type: 'elimination', playedAt: ago(1.1), running: false, format: 'Target 301', players: [{ player: 'p1', score: 301, isWinner: true, level: 'worldClass' }, { player: 'p4', score: 145, level: 'pub' }] },
+                    { id: 'r4', type: 'clock', playedAt: ago(2), running: false, format: 'Around the Clock · All', players: [{ player: 'p3', isWinner: true, level: 'amateur' }, { player: 'p5' }] },
+                    { id: 'r5', type: 'x01', playedAt: ago(2.1), running: false, format: '501 · First to 1 set · First to 1 leg', players: [{ player: 'p1', sets: 1, legs: 1, isWinner: true, level: 'pro' }, { player: 'p2', sets: 0, legs: 0, level: 'amateur' }] },
                 ],
                 runningGames: [
                     { id: 'r1', type: 'x01', playedAt: ago(0.02), inSets: true, players: [{ player: 'p1', sets: 1, legs: 2 }, { player: 'p2', sets: 0, legs: 1 }] },
@@ -832,7 +852,10 @@ http.createServer((req, res) => {
         if (path === '/api/players' || path === '/api/players/search') return send(res, 200, players);
         if (path === '/api/training/atc' && req.method === 'GET') {
             const scoring = url.searchParams.get('scoring'); const mode = url.searchParams.get('mode');
-            return send(res, 200, entries.filter(e => (!mode || e.mode === mode) && (!scoring || (scoring === 'Darts' ? e.scoring === 'Darts' : e.scoring !== 'Darts'))));
+            // the level each played at, as the API keeps it (fewest darts only), and ?level as it filters
+            const level = url.searchParams.get('level');
+            const withLevels = entries.map(e => ({ ...e, playLevels: atcPlayLevels(e) }));
+            return send(res, 200, withLevels.filter(e => (!mode || e.mode === mode) && (!scoring || (scoring === 'Darts' ? e.scoring === 'Darts' : e.scoring !== 'Darts')) && (!level || e.playLevels.some(entry => entry.level === level))));
         }
         const atcOne = path.match(/^\/api\/training\/atc\/(e\d+)$/);
         if (atcOne && req.method === 'DELETE') { const i = entries.findIndex(e => e.id === atcOne[1]); if (i >= 0) entries.splice(i, 1); return send(res, 200, { message: 'deleted' }); }
@@ -900,7 +923,8 @@ http.createServer((req, res) => {
             if (req.method === 'GET' && id) return games.has(id) ? send(res, 200, games.get(id)) : send(res, 404, {});
             if (req.method === 'PUT' && id) { const game = { ...games.get(id), ...json, updatedAt: new Date().toISOString() }; games.set(id, game); return send(res, 200, game); }
             if (req.method === 'DELETE' && id) { games.delete(id); return send(res, 200, {}); }
-            if (req.method === 'GET') return send(res, 200, [...games.values()].filter(g => g.kind));
+            // ?level (and ?player) as the API filters
+            if (req.method === 'GET') return send(res, 200, [...games.values()].filter(g => g.kind && (!url.searchParams.get('level') || (g.playLevels ?? []).some(e => e.level === url.searchParams.get('level') && (!url.searchParams.get('player') || e.player === url.searchParams.get('player'))))));
         }
         globalThis.rulesTrainings = globalThis.rulesTrainings ?? [];
         const rt = path.match(/^\/api\/(?:training\/rules|admin\/rules-trainings)(?:\/([^/]+))?$/);
@@ -916,7 +940,9 @@ http.createServer((req, res) => {
             }
             if (req.method === 'DELETE') { const i = list.findIndex(e => e.id === rt[1]); if (i >= 0) list.splice(i, 1); return send(res, 200, {}); }
             const kind = url.searchParams.get('kind');
-            return send(res, 200, list.filter(e => !kind || e.kind === kind));
+            // the level each played at, as the API keeps it, and ?level as it filters
+            const level = url.searchParams.get('level');
+            return send(res, 200, list.map(e => ({ ...e, playLevels: rulesTrainingPlayLevels(e) })).filter(e => (!kind || e.kind === kind) && (!level || e.playLevels.some(entry => entry.level === level))));
         }
         // the big screen: a link from the game, and the game for the screen (the token is the game's id, padded)
         const screenLink = path.match(/^\/api\/games\/(x01|cricket|elimination|clock|rules)\/([^/]+)\/screen$/);
@@ -954,7 +980,14 @@ http.createServer((req, res) => {
             if (req.method === 'POST' && !id) { const game = { ...json, kind: path.split('/')[3], id: `g${++seq}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; games.set(game.id, game); return send(res, 201, game); }
             if (req.method === 'GET' && id) return games.has(id) ? send(res, 200, games.get(id)) : send(res, 404, {});
             if (req.method === 'PUT' && id) { const game = { ...games.get(id), ...json, updatedAt: new Date().toISOString() }; games.set(id, game); return send(res, 200, game); }
-            if (req.method === 'GET') return send(res, 200, path.includes('/x01') ? [...games.values()].filter(g => !g.deleted) : []);
+            if (req.method === 'GET') {
+                // ?level (and ?player) as the API filters: the games played at the level, by the player or anyone
+                const level = url.searchParams.get('level');
+                const player = url.searchParams.get('player');
+                if (level && !PLAY_LEVELS.includes(level)) return send(res, 422, { errors: ['level must be one of: pub, amateur, pro, worldClass.'] });
+                const atLevel = (g) => !level || (g.playLevels ?? []).some(e => e.level === level && (!player || e.player === player));
+                return send(res, 200, path.includes('/x01') ? [...games.values()].filter(g => !g.deleted && atLevel(g)) : []);
+            }
         }
         if (path === '/api/stats/shame') {
             const holders = { madhouse: players[0], bedAndBreakfast: players[2], coldSpell: players[2], bustMaster: players[1] };

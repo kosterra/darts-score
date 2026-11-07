@@ -120,3 +120,87 @@ export const CLOCK_LEVEL = {
     bands: (result, mode) => CLOCK_BANDS[mode] ?? null,
     format: percent,
 };
+
+const round1 = (value) => Math.round(value * 10) / 10;
+const round2 = (value) => Math.round(value * 100) / 100;
+// '' stands for a dart not thrown because the leg was over; '0' is a miss
+const thrown = (darts) => (Array.isArray(darts) ? darts : []).filter(dart => dart !== '' && dart != null);
+const sumOf = (values) => values.reduce((total, value) => total + value, 0);
+const MULTIPLIER = { S: 1, D: 2, T: 3 };
+// a dart on a number of Cricket (15 to 20 and the bull) as its marks, else 0
+const cricketMarks = (dart) => {
+    const match = /^([SDT])(\d{1,2})$/i.exec(String(dart ?? '').trim());
+    if (!match || ![15, 16, 17, 18, 19, 20, 25].includes(Number(match[2]))) return 0;
+    return MULTIPLIER[match[1].toUpperCase()];
+};
+// "T20" → 60, "D25" → 50, a miss 0
+const dartPoints = (dart) => {
+    const match = /^([SDT])(\d{1,2})$/i.exec(String(dart ?? '').trim());
+    return match ? Number(match[2]) * MULTIPLIER[match[1].toUpperCase()] : 0;
+};
+
+/**
+ * The figures a level is judged by, from a game as the app reads it (what is
+ * stored, with what follows from its visits: see stored.js), for one player:
+ * the same as the statistics of the game work out (x01.game.summary,
+ * cricket.game.summary, elimination.game.summary, clockResults).
+ */
+export const LEVEL_FIGURES = {
+    x01: (game, playerId) => {
+        const model = game?.playerModels?.[playerId] ?? {};
+        const overall = model.averages?.game?.overall;
+        const darts = model.totalThrow?.game?.darts
+            ?? sumOf((game?.visits ?? []).filter(visit => visit.player === playerId).map(visit => thrown(visit.darts).length));
+        return { average: overall != null ? round1(overall) : null, dartsThrown: darts };
+    },
+    cricket: (game, playerId) => {
+        const model = game?.playerModels?.[playerId] ?? {};
+        const visits = (game?.allThrows ?? []).filter(visit => visit?.playerId === playerId);
+        const darts = visits.flatMap(visit => thrown(visit.darts));
+        const rounds = Number(model.totalThrow?.game?.rounds ?? visits.length);
+        return {
+            marksPerRound: rounds ? round2(sumOf(darts.map(cricketMarks)) / rounds) : null,
+            dartsThrown: Number(model.totalThrow?.game?.darts ?? darts.length),
+        };
+    },
+    elimination: (game, playerId) => {
+        const visits = (game?.allThrows ?? []).filter(visit => visit?.playerId === playerId);
+        // a bust scores nothing; a visit typed as one score has its score and no darts
+        const scores = visits.map(visit => (visit.bust ? 0 : visit.roundScore ?? sumOf(thrown(visit.darts).map(dartPoints))));
+        return {
+            average: scores.length ? round1(sumOf(scores) / scores.length) : null,
+            dartsThrown: sumOf(visits.map(visit => thrown(visit.darts).length)),
+            visits: visits.length,
+        };
+    },
+    clock: (game, playerId) => {
+        const model = game?.playerModels?.[playerId] ?? {};
+        const darts = model.darts ?? 0;
+        return { darts, hitRate: darts ? Math.round((model.hits ?? 0) / darts * 100) : 0 };
+    },
+};
+LEVEL_FIGURES.x01training = LEVEL_FIGURES.x01;
+
+const STORED_LEVELS = { x01: X01_LEVEL, x01training: X01_LEVEL, cricket: CRICKET_LEVEL, elimination: ELIMINATION_LEVEL, clock: CLOCK_LEVEL };
+
+/**
+ * The level one player played a game of X01 (also against the bot), Cricket,
+ * Elimination or Around the Clock at, from the game as the app reads it:
+ * { level, by, value } of judgeLevel, or null.
+ */
+export const gameLevelOf = (type, game, playerId) => {
+    const definition = STORED_LEVELS[type];
+    if (!definition) return null;
+    return judgeLevel(definition, LEVEL_FIGURES[type](game, playerId), game?.mode);
+};
+
+/**
+ * Around the Clock as a training with the fewest darts: every one of the 21
+ * targets is hit once, so the hit rate follows from the darts. Null for a
+ * training against the clock (no darts counted).
+ */
+export const atcTrainingLevelOf = (entry) => {
+    const darts = Number(entry?.darts);
+    if (entry?.scoring !== 'Darts' || !darts) return null;
+    return judgeLevel(CLOCK_LEVEL, { darts, hitRate: Math.round(21 / darts * 100) }, entry.mode);
+};

@@ -26,6 +26,8 @@ import { ageOn, strengthOf } from '../../utils/handicap';
 import { t } from '../../utils/i18n';
 import useGameRules from '../games/common/game.rules';
 import { formatDate } from '../../utils/dates';
+import PlayLevelTag from '../elements/play.level.tag';
+import { playLevelOf } from '../../utils/play.levels';
 
 // the starting scores of a training (a choice of the club may follow)
 const TRAINING_SCORES = [101, 170, 301, 501, 701].map(value => ({ value }));
@@ -245,7 +247,10 @@ const X01BotPage = () => {
                                         {finished ? (result.won ? t('Won') : t('Lost')) : t('Running')}
                                     </span>
                                     <div className="d-flex flex-column min-w-0">
-                                        <span className="text-default fw-semibold">{training.startingScore} {training.legOutMode} · {result.legs}</span>
+                                        <span className="d-flex align-items-center flex-wrap column-gap-2">
+                                            <span className="text-default fw-semibold">{training.startingScore} {training.legOutMode} · {result.legs}</span>
+                                            <PlayLevelTag estimate={playLevelOf(training, player.id)} compact />
+                                        </span>
                                         <span className="text-faint fs-8">
                                             {formatDate(training.createdAt, { time: true })}
                                             {result.average != null && t(' · {{nickname}} {{toFixed}}, bot {{value}}', { nickname: player.nickname, toFixed: result.average.toFixed(1), value: result.botAverage?.toFixed(1) ?? '–' })}

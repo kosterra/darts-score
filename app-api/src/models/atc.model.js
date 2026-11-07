@@ -1,3 +1,5 @@
+import { addPlayLevels } from './play.levels.field.js';
+
 export default (mongoose) => {
   const schema = mongoose.Schema(
     {
@@ -25,6 +27,8 @@ export default (mongoose) => {
 
   // Used by mode filter queries
   schema.index({ mode: 1 });
+  // the level each player played at, for the lists and their filter
+  addPlayLevels(schema);
 
   schema.method('toJSON', function () {
     const { _id, ...object } = this.toObject();

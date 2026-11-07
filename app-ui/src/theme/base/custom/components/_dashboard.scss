@@ -108,8 +108,10 @@
     }
 
     // on a phone the type's tag names the game: its icon makes room for the names and figures
+    // the status beside them as wide in every card, so the players' columns stand at the same place
     @media (max-width: 575.98px) {
         .game-type-icon { display: none; }
+        .timeline-side { width: 4.75rem; }
         gap: $space-2;
     }
 
@@ -125,18 +127,34 @@
     }
 }
 
-// the players of a game in columns: the names, then the sets or the legs (or the score), aligned
+// the players of a game in columns: the names, then the sets or the legs (or the score), then the
+// level played at. The columns are as wide in every game of a list, so its scores and levels stand
+// one under another down the list; a longer name is shortened, the figure never
 .game-players {
     display: grid;
-    // the names keep room for a short one; longer ones are shortened, the figure never
-    grid-template-columns: minmax(4.5rem, max-content) max-content;
+    grid-template-columns: 8.5rem 4rem max-content;
     column-gap: 0.75rem;
     row-gap: 0.15rem;
     align-items: baseline;
 
-    .game-players-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    // the nickname shortened, the winner's trophy always shown after it
+    .game-players-name { display: flex; align-items: baseline; min-width: 0; white-space: nowrap; }
+    .game-players-nickname { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .game-players-level { display: flex; min-width: 0; }
 
-    @media (max-width: 575.98px) { column-gap: 0.5rem; }
+    // on a phone there is no room for a third column: the level goes on a line of its own under
+    // the name, as a secondary fact
+    @media (max-width: 575.98px) {
+        grid-template-columns: minmax(0, 1fr) 3.5rem;
+        column-gap: 0.5rem;
+
+        .game-players-level {
+            grid-column: 1 / -1;
+            margin-bottom: 0.2rem;
+
+            &:empty { display: none; }
+        }
+    }
 }
 
 // a game's type as a tile in its colour with its icon, at the start of a row

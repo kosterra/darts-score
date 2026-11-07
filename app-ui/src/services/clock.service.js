@@ -18,8 +18,8 @@ const loadClockGameById = async (id) => gameOf('clock', await request(`${API_URL
 // basedOn: the "updatedAt" of the stored state this one builds on (a 409 when the server has a newer one)
 const updateClockGame = (game, { basedOn } = {}) => request(`${API_URL}/${game.id}`, { method: 'PUT', headers: getHeaders(true), body: JSON.stringify({ ...storedOf('clock', game), ...(basedOn && { basedOn }) }) });
 
-// newest first
-const loadAllClockGames = async () => (await request(API_URL, { method: 'GET', headers: getHeaders(false) }))
+// newest first; filter: the query string of the filter by level (see utils/play.levels.js)
+const loadAllClockGames = async (filter = '') => (await request(`${API_URL}${filter}`, { method: 'GET', headers: getHeaders(false) }))
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
 const deleteClockGame = async (id, clubId) => {

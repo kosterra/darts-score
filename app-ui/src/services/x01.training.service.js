@@ -12,7 +12,11 @@ const createX01Game = async (game) => gameOf('x01training', await requestJSON(AP
 const loadX01GameById = async (id) => gameOf('x01training', await requestJSON(`${API_URL}/${id}`));
 const updateX01Game = (game) => requestJSON(`${API_URL}/${game.id}`, { method: 'PUT', body: storedOf('x01training', game) });
 // the trainings of a player, or without one of the whole club (with who trained)
-const loadTrainings = (playerId) => requestJSON(playerId ? `${API_URL}?player=${encodeURIComponent(playerId)}` : API_URL);
+// level: only those played at that level (see utils/play.levels.js)
+const loadTrainings = (playerId, level = null) => {
+    const params = new URLSearchParams({ ...(playerId && { player: playerId }), ...(level && level !== 'all' && { level }) }).toString();
+    return requestJSON(params ? `${API_URL}?${params}` : API_URL);
+};
 // the charts of a training, as for a game
 const loadX01GameStats = (id) => requestJSON(`${API_URL}/${id}/stats`);
 // clubId: the club of the training, the selected one when left out

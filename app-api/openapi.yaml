@@ -2505,6 +2505,8 @@ paths:
         - Users
       summary: X01, Cricket and Elimination games of the clubs in ?clubs=id1,id2, each with its type and club (global admins only)
       parameters:
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
         - in: query
           name: clubs
           required: true
@@ -2516,6 +2518,8 @@ paths:
           description: OK
         '400':
           description: No or invalid clubs chosen
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2528,6 +2532,8 @@ paths:
         - Users
       summary: Around the Clock trainings of the clubs in ?clubs=id1,id2, each with its club (global admins only)
       parameters:
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
         - in: query
           name: clubs
           required: true
@@ -2539,6 +2545,8 @@ paths:
           description: OK
         '400':
           description: No or invalid clubs chosen
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2950,6 +2958,8 @@ paths:
         - Administration
       summary: The trainings of Bob's 27, 121 Checkout and the others of the chosen clubs
       parameters:
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
         - name: clubs
           in: query
           required: false
@@ -2965,6 +2975,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RulesTraining'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2976,6 +2988,8 @@ paths:
         - Administration
       summary: X01 trainings against the bot of the chosen clubs
       parameters:
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
         - name: clubs
           in: query
           required: false
@@ -2991,6 +3005,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/X01Training'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -5079,6 +5095,8 @@ paths:
       description: >-
         leaderboards.rating is the club rating's board, "Strongest": the top 5 members (no guests) whose rating has settled
         (5 rated games) and who played a rated game within a year, as [{ player, value (the rating), games }].
+        recentGames and runningGames: each player as { player, score, sets and legs (X01), isWinner, level (pub, amateur, pro
+        or worldClass, the level played at; null without enough darts to judge) }.
       responses:
         '200':
           description: OK
@@ -5385,6 +5403,9 @@ paths:
       tags:
         - Statistics
       summary: The latest games of a player
+      description: >-
+        { total, games, players }: every game with its players as { player, score, sets and legs (X01), isWinner, level (the
+        level played at, null without enough darts to judge) }.
       parameters:
         - $ref: '#/components/parameters/ClubId'
         - name: limit
@@ -5900,6 +5921,8 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Skip'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
       responses:
         '200':
           description: Array of X01 games (newest first, max 100)
@@ -5909,6 +5932,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/X01Game'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -6389,6 +6414,8 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Skip'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
       responses:
         '200':
           description: Array of Cricket games
@@ -6398,6 +6425,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CricketGame'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -6521,6 +6550,8 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Skip'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
       responses:
         '200':
           description: Array of Elimination games
@@ -6530,6 +6561,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EliminationGame'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -6706,6 +6739,8 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Skip'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
       responses:
         '200':
           description: The games, newest first
@@ -6715,6 +6750,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClockGame'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -6867,6 +6904,8 @@ paths:
         - $ref: '#/components/parameters/ClubId'
         - $ref: '#/components/parameters/Limit'
         - $ref: '#/components/parameters/Skip'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
       responses:
         '200':
           description: The games, newest first
@@ -6876,6 +6915,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RulesGame'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -7029,6 +7070,8 @@ paths:
       description: Without the trainings of players who keep them to themselves (unless the user is an admin of the club or the player).
       parameters:
         - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
         - name: kind
           in: query
           required: false
@@ -7054,6 +7097,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RulesTraining'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -7088,6 +7133,8 @@ paths:
       summary: List ATC entries
       parameters:
         - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
         - name: mode
           in: query
           description: Filter by mode (case-insensitive substring match)
@@ -7103,6 +7150,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ATCEntry'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -7209,6 +7258,8 @@ paths:
         admins).
       parameters:
         - $ref: '#/components/parameters/ClubId'
+        - $ref: '#/components/parameters/PlayLevel'
+        - $ref: '#/components/parameters/LevelPlayer'
         - name: player
           in: query
           required: false
@@ -7225,6 +7276,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/X01Training'
+        '422':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -9129,6 +9182,25 @@ components:
         type: integer
         default: 0
         minimum: 0
+    PlayLevel:
+      name: level
+      in: query
+      description: >-
+        Only what was played at this level (see playLevels): with ?player, where that player played at it, else where anyone
+        did. Anything else than a level is refused (422).
+      schema:
+        type: string
+        enum:
+          - pub
+          - amateur
+          - pro
+          - worldClass
+    LevelPlayer:
+      name: player
+      in: query
+      description: With ?level, the player who played at that level (a player id; anything else filters by the level alone)
+      schema:
+        type: string
   responses:
     NotFound:
       description: Resource not found
@@ -9611,6 +9683,8 @@ components:
           properties:
             id:
               type: string
+            playLevels:
+              $ref: '#/components/schemas/PlayLevels'
             type:
               type: string
               description: The kind again, as the type the app shows
@@ -9675,6 +9749,8 @@ components:
           properties:
             id:
               type: string
+            playLevels:
+              $ref: '#/components/schemas/PlayLevels'
             club:
               type: string
             createdAt:
@@ -10127,6 +10203,24 @@ components:
         starter:
           type: string
           description: Who throws first when not the first player (games of earlier versions of the app)
+    PlayLevels:
+      type: array
+      description: >-
+        The level each player played at, an estimate worked out by the API from the visits or darts whenever it is saved
+        (what is sent is not taken); only players with enough darts to judge, never the bot
+      items:
+        type: object
+        properties:
+          player:
+            type: string
+            description: The player id
+          level:
+            type: string
+            enum:
+              - pub
+              - amateur
+              - pro
+              - worldClass
     X01Game:
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -10135,6 +10229,8 @@ components:
           properties:
             id:
               type: string
+            playLevels:
+              $ref: '#/components/schemas/PlayLevels'
             gameIsRunning:
               type: boolean
             hasWinner:
@@ -10205,6 +10301,8 @@ components:
           properties:
             id:
               type: string
+            playLevels:
+              $ref: '#/components/schemas/PlayLevels'
             gameIsRunning:
               type: boolean
             hasWinner:
@@ -10279,6 +10377,8 @@ components:
           properties:
             id:
               type: string
+            playLevels:
+              $ref: '#/components/schemas/PlayLevels'
             gameIsRunning:
               type: boolean
             hasWinner:
@@ -10335,6 +10435,8 @@ components:
           properties:
             id:
               type: string
+            playLevels:
+              $ref: '#/components/schemas/PlayLevels'
     SectionHit:
       type: object
       properties:
@@ -11253,6 +11355,8 @@ components:
             id:
               type: string
               description: MongoDB ObjectId
+            playLevels:
+              $ref: '#/components/schemas/PlayLevels'
             club:
               type: string
               description: MongoDB ObjectId

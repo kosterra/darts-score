@@ -1,4 +1,5 @@
 import { TRAINING_KINDS } from '../utils/rules.kinds.js';
+import { addPlayLevels } from './play.levels.field.js';
 
 // A training of the rules engine (Bob's 27, 121 Checkout, …), saved once it is
 // over: its darts, its score (which ranks the attempts) and the result.
@@ -22,6 +23,8 @@ export default (mongoose) => {
   );
 
   schema.index({ kind: 1, 'player.id': 1 });
+  // the level each player played at, for the lists and their filter
+  addPlayLevels(schema);
 
   schema.method('toJSON', function () {
     const { _id, ...object } = this.toObject();

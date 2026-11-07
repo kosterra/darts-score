@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { CLOCK_LEVEL, CRICKET_LEVEL, ELIMINATION_LEVEL, LEVELS, X01_LEVEL, judgeLevel, playLevel } from './levels.play';
+import { CLOCK_LEVEL, CRICKET_LEVEL, ELIMINATION_LEVEL, LEVELS, X01_LEVEL, atcTrainingLevelOf, gameLevelOf, judgeLevel, playLevel } from './levels.play';
+import { gameOf } from './stored';
+import { legsOf, playerFigures } from '../utils/x01.game.summary';
+import { cricketFigures, replayCricket as replayCricketSummary } from '../utils/cricket.game.summary';
+import { eliminationFigures, replayElimination as replayEliminationSummary } from '../utils/elimination.game.summary';
+import { clockResults, replayClock } from '../utils/clock.game';
 import { replayGame, replayTraining } from './engine';
 import { BASEBALL, GAMES, GOLF, HALVE_IT, KILLER, SCRAM, SHANGHAI, TACTICS } from './games';
 import { BOBS_27, BULLS, CATCH_40, CHECKOUT_121, DOUBLES_AROUND, LADDER, RANDOM_CHECKOUTS, SCORING, SHORTEST_LEG, TRAININGS, TREBLES } from './trainings';
@@ -203,5 +208,62 @@ describe('the levels of the trainings', () => {
     it('judges a training replayed from its darts', () => {
         const done = replayTraining(SCORING, { settings: { darts: 30 }, darts: Array(30).fill('T20') });
         expect(judgeLevel(SCORING.level, done.result, done.settings)).toEqual({ level: 'worldClass', by: 'the 3-dart average', value: '180.0' });
+    });
+});
+
+// the API judges a stored game with LEVEL_FIGURES (gameLevelOf): the same as the result pages
+// judge the figures of their statistics
+describe('the level of a stored game, as the API keeps it', () => {
+    const turns = (count, a, b) => Array.from({ length: count }, () => [visit('a', ...a), visit('b', ...b)]).flat();
+    const X01 = { startingScore: 501, legInMode: 'Straight In', legOutMode: 'Double Out', setMode: 'First to', numberOfSets: 1, legMode: 'First to', numberOfLegs: 3, players: ['a', 'b'] };
+    const both = (type, game, pageLevel) => ['a', 'b'].forEach(id => {
+        expect(gameLevelOf(type, game, id), `${type} ${id}`).toEqual(pageLevel(id));
+    });
+
+    it('judges X01 as its statistics page', () => {
+        const visitsOf = [
+            turns(4, ['S20', 'S20', 'S20'], ['S5', 'S5', 'S5']),
+            [...turns(3, ['T20', 'T20', 'T20'], ['T20', 'S20', 'S1']), visit('a', 'T20', 'T19', 'D12')],
+            turns(2, ['T20', 'T20', 'T20'], ['0', '0', '0']),
+        ];
+        for (const visits of visitsOf) {
+            const game = gameOf('x01', { ...X01, visits });
+            const legs = legsOf(game);
+            both('x01', game, (id) => judgeLevel(X01_LEVEL, playerFigures(game, id, legs)));
+        }
+        expect(gameLevelOf('x01', gameOf('x01', { ...X01, visits: visitsOf[0] }), 'a').level).toBe('amateur');
+    });
+
+    it('judges Cricket as its statistics page', () => {
+        for (const visits of [turns(3, ['T20', 'S19', '0'], ['S20', '0', '0']), turns(5, ['T20', 'T19', 'D25'], ['S15', 'S16', '0'])]) {
+            const game = gameOf('cricket', { players: ['a', 'b'], visits });
+            const replay = replayCricketSummary(game);
+            both('cricket', game, (id) => judgeLevel(CRICKET_LEVEL, cricketFigures(game, id, replay)));
+        }
+    });
+
+    it('judges Elimination as its statistics page', () => {
+        for (const visits of [turns(3, ['S20', 'S20', 'S20'], ['S1', 'S1', 'S1']), turns(4, ['T20', 'T20', 'S20'], ['T19', 'S19', 'S5'])]) {
+            const game = gameOf('elimination', { targetScore: 501, gameInMode: 'Straight In', gameOutMode: 'Straight Out', players: ['a', 'b'], visits });
+            const replay = replayEliminationSummary(game);
+            both('elimination', game, (id) => judgeLevel(ELIMINATION_LEVEL, eliminationFigures(game, id, replay)));
+        }
+    });
+
+    it('judges Around the Clock as its statistics page, by the mode', () => {
+        for (const mode of ['All', 'Single', 'Double', 'Triple']) {
+            const game = gameOf('clock', { mode, players: ['a', 'b'], visits: turns(4, ['S1', 'D1', '0'], ['T1', '0', '0']) });
+            const results = clockResults(replayClock(game));
+            both('clock', game, (id) => judgeLevel(CLOCK_LEVEL, results.find(result => result.playerId === id), game.mode));
+        }
+    });
+
+    it('judges an Around the Clock training with the fewest darts by its hit rate', () => {
+        expect(atcTrainingLevelOf({ scoring: 'Darts', darts: 30, mode: 'All' })).toEqual(judgeLevel(CLOCK_LEVEL, { darts: 30, hitRate: 70 }, 'All'));
+        expect(atcTrainingLevelOf({ scoring: 'Time', timeMs: 4000, mode: 'All' })).toBeNull();
+    });
+
+    it('has no level for other types', () => {
+        expect(gameLevelOf('golf', {}, 'a')).toBeNull();
     });
 });

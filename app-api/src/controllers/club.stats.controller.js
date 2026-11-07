@@ -113,7 +113,10 @@ export const buildLeaderboards = (totals, memberIds) => {
     };
 };
 
-const summarizeGame = (type, game) => ({
+// the level each player played a game at, by player (see utils/play.levels.js)
+const levelsOf = (game) => new Map((game.playLevels ?? []).map(entry => [String(entry.player), entry.level]));
+
+const summarizeGame = (type, game, levels = levelsOf(game)) => ({
     id: String(game._id),
     // a game of the rules engine by its kind
     type: type === 'rules' ? game.kind : type,
@@ -129,6 +132,8 @@ const summarizeGame = (type, game) => ({
             score: model.score ?? null,
             ...(type === 'x01' && { sets: model.setsWon ?? 0, legs: model.legsWon?.game ?? 0 }),
             isWinner: Boolean(model.hasWonGame),
+            // the level played at, null without enough darts to judge
+            level: levels.get(String(playerId)) ?? null,
         };
     }),
 });

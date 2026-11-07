@@ -1,5 +1,6 @@
-import { check, body } from 'express-validator';
+import { check, body, query } from 'express-validator';
 import { DART, GAME_KINDS, TRAINING_KINDS } from '../utils/rules.kinds.js';
+import { LEVELS } from '../rules/levels.play.js';
 import { gameOf } from '../rules/games.js';
 import { settingsProblem, trainingOf } from '../rules/trainings.js';
 
@@ -172,6 +173,11 @@ export const validateATCCreate = [
     check('session').optional().isString().isLength({ max: 64 }).withMessage('session must be a short text.'),
     check('mode').isIn(VALID_ATC_MODES).withMessage(`mode must be one of: ${VALID_ATC_MODES.join(', ')}.`),
     check('player.id').isMongoId().withMessage('player.id must be a player id.'),
+];
+
+// the filter of a list by the level played at: ?level=pub|amateur|pro|worldClass (with ?player, of that player)
+export const validateLevelQuery = [
+    query('level').optional().isIn(LEVELS).withMessage(`level must be one of: ${LEVELS.join(', ')}.`),
 ];
 
 export const validatePlayerIds = [

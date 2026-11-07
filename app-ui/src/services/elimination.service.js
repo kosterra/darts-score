@@ -40,9 +40,10 @@ const loadFinishedEliminationGames = async () => {
     });
 }
 
-const loadAllEliminationGames = async () => {
+// filter: the query string of the filter by level (see utils/play.levels.js), '' for none
+const loadAllEliminationGames = async (filter = '') => {
     try {
-        const response = await fetch(API_URL + 'games/elimination', {
+        const response = await fetch(API_URL + 'games/elimination' + filter, {
             method: 'GET',
             headers: getHeaders(false)
         });

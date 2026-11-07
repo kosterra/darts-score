@@ -8,6 +8,7 @@ import { RULES_TRAININGS } from '../utils/rules.kinds.js';
 import { withPlayers } from './atc.controller.js';
 import { trainingOf } from '../rules/trainings.js';
 import { replayTraining } from '../rules/engine.js';
+import { levelFilterOf, withPlayLevels } from '../utils/play.levels.js';
 import { noteTrainingRecords } from '../utils/player.notices.js';
 import { practiceGoalsAfterTraining } from '../utils/practice.goals.js';
 import { boardCondition } from '../utils/rules.stats.js';
@@ -48,7 +49,7 @@ export const create = async (req, res) => {
         const board = boardCondition(kind, replayed.settings);
         const previousBest = await Training.findOne({ club: req.club._id, kind, 'player.id': playerId, ...board }).sort({ score: higher ? -1 : 1 }).lean();
         const clubBest = await Training.findOne({ club: req.club._id, kind, ...board }).sort({ score: higher ? -1 : 1, createdAt: 1 }).lean();
-        const data = await new Training({
+        const data = await new Training(withPlayLevels('rulesTraining', {
             club: req.club._id,
             kind,
             settings: req.body.settings ?? {},
@@ -57,7 +58,7 @@ export const create = async (req, res) => {
             result: replayed.result,
             startedAt: startedAtOf(req.body.startedAt),
             player: { id: String(player._id), nickname: player.nickname },
-        }).save();
+        })).save();
         checkLater(() => noteCreated(req, 'training', { id: data._id, name: RULES_TRAININGS[kind].title, names: [] }));
         checkLater(() => noteFairPlay(req.club._id, 'rulesTraining', data));
         checkLater(() => noteTrainingRecords({
@@ -95,7 +96,8 @@ export const create = async (req, res) => {
  */
 export const findByQuery = async (req, res) => {
     try {
-        const condition = { club: req.club._id };
+        // ?level: only those played at that level
+        const condition = { ...levelFilterOf(req.query), club: req.club._id };
         if (req.query.kind) condition.kind = String(req.query.kind);
         const hidden = await hiddenTrainingPlayers(req);
         if (hidden.length) condition['player.id'] = { $nin: hidden };

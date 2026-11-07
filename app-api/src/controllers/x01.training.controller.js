@@ -4,6 +4,7 @@ import db from '../models/db.model.js';
 import { hiddenTrainingPlayers, mayDeleteTrainingOf, seesTrainingsOf } from '../utils/training.privacy.js';
 import { answerOf, storedOf } from '../utils/game.view.js';
 import { checkPracticeGoals } from '../utils/practice.goals.js';
+import { levelFilterOf, withPlayLevels } from '../utils/play.levels.js';
 
 // the bot is no player of the club: it only lives in its trainings
 export const BOT_ID = 'bot';
@@ -45,7 +46,7 @@ export const create = async (req, res) => {
     const player = await loadPlayer(req, res, humanOf(req.body.players));
     if (!player) return;
     try {
-        const training = await Training.create({ ...storedOf('x01training', req.body), club: req.club._id, bot: botOf(req.body.bot) });
+        const training = await Training.create({ ...withPlayLevels('x01Training', storedOf('x01training', req.body)), club: req.club._id, bot: botOf(req.body.bot) });
         logger.info(`${req.user.email} started an X01 training against the bot as "${player.nickname}"`);
         res.status(201).json(answerOf('x01training', training));
     } catch (err) {
@@ -90,7 +91,7 @@ export const update = async (req, res) => {
     const { players, bot, club, _id, id, __v, createdAt, updatedAt, ...sent } = req.body;
     // the results follow from the visits, worked out here; the players stay
     // eslint-disable-next-line no-unused-vars
-    const { players: same, ...changes } = storedOf('x01training', { ...sent, players: training.players });
+    const { players: same, ...changes } = withPlayLevels('x01Training', storedOf('x01training', { ...sent, players: training.players }));
     try {
         // a finished training sent again keeps the time it was finished (for the weekly goals)
         const finishedBefore = Boolean(training.hasWinner) && Boolean(changes.hasWinner);
@@ -115,12 +116,14 @@ export const update = async (req, res) => {
 export const findByPlayer = async (req, res) => {
     const hidden = await hiddenTrainingPlayers(req);
     const playerId = String(req.query.player ?? '');
+    // ?level: only those played at that level
+    const level = levelFilterOf(req.query);
     if (playerId) {
         if (!db.mongoose.isValidObjectId(playerId) || hidden.includes(playerId)) return res.json([]);
-        const trainings = await Training.find({ club: req.club._id, players: playerId }).sort({ createdAt: -1 }).limit(50);
+        const trainings = await Training.find({ ...level, club: req.club._id, players: playerId }).sort({ createdAt: -1 }).limit(50);
         return res.json(await withHumans(trainings));
     }
-    const trainings = await Training.find({ club: req.club._id, ...(hidden.length && { players: { $nin: hidden } }) }).sort({ createdAt: -1 });
+    const trainings = await Training.find({ ...level, club: req.club._id, ...(hidden.length && { players: { $nin: hidden } }) }).sort({ createdAt: -1 });
     res.json(await withHumans(trainings));
 };
 

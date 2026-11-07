@@ -7,6 +7,7 @@ import { removeProfileImageIfUnused } from '../utils/player.images.js';
 import { BOT_ID, withHumans } from './x01.training.controller.js';
 import { activityInsights, playersInsights } from '../utils/admin.insights.js';
 import { withPlayers } from './atc.controller.js';
+import { levelFilterOf } from '../utils/play.levels.js';
 
 const GAME_MODELS = [db.x01, db.cricket, db.elimination, db.clock, db.rulesGame];
 
@@ -196,7 +197,7 @@ export const games = async (req, res) => {
     logger.debug('admin games called');
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
-    const filter = { club: { $in: [...clubsById.keys()] } };
+    const filter = { ...levelFilterOf(req.query), club: { $in: [...clubsById.keys()] } };
     const [x01, cricket, elimination, clock, rules] = await Promise.all(GAME_MODELS.map(model => model.find(filter).sort({ createdAt: -1 })));
     res.json([
         ...x01.map(withClub(clubsById, { type: 'x01' })),
@@ -212,7 +213,7 @@ export const games = async (req, res) => {
 export const x01Trainings = async (req, res) => {
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
-    const found = await db.x01Training.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
+    const found = await db.x01Training.find({ ...levelFilterOf(req.query), club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
     res.json(await withHumans(found.map(withClub(clubsById))));
 };
 
@@ -220,7 +221,7 @@ export const x01Trainings = async (req, res) => {
 export const rulesTrainings = async (req, res) => {
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
-    const found = await db.rulesTraining.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
+    const found = await db.rulesTraining.find({ ...levelFilterOf(req.query), club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
     res.json(await withPlayers(found.map(withClub(clubsById))));
 };
 
@@ -228,7 +229,7 @@ export const trainings = async (req, res) => {
     logger.debug('admin trainings called');
     const clubsById = await selectedClubs(req, res);
     if (!clubsById) return;
-    const found = await db.atc.find({ club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
+    const found = await db.atc.find({ ...levelFilterOf(req.query), club: { $in: [...clubsById.keys()] } }).sort({ createdAt: -1 });
     res.json(await withPlayers(found.map(withClub(clubsById))));
 };
 

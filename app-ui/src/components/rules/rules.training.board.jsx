@@ -14,6 +14,9 @@ import { replayTraining } from '../../rules/engine';
 import { boardKeyOf, boardOf, placesOf } from '../../rules/trainings';
 import { rulesIcon } from './rules.icons';
 import RulesDoubles from './rules.doubles';
+import PlayLevelTag from '../elements/play.level.tag';
+import { playLevelOf } from '../../utils/play.levels';
+import { judgeLevel } from '../../rules/levels.play';
 
 const MEDALS = ['gold', 'silver', 'bronze'];
 
@@ -174,6 +177,14 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
 
     const canOpen = Boolean(definition.doubles);
     const doublesOf = (entry) => (entry.darts?.length ? definition.doubles(replayTraining(definition, entry).state) : null);
+    // the level each attempt was played at, as the API keeps it; one saved before it did is judged
+    // here from its darts, the same way
+    const levelOf = (entry) => {
+        const kept = playLevelOf(entry, entry.player?.id);
+        if (kept || entry.playLevels || !entry.darts?.length || !definition.level) return kept;
+        const done = replayTraining(definition, entry);
+        return done.done ? judgeLevel(definition.level, done.result, done.settings) : null;
+    };
     const toggle = (entry) => canOpen && entry.darts?.length && setOpen(open === entry.id ? null : entry.id);
     const Icon = rulesIcon(definition.id);
 
@@ -238,7 +249,11 @@ const RulesTrainingBoard = ({ definition, version = 0, highlight = null, setting
                                             {player.nickname ?? t('Unknown player')}
                                             {entry.id === highlight && <span className="atc-row-new">{t('New')}</span>}
                                         </span>
-                                        <span className="atc-row-detail">{formatDate(entry.createdAt, { year: 'short' })}</span>
+                                        {/* the date, and the level the attempt was played at after it */}
+                                        <span className="atc-row-detail atc-row-detail-level">
+                                            <span>{formatDate(entry.createdAt, { year: 'short' })}</span>
+                                            <PlayLevelTag estimate={levelOf(entry)} compact />
+                                        </span>
                                     </span>
                                     <span className="atc-row-time rules-board-score">
                                         {definition.format(entry.score)}

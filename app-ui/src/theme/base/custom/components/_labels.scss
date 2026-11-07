@@ -60,6 +60,12 @@ $labelRed: $accentRed;
     cursor: help;
 
     &.is-placeholder { visibility: hidden; }
+
+    // in lists the short name ("Pro") after a player's result: quieter still, on one line
+    &.is-compact {
+        padding: 0.05rem 0.4rem;
+        white-space: nowrap;
+    }
 }
 
 // the chosen entries in a multi select (e.g. the clubs of a filter): labels,

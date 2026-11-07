@@ -17,14 +17,15 @@ const loadGamesInsights = () => requestJSON(`${API_URL}/insights/games`);
 const loadTrainingsInsights = () => requestJSON(`${API_URL}/insights/trainings`);
 
 // players, games and trainings of the given clubs, each with its club
-const query = (clubIds) => `?clubs=${clubIds.map(encodeURIComponent).join(',')}`;
+// filter: the query string of the filter by level (see utils/play.levels.js), '' for none
+const query = (clubIds, filter = '') => `?clubs=${clubIds.map(encodeURIComponent).join(',')}${filter ? `&${filter.replace(/^\?/, '')}` : ''}`;
 const loadPlayers = (clubIds) => requestJSON(`${API_URL}/players${query(clubIds)}`);
-const loadGames = (clubIds) => requestJSON(`${API_URL}/games${query(clubIds)}`);
-const loadTrainings = (clubIds) => requestJSON(`${API_URL}/trainings${query(clubIds)}`);
+const loadGames = (clubIds, filter) => requestJSON(`${API_URL}/games${query(clubIds, filter)}`);
+const loadTrainings = (clubIds, filter) => requestJSON(`${API_URL}/trainings${query(clubIds, filter)}`);
 // the X01 trainings against the bot of the chosen clubs
-const loadX01Trainings = (clubIds) => requestJSON(`${API_URL}/x01-trainings${query(clubIds)}`);
+const loadX01Trainings = (clubIds, filter) => requestJSON(`${API_URL}/x01-trainings${query(clubIds, filter)}`);
 // Bob's 27, 121 Checkout, … of the rules engine
-const loadRulesTrainings = (clubIds) => requestJSON(`${API_URL}/rules-trainings${query(clubIds)}`);
+const loadRulesTrainings = (clubIds, filter) => requestJSON(`${API_URL}/rules-trainings${query(clubIds, filter)}`);
 
 // the quick games of the public start page: { total, perDay, games }, and deleting some
 const loadQuickGames = () => requestJSON(`${API_URL}/quick-games`);

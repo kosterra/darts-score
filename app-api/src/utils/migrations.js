@@ -337,7 +337,37 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-11-play-levels',
+        description: 'Work out the level every player played each game and training at, for the lists and their filter by level',
+        run: async () => {
+            const counts = await fillPlayLevels();
+            logger.info(`Play levels: ${Object.entries(counts).map(([kind, count]) => `${count} ${kind}`).join(', ')}`);
+            return true;
+        },
+    },
 ];
+
+/**
+ * The level every player played at (playLevels) for the games and trainings
+ * that have none yet, one at a time. Writes that field alone: nothing else,
+ * and "last updated" stays. Safe to run again: what has it is left out.
+ * → { [kind]: documents written }
+ */
+export const fillPlayLevels = async () => {
+    const { PLAY_LEVEL_KINDS } = await import('./play.levels.js');
+    const counts = {};
+    for (const [kind, levelsOf] of Object.entries(PLAY_LEVEL_KINDS)) {
+        const Model = db[kind];
+        counts[kind] = 0;
+        const cursor = Model.find({ playLevels: { $exists: false } }).lean().cursor();
+        for await (const doc of cursor) {
+            await Model.updateOne({ _id: doc._id }, { $set: { playLevels: levelsOf(doc) } }, { timestamps: false });
+            counts[kind] += 1;
+        }
+    }
+    return counts;
+};
 
 export const runMigrations = async (context) => {
     const applied = db.mongoose.connection.collection('migrations');
