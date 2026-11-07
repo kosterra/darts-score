@@ -86,6 +86,18 @@ test('at the end what every double took, and the new entry on the scoreboard in 
     const miss = page.getByRole('button', { name: 'Miss', exact: true });
     for (let dart = 0; dart < 15; dart++) await miss.click();
 
+    // over, but not saved yet: the result to confirm, with Undo beside it
+    const over = page.locator('.rules-over');
+    await expect(over).toContainText('Training over');
+    await expect(page.locator('.result-hero-score')).toHaveText('0 points');
+    await expect(page.locator('.result-hero .rules-doubles')).toHaveCount(0);
+    // the last dart back: D5 again, one dart left in the visit
+    await over.getByRole('button', { name: 'Undo dart' }).click();
+    await expect(over).toHaveCount(0);
+    await expect(hero(page)).toHaveText('D5');
+    await miss.click();
+    await page.getByRole('button', { name: 'Save the result' }).click();
+
     const summary = page.locator('.result-hero .rules-doubles');
     await expect(summary).toBeVisible();
     await expect(summary.locator('.rules-double.is-tone-0')).toHaveCount(5);

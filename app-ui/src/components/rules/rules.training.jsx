@@ -33,10 +33,8 @@ import PlayerService from '../../services/player.service';
 import { checkoutRoutes, formatRoute, setupSuggestions } from '../../utils/checkout.routes';
 import useGamePreferences from '../../utils/use.game.preferences';
 
-// a training under way survives a reload of the page
+// a training under way survives a reload of the page (also once over, until its result is saved)
 const runningKey = (kind) => `oche.rulesTraining.${kind}`;
-// how long the dart that ends a training shows before the result
-const LAST_DART_MS = 450;
 
 const readRunning = (kind) => {
     try {
@@ -276,25 +274,18 @@ const RulesTraining = () => {
         }
     }, [kind, definition]);
 
-    // a dart that ends the training enters its visit by itself, a moment after it shows: there is
-    // nothing more to throw, and the result comes at once
-    const ending = staged && pending.length > 0 && Boolean(replay?.done);
-    useEffect(() => {
-        if (!ending) return undefined;
-        const timer = setTimeout(() => setRunning(current => (current ? { ...current, darts: [...current.darts, ...(current.pending ?? [])], pending: [] } : current)), LAST_DART_MS);
-        return () => clearTimeout(timer);
-    }, [ending]);
+    if (!definition) return <Navigate replace to="/training/more" />;
 
-    // over: saved once, and the page shows the result
-    useEffect(() => {
-        // a visit that ends the training is entered first
-        if (!replay?.done || !running || pending.length) return;
-        const attempt = running;
+    // over: saved only once the player confirms it (a dart entered wrong can still be undone), with
+    // the darts of the visit that ended it
+    const over = Boolean(running && replay?.done);
+    const saveFinished = () => {
+        if (!over) return;
+        const attempt = { ...running, darts: [...running.darts, ...pending], pending: [] };
+        setUndone(null);
         setRunning(null);
         saveResult(replay, attempt);
-    }, [replay, running, pending, saveResult]);
-
-    if (!definition) return <Navigate replace to="/training/more" />;
+    };
 
     const start = (player = players[0]) => {
         if (!player) return;
@@ -344,9 +335,8 @@ const RulesTraining = () => {
 
     const header = <UpLink to="/training/more" label={t('More trainings')} />;
 
-    // the training under way
-    // also while the visit that ends it is not entered yet: it shows, with Enter score (or Undo)
-    if (running && replay && (!replay.done || pending.length > 0)) {
+    // the training under way; once over it stays until the result is saved (or the last dart undone)
+    if (running && replay) {
         const ctx = { settings: replay.settings };
         // the darts of this visit: an attempt of a checkout training may end before its third
         const inVisit = definition.inVisit ? definition.inVisit(replay.state, ctx) : running.darts.length % 3;
@@ -357,7 +347,7 @@ const RulesTraining = () => {
         const changed = undone ? status.filter(([, value], index) => String(undone.status[index]?.[1]) !== String(value)).map(([label]) => label) : [];
         const target = definition.target(replay.state, ctx);
         const doubles = definition.doubles ? definition.doubles(replay.state, ctx) : null;
-        const danger = definition.danger ? definition.danger(replay.state, ctx) : null;
+        const danger = definition.danger && !over ? definition.danger(replay.state, ctx) : null;
         // the danger zone: Bob's 27 over, or a checkout attempt lost, without a hit in the darts left
         const dangerStrip = (className = '') => danger && (
             <div key={`${danger.double ?? danger.left}`} className={`rules-danger is-left-${danger.dartsLeft} ${className}`} role="status">
@@ -383,6 +373,23 @@ const RulesTraining = () => {
                     </span>
                 ))}
             </span>;
+        // once over: the result big, its figures on the tiles (not where the next dart would go)
+        // the figure that is the result itself is the big one, not a tile again (only that one: Best visit 180 beside an average of 180.0 stays)
+        const overFigures = over ? definition.figures(replay.result) : [];
+        const ownFigure = overFigures.find(([, value]) => sameAsScore(definition, replay.result.score, value));
+        const overRow = over && {
+            player: running.player,
+            isTurn: true,
+            score: definition.format(replay.result.score),
+            below: <span className="rules-hero-figures">
+                {overFigures.filter(entry => entry !== ownFigure).map(([label, value]) => (
+                    <span key={label} className="rules-hero-figure">
+                        <span className="tabular-nums">{value}</span>
+                        <span className="rules-hero-figure-label">{label}</span>
+                    </span>
+                ))}
+            </span>,
+        };
         return (
             // x01-live: the gutters of a game, so nothing is wider than a phone
             <div className="container-fluid bg-transparent border-0 x01-game-page x01-live rules-training-live">
@@ -390,8 +397,8 @@ const RulesTraining = () => {
                     rulesId={kind}
                     title={[definition.title, ...(definition.options ?? []).map(option => option.values.find(value => value.value === replay.settings[option.key])?.label).filter(Boolean)].join(' · ')}
                     // the double to throw at is the big figure already: not again under the title
-                    subtitle={definition.heroTarget || definition.noteTarget ? undefined : target}
-                    rows={[{
+                    subtitle={over ? t('Result') : definition.heroTarget || definition.noteTarget ? undefined : target}
+                    rows={overRow ? [overRow] : [{
                         player: running.player,
                         isTurn: true,
                         // the big figures say it all already
@@ -433,7 +440,18 @@ const RulesTraining = () => {
                         {doubles && <RulesDoubles cells={doubles} label={definition.doublesLabel} live className="mb-3" />}
                         {/* the danger zone above the input; on a phone it floats at the bottom instead (below) */}
                         {dangerStrip('d-none d-md-flex')}
-                        {definition.input === 'hitmiss'
+                        {over
+                            // the end, where the darts were entered: the result, saved once confirmed, or the last dart back
+                            ? <div className="rules-over" role="status">
+                                <i className="pi pi-flag rules-over-icon" aria-hidden="true" />
+                                <span className="rules-over-title">{t('Training over')}</span>
+                                <span className="rules-over-hint">{t('Save the result, or undo the last dart if it was entered wrong.')}</span>
+                                <div className="rules-over-actions">
+                                    <Button label={t('Save the result')} icon="pi pi-check" onClick={saveFinished} autoFocus />
+                                    <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" onClick={undoDart} />
+                                </div>
+                            </div>
+                        : definition.input === 'hitmiss'
                             ? <div className="rules-hitmiss">
                                 <Button label={t('Hit')} icon="pi pi-check" onClick={() => throwDart('H')} />
                                 <Button label={t('Miss')} icon="pi pi-times" severity="secondary" onClick={() => throwDart('M')} />
@@ -482,8 +500,9 @@ const RulesTraining = () => {
                             {undone && <p key={undone.count} className="rules-undone" role="status"><i className="pi pi-undo" aria-hidden="true" />{t('Dart {{dart}} undone: {{target}} again', { dart: visitDarts.length + 1, target })}</p>}
                             {ways && <div className="mt-3"><TrainingWaysOut ways={ways} /></div>}
                             <div className="d-flex flex-wrap gap-2 justify-content-center mt-3">
-                                {staged && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" disabled={!pending.length} onClick={enterVisit} />}
-                                <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!canUndo} onClick={undoDart} />
+                                {staged && !over && <Button id="submitThrows" label={t('Enter score')} icon="pi pi-check" disabled={!pending.length} onClick={enterVisit} />}
+                                {/* once over, Undo is beside Save the result */}
+                                {!over && <Button label={t('Undo dart')} icon="pi pi-undo" severity="secondary" outlined disabled={!canUndo} onClick={undoDart} />}
                                 <Button label={t('Stop')} icon="pi pi-stop" severity="danger" outlined onClick={quit} />
                             </div>
                         </Panel>
@@ -493,7 +512,8 @@ const RulesTraining = () => {
                     where the training stands and Undo float above the menu bar, as in X01 */}
                 {/* with Hit and Miss the danger zone floats on its own above the menu bar */}
                 {quick && danger && <div className="rules-danger-dock d-md-none">{dangerStrip()}</div>}
-                {!quick &&
+                {/* once over, the result's buttons are where the board was: no bar */}
+                {!quick && !over &&
                     // the danger zone on top of the bar, one piece with it
                     <div className={`x01-visit-bar is-floating rules-visit-bar d-md-none ${danger ? 'has-danger' : ''}`}>
                         {dangerStrip()}
@@ -598,7 +618,7 @@ const RulesTraining = () => {
                     </Panel>
                 </div>
                 <div className={`col-12 col-xl-4 ${finished ? 'order-1' : 'order-3'} order-xl-2`}>
-                    <RulesTrainingBoard definition={definition} version={boardVersion} highlight={finished?.saved?.id} />
+                    <RulesTrainingBoard definition={definition} version={boardVersion} highlight={finished?.saved?.id} settings={settings} />
                 </div>
             </div>
             {celebration && <Celebration {...celebration} onClose={() => setCelebration(null)} />}

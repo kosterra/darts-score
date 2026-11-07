@@ -99,13 +99,22 @@ test('Scoring with the board to its last dart: the training ends there, and its 
     await choosePlayer(page);
     await page.getByRole('button', { name: 'Start training' }).click();
 
-    // 30 darts in the single 20: nine visits entered, the tenth ends the training by itself
+    // 30 darts in the single 20: nine visits entered, the tenth ends the training
     const twenty = page.locator('.dartboard-img [id="S20"]').first();
     const enter = page.locator('#submitThrows');
     for (let visit = 0; visit < 10; visit++) {
         for (let dart = 0; dart < 3; dart++) await twenty.click();
         if (visit < 9) await enter.click();
     }
+    // over, saved only once confirmed: the board makes way for the result's buttons
+    await expect(page.locator('.rules-over')).toContainText('Training over');
+    await expect(enter).toHaveCount(0);
+    await expect(page.locator('.result-hero-score')).toHaveText('60.0');
+    // Undo takes the last dart back: one more to throw
+    await page.locator('.rules-over').getByRole('button', { name: 'Undo dart' }).click();
+    await expect(page.locator('.rules-over')).toHaveCount(0);
+    await twenty.click();
+    await page.getByRole('button', { name: 'Save the result' }).click();
     await expect(page.getByRole('button', { name: 'Start training' })).toBeVisible();
     const latest = page.locator('.atc-row.is-latest');
     await expect(latest).toBeVisible();
