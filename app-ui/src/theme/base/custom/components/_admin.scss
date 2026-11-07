@@ -1028,9 +1028,10 @@ $fair-play-suspicious: $accentAmber;
     }
 }
 
-// the filter by type of the lists: one field, grouped choices with icons
+// the filter by type of the lists: one field, grouped choices with icons (narrow enough that the
+// filters of the games and trainings and their count share one line from 1280px)
 .type-filter {
-    min-width: 14rem;
+    min-width: 11.5rem;
     max-width: 22rem;
 
     // the font of the other filter fields (e.g. the players): faint while it is every type
@@ -1316,6 +1317,23 @@ $fair-play-suspicious: $accentAmber;
 .mail-day.is-reached .mail-day-bar span { background: soft($accentRed, 0.7); }
 .mail-day-count { color: var(--text-default); font-variant-numeric: tabular-nums; }
 .mail-day-label { color: var(--text-faint); }
+
+// a choice of many as a compact dropdown (FilterPills dropdown, e.g. the levels): the font of the
+// other filter fields, faint while it is all of them, the icon of the choice beside it
+.filter-dropdown.is-compact {
+    .p-dropdown-label {
+        font-size: $text-md;
+        font-weight: $weight-semibold;
+        color: $textDefaultColor;
+    }
+
+    // (on a phone its name is inside, as in the other dropdowns there)
+    @media (min-width: 576px) {
+        &.is-all .p-dropdown-label { color: $textFaintColor; }
+    }
+
+    .p-dropdown-trigger { width: 2rem; }
+}
 
 // a group of filter pills with its name before it, e.g. "Status"
 .filter-labelled {
