@@ -5,7 +5,7 @@
  * and Shortest leg.
  */
 import { afterDart, isCheckout } from './darts.js';
-import { settingsOf } from './engine.js';
+import { replayTraining, settingsOf } from './engine.js';
 import { DOUBLES_BANDS, TREBLES_BANDS } from './levels.play.js';
 import { t, tn } from '../utils/i18n.js';
 
@@ -99,6 +99,21 @@ export const bobsDanger = (state) => {
     const dartsLeft = 3 - state.inVisit;
     const double = doubleName(number);
     return { double, dartsLeft, text: tn(dartsLeft, 'Hit {{double}} with your last dart, or the training is over.', 'Hit {{double}} with one of your next {{count}} darts, or the training is over.', { double }) };
+};
+
+/**
+ * A training's own order for the same score: the figures of its result, each
+ * more (1) or fewer (-1) being better, in turn. A saved attempt carries its
+ * result; an older one without it is worked out from its darts.
+ */
+const resultOf = (definition, entry) => entry.result ?? (entry.darts?.length ? replayTraining(definition, entry).result : null) ?? {};
+const tiebreakBy = (definition, figures) => (a, b) => {
+    const [ra, rb] = [resultOf(definition(), a), resultOf(definition(), b)];
+    for (const [key, more] of figures) {
+        const diff = ((rb[key] ?? 0) - (ra[key] ?? 0)) * more;
+        if (diff) return diff;
+    }
+    return 0;
 };
 
 // the bullseyes and points of a saved Bull practice (older ones from their darts: D25 a bullseye)
@@ -242,6 +257,8 @@ export const CHECKOUT_121 = {
     status: (state, { settings }) => [[t('Target'), state.target], [t('Left'), state.left], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Darts'), `${state.inAttempt} / ${settings.darts}`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
+    // the same highest checkout: more checkouts, then fewer darts
+    tiebreak: tiebreakBy(() => CHECKOUT_121, [['done', 1], ['darts', -1]]),
     format: (score) => (score ? String(score) : '–'),
     figures: (result) => [
         [t('Highest checkout'), result.score || '–'],
@@ -324,6 +341,8 @@ export const RANDOM_CHECKOUTS = {
     status: (state, { settings }) => [[t('Checked out'), state.done], [t('Attempt'), `${state.index + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     result: (state, { settings }) => ({ score: Math.round(state.done / settings.attempts * 100), done: state.done, attempts: settings.attempts, best: state.best, darts: state.darts }),
     higherIsBetter: true,
+    // the same share: fewer darts for the checkouts
+    tiebreak: tiebreakBy(() => RANDOM_CHECKOUTS, [['darts', -1]]),
     format: (score) => `${score} %`,
     figures: (result) => [
         [t('Checked out'), `${result.done} / ${result.attempts}`],
@@ -371,6 +390,8 @@ export const SCORING = {
     status: (state, { settings }) => [[t('Points'), state.points], [t('Average'), state.darts ? (state.points / state.darts * 3).toFixed(1) : '–'], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     result: (state) => ({ score: Math.round(state.points / state.darts * 3 * 10) / 10, points: state.points, darts: state.darts, tons: state.tons, best: state.best }),
     higherIsBetter: true,
+    // the same average: more ton-plus visits, then the best visit
+    tiebreak: tiebreakBy(() => SCORING, [['tons', 1], ['best', 1]]),
     format: (score) => Number(score).toFixed(1),
     figures: (result) => [
         [t('Average'), Number(result.score).toFixed(1)],
@@ -477,6 +498,8 @@ export const CATCH_40 = {
     status: (state) => [[t('Points'), state.points], [t('Finish'), `${state.target} (${state.target - 60} / 40)`], [t('Darts'), `${state.inAttempt} / 6`]],
     result: (state) => ({ score: state.points, done: state.done, darts: state.darts }),
     higherIsBetter: true,
+    // the same points: more checkouts, then fewer darts
+    tiebreak: tiebreakBy(() => CATCH_40, [['done', 1], ['darts', -1]]),
     format: (score) => tn(score, '{{count}} point', '{{count}} points'),
     figures: (result) => [
         [t('Points'), result.score],
@@ -543,6 +566,8 @@ export const TREBLES = {
     status: (state, { settings }) => [[t('Trebles'), state.trebles], [t('Treble rate'), percent(state.trebles, state.darts)], [t('Darts'), `${state.darts} / ${settings.darts}`]],
     result: (state, { settings } = {}) => ({ score: Math.round(state.trebles / state.darts * 100), trebles: state.trebles, onNumber: state.onNumber, points: state.points, darts: state.darts, bestVisit: state.bestVisit, number: settings?.number ?? 20 }),
     higherIsBetter: true,
+    // the same treble rate: more points on the number (doubles and singles), then the best visit
+    tiebreak: tiebreakBy(() => TREBLES, [['points', 1], ['bestVisit', 1]]),
     format: (score) => `${score} %`,
     figures: (result) => [
         [t('Treble rate'), `${result.score} %`],
@@ -666,6 +691,8 @@ export const LADDER = {
     status: (state, { settings }) => [[t('Highest'), state.best || '–'], [t('Attempt'), `${state.attempt + 1} / ${settings.attempts}`], [t('Dart'), `${state.inAttempt + 1} / 3`]],
     result: (state) => ({ score: state.best, done: state.done, attempts: state.attempt, darts: state.darts, last: state.target }),
     higherIsBetter: true,
+    // the same highest rung: more checkouts, then fewer darts
+    tiebreak: tiebreakBy(() => LADDER, [['done', 1], ['darts', -1]]),
     format: (score) => (score ? String(score) : '–'),
     figures: (result) => [
         [t('Highest checkout'), result.score || '–'],
@@ -746,6 +773,8 @@ export const SHORTEST_LEG = {
         average: Math.round(LEG_START * state.legs.length / state.darts * 3 * 10) / 10,
     }),
     higherIsBetter: false,
+    // the same best leg: the better average over all legs
+    tiebreak: tiebreakBy(() => SHORTEST_LEG, [['average', 1]]),
     format: (score) => tn(score, '{{count}} dart', '{{count}} darts'),
     figures: (result) => [
         [t('Best leg'), result.score],

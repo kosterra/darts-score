@@ -491,3 +491,43 @@ describe('the Bull practice scoreboard', () => {
         expect(BULLS.tiebreak({ darts: ['D25', 'S25', '0'] }, { darts: ['S25', 'S25', '0'] })).toBeLessThan(0);
     });
 });
+
+describe('the same score on a training scoreboard', () => {
+    const entry = (definition, darts, settings = {}) => {
+        const { result } = replayTraining(definition, { settings, darts });
+        return { score: result.score, result, settings, darts };
+    };
+    const order = (definition, list) => {
+        const higher = definition.higherIsBetter !== false;
+        const better = (a, b) => (higher ? b.score - a.score : a.score - b.score) || definition.tiebreak(a, b);
+        return [...list].sort(better);
+    };
+
+    it('Treble practice: more points on the number, then the best visit', () => {
+        const darts = (rest) => [...Array(3).fill('T20'), ...rest, ...Array(27 - rest.length).fill('0')];
+        const singles = entry(TREBLES, darts(['S20', 'S20']), { number: 20, darts: 30 });
+        const doubles = entry(TREBLES, darts(['D20', 'D20']), { number: 20, darts: 30 });
+        expect(singles.score).toBe(doubles.score);
+        expect(order(TREBLES, [singles, doubles])).toEqual([doubles, singles]);
+    });
+
+    it('Scoring: more ton-plus visits at the same average', () => {
+        const tons = entry(SCORING, ['T20', 'T20', 'S20', 'S1', 'S1', 'S1', ...Array(24).fill('0')], { darts: 30 });
+        const even = entry(SCORING, ['T20', 'S20', 'S1', 'T20', 'S1', 'S1', ...Array(24).fill('0')], { darts: 30 });
+        expect(tons.score).toBe(even.score);
+        expect(order(SCORING, [even, tons])).toEqual([tons, even]);
+    });
+
+    it('older attempts without their result are worked out from their darts', () => {
+        // eslint-disable-next-line no-unused-vars
+        const strip = ({ result, ...rest }) => rest;
+        const darts = (rest) => [...Array(3).fill('T20'), ...rest, ...Array(27 - rest.length).fill('0')];
+        const singles = strip(entry(TREBLES, darts(['S20']), { number: 20, darts: 30 }));
+        const doubles = strip(entry(TREBLES, darts(['D20']), { number: 20, darts: 30 }));
+        expect(TREBLES.tiebreak(doubles, singles)).toBeLessThan(0);
+    });
+
+    it('every training has an order for the same score', () => {
+        expect(TRAININGS.filter(definition => !definition.tiebreak).map(definition => definition.id)).toEqual(['doublesaround']);
+    });
+});
