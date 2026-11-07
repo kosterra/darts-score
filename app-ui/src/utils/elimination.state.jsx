@@ -14,11 +14,8 @@ import { loadWithUnsent, useGameSaves } from './unsent.games';
 import SaveStatus from '../components/games/common/save.status';
 import { knockOutScene } from './elimination.moments';
 
-import {
-    validateDartValue,
-    lastDartIsDouble,
-    lastDartIsTriple
-} from './game.utils';
+import { validateDartValue } from './game.utils';
+import { eliminationBust, eliminationCanThrow, eliminationDartsMissing } from './elimination.input';
 
 import { FETCH_GAME_SUCCESS, FETCH_PLAYERS_SUCCESS, SET_GAME, SET_LOADING, UPDATE_CURRENT_THROW } from './constants';
 import { t } from './i18n';
@@ -141,38 +138,12 @@ const EliminationState = ({ children, quick = false }) => {
     /**
      * Check if a given total score (base + current throw so far) would be a bust.
      */
-    const checkIfScoreIsBusted = (currentScore) => {
-        if (state.game.hasWinner) return false;
-
-        const target = state.game.targetScore;
-        if (currentScore > target) return true;
-
-        const mode = state.game.gameOutMode;
-        if (mode === 'Double Out') {
-            // Can't finish on 1 (no double), and must finish with a double
-            if (currentScore === target - 1) return true;
-            if (currentScore === target && !lastDartIsDouble(state.game.currentThrow)) return true;
-        } else if (mode === 'Master Out') {
-            // one short cannot be finished on a double or a treble
-            if (currentScore === target - 1) return true;
-            if (currentScore === target &&
-                !lastDartIsDouble(state.game.currentThrow) &&
-                !lastDartIsTriple(state.game.currentThrow)) return true;
-        }
-
-        return false;
-    };
+    const checkIfScoreIsBusted = (currentScore) => eliminationBust(state.game, currentScore);
 
     /**
-     * Can the current player throw another dart?
+     * Can the current player throw another dart? Not after a bust: it ends the visit.
      */
-    const checkCanThrowMoreDarts = (currentScore) => {
-        if (state.game.hasWinner) return false;
-        const dartsThrown = state.game.currentThrow?.filter(d => d.trim() !== '').length ?? 0;
-        if (dartsThrown >= 3) return false;
-        if (currentScore > (state.game.targetScore ?? 0)) return false; // already bust
-        return true;
-    };
+    const checkCanThrowMoreDarts = (currentScore) => eliminationCanThrow(state.game, currentScore);
 
     /**
      * Points the current player needs to draw level with or surpass the
@@ -268,15 +239,8 @@ const EliminationState = ({ children, quick = false }) => {
     };
 
     const validateWholeThrow = (values, currentScore) => {
-        const empties = values.filter(v => v.trim() === '');
-        const target = state.game.targetScore;
-
-        // All 3 must be filled unless the player has reached/exceeded the target already
-        if (
-            (currentScore < target && empties.length > 0) ||
-            values[0] === '' ||
-            (values[1] === '' && values[2] !== '')
-        ) {
+        // All 3 must be filled unless the player has reached the target or bust already
+        if (eliminationDartsMissing(state.game, values, currentScore)) {
             toast.current.show({
                 severity: 'error',
                 summary: t('Validate Throw'),
