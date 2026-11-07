@@ -5,6 +5,7 @@ import { Button } from 'primereact/button';
 import { DARTS_PER_VISIT, TARGETS, targetLabel } from '../../utils/atc.darts';
 import { resolvePlayerImg, resolvePlayerInitials } from '../../utils/image.utils';
 import ATCTargetBoard from './atc.target.board';
+import useInputFit from '../games/common/use.input.fit';
 import { t } from '../../utils/i18n';
 
 const PlayerAvatar = ({ player, className = 'avatar-sm' }) => (
@@ -55,6 +56,9 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
     // one per target left do not go past it
     const best = bests[currentId];
     const recordInReach = best ? current.darts + (TARGETS - current.target) <= best : null;
+    // on a phone the buttons fully in view above the menu bar
+    const roundRef = useRef(null);
+    useInputFit(roundRef);
 
     useEffect(() => {
         const onKey = (event) => {
@@ -69,7 +73,7 @@ const ATCDartsRound = ({ players, mode, round, onDart, onUndo, canUndo, onCancel
     }, [onDart, onUndo, canUndo, rings]);
 
     return (
-        <div className="atc-round">
+        <div ref={roundRef} className="atc-round">
             {!solo && withPlayers &&
                 <ol className="atc-round-players" aria-label={t('Players')}>
                     {round.order.map((id, index) => {

@@ -95,7 +95,7 @@ const X01LiveHeader = () => {
             <div className="result-hero-top">
                 <div className="d-flex align-items-center gap-3 min-w-0">
                 <QuickHeroBrand />
-                <div className="d-flex flex-column">
+                <div className="x01-live-title">
                     <span className="text-default fw-semibold">
                         {handicap ? t('Handicap') : game.startingScore}{teams && <> · {t('Doubles')}</>} · {game.setMode} {plural(game.numberOfSets, 'set')} · {game.legMode} {plural(game.numberOfLegs, 'leg')}
                     </span>

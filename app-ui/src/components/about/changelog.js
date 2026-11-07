@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: '2026.11.6',
+        changes: [
+            t('On a phone the board, the keypad and the buttons of every game and training are fully in view without scrolling: where space is short the header gets compact and the marks or standings move below the board.'),
+        ],
+    },
+    {
         version: '2026.11.5',
         changes: [
             t('The level in the lists: the games and trainings lists, the recent games, the evenings and the scoreboards show each player\'s level after their result, and the games and trainings can be filtered by it – for one player, the games they played at that level; the scores of the recent games line up from game to game, and the hits per double of a scoreboard entry come in even rows on a phone.'),
