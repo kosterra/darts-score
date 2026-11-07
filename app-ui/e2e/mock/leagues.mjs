@@ -1,5 +1,6 @@
 import { shirtOf } from '../../../app-api/src/utils/shirts.js';
 import { withMockChances } from './ratings.mjs';
+import { levelsOf } from './tournaments.mjs';
 // leagues for the mock API, with the real league rules and the API's match pattern
 import { LEAGUE_MATCH_ID, leagueMatches, leagueTable, matchdayCount, matchdayDates, seasonOver } from '../../src/rules/leagues.js';
 
@@ -45,6 +46,17 @@ export const seedLeagues = (players, scenario) => {
         league.matches.filter(m => m.day === 1).forEach((m, i) => Object.assign(m, { status: 'done', winner: m.players[i % 2], score: { legs: i % 2 ? [1, 3] : [3, 2] }, game: `x${i}` }));
         leagues.push(league);
     }
+    // a season of five over: every match played (one a walkover), with the levels the players played at
+    if (scenario === 'finished') {
+        const league = { id: `l${next++}`, club: 'c1', name: 'Winter League', description: 'Tuesdays in the back room.', players: ids.slice(0, 5), meetings: 1, everyDays: 7, firstDay: at(-30), rules: RULES, matches: [], matchdays: [], winner: null };
+        start(league);
+        const scores = [[3, 1], [2, 3], [3, 0], [3, 2], [1, 3]];
+        league.matches.forEach((m, i) => Object.assign(m, i === league.matches.length - 1
+            ? { status: 'walkover', winner: m.players[1], score: null, game: null }
+            : { status: 'done', winner: m.players[scores[i % 5][0] > scores[i % 5][1] ? 0 : 1], score: { legs: scores[i % 5] }, game: `x${i}`, playLevels: levelsOf(m, ids) }));
+        finishIfOver(league);
+        leagues.push(league);
+    }
 };
 
 export const leagueMock = (req, res, path, json, send, { players, me }) => {
@@ -68,9 +80,12 @@ export const leagueMock = (req, res, path, json, send, { players, me }) => {
     if (rest === '/start') { start(league); return view(league); }
     if (rest === '/cancel') { league.status = 'cancelled'; return view(league); }
     const day = rest.match(/^\/matchdays\/(\d+)\/date$/);
+    if (day && league.status !== 'running') return send(res, 409, { message: 'The league is not running.' });
     if (day) { league.matchdays.find(d => d.day === Number(day[1])).date = new Date(json.date); return view(league); }
     const action = rest.match(/^\/matches\/([^/]+)\/(start|result|date)$/);
     if (action) {
+        // as the API: nothing is started, moved or decided once the season is over
+        if (league.status !== 'running') return send(res, 409, { message: 'The league is not running.' });
         if (!LEAGUE_MATCH_ID.test(action[1])) return send(res, 422, { message: 'Invalid match.' });
         const match = league.matches.find(x => x.id === action[1]);
         if (action[2] === 'start') { match.status = 'running'; match.game = 'x9'; return send(res, 201, { game: 'x9' }); }

@@ -44,6 +44,15 @@ export const finishOnBoard = (key) => {
     return false;
 };
 
+// the levels the players played their games at, as the API keeps them with each game (playLevels), for the matches played
+const LEVELS = ['amateur', 'pro', 'semiPro', 'worldClass', 'hobby', 'elite'];
+export const levelsOf = (match, ids) => match.players.filter(Boolean).map((player, side) => ({ player, level: LEVELS[(ids.indexOf(player) + side) % LEVELS.length] }));
+// a match played as a game: the winner, the score (sets as well over several sets), the game and its levels
+const play = (match, ids, [a, b], sets = null) => Object.assign(match, {
+    status: 'done', winner: match.players[a > b || (sets && sets[0] > sets[1]) ? 0 : 1], score: sets ? { legs: [a, b], sets } : { legs: [a, b] },
+    game: `x-${match.id}`, playLevels: levelsOf(match, ids), decidedAt: new Date().toISOString(),
+});
+
 const viewOf = (tr, players, me) => ({
     ...tr,
     // the chances on the open matches, from the club rating
@@ -127,8 +136,32 @@ export const seedTournaments = (players, scenario) => {
         t.matches = bracketMatches(draw);
         t.draw = { size: draw.size, seeding: 'seeded' };
         const byId = new Map(t.matches.map(m => [m.id, m]));
-        for (const size of [8, 4, 2]) for (const m of t.matches.filter(x => x.size === size && x.status === 'ready')) { m.status = 'done'; m.winner = m.players[1]; m.score = { legs: [1, size === 2 ? 4 : 3] }; advance(byId, m); }
+        for (const size of [8, 4, 2]) for (const m of t.matches.filter(x => x.size === size && x.status === 'ready')) { m.status = 'done'; m.winner = m.players[1]; m.score = { legs: [1, size === 2 ? 4 : 3] }; m.game = `x-${m.id}`; m.playLevels = levelsOf(m, ids); advance(byId, m); }
         t.winner = t.matches.find(m => m.size === 2).winner;
+        t.finishedAt = at(-1);
+        tournaments.push(t);
+    }
+    // over: groups of three played (one match a walkover), then the semi-finals and the final, the final in sets
+    if (scenario === 'groupsFinished') {
+        const rounds = [{ size: 0, date: at(-20), rules: roundsOfPreset('clubNight', 8)[0].rules }, ...roundsOfPreset('clubNight', 8).map((r, i) => ({ ...r, date: at(-13 + i * 7), skipped: r.size > 4 }))];
+        rounds.find(r => r.size === 2).rules = { ...rounds.find(r => r.size === 2).rules, setMode: 'Best of', numberOfSets: 3 };
+        const t = base({ name: 'Cup with Groups', status: 'finished', format: 'groups', preset: 'clubNight', closesAt: at(-25), rounds });
+        t.entries = ids.map(p => ({ player: p, status: 'in' }));
+        const groups = drawGroups(ids, { size: 3, seeding: 'seeded' });
+        t.matches = groupMatches(groups);
+        const scores = [[3, 1], [2, 3], [3, 0], [3, 2], [1, 3]];
+        t.matches.forEach((m, i) => {
+            if (i === 5) Object.assign(m, { status: 'walkover', winner: m.players[0], score: null, decidedAt: new Date().toISOString() });
+            else play(m, ids, scores[i % scores.length]);
+        });
+        const draw = knockoutDraw(groups, t.matches, 2);
+        t.matches = [...t.matches, ...bracketMatches(draw)];
+        t.draw = { at: at(-21), seeding: 'seeded', size: draw.size, groups, groupSize: 3, advance: 2, knockoutAt: at(-14) };
+        const byId = new Map(t.matches.map(m => [m.id, m]));
+        for (const [index, m] of t.matches.filter(x => x.size === 4).entries()) { play(m, ids, index ? [2, 4] : [4, 3]); advance(byId, m); }
+        const final = t.matches.find(m => m.size === 2);
+        play(final, ids, [7, 5], [2, 1]);
+        t.winner = final.winner;
         t.finishedAt = at(-1);
         tournaments.push(t);
     }
@@ -215,6 +248,8 @@ export const tournamentMock = (req, res, path, json, send, { players, me, isAdmi
         t.status = 'drawn';
         return view(t);
     }
+    // as the API: nothing is started or decided once the tournament is over
+    if (/^\/matches\/[\w-]+\/(start|result)$/.test(rest) && !['drawn', 'running'].includes(t.status)) return send(res, 409, { message: 'The tournament is not running.' });
     const start = rest.match(/^\/matches\/([\w-]+)\/start$/);
     if (start) { const x = byId.get(start[1]); x.status = 'running'; x.game = 'x9'; t.status = 'running'; return send(res, 201, { game: 'x9' }); }
     const result = rest.match(/^\/matches\/([\w-]+)\/result$/);

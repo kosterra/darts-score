@@ -17,6 +17,7 @@ import { dateIn, deliverQuietly, languageOf, unsubscribeToken } from './notify.j
 import { tr } from './translate.js';
 import { untilSaved } from './retry.js';
 import { shirtOf } from './shirts.js';
+import { withMatchGames } from './match.games.js';
 import { dayKeyIn, zoneOf } from '../rules/zones.js';
 
 /**
@@ -778,10 +779,13 @@ export const holdMatch = (tournament, matchKey, held) => boardAction(tournament,
 
 /**
  * A tournament as the app shows it: with the names of its players, the
- * entry of the player asking, and the counts of the registration.
+ * entry of the player asking, and the counts of the registration. games:
+ * each match with what its game says (the levels played at, the score of
+ * one going on; see match.games.js), for the page of one tournament.
  */
-export const tournamentView = async (tournament, { playerId = null } = {}) => {
-    const json = typeof tournament.toJSON === 'function' ? tournament.toJSON() : tournament;
+export const tournamentView = async (tournament, { playerId = null, games = false } = {}) => {
+    const plainJson = typeof tournament.toJSON === 'function' ? tournament.toJSON() : tournament;
+    const json = games ? { ...plainJson, matches: await withMatchGames(plainJson.matches ?? []) } : plainJson;
     const ids = [...new Set([
         ...(json.entries ?? []).map(entry => String(entry.player)),
         ...(json.matches ?? []).flatMap(match => match.players).filter(Boolean),

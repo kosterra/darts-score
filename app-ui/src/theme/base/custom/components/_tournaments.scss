@@ -84,6 +84,9 @@
     font-weight: $weight-semibold;
 
     .tournament-champion-icon { color: var(--c-game-cricket); font-size: 1.3rem; flex-shrink: 0; }
+    // a long name wraps; the Share button keeps its size on a phone
+    > span { min-width: 0; }
+    .p-button { flex-shrink: 0; }
 }
 
 // who entered, who did not answer, who declined: side by side, one under the other on a phone
@@ -147,6 +150,13 @@
 .tournament-schedule-row { padding: 0.35rem 0; border-bottom: 1px solid ink(0.06); }
 .tournament-dialog { width: min(30rem, calc(100vw - 2rem)); }
 
+// the result of a played match in its dialog, as the games list shows a game
+.match-result {
+    padding: 0.6rem 0.75rem;
+    border-radius: $radius-md;
+    background: $surfaceRaisedColor;
+}
+
 // ---------------------------------------------------------------------------
 // The bracket: a column per round; a match sits in the middle of its two
 // matches of the round before, so the tree reads from left to right
@@ -207,7 +217,8 @@
 .bracket-round {
     display: flex;
     flex-direction: column;
-    width: 14rem;
+    // room for a name, the level played at and the score (see .bracket-level)
+    width: 16.5rem;
     flex-shrink: 0;
 
     .is-single & { width: 100%; }
@@ -237,11 +248,14 @@
 
 .bracket-match {
     position: relative;
-    display: flex;
-    flex-direction: column;
+    // the two players in the same columns (name, level, score), so the levels and figures line up
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content max-content;
     // the rows over the whole card (buttons line their content up at the start)
     align-items: stretch;
     width: 100%;
+    // the level shows only where the card is wide enough (see .bracket-level)
+    container-type: inline-size;
     padding: 0;
     border: 1px solid ink(0.1);
     border-radius: $radius-md;
@@ -262,10 +276,10 @@
 }
 
 .bracket-player {
-    display: flex;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
     padding: 0.45rem 0.7rem;
     font-size: $text-sm;
     color: var(--text-default);
@@ -288,7 +302,20 @@
     font-weight: $weight-semibold;
 }
 
+// the level played at, between the name and the score; on a narrow card there is no room for it
+// next to a name (the match's dialog has it then)
+.bracket-level {
+    display: flex;
+    justify-content: flex-end;
+    min-width: 0;
+
+    &:not(:empty) { margin-left: 0.5rem; }
+
+    @container (max-width: 15.99rem) { display: none; }
+}
+
 .bracket-score {
+    margin-left: 0.5rem;
     min-width: 1.4rem;
     text-align: right;
     font-variant-numeric: tabular-nums;
@@ -297,6 +324,7 @@
 // the favourite's chance on a match still to be played: faint, so it never reads as a score
 .bracket-chance {
     flex-shrink: 0;
+    margin-left: 0.5rem;
     color: var(--text-faint);
     font-size: $text-xs;
     font-weight: $weight-regular;
@@ -408,7 +436,8 @@
 .tournament-group-matches {
     grid-area: matches;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    // wide enough for a name, the level played at and the score
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
     align-content: start;
     gap: $space-2 $space-3;
 
@@ -448,7 +477,8 @@
 
 .league-matches {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    // wide enough for a name, the level played at and the score
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
     gap: $space-3;
 
     .bracket-match { width: 100%; }

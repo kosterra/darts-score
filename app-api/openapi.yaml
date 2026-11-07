@@ -7517,7 +7517,7 @@ paths:
       summary: One tournament
       responses:
         '200':
-          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me). Each match still to be played (ready or running) with both players known has chances: { [playerId]: percent to win, adding up to 100 }, from the club rating of every club taking part'
+          description: 'The tournament as the app shows it: setup, status, rounds, entries, matches, the names of its players (players), counts of the registration, and the entry of the player asking (me). Each match still to be played (ready or running) with both players known has chances: { [playerId]: percent to win, adding up to 100 }, from the club rating of every club taking part. Each match with a game has playLevels: [{ player, level }], the levels its game was played at (see PlayLevels; [] when none was judged), and a running one live: { legs, sets? }, the legs (of the set going on, when played in sets) and sets won so far in the order of its players; a decided one keeps its score: { legs, sets? } (none for a walkover). The same view answers every change of the tournament'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -8217,7 +8217,7 @@ paths:
       summary: 'One league'
       responses:
         '200':
-          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer). Each match still to be played (ready or running) has chances: { [playerId]: percent to win, adding up to 100 }, from the club rating'
+          description: 'The league as the app shows it: setup, status, players with their names (names), matchdays, matches, and the player asking (myPlayer). Each match still to be played (ready or running) has chances: { [playerId]: percent to win, adding up to 100 }, from the club rating. Each match with a game has playLevels: [{ player, level }], the levels its game was played at (see PlayLevels; [] when none was judged), and a running one live: { legs, sets? }, the legs (of the set going on, when played in sets) and sets won so far in the order of its players; a decided one keeps its score: { legs, sets? } (none for a walkover). The same view answers every change of the league'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':

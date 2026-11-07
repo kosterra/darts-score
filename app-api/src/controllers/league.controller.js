@@ -29,7 +29,7 @@ const load = async (req, res) => {
 };
 
 // with the chances on the open matches, from the club rating
-const answerWith = async (req, res, league, status = 200) => res.status(status).json(await withChances(await leagueView(league, { playerId: await myPlayerId(req) }), [league.club]));
+const answerWith = async (req, res, league, status = 200) => res.status(status).json(await withChances(await leagueView(league, { playerId: await myPlayerId(req), games: true }), [league.club]));
 
 // the club's leagues, the newest first (drafts only for the admins)
 export const list = async (req, res) => {

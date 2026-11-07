@@ -18,6 +18,7 @@ vi.mock('../models/db.model.js', () => ({
         x01: {
             create: async (doc) => { const game = { ...doc, _id: `game${games.length + 1}` }; games.push(game); return game; },
             findById: async (id) => games.find(game => game._id === String(id)) ?? null,
+            find: (query) => lean(games.filter(game => query._id.$in.map(String).includes(String(game._id)))),
             updateOne: async () => ({}),
         },
     },
@@ -86,6 +87,12 @@ describe('leagues', () => {
         const { leagueTable } = await import('../rules/leagues.js');
         expect(league.winner).toBe(leagueTable(league.players, league.matches)[0].player);
         expect(notices.some(notice => notice.kind === 'leagueWon')).toBe(true);
+
+        // the finished season shows the played match with its score and the levels played at; a walkover without
+        game.playLevels = [{ player: a, level: 'semiPro' }];
+        const view = await service.leagueView(league, { games: true });
+        expect(view.matches.find(match => match.id === first.id)).toMatchObject({ score: { legs: [2, 1] }, playLevels: [{ player: a, level: 'semiPro' }] });
+        expect(view.matches.find(match => match.status === 'walkover').playLevels).toBeUndefined();
     });
 
     it('reads the matches again (as often as it takes) when other games were saved at the same moment', async () => {

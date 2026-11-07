@@ -7,6 +7,7 @@ import { deliverQuietly } from './notify.js';
 import { untilSaved } from './retry.js';
 import { dayKeyIn, zoneOf } from '../rules/zones.js';
 import { shirtOf } from './shirts.js';
+import { withMatchGames } from './match.games.js';
 
 /**
  * The leagues of a club (see rules/leagues.js): set up by its admins with
@@ -294,10 +295,13 @@ export const cancelLeague = async (league) => {
 
 /**
  * A league as the app shows it: with the names of its players and which of
- * them is the one asking.
+ * them is the one asking. games: each match with what its game says (the
+ * levels played at, the score of one going on; see match.games.js), for the
+ * page of one league.
  */
-export const leagueView = async (league, { playerId = null } = {}) => {
-    const json = typeof league.toJSON === 'function' ? league.toJSON() : league;
+export const leagueView = async (league, { playerId = null, games = false } = {}) => {
+    const plainJson = typeof league.toJSON === 'function' ? league.toJSON() : league;
+    const json = games ? { ...plainJson, matches: await withMatchGames(plainJson.matches ?? []) } : plainJson;
     const players = await db.player.find({ _id: { $in: (json.players ?? []).map(String) } }, 'nickname firstname lastname profileImg country shirt').lean();
     return {
         ...json,

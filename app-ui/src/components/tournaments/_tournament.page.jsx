@@ -16,11 +16,12 @@ import PlayerService from '../../services/player.service';
 import { useAuth } from '../../utils/auth.context';
 import { formatDate, formatDateTime } from '../../utils/dates';
 import { t, tn } from '../../utils/i18n';
-import { GROUP_SIZES, MIN_PLAYERS, groupSetupError, groupSizesOf, isDecided, knockoutOfGroups, nextOf, suggestGroups } from '../../rules/tournaments';
-import TournamentBracket from './tournament.bracket';
+import { GROUP_SIZES, MIN_PLAYERS, groupSetupError, groupSizesOf, isDecided, knockoutOfGroups, suggestGroups } from '../../rules/tournaments';
+import TournamentBracket, { MatchResult } from './tournament.bracket';
 import TournamentGroups from './tournament.groups';
 import { INVITE_WORDS, STATUS_WORDS, groupName, nameOf, roundName, rulesText } from './tournament.words';
 import WalkOn from './tournament.walkon';
+import { tournamentMatchActions } from './match.actions';
 import { Lines } from '../elements/skeletons';
 import { shareCard } from '../../utils/share.card';
 import DateTimeField from '../elements/date.time.field';
@@ -39,7 +40,9 @@ import MyMatch from '../boards/my.match';
 /**
  * What can be done with a match: start it (its players or an admin, with who
  * throws first), go on with or watch a running one, see the statistics of a
- * played one, and (admins) decide it without a game.
+ * played one, and (admins) decide it without a game. Once the tournament is
+ * over (finished or cancelled) only what happened: the result, the score and
+ * the levels played at, the statistics.
  */
 const MatchDialog = ({ tournament, match, isAdmin, canManage, onHide, onStart, onResult, busy }) => {
     const { activeClub } = useAuth();
@@ -49,25 +52,21 @@ const MatchDialog = ({ tournament, match, isAdmin, canManage, onHide, onStart, o
     if (!match) return null;
     const round = tournament.rounds.find(entry => entry.size === match.size);
     const mine = match.players.includes(tournament.myPlayer);
-    const canStart = (isAdmin || mine) && match.status === 'ready';
+    // nothing is started or decided any more once it is over (the server refuses it)
+    const { walkOn, canStart, startHint, canDecide } = tournamentMatchActions({ tournament, match, isAdmin, canManage });
     const options = match.players.filter(Boolean).map(id => ({ label: nameOf(tournament, id), value: id }));
-    const next = nextOf(match);
-    const nextStarted = next && ['running', 'done', 'walkover'].includes(tournament.matches.find(entry => entry.id === next.id)?.status);
-    // a group result can change until the bracket is filled from the groups
-    const changeable = match.group != null ? !tournament.draw?.knockoutAt : !isDecided(match) || !nextStarted;
-    // only the host club's admins decide a match without a game (the server enforces it too)
-    const canDecide = canManage && match.players[0] && match.players[1] && !match.bye && changeable;
 
     return (
         <Dialog header={`${match.group != null ? groupName(match.group) : roundName(match.size)} · ${options.map(option => option.label).join(' – ')}`} visible onHide={onHide} className="tournament-dialog" dismissableMask>
             <div className="d-flex flex-column gap-3">
-                {match.players[0] && match.players[1] && !match.bye && ['ready', 'running'].includes(match.status) &&
+                {walkOn &&
                     <WalkOn tournament={tournament} match={match} club={activeClub} />}
                 <span className="text-subtle fs-7">{rulesText(round?.rules)}{round?.date ? ` · ${formatDateTime(round.date)}` : ''}</span>
                 {isDecided(match) &&
                     <Message severity="success" className="w-100 justify-content-start" text={match.status === 'walkover'
                         ? t('{{name}} goes on (decided by an admin).', { name: nameOf(tournament, match.winner) })
                         : t('{{name}} won.', { name: nameOf(tournament, match.winner) })} />}
+                <MatchResult tournament={tournament} match={match} />
                 {canStart &&
                     <div className="d-flex flex-column gap-2">
                         <span className="text-default fw-semibold fs-7">{t('Who throws first?')}</span>
@@ -79,7 +78,7 @@ const MatchDialog = ({ tournament, match, isAdmin, canManage, onHide, onStart, o
                     <Link to={`/x01/${match.game}`} className="p-button p-button-sm text-decoration-none justify-content-center"><i className="pi pi-play me-2" />{mine || isAdmin ? t('Go on with the match') : t('Watch the match')}</Link>}
                 {match.status === 'done' && match.game &&
                     <Link to={`/stats/games/x01/${match.game}`} className="p-button p-button-sm p-button-secondary text-decoration-none justify-content-center"><i className="pi pi-chart-bar me-2" />{t('Statistics of the match')}</Link>}
-                {!canStart && match.status === 'ready' && <span className="text-faint fs-8">{t('The players of the match or a club admin start it.')}</span>}
+                {startHint && <span className="text-faint fs-8">{t('The players of the match or a club admin start it.')}</span>}
                 {canDecide &&
                     <div className="d-flex flex-column gap-2 border-top pt-3 tournament-decide">
                         <span className="text-default fw-semibold fs-7">{t('Decide without a game')}</span>
@@ -427,7 +426,7 @@ const TournamentPage = () => {
                     <div className={revealing ? 'bracket-reveal' : ''}>
                         <TournamentBracket tournament={tournament} onSelect={setSelected} />
                     </div>
-                    <p className="text-faint fs-8 mt-3 mb-0">{t('Tap a match to start it, follow it or see its statistics. The winner goes on by itself.')}</p>
+                    <p className="text-faint fs-8 mt-3 mb-0">{over ? t('Tap a match for its result and statistics.') : t('Tap a match to start it, follow it or see its statistics. The winner goes on by itself.')}</p>
                 </Panel>}
 
             {(registration || closed) &&

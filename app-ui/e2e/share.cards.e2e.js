@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 // Share cards: a nine-darter and a high checkout in the statistics of an X01 game, and
 // the win of a tournament, as pictures (saved where the browser has no share menu).
-const MOCK = 'http://localhost:3901';
+const MOCK = process.env.MOCK_URL ?? 'http://localhost:3901';
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 test.skip(({ isMobile }) => isMobile, 'once is enough: the pictures to share are the same at every width');

@@ -37,6 +37,7 @@ vi.mock('../models/db.model.js', () => ({
         x01: {
             create: async (doc) => { const game = { ...doc, _id: `game${games.length + 1}` }; games.push(game); created.push(game); return game; },
             findById: async (id) => games.find(game => game._id === String(id)) ?? null,
+            find: (query) => lean(byIds(games, query._id.$in)),
             updateOne: async () => ({}),
         },
     },
@@ -385,6 +386,29 @@ describe('the draw and the matches', () => {
         const decided = tournament.matches.find(entry => entry.id === match.id);
         expect(decided).toMatchObject({ status: 'done', winner: a });
         expect(decided.score).toEqual({ legs: [7, 5], sets: [2, 1] });
+    });
+
+    it('shows each match with the levels its game was played at, and the score so far of one going on', async () => {
+        const db = (await import('../models/db.model.js')).default;
+        const tournament = closedWithFive();
+        db.tournament = { findById: async () => tournament, find: () => lean([]) };
+        await service.holdDraw(tournament, { random: () => 0.5 });
+        const played = tournament.matches.find(entry => entry.status === 'ready' && entry.size === 8);
+        const game = await service.startMatch(tournament, played.id);
+        const [a, b] = played.players;
+        // the game as saved by the app: with the levels it was played at
+        game.playLevels = [{ player: a, level: 'pro' }, { player: b, level: 'amateur' }];
+        await service.tournamentGameFinished(game, { playerModels: { [a]: { hasWonGame: true, legsWon: { game: 4 } }, [b]: { hasWonGame: false, legsWon: { game: 2 } } } });
+        // a semi-final going on
+        const running = tournament.matches.find(entry => entry.status === 'ready' && entry.size === 4);
+        const other = await service.startMatch(tournament, running.id);
+        other.playerModels = { [running.players[0]]: { legsWon: { game: 1 } }, [running.players[1]]: { legsWon: { game: 2 } } };
+
+        const view = await service.tournamentView(tournament, { games: true });
+        expect(view.matches.find(entry => entry.id === played.id)).toMatchObject({ status: 'done', score: { legs: [4, 2] }, playLevels: [{ player: a, level: 'pro' }, { player: b, level: 'amateur' }] });
+        expect(view.matches.find(entry => entry.id === running.id)).toMatchObject({ status: 'running', live: { legs: [1, 2] }, playLevels: [] });
+        // the lists of tournaments do without
+        expect((await service.tournamentView(tournament)).matches.find(entry => entry.id === played.id).playLevels).toBeUndefined();
     });
 
     it('lets a running match start again when its game is deleted', async () => {

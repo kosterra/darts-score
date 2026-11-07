@@ -55,7 +55,7 @@ const loadShared = async (req, res) => {
 
 // with the chances on the open matches, from the rating of every club taking part
 const answerWith = async (req, res, tournament, status = 200) => res.status(status).json(await withChances(
-    await tournamentView(tournament, { playerId: await myPlayerId(req) }),
+    await tournamentView(tournament, { playerId: await myPlayerId(req), games: true }),
     [tournament.club, ...(tournament.invitedClubs ?? [])],
 ));
 
