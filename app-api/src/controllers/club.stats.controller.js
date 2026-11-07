@@ -11,6 +11,7 @@ import { isShameChild, shameCountIn, shameCountsFrom, shameMinAgeOf } from '../u
 import { gamesOverview } from '../utils/games.overview.js';
 import { CLUB_BADGES, latestClubBadges } from '../utils/club.badges.js';
 import { clubRatingBoard } from '../utils/compare.js';
+import { zoneOf } from '../rules/zones.js';
 
 const LEADERBOARD_SIZE = 5;
 const RECENT_GAMES = 20;
@@ -201,7 +202,7 @@ export const getClubStats = async (req, res) => {
         recentGames: recent.map(({ type, game }) => summarizeGame(type, game)),
         runningGames: running.slice(0, RUNNING_GAMES).map(({ type, game }) => summarizeGame(type, game)),
         // key figures, who beats whom, records and when the club plays
-        kpis: clubKpis({ finishedByType, allGames, members }),
+        kpis: clubKpis({ finishedByType, allGames, members, zone: zoneOf(club) }),
         headToHead: headToHead(finishedByType, new Set(members.map(player => String(player._id)))),
         records: clubRecords(rankedByType.find(entry => entry.type === 'x01').games),
         gameLog: gameLog(allGames),

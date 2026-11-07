@@ -728,7 +728,8 @@ const applyCricket = (metrics, game, model, playerId) => {
 
 // the week of a moment, Monday to Sunday on the clock of the default zone (Europe/Zurich), not in UTC
 const weekOf = (date) => Math.floor((wallClock(date) - FIRST_MONDAY_MS) / WEEK_MS);
-const dayOf = (date) => Math.floor(new Date(date).getTime() / DAY_MS);
+// the day of a moment on the clock of the default zone (Europe/Zurich), not in UTC
+const dayOf = (date) => Math.floor(wallClock(date) / DAY_MS);
 
 /**
  * Keeps track of the weeks in which the player played or trained.

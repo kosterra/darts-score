@@ -44,6 +44,20 @@ describe('clubKpis', () => {
             longestStreak: { value: 5, player: 'b' },
         });
     });
+
+    it('cuts the months at midnight on the club clock, not in UTC', () => {
+        // 23:30 UTC on 31 October is already November in Zurich, still October in New York
+        const late = x01Game({ updatedAt: new Date('2026-10-31T23:30:00Z') });
+        const kpis = (zone) => clubKpis({
+            finishedByType: [{ type: 'x01', games: [late] }], allGames: [], members: [],
+            now: new Date('2026-11-10T12:00:00Z'), ...(zone ? { zone } : {}),
+        });
+        expect(kpis()).toMatchObject({ gamesThisMonth: 1, gamesLastMonth: 0 });
+        expect(kpis('America/New_York')).toMatchObject({ gamesThisMonth: 0, gamesLastMonth: 1 });
+        // last month of January is December of the year before
+        const december = x01Game({ updatedAt: new Date('2025-12-15T12:00:00Z') });
+        expect(clubKpis({ finishedByType: [{ type: 'x01', games: [december] }], allGames: [], members: [], now: new Date('2026-01-10T12:00:00Z') }).gamesLastMonth).toBe(1);
+    });
 });
 
 function round(value) { return Math.round(value * 10) / 10; }

@@ -53,7 +53,9 @@ const mfa = { enabled: Boolean(process.env.MFA_ON), loggedIn: false, left: 10, p
 const mfaState = () => ({ enabled: mfa.enabled, required: Boolean(process.env.MFA_DUE), setupDue: process.env.MFA_DUE && !mfa.enabled ? new Date(Date.now() + 9 * 864e5).toISOString() : null, mustSetUp: false, recoveryLeft: mfa.enabled ? mfa.left : 0, enabledAt: mfa.enabled ? new Date(Date.now() - 20 * 864e5).toISOString() : null });
 let contactOf = null;
 let claimCount = 0;
-const club = { accent: process.env.CLUB_ACCENT ?? null, id: 'c1', name: CLUB_NAME, country: 'CH', joinPolicy: 'approval', openJoinRequests: process.env.JOIN_REQUESTS ? 2 : 0, role: process.env.AS_PLAYER ? 'player' : 'admin', admins: [{ id: 'u1', firstname: 'Test', lastname: 'User', email: 'test@example.com' }, { id: 'u7', firstname: 'Ida', lastname: 'Admin', email: 'ida@example.com' }], playerCount: 6 };
+const club = { accent: process.env.CLUB_ACCENT ?? null, id: 'c1', name: CLUB_NAME, country: 'CH', joinPolicy: 'approval', openJoinRequests: process.env.JOIN_REQUESTS ? 2 : 0, role: process.env.AS_PLAYER ? 'player' : 'admin', admins: [{ id: 'u1', firstname: 'Test', lastname: 'User', email: 'test@example.com' }, { id: 'u7', firstname: 'Ida', lastname: 'Admin', email: 'ida@example.com' }], playerCount: 6,
+    // the clock of this machine, the clock the stand-in counts its days by ("tonight")
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
 const names = process.env.SHOWCASE_T
     ? [['Lex', 'Brunner'], ['The Hammer', 'Meier'], ['Mia', 'Keller'], ['Sammy', 'Frei'], ['Lena', 'Graf'], ['Tommy', 'Rossi'], ['Jonas', 'Weber'], ['Sara', 'Huber'], ['Nico', 'Baumann'], ['Lea', 'Fischer'], ['Marco', 'Bianchi'], ['Julia', 'Steiner'], ['Luca', 'Moser'], ['Nina', 'Wyss'], ['Tim', 'Schmid'], ['Elena', 'Ferrari']]
     : [['Anna', 'Muster'], ['Ben', 'Keller'], ['Cleo', 'Frei'], ['Dario', 'Rossi'], ['Eva', 'Graf'], ['Finn', 'Baumann']];

@@ -2,6 +2,7 @@ import { legsInOrder, thrownDarts } from './badges.js';
 import { legVisits } from './kpi.data.js';
 import { startingScoreOf } from './x01.rules.js';
 import { teamsOf } from '../rules/x01.js';
+import { DEFAULT_TIME_ZONE, partsIn } from '../rules/zones.js';
 
 // Club-wide figures for the dashboard: key figures, who beats whom, records
 // and a small log of when games were played (the browser groups it by day and
@@ -9,7 +10,11 @@ import { teamsOf } from '../rules/x01.js';
 
 const model = (game, playerId) => game.playerModels?.[playerId] ?? {};
 const round = (value, digits = 1) => Math.round(value * 10 ** digits) / 10 ** digits;
-const monthKey = (date) => new Date(date).toISOString().slice(0, 7);
+// the month of a moment on the club's clock: "2026-11"
+const monthKey = (date, zone) => {
+    const { year, month } = partsIn(date, zone);
+    return `${year}-${String(month).padStart(2, '0')}`;
+};
 const finishedAt = (game) => game.updatedAt ?? game.createdAt;
 
 // the checkout of a leg for a best leg: a player's own, so not in doubles (the darts were the team's)
@@ -17,9 +22,10 @@ const soloFinish = (game, leg) => (teamsOf(game) ? null : leg.find(visit => Numb
 
 /**
  * Key figures over the club's finished games ("finishedByType": [{ type, games }]).
- * "members" are the club's players (not guests) with their activity, "now" the current time.
+ * "members" are the club's players (not guests) with their activity, "now" the current time,
+ * "zone" the club's time zone (its months start at midnight there).
  */
-export const clubKpis = ({ finishedByType, allGames, members, now = new Date() }) => {
+export const clubKpis = ({ finishedByType, allGames, members, now = new Date(), zone = DEFAULT_TIME_ZONE }) => {
     const memberIds = new Set(members.map(player => String(player._id)));
     const x01 = finishedByType.find(entry => entry.type === 'x01')?.games ?? [];
     const finished = finishedByType.flatMap(entry => entry.games);
@@ -58,12 +64,10 @@ export const clubKpis = ({ finishedByType, allGames, members, now = new Date() }
         }
     }
 
-    const thisMonth = monthKey(now);
-    const lastMonthDate = new Date(now);
-    lastMonthDate.setUTCDate(1);
-    lastMonthDate.setUTCMonth(lastMonthDate.getUTCMonth() - 1);
-    const lastMonth = monthKey(lastMonthDate);
-    const gamesIn = (month) => finished.filter(game => monthKey(finishedAt(game)) === month);
+    const thisMonth = monthKey(now, zone);
+    const { year, month } = partsIn(now, zone);
+    const lastMonth = month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, '0')}`;
+    const gamesIn = (key) => finished.filter(game => monthKey(finishedAt(game), zone) === key);
     const activePlayers = new Set(gamesIn(thisMonth).flatMap(game => (game.players ?? []).filter(id => memberIds.has(String(id)))));
 
     const streakHolder = [...members].sort((a, b) => (b.activity?.bestWeekStreak ?? 0) - (a.activity?.bestWeekStreak ?? 0))[0];

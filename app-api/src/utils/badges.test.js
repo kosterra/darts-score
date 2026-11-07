@@ -291,6 +291,14 @@ describe('replayBadges', () => {
         expect(got).not.toContain('trainingDarts-30');
     });
 
+    it('cuts training days at midnight in Zurich, not in UTC', () => {
+        const training = (date) => ({ type: 'atc', id: `d${clock++}`, at: new Date(date), data: { mode: 'Single', timeMs: 100 } });
+        // 23:30 and 00:30 in Zurich are two days, though both are the 5th in UTC
+        expect(replayBadges([training('2026-01-05T22:30Z'), training('2026-01-05T23:30Z')], P).metrics.trainingDays).toBe(2);
+        // 00:30 and 19:00 in Zurich are one day, though the first is still the 5th in UTC
+        expect(replayBadges([training('2026-01-05T23:30Z'), training('2026-01-06T18:00Z')], P).metrics.trainingDays).toBe(1);
+    });
+
     it('replays in time order whatever the input order', () => {
         const first = x01(true); const second = x01(true); const third = x01(true);
         expect(replayBadges([third, first, second], P).earned.find(e => e.badge === 'streak-3').sourceId).toBe(third.id);
