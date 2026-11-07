@@ -160,6 +160,44 @@ describe('a darts evening made a club', () => {
         expect(await db.club.countDocuments()).toBe(clubsBefore + 1);
         expect(await db.x01.countDocuments({ club: club._id })).toBe(1);
     });
+
+    it('removes the half club of a request the server stopped part-way, once the hold is over', async () => {
+        const { evening, quickGame } = await newEvening();
+        await quickGame(['q1', 'q2']);
+        const clubsBefore = await db.club.countDocuments();
+        const playersBefore = await db.player.countDocuments();
+        // as a request leaves it when the server stops after the club and its players, before the evening is told
+        const half = await db.club.create({ name: 'Half', admins: [state.bob._id] });
+        await db.player.create([{ firstname: 'Anna', lastname: '-', nickname: 'Anna', clubs: [half._id] }, { firstname: 'Ben', lastname: '-', nickname: 'Ben', clubs: [half._id] }]);
+        await db.quickEvening.updateOne({ _id: evening._id }, { $set: { adopting: new Date(Date.now() - 60 * 1000), adoptingClub: half._id } });
+
+        // within the hold: refused, the half club still there
+        await expect(evenings.adoptEvening(await db.quickEvening.findById(evening._id), state.bob, { name: 'Again' })).rejects.toMatchObject({ status: 409 });
+        expect(await db.club.exists({ _id: half._id })).toBeTruthy();
+
+        // after it: the half club goes with its players, and the evening becomes one club
+        await db.quickEvening.updateOne({ _id: evening._id }, { $set: { adopting: new Date(Date.now() - 11 * 60 * 1000) } });
+        const { club, games } = await evenings.adoptEvening(await db.quickEvening.findById(evening._id), state.bob, { name: 'Again' });
+        expect(games).toBe(1);
+        expect(await db.club.exists({ _id: half._id })).toBeNull();
+        expect(await db.player.countDocuments({ clubs: half._id })).toBe(0);
+        expect(await db.club.countDocuments()).toBe(clubsBefore + 1);
+        expect(await db.player.countDocuments()).toBe(playersBefore + 3);
+        expect(await db.quickEvening.findById(evening._id).lean()).toMatchObject({ club: club._id, adopting: null, adoptingClub: null });
+    });
+
+    it('notes the club it makes on the evening before making it', async () => {
+        const { evening } = await newEvening();
+        const create = db.club.create.bind(db.club);
+        let noted = null;
+        const spy = vi.spyOn(db.club, 'create').mockImplementationOnce(async (doc) => {
+            noted = (await db.quickEvening.findById(evening._id).lean()).adoptingClub;
+            return create(doc);
+        });
+        const { club } = await evenings.adoptEvening(await db.quickEvening.findById(evening._id), state.bob, { name: 'Noted' });
+        spy.mockRestore();
+        expect(String(noted)).toBe(String(club._id));
+    });
 });
 
 // ---------------------------------------------------------------------------

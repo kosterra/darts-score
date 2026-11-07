@@ -2,10 +2,13 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { storedOf } from './game.view.js';
 
 // what making a club creates, in memory
-const created = { clubs: [], players: [], games: [], badges: [], deleted: [] };
+// (noted: the club the evening held as being made when each club was created)
+const created = { clubs: [], players: [], games: [], badges: [], deleted: [], noted: [] };
 let quickGames = [];
 // the evening as the database holds it: its club and the claim of a request making it one
-const stored = { club: null, adopting: null };
+const stored = { club: null, adopting: null, adoptingClub: null };
+// clubs a request stopped part-way left behind
+let halfClubs = [];
 let failBadges = false;
 vi.mock('../models/db.model.js', () => {
     const gameModel = (type) => ({
@@ -15,7 +18,16 @@ vi.mock('../models/db.model.js', () => {
     });
     return {
         default: {
-            club: { create: async (doc) => { const club = { ...doc, _id: `club${created.clubs.length + 1}` }; created.clubs.push(club); return club; }, exists: async () => true },
+            club: {
+                create: async (doc) => {
+                    const club = { ...doc, _id: `club${created.clubs.length + 1}` };
+                    created.clubs.push(club);
+                    created.noted.push(stored.adoptingClub);
+                    return club;
+                },
+                exists: async () => true,
+                findById: async (id) => halfClubs.find(club => club._id === id) ?? null,
+            },
             player: {
                 create: async (doc) => { const player = { ...doc, _id: `p${created.players.length + 1}` }; created.players.push(player); return player; },
                 countDocuments: async (filter) => filter._id.$in.length,
@@ -35,7 +47,7 @@ vi.mock('../models/db.model.js', () => {
                 findById: () => ({ lean: async () => ({ ...stored }) }),
                 // the claim of the evening: only while it is no club and nobody is making it one
                 updateOne: async (filter, { $set }) => {
-                    if ('club' in filter && (stored.club || stored.adopting)) return { modifiedCount: 0 };
+                    if ('club' in filter && (stored.club || (stored.adopting && stored.adopting >= filter.$or[1].adopting.$lt))) return { modifiedCount: 0 };
                     Object.assign(stored, $set);
                     return { modifiedCount: 1 };
                 },
@@ -82,7 +94,8 @@ beforeEach(() => {
     for (const list of Object.values(created)) list.length = 0;
     quickGames = [];
     evening.club = null;
-    Object.assign(stored, { club: null, adopting: null });
+    Object.assign(stored, { club: null, adopting: null, adoptingClub: null });
+    halfClubs = [];
     failBadges = false;
 });
 
@@ -196,6 +209,35 @@ describe('a darts evening', () => {
         expect(result.club._id).toBe('club2');
         expect(result.games).toBe(1);
         expect(stored.club).toBe('club2');
+    });
+
+    it('removes the half club of a request that stopped part-way, once the hold is over', async () => {
+        quickGames = [{ ...x01Won(['q1', 'q2'], new Date(2026, 9, 24, 20, 0)), _id: 'g1' }];
+        const user = { _id: 'u1', firstname: 'Ben', lastname: 'Keller' };
+        // the server stopped after making the club and its players, before the evening was told
+        halfClubs = [{ _id: 'half1', name: 'Friday Club' }];
+        Object.assign(stored, { adopting: new Date(Date.now() - 60 * 1000), adoptingClub: 'half1' });
+        // within the hold: refused, nothing removed
+        await expect(adoptEvening(evening, user, { name: 'Friday Club' })).rejects.toMatchObject({ status: 409 });
+        expect(created.deleted).toEqual([]);
+
+        stored.adopting = new Date(Date.now() - 11 * 60 * 1000);
+        const result = await adoptEvening(evening, user, { name: 'Friday Club' });
+        expect(created.deleted).toEqual(['half1']);
+        expect(created.clubs).toHaveLength(1);
+        expect(result.games).toBe(1);
+        expect(stored).toMatchObject({ club: 'club1', adopting: null, adoptingClub: null });
+    });
+
+    it('notes the club on the evening before making it', async () => {
+        const user = { _id: 'u1', firstname: 'Ben', lastname: 'Keller' };
+        failBadges = true;
+        quickGames = [{ ...x01Won(['q1', 'q2'], new Date(2026, 9, 24, 20, 0)), _id: 'g1' }];
+        await expect(adoptEvening(evening, user, { name: 'Friday Club' })).rejects.toThrow('badges failed');
+        expect(created.noted).toHaveLength(1);
+        expect(String(created.noted[0])).toMatch(/^[0-9a-f]{24}$/);
+        // removed after the failure: no longer noted
+        expect(stored.adoptingClub).toBeNull();
     });
 
     it('takes a game still running over into the club once it is finished', async () => {

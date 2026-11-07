@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import mongoose from 'mongoose';
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { NAME, QUICK_PLAYER_IDS, hashKey, newKey, quickGameError } from './quick.games.js';
@@ -334,6 +335,19 @@ export const takeOverLateGame = async (game) => {
     }
 };
 
+// the club a request to make the evening a club left behind when it stopped part-way: removed, with its players
+const removeHalfClub = async (evening) => {
+    const left = (await db.quickEvening.findById(evening._id, 'adoptingClub').lean())?.adoptingClub;
+    if (!left) return;
+    const half = await db.club.findById(left);
+    if (half) {
+        const { deleteClubData } = await import('./club.deletion.js');
+        await deleteClubData(half, { by: 'a take-over of a darts evening that stopped part-way' });
+    }
+    await db.quickGame.updateMany({ evening: evening._id, takenOver: true }, { $set: { takenOver: false } });
+    await db.quickEvening.updateOne({ _id: evening._id }, { $set: { adoptingClub: null } });
+};
+
 /**
  * Makes the evening a club of the user: the club with the user as its admin,
  * a player for each player of the evening (the user's own one, "me", gets
@@ -342,7 +356,9 @@ export const takeOverLateGame = async (game) => {
  * once it is finished (see takeOverLateGame). Only one request makes the
  * club: a second one at the same time, or one after it, is refused; when
  * something fails on the way, what was created goes again and it can be
- * tried once more. → { club, players, games }
+ * tried once more. A request that stopped part-way without cleaning up (the
+ * server went down) leaves its club noted on the evening: the next one,
+ * after the hold, removes that half club first. → { club, players, games }
  */
 export const adoptEvening = async (evening, user, { name, me = null } = {}) => {
     const already = () => Object.assign(new Error('This evening is a club already.'), { status: 409 });
@@ -359,9 +375,22 @@ export const adoptEvening = async (evening, user, { name, me = null } = {}) => {
     );
     if (!claimed.modifiedCount) throw already();
 
+    // a half club of a request that stopped part-way goes first (if that fails, it stays noted)
+    try {
+        await removeHalfClub(evening);
+    } catch (err) {
+        await db.quickEvening.updateOne({ _id: evening._id, adopting: since }, { $set: { adopting: null } });
+        throw err;
+    }
+
     let club = null;
     try {
-        club = await db.club.create({ name: clubName, admins: [user._id] });
+        // the club noted on the evening before it is made, so a request stopped part-way leaves no stray club
+        const clubId = new mongoose.Types.ObjectId();
+        const noted = await db.quickEvening.updateOne({ _id: evening._id, adopting: since }, { $set: { adoptingClub: clubId } });
+        // after the hold another request may have taken it over: this one stops
+        if (!noted.modifiedCount) throw already();
+        club = await db.club.create({ _id: clubId, name: clubName, admins: [user._id] });
         const players = new Map();
         for (const player of evening.players) {
             const created = await db.player.create({
@@ -373,20 +402,27 @@ export const adoptEvening = async (evening, user, { name, me = null } = {}) => {
         const clubPlayers = [...players].map(([id, player]) => ({ id, player }));
         const adoptedAt = new Date();
         // the club is the evening's from now on: a game finished meanwhile follows by itself
-        await db.quickEvening.updateOne({ _id: evening._id, adopting: since }, { $set: { club: club._id, adoptedAt, clubPlayers, adopting: null } });
-        Object.assign(evening, { club: club._id, adoptedAt, clubPlayers, adopting: null });
+        const made = await db.quickEvening.updateOne({ _id: evening._id, adopting: since }, { $set: { club: club._id, adoptedAt, clubPlayers, adopting: null, adoptingClub: null } });
+        if (!made.modifiedCount) throw already();
+        Object.assign(evening, { club: club._id, adoptedAt, clubPlayers, adopting: null, adoptingClub: null });
         const games = await takeOverFinished(evening, club._id, players);
         return { club, players: Object.fromEntries(players), games };
     } catch (err) {
         // back to how it was: no half club, and it can be made a club again
+        let removed = true;
         if (club) {
             const { deleteClubData } = await import('./club.deletion.js');
-            await deleteClubData(club, { by: 'a failed take-over of a darts evening' })
-                .catch(cleanup => logger.error(cleanup, `Failed to remove the club ${club._id} of a failed take-over`));
+            await deleteClubData(club, { by: 'a failed take-over of a darts evening' }).catch(cleanup => {
+                removed = false;
+                logger.error(cleanup, `Failed to remove the club ${club._id} of a failed take-over`);
+            });
         }
         await db.quickGame.updateMany({ evening: evening._id, takenOver: true }, { $set: { takenOver: false } });
-        await db.quickEvening.updateOne({ _id: evening._id }, { $set: { club: null, adoptedAt: null, clubPlayers: [], adopting: null } });
-        Object.assign(evening, { club: null, adoptedAt: null, clubPlayers: [], adopting: null });
+        // a club not removed stays noted, for the next request to remove
+        const reset = { club: null, adoptedAt: null, clubPlayers: [], adopting: null, ...(removed && { adoptingClub: null }) };
+        // only while the evening is still this request's (not another's that took over after the hold)
+        await db.quickEvening.updateOne({ _id: evening._id, $or: [{ adopting: since }, ...(club ? [{ club: club._id }] : [])] }, { $set: reset });
+        Object.assign(evening, reset);
         throw err;
     }
 };

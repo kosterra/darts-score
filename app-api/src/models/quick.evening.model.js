@@ -20,6 +20,8 @@ export default (mongoose) => {
       adoptedAt:  { type: Date, default: null },
       // while it is being made a club: since when (only one request at a time does it)
       adopting:   { type: Date, default: null },
+      // the club that request is making: if it never finished (the server stopped), the next one removes it
+      adoptingClub: { type: mongoose.Schema.Types.ObjectId, ref: 'club', default: null },
       // the club's player of each player of the evening, for a game finished after it became a club
       clubPlayers: { type: [{ _id: false, id: String, player: { type: mongoose.Schema.Types.ObjectId, ref: 'player' } }], default: [] },
       // when it ended: by hand, or by itself 12 hours after its last game (see utils/evenings.js)
