@@ -35,8 +35,11 @@ export const VisitBar = () => {
     return (
         <div className="visit-bar" role="status">
             <i className="pi pi-eye" aria-hidden="true" />
-            <span className="flex-grow-1 min-w-0">{t('You are looking at {{club}} as a global admin, with the rights of its admins.', { club: activeClub.name })}</span>
-            <Button label={t('Back to the administration')} icon="pi pi-arrow-left" size="small" text onClick={() => navigate(leaveVisit())} />
+            {/* on a phone in short, so the bar stays one or two lines */}
+            <span className="flex-grow-1 min-w-0 d-none d-sm-inline">{t('You are looking at {{club}} as a global admin, with the rights of its admins.', { club: activeClub.name })}</span>
+            <span className="flex-grow-1 min-w-0 d-sm-none">{t('Viewing {{club}} as a global admin', { club: activeClub.name })}</span>
+            <Button label={t('Back to the administration')} icon="pi pi-arrow-left" size="small" text className="d-none d-sm-inline-flex" onClick={() => navigate(leaveVisit())} />
+            <Button label={t('Administration')} icon="pi pi-arrow-left" size="small" text className="d-sm-none" onClick={() => navigate(leaveVisit())} />
         </div>
     );
 };

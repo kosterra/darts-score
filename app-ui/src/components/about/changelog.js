@@ -11,6 +11,7 @@ const CHANGELOG = [
     {
         version: 'Next release',
         changes: [
+            t('On a phone the lists of games (recent games, a player\'s latest games, the evenings) give the names the full width, the time on a small line above them, so names are no longer cut short; a global admin\'s banner while looking at a club is shorter there.'),
             t('Scoreboards of the trainings: the attempt just saved is marked in green with New, and in gold with New best only when it is a new personal best; the level after a long result no longer gets cut off on a phone.'),
         ],
     },

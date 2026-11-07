@@ -113,6 +113,18 @@
         .game-type-icon { display: none; }
         .timeline-side { width: 4.75rem; }
         gap: $space-2;
+
+        // the time (or the date) on a small line above the players: the names get its width
+        .timeline-entry {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas: 'time side' 'body side';
+            align-items: start;
+            row-gap: 0.1rem;
+        }
+        .timeline-time { grid-area: time; width: auto; }
+        .timeline-body { grid-area: body; }
+        .timeline-side, .row-actions { grid-area: side; }
     }
 
     // on the right: the status (or the result) at the top, the button at the bottom
