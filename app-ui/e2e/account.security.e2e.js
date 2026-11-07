@@ -14,11 +14,6 @@ test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('darts-score.activeClub', 'c1'));
 });
 
-test.afterEach(async () => {
-    await post('/__test/mfa', { enabled: false });
-    await post('/__test/passkeys', { passkeys: [] });
-});
-
 test('a new email address asks for the password, and the code once two-step login is on', async ({ page }) => {
     await post('/__test/mfa', { enabled: false });
     await page.goto('/profile');

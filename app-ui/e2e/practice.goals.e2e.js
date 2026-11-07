@@ -15,11 +15,6 @@ const asPlayer = async (page) => {
 };
 
 test.describe('weekly practice goals', () => {
-    test.afterEach(async () => {
-        await post('/__test/goals', {});
-        await post('/__test/role', { admin: true });
-    });
-
     test('a goal set on the profile, its progress on the Dashboard, its notifications', async ({ page, isMobile }) => {
         test.skip(isMobile, 'once is enough: setting a goal works the same at every width');
         await post('/__test/goals', {});

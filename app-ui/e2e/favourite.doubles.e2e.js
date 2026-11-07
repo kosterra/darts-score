@@ -4,12 +4,6 @@ import { test, expect, MOCK } from './fixtures.js';
 // only after a favourite, a double chosen once is not offered again, and the ways out of a
 // checkout training finish on them first, in their order.
 const post = (path, body = {}) => fetch(`${MOCK}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-const put = (path, body) => fetch(`${MOCK}${path}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-
-test.afterEach(async () => {
-    await post('/__test/role', { admin: true });
-    await put('/api/players/p1/preferences', { favouriteDouble: 'auto', secondDouble: 'auto', thirdDouble: 'auto' });
-});
 
 test('three favourite doubles, and the ways out finish on them first', async ({ page, isMobile }) => {
     test.skip(isMobile, 'the logic once, at desktop width');

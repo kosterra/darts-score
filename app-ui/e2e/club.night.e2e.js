@@ -34,7 +34,7 @@ test('the club evening of tonight\'s club night', async ({ page }) => {
     await first.getByRole('button', { name: `${name} is back` }).click();
     await expect(page.locator('.player-picker-grid').getByText(name, { exact: true })).toBeVisible();
 
-    // the next game is a club game; back on the evening it is listed (other checks may have played tonight too)
+    // the next game is a club game; back on the evening it is listed
     const before = await page.locator('.timeline-entry').count();
     await page.getByRole('button', { name: 'Start the game' }).click();
     await expect(page).toHaveURL(/\/x01\/g\d+$/);

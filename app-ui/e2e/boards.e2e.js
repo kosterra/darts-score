@@ -10,12 +10,6 @@ const today = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 };
 
-// what was set up on boards does not stay for the other checks (the club night of tonight)
-test.afterEach(async () => {
-    await post('/__test/boards', { reset: true });
-    await post('/__test/tournaments', { scenario: 'none' });
-});
-
 test.beforeEach(async ({ page }) => {
     await post('/__test/logged-out', { loggedOut: false });
     await post('/__test/boards', { reset: true });

@@ -15,10 +15,6 @@ test.beforeEach(async ({ page }) => {
     });
 });
 
-test.afterAll(async () => {
-    await post('/__test/rules-trainings', {});
-});
-
 const startTraining = async (page) => {
     await page.goto('/training/bobs27');
     const cards = page.locator('.player-pick-card');

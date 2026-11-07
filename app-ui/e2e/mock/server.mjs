@@ -14,6 +14,7 @@
 // /__test/notifications (two of them, one unread), /__test/evening (one with finished games),
 // /__test/boards { scenario | finish | reset }, /__test/mfa { enabled }, /__test/passkeys { passkeys: [names] } and
 // /__test/levels (finished X01 games with the level each player played at, for the filter by level).
+// The browser checks start it through resettable.mjs, which gives each test a fresh one (POST /__test/reset).
 globalThis.mockLoggedOut = Boolean(process.env.LOGGED_OUT);
 import { NOTIFICATION_GROUPS, NOTIFICATION_TOPICS, normalizePreferences, preferenceOf } from '../../src/rules/notifications.js';
 import { fpNewItems } from './fair.play.data.mjs';
@@ -1129,7 +1130,10 @@ http.createServer((req, res) => {
         console.log('unhandled', req.method, path);
         send(res, 200, req.method === 'GET' ? [] : {});
     });
-}).listen(Number(process.env.MOCK_PORT) || 3901, () => console.log(`mock on ${Number(process.env.MOCK_PORT) || 3901}`));
+// MOCK_PORT=0: a free port, the one taken in the line it logs (how e2e/mock/resettable.mjs starts it)
+}).listen(process.env.MOCK_PORT ? Number(process.env.MOCK_PORT) : 3901, function () { console.log(`mock on ${this.address().port}`); });
+// started by e2e/mock/resettable.mjs: gone with it
+if (process.send) process.on('disconnect', () => process.exit(0));
 
 async function listEntries(url) {
     {
