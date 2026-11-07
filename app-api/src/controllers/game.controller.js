@@ -166,7 +166,13 @@ export const createGameController = (Model, gameName, type = null) => {
             if (isTournamentGame) base.players = stored.toObject().players;
             // a game keeps what it was set up with, also when the club's rules change meanwhile
             const changes = withRulesResult(keepSetUp(type ?? stored.kind, stored, base));
-            const data = await Model.findOneAndUpdate({ _id: stored._id }, { $set: changes }, { new: true });
+            // the timestamps are the server's: "last updated" of a finished game is when it was finished
+            delete changes.createdAt;
+            delete changes.updatedAt;
+            // a finished game sent again (a save retried, another device) stays finished when it was:
+            // its badges, goals and club tally do not see it as played again
+            const finishedBefore = Boolean(stored.hasWinner) && Boolean(changes.hasWinner);
+            const data = await Model.findOneAndUpdate({ _id: stored._id }, { $set: changes }, { new: true, timestamps: !finishedBefore });
             if (!data) return res.status(404).json({ message: `${label} game not found (id=${id}).` });
             // A finished game may have earned its players new badges
             if (data.hasWinner) {

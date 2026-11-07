@@ -82,7 +82,7 @@ export const withHumans = async (trainings) => {
 // fields of the database (version, timestamps) that must not be written back
 export const update = async (req, res) => {
     if (!db.mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: 'Not found.' });
-    const training = await Training.findOne({ _id: req.params.id, club: req.club._id }, 'players bot');
+    const training = await Training.findOne({ _id: req.params.id, club: req.club._id }, 'players bot hasWinner');
     if (!training) return res.status(404).json({ message: 'Not found.' });
     const player = await loadPlayer(req, res, humanOf(training.players));
     if (!player) return;
@@ -92,7 +92,9 @@ export const update = async (req, res) => {
     // eslint-disable-next-line no-unused-vars
     const { players: same, ...changes } = storedOf('x01training', { ...sent, players: training.players });
     try {
-        const saved = await Training.findOneAndUpdate({ _id: training._id }, { $set: changes }, { returnDocument: 'after' });
+        // a finished training sent again keeps the time it was finished (for the weekly goals)
+        const finishedBefore = Boolean(training.hasWinner) && Boolean(changes.hasWinner);
+        const saved = await Training.findOneAndUpdate({ _id: training._id }, { $set: changes }, { returnDocument: 'after', timestamps: !finishedBefore });
         if (saved?.hasWinner) {
             checkLater(() => noteFairPlay(req.club._id, 'x01training', saved));
             // a finished training counts for the player's weekly goals

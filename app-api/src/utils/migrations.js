@@ -320,6 +320,23 @@ const migrations = [
             return true;
         },
     },
+    {
+        id: '2026-11-leftovers-of-deleted-clubs',
+        description: 'Remove what clubs deleted before left behind: their connections and requests (another club could still accept one), club nights, leagues, integrity reviews and notifications',
+        run: async () => {
+            const existing = (await db.club.distinct('_id')).map(String);
+            const gone = (ids) => ids.filter(id => id && !existing.includes(String(id)));
+            const removed = {};
+            for (const [name, model] of [['attendance', db.attendance], ['league', db.league], ['integrityReview', db.integrityReview], ['notification', db.notification]]) {
+                const clubs = gone(await model.distinct('club'));
+                removed[name] = clubs.length ? (await model.deleteMany({ club: { $in: clubs } })).deletedCount : 0;
+            }
+            const links = gone([...await db.clubLink.distinct('clubs'), ...await db.clubLink.distinct('requestedClub')]);
+            removed.clubLink = links.length ? (await db.clubLink.deleteMany({ $or: [{ clubs: { $in: links } }, { requestedClub: { $in: links } }] })).deletedCount : 0;
+            logger.info(`Leftovers of deleted clubs removed: ${Object.entries(removed).map(([name, count]) => `${count} ${name}`).join(', ')}`);
+            return true;
+        },
+    },
 ];
 
 export const runMigrations = async (context) => {

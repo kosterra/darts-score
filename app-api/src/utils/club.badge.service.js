@@ -23,15 +23,19 @@ const GAME_COLLECTIONS = {
 export const saveTally = async (clubId, type, game, { onlyPlayers = null } = {}) => {
     if (!clubId || !game?.hasWinner) return false;
     const sourceId = String(game._id ?? game.id);
-    const at = game.updatedAt ?? new Date();
+    const updatedAt = game.updatedAt ?? new Date();
     // the tally is kept per club and game: a shared tournament game has one per club
-    const known = await db.clubTally.findOne({ club: clubId, sourceId }, 'at version').lean();
-    if (known && known.version === TALLY_VERSION && new Date(known.at).getTime() === new Date(at).getTime()) return false;
+    const known = await db.clubTally.findOne({ club: clubId, sourceId }, 'at gameUpdatedAt version').lean();
+    const workedOutFrom = known?.gameUpdatedAt ?? known?.at;
+    if (known && known.version === TALLY_VERSION && new Date(workedOutFrom).getTime() === new Date(updatedAt).getTime()) return false;
     const data = viewOf(isRulesGame(type) ? 'rules' : type, game);
     const tally = tallyOf(type, data, { onlyPlayers });
+    // worked out again, it keeps the time the game was first finished: a game saved
+    // again later does not count as played then (for the goals of that week)
+    const at = known?.at ?? updatedAt;
     await db.clubTally.updateOne(
         { club: clubId, sourceId },
-        { $set: { club: clubId, sourceType: type, sourceId, at, ...tally } },
+        { $set: { club: clubId, sourceType: type, sourceId, at, gameUpdatedAt: updatedAt, ...tally } },
         { upsert: true }
     );
     // true for a game finished just now

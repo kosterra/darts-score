@@ -7,8 +7,10 @@ export default (mongoose) => {
       club:       { type: mongoose.Schema.Types.ObjectId, ref: 'club', required: true },
       sourceType: { type: String, required: true },
       sourceId:   { type: String, required: true },
-      // when the game was finished, and from which version of it the tally is
+      // when the game was first finished (stays when it is worked out again)
       at:         { type: Date, required: true },
+      // from which version of the game it is worked out: its last update then
+      gameUpdatedAt: { type: Date, default: null },
       players:    { type: [String], default: [] },
       darts:      { type: Number, default: 0 },
       num180s:    { type: Number, default: 0 },

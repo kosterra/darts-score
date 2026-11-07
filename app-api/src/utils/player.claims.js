@@ -31,7 +31,8 @@ export const claimsOf = async (playerId) => {
 
 /**
  * The claim of a token, with its player and club, or null when it is
- * unknown, expired, or its player has a login already.
+ * unknown, expired, its player has a login already or is no longer a member
+ * of the club it was made in.
  */
 export const findClaim = async (token) => {
     if (typeof token !== 'string' || token.length < 20) return null;
@@ -41,7 +42,8 @@ export const findClaim = async (token) => {
         db.player.findById(claim.player),
         db.club.findById(claim.club, 'name logo'),
     ]);
-    if (!player || player.user || !club) return null;
+    // the link was made in a club: it works only while the player is still a member there
+    if (!player || player.user || !club || !(player.clubs ?? []).some(id => String(id) === String(club._id))) return null;
     return { claim, player, club };
 };
 

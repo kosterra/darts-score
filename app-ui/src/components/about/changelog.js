@@ -14,6 +14,8 @@ const CHANGELOG = [
             t('Darts evenings and club nights: someone arriving later joins a darts evening by name, and whoever goes home is no longer suggested or paired for a game (their games keep counting) and can come back; the table says when they came or left, and it can also be ordered by win rate.'),
             t('Fix: fairer statistics – busts no longer count as scores, darts per leg count only the darts thrown, points scored count every leg, legs decided by the round limit have their winner (also for the comeback badges), games played alone are no wins in the club\'s lists, and in doubles both partners win and the best leg leaves doubles out; Elimination counts the darts after the opening double, and Master Out no longer gets stuck one short.'),
             t('Fix: tournaments and leagues count every match when several games end at the same moment – a quarter-final or a league match could stay running for good, and the knockout stage after the groups stay empty; players level in a group or league are ranked by their matches against each other, then by the draw; a tournament can no longer be set to fewer places than players have entered.'),
+            t('Fix: a darts evening made a club twice at once, or tried again after an error, no longer makes a second club, and a game still running then joins the club once it is finished.'),
+            t('Fix: a finished game saved again no longer counts as played again for the badges and the weekly goals; games that follow their players to another club take what they added to the club along; a claim link ends when the player leaves the club; and a deleted club leaves no connection requests, club nights or leagues behind.'),
         ],
     },
     {
