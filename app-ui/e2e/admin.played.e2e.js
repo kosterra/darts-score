@@ -62,9 +62,12 @@ test('a game of another club opens as its admins see it, with the way back', asy
     // the visit lasts a reload, in this tab
     await page.reload();
     await expect(bar).toContainText('Bullseye Bern');
+    // the menu is the club's while looking at it: no administration in it
+    await expect(page.locator('a[href="/admin/backups"]')).toHaveCount(0);
     await bar.getByRole('button', { name: 'Back to the administration' }).click();
     await expect(page).toHaveURL(/\/admin\/games/);
     await expect(bar).toHaveCount(0);
+    await expect(page.locator('a[href="/admin/backups"]').first()).toBeAttached();
 });
 
 test('a player of another club opens as its admins see the profile', async ({ page }) => {
