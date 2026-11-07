@@ -1,7 +1,7 @@
 import logger from '../models/logger.model.js';
 import db from '../models/db.model.js';
 import { ROLES } from '../models/user.model.js';
-import { adoptEvening, endOf, eveningError, eveningGameError, eveningReport, eveningView, newEvening } from '../utils/evenings.js';
+import { addEveningPlayer, adoptEvening, endOf, eveningError, eveningGameError, eveningReport, eveningView, newEvening, setEveningPlayerLeft } from '../utils/evenings.js';
 import { keyMatches, quickGameView, winnerOf } from '../utils/quick.games.js';
 import { screenToken, sendToPairing } from '../utils/screens.js';
 import { storedOf } from '../utils/game.view.js';
@@ -101,6 +101,50 @@ export const addGame = async (req, res) => {
     });
     await countQuickGame(game);
     res.status(201).json({ game: quickGameView(game) });
+};
+
+// the players change only while the evening goes on; otherwise a response is sent
+const stillOn = async (evening, res) => {
+    if (evening.club) {
+        res.status(409).json({ message: 'This evening is a club now: play on there.' });
+        return null;
+    }
+    const games = await gamesOf(evening);
+    if (endOf(evening, games).endedAt) {
+        res.status(409).json({ message: 'This evening is over. Start a new one for the next.' });
+        return null;
+    }
+    return games;
+};
+
+/**
+ * Someone arrives later: { name } → the evening with them as a new player.
+ */
+export const addPlayer = async (req, res) => {
+    const evening = await loadOwn(req, res);
+    if (!evening) return;
+    const games = await stillOn(evening, res);
+    if (!games) return;
+    const { error } = addEveningPlayer(evening, req.body?.name);
+    if (error) return res.status(422).json({ errors: [error] });
+    await evening.save();
+    res.status(201).json(eveningView(evening, games, { owner: true }));
+};
+
+/**
+ * A player went home or is back: { left } → the evening. Who went home is
+ * not chosen for a game; their games keep counting.
+ */
+export const setPlayerLeft = async (req, res) => {
+    const evening = await loadOwn(req, res);
+    if (!evening) return;
+    const games = await stillOn(evening, res);
+    if (!games) return;
+    const { error } = setEveningPlayerLeft(evening, req.params.player, Boolean(req.body?.left));
+    if (error) return res.status(404).json({ message: error });
+    evening.markModified('players');
+    await evening.save();
+    res.json(eveningView(evening, games, { owner: true }));
 };
 
 /**

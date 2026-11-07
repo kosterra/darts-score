@@ -1125,6 +1125,76 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
       operationId: postPublicEveningsByidGames
+  /api/public/evenings/{id}/players:
+    post:
+      tags:
+        - Quick games
+      summary: "Someone arrives later: a new player of the evening by name (8 at most), with the evening's key"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: The evening, as GET /api/public/evenings/{id}
+        '404':
+          description: Not found on this device
+        '409':
+          description: The evening is over, or became a club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: postPublicEveningsByidPlayers
+  /api/public/evenings/{id}/players/{player}:
+    put:
+      tags:
+        - Quick games
+      summary: "A player went home (no longer chosen for a game, their games keep counting) or is back, with the evening's key"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: player
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^q[1-8]$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - left
+              properties:
+                left:
+                  type: boolean
+      responses:
+        '200':
+          description: The evening, as GET /api/public/evenings/{id}
+        '404':
+          description: Not found on this device, or no such player
+        '409':
+          description: The evening is over, or became a club
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      operationId: putPublicEveningsByidPlayersByplayer
   /api/public/evenings/{id}/end:
     post:
       tags:

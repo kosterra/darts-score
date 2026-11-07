@@ -16,8 +16,9 @@ import GameTypeIcon from '../elements/game.type.icon';
 import GameTypeTag from '../elements/game.type.tag';
 import GameStatusTag from '../elements/game.status.tag';
 import GamePlayers from '../dashboard/widgets/game.players';
-import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable } from './evening.parts';
+import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable, TableOrder } from './evening.parts';
 import NextGame from './evening.next.game';
+import EveningPlayers from './evening.players';
 import { newQuickGame, quickSetupText } from '../../utils/quick.games';
 import { formatDate, formatDateTime } from '../../utils/dates';
 import { t } from '../../utils/i18n';
@@ -42,6 +43,8 @@ const EveningPage = ({ shared = false }) => {
     const [busy, setBusy] = useState(false);
     const [sharing, setSharing] = useState(false);
     const [qr, setQr] = useState('');
+    // the table by wins (as always), or by win rate when some played much less
+    const [order, setOrder] = useState('wins');
     // the tab, and the preview of a shared link, name the evening
     usePageTitle(evening?.name || t('Darts evening'));
 
@@ -179,6 +182,7 @@ const EveningPage = ({ shared = false }) => {
 
                 {owner && !adopted && !ended &&
                     <Panel header={t('Next game')}>
+                        <EveningPlayers evening={evening} onChange={setEvening} onError={(message) => toast.current?.show({ severity: 'error', summary: t('Here tonight'), detail: message, life: 5000 })} />
                         <NextGame evening={evening} onStart={start} busy={busy} />
                         <div className="evening-end">
                             <span className="text-faint fs-8">{t('Done for tonight? End the evening; otherwise it ends by itself 12 hours after the last game ({{time}}).', { time: formatDateTime(evening.endsAt) })}</span>
@@ -193,10 +197,10 @@ const EveningPage = ({ shared = false }) => {
                         </ol>
                     </Panel>}
 
-                <Panel header={t('Table of the evening')}>
+                <Panel header={t('Table of the evening')} icons={report.played > 0 && <TableOrder value={order} onChange={setOrder} />}>
                     {report.played === 0
                         ? <span className="text-faint fs-7">{t('The table fills with the first game.')}</span>
-                        : <EveningTable report={report} players={evening.players} />}
+                        : <EveningTable report={report} players={evening.players} order={order} />}
                 </Panel>
 
                 {report.awards.length > 0 &&

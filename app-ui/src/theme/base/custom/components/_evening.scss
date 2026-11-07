@@ -86,6 +86,33 @@
     .evening-h2h .h2h-matrix tbody th { max-width: 16rem; }
 }
 
+// who is here tonight, above the next game: who came later and who went home under the name
+.evening-players { margin-bottom: 1.5rem; }
+
+.evening-player-chip {
+    line-height: 1.2;
+
+    .evening-player-note {
+        color: var(--text-faint);
+        font-size: $text-xs;
+        font-weight: $weight-regular;
+    }
+
+    // gone home: faded, the way back stays clear
+    &.is-gone > span { opacity: 0.6; }
+}
+
+.evening-player-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .p-inputtext { width: 9rem; }
+}
+
+// the order of the table, in its panel's header
+.evening-table-order .p-button { padding-block: 0.2rem; }
+
 // who plays tonight, under the date: standing out from it
 .evening-header-players {
     color: var(--text-default);

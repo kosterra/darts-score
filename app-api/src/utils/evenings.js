@@ -45,9 +45,40 @@ export const newEvening = ({ name = '', names }) => {
     };
 };
 
+// a player of the evening as it shows them: when they came later and when they went home
+const playerView = ({ id, name, joinedAt = null, leftAt = null }) => ({ id, name, joinedAt: joinedAt ?? null, leftAt: leftAt ?? null });
+
+/**
+ * Someone arrives later: a new player of the evening under a name of their
+ * own, while there is room (8 at most). Puts them on the evening.
+ * → { player } or { error }
+ */
+export const addEveningPlayer = (evening, name, now = new Date()) => {
+    const trimmed = typeof name === 'string' ? name.trim() : '';
+    if (!NAME.test(trimmed)) return { error: 'A name has 1 to 20 letters or digits.' };
+    if (evening.players.some(player => player.name.toLowerCase() === trimmed.toLowerCase())) return { error: 'Every player needs a name of their own.' };
+    const id = QUICK_PLAYER_IDS.find(entry => !evening.players.some(player => player.id === entry));
+    if (!id || evening.players.length >= EVENING_PLAYERS.max) return { error: 'An evening has 2 to 8 players.' };
+    const player = { id, name: trimmed, joinedAt: now, leftAt: null };
+    evening.players.push(player);
+    return { player };
+};
+
+/**
+ * A player went home (left: true) or is back (false): who went home is no
+ * longer suggested or chosen for a game, their games keep counting.
+ * → { player } or { error }
+ */
+export const setEveningPlayerLeft = (evening, playerId, left, now = new Date()) => {
+    const player = evening.players.find(entry => entry.id === playerId);
+    if (!player) return { error: 'There is no such player in this evening.' };
+    player.leftAt = left ? (player.leftAt ?? now) : null;
+    return { player };
+};
+
 /**
  * Why a game cannot be played in the evening, or null: a quick game whose
- * players are players of the evening, under their names.
+ * players are players of the evening, under their names, none of them gone home.
  */
 export const eveningGameError = (evening, kind, game) => {
     const error = quickGameError(kind, game);
@@ -57,6 +88,8 @@ export const eveningGameError = (evening, kind, game) => {
     for (const player of game.quickPlayers) {
         if (names.get(player.id) !== player.nickname.trim()) return 'The players of a game are players of the evening.';
     }
+    const gone = evening.players.find(player => player.leftAt && game.players.includes(player.id));
+    if (gone) return 'Someone in this game went home: bring them back first.';
     return null;
 };
 
@@ -213,7 +246,7 @@ export const gameSummary = (game) => {
 export const eveningView = (evening, games, { owner = false } = {}) => ({
     id: String(evening._id),
     name: evening.name,
-    players: evening.players.map(({ id, name }) => ({ id, name })),
+    players: evening.players.map(playerView),
     games: [...games].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(gameSummary),
     report: eveningReport(evening, games),
     createdAt: evening.createdAt,

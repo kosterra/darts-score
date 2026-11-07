@@ -21,7 +21,7 @@ import { QUICK_DEFAULTS, QUICK_GAMES, QUICK_LEGS, QUICK_SCORES, QUICK_VARIANTS, 
 import { choosePlayers, chosenPlayers, eveningWindow, noteNightGame } from '../../utils/club.night';
 import { dayKey } from '../../rules/calendar';
 import NextGame from '../evening/evening.next.game';
-import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable } from '../evening/evening.parts';
+import { EveningAwards, EveningForm, EveningHeadToHead, EveningTable, TableOrder } from '../evening/evening.parts';
 import GameTypeIcon from '../elements/game.type.icon';
 import GameTypeTag from '../elements/game.type.tag';
 import GameStatusTag from '../elements/game.status.tag';
@@ -73,6 +73,8 @@ const ClubNightPage = () => {
     const [boardChoice, setBoardChoice] = useState({});
     const boardPatch = useRef({});
     const [boardBusy, setBoardBusy] = useState('');
+    // the table by wins (as always), or by win rate when some played much less
+    const [order, setOrder] = useState('wins');
     const today = dayKey(new Date());
     const tonight = day === today;
     // the boards of the night, saved as you go: the changes chosen since the last save sent together
@@ -302,10 +304,10 @@ const ClubNightPage = () => {
                         <span className="text-faint fs-8 d-block mt-3">{t('A club game: it counts for the statistics, badges and levels of the club.')}</span>
                     </Panel>}
 
-                <Panel header={t('Table of the evening')}>
+                <Panel header={t('Table of the evening')} icons={report.played > 0 && <TableOrder value={order} onChange={setOrder} />}>
                     {report.played === 0
                         ? <span className="text-faint fs-7">{tonight ? t('The table fills with the first game.') : t('No game among these players that night.')}</span>
-                        : <EveningTable report={report} players={evening.players} />}
+                        : <EveningTable report={report} players={evening.players} order={order} />}
                 </Panel>
 
                 {report.awards.length > 0 &&

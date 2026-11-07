@@ -9,6 +9,12 @@ import { t } from '../../utils/i18n';
  */
 const CHANGELOG = [
     {
+        version: 'Next release',
+        changes: [
+            t('Darts evenings: someone arriving later joins the evening by name, and whoever goes home is no longer suggested for a game (their games keep counting) and can come back; the table says when they came or left, and on evenings and club nights it can also be ordered by win rate.'),
+        ],
+    },
+    {
         version: '2026.11.4',
         changes: [
             t('A tidier look across the app: your badges in less space with the ones you are closest to on top, the club badges with their whole ladders, the Hall of Shame, the lists of games, the visits of the newer games, the results of the trainings and the form for a new player.'),

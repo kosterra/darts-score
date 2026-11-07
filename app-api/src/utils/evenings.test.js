@@ -20,7 +20,7 @@ vi.mock('../models/db.model.js', () => {
 });
 vi.mock('./badge.service.js', () => ({ syncGameBadges: async (clubId, game, type) => { created.badges.push({ clubId, type, players: game.players }); return []; } }));
 
-const { adoptEvening, eveningError, eveningGameError, eveningReport, newEvening } = await import('./evenings.js');
+const { addEveningPlayer, adoptEvening, eveningError, eveningGameError, eveningReport, eveningView, newEvening, setEveningPlayerLeft } = await import('./evenings.js');
 
 const evening = {
     _id: 'e1',
@@ -69,6 +69,29 @@ describe('a darts evening', () => {
         expect(eveningGameError(evening, 'x01', game)).toBeNull();
         expect(eveningGameError(evening, 'x01', { ...game, quickPlayers: [{ id: 'q1', nickname: 'Anna' }, { id: 'q3', nickname: 'Someone' }] })).toMatch(/players of the evening/);
         expect(eveningGameError(evening, 'x01', { ...game, players: ['q1'], quickPlayers: names(['q1']), visits: [] })).toMatch(/2 to 4/);
+    });
+
+    it('takes in someone arriving later and keeps the games of who went home', () => {
+        const later = { players: [{ id: 'q1', name: 'Anna' }, { id: 'q2', name: 'Ben' }] };
+        const at = new Date(2026, 10, 7, 21, 10);
+        expect(addEveningPlayer(later, ' anna ').error).toMatch(/name of their own/);
+        expect(addEveningPlayer(later, '').error).toMatch(/1 to 20/);
+        expect(addEveningPlayer(later, ' Cleo ', at).player).toEqual({ id: 'q3', name: 'Cleo', joinedAt: at, leftAt: null });
+        for (const name of ['D', 'E', 'F', 'G', 'H']) addEveningPlayer(later, name);
+        expect(later.players.map(player => player.id)).toEqual(['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8']);
+        expect(addEveningPlayer(later, 'Ivo').error).toMatch(/2 to 8/);
+
+        // gone home: not in a new game, back again; the time it first went home is kept
+        const left = { players: [{ id: 'q1', name: 'Anna' }, { id: 'q2', name: 'Ben' }, { id: 'q3', name: 'Cleo' }] };
+        const game = { ...x01Won(['q1', 'q3'], new Date()).data, flyingDarts: 'off', quickPlayers: names(['q1', 'q3']) };
+        expect(setEveningPlayerLeft(left, 'q3', true, at).player.leftAt).toBe(at);
+        expect(setEveningPlayerLeft(left, 'q3', true, new Date()).player.leftAt).toBe(at);
+        expect(eveningGameError(left, 'x01', game)).toMatch(/went home/);
+        expect(eveningReport(left, [x01Won(['q3', 'q1'], at)]).table[0]).toMatchObject({ id: 'q3', wins: 1 });
+        expect(eveningView({ ...left, createdAt: at }, []).players[2]).toEqual({ id: 'q3', name: 'Cleo', joinedAt: null, leftAt: at });
+        expect(setEveningPlayerLeft(left, 'q3', false).player.leftAt).toBeNull();
+        expect(eveningGameError(left, 'x01', game)).toBeNull();
+        expect(setEveningPlayerLeft(left, 'q9', true).error).toMatch(/no such player/);
     });
 
     it('reports the table, the awards, the head to head and the form', () => {

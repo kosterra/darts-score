@@ -33,9 +33,11 @@ const keepSetup = (id, setup) => {
 const NextGame = ({ evening, onStart, busy }) => {
     const [settings, setSettings] = useState(() => ({ ...QUICK_DEFAULTS, ...(readSetup(evening.id) ?? {}) }));
     const [size, setSize] = useState(2);
-    const suggestion = useMemo(() => suggestNext(evening.players, evening.games, size), [evening.players, evening.games, size]);
+    // who went home is not chosen any more
+    const here = useMemo(() => evening.players.filter(player => !player.leftAt), [evening.players]);
+    const suggestion = useMemo(() => suggestNext(here, evening.games, size), [here, evening.games, size]);
     const [chosen, setChosen] = useState(null);
-    const players = chosen ?? suggestion;
+    const players = (chosen ?? suggestion).filter(id => here.some(player => player.id === id));
     const toggle = (id) => setChosen(current => {
         const list = current ?? suggestion;
         if (list.includes(id)) return list.filter(entry => entry !== id);
@@ -58,7 +60,7 @@ const NextGame = ({ evening, onStart, busy }) => {
             <p className="text-faint fs-8 mt-0">{chosen ? t('Tap the players in the order they throw (2 to 4).') : t('Suggested: who played least, against someone new. Tap to choose others.')}</p>
             {/* the cards of the setup pages, numbered in the order they throw */}
             <div className="player-picker-grid" role="group" aria-label={t('Players of the evening')}>
-                {evening.players.map(player => {
+                {here.map(player => {
                     const place = players.indexOf(player.id);
                     const played = playedBy(player.id);
                     return (
@@ -79,7 +81,7 @@ const NextGame = ({ evening, onStart, busy }) => {
                         <div className="col d-flex justify-content-center">
                             <SelectButton
                                 value={size}
-                                options={[2, 3, 4].filter(count => count <= evening.players.length).map(count => ({ label: String(count), value: count }))}
+                                options={[2, 3, 4].filter(count => count <= Math.max(2, here.length)).map(count => ({ label: String(count), value: count }))}
                                 onChange={(e) => e.value && setSize(e.value)}
                                 className="p-selectbutton-pills flex-wrap"
                                 aria-label={t('Players in a game')}

@@ -8,8 +8,9 @@ export default (mongoose) => {
     {
       // e.g. "Friday at Lena's"; empty: the date names it
       name:       { type: String, default: '', trim: true },
-      // the players of the evening, each with the same id in all its games
-      players:    { type: [{ _id: false, id: String, name: String }], default: [] },
+      // the players of the evening, each with the same id in all its games; who came
+      // later (joinedAt) and who went home (leftAt, no longer chosen for a game)
+      players:    { type: [{ _id: false, id: String, name: String, joinedAt: { type: Date, default: null }, leftAt: { type: Date, default: null } }], default: [] },
       // only the browser with the key plays and changes it: its hash (its games carry the same)
       keyHash:    { type: String, required: true },
       // the link to follow it read-only

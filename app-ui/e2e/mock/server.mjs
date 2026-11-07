@@ -40,7 +40,7 @@ import { activityInsights, playersInsights } from '../../../app-api/src/utils/ad
 import { quickGameView } from '../../../app-api/src/utils/quick.games.js';
 import { x01StatsOf } from '../../../app-api/src/controllers/x01.stats.controller.js';
 import { storedOf } from '../../../app-api/src/utils/game.view.js';
-import { eveningView, eveningReport, gameSummary, newEvening, eveningGameError, eveningError } from '../../../app-api/src/utils/evenings.js';
+import { eveningView, eveningReport, gameSummary, newEvening, eveningGameError, eveningError, addEveningPlayer, setEveningPlayerLeft } from '../../../app-api/src/utils/evenings.js';
 import { normalizeClubRules, normalizeGamePreferences, ruleViolations } from '../../../app-api/src/rules/club.rules.js';
 const quickGames = new Map();
 const evenings = new Map();
@@ -454,6 +454,15 @@ http.createServer((req, res) => {
                 const evening = evenings.get(evEnd[1]);
                 evening.endedAt ??= new Date();
                 return send(res, 200, eveningView(evening, gamesOfEvening(evEnd[1]), { owner: true }));
+            }
+            // someone arrives later, goes home or is back
+            const evPlayers = path.match(/^\/api\/public\/evenings\/(e\d+)\/players(?:\/(q\d))?$/);
+            if (evPlayers && evenings.has(evPlayers[1])) {
+                const evening = evenings.get(evPlayers[1]);
+                if (evening.endedAt) return send(res, 409, { message: 'This evening is over. Start a new one for the next.' });
+                const { error } = evPlayers[2] ? setEveningPlayerLeft(evening, evPlayers[2], Boolean(json.left)) : addEveningPlayer(evening, json.name);
+                if (error) return send(res, 422, { errors: [error] });
+                return send(res, evPlayers[2] ? 200 : 201, eveningView(evening, gamesOfEvening(evPlayers[1]), { owner: true }));
             }
             const ev = path.match(/^\/api\/public\/evenings\/(e\d+)(\/games)?$/);
             if (ev && evenings.has(ev[1])) {
