@@ -2,7 +2,7 @@ import { QUICK_KEEP_DAYS } from '../utils/quick.games.js';
 
 // A darts evening without an account (see utils/evenings.js): the players by
 // name, played as quick games, with a link to share it read-only; gone after
-// a month, unless it became a club (its games were taken over then).
+// a month, also when it became a club (its players and games live on there).
 export default (mongoose) => {
   const schema = mongoose.Schema(
     {
@@ -18,6 +18,10 @@ export default (mongoose) => {
       // the club it became, and when
       club:       { type: mongoose.Schema.Types.ObjectId, ref: 'club', default: null },
       adoptedAt:  { type: Date, default: null },
+      // while it is being made a club: since when (only one request at a time does it)
+      adopting:   { type: Date, default: null },
+      // the club's player of each player of the evening, for a game finished after it became a club
+      clubPlayers: { type: [{ _id: false, id: String, player: { type: mongoose.Schema.Types.ObjectId, ref: 'player' } }], default: [] },
       // when it ended: by hand, or by itself 12 hours after its last game (see utils/evenings.js)
       endedAt:    { type: Date, default: null },
       // counted in the all-time tally of darts evenings played (see utils/quick.tally.js)

@@ -5,6 +5,7 @@ import { hashKey, keyMatches, newKey, quickGameError, quickGameView, winnerOf } 
 import { storedOf } from '../utils/game.view.js';
 import { checkLater, noteQuickGame } from '../utils/spam.guard.js';
 import { countQuickGame, quickTally } from '../utils/quick.tally.js';
+import { takeOverLateGame } from '../utils/evenings.js';
 
 const QuickGame = db.quickGame;
 
@@ -84,6 +85,8 @@ export const update = async (req, res) => {
     game.markModified('data');
     await game.save();
     await countQuickGame(game);
+    // a game of an evening that became a club while it ran goes into the club once finished
+    await takeOverLateGame(game);
     res.json(quickGameView(game));
 };
 
